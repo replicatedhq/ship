@@ -1,0 +1,75 @@
+# example, enter or POST to console.replicated.com
+---
+assets:
+  v1:
+  - github:
+      repo: github.com/replicatedhq/superbigtool-k8s
+      ref: 8fcaebe55af67fe6789fa678faaa76fa867fbc
+      path: '**/*.yml'
+      dest: ./k8s/
+      private: true
+  - github:
+      repo: github.com/replicatedhq/superbigtool-enterprise
+      ref: aef8fe5afe5af67fe6789fa678fe876fa867fbc
+      path: release/k8s/*.sh
+      dest: ./scripts/
+      private: true
+  - inline:
+      contents: |
+        #!/bin/sh
+        kubectl delete ns {{ ConfigOption "namespace" }}
+      dest: ./uninstall.sh
+      mode: 0777
+  - docker:
+      image: quay.io/superbigtool/api:2.1.0
+      private: true
+      dest: docker/api.tar
+      no_template: true
+  - docker:
+      image: postgres:10.1
+      dest: docker/postgres.tar
+      private: false
+      no_template: true
+
+config:
+  v1:
+    - name: cluster_info
+      title: Kubernetes Cluster Info
+      description: information about your kubernetes cluster
+      items:
+      - name: k8s_namesapce
+        title: Namespace to Deploy into
+        type: text
+      - name: worker_replicas
+        title: Number of Workers to Deploy
+        type: text
+
+lifecycle:
+  v1:
+  - message:
+      contents: |
+        This tool will prepare assets so you can deploy Cooltool-Enterpise
+        to your existing Kubernetes cluster
+  - render: {}
+  - message:
+     contents: |
+        SuperBigTool is ready to deploy to your kubernetes cluster.
+
+        If you have kubectl configured locally, you can
+        run the following command to deploy SuperBigTool to
+        your kubernetes cluster:
+
+            bash ./scripts/install.sh
+
+        To upgrade an existing installation, use
+
+            bash ./scripts/upgrade.sh
+
+        To uninstall SuperBigTool, run
+
+            bash ./uninstall.sh
+  - message:
+     level: warn
+     contents: |
+       A state file has been written to {{.StateFilePath}} -- please store it
+       somewhere safe, you'll need it if you want to recover or update this installation of SuperBigTool.
