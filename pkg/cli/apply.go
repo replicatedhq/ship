@@ -20,7 +20,7 @@ for installing an installation
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rc, err := ship.FromViper(viper.GetViper())
 			if err != nil {
-				return errors.Wrap(err, "initialize daemon")
+				return errors.Wrap(err, "initialize")
 			}
 			err = rc.Execute(context.Background())
 			if err != nil {
