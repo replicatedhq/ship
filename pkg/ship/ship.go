@@ -17,12 +17,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	errNoCustomer     = errors.New("Cannot get ship if no customer ID provided on startup, use POST endpoint providing customer_id and optionally installation_id in body")
-	errNoCustomerPost = errors.New("customer_id must be present")
-	errInternal       = errors.New("Internal Error")
-)
-
 // Ship configures an application
 type Ship struct {
 	Logger kitlog.Logger

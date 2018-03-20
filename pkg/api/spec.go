@@ -1,6 +1,6 @@
 package api
 
-// Spec is the top level AppSpec document that defines an application
+// Spec is the top level Ship document that defines an application
 type Spec struct {
 	Assets    Assets   `json:"assets" yaml:"assets" hcl:"asset"`
 	Lifecycle Lifecyle `json:"lifecycle" yaml:"lifecycle" hcl:"lifecycle"`
