@@ -32,7 +32,7 @@ type Ship struct {
 	UI         cli.Ui
 }
 
-// ResolverFromViper gets an instance using viper to pull config
+// FromViper gets an instance using viper to pull config
 func FromViper(v *viper.Viper) (*Ship, error) {
 	graphql, err := specs.GraphQLClientFromViper(v)
 	if err != nil {
@@ -67,7 +67,8 @@ func (d *Ship) Execute(ctx context.Context) error {
 	debug := level.Debug(kitlog.With(d.Logger, "method", "execute"))
 
 	debug.Log("method", "configure", "phase", "initialize",
-		"version", version.GitSHA(),
+		"version", version.Version(),
+		"gitSHA", version.GitSHA(),
 		"buildTime", version.BuildTime(),
 		"buildTimeFallback", version.GetBuild().TimeFallback,
 		"customer_id", d.CustomerID,
@@ -101,14 +102,13 @@ func (d *Ship) Execute(ctx context.Context) error {
 		Spec:           spec,
 	}
 
-	lc.Run(ctx)
-
-	return nil
-
+	return errors.Wrap(lc.Run(ctx), "run lifecycle")
 }
 
+// OnError can be called by the parent cobra commands if something goes wrong
 func (d *Ship) OnError(err error) {
 	d.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
 	d.UI.Output("")
+	// TODO this should probably be part of lifecycle
 	d.UI.Info("There was an error configuring the application. Please re-run with --log_level=debug and include the output in any support inquiries.")
 }

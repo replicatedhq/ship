@@ -70,14 +70,11 @@ func (c *GraphQLClient) GetSpec(customerID, installationID string) (string, erro
 	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
 	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", customerID, installationID)))
 
-	graphQLRequest := &http.Request{
-		URL: c.GQLServer,
-		Header: map[string][]string{
-			"Authorization": {"Basic " + authString},
-			"Content-Type":  {"application/json"},
-		},
-		Method: http.MethodPost,
-		Body:   bodyReader,
+	graphQLRequest, err := http.NewRequest(http.MethodPost, c.GQLServer.String(), bodyReader)
+
+	graphQLRequest.Header = map[string][]string{
+		"Authorization": {"Basic " + authString},
+		"Content-Type":  {"application/json"},
 	}
 
 	resp, err := http.DefaultClient.Do(graphQLRequest)

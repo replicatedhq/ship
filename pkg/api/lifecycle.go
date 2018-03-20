@@ -1,6 +1,7 @@
 package api
 
-type Lifecyle struct {
+// A Lifecycle  is the top-level lifecycle object
+type Lifecycle struct {
 	V1 []Step `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
 }
 

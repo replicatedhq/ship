@@ -9,10 +9,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ApplyCmd runs the core Ship workflow
 func ApplyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "apply",
-		Short: "manage and serve on-prem ship data",
+		Short: "manage and generate on-prem applications for use with Ship",
 		Long: `ship apply will generate assets
 for installing an installation
 `,

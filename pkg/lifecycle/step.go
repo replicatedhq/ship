@@ -3,11 +3,15 @@ package lifecycle
 import (
 	"context"
 
+	"fmt"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 )
+
+var _ Executor = &stepExecutor{}
 
 type stepExecutor struct {
 	step *api.Step
@@ -32,5 +36,5 @@ func (s *stepExecutor) Execute(ctx context.Context, runner *Runner) error {
 }
 
 func (s *stepExecutor) String() string {
-	return "ok"
+	return fmt.Sprintf("Step{step=%v}", s.step)
 }

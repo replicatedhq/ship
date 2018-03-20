@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/replicatedcom/ship/pkg/specs"
+	"github.com/replicatedcom/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,22 +15,25 @@ var cfgFile string
 // RootCmd represents the base command when called without any subcommands
 func RootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "ship", // "It's not a codeshare agreement"
+		Use:   "ship",
 		Short: "manage and serve on-prem ship data",
 		Long: `ship allows for managing and securely delivering
 application specs to be used in on-prem installations.
 `,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			version.Init()
+		},
 	}
 	cobra.OnInitialize(initConfig)
 
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/replicated/ship.yaml)")
 	cmd.PersistentFlags().StringP("graphql_api_address", "g", "https://pg.replicated.com", "Upstream GraphQL server address")
 	cmd.PersistentFlags().String("log_level", "off", "Log level")
-	cmd.PersistentFlags().StringP("customer_id", "l", "", "Customer ID for which to query app specs")
-	cmd.PersistentFlags().StringP("installation_id", "k", "", "Installation ID for which to query app specs")
+	cmd.PersistentFlags().StringP("customer_id", "c", "", "Customer ID for which to query app specs")
+	cmd.PersistentFlags().StringP("installation_id", "i", "", "Installation ID for which to query app specs")
 
 	if specs.AllowInlineSpecs {
-		cmd.PersistentFlags().StringP("studio_file", "s", "", "useful for debugging your specs on the command line. Without having to make round trips to the server")
+		cmd.PersistentFlags().StringP("studio_file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	}
 
 	viper.BindPFlags(cmd.Flags())

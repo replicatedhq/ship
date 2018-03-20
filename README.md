@@ -23,6 +23,13 @@ in this directory, with the log level set to debug.
 make build run
 ```
 
+To add recommended git hooks
+
+```bash
+make githooks
+```
+
+
 ### Architecture & Foundations
 
 Entrypoint is a Cobra command, two commands are `ship apply` and `ship plan`. Right now `plan` is the same,

@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/specs"
 )
 
+// A Runner runs a lifecycle using the passed Spec
 type Runner struct {
 	CustomerID     string
 	InstallationID string
@@ -20,6 +21,7 @@ type Runner struct {
 	Spec           *api.Spec
 }
 
+// Run runs a lifecycle using the passed Spec
 func (r *Runner) Run(ctx context.Context) error {
 	level.Debug(r.Logger).Log("event", "lifecycle.execute")
 

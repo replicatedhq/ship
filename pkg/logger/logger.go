@@ -40,6 +40,8 @@ func FromViper(v *viper.Viper) log.Logger {
 
 func withLevel(logger log.Logger, lvl string) log.Logger {
 	switch lvl {
+	case "debug":
+		return level.NewFilter(logger, level.AllowDebug())
 	case "info":
 		return level.NewFilter(logger, level.AllowInfo())
 	case "warn":

@@ -15,14 +15,18 @@ import (
 )
 
 var (
-	AllowInlineSpecs = true // We might set this to false in the prod build, IDK
+	// AllowInlineSpecs enables the use of a local file instead of a properly-licensed customer ID
+	// we might set this to false in the prod build, or just refuse to manage state if studio is used, not sure
+	AllowInlineSpecs = true
 )
 
+// A Resolver resolves specs
 type Resolver struct {
 	Logger     log.Logger
 	StudioFile string
 }
 
+// ResolverFromViper builds a resolver from a Viper instance
 func ResolverFromViper(v *viper.Viper) *Resolver {
 	return &Resolver{
 		Logger:     logger.FromViper(v),
@@ -30,6 +34,8 @@ func ResolverFromViper(v *viper.Viper) *Resolver {
 	}
 }
 
+// ResolveSpecs uses the passed config options to get specs from pg.replicated.com or
+// from a local studio_file if so configured
 func (r *Resolver) ResolveSpecs(ctx context.Context) (*api.Spec, error) {
 	var spec api.Spec
 	var rawSpec map[string]interface{}

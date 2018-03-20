@@ -2,6 +2,7 @@ package api
 
 import "os"
 
+// Assets is the top level assets object
 type Assets struct {
 	V1 []Asset `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
 }

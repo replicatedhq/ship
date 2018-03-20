@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// PlanCmd runs the core Ship workflow, but sets a flag to disable asset generation and
+// state management
 func PlanCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plan",

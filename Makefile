@@ -24,7 +24,7 @@ vet: fmt
 
 lint: vet
 	golint ./pkg/...
-	golint ./pkg/...
+	golint ./cmd/...
 
 test: lint
 	go test -v ./pkg/...
@@ -38,9 +38,3 @@ _build:
 
 run:
 	./bin/ship apply --log_level=debug --studio_file=./app.yml
-
-integration-test-cloud:
-	./bin/ship integration-test --target http://localhost:8036/ship/v1 --verbose
-
-integration-test-licensed:
-	./bin/ship integration-test --target http://localhost:8035/ship/v1 --verbose
