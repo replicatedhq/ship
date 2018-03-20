@@ -6,10 +6,10 @@ dep-deps:
 	go get -u github.com/golang/dep/cmd/dep
 
 githooks:
-	echo 'make test' > .git/pre-push
-	chmod +x .git/pre-push
-	echo 'make fmt' > .git/pre-commit
-	chmod +x .git/pre-commit
+	echo 'make test' > .git/hooks/pre-push
+	chmod +x .git/hooks/pre-push
+	echo 'make fmt' > .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
 
 dep:
 	dep ensure

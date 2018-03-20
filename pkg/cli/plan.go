@@ -21,10 +21,10 @@ state.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rc, err := ship.FromViper(viper.GetViper())
-			rc.PlanOnly = true
 			if err != nil {
-				return errors.Wrap(err, "initialize daemon")
+				return errors.Wrap(err, "initialize")
 			}
+			rc.PlanOnly = true
 			err = rc.Execute(context.Background())
 			if err != nil {
 				rc.OnError(err)
