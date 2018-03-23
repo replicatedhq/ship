@@ -52,7 +52,7 @@ We use pflags + viper for resolving config. Ideally Viper can also be used to re
 
 We use go-kit/log for logging, but the default log level is `off` -- For the most part, we want to suppress all output unless the Vendor has specified it as a message in `lifecycle`.
 
-We do, however, do lots of debug logging, and allow a `log_level` param to enable this.
+We do lots of debug logging, and allow a `log-level` param to enable this.
 
 
 #### Spec

@@ -27,9 +27,9 @@ application specs to be used in on-prem installations.
 	cobra.OnInitialize(initConfig)
 
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/replicated/ship.yaml)")
-	cmd.PersistentFlags().StringP("graphql_api_address", "g", "https://pg.replicated.com", "Upstream GraphQL server address")
-	cmd.PersistentFlags().String("log_level", "off", "Log level")
-	cmd.PersistentFlags().StringP("customer_id", "c", "", "Customer ID for which to query app specs")
+	cmd.PersistentFlags().StringP("graphql_api_address", "g", "https://pg.replicated.com/graphql", "Upstream GraphQL server address")
+	cmd.PersistentFlags().String("log-level", "off", "Log level")
+	cmd.PersistentFlags().String("customer-id", "", "Customer ID for which to query app specs")
 	cmd.PersistentFlags().StringP("installation_id", "i", "", "Installation ID for which to query app specs")
 
 	if specs.AllowInlineSpecs {

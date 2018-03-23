@@ -50,11 +50,11 @@ func TestRender(t *testing.T) {
 			}
 
 			err := step.Execute(ctx)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 
 			for path, expected := range test.Expect {
 				contents, err := mockFS.ReadFile(path)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.Equal(t, expected, string(contents))
 			}
 
@@ -64,8 +64,8 @@ func TestRender(t *testing.T) {
 func loadFixtureData(t *testing.T, path string) []testcase {
 	tests := make([]testcase, 1)
 	contents, err := ioutil.ReadFile(path)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = yaml.UnmarshalStrict(contents, &tests)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	return tests
 }

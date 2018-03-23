@@ -9,14 +9,21 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
 const getAppspecQuery = `
-query ship($channel: String) {
-  ship(channel: $channel) {
-	spec
+query {
+  shipRelease {
+    id
+    channelId
+    channelName
+    semver
+    releaseNotes
+    spec
+    created
   }
 }`
 
@@ -37,12 +44,27 @@ type GraphQLRequest struct {
 type GraphQLError struct {
 	Locations []map[string]interface{} `json:"locations"`
 	Message   string                   `json:"message"`
+	Code      string                   `json:"code"`
 }
 
 // GraphQLResponse is the top-level response object from the graphql server
 type GraphQLResponse struct {
-	Data   interface{}    `json:"data,omitempty"`
-	Errors []GraphQLError `json:"errors,omitempty"`
+	Data   ShipReleaseWrapper `json:"data,omitempty"`
+	Errors []GraphQLError     `json:"errors,omitempty"`
+}
+
+type ShipReleaseWrapper struct {
+	ShipRelease ShipRelease `json:"shipRelease"`
+}
+
+type ShipRelease struct {
+	ID           string `json:"id"`
+	ChannelID    string `json:"channelId"`
+	ChannelName  string `json:"channelName"`
+	Semver       string `json:"semver"`
+	ReleaseNotes string `json:"releaseNotes"`
+	Spec         string `json:"spec"`
+	Created      string `json:"created"`
 }
 
 // GraphQLClientFromViper builds a new client using a viper instance
@@ -54,18 +76,19 @@ func GraphQLClientFromViper(v *viper.Viper) (*GraphQLClient, error) {
 	}
 	return &GraphQLClient{
 		GQLServer: server,
+		Client:    http.DefaultClient,
 	}, nil
 }
 
-// GetSpec gets an Payload payload from the graphql server
-func (c *GraphQLClient) GetSpec(customerID, installationID string) (string, error) {
+// GetRelease gets a payload from the graphql server
+func (c *GraphQLClient) GetRelease(customerID, installationID string) (*ShipRelease, error) {
 	requestObj := GraphQLRequest{
 		Query: getAppspecQuery,
 	}
 
 	body, err := json.Marshal(requestObj)
 	if err != nil {
-		return "", errors.Wrap(err, "marshal request")
+		return nil, errors.Wrap(err, "marshal request")
 	}
 
 	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
@@ -78,25 +101,30 @@ func (c *GraphQLClient) GetSpec(customerID, installationID string) (string, erro
 		"Content-Type":  {"application/json"},
 	}
 
-	resp, err := http.DefaultClient.Do(graphQLRequest)
+	resp, err := c.Client.Do(graphQLRequest)
 	if err != nil {
-		return "", errors.Wrap(err, "send request")
+		return nil, errors.Wrap(err, "send request")
 	}
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "read body")
+		return nil, errors.Wrap(err, "read body")
 	}
 
-	ship := GraphQLResponse{}
+	shipResponse := GraphQLResponse{}
 
-	if err := json.Unmarshal(responseBody, &ship); err != nil {
-		return "", errors.Wrap(err, "unmarshal response")
+	if err := json.Unmarshal(responseBody, &shipResponse); err != nil {
+		return nil, errors.Wrap(err, "unmarshal response")
 	}
 
-	if ship.Errors != nil && len(ship.Errors) > 0 {
-		return "", errors.Wrap(errors.New(ship.Errors[0].Message), "graphql response")
+	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
+		var multiErr *multierror.Error
+		for _, err := range shipResponse.Errors {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
+
+		}
+		return nil, multiErr.ErrorOrNil()
 	}
 
-	return "", nil
+	return &shipResponse.Data.ShipRelease, nil
 }
