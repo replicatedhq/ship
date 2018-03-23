@@ -2,37 +2,32 @@ package lifecycle
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
 )
 
-var _ Executor = &messageExecutor{}
-
-type messageExecutor struct {
-	step *api.Message
+type messenger struct {
+	Logger log.Logger
+	UI     cli.Ui
 }
 
-func (e *messageExecutor) Execute(ctx context.Context, runner *Runner) error {
-	debug := level.Debug(log.With(runner.Logger, "step.type", "message"))
+func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
+	debug := level.Debug(log.With(e.Logger, "step.type", "message"))
 
-	debug.Log("event", "step.execute", "step.level", e.step.Level)
+	debug.Log("event", "step.execute", "step.level", step.Level)
 
-	switch e.step.Level {
+	switch step.Level {
 	case "error":
-		runner.UI.Error(e.step.Contents)
+		e.UI.Error(step.Contents)
 	case "warn":
-		runner.UI.Warn(e.step.Contents)
+		e.UI.Warn(step.Contents)
 	case "debug":
-		runner.UI.Output(e.step.Contents)
+		e.UI.Output(step.Contents)
 	default:
-		runner.UI.Info(e.step.Contents)
+		e.UI.Info(step.Contents)
 	}
 	return nil
-}
-
-func (e *messageExecutor) String() string {
-	return fmt.Sprintf("Message{Contents=%s}", e.step.Contents)
 }

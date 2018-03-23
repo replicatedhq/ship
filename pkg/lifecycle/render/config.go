@@ -15,7 +15,6 @@ import (
 
 // ConfigResolver resolves config values via CLI or UI
 type ConfigResolver struct {
-	Step   *api.Render
 	Fs     afero.Afero
 	Logger log.Logger
 	Spec   *api.Spec
@@ -23,6 +22,7 @@ type ConfigResolver struct {
 	Viper  *viper.Viper
 }
 
+// ResolveConfig will get all the config values specified in the spec
 func (c *ConfigResolver) ResolveConfig(ctx context.Context) (map[string]interface{}, error) {
 	debug := level.Debug(log.With(c.Logger, "step.type", "render"))
 	debug.Log("event", "config.resolve")

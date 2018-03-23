@@ -3,8 +3,6 @@ package lifecycle
 import (
 	"context"
 
-	"fmt"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -12,45 +10,26 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 )
 
-var _ Executor = &stepExecutor{}
-
 type stepExecutor struct {
-	step *api.Step
+	Logger    log.Logger
+	renderer  *render.Renderer
+	messenger *messenger
 }
 
-func (s *stepExecutor) Execute(ctx context.Context, runner *Runner) error {
-	debug := level.Debug(log.With(runner.Logger, "method", "execute"))
+func (s *stepExecutor) Execute(ctx context.Context, step *api.Step) error {
+	debug := level.Debug(log.With(s.Logger, "method", "execute"))
 
-	if s.step.Message != nil {
+	if step.Message != nil {
 		debug.Log("event", "step.resolve", "type", "message")
-		err := (&messageExecutor{s.step.Message}).Execute(ctx, runner)
+		err := s.messenger.Execute(ctx, step.Message)
 		debug.Log("event", "step.complete", "type", "message", "err", err)
 		return errors.Wrap(err, "execute message step")
-	} else if s.step.Render != nil {
+	} else if step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "render")
-		err := (&render.Renderer{
-			Step:   s.step.Render,
-			Fs:     runner.Fs,
-			Logger: runner.Logger,
-			Spec:   runner.Spec,
-			UI:     runner.UI,
-			Viper:  runner.Viper,
-			ConfigResolver: &render.ConfigResolver{
-				Step:   s.step.Render,
-				Fs:     runner.Fs,
-				Logger: runner.Logger,
-				Spec:   runner.Spec,
-				UI:     runner.UI,
-				Viper:  runner.Viper,
-			},
-		}).Execute(ctx)
+		err := s.renderer.Execute(ctx, step.Render)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
 	}
 
 	return nil
-}
-
-func (s *stepExecutor) String() string {
-	return fmt.Sprintf("Step{step=%v}", s.step)
 }

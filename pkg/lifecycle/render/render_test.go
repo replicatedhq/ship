@@ -28,10 +28,7 @@ func TestRender(t *testing.T) {
 	ctx := context.Background()
 	mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
-	step := &Renderer{
-		Step: &api.Render{
-			SkipPlan: true,
-		},
+	renderer := &Renderer{
 		Fs:     mockFS,
 		Logger: log.NewNopLogger(),
 	}
@@ -43,17 +40,14 @@ func TestRender(t *testing.T) {
 			mc := minimock.NewController(t)
 			mockUI := NewUiMock(mc)
 			mockViper := viper.New()
-			step.UI = mockUI
-			step.Spec = test.Spec
-			step.Viper = mockViper
+			renderer.Spec = test.Spec
 
-			step.ConfigResolver = &ConfigResolver{
-				Step:   step.Step,
-				Fs:     step.Fs,
-				Logger: step.Logger,
-				Spec:   step.Spec,
-				UI:     step.UI,
-				Viper:  step.Viper,
+			renderer.ConfigResolver = &ConfigResolver{
+				Fs:     renderer.Fs,
+				Logger: renderer.Logger,
+				Spec:   renderer.Spec,
+				UI:     mockUI,
+				Viper:  mockViper,
 			}
 
 			func() {
@@ -71,7 +65,7 @@ func TestRender(t *testing.T) {
 					mockViper.Set(key, value)
 				}
 
-				err := step.Execute(ctx)
+				err := renderer.Execute(ctx, &api.Render{})
 				assert.NoError(t, err)
 
 				for path, expected := range test.Expect {

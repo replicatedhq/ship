@@ -10,23 +10,18 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/hashicorp/go-multierror"
-	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
 // A Renderer takes a resolved spec, collects config values, and renders assets
 type Renderer struct {
+	Logger         log.Logger
 	ConfigResolver *ConfigResolver
 
-	Step   *api.Render
-	Fs     afero.Afero
-	Logger log.Logger
-	Spec   *api.Spec
-	UI     cli.Ui
-	Viper  *viper.Viper
+	Fs   afero.Afero
+	Spec *api.Spec
 }
 
 // A Plan is a list of PlanSteps to execute
@@ -41,9 +36,9 @@ type PlanStep struct {
 }
 
 // Execute renders the assets and config
-func (r *Renderer) Execute(ctx context.Context) error {
+func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
-	debug.Log("event", "step.execute", "step.plan", r.Step.SkipPlan)
+	debug.Log("event", "step.execute", "step.plan", step.SkipPlan)
 	var plan Plan
 
 	templateContext, err := r.ConfigResolver.ResolveConfig(ctx)
@@ -65,7 +60,7 @@ func (r *Renderer) Execute(ctx context.Context) error {
 		}
 	}
 
-	if !r.Step.SkipPlan {
+	if !step.SkipPlan {
 		// print plan
 		// confirm plan
 	}
@@ -85,10 +80,6 @@ func (r *Renderer) Execute(ctx context.Context) error {
 	// else:
 	//      warnStudio
 	return nil
-}
-
-func (r *Renderer) String() string {
-	return fmt.Sprintf("Render{SkipPlan=%v}", r.Step.SkipPlan)
 }
 
 func (r *Renderer) inlineStep(inline *api.InlineAsset, templateContext map[string]interface{}) PlanStep {
