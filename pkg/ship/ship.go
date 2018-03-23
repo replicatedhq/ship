@@ -24,8 +24,12 @@ type Ship struct {
 
 	Logger kitlog.Logger
 
-	Port           int
+	Port int
+
 	CustomerID     string
+	ReleaseSemver  string
+	ReleaseID      string
+	ChannelID      string
 	InstallationID string
 	PlanOnly       bool
 
@@ -55,9 +59,13 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		Resolver: resolver,
 		Client:   graphql,
 
-		Port:           v.GetInt("port"),
-		CustomerID:     v.GetString("customer-id"),
-		InstallationID: v.GetString("installation_id"),
+		Port:       v.GetInt("port"),
+		CustomerID: v.GetString("customer-id"),
+
+		ReleaseID:      v.GetString("release-id"),
+		ReleaseSemver:  v.GetString("release-semver"),
+		ChannelID:      v.GetString("channel-id"),
+		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
 
 		UI: &cli.ColoredUi{
@@ -84,7 +92,7 @@ func (d *Ship) Execute(ctx context.Context) error {
 		"buildTime", version.BuildTime(),
 		"buildTimeFallback", version.GetBuild().TimeFallback,
 		"customer-id", d.CustomerID,
-		"installation_id", d.InstallationID,
+		"installation-id", d.InstallationID,
 		"plan_only", d.PlanOnly,
 		"studio-file", d.StudioFile,
 		"studio", specs.AllowInlineSpecs,
@@ -94,12 +102,29 @@ func (d *Ship) Execute(ctx context.Context) error {
 	debug.Log("phase", "validate-inputs")
 
 	if d.StudioFile != "" && !specs.AllowInlineSpecs {
-		debug.Log("phase", "load-specs", "error", "unsupported studio-file")
+		debug.Log("phase", "validate-inputs", "error", "unsupported studio-file")
 		return errors.New("unsupported configuration: studio-file")
 
 	}
 
-	spec, err := d.Resolver.ResolveSpecs(ctx, d.CustomerID)
+	if d.CustomerID == "" && d.StudioFile == "" {
+		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
+		d.UI.Output("Missing paramter: customer-id")
+		id, err := d.UI.AskSecret("Please enter your customer ID or license key: ")
+		if err != nil {
+			return errors.Wrap(err, "resolve customer ID")
+		}
+		viper.Set("customer-id", id)
+		d.CustomerID = id
+	}
+
+	spec, err := d.Resolver.ResolveSpecs(ctx, specs.Selector{
+		CustomerID:     d.CustomerID,
+		ReleaseSemver:  d.ReleaseSemver,
+		ReleaseID:      d.ReleaseID,
+		ChannelID:      d.ChannelID,
+		InstallationID: d.InstallationID,
+	})
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
