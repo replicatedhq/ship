@@ -23,6 +23,7 @@ query ship($channel: String) {
 // GraphQLClient is a client for the graphql Payload API
 type GraphQLClient struct {
 	GQLServer *url.URL
+	Client    *http.Client
 }
 
 // GraphQLRequest is a json-serializable request to the graphql server

@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/specs"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // A Runner runs a lifecycle using the passed Spec
@@ -19,6 +21,8 @@ type Runner struct {
 	UI             cli.Ui
 	Logger         log.Logger
 	Spec           *api.Spec
+	Fs             afero.Afero
+	Viper          *viper.Viper
 }
 
 // Run runs a lifecycle using the passed Spec

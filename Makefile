@@ -37,4 +37,4 @@ _build:
 		./cmd/ship
 
 run:
-	./bin/ship apply --log_level=debug --studio_file=./app.yml
+	./bin/ship apply --log_level=debug --studio-file=./app.yml

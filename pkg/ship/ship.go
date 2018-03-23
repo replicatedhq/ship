@@ -14,11 +14,14 @@ import (
 	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/replicatedcom/ship/pkg/version"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // Ship configures an application
 type Ship struct {
+	Viper *viper.Viper
+
 	Logger kitlog.Logger
 
 	Port           int
@@ -39,6 +42,8 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		return nil, errors.Wrap(err, "get graphql client")
 	}
 	return &Ship{
+		Viper: v,
+
 		Logger:   logger.FromViper(v),
 		Resolver: specs.ResolverFromViper(v),
 		Client:   graphql,
@@ -46,7 +51,7 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		Port:           v.GetInt("port"),
 		CustomerID:     v.GetString("customer_id"),
 		InstallationID: v.GetString("installation_id"),
-		StudioFile:     v.GetString("studio_file"),
+		StudioFile:     v.GetString("studio-file"),
 
 		UI: &cli.ColoredUi{
 			OutputColor: cli.UiColorNone,
@@ -74,7 +79,7 @@ func (d *Ship) Execute(ctx context.Context) error {
 		"customer_id", d.CustomerID,
 		"installation_id", d.InstallationID,
 		"plan_only", d.PlanOnly,
-		"studio_file", d.StudioFile,
+		"studio-file", d.StudioFile,
 		"studio", specs.AllowInlineSpecs,
 		"port", d.Port,
 	)
@@ -82,8 +87,8 @@ func (d *Ship) Execute(ctx context.Context) error {
 	debug.Log("phase", "validate-inputs")
 
 	if d.StudioFile != "" && !specs.AllowInlineSpecs {
-		debug.Log("phase", "load-specs", "error", "unsupported studio_file")
-		return errors.New("unsupported configuration: studio_file")
+		debug.Log("phase", "load-specs", "error", "unsupported studio-file")
+		return errors.New("unsupported configuration: studio-file")
 
 	}
 
@@ -100,6 +105,8 @@ func (d *Ship) Execute(ctx context.Context) error {
 		UI:             d.UI,
 		Logger:         d.Logger,
 		Spec:           spec,
+		Fs:             afero.Afero{Fs: afero.NewOsFs()},
+		Viper:          d.Viper,
 	}
 
 	return errors.Wrap(lc.Run(ctx), "run lifecycle")

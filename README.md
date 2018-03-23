@@ -40,7 +40,7 @@ Both commands create an instances of `ship.Ship` which, in order:
 - Validates inputs
 - resolves the spec 
     - default behavior is to load the spec from GQL using a customer ID
-	- `ship` can be run with `--studio_file` flag to skip GQL and just load a spec from the filesystem)
+	- `ship` can be run with `--studio-file` flag to skip GQL and just load a spec from the filesystem)
 - Execute each step of the lifecyle using the resolved specs
 
 
