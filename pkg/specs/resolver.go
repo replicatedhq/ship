@@ -24,45 +24,73 @@ var (
 type Resolver struct {
 	Logger     log.Logger
 	StudioFile string
+	Client     *GraphQLClient
 }
 
 // ResolverFromViper builds a resolver from a Viper instance
-func ResolverFromViper(v *viper.Viper) *Resolver {
+func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
+	graphql, err := GraphQLClientFromViper(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "get graphql client")
+	}
 	return &Resolver{
 		Logger:     logger.FromViper(v),
 		StudioFile: v.GetString("studio-file"),
-	}
+		Client:     graphql,
+	}, nil
 }
 
 // ResolveSpecs uses the passed config options to get specs from pg.replicated.com or
 // from a local studio-file if so configured
-func (r *Resolver) ResolveSpecs(ctx context.Context) (*api.Spec, error) {
+func (r *Resolver) ResolveSpecs(ctx context.Context, customerID string) (*api.Spec, error) {
+	var specYAML []byte
+	var err error
 	var spec api.Spec
-	var rawSpec map[string]interface{}
-	var jsonSpecForDebug []byte
 
-	debug := level.Debug(log.With(r.Logger, "method", "configure"))
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveSpecs"))
 
 	if r.StudioFile != "" && AllowInlineSpecs {
-		debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
-		specHCL, err := ioutil.ReadFile(r.StudioFile)
+		specYAML, err = r.resolveStudioSpec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
+			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
 		}
-		debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specHCL)
-
-		if err := yaml.Unmarshal(specHCL, &spec); err != nil {
-			return nil, errors.Wrapf(err, "decode specs from %s", r.StudioFile)
+	} else {
+		specYAML, err = r.resolveCloudSpec(customerID)
+		debug.Log("spec.resolve", "spec", specYAML, "err", err)
+		if err != nil {
+			return nil, errors.Wrapf(err, "resolve gql spec for %s", customerID)
 		}
 	}
 
-	// else load specs from GraphQL
+	if err := yaml.Unmarshal(specYAML, &spec); err != nil {
+		return nil, errors.Wrapf(err, "decode spec")
 
-	debug.Log("phase", "load-specs",
+	}
+
+	debug.Log("phase", "load-specs", "status", "complete",
 		"resolved-spec", fmt.Sprintf("%+v", spec),
-		"resolved-spec-raw", fmt.Sprintf("%+v", rawSpec),
-		"resolved-spec-raw-json", fmt.Sprintf("%s", jsonSpecForDebug),
 	)
 
 	return &spec, nil
+}
+
+func (r *Resolver) resolveStudioSpec() ([]byte, error) {
+
+	debug := level.Debug(log.With(r.Logger, "method", "resolveStudioSpec"))
+	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
+	specYAML, err := ioutil.ReadFile(r.StudioFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
+	}
+	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
+	return specYAML, nil
+}
+
+func (r *Resolver) resolveCloudSpec(customerID string) ([]byte, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
+
+	debug.Log("phase", "load-specs", "from", "gql", "addr", r.Client.GQLServer.String())
+	spec, err := r.Client.GetRelease(customerID, "")
+	return []byte(spec.Spec), err
+
 }

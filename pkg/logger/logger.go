@@ -32,7 +32,7 @@ func FromViper(v *viper.Viper) log.Logger {
 
 	globalLogger = log.NewLogfmtLogger(os.Stdout)
 	globalLogger = log.With(globalLogger, "ts", log.DefaultTimestampUTC)
-	globalLogger = withLevel(globalLogger, v.GetString("log_level"))
+	globalLogger = withLevel(globalLogger, v.GetString("log-level"))
 	globalLogger = log.With(globalLogger, "caller", fullPathCaller)
 	golog.SetOutput(log.NewStdlibAdapter(level.Debug(globalLogger)))
 	return globalLogger
