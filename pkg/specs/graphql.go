@@ -53,10 +53,12 @@ type GraphQLResponse struct {
 	Errors []GraphQLError     `json:"errors,omitempty"`
 }
 
+// ShipReleaseWrapper wraps the release response form GQL
 type ShipReleaseWrapper struct {
 	ShipRelease ShipRelease `json:"shipRelease"`
 }
 
+// ShipRelease is the release response form GQL
 type ShipRelease struct {
 	ID           string `json:"id"`
 	ChannelID    string `json:"channelId"`

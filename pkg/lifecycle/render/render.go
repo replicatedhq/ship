@@ -17,7 +17,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+// A Renderer takes a resolved spec, collects config values, and renders assets
 type Renderer struct {
+	ConfigResolver *ConfigResolver
+
 	Step   *api.Render
 	Fs     afero.Afero
 	Logger log.Logger
@@ -26,23 +29,28 @@ type Renderer struct {
 	Viper  *viper.Viper
 }
 
+// A Plan is a list of PlanSteps to execute
 type Plan []PlanStep
 
+// A PlanStep describes a single unit of work that Ship will do
+// to render the application
 type PlanStep struct {
 	Description string `json:"plan" yaml:"plan" hcl:"plan"`
 	Execute     func(ctx context.Context) error
 	Err         error
 }
 
+// Execute renders the assets and config
 func (r *Renderer) Execute(ctx context.Context) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.plan", r.Step.SkipPlan)
 	var plan Plan
 
-	templateContext := make(map[string]interface{})
-	r.Viper.Unmarshal(&templateContext)
+	templateContext, err := r.ConfigResolver.ResolveConfig(ctx)
+	if err != nil {
+		return errors.Wrap(err, "resolve config")
+	}
 
-	// read runner.spec.config
 	// gather config values
 	// store to temp state
 	// confirm? (obfuscating passwords)
@@ -57,7 +65,7 @@ func (r *Renderer) Execute(ctx context.Context) error {
 		}
 	}
 
-	if r.Step.SkipPlan {
+	if !r.Step.SkipPlan {
 		// print plan
 		// confirm plan
 	}

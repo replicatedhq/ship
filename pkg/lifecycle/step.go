@@ -35,6 +35,14 @@ func (s *stepExecutor) Execute(ctx context.Context, runner *Runner) error {
 			Spec:   runner.Spec,
 			UI:     runner.UI,
 			Viper:  runner.Viper,
+			ConfigResolver: &render.ConfigResolver{
+				Step:   s.step.Render,
+				Fs:     runner.Fs,
+				Logger: runner.Logger,
+				Spec:   runner.Spec,
+				UI:     runner.UI,
+				Viper:  runner.Viper,
+			},
 		}).Execute(ctx)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
