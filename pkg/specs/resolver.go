@@ -20,6 +20,19 @@ var (
 	AllowInlineSpecs = true
 )
 
+// Selector selects a spec from the Vendor's releases and channels.
+// See pkg/cli/root.go for some more info on which are required and why.
+type Selector struct {
+	// required
+	CustomerID string
+
+	// optional
+	ReleaseSemver  string
+	ReleaseID      string
+	ChannelID      string
+	InstallationID string
+}
+
 // A Resolver resolves specs
 type Resolver struct {
 	Logger     log.Logger
@@ -42,7 +55,7 @@ func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
 
 // ResolveSpecs uses the passed config options to get specs from pg.replicated.com or
 // from a local studio-file if so configured
-func (r *Resolver) ResolveSpecs(ctx context.Context, customerID string) (*api.Spec, error) {
+func (r *Resolver) ResolveSpecs(ctx context.Context, selector Selector) (*api.Spec, error) {
 	var specYAML []byte
 	var err error
 	var spec api.Spec
@@ -55,10 +68,10 @@ func (r *Resolver) ResolveSpecs(ctx context.Context, customerID string) (*api.Sp
 			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
 		}
 	} else {
-		specYAML, err = r.resolveCloudSpec(customerID)
+		specYAML, err = r.resolveCloudSpec(selector.CustomerID)
 		debug.Log("spec.resolve", "spec", specYAML, "err", err)
 		if err != nil {
-			return nil, errors.Wrapf(err, "resolve gql spec for %s", customerID)
+			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector.CustomerID)
 		}
 	}
 

@@ -27,10 +27,17 @@ application specs to be used in on-prem installations.
 	cobra.OnInitialize(initConfig)
 
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/replicated/ship.yaml)")
-	cmd.PersistentFlags().StringP("graphql_api_address", "g", "https://pg.replicated.com/graphql", "Upstream GraphQL server address")
 	cmd.PersistentFlags().String("log-level", "off", "Log level")
-	cmd.PersistentFlags().String("customer-id", "", "Customer ID for which to query app specs")
-	cmd.PersistentFlags().StringP("installation_id", "i", "", "Installation ID for which to query app specs")
+	cmd.PersistentFlags().StringP("customer-endpoint", "e", "https://pg.replicated.com/graphql", "Upstream application spec server address")
+
+	// required
+	cmd.PersistentFlags().String("customer-id", "", "Customer ID for which to query app specs. Required for all ship operations.")
+
+	// optional
+	cmd.PersistentFlags().String("release-id", "", "specific Release ID to pin installation to.")
+	cmd.PersistentFlags().String("release-semver", "", "specific release version to pin installation to. Requires channel-id")
+	cmd.PersistentFlags().String("channel-id", "", "ship channel to install from")
+	cmd.PersistentFlags().StringP("installation-id", "i", "", "Installation ID for which to query app specs")
 
 	if specs.AllowInlineSpecs {
 		cmd.PersistentFlags().StringP("studio-file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")

@@ -71,7 +71,7 @@ type ShipRelease struct {
 
 // GraphQLClientFromViper builds a new client using a viper instance
 func GraphQLClientFromViper(v *viper.Viper) (*GraphQLClient, error) {
-	addr := v.GetString("graphql_api_address")
+	addr := v.GetString("customer-endpoint")
 	server, err := url.ParseRequestURI(addr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parse GQL server address %s", addr)
