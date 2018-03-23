@@ -40,7 +40,7 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 
 	resolver, err := specs.ResolverFromViper(v)
 	if err != nil {
-		return nil, errors.Wrap(err, "get graphql client")
+		return nil, errors.Wrap(err, "get spec resolver")
 	}
 
 	graphql, err := specs.GraphQLClientFromViper(v)

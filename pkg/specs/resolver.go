@@ -46,8 +46,6 @@ func (r *Resolver) ResolveSpecs(ctx context.Context, customerID string) (*api.Sp
 	var specYAML []byte
 	var err error
 	var spec api.Spec
-	var rawSpec map[string]interface{}
-	var jsonSpecForDebug []byte
 
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveSpecs"))
 
@@ -65,14 +63,12 @@ func (r *Resolver) ResolveSpecs(ctx context.Context, customerID string) (*api.Sp
 	}
 
 	if err := yaml.Unmarshal(specYAML, &spec); err != nil {
-		return nil, errors.Wrapf(err, "decode spec", r.StudioFile)
+		return nil, errors.Wrapf(err, "decode spec")
 
 	}
 
-	debug.Log("phase", "load-specs",
+	debug.Log("phase", "load-specs", "status", "complete",
 		"resolved-spec", fmt.Sprintf("%+v", spec),
-		"resolved-spec-raw", fmt.Sprintf("%+v", rawSpec),
-		"resolved-spec-raw-json", fmt.Sprintf("%s", jsonSpecForDebug),
 	)
 
 	return &spec, nil
