@@ -33,7 +33,7 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().StringP("installation_id", "i", "", "Installation ID for which to query app specs")
 
 	if specs.AllowInlineSpecs {
-		cmd.PersistentFlags().StringP("studio_file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+		cmd.PersistentFlags().StringP("studio-file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	}
 
 	viper.BindPFlags(cmd.Flags())

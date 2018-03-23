@@ -30,12 +30,12 @@ type Resolver struct {
 func ResolverFromViper(v *viper.Viper) *Resolver {
 	return &Resolver{
 		Logger:     logger.FromViper(v),
-		StudioFile: v.GetString("studio_file"),
+		StudioFile: v.GetString("studio-file"),
 	}
 }
 
 // ResolveSpecs uses the passed config options to get specs from pg.replicated.com or
-// from a local studio_file if so configured
+// from a local studio-file if so configured
 func (r *Resolver) ResolveSpecs(ctx context.Context) (*api.Spec, error) {
 	var spec api.Spec
 	var rawSpec map[string]interface{}
@@ -44,12 +44,12 @@ func (r *Resolver) ResolveSpecs(ctx context.Context) (*api.Spec, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "configure"))
 
 	if r.StudioFile != "" && AllowInlineSpecs {
-		debug.Log("phase", "load-specs", "from", "studio_file", "file", r.StudioFile)
+		debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
 		specHCL, err := ioutil.ReadFile(r.StudioFile)
 		if err != nil {
 			return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
 		}
-		debug.Log("phase", "load-specs", "from", "studio_file", "file", r.StudioFile, "spec", specHCL)
+		debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specHCL)
 
 		if err := yaml.Unmarshal(specHCL, &spec); err != nil {
 			return nil, errors.Wrapf(err, "decode specs from %s", r.StudioFile)

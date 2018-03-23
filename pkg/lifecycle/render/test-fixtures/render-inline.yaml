@@ -1,0 +1,37 @@
+- name: no config, one inline asset
+  spec:
+    assets:
+      v1:
+        - inline:
+           contents: |
+             #!/bin/sh
+             kubectl delete ns retraced
+           dest: ./uninstall.sh
+           mode: 0777
+  expect:
+    ./uninstall.sh: |
+       #!/bin/sh
+       kubectl delete ns retraced
+
+- name: one config, one inline asset
+  viper_config:
+    namespace: "retraced"
+  spec:
+    config:
+      v1:
+        - name: Kubernetes
+          items:
+            - name: namespace
+              title: Namespace
+    assets:
+      v1:
+        - inline:
+           contents: |
+             #!/bin/sh
+             kubectl delete ns {{ .namespace }}
+           dest: ./uninstall.sh
+           mode: 0777
+  expect:
+    ./uninstall.sh: |
+       #!/bin/sh
+       kubectl delete ns retraced

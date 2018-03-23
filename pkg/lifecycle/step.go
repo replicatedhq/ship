@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 )
 
 var _ Executor = &stepExecutor{}
@@ -27,7 +28,14 @@ func (s *stepExecutor) Execute(ctx context.Context, runner *Runner) error {
 		return errors.Wrap(err, "execute message step")
 	} else if s.step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "render")
-		err := (&renderExecutor{s.step.Render}).Execute(ctx, runner)
+		err := (&render.Renderer{
+			Step:   s.step.Render,
+			Fs:     runner.Fs,
+			Logger: runner.Logger,
+			Spec:   runner.Spec,
+			UI:     runner.UI,
+			Viper:  runner.Viper,
+		}).Execute(ctx)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
 	}
