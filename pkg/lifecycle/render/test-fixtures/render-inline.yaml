@@ -13,13 +13,15 @@
        #!/bin/sh
        kubectl delete ns retraced
 
-- name: one config, one inline asset
+- name: one config, one inline asset, accept default
+  responses:
+    'Enter a value for option "namespace" [retraced]:': ""
   viper_config:
     namespace: "retraced"
   spec:
     config:
       v1:
-        - name: Kubernetes
+        - name: Kubernetes Cluster
           items:
             - name: namespace
               title: Namespace
@@ -31,7 +33,38 @@
              kubectl delete ns {{ .namespace }}
            dest: ./uninstall.sh
            mode: 0777
+  expect_info:
+    - "Configuring Kubernetes Cluster"
   expect:
     ./uninstall.sh: |
        #!/bin/sh
        kubectl delete ns retraced
+
+- name: one config, one inline asset, empty viper
+  responses:
+    'Enter a value for option "namespace":': "retraced"
+  spec:
+    config:
+      v1:
+        - name: Kubernetes Cluster
+          items:
+            - name: namespace
+              title: Namespace
+    assets:
+      v1:
+        - inline:
+           contents: |
+             #!/bin/sh
+             kubectl delete ns {{ .namespace }}
+           dest: ./uninstall.sh
+           mode: 0777
+  expect_info:
+    - "Configuring Kubernetes Cluster"
+  expect:
+    ./uninstall.sh: |
+       #!/bin/sh
+       kubectl delete ns retraced
+
+# password
+# hidden
+# required
