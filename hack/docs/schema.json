@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "assets": {
+      "description": "Assets allows you to configure the application artifacts and deployment manifests will be delivered to end users running your application",
+      "type": "object",
+      "properties": {
+        "v1": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "inline": {
+                "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
+                "examples": [
+                  {
+                    "dest": "install.sh",
+                    "mode": 755,
+                    "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{ship config \"k8s_namespace\" }}"
+                  },
+                  {
+                    "dest": "deployment.yml",
+                    "contents": "\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        app: retraced\n        tier: api\n    spec:\n      volumes:\n        - name: var-run\n          hostPath:\n            path: /var/run/retraced/\n      imagePullSecrets:\n        - name: quayio\n      containers:\n        - name: api\n          image: quay.io/retracedhq/api:{{ tag }}\n          ports:\n            - containerPort: 3000\n\n"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "contents": {
+                    "description": "The contents of the file",
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "A path to which the file should be written when generating assets",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Specifies file mode of the created asset, defaults to `0644`",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "contents",
+                  "dest"
+                ]
+              }
+            },
+            "required": [
+              "inline"
+            ]
+          }
+        }
+      }
+    },
+    "config": {
+      "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on",
+      "type": "object",
+      "properties": {
+        "v1": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "items": {
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "test_proc": {
+                "type": "object",
+                "properties": {
+                  "arg_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "command": {
+                    "type": "string"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "run_on_save": {
+                    "type": "string"
+                  },
+                  "timeout": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "display_name",
+                  "command",
+                  "timeout",
+                  "arg_fields",
+                  "args",
+                  "run_on_save"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "when": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "title",
+              "description",
+              "test_proc",
+              "when",
+              "filters",
+              "items"
+            ]
+          }
+        }
+      }
+    },
+    "lifecycle": {
+      "description": "Lifecycle allows you to customize the messaging and workflow for your end customer.",
+      "type": "object",
+      "properties": {
+        "v1": {
+          "description": "v1 defines lifecycle/v1 steps",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "description": "A `message` step will print a message to the console or UI. An optional `level` argument can be used to specify the severity of the message. The default level is `info`, but `debug`, `warn`, and `error` are available.",
+                "type": "object",
+                "properties": {
+                  "contents": {
+                    "description": "the message to display",
+                    "type": "string"
+                  },
+                  "level": {
+                    "description": "the severity of the message",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "contents"
+                ]
+              },
+              "render": {
+                "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
+                "type": "object",
+                "properties": {
+                  "skip_plan": {
+                    "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "skip_plan"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "assets",
+    "lifecycle",
+    "config"
+  ]
+}

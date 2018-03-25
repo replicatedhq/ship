@@ -1,0 +1,104 @@
+[
+  {
+    "path": "properties.assets",
+    "merge": {
+      "description": "Assets allows you to configure the application artifacts and deployment manifests will be delivered to end users running your application"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.inline",
+    "merge": {
+      "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
+      "examples": [
+        {
+          "dest": "install.sh",
+          "mode": 755,
+          "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{ship config \"k8s_namespace\" }}"
+        },
+        {
+          "dest": "deployment.yml",
+          "contents": "\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        app: retraced\n        tier: api\n    spec:\n      volumes:\n        - name: var-run\n          hostPath:\n            path: /var/run/retraced/\n      imagePullSecrets:\n        - name: quayio\n      containers:\n        - name: api\n          image: quay.io/retracedhq/api:{{ tag }}\n          ports:\n            - containerPort: 3000\n\n"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "contents",
+        "dest"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.inline.properties.contents",
+    "merge": {
+      "description": "The contents of the file"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.inline.properties.dest",
+    "merge": {
+      "description": "A path to which the file should be written when generating assets"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.inline.properties.mode",
+    "merge": {
+      "description": "Specifies file mode of the created asset, defaults to `0644`"
+    }
+  },
+  {
+    "path": "properties.config",
+    "merge": {
+      "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on"
+    }
+  },
+  {
+    "path": "properties.config",
+    "merge": {
+      "description": "Assets allows you to configure the application artifacts and deployment manifests will be delivered to end users running your application"
+    }
+  },
+  {
+    "path": "properties.lifecycle",
+    "merge": {
+      "description": "Lifecycle allows you to customize the messaging and workflow for your end customer."
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1",
+    "merge": {
+      "description": "v1 defines lifecycle/v1 steps"
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.message",
+    "merge": {
+      "description": "A `message` step will print a message to the console or UI. An optional `level` argument can be used to specify the severity of the message. The default level is `info`, but `debug`, `warn`, and `error` are available."
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.message.properties.contents",
+    "merge": {
+      "description": "the message to display"
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.message.properties.level",
+    "merge": {
+      "description": "the severity of the message"
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.render",
+    "merge": {
+      "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application."
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_plan",
+    "merge": {
+      "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets"
+    }
+  },
+  {}
+]
