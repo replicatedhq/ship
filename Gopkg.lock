@@ -51,6 +51,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gojuno/minimock"
+  packages = ["."]
+  revision = "3815f8d1b952717b22f2905b1a91896dfa77fab1"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
   revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
@@ -90,6 +96,12 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mcuadros/go-jsonschema-generator"
+  packages = ["."]
+  revision = "821f57ef6082dacf56d3354643f2ef36e06ebf29"
 
 [[projects]]
   branch = "master"
@@ -202,6 +214,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b1907b28fc05a52ba5c137d7cb468d95a9cd74e219ba2e8b3e5452ef7e26c36"
+  inputs-digest = "59c88a50da0542b5b7defaffc9f8121a1cedaec5c003012f32a4e5d4bfc79660"
   solver-name = "gps-cdcl"
   solver-version = 1
