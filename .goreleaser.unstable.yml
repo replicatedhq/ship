@@ -30,8 +30,7 @@ archive:
   - CHANGELOG*
 dockers:
   - image: replicated/ship
-    dockerfile: deploy/Dockerfile-slim
-    latest: false
+    dockerfile: deploy/Dockerfile
     tag_templates:
       - "unstable"
 snapshot:

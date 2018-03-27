@@ -11,6 +11,13 @@ jobs:
     steps:
       - checkout
       - run: make build-deps test
+  release_unstable:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/replicatedcom/ship
+    steps:
+      - checkout
+      - run: make build-deps test
 
 workflows:
   version: 2

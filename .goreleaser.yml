@@ -30,9 +30,9 @@ archive:
   - CHANGELOG*
 dockers:
   - image: replicated/ship
-    dockerfile: deploy/Dockerfile-slim
-    latest: true
+    dockerfile: deploy/Dockerfile
     tag_templates:
+      - "latest"
       - "alpha"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
