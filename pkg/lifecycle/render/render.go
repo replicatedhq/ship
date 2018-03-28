@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"html/template"
 
+	"path/filepath"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/hashicorp/go-multierror"
@@ -16,7 +18,7 @@ import (
 )
 
 // todo param this or something
-const stateFilePath = ".ship/state.json"
+const StateFilePath = ".ship/state.json"
 
 // A Renderer takes a resolved spec, collects config values, and renders assets
 type Renderer struct {
@@ -48,10 +50,6 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
-
-	// gather config values
-	// store to temp state
-	// confirm? (obfuscating passwords)
 
 	debug.Log("event", "render.plan")
 	for _, asset := range r.Spec.Assets.V1 {
@@ -106,6 +104,13 @@ func (r *Renderer) inlineStep(inline *api.InlineAsset, templateContext map[strin
 				return errors.Wrapf(err, "Execute template for asset at %s", inline.Dest)
 			}
 
+			basePath := filepath.Dir(inline.Dest)
+			debug.Log("event", "mkdirall.attempt", "dest", inline.Dest, "basePath", basePath)
+			if err := r.Fs.MkdirAll(basePath, 0755); err != nil {
+				debug.Log("event", "mkdirall.fail", "err", err, "dest", inline.Dest, "basePath", basePath)
+				return errors.Wrapf(err, "write directory to %s", inline.Dest)
+			}
+
 			if err := r.Fs.WriteFile(inline.Dest, rendered.Bytes(), inline.Mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", inline.Dest)
@@ -115,15 +120,23 @@ func (r *Renderer) inlineStep(inline *api.InlineAsset, templateContext map[strin
 	}
 }
 func (r *Renderer) funcMap(templateContext map[string]interface{}) template.FuncMap {
+	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "template"))
+
 	return map[string]interface{}{
 		"config": func(name string) interface{} {
-			return templateContext[name]
+			configItemValue, ok := templateContext[name]
+			if !ok {
+				debug.Log("event", "template.missing", "func", "config", "requested", name, "context", templateContext)
+				return ""
+			}
+			return configItemValue
 		},
 		"context": func(name string) interface{} {
 			switch name {
 			case "state_file_path":
-				return stateFilePath
+				return StateFilePath
 			}
+			debug.Log("event", "template.missing", "func", "context", "requested", name)
 			return ""
 		},
 	}

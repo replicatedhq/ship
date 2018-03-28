@@ -102,8 +102,9 @@ func (r *Resolver) resolveStudioSpec() ([]byte, error) {
 func (r *Resolver) resolveCloudSpec(customerID string) ([]byte, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
-	debug.Log("phase", "load-specs", "from", "gql", "addr", r.Client.GQLServer.String())
-	spec, err := r.Client.GetRelease(customerID, "")
+	client := r.Client
+	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
+	spec, err := client.GetRelease(customerID, "")
 	return []byte(spec.Spec), err
 
 }

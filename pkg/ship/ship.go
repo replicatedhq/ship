@@ -118,6 +118,8 @@ func (d *Ship) Execute(ctx context.Context) error {
 		d.CustomerID = id
 	}
 
+	debug.Log("phase", "validate-inputs", "status", "complete")
+
 	spec, err := d.Resolver.ResolveSpecs(ctx, specs.Selector{
 		CustomerID:     d.CustomerID,
 		ReleaseSemver:  d.ReleaseSemver,
@@ -144,10 +146,15 @@ func (d *Ship) Execute(ctx context.Context) error {
 	return errors.Wrap(lc.Run(ctx), "run lifecycle")
 }
 
-// OnError should be called by the parent cobra commands if something goes wrong.
-func (d *Ship) OnError(err error) {
-	d.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
+// ExitWithError should be called by the parent cobra commands if something goes wrong.
+func (d *Ship) ExitWithError(err error) {
+	if d.Viper.GetString("log-level") == "debug" {
+		d.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
+	} else {
+		d.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
+	}
 	d.UI.Output("")
 	// TODO this should probably be part of lifecycle
 	d.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
+	os.Exit(1)
 }

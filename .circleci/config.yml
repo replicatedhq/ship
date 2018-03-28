@@ -18,7 +18,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker pull debian:stretch-slim # make sure it's fresh
+      - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config .goreleaser.unstable.yml
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"

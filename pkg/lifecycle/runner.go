@@ -50,6 +50,7 @@ func (r *Runner) Run(ctx context.Context) error {
 		messenger: &messenger{
 			Logger: r.Logger,
 			UI:     r.UI,
+			Viper:  r.Viper,
 		},
 	}
 
