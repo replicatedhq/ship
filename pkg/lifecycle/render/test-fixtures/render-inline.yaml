@@ -30,7 +30,7 @@
         - inline:
            contents: |
              #!/bin/sh
-             kubectl delete ns {{ .namespace }}
+             kubectl delete ns {{ship config "namespace" }}
            dest: ./uninstall.sh
            mode: 0777
   expect_info:
@@ -55,7 +55,7 @@
         - inline:
            contents: |
              #!/bin/sh
-             kubectl delete ns {{ .namespace }}
+             kubectl delete ns {{ship config "namespace" }}
            dest: ./uninstall.sh
            mode: 0777
   expect_info:
@@ -65,6 +65,22 @@
        #!/bin/sh
        kubectl delete ns retraced
 
+- name: ship context access
+  spec:
+    assets:
+      v1:
+        - inline:
+           contents: |
+             #!/bin/sh
+             cat {{ship context "state_file_path" }}
+           dest: ./inspect_state.sh
+           mode: 0777
+  expect:
+    ./inspect_state.sh: |
+       #!/bin/sh
+       cat .ship/state.json
+
+# ship context state_file_path
 # password
 # hidden
 # required

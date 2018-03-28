@@ -11,19 +11,28 @@ jobs:
     steps:
       - checkout
       - run: make build-deps test
-  release_unstable:
+  deploy_unstable:
     docker:
       - image: circleci/golang:1.9
     working_directory: /go/src/github.com/replicatedcom/ship
     steps:
       - checkout
-      - run: make build-deps test
+      - setup_remote_docker
+      - run: docker pull debian:stretch-slim # make sure it's fresh
+      - deploy:
+          command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config .goreleaser.unstable.yml
+      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+      - deploy:
+          command: docker push replicated/ship:unstable
 
 workflows:
   version: 2
   build_accept_deploy:
     jobs:
-      - test:
+      - test
+      - deploy_unstable:
+          requires:
+            - test
           filters:
-            tags:
-              only: /.*/
+            branches:
+              only: /master/
