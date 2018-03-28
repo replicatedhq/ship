@@ -23,8 +23,8 @@ vet: fmt
 	go vet ./cmd/...
 
 lint: vet
-	golint ./pkg/... | grep -v _mock || :
-	golint ./cmd/... | grep -v _mock || :
+	golint ./pkg/... | grep -vE '_mock|e2e' || :
+	golint ./cmd/... | grep -vE '_mock|e2e' || :
 
 test: lint
 	go test -v ./pkg/...
@@ -33,9 +33,13 @@ build: test _build
 
 _build:
 	go build \
-
 		-o bin/ship \
 		./cmd/ship
 
+e2e:
+	./bin/ship e2e
+
+
+
 run:
-	./bin/ship apply --log-level=debug --studio-file=./app.yml
+	./bin/ship --log-level=debug --studio-file=./app.yml

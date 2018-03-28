@@ -6,7 +6,10 @@ import (
 
 	"context"
 
+	"strings"
+
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/e2e"
 	"github.com/replicatedcom/ship/pkg/ship"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/replicatedcom/ship/pkg/version"
@@ -60,8 +63,11 @@ application specs to be used in on-prem installations.
 		cmd.PersistentFlags().StringP("studio-file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	}
 
+	cmd.AddCommand(e2e.Cmd())
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd
 }
 

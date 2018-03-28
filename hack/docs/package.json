@@ -1,14 +1,14 @@
 {
-  "name": "supportbundle-hack-docs",
+  "name": "ship-hack-docs",
   "version": "1.0.0",
-  "description": "supportbundle docs hacks",
+  "description": "ship docs hacks",
   "main": "build/index.js",
   "scripts": {
     "test": "nyc mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/replicatedcom/support-bundle.git"
+    "url": "git+https://github.com/replicatedcom/ship.git"
   },
   "keywords": [
     "lol"
@@ -16,9 +16,9 @@
   "author": "replicated",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/replicatedcom/support-bundle/issues"
+    "url": "https://github.com/replicatedcom/ship/issues"
   },
-  "homepage": "https://github.com/replicatedcom/support-bundle#readme",
+  "homepage": "https://github.com/replicatedcom/ship#readme",
   "dependencies": {
     "chalk": "^2.3.0",
     "js-yaml": "^3.10.0",

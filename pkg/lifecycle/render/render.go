@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-// todo param this or something
+// StateFilePath is a placeholder for the default spot we'll store state. this should be a param or something
 const StateFilePath = ".ship/state.json"
 
 // A Renderer takes a resolved spec, collects config values, and renders assets
