@@ -26,10 +26,8 @@ type testcase struct {
 
 func TestRender(t *testing.T) {
 	ctx := context.Background()
-	mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
 	renderer := &Renderer{
-		Fs:     mockFS,
 		Logger: log.NewNopLogger(),
 	}
 
@@ -40,7 +38,10 @@ func TestRender(t *testing.T) {
 			mc := minimock.NewController(t)
 			mockUI := NewUiMock(mc)
 			mockViper := viper.New()
+			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
+
 			renderer.Spec = test.Spec
+			renderer.Fs = mockFS
 
 			renderer.ConfigResolver = &ConfigResolver{
 				Fs:     renderer.Fs,

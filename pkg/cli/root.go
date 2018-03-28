@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"context"
+
+	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/ship"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/replicatedcom/ship/pkg/version"
 	"github.com/spf13/cobra"
@@ -22,6 +26,19 @@ application specs to be used in on-prem installations.
 `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			version.Init()
+		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rc, err := ship.FromViper(viper.GetViper())
+			if err != nil {
+				return errors.Wrap(err, "initialize")
+			}
+			err = rc.Execute(context.Background())
+			if err != nil {
+				rc.ExitWithError(err)
+			}
+			return nil // let ExitWithError handle it ^
 		},
 	}
 	cobra.OnInitialize(initConfig)
@@ -45,8 +62,6 @@ application specs to be used in on-prem installations.
 
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
-	cmd.AddCommand(PlanCmd())
-	cmd.AddCommand(ApplyCmd())
 	return cmd
 }
 
