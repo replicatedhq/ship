@@ -9,8 +9,11 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gojuno/minimock"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
+	"github.com/replicatedcom/ship/pkg/test-fixtures/config"
+	"github.com/replicatedcom/ship/pkg/test-fixtures/planner"
+	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
@@ -18,10 +21,9 @@ import (
 type testcase struct {
 	Name        string
 	Spec        *api.Spec
-	ViperConfig map[string]string `yaml:"viper_config"`
+	ViperConfig map[string]interface{} `yaml:"viper_config"`
 	Responses   map[string]string
 	Expect      map[string]string
-	ExpectInfo  []string `yaml:"expect_info"`
 }
 
 func TestRender(t *testing.T) {
@@ -36,44 +38,38 @@ func TestRender(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			mc := minimock.NewController(t)
-			mockUI := NewUiMock(mc)
-			mockViper := viper.New()
+			mockUI := ui.NewUiMock(mc)
+			p := planner.NewIPlannerMock(mc)
+			configResolver := config.NewIResolverMock(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			renderer.Spec = test.Spec
 			renderer.Fs = mockFS
-
-			renderer.ConfigResolver = &ConfigResolver{
-				Fs:     renderer.Fs,
-				Logger: renderer.Logger,
-				Spec:   renderer.Spec,
-				UI:     mockUI,
-				Viper:  mockViper,
-			}
+			renderer.UI = mockUI
+			renderer.ConfigResolver = configResolver
+			renderer.Planner = p
 
 			func() {
 				defer mc.Finish()
 
-				for ask, response := range test.Responses {
-					mockUI.AskMock.Expect(ask).Return(response, nil)
-				}
+				configResolver.ResolveConfigMock.
+					Expect(ctx).
+					Return(test.ViperConfig, nil)
 
-				for _, info := range test.ExpectInfo {
-					mockUI.InfoMock.Expect(info).Return()
-				}
+				p.BuildMock.
+					Expect(test.Spec.Assets.V1, test.ViperConfig).
+					Return(plan.Plan{})
 
-				for key, value := range test.ViperConfig {
-					mockViper.Set(key, value)
-				}
+				p.ExecuteMock.
+					Expect(ctx, plan.Plan{}).
+					Return(nil)
+
+				p.ConfirmMock.Expect(plan.Plan{}).Return(true, nil)
+
+				// todo test state ops
 
 				err := renderer.Execute(ctx, &api.Render{})
 				assert.NoError(t, err)
-
-				for path, expected := range test.Expect {
-					contents, err := mockFS.ReadFile(path)
-					assert.NoError(t, err)
-					assert.Equal(t, expected, string(contents))
-				}
 			}()
 		})
 	}

@@ -6,12 +6,14 @@ import (
 	"bytes"
 	"text/template"
 
+	"fmt"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
 
@@ -42,13 +44,13 @@ func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
 
 	switch step.Level {
 	case "error":
-		e.UI.Error(rendered.String())
+		e.UI.Error(fmt.Sprintf("\n%s", rendered.String()))
 	case "warn":
-		e.UI.Warn(rendered.String())
+		e.UI.Warn(fmt.Sprintf("\n%s", rendered.String()))
 	case "debug":
-		e.UI.Output(rendered.String())
+		e.UI.Output(fmt.Sprintf("\n%s", rendered.String()))
 	default:
-		e.UI.Info(rendered.String())
+		e.UI.Info(fmt.Sprintf("\n%s", rendered.String()))
 	}
 	return nil
 }
@@ -68,7 +70,7 @@ func (e *messenger) funcMap() template.FuncMap {
 		"context": func(name string) interface{} {
 			switch name {
 			case "state_file_path":
-				return render.StateFilePath
+				return state.Path
 			}
 			debug.Log("event", "template.missing", "func", "context", "requested", name)
 			return ""

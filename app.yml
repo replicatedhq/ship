@@ -17,7 +17,7 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
-        kubectl delete ns {{ ConfigOption "namespace" }}
+        kubectl delete ns {{ship config "namespace" }}
       dest: ./uninstall.sh
       mode: 0777
   - docker:
@@ -37,7 +37,7 @@ config:
       title: Kubernetes Cluster Info
       description: information about your kubernetes cluster
       items:
-      - name: k8s_namesapce
+      - name: namespace
         title: Namespace to Deploy into
         type: text
       - name: worker_replicas
@@ -71,5 +71,5 @@ lifecycle:
   - message:
      level: warn
      contents: |
-       A state file has been written to {{.StateFilePath}} -- please store it
-       somewhere safe, you'll need it if you want to recover or update this installation of SuperBigTool.
+       A state file has been written to {{ship context "state_file_path" }} -- please store it
+       somewhere safe, you'll need it if you want to update or recover this installation of SuperBigTool.
