@@ -1,7 +1,7 @@
 Ship
 =======
 
-Repliacetd Ship on-prem components
+Replicated Ship on-prem components
 
 
 ### ship
