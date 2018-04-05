@@ -33,8 +33,6 @@
              kubectl delete ns {{ship config "namespace" }}
            dest: ./scripts/uninstall.sh
            mode: 0777
-  expect_info:
-    - "Configuring Kubernetes Cluster"
   expect:
     ./scripts/uninstall.sh: |
        #!/bin/sh
@@ -58,8 +56,6 @@
              kubectl delete ns {{ship config "namespace" }}
            dest: ./uninstall.sh
            mode: 0777
-  expect_info:
-    - "Configuring Kubernetes Cluster"
   expect:
     ./uninstall.sh: |
        #!/bin/sh

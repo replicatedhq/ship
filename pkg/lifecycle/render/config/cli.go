@@ -1,4 +1,4 @@
-package render
+package config
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ConfigResolver resolves config values via CLI or UI
-type ConfigResolver struct {
+// CLIResolver resolves config values via CLI
+type CLIResolver struct {
 	Fs     afero.Afero
 	Logger log.Logger
 	Spec   *api.Spec
@@ -23,7 +23,7 @@ type ConfigResolver struct {
 }
 
 // ResolveConfig will get all the config values specified in the spec
-func (c *ConfigResolver) ResolveConfig(ctx context.Context) (map[string]interface{}, error) {
+func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}, error) {
 	debug := level.Debug(log.With(c.Logger, "step.type", "render"))
 	debug.Log("event", "config.resolve")
 
@@ -32,7 +32,7 @@ func (c *ConfigResolver) ResolveConfig(ctx context.Context) (map[string]interfac
 
 	// read runner.spec.config
 	for _, configGroup := range c.Spec.Config.V1 {
-		c.UI.Info(fmt.Sprintf("Configuring %s", configGroup.Name))
+		c.UI.Info(configGroup.Title)
 		for _, configItem := range configGroup.Items {
 			current, ok := templateContext[configItem.Name]
 			if !ok {

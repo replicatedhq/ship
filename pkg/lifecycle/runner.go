@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -39,12 +41,18 @@ func (r *Runner) Run(ctx context.Context) error {
 			Fs:     r.Fs,
 			Logger: r.Logger,
 			Spec:   r.Spec,
-			ConfigResolver: &render.ConfigResolver{
+			UI:     r.UI,
+			ConfigResolver: &config.CLIResolver{
 				Fs:     r.Fs,
 				Logger: r.Logger,
 				Spec:   r.Spec,
 				UI:     r.UI,
 				Viper:  r.Viper,
+			},
+			Planner: &plan.CLIPlanner{
+				Logger: r.Logger,
+				Fs:     r.Fs,
+				UI:     r.UI,
 			},
 		},
 		messenger: &messenger{
@@ -58,7 +66,7 @@ func (r *Runner) Run(ctx context.Context) error {
 		level.Debug(r.Logger).Log("event", "step.execute", "index", idx, "step", fmt.Sprintf("%v", step))
 		if err := executor.Execute(ctx, &step); err != nil {
 			level.Error(r.Logger).Log("event", "step.execute.fail", "index", idx, "step", fmt.Sprintf("%v", step))
-			return errors.Wrapf(err, "execute lifecycle step %d: %s", idx, fmt.Sprintf("%v", step))
+			return errors.Wrapf(err, "execute lifecycle step %d", idx)
 		}
 	}
 
