@@ -105,6 +105,9 @@ func (r *Resolver) resolveCloudSpec(customerID string) ([]byte, error) {
 	client := r.Client
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
 	spec, err := client.GetRelease(customerID, "")
+	if err != nil {
+		return nil, err
+	}
 	return []byte(spec.Spec), err
 
 }

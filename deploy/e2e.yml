@@ -1,0 +1,17 @@
+- name: no config, one inline asset
+  spec:
+    assets:
+      v1:
+        - inline:
+           contents: |
+             #!/bin/sh
+             kubectl delete ns retraced
+           dest: ./uninstall.sh
+           mode: 0777
+    lifecycle:
+      v1:
+        - render: {}
+  expect:
+    ./uninstall.sh: |
+       #!/bin/sh
+       kubectl delete ns retraced

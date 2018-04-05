@@ -116,7 +116,7 @@ func (c *GraphQLClient) GetRelease(customerID, installationID string) (*ShipRele
 	shipResponse := GraphQLResponse{}
 
 	if err := json.Unmarshal(responseBody, &shipResponse); err != nil {
-		return nil, errors.Wrap(err, "unmarshal response")
+		return nil, errors.Wrapf(err, "unmarshal response %s", responseBody)
 	}
 
 	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
