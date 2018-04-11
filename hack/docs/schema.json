@@ -123,10 +123,6 @@
             "required": [
               "name",
               "title",
-              "description",
-              "test_proc",
-              "when",
-              "filters",
               "items"
             ]
           }
@@ -169,9 +165,7 @@
                     "type": "boolean"
                   }
                 },
-                "required": [
-                  "skip_plan"
-                ]
+                "required": []
               }
             }
           }

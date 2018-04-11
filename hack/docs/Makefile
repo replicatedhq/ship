@@ -30,6 +30,7 @@ merge-mutations:
 validate:
 	`yarn bin`/ts-node src/index.ts validate -f $(SCHEMA_JSON)
 
+
 markdown-assets:
 	mkdir -p build
 	`yarn bin`/ts-node src/index.ts markdown-assets -f $(SCHEMA_JSON) -o ./assets
@@ -51,3 +52,9 @@ copy-replicated-lint:
 	:
 	:    make pipeline
 	:    cp schema.json  [path/to/replicated-lint]/projects/replicated-ship/
+
+lint:
+	`yarn bin`/replicated-lint validate -f ../../ship-retraced.yml --excludeDefaults --schema $(SCHEMA_JSON).json
+
+ship:
+	../../bin/ship --studio-file ../../ship-retraced.yml --log-level debug
