@@ -24,6 +24,7 @@ type testcase struct {
 	Responses    []expectUIAsk          `yaml:"responses"`
 	Expect       map[string]string
 	ExpectUIInfo []string `yaml:"expect_ui_info"`
+	ExpectUIWarn []string `yaml:"expect_ui_warn"`
 }
 
 type expectUIAsk struct {
@@ -59,6 +60,10 @@ func TestCLIResolver(t *testing.T) {
 
 				for _, expected := range test.ExpectUIInfo {
 					mockUI.EXPECT().Info(expected)
+				}
+
+				for _, expected := range test.ExpectUIWarn {
+					mockUI.EXPECT().Warn(expected)
 				}
 
 				for _, expect := range test.Responses {

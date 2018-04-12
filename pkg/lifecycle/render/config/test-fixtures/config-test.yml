@@ -13,6 +13,7 @@
   expect:
     namespace: retraced
 
+
 - name: one option, with default, no answer
   responses:
     - question: 'Enter a value for option "namespace" [default]:'
@@ -28,9 +29,11 @@
   expect:
     namespace: default
 
+
+
 - name: one option, with default, override answer
   responses:
-    - question: 'Enter a value for option "namespace":'
+    - question: 'Enter a value for option "namespace" [default]:'
       answer: retraced
   config:
     - name: Kubernetes Cluster
@@ -43,11 +46,13 @@
   expect:
     namespace: retraced
 
+
+
 - name: one option, required
   responses:
     - question: 'Enter a value for option "namespace":'
       answer: ""
-    - question: 'This option is required. Enter a value for option "namespace":'
+    - question: 'Enter a value for option "namespace":'
       answer: "retraced"
   config:
     - name: Kubernetes Cluster
@@ -57,5 +62,23 @@
           required: true
   expect_ui_info:
     - Kubernetes Cluster
+  expect_ui_warn:
+    - Option "namespace" is required
   expect:
     namespace: retraced
+
+- name: one option, required, has default
+  responses:
+    - question: 'Enter a value for option "namespace" [default]:'
+      answer: ""
+  config:
+    - name: Kubernetes Cluster
+      items:
+        - name: namespace
+          title: Namespace
+          required: true
+          default: default
+  expect_ui_info:
+    - Kubernetes Cluster
+  expect:
+    namespace: default

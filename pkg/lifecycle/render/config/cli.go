@@ -35,16 +35,25 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}
 		for _, configItem := range configGroup.Items {
 			current := resolveCurrentValue(templateContext, configItem)
 
-			debug.Log("event", "configitem.ask", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type)
-			answer, err := c.UI.Ask(fmt.Sprintf(`Enter a value for option "%s"%s:`, configItem.Name, formatCurrent(configItem, current)))
-			if err != nil {
-				return nil, errors.Wrapf(err, "Ask value for config option %s", configItem.Name)
-			}
-			debug.Log("event", "ui.answer", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type, "answer", answer)
-			if answer != "" {
-				templateContext[configItem.Name] = answer
-			} else {
-				templateContext[configItem.Name] = current
+			for {
+				debug.Log("event", "configitem.ask", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type)
+				answer, err := c.UI.Ask(fmt.Sprintf(`Enter a value for option "%s"%s:`, configItem.Name, formatCurrent(configItem, current)))
+				if err != nil {
+					return nil, errors.Wrapf(err, "Ask value for config option %s", configItem.Name)
+				}
+				debug.Log("event", "ui.answer", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type, "answer", answer)
+
+				if answer == "" && current == "" && configItem.Required {
+					c.UI.Warn(fmt.Sprintf(`Option "%s" is required`, configItem.Name))
+					continue
+				}
+
+				if answer != "" {
+					templateContext[configItem.Name] = answer
+				} else {
+					templateContext[configItem.Name] = current
+				}
+				break
 			}
 		}
 	}
