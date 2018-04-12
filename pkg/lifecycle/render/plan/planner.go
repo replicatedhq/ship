@@ -21,14 +21,14 @@ type Step struct {
 	Err         error
 }
 
-// IPlanner is a thing that can plan and execute rendering
-type IPlanner interface {
+// Planner is a thing that can plan and execute rendering
+type Planner interface {
 	Build(assets []api.Asset, config map[string]interface{}) Plan
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
 }
 
-// CLIPlanner is the default IPlanner
+// CLIPlanner is the default Planner
 type CLIPlanner struct {
 	Logger log.Logger
 	Fs     afero.Afero

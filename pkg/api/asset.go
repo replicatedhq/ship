@@ -27,3 +27,11 @@ type InlineAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Contents    string `json:"contents" yaml:"contents" hcl:"contents"`
 }
+
+// DockerAsset is an asset whose contents are specified directly in the Spec
+type DockerAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+
+	Image  string `json:"image" yaml:"image" hcl:"image"`
+	Source string `json:"source" yaml:"source" hcl:"source"`
+}

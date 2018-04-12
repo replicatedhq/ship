@@ -53,9 +53,9 @@
     }
   },
   {
-    "path": "properties.config",
-    "merge": {
-      "description": "Assets allows you to configure the application artifacts and deployment manifests will be delivered to end users running your application"
+    "path": "properties.config.properties.v1.items",
+    "replace": {
+      "required": ["name", "title", "items"]
     }
   },
   {
@@ -92,6 +92,9 @@
     "path": "properties.lifecycle.properties.v1.items.properties.render",
     "merge": {
       "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application."
+    },
+    "replace": {
+      "required": []
     }
   },
   {
