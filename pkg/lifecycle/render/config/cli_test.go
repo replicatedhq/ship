@@ -11,22 +11,27 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
 	"github.com/replicatedhq/libyaml"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 type testcase struct {
 	Name         string
 	Config       []libyaml.ConfigGroup
 	ViperConfig  map[string]interface{} `yaml:"viper_config"`
-	Responses    map[string]string
+	Responses    []expectUIAsk          `yaml:"responses"`
 	Expect       map[string]string
-	ExpectUIInfo []string               `yaml:"expect_ui_info"`
+	ExpectUIInfo []string `yaml:"expect_ui_info"`
 }
 
-func TestRender(t *testing.T) {
+type expectUIAsk struct {
+	Question string
+	Answer   string
+}
+
+func TestCLIResolver(t *testing.T) {
 	ctx := context.Background()
 
 	resolver := &CLIResolver{
@@ -56,8 +61,8 @@ func TestRender(t *testing.T) {
 					mockUI.EXPECT().Info(expected)
 				}
 
-				for question, answer := range test.Responses {
-					mockUI.EXPECT().Ask(question).Return(answer, nil)
+				for _, expect := range test.Responses {
+					mockUI.EXPECT().Ask(expect.Question).Return(expect.Answer, nil)
 				}
 
 				resolvedConfig, err := resolver.ResolveConfig(ctx)
@@ -66,7 +71,7 @@ func TestRender(t *testing.T) {
 				for key, expected := range test.Expect {
 					actual, ok := resolvedConfig[key]
 					req.True(ok, "Expected to find key %s in resolved config", key)
-					req.Equal(expected, actual, ok)
+					req.Equal(expected, actual)
 				}
 			}()
 		})
