@@ -11,6 +11,13 @@ jobs:
     steps:
       - checkout
       - run: make build-deps test
+  test_yoonit:
+    docker:
+      - image: replicated/yoonit:latest
+    steps:
+      - checkout
+      # requires YOONIT_AUTH set to a valid token
+      - run: /usr/local/bin/yoonit wait
   deploy_unstable:
     docker:
       - image: circleci/golang:1.9
@@ -30,9 +37,12 @@ workflows:
   build_accept_deploy:
     jobs:
       - test
+      - test_yoonit
       - deploy_unstable:
           requires:
+            # todo remove test, just use yoonit
             - test
+            - test_yoonit
           filters:
             branches:
               only: /master/
