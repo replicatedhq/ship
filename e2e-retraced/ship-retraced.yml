@@ -8,18 +8,25 @@ assets:
         || \
         kubectl create ns {{ship config "namespace" }}
 
-        kubectl apply -n {{ship config "namespace" }}
+        kubectl apply -n {{ship config "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/install.sh
+      mode: 0777
+  - inline:
+      contents: |
+        #!/bin/sh
+        kubectl delete -n {{ship config "namespace" }} -f ./assets/k8s/
+
+      dest: ./assets/uninstall.sh
       mode: 0777
   - inline:
       contents: |
         apiVersion: v1
         kind: Pod
         metadata:
-          name: dex-dev-console
+          name: retraced-pg-migrate
           labels:
-            app: dex-dev-console
+            app: retraced-pg-migrate
         spec:{{ship if (ne (config "image_pull_secret") "") }}
           imagePullSecrets:
             - name: {{ship config "image_pull_secret"}}{{ship end}}
