@@ -43,3 +43,7 @@ e2e:
 
 run:
 	./bin/ship --log-level=debug --studio-file=./app.yml
+
+# this should really be in a different repo
+build_yoonit_docker_image:
+	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
