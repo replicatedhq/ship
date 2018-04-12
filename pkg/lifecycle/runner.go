@@ -43,7 +43,6 @@ func (r *Runner) Run(ctx context.Context) error {
 			Spec:   r.Spec,
 			UI:     r.UI,
 			ConfigResolver: &config.CLIResolver{
-				Fs:     r.Fs,
 				Logger: r.Logger,
 				Spec:   r.Spec,
 				UI:     r.UI,
