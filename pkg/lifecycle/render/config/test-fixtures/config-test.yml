@@ -1,0 +1,13 @@
+---
+- name: one asset
+  responses:
+    'Enter a value for option "namespace":': "retraced"
+  config:
+    - name: Kubernetes Cluster
+      items:
+        - name: namespace
+          title: Namespace
+  expect_ui_info:
+    - Kubernetes Cluster
+  expect:
+    namespace: retraced

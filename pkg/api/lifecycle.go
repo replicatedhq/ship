@@ -19,5 +19,6 @@ type Message struct {
 
 // Render is a lifeycle step to
 type Render struct {
-	SkipPlan bool `json:"skip_plan" yaml:"skip_plan" hcl:"skip_plan"`
+	SkipPlan         bool `json:"skip_plan" yaml:"skip_plan" hcl:"skip_plan"`
+	SkipStateWarning bool `json:"skip_state_warning" yaml:"skip_state_warning" hcl:"skip_state_warning"`
 }

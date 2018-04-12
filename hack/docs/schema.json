@@ -30,6 +30,9 @@
                     "description": "The contents of the file",
                     "type": "string"
                   },
+                  "description": {
+                    "type": "string"
+                  },
                   "dest": {
                     "description": "A path to which the file should be written when generating assets",
                     "type": "string"
@@ -162,6 +165,9 @@
                 "properties": {
                   "skip_plan": {
                     "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets",
+                    "type": "boolean"
+                  },
+                  "skip_state_warning": {
                     "type": "boolean"
                   }
                 },

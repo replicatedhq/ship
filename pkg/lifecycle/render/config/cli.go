@@ -10,13 +10,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedhq/libyaml"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // CLIResolver resolves config values via CLI
 type CLIResolver struct {
-	Fs     afero.Afero
 	Logger log.Logger
 	Spec   *api.Spec
 	UI     cli.Ui
@@ -33,7 +31,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}
 
 	// read runner.spec.config
 	for _, configGroup := range c.Spec.Config.V1 {
-		c.UI.Info(configGroup.Title)
+		c.UI.Info(configGroup.Name)
 		for _, configItem := range configGroup.Items {
 			current := resolveCurrentValue(templateContext, configItem)
 
@@ -61,9 +59,9 @@ func resolveCurrentValue(templateContext map[string]interface{}, configItem *lib
 			return configItem.Default
 		}
 		return ""
-	} else {
-		return current
 	}
+
+	return current
 }
 
 func formatCurrent(configItem *libyaml.ConfigItem, current interface{}) string {
@@ -73,7 +71,7 @@ func formatCurrent(configItem *libyaml.ConfigItem, current interface{}) string {
 
 	if configItem.Type == "password" {
 		return fmt.Sprintf(" [xxxx%3s]", current)
-	} else {
-		return fmt.Sprintf(" [%s]", current)
 	}
+
+	return fmt.Sprintf(" [%s]", current)
 }

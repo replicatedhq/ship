@@ -54,7 +54,7 @@ copy-replicated-lint:
 	:    cp schema.json  [path/to/replicated-lint]/projects/replicated-ship/
 
 lint:
-	`yarn bin`/replicated-lint validate -f ../../ship-retraced.yml --excludeDefaults --schema $(SCHEMA_JSON).json
+	`yarn bin`/replicated-lint validate -f ../../ship-retraced.yml --excludeDefaults --schema $(SCHEMA_JSON)
 
 ship:
 	../../bin/ship --studio-file ../../ship-retraced.yml --log-level debug
