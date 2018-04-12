@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-fixtures"
+
 	"github.com/go-kit/kit/log"
 	"github.com/gojuno/minimock"
 	"github.com/replicatedcom/ship/pkg/api"
@@ -39,6 +41,9 @@ func TestRender(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			mc := minimock.NewController(t)
 			mockUI := ui.NewUiMock(mc)
+
+			// Hi again windmill!
+
 			p := planner.NewIPlannerMock(mc)
 			configResolver := config.NewIResolverMock(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
