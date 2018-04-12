@@ -16,7 +16,6 @@ jobs:
       - image: replicated/yoonit:latest
     steps:
       - checkout
-      - setup_remote_docker
       # requires YOONIT_AUTH set to a valid token
       - run: /usr/local/bin/yoonit wait
   deploy_unstable:
