@@ -33,6 +33,7 @@ build: test _build
 
 _build:
 	go build \
+	    -i \
 		-o bin/ship \
 		./cmd/ship
 

@@ -40,6 +40,7 @@ func TestRender(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			mc := gomock.NewController(t)
+
 			mockUI := ui.NewMockUi(mc)
 			p := planner.NewMockPlanner(mc)
 			configResolver := config.NewMockResolver(mc)

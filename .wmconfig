@@ -4,6 +4,10 @@
     ".git/**",
     "hack/docs/**",
     ".idea/**",
-    "**/*jb_tmp*"
+    "**/*jb_tmp*",
+    "e2e-retraced/**",
+    "dist/**",
+    "deploy/**",
+    ".circleci/**"
   ]
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-fixtures"
 	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
