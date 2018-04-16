@@ -44,3 +44,16 @@
 [[constraint]]
   branch = "master"
   name = "github.com/zsais/go-gin-prometheus"
+
+[[constraint]]
+  name = "github.com/docker/docker"
+  revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
+
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c"
+
+## Godep-related pain, waiting on upstream fix in dep
+#[[override]]
+#  name = "github.com/ugorji/go"
+#  revision = "8c0409fcbb70099c748d71f714529204975f6c3f"
