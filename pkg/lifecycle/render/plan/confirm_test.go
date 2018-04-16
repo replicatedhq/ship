@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"github.com/gojuno/minimock"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
 	"github.com/stretchr/testify/require"
@@ -69,16 +69,17 @@ func TestConfirm(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
-			mc := minimock.NewController(t)
-			mockUI := ui.NewUiMock(mc)
+			mc := gomock.NewController(t)
+			defer mc.Finish()
+			mockUI := ui.NewMockUi(mc)
 			planner := &CLIPlanner{
 				Logger: log.NewNopLogger(),
 				UI:     mockUI,
 			}
 
-			mockUI.AskMock.Expect(test.ExpectAsk).Return(test.Answer, test.AnswerErr)
-			mockUI.InfoMock.Expect(test.ExpectInfo).Return()
-			mockUI.OutputMock.Expect("\nThis command will generate the following resources:\n").Return()
+			mockUI.EXPECT().Ask(test.ExpectAsk).Return(test.Answer, test.AnswerErr)
+			mockUI.EXPECT().Info(test.ExpectInfo).Return()
+			mockUI.EXPECT().Output("\nThis command will generate the following resources:\n").Return()
 
 			result, err := planner.Confirm(test.Plan)
 

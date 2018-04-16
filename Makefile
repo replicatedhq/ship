@@ -18,21 +18,29 @@ fmt:
 	goimports -w pkg
 	goimports -w cmd
 
-vet: fmt
+
+_vet:
 	go vet ./pkg/...
 	go vet ./cmd/...
 
-lint: vet
+vet: fmt _vet
+
+_lint:
 	golint ./pkg/... | grep -vE '_mock|e2e' || :
 	golint ./cmd/... | grep -vE '_mock|e2e' || :
 
-test: lint
+lint: vet _lint
+
+_test:
 	go test -v ./pkg/...
+
+test: lint _test
 
 build: test _build
 
 _build:
 	go build \
+	    -i \
 		-o bin/ship \
 		./cmd/ship
 

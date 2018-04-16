@@ -1,0 +1,14 @@
+# -*- mode: Python -*-
+
+load('go', 'go_create_tree', 'go_fmt', 'go_vet', 'go_build', 'go_test')
+
+def main(s):
+  root_package = "github.com/replicatedcom/ship"
+  tree = go_create_tree(s, root_package)
+
+  j = new_job_set()
+  # j.add('go_fmt', lambda: go_vet(s))
+  # j.add('go_vet', lambda: go_fmt(s))
+  # j.add('go_build', lambda: go_build(tree, package=root_package))
+  j.add('go_test', lambda: go_test(tree, package=root_package))
+  return j
