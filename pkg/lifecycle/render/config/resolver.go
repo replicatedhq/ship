@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// IResolver is a thing that can resolve configuration options
-type IResolver interface {
+// Resolver is a thing that can resolve configuration options
+type Resolver interface {
 	ResolveConfig(ctx context.Context) (map[string]interface{}, error)
 }

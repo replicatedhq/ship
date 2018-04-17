@@ -19,8 +19,8 @@ const StateFilePath = ".ship/state.json"
 // A Renderer takes a resolved spec, collects config values, and renders assets
 type Renderer struct {
 	Logger         log.Logger
-	ConfigResolver config.IResolver
-	Planner        plan.IPlanner
+	ConfigResolver config.Resolver
+	Planner        plan.Planner
 
 	Fs   afero.Afero
 	Spec *api.Spec

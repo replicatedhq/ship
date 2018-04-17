@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-fixtures"
+
 	"github.com/go-kit/kit/log"
-	"github.com/gojuno/minimock"
+	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
 	"github.com/replicatedcom/ship/pkg/test-fixtures/config"
@@ -37,10 +39,11 @@ func TestRender(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			mc := minimock.NewController(t)
-			mockUI := ui.NewUiMock(mc)
-			p := planner.NewIPlannerMock(mc)
-			configResolver := config.NewIResolverMock(mc)
+			mc := gomock.NewController(t)
+
+			mockUI := ui.NewMockUi(mc)
+			p := planner.NewMockPlanner(mc)
+			configResolver := config.NewMockResolver(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			renderer.Spec = test.Spec
@@ -52,19 +55,19 @@ func TestRender(t *testing.T) {
 			func() {
 				defer mc.Finish()
 
-				configResolver.ResolveConfigMock.
-					Expect(ctx).
+				configResolver.EXPECT().
+					ResolveConfig(ctx).
 					Return(test.ViperConfig, nil)
 
-				p.BuildMock.
-					Expect(test.Spec.Assets.V1, test.ViperConfig).
+				p.EXPECT().
+					Build(test.Spec.Assets.V1, test.ViperConfig).
 					Return(plan.Plan{})
 
-				p.ExecuteMock.
-					Expect(ctx, plan.Plan{}).
+				p.EXPECT().
+					Execute(ctx, plan.Plan{}).
 					Return(nil)
 
-				p.ConfirmMock.Expect(plan.Plan{}).Return(true, nil)
+				p.EXPECT().Confirm(plan.Plan{}).Return(true, nil)
 
 				// todo test state ops
 
@@ -74,6 +77,7 @@ func TestRender(t *testing.T) {
 		})
 	}
 }
+
 func loadTestCases(t *testing.T, path string) []testcase {
 	tests := make([]testcase, 1)
 	contents, err := ioutil.ReadFile(path)
