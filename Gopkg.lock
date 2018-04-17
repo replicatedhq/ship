@@ -26,6 +26,23 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/docker/docker"
+  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/filters","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/swarm/runtime","api/types/versions"]
+  revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
+
+[[projects]]
+  name = "github.com/docker/go-connections"
+  packages = ["nat"]
+  revision = "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
+  version = "v0.3.0"
+
+[[projects]]
+  name = "github.com/docker/go-units"
+  packages = ["."]
+  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
+  version = "v0.3.3"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "629574ca2a5df945712d3079857300b5e4da0236"
@@ -48,6 +65,12 @@
   packages = ["."]
   revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
   version = "v1.7.0"
+
+[[projects]]
+  name = "github.com/gogo/protobuf"
+  packages = ["proto"]
+  revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/golang/mock"
@@ -114,6 +137,18 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "06020f85339e21b2478f756a78e295255ffa4d6a"
+
+[[projects]]
+  name = "github.com/opencontainers/go-digest"
+  packages = ["."]
+  revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
+  version = "v1.0.0-rc1"
+
+[[projects]]
+  name = "github.com/opencontainers/image-spec"
+  packages = ["specs-go","specs-go/v1"]
+  revision = "d60099175f88c47cd379c4738d158884749ed235"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -220,6 +255,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3366f27bcdbd649849c1883332aa361a66927e74cb723750434eeb45b90dc7ae"
+  inputs-digest = "7bf3b32a9e85d0d345a8a180a30c3e97ad1b34f0e3d90ce42531d83143f1e6e3"
   solver-name = "gps-cdcl"
   solver-version = 1

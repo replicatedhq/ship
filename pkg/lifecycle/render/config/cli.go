@@ -64,10 +64,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}
 func resolveCurrentValue(templateContext map[string]interface{}, configItem *libyaml.ConfigItem) interface{} {
 	current, ok := templateContext[configItem.Name]
 	if !ok {
-		if configItem.Default != "" {
-			return configItem.Default
-		}
-		return ""
+		return configItem.Default
 	}
 
 	return current
