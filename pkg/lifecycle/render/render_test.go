@@ -22,7 +22,7 @@ import (
 
 type testcase struct {
 	Name        string
-	Spec        *api.Spec
+	Spec        api.Spec
 	ViperConfig map[string]interface{} `yaml:"viper_config"`
 	Responses   map[string]string
 	Expect      map[string]string
@@ -46,7 +46,7 @@ func TestRender(t *testing.T) {
 			configResolver := config.NewMockResolver(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			renderer.Spec = test.Spec
+			renderer.Release = &api.Release{Spec: test.Spec}
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
@@ -56,7 +56,7 @@ func TestRender(t *testing.T) {
 				defer mc.Finish()
 
 				configResolver.EXPECT().
-					ResolveConfig(ctx).
+					ResolveConfig(nil, ctx).
 					Return(test.ViperConfig, nil)
 
 				p.EXPECT().

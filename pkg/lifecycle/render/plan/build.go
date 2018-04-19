@@ -7,23 +7,28 @@ import (
 	"path/filepath"
 	"text/template"
 
+	dockertypes "github.com/docker/docker/api/types"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 )
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(assets []api.Asset, config map[string]interface{}) Plan {
+func (p *CLIPlanner) Build(assets []api.Asset, templateContext map[string]interface{}) Plan {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 	var plan Plan
 	for _, asset := range assets {
 		if asset.Inline != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
-			plan = append(plan, p.inlineStep(asset.Inline, config))
+			plan = append(plan, p.inlineStep(asset.Inline, templateContext))
+		} else if asset.Docker != nil {
+			debug.Log("event", "asset.resolve", "asset.type", "docker")
+			plan = append(plan, p.dockerStep(asset.Docker, templateContext))
 		} else {
-			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%v", asset))
+			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
 	}
 	return plan
@@ -61,6 +66,36 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, templateContext map[str
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", inline.Dest)
 			}
+			return nil
+		},
+	}
+}
+
+func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, templateContext map[string]interface{}) Step {
+	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", asset.Dest, "description", asset.Description))
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute: func(ctx context.Context) error {
+			debug.Log("event", "execute")
+			basePath := filepath.Dir(asset.Dest)
+			debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", basePath)
+			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
+				debug.Log("event", "mkdirall.fail", "err", err, "dest", asset.Dest, "basePath", basePath)
+				return errors.Wrapf(err, "write directory to %s", asset.Dest)
+			}
+
+			authOpts := dockertypes.AuthConfig{}
+			if asset.Private {
+				authOpts.Username = templateContext["customer-id"].(string)
+				authOpts.Password = templateContext["registry-secret"].(string)
+			}
+
+			if err := docker.SaveImage(ctx, asset.Image, asset.Dest, authOpts); err != nil {
+				debug.Log("event", "execute.fail", "err", err)
+				return errors.Wrapf(err, "Write docker asset to %s", asset.Dest)
+			}
+
 			return nil
 		},
 	}

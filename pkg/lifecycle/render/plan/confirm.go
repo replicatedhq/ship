@@ -2,6 +2,7 @@ package plan
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -20,7 +21,7 @@ func (p *CLIPlanner) Confirm(plan Plan) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "confirm plan")
 	}
-	if confirmed != "" && confirmed != "y" {
+	if confirmed != "" && strings.ToLower(confirmed) != "y" {
 		return false, nil
 	}
 

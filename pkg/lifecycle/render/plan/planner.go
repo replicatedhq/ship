@@ -23,7 +23,7 @@ type Step struct {
 
 // Planner is a thing that can plan and execute rendering
 type Planner interface {
-	Build(assets []api.Asset, config map[string]interface{}) Plan
+	Build([]api.Asset, map[string]interface{}) Plan
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
 }

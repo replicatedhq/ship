@@ -2,9 +2,11 @@ package config
 
 import (
 	"context"
+
+	"github.com/replicatedcom/ship/pkg/api"
 )
 
 // Resolver is a thing that can resolve configuration options
 type Resolver interface {
-	ResolveConfig(ctx context.Context) (map[string]interface{}, error)
+	ResolveConfig(*api.ReleaseMetadata, context.Context) (map[string]interface{}, error)
 }

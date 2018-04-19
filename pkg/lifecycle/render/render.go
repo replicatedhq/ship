@@ -22,9 +22,9 @@ type Renderer struct {
 	ConfigResolver config.Resolver
 	Planner        plan.Planner
 
-	Fs   afero.Afero
-	Spec *api.Spec
-	UI   cli.Ui
+	Fs      afero.Afero
+	Release *api.Release
+	UI      cli.Ui
 }
 
 // Execute renders the assets and config
@@ -32,13 +32,13 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
 
-	templateContext, err := r.ConfigResolver.ResolveConfig(ctx)
+	templateContext, err := r.ConfigResolver.ResolveConfig(&r.Release.ReleaseMetadata, ctx)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
 	debug.Log("event", "render.plan")
-	pln := r.Planner.Build(r.Spec.Assets.V1, templateContext)
+	pln := r.Planner.Build(r.Release.Spec.Assets.V1, templateContext)
 
 	if !step.SkipPlan {
 		debug.Log("event", "render.plan.confirm")

@@ -1,9 +1,12 @@
-build-deps:
-	go get -u github.com/golang/lint/golint
-	go get golang.org/x/tools/cmd/goimports
+docker:
+	docker build -t ship .
 
-dep-deps:
-	go get -u github.com/golang/dep/cmd/dep
+shell:
+	docker run --rm -it \
+		-v `pwd`/out:/out \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/github.com/replicatedcom/ship \
+		ship
 
 githooks:
 	echo 'make test' > .git/hooks/pre-push

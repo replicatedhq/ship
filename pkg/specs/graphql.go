@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/spf13/viper"
 )
 
@@ -24,6 +25,7 @@ query {
     releaseNotes
     spec
     created
+    registrySecret
   }
 }`
 
@@ -60,13 +62,27 @@ type ShipReleaseWrapper struct {
 
 // ShipRelease is the release response form GQL
 type ShipRelease struct {
-	ID           string `json:"id"`
-	ChannelID    string `json:"channelId"`
-	ChannelName  string `json:"channelName"`
-	Semver       string `json:"semver"`
-	ReleaseNotes string `json:"releaseNotes"`
-	Spec         string `json:"spec"`
-	Created      string `json:"created"`
+	ID             string `json:"id"`
+	ChannelID      string `json:"channelId"`
+	ChannelName    string `json:"channelName"`
+	Semver         string `json:"semver"`
+	ReleaseNotes   string `json:"releaseNotes"`
+	Spec           string `json:"spec"`
+	Created        string `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string `json:"registrySecret"`
+}
+
+// ToReleaseMeta linter
+func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
+	return api.ReleaseMetadata{
+		ID:             r.ID,
+		ChannelID:      r.ChannelID,
+		ChannelName:    r.ChannelName,
+		Semver:         r.Semver,
+		ReleaseNotes:   r.ReleaseNotes,
+		Created:        r.Created,
+		RegistrySecret: r.RegistrySecret,
+	}
 }
 
 // GraphQLClientFromViper builds a new client using a viper instance
