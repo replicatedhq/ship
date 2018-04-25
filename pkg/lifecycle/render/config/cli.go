@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -15,14 +16,14 @@ import (
 
 // CLIResolver resolves config values via CLI
 type CLIResolver struct {
-	Logger log.Logger
-	Spec   *api.Spec
-	UI     cli.Ui
-	Viper  *viper.Viper
+	Logger  log.Logger
+	Release *api.Release
+	UI      cli.Ui
+	Viper   *viper.Viper
 }
 
 // ResolveConfig will get all the config values specified in the spec
-func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}, error) {
+func (c *CLIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.Context) (map[string]interface{}, error) {
 	debug := level.Debug(log.With(c.Logger, "step.type", "render"))
 	debug.Log("event", "config.resolve")
 
@@ -30,7 +31,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}
 	c.Viper.Unmarshal(&templateContext)
 
 	// read runner.spec.config
-	for _, configGroup := range c.Spec.Config.V1 {
+	for _, configGroup := range c.Release.Spec.Config.V1 {
 		c.UI.Info(configGroup.Name)
 		for _, configItem := range configGroup.Items {
 			current := resolveCurrentValue(templateContext, configItem)
@@ -57,8 +58,12 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context) (map[string]interface{}
 			}
 		}
 	}
-	return templateContext, nil
 
+	if metadata != nil {
+		c.resolveMetadata(metadata, templateContext)
+	}
+
+	return templateContext, nil
 }
 
 func resolveCurrentValue(templateContext map[string]interface{}, configItem *libyaml.ConfigItem) interface{} {
@@ -80,4 +85,22 @@ func formatCurrent(configItem *libyaml.ConfigItem, current interface{}) string {
 	}
 
 	return fmt.Sprintf(" [%s]", current)
+}
+
+func (c *CLIResolver) resolveMetadata(metadata *api.ReleaseMetadata, templateContext map[string]interface{}) {
+	t := reflect.TypeOf(*metadata)
+	v := reflect.ValueOf(*metadata)
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		tag := field.Tag.Get("meta")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		if val, ok := templateContext[tag]; ok {
+			if v, ok := val.(string); ok && v != "" {
+				continue // should we override or not?  it makes no difference at the moment.
+			}
+		}
+		templateContext[tag] = v.Field(i).Interface()
+	}
 }

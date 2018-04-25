@@ -25,7 +25,7 @@ type Runner struct {
 	GraphQLClient  *specs.GraphQLClient
 	UI             cli.Ui
 	Logger         log.Logger
-	Spec           *api.Spec
+	Release        *api.Release
 	Fs             afero.Afero
 	Viper          *viper.Viper
 }
@@ -38,15 +38,15 @@ func (r *Runner) Run(ctx context.Context) error {
 	executor := &stepExecutor{
 		Logger: r.Logger,
 		renderer: &render.Renderer{
-			Fs:     r.Fs,
-			Logger: r.Logger,
-			Spec:   r.Spec,
-			UI:     r.UI,
+			Fs:      r.Fs,
+			Logger:  r.Logger,
+			Release: r.Release,
+			UI:      r.UI,
 			ConfigResolver: &config.CLIResolver{
-				Logger: r.Logger,
-				Spec:   r.Spec,
-				UI:     r.UI,
-				Viper:  r.Viper,
+				Logger:  r.Logger,
+				Release: r.Release,
+				UI:      r.UI,
+				Viper:   r.Viper,
 			},
 			Planner: &plan.CLIPlanner{
 				Logger: r.Logger,
@@ -61,7 +61,7 @@ func (r *Runner) Run(ctx context.Context) error {
 		},
 	}
 
-	for idx, step := range r.Spec.Lifecycle.V1 {
+	for idx, step := range r.Release.Spec.Lifecycle.V1 {
 		level.Debug(r.Logger).Log("event", "step.execute", "index", idx, "step", fmt.Sprintf("%v", step))
 		if err := executor.Execute(ctx, &step); err != nil {
 			level.Error(r.Logger).Log("event", "step.execute.fail", "index", idx, "step", fmt.Sprintf("%v", step))

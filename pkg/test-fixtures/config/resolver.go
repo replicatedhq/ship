@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/replicatedcom/ship/pkg/api"
 )
 
 // MockResolver is a mock of Resolver interface
@@ -35,7 +36,7 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 }
 
 // ResolveConfig mocks base method
-func (m *MockResolver) ResolveConfig(ctx context.Context) (map[string]interface{}, error) {
+func (m *MockResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.Context) (map[string]interface{}, error) {
 	ret := m.ctrl.Call(m, "ResolveConfig", ctx)
 	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(error)
@@ -43,6 +44,6 @@ func (m *MockResolver) ResolveConfig(ctx context.Context) (map[string]interface{
 }
 
 // ResolveConfig indicates an expected call of ResolveConfig
-func (mr *MockResolverMockRecorder) ResolveConfig(ctx interface{}) *gomock.Call {
+func (mr *MockResolverMockRecorder) ResolveConfig(metadata *api.ReleaseMetadata, ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveConfig", reflect.TypeOf((*MockResolver)(nil).ResolveConfig), ctx)
 }

@@ -53,61 +53,63 @@ func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
 	}, nil
 }
 
-// ResolveSpecs uses the passed config options to get specs from pg.replicated.com or
+// ResolveRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local studio-file if so configured
-func (r *Resolver) ResolveSpecs(ctx context.Context, selector Selector) (*api.Spec, error) {
+func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.Release, error) {
 	var specYAML []byte
 	var err error
-	var spec api.Spec
+	var release *ShipRelease
 
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveSpecs"))
 
 	if r.StudioFile != "" && AllowInlineSpecs {
-		specYAML, err = r.resolveStudioSpec()
+		release, err = r.resolveStudioRelease()
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
 		}
 	} else {
-		specYAML, err = r.resolveCloudSpec(selector.CustomerID)
+		release, err = r.resolveCloudRelease(selector.CustomerID)
 		debug.Log("spec.resolve", "spec", specYAML, "err", err)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector.CustomerID)
 		}
 	}
 
-	if err := yaml.Unmarshal(specYAML, &spec); err != nil {
-		return nil, errors.Wrapf(err, "decode spec")
+	result := &api.Release{
+		ReleaseMetadata: release.ToReleaseMeta(),
+	}
 
+	if err := yaml.Unmarshal([]byte(release.Spec), &result.Spec); err != nil {
+		return nil, errors.Wrapf(err, "decode spec")
 	}
 
 	debug.Log("phase", "load-specs", "status", "complete",
-		"resolved-spec", fmt.Sprintf("%+v", spec),
+		"resolved-spec", fmt.Sprintf("%+v", result.Spec),
 	)
 
-	return &spec, nil
+	return result, nil
 }
 
-func (r *Resolver) resolveStudioSpec() ([]byte, error) {
-
+func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveStudioSpec"))
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
+
 	specYAML, err := ioutil.ReadFile(r.StudioFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
 	}
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
-	return specYAML, nil
+	return &ShipRelease{Spec: string(specYAML)}, nil
 }
 
-func (r *Resolver) resolveCloudSpec(customerID string) ([]byte, error) {
+func (r *Resolver) resolveCloudRelease(customerID string) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
 	client := r.Client
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
-	spec, err := client.GetRelease(customerID, "")
+	release, err := client.GetRelease(customerID, "")
 	if err != nil {
 		return nil, err
 	}
-	return []byte(spec.Spec), err
-
+	return release, err
 }

@@ -29,8 +29,8 @@ func TestDockerAsset(t *testing.T) {
 					Mode:        0666,
 					Description: "The x5 image",
 				},
-				Image:  "registry.replicated.com/team/i-know-what-the-x5-is:kfbr392",
-				Source: "replicated",
+				Image:   "registry.replicated.com/team/i-know-what-the-x5-is:kfbr392",
+				Private: true,
 			},
 			expect: func(mock *docker.MockImagePuller) {
 				mock.EXPECT().ImagePull(

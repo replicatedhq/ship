@@ -120,7 +120,7 @@ func (d *Ship) Execute(ctx context.Context) error {
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	spec, err := d.Resolver.ResolveSpecs(ctx, specs.Selector{
+	release, err := d.Resolver.ResolveRelease(ctx, specs.Selector{
 		CustomerID:     d.CustomerID,
 		ReleaseSemver:  d.ReleaseSemver,
 		ReleaseID:      d.ReleaseID,
@@ -138,7 +138,7 @@ func (d *Ship) Execute(ctx context.Context) error {
 		GraphQLClient:  d.Client,
 		UI:             d.UI,
 		Logger:         d.Logger,
-		Spec:           spec,
+		Release:        release,
 		Fs:             afero.Afero{Fs: afero.NewOsFs()},
 		Viper:          d.Viper,
 	}
