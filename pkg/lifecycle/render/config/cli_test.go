@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"os"
+
+	"fmt"
+
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
@@ -21,6 +25,7 @@ import (
 type cliTestcase struct {
 	Name         string
 	Config       []libyaml.ConfigGroup
+	OSEnv        map[string]string      `yaml:"osenv"`
 	ViperConfig  map[string]interface{} `yaml:"viper_config"`
 	Responses    []cliExpectUIAsk       `yaml:"responses"`
 	Expect       map[string]string
@@ -36,8 +41,9 @@ type cliExpectUIAsk struct {
 func TestCLIResolver(t *testing.T) {
 	ctx := context.Background()
 
+	logger := log.NewLogfmtLogger(os.Stderr)
 	resolver := &CLIResolver{
-		Logger: log.NewNopLogger(),
+		Logger: logger,
 	}
 
 	tests := loadCLITestCases(t, filepath.Join("test-fixtures", "config-test-cli.yml"))
@@ -56,11 +62,23 @@ func TestCLIResolver(t *testing.T) {
 				},
 			}
 			resolver.UI = mockUI
+
 			resolver.Viper = viper.New()
+			resolver.Viper.AutomaticEnv()
 
 			func() {
 				defer mc.Finish()
 
+				fmt.Println(test.OSEnv)
+
+				for key, value := range test.OSEnv {
+					old := os.Getenv(key)
+					err := os.Setenv(key, value)
+					req.NoError(err)
+					defer func(key, old, value string) {
+						os.Setenv(key, old)
+					}(key, old, value)
+				}
 				for _, expected := range test.ExpectUIInfo {
 					mockUI.EXPECT().Info(expected)
 				}

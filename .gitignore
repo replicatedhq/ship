@@ -1,2 +1,4 @@
 bin/
 dist/
+e2e-retraced/retraced-post.sh
+./assets

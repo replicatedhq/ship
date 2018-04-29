@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/cli/devtool_releaser"
 	"github.com/replicatedcom/ship/pkg/e2e"
 	"github.com/replicatedcom/ship/pkg/ship"
 	"github.com/replicatedcom/ship/pkg/specs"
@@ -64,6 +65,7 @@ application specs to be used in on-prem installations.
 	}
 
 	cmd.AddCommand(e2e.Cmd())
+	cmd.AddCommand(devtool_releaser.Cmd())
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()

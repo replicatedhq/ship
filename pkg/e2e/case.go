@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/url"
 
+	"time"
+
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/ship"
 	"github.com/spf13/viper"
@@ -34,17 +36,18 @@ func (r *CaseRunner) promoteRelease() {
 	client := &GraphQLClient{
 		GQLServer: gqlServer,
 		Token:     r.testcase.config.Token,
-		assert:    r.assert,
 	}
 
 	spec, err := json.Marshal(r.testcase.Spec)
 	r.assert.NoError(err)
 
-	client.promoteRelease(
+	_, err = client.PromoteRelease(
 		string(spec),
 		r.testcase.config.ChannelID,
 		r.testcase.config.Semver,
+		`Integration test run on `+time.Now().String(),
 	)
+	r.assert.NoError(err)
 
 }
 
