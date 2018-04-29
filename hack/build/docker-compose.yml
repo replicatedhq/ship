@@ -1,0 +1,10 @@
+---
+version: '3.3'
+services:
+  ship:
+    image: replicated/ship:alpha
+
+  console:
+    image: replicated/ship-console:alpha
+    ports:
+      - 8800:80
