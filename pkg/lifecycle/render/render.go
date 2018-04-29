@@ -56,7 +56,10 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 		debug.Log("event", "render.plan.skip")
 	}
 
-	r.Planner.Execute(ctx, pln)
+	err = r.Planner.Execute(ctx, pln)
+	if err != nil {
+		return errors.Wrap(err, "execute plan")
+	}
 
 	// if not studio:
 	//      save state

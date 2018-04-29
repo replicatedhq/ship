@@ -1,4 +1,5 @@
 ---
+####
 assets:
   v1:
   - inline:
@@ -65,10 +66,10 @@ assets:
                       key: POSTGRES_DATABASE
       dest: ./assets/k8s/postgres.yml
       mode: 0666
-    - docker:
-        image: registry.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
-        dest: docker/db.tar
-        source: replicated
+  - docker:
+      image: registry.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
+      dest: docker/db.tar
+      source: replicated
 
 config:
   v1:

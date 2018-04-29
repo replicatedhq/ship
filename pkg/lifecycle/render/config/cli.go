@@ -34,7 +34,7 @@ func (c *CLIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.C
 	for _, configGroup := range c.Release.Spec.Config.V1 {
 		c.UI.Info(configGroup.Name)
 		for _, configItem := range configGroup.Items {
-			current := resolveCurrentValue(templateContext, configItem)
+			current := c.resolveCurrentValue(templateContext, configItem)
 
 			for {
 				debug.Log("event", "configitem.ask", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type)
@@ -66,13 +66,25 @@ func (c *CLIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.C
 	return templateContext, nil
 }
 
-func resolveCurrentValue(templateContext map[string]interface{}, configItem *libyaml.ConfigItem) interface{} {
+func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, configItem *libyaml.ConfigItem) interface{} {
+	debug := log.With(level.Debug(c.Logger), "func", "resolve-current", "config-item", configItem.Name)
+	// check ctx first
 	current, ok := templateContext[configItem.Name]
-	if !ok {
-		return configItem.Default
+	if ok {
+		debug.Log("event", "templateContext.ok")
+		return current
 	}
 
-	return current
+	//then check viper
+	current = c.Viper.Get(configItem.Name)
+	if current != "" && current != nil {
+		debug.Log("event", "viper.found", "value", current)
+		return current
+	}
+
+	//then use default viper
+	debug.Log("event", "use.default", "empty", configItem.Default == "")
+	return configItem.Default
 }
 
 func formatCurrent(configItem *libyaml.ConfigItem, current interface{}) string {

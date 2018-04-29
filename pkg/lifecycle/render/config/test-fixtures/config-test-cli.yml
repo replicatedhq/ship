@@ -30,7 +30,6 @@
     namespace: default
 
 
-
 - name: one option, with default, override answer
   config:
     - name: Kubernetes Cluster
@@ -45,7 +44,6 @@
       answer: retraced
   expect:
     namespace: retraced
-
 
 
 - name: one option, required
@@ -75,6 +73,23 @@
           title: Namespace
           required: true
           default: default
+  expect_ui_info:
+    - Kubernetes Cluster
+  responses:
+    - question: 'Enter a value for option "namespace" [default]:'
+      answer: ""
+  expect:
+    namespace: default
+
+- name: one option, required, set in the environment
+  osenv:
+    NAMESPACE: default
+  config:
+    - name: Kubernetes Cluster
+      items:
+        - name: namespace
+          title: Namespace
+          required: true
   expect_ui_info:
     - Kubernetes Cluster
   responses:
