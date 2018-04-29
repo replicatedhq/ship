@@ -18,17 +18,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type testcase struct {
+type cliTestcase struct {
 	Name         string
 	Config       []libyaml.ConfigGroup
 	ViperConfig  map[string]interface{} `yaml:"viper_config"`
-	Responses    []expectUIAsk          `yaml:"responses"`
+	Responses    []cliExpectUIAsk       `yaml:"responses"`
 	Expect       map[string]string
 	ExpectUIInfo []string `yaml:"expect_ui_info"`
 	ExpectUIWarn []string `yaml:"expect_ui_warn"`
 }
 
-type expectUIAsk struct {
+type cliExpectUIAsk struct {
 	Question string
 	Answer   string
 }
@@ -40,7 +40,7 @@ func TestCLIResolver(t *testing.T) {
 		Logger: log.NewNopLogger(),
 	}
 
-	tests := loadTestCases(t, filepath.Join("test-fixtures", "config-test.yml"))
+	tests := loadCLITestCases(t, filepath.Join("test-fixtures", "config-test-cli.yml"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -86,8 +86,8 @@ func TestCLIResolver(t *testing.T) {
 	}
 }
 
-func loadTestCases(t *testing.T, path string) []testcase {
-	tests := make([]testcase, 1)
+func loadCLITestCases(t *testing.T, path string) []cliTestcase {
+	tests := make([]cliTestcase, 1)
 	contents, err := ioutil.ReadFile(path)
 	assert.NoError(t, err)
 	err = yaml.UnmarshalStrict(contents, &tests)

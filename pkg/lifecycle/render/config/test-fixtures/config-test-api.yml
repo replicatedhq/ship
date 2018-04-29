@@ -1,0 +1,49 @@
+---
+- name: one option
+  config:
+    - name: Kubernetes Cluster
+      items:
+        - name: namespace
+          title: Namespace
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "description": "",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "namespace",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Namespace",
+                          "type": "",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "Kubernetes Cluster",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]
+      }
+  expect:
+    namespace: retraced
