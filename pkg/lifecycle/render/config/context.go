@@ -1,5 +1,9 @@
 package config
 
+/*
+  This was taken from https://github.com/replicatedcom/replicated/blob/master/templates/context.go
+*/
+
 import (
 	"encoding/base64"
 	"net/url"
@@ -11,6 +15,7 @@ import (
 
 	units "github.com/docker/go-units"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 )
 
 type Ctx interface {
@@ -70,7 +75,7 @@ func (ctx StaticCtx) base64Encode(plain string) string {
 func (ctx StaticCtx) base64Decode(encoded string) string {
 	plain, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		ctx.Logger.Log("msg", err)
+		level.Error(ctx.Logger).Log("msg", "unable to base64 decode", "err", err)
 		return ""
 	}
 	return string(plain)
@@ -89,7 +94,7 @@ func (ctx StaticCtx) add(a, b interface{}) interface{} {
 	if ctx.isUint(av) {
 		return av.Uint() + ctx.reflectToUint(bv)
 	}
-	ctx.Logger.Log("msg", "Cannot add %T and %T", a, b)
+	level.Error(ctx.Logger).Log("msg", "unable to add")
 	return 0
 }
 
@@ -106,7 +111,7 @@ func (ctx StaticCtx) sub(a, b interface{}) interface{} {
 	if ctx.isUint(av) {
 		return av.Uint() - ctx.reflectToUint(bv)
 	}
-	ctx.Logger.Log("msg", "Cannot subtract %T and %T", a, b)
+	level.Error(ctx.Logger).Log("msg", "unable to sub")
 	return 0
 }
 
@@ -123,7 +128,7 @@ func (ctx StaticCtx) mult(a, b interface{}) interface{} {
 	if ctx.isUint(av) {
 		return av.Uint() * ctx.reflectToUint(bv)
 	}
-	ctx.Logger.Log("msg", "Cannot multiply %T and %T", a, b)
+	level.Error(ctx.Logger).Log("msg", "unable to mult")
 	return 0
 }
 
@@ -140,14 +145,14 @@ func (ctx StaticCtx) div(a, b interface{}) interface{} {
 	if ctx.isUint(av) {
 		return av.Uint() / ctx.reflectToUint(bv)
 	}
-	ctx.Logger.Log("msg", "Cannot divide %T and %T", a, b)
+	level.Error(ctx.Logger).Log("msg", "unable to div")
 	return 0
 }
 
 func (ctx StaticCtx) parseBool(str string) bool {
 	val, err := strconv.ParseBool(str)
 	if err != nil {
-		ctx.Logger.Log("msg", err)
+		level.Error(ctx.Logger).Log("msg", "unable to parseBool", "err", err)
 	}
 	return val
 }
@@ -155,7 +160,7 @@ func (ctx StaticCtx) parseBool(str string) bool {
 func (ctx StaticCtx) parseFloat(str string) float64 {
 	val, err := strconv.ParseFloat(str, 64)
 	if err != nil {
-		ctx.Logger.Log("msg", err)
+		level.Error(ctx.Logger).Log("msg", "unable to parseFloat", "err", err)
 	}
 	return val
 }
@@ -167,7 +172,7 @@ func (ctx StaticCtx) parseInt(str string, args ...int) int64 {
 	}
 	val, err := strconv.ParseInt(str, base, 64)
 	if err != nil {
-		ctx.Logger.Log("msg", err)
+		level.Error(ctx.Logger).Log("msg", "unable to parseInt", "err", err)
 	}
 	return val
 }
@@ -179,7 +184,7 @@ func (ctx StaticCtx) parseUint(str string, args ...int) uint64 {
 	}
 	val, err := strconv.ParseUint(str, base, 64)
 	if err != nil {
-		ctx.Logger.Log("msg", err)
+		level.Error(ctx.Logger).Log("msg", "unable to parseUint", "err", err)
 	}
 	return val
 }
@@ -199,7 +204,7 @@ func (ctx StaticCtx) reflectToFloat(val reflect.Value) float64 {
 	if ctx.isUint(val) {
 		return float64(val.Uint())
 	}
-	ctx.Logger.Log("msg", "Cannot convert %v to float64", val.Kind())
+	level.Error(ctx.Logger).Log("msg", "unable to convert to float")
 	return 0
 }
 
@@ -210,7 +215,7 @@ func (ctx StaticCtx) reflectToInt(val reflect.Value) int64 {
 	if ctx.isInt(val) || ctx.isUint(val) {
 		return val.Int()
 	}
-	ctx.Logger.Log("msg", "Cannot convert %v to int64", val.Kind())
+	level.Error(ctx.Logger).Log("msg", "unable to convert to int")
 	return 0
 }
 
@@ -221,7 +226,7 @@ func (ctx StaticCtx) reflectToUint(val reflect.Value) uint64 {
 	if ctx.isInt(val) || ctx.isUint(val) {
 		return val.Uint()
 	}
-	ctx.Logger.Log("msg", "Cannot convert %v to uint64", val.Kind())
+	level.Error(ctx.Logger).Log("msg", "unable to convert to uint")
 	return 0
 }
 

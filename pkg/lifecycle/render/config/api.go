@@ -21,7 +21,7 @@ type APIResolver struct {
 }
 
 // ResolveConfig will get all the config values specified in the spec, in JSON format
-func (r *APIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.Context) (map[string]interface{}, error) {
+func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata) (map[string]interface{}, error) {
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
 	builder := NewBuilder(
@@ -31,7 +31,7 @@ func (r *APIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.C
 	for _, configGroup := range r.Release.Spec.Config.V1 {
 		resolvedItems := make([]map[string]interface{}, 0, 0)
 		for _, configItem := range configGroup.Items {
-			resolvedItem, err := r.resolveConfigItem(builder, configItem, ctx)
+			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
 			if err != nil {
 
 			}
@@ -39,7 +39,7 @@ func (r *APIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.C
 			resolvedItems = append(resolvedItems, resolvedItem)
 		}
 
-		resolvedGroup, err := r.resolveConfigGroup(builder, &configGroup, ctx)
+		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, &configGroup)
 		if err != nil {
 
 		}
@@ -53,7 +53,7 @@ func (r *APIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.C
 	return fit, nil
 }
 
-func (r *APIResolver) resolveConfigGroup(builder Builder, configGroup *libyaml.ConfigGroup, ctx context.Context) (map[string]interface{}, error) {
+func (r *APIResolver) resolveConfigGroup(ctx context.Context, builder Builder, configGroup *libyaml.ConfigGroup) (map[string]interface{}, error) {
 	b, err := json.Marshal(configGroup)
 	if err != nil {
 		r.Logger.Log("msg", err)
@@ -68,7 +68,7 @@ func (r *APIResolver) resolveConfigGroup(builder Builder, configGroup *libyaml.C
 	return m, nil
 }
 
-func (r *APIResolver) resolveConfigItem(builder Builder, configItem *libyaml.ConfigItem, ctx context.Context) (map[string]interface{}, error) {
+func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (map[string]interface{}, error) {
 	var filters []string
 	for _, filter := range configItem.Filters {
 		builtFilter, err := builder.String(filter)

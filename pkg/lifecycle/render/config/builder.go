@@ -1,5 +1,9 @@
 package config
 
+/*
+  This was taken from https://github.com/replicatedcom/replicated/blob/master/templates/builder.go
+*/
+
 import (
 	"bytes"
 	"strconv"

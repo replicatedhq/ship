@@ -54,13 +54,12 @@ func TestAPIResolver(t *testing.T) {
 
 			func() {
 
-				resolvedConfig, err := resolver.ResolveConfig(nil, ctx)
+				resolvedConfig, err := resolver.ResolveConfig(ctx, nil)
 				req.NoError(err)
 
 				marshalled, err := json.Marshal(resolvedConfig)
 				req.NoError(err)
 
-				fmt.Printf("%#v", test.Responses.JSON)
 				areSame, err := areSameJSON(marshalled, []byte(test.Responses.JSON))
 				req.NoError(err)
 				req.True(areSame, "%s should be %s", marshalled, test.Responses.JSON)
