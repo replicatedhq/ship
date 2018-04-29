@@ -53,7 +53,6 @@ func TestAPIResolver(t *testing.T) {
 			resolver.Viper = viper.New()
 
 			func() {
-
 				resolvedConfig, err := resolver.ResolveConfig(ctx, nil)
 				req.NoError(err)
 

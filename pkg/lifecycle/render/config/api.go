@@ -3,11 +3,12 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
-	"github.com/mitchellh/cli"
+	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/spf13/viper"
 )
@@ -16,7 +17,6 @@ import (
 type APIResolver struct {
 	Logger  log.Logger
 	Release *api.Release
-	UI      cli.Ui
 	Viper   *viper.Viper
 }
 
@@ -29,19 +29,21 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	)
 
 	for _, configGroup := range r.Release.Spec.Config.V1 {
-		resolvedItems := make([]map[string]interface{}, 0, 0)
+		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
 			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
 			if err != nil {
-
+				return nil, err
 			}
 
 			resolvedItems = append(resolvedItems, resolvedItem)
 		}
 
+		configGroup.Items = resolvedItems
+
 		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, &configGroup)
 		if err != nil {
-
+			return nil, err
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
@@ -68,27 +70,76 @@ func (r *APIResolver) resolveConfigGroup(ctx context.Context, builder Builder, c
 	return m, nil
 }
 
-func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (map[string]interface{}, error) {
+func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {
 		builtFilter, err := builder.String(filter)
 		if err != nil {
-			r.Logger.Log("msg", err)
+			level.Error(r.Logger).Log("msg", "unable to build filter", "err", err)
 			return nil, err
 		}
 		filters = append(filters, builtFilter)
 	}
 
-	b, err := json.Marshal(configItem)
+	// type should default to "text"
+	if configItem.Type == "" {
+		configItem.Type = "text"
+	}
+
+	// build "default"
+	builtDefault, err := builder.String(configItem.Default)
 	if err != nil {
-		r.Logger.Log("msg", err)
+		level.Error(r.Logger).Log("msg", "unable to build 'default'", "err", err)
 		return nil, err
 	}
+	configItem.Default = builtDefault
 
-	m := make(map[string]interface{})
-	if err := json.Unmarshal(b, &m); err != nil {
-		r.Logger.Log("msg", err)
+	// build "value"
+	builtValue, err := builder.String(configItem.Value)
+	if err != nil {
+		level.Error(r.Logger).Log("msg", "unable to build 'value'", "err", err)
+		return nil, err
+	}
+	configItem.Value = builtValue
+
+	// build "when" (dropping support for the when: a=b style here from replicated v1)
+	builtWhen, err := builder.String(configItem.When)
+	if err != nil {
+		level.Error(r.Logger).Log("msg", "unable to build `when'", "err", err)
+		return nil, err
+	}
+	configItem.When = builtWhen
+
+	// build "runonsave"
+	if configItem.TestProc != nil {
+		builtRunOnSave, err := builder.Bool(configItem.TestProc.RunOnSave, false)
+		if err != nil {
+			level.Error(r.Logger).Log("msg", "unable to build 'runonsave'", "err", err)
+			return nil, err
+		}
+		configItem.TestProc.RunOnSave = strconv.FormatBool(builtRunOnSave)
 	}
 
-	return m, nil
+	// build subitems
+	if configItem.Items != nil {
+		childItems := make([]*libyaml.ConfigChildItem, 0, 0)
+		for _, item := range configItem.Items {
+			builtChildItem, err := r.resolveConfigChildItem(ctx, builder, item)
+			if err != nil {
+				return nil, err
+			}
+
+			childItems = append(childItems, builtChildItem)
+		}
+
+		configItem.Items = childItems
+	}
+
+	return configItem, nil
+}
+
+func (r *APIResolver) resolveConfigChildItem(ctx context.Context, builder Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
+	// TODO
+	return configChildItem, nil
 }

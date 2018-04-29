@@ -126,7 +126,7 @@ func (b *Builder) BuildFuncMap() template.FuncMap {
 }
 
 func (b *Builder) GetTemplate(name, text string) (*template.Template, error) {
-	tmpl, err := template.New(name).Delims("{{repl ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
+	tmpl, err := template.New(name).Delims("{{ship ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
 	if err != nil {
 		b.Logger.Log("msg", err)
 		return nil, err
