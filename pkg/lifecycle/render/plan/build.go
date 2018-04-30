@@ -17,16 +17,16 @@ import (
 )
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(assets []api.Asset, templateContext map[string]interface{}) Plan {
+func (p *CLIPlanner) Build(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 	var plan Plan
 	for _, asset := range assets {
 		if asset.Inline != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
-			plan = append(plan, p.inlineStep(asset.Inline, templateContext))
+			plan = append(plan, p.inlineStep(asset.Inline, meta, templateContext))
 		} else if asset.Docker != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
-			plan = append(plan, p.dockerStep(asset.Docker, templateContext))
+			plan = append(plan, p.dockerStep(asset.Docker, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
@@ -34,7 +34,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, templateContext map[string]interf
 	return plan
 }
 
-func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, _ api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "inline", "dest", inline.Dest, "description", inline.Description))
 	return Step{
 		Dest:        inline.Dest,
@@ -71,7 +71,7 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, templateContext map[str
 	}
 }
 
-func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", asset.Dest, "description", asset.Description))
 	return Step{
 		Dest:        asset.Dest,
@@ -86,9 +86,9 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, templateContext map[stri
 			}
 
 			authOpts := dockertypes.AuthConfig{}
-			if asset.Private {
-				authOpts.Username = templateContext["customer-id"].(string)
-				authOpts.Password = templateContext["registry-secret"].(string)
+			if asset.Source == "replicated" {
+				authOpts.Username = meta.CustomerID
+				authOpts.Password = meta.RegistrySecret
 			}
 
 			if err := docker.SaveImage(ctx, asset.Image, asset.Dest, authOpts); err != nil {

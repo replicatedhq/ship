@@ -37,15 +37,15 @@ func (m *MockPlanner) EXPECT() *MockPlannerMockRecorder {
 }
 
 // Build mocks base method
-func (m *MockPlanner) Build(assets []api.Asset, config map[string]interface{}) plan.Plan {
-	ret := m.ctrl.Call(m, "Build", assets, config)
+func (m *MockPlanner) Build(assets []api.Asset, meta api.ReleaseMetadata, config map[string]interface{}) plan.Plan {
+	ret := m.ctrl.Call(m, "Build", assets, meta, config)
 	ret0, _ := ret[0].(plan.Plan)
 	return ret0
 }
 
 // Build indicates an expected call of Build
-func (mr *MockPlannerMockRecorder) Build(assets, config interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockPlanner)(nil).Build), assets, config)
+func (mr *MockPlannerMockRecorder) Build(assets []api.Asset, meta api.ReleaseMetadata, config interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockPlanner)(nil).Build), assets, meta, config)
 }
 
 // Confirm mocks base method
