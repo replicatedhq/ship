@@ -91,7 +91,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, templateContext map[stri
 				authOpts.Password = templateContext["registry-secret"].(string)
 			}
 
-			if err := docker.SaveImage(ctx, asset.Image, asset.Dest, authOpts); err != nil {
+			if err := docker.SaveImage(ctx, p.Logger, asset.Image, asset.Dest, authOpts); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write docker asset to %s", asset.Dest)
 			}
