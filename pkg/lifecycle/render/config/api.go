@@ -147,8 +147,8 @@ func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, co
 			return nil, err
 		}
 
-            configItem.Hidden = !builtWhen
-            configItem.When = ""
+		configItem.Hidden = !builtWhen
+		configItem.When = ""
 	}
 
 	// build subitems

@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Ship configures an application
+// repl ConfigOptionures an application
 type Ship struct {
 	Viper *viper.Viper
 

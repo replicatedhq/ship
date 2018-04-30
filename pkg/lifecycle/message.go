@@ -58,15 +58,18 @@ func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
 func (e *messenger) funcMap() template.FuncMap {
 	debug := level.Debug(log.With(e.Logger, "step.type", "render", "render.phase", "template"))
 
+	configFunc := func(name string) interface{} {
+		configItemValue := e.Viper.Get(name)
+		if configItemValue == "" {
+			debug.Log("event", "template.missing", "func", "config", "requested", name)
+			return ""
+		}
+		return configItemValue
+	}
+
 	return map[string]interface{}{
-		"config": func(name string) interface{} {
-			configItemValue := e.Viper.Get(name)
-			if configItemValue == "" {
-				debug.Log("event", "template.missing", "func", "config", "requested", name)
-				return ""
-			}
-			return configItemValue
-		},
+		"config":       configFunc,
+		"ConfigOption": configFunc,
 		"context": func(name string) interface{} {
 			switch name {
 			case "state_file_path":
