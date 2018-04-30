@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -37,7 +36,7 @@ func TestAPIResolver(t *testing.T) {
 		Logger: log.NewNopLogger(),
 	}
 
-	tests := loadAPITestCases(t, filepath.Join("test-fixtures", "config-test-api.yml"))
+	tests := loadAPITestCases(t, filepath.Join("test-fixtures", "api"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -59,36 +58,46 @@ func TestAPIResolver(t *testing.T) {
 				marshalled, err := json.Marshal(resolvedConfig)
 				req.NoError(err)
 
-				areSame, err := areSameJSON(marshalled, []byte(test.Responses.JSON))
-				req.NoError(err)
+				areSame := areSameJSON(t, marshalled, []byte(test.Responses.JSON))
 				req.True(areSame, "%s should be %s", marshalled, test.Responses.JSON)
 			}()
 		})
 	}
 }
 
-func areSameJSON(s1, s2 []byte) (bool, error) {
+func areSameJSON(t *testing.T, s1, s2 []byte) bool {
 	var o1 interface{}
 	var o2 interface{}
 
-	var err error
-	err = json.Unmarshal(s1, &o1)
-	if err != nil {
-		return false, fmt.Errorf("Error mashalling string 1 :: %s", err.Error())
-	}
-	err = json.Unmarshal(s2, &o2)
-	if err != nil {
-		return false, fmt.Errorf("Error mashalling string 2 :: %s", err.Error())
-	}
+	err := json.Unmarshal(s1, &o1)
+	assert.NoError(t, err)
 
-	return reflect.DeepEqual(o1, o2), nil
+	err = json.Unmarshal(s2, &o2)
+	assert.NoError(t, err)
+
+	return reflect.DeepEqual(o1, o2)
 }
 
 func loadAPITestCases(t *testing.T, path string) []apiTestcase {
-	tests := make([]apiTestcase, 1)
-	contents, err := ioutil.ReadFile(path)
+	files, err := ioutil.ReadDir(path)
 	assert.NoError(t, err)
-	err = yaml.UnmarshalStrict(contents, &tests)
-	assert.NoError(t, err)
+
+	tests := make([]apiTestcase, 0)
+
+	for _, file := range files {
+		if filepath.Ext(filepath.Join(path, file.Name())) != ".yml" {
+			continue
+		}
+
+		contents, err := ioutil.ReadFile(filepath.Join(path, file.Name()))
+		assert.NoError(t, err)
+
+		test := make([]apiTestcase, 0)
+		err = yaml.UnmarshalStrict(contents, &test)
+		assert.NoError(t, err)
+
+		tests = append(tests, test...)
+	}
+
 	return tests
 }
