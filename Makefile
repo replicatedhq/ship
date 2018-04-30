@@ -1,9 +1,15 @@
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image
+
+SHELL := /bin/bash
+SRC = $(shell find . -name "*.go")
+
 build-deps:
 	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 
 -dep-deps:
 	go get -u github.com/golang/dep/cmd/dep
+
 docker:
 	docker build -t ship .
 
@@ -45,9 +51,9 @@ _test:
 
 test: lint _test
 
-build: test _build
+build: test bin/ship
 
-_build:
+bin/ship: $(SRC)
 	go build \
 	    -i \
 		-o bin/ship \
