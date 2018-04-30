@@ -76,8 +76,9 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 	}
 
 	result := &api.Release{
-		ReleaseMetadata: release.ToReleaseMeta(),
+		Metadata: release.ToReleaseMeta(),
 	}
+	result.Metadata.CustomerID = selector.CustomerID
 
 	if err := yaml.Unmarshal([]byte(release.Spec), &result.Spec); err != nil {
 		return nil, errors.Wrapf(err, "decode spec")

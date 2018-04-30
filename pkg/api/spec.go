@@ -9,7 +9,7 @@ type Spec struct {
 
 // ReleaseMetadata
 type ReleaseMetadata struct {
-	ID             string `json:"id" yaml:"id" hcl:"id" meta:"-"`
+	CustomerID     string `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
 	ChannelID      string `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
 	ChannelName    string `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
 	Semver         string `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`
@@ -20,6 +20,6 @@ type ReleaseMetadata struct {
 
 // Release
 type Release struct {
-	ReleaseMetadata ReleaseMetadata
-	Spec            Spec
+	Metadata ReleaseMetadata
+	Spec     Spec
 }

@@ -32,13 +32,13 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
 
-	templateContext, err := r.ConfigResolver.ResolveConfig(&r.Release.ReleaseMetadata, ctx)
+	templateContext, err := r.ConfigResolver.ResolveConfig(&r.Release.Metadata, ctx)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
 	debug.Log("event", "render.plan")
-	pln := r.Planner.Build(r.Release.Spec.Assets.V1, templateContext)
+	pln := r.Planner.Build(r.Release.Spec.Assets.V1, r.Release.Metadata, templateContext)
 
 	if !step.SkipPlan {
 		debug.Log("event", "render.plan.confirm")

@@ -75,7 +75,6 @@ type ShipRelease struct {
 // ToReleaseMeta linter
 func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 	return api.ReleaseMetadata{
-		ID:             r.ID,
 		ChannelID:      r.ChannelID,
 		ChannelName:    r.ChannelName,
 		Semver:         r.Semver,

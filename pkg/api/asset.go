@@ -19,8 +19,8 @@ type AssetShared struct {
 
 // Asset is a spec to generate one or more deployment assets
 type Asset struct {
-	Inline *InlineAsset `json:"inline" yaml:"inline" hcl:"inline"`
-	Docker *DockerAsset `json:"docker" yaml:"docker" hcl:"docker"`
+	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
+	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -32,8 +32,6 @@ type InlineAsset struct {
 // DockerAsset is an asset whose contents are specified directly in the Spec
 type DockerAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-
-	Image string `json:"image" yaml:"image" hcl:"image"`
-	// Source string `json:"source" yaml:"source" hcl:"source"`
-	Private bool `json:"private" yaml:"private" hcl:"private"`
+	Image       string `json:"image" yaml:"image" hcl:"image"`
+	Source      string `json:"source" yaml:"source" hcl:"source"`
 }
