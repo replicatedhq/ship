@@ -5,6 +5,7 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
+        set -e
         kubectl get ns {{ship config "namespace"}} \
         || \
         kubectl create ns {{ship config "namespace" }}
@@ -16,9 +17,24 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
+        set -e
         kubectl delete -n {{ship config "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/uninstall.sh
+      mode: 0777
+  - inline:
+      contents: |
+        #!/bin/sh
+        set -e
+        echo piping images
+        for component in api db processor; do
+          docker load < ./docker/${component}.tar
+          docker tag \
+            registry.staging.replicated.com/shipretraced/retraced-${component}:1.1.12-slim-20180329 \
+            {{ship config "docker_registry"}}/retraced-${component}:1.1.12-slim-20180329
+          docker push {{ship config "docker_registry"}}/retraced-${component}:1.1.12-slim-20180329
+        done
+      dest: ./assets/pipe_images.sh
       mode: 0777
   - inline:
       contents: |
@@ -67,9 +83,10 @@ assets:
       dest: ./assets/k8s/postgres.yml
       mode: 0666
   - docker:
-      image: registry.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
+      image: registry.staging.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
       dest: docker/db.tar
       source: replicated
+      private: true
 
 config:
   v1:
