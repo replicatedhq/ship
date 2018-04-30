@@ -1,5 +1,4 @@
----
-- name: one option
+- name: one option, implied type
   config:
     - name: Kubernetes Cluster
       items:
@@ -32,7 +31,7 @@
                           "required": false,
                           "test_proc": null,
                           "title": "Namespace",
-                          "type": "",
+                          "type": "text",
                           "value": "",
                           "value_cmd": null,
                           "when": ""
