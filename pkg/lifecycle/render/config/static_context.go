@@ -7,6 +7,7 @@ package config
 import (
 	"encoding/base64"
 	"net/url"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -17,6 +18,13 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 )
+
+func NewStaticContext() (*StaticCtx, error) {
+	staticCtx := &StaticCtx{
+		Logger: log.NewLogfmtLogger(os.Stderr),
+	}
+	return staticCtx, nil
+}
 
 type Ctx interface {
 	FuncMap() template.FuncMap

@@ -1,0 +1,113 @@
+## this has two options, the second has a when that should make it hidden by
+## default. The test will toggle the first item on and confirm the second is
+## now visible
+
+- name: config items referencing config items
+  config:
+    - name: database
+      description: Advanced Database Settings
+      items:
+        - name: show_advanced_database_settings
+          title: Show advanced database settings
+          type: bool
+          default: false
+
+    - name: advanced_database_settings_section
+      description: |
+
+        Provide additional database connection string parameters.
+
+        [jTDS Reference](http://jtds.sourceforge.net/faq.html)
+
+        *SQL Server examples:*
+          - `ssl=require`
+          - `ssl=require;instance=instance_name`
+
+        [MySQL Reference](https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html)
+
+        *MySQL examples:*
+          - `useSSL=true`
+          - `useSSL=true&socksProxyHost=localhost`
+      items:
+        - name: database_connection_parameters
+          title: Database connection parameters
+          type: text
+          default: ""
+          required: false
+          when: '{{repl ConfigOptionNotEquals "show_advanced_database_settings" "false"}}'
+
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "description": "Advanced Database Settings",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "false",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "show_advanced_database_settings",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Show advanced database settings",
+                          "type": "bool",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "database",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              },
+              {
+                  "description": "\nProvide additional database connection string parameters.\n\n[jTDS Reference](http://jtds.sourceforge.net/faq.html)\n\n*SQL Server examples:*\n  - `ssl=require`\n  - `ssl=require;instance=instance_name`\n\n[MySQL Reference](https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html)\n\n*MySQL examples:*\n  - `useSSL=true`\n  - `useSSL=true&socksProxyHost=localhost`\n",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "database_connection_parameters",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Database connection parameters",
+                          "type": "text",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "advanced_database_settings_section",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]
+      }
+  expect:

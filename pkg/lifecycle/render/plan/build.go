@@ -42,7 +42,7 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, _ api.ReleaseMetadata, 
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 			tpl, err := template.New(inline.Description).
-				Delims("{{ship ", "}}").
+				Delims("{{repl ", "}}").
 				Funcs(p.funcMap(templateContext)).
 				Parse(inline.Contents)
 			if err != nil {

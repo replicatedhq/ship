@@ -17,7 +17,7 @@
                   {
                     "dest": "install.sh",
                     "mode": 755,
-                    "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{ship config \"k8s_namespace\" }}"
+                    "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{repl config \"k8s_namespace\" }}"
                   },
                   {
                     "dest": "deployment.yml",

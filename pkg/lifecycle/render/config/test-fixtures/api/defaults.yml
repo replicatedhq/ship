@@ -15,7 +15,7 @@
         - name: choice_three
           title: ChoiceThree
           type: text
-          default: '{{ship Add 1 2}}'
+          default: '{{repl Add 1 2}}'
   responses:
     json: |
       {
