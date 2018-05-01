@@ -15,6 +15,7 @@ docker:
 
 shell:
 	docker run --rm -it \
+    -p 8880:8880 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedcom/ship \
@@ -52,6 +53,8 @@ _test:
 test: lint _test
 
 build: test bin/ship
+
+_build: bin/ship
 
 bin/ship: $(SRC)
 	go build \
