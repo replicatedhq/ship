@@ -25,7 +25,7 @@ var (
 	errInternal = errors.New("Internal Error")
 )
 
-// Daemon runs the TitleD server. It can optionally include a customer id
+// Daemon runs the ship api server.
 type Daemon struct {
 	CustomerID     string
 	InstallationID string
