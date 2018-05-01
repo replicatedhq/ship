@@ -91,7 +91,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				authOpts.Password = meta.RegistrySecret
 			}
 
-			if err := docker.SaveImage(ctx, asset.Image, asset.Dest, authOpts); err != nil {
+			if err := docker.SaveImage(ctx, p.Logger, asset.Image, asset.Dest, authOpts); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write docker asset to %s", asset.Dest)
 			}
@@ -104,15 +104,18 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 func (p *CLIPlanner) funcMap(templateContext map[string]interface{}) template.FuncMap {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "template"))
 
+	configFunc := func(name string) interface{} {
+		configItemValue, ok := templateContext[name]
+		if !ok {
+			debug.Log("event", "template.missing", "func", "config", "requested", name, "context", templateContext)
+			return ""
+		}
+		return configItemValue
+	}
+
 	return map[string]interface{}{
-		"config": func(name string) interface{} {
-			configItemValue, ok := templateContext[name]
-			if !ok {
-				debug.Log("event", "template.missing", "func", "config", "requested", name, "context", templateContext)
-				return ""
-			}
-			return configItemValue
-		},
+		"config":       configFunc,
+		"ConfigOption": configFunc,
 		"context": func(name string) interface{} {
 			switch name {
 			case "state_file_path":

@@ -17,7 +17,7 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
-        kubectl delete ns {{repl config "namespace" }}
+        kubectl delete ns {{repl ConfigOption "namespace" }}
       dest: ./uninstall.sh
       mode: 0777
   - docker:

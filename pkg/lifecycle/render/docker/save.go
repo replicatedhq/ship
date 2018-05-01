@@ -11,9 +11,13 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 )
 
-func SaveImage(ctx context.Context, image string, dstFile string, authOpts types.AuthConfig) error {
+func SaveImage(ctx context.Context, logger log.Logger, image string, dstFile string, authOpts types.AuthConfig) error {
+	debug := level.Debug(log.With(logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest"))
+
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return errors.Wrapf(err, "create docker client")
@@ -27,6 +31,7 @@ func SaveImage(ctx context.Context, image string, dstFile string, authOpts types
 	opts := types.ImagePullOptions{
 		RegistryAuth: authString,
 	}
+	debug.Log("event", "image.pull")
 	progressReader, err := cli.ImagePull(ctx, image, opts)
 	if err != nil {
 		return errors.Wrapf(err, "pull image %s", image)
@@ -39,6 +44,7 @@ func SaveImage(ctx context.Context, image string, dstFile string, authOpts types
 	}
 	defer outFile.Close()
 
+	debug.Log("event", "image.save")
 	imageReader, err := cli.ImageSave(ctx, []string{image})
 	if err != nil {
 		return errors.Wrapf(err, "save image %s", image)

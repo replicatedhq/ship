@@ -5,20 +5,46 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
-        kubectl get ns {{repl config "namespace"}} \
-        || \
-        kubectl create ns {{repl config "namespace" }}
+        set -e
+        echo "piping images"
+        ./assets/pipe_images.sh
 
-        kubectl apply -n {{repl config "namespace" }} -f ./assets/k8s/
+        echo "ensuring namespace"
+        kubectl get ns {{repl ConfigOption "namespace"}} \
+        || \
+        kubectl create ns {{repl ConfigOption "namespace"}} \
+
+        echo "deploying resources"
+        kubectl apply -n {{repl ConfigOption "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/install.sh
       mode: 0777
   - inline:
       contents: |
         #!/bin/sh
-        kubectl delete -n {{repl config "namespace" }} -f ./assets/k8s/
+        set -e
+        kubectl delete -n {{repl ConfigOption "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/uninstall.sh
+      mode: 0777
+  - inline:
+      contents: |
+        #!/bin/sh
+        set -e
+
+        echo
+        echo Pushing docker images to {{repl ConfigOption "docker_registry" }}.
+        echo You will need to ensure you are logged into this registry with write access.
+        echo
+
+        for component in db api processor; do
+          docker load < ./docker/${component}.tar
+          docker tag \
+            registry.staging.replicated.com/shipretraced/retraced-${component}:1.1.12-slim-20180329 \
+            {{repl ConfigOption "docker_registry"}}/retraced-${component}:1.1.12-slim-20180329
+          docker push {{repl ConfigOption "docker_registry"}}/retraced-${component}:1.1.12-slim-20180329
+        done
+      dest: ./assets/pipe_images.sh
       mode: 0777
   - inline:
       contents: |
@@ -28,12 +54,12 @@ assets:
           name: retraced-pg-migrate
           labels:
             app: retraced-pg-migrate
-        spec:{{repl if (ne (config "image_pull_secret") "") }}
+        spec:{{repl if (ne (ConfigOption "image_pull_secret") "") }}
           imagePullSecrets:
-            - name: {{repl config "image_pull_secret"}}{{repl end}}
+            - name: {{repl ConfigOption "image_pull_secret"}}{{repl end}}
           containers:
             - name: db
-              image: {{repl config "docker_registry"}}/retraced-db:1.1.12-slim-20180329
+              image: {{repl ConfigOption "docker_registry"}}/retraced-db:1.1.12-slim-20180329
               command:
                 - bin/retraceddb
                 - up
@@ -67,9 +93,20 @@ assets:
       dest: ./assets/k8s/postgres.yml
       mode: 0666
   - docker:
-      image: registry.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
+      image: registry.staging.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
       dest: docker/db.tar
       source: replicated
+      private: true
+  - docker:
+      image: registry.staging.replicated.com/shipretraced/retraced-api:1.1.12-slim-20180329
+      dest: docker/api.tar
+      source: replicated
+      private: true
+  - docker:
+      image: registry.staging.replicated.com/shipretraced/retraced-processor:1.1.12-slim-20180329
+      dest: docker/processor.tar
+      source: replicated
+      private: true
 
 config:
   v1:
@@ -110,6 +147,14 @@ lifecycle:
   v1:
   - render:
       skip_state_warning: true
+  - message:
+     level: info
+     contents: |
+       Assets for retraced have been generated. If you have docker and kubectl set up locally,
+       you can run the following from this directory to install retraced to your cluster.
+
+          bash ./assets/install.sh
+
   - message:
      level: warn
      contents: |
