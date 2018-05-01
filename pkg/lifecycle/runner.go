@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -52,6 +53,9 @@ func (r *Runner) Run(ctx context.Context) error {
 				Logger: r.Logger,
 				Fs:     r.Fs,
 				UI:     r.UI,
+			},
+			StateManager: &state.StateManager{
+				Logger: r.Logger,
 			},
 		},
 		messenger: &messenger{

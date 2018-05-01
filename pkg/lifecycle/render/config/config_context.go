@@ -13,7 +13,7 @@ import (
 
 // NewConfigContext will return a new config context, initialized with the app config.
 // Once we have state (for upgrades) it should be a parameter here.
-func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemValue) (*ConfigCtx, error) {
+func NewConfigContext(configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
 	builder := NewBuilder(
@@ -21,7 +21,7 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemVa
 	)
 
 	configCtx := &ConfigCtx{
-		ItemValues: make(map[string]string),
+		ItemValues: templateContext,
 		Logger:     log.NewLogfmtLogger(os.Stderr),
 	}
 
@@ -42,9 +42,9 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemVa
 			}
 
 			// This is super raw, unefficient and needs some ♡ before it should be 🚢'ed
-			for _, pendingValue := range pendingValues {
-				if pendingValue.Name == configItem.Name {
-					built = pendingValue.Value
+			for k, v := range templateContext {
+				if k == configItem.Name {
+					built = fmt.Sprintf("%v", v)
 				}
 			}
 
@@ -57,7 +57,7 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemVa
 
 // ConfigCtx is the context for builder functions before the application has started.
 type ConfigCtx struct {
-	ItemValues map[string]string
+	ItemValues map[string]interface{}
 	Logger     log.Logger
 }
 
@@ -108,7 +108,7 @@ func (ctx ConfigCtx) configOptionNotEquals(name string, value string) bool {
 
 func (ctx ConfigCtx) getConfigOptionValue(itemName string) (string, error) {
 	if val, ok := ctx.ItemValues[itemName]; ok {
-		return val, nil
+		return fmt.Sprintf("%v", val), nil
 	}
 
 	err := fmt.Errorf("unable to find config item named %q", itemName)

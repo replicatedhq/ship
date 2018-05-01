@@ -23,11 +23,10 @@ type CLIResolver struct {
 }
 
 // ResolveConfig will get all the config values specified in the spec
-func (c *CLIResolver) ResolveConfig(metadata *api.ReleaseMetadata, ctx context.Context) (map[string]interface{}, error) {
+func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata, templateContext map[string]interface{}) (map[string]interface{}, error) {
 	debug := level.Debug(log.With(c.Logger, "step.type", "render"))
 	debug.Log("event", "config.resolve")
 
-	templateContext := make(map[string]interface{})
 	c.Viper.Unmarshal(&templateContext)
 
 	// read runner.spec.config

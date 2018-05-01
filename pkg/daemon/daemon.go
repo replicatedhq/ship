@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -105,8 +107,15 @@ func (d *Daemon) Metricz(c *gin.Context) {
 }
 
 func (d *Daemon) postAppConfigLive(c *gin.Context) {
+	// ItemValue is used as an unsaved (pending) value (copied from replicated appliance)
+	type ItemValue struct {
+		Name       string   `json:"name"`
+		Value      string   `json:"value"`
+		MultiValue []string `json:"multi_value"`
+	}
+
 	type Request struct {
-		ItemValues []config.ItemValue `json:"item_values"`
+		ItemValues []ItemValue `json:"item_values"`
 	}
 
 	var request Request
@@ -131,7 +140,21 @@ func (d *Daemon) postAppConfigLive(c *gin.Context) {
 		Viper:   d.Viper,
 	}
 
-	resolvedConfig, err := resolver.ResolveConfig(c, nil, request.ItemValues)
+	state := state.StateManager{
+		Logger: d.Logger,
+	}
+	savedState, err := state.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("msg", "failed to load state", "err", err)
+		c.Status(500)
+		return
+	}
+
+	for _, unsavedItemValue := range request.ItemValues {
+		savedState[unsavedItemValue.Name] = unsavedItemValue.Value
+	}
+
+	resolvedConfig, err := resolver.ResolveConfig(c, nil, savedState)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 		c.AbortWithError(500, err)

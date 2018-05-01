@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-fixtures"
 
 	"github.com/go-kit/kit/log"
@@ -52,12 +53,15 @@ func TestRender(t *testing.T) {
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
 			renderer.Planner = p
+			renderer.StateManager = &state.StateManager{
+				Logger: renderer.Logger,
+			}
 
 			func() {
 				defer mc.Finish()
 
 				configResolver.EXPECT().
-					ResolveConfig(nil, ctx).
+					ResolveConfig(ctx, &api.ReleaseMetadata{}, gomock.Any()).
 					Return(test.ViperConfig, nil)
 
 				p.EXPECT().
