@@ -1,0 +1,142 @@
+## this has two options, the second has a when that should make it hidden by
+## default. The test will toggle the first item on and confirm the second is
+## now visible
+
+- name: config items referencing config items
+  config:
+    - name: external_service_enable
+      title: Enable Some External Service
+      description: Configure the external service to be used
+      items:
+      - name: external_service_enabled
+        default: external_service_enabled_no
+        type: select_one
+        items:
+        - name: external_service_enabled_yes
+          title: Enable External Service
+        - name: external_service_enabled_no
+          title: Disable External Service
+    - name: external_service
+      when: '{{repl ConfigOptionEquals "external_service_enabled" "external_service_enabled_yes"}}'
+      items:
+      - name: service_login
+        title: Service Login
+        type: text
+      - name: service_password
+        title: Service Password
+        type: password
+
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "name": "external_service_enable",
+                  "test_proc": null,
+                  "title": "Enable Some External Service",
+                  "when": "",
+                  "description": "Configure the external service to be used",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "external_service_enabled_no",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": [
+                              {
+                                  "default": "",
+                                  "name": "external_service_enabled_yes",
+                                  "recommended": false,
+                                  "title": "Enable External Service",
+                                  "value": ""
+                              },
+                              {
+                                  "default": "",
+                                  "name": "external_service_enabled_no",
+                                  "recommended": false,
+                                  "title": "Disable External Service",
+                                  "value": ""
+                              }
+                          ],
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "external_service_enabled",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "",
+                          "type": "select_one",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ]
+              },
+              {
+                  "name": "external_service",
+                  "test_proc": null,
+                  "title": "",
+                  "when": "",
+                  "description": "",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "service_login",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Service Login",
+                          "type": "text",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "service_password",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Service Password",
+                          "type": "password",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ]
+              }
+          ]
+      }
+  expect:

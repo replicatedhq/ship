@@ -58,7 +58,7 @@ func (b *Builder) Bool(text string, defaultVal bool) (bool, error) {
 
 	result, err := strconv.ParseBool(value)
 	if err != nil {
-		b.Logger.Log("msg", "Template builder failed to parse bool: %v", err)
+		b.Logger.Log("msg", "Template builder failed to parse bool", "value", value, "err", err)
 		// for now we are assuming default value if we fail to parse
 		return defaultVal, nil
 	}
