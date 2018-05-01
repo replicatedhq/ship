@@ -27,17 +27,11 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup) (*ConfigCtx, error) {
 
 	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
-			builtDefault, err := builder.String(configItem.Default)
-			if err != nil {
-				level.Error(configCtx.Logger).Log("msg", "unable to build default in config context", "err", err)
-				return nil, err
-			}
-
-			builtValue, err := builder.String(configItem.Value)
-			if err != nil {
-				level.Error(configCtx.Logger).Log("msg", "unable to build value in config context", "err", err)
-				return nil, err
-			}
+			// We have to ignore errors here because we only have the static context loaded
+			// for rendering. some items have templates that need the config context,
+			// so we can ignore these.
+			builtDefault, _ := builder.String(configItem.Default)
+			builtValue, _ := builder.String(configItem.Value)
 
 			if builtValue != "" {
 				configCtx.ItemValues[configItem.Name] = builtValue
