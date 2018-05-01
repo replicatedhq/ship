@@ -6,10 +6,16 @@ assets:
       contents: |
         #!/bin/sh
         set -e
+
+        echo "piping images"
+        ./assets/pipe_images.sh
+
+        echo "ensuring namespace"
         kubectl get ns {{ship config "namespace"}} \
         || \
         kubectl create ns {{ship config "namespace" }}
 
+        echo "deploying resources"
         kubectl apply -n {{ship config "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/install.sh
@@ -26,8 +32,13 @@ assets:
       contents: |
         #!/bin/sh
         set -e
-        echo piping images
-        for component in api db processor; do
+
+        echo
+        echo Pushing docker images to {{ship config "docker_registry" }}.
+        echo You will need to ensure you are logged into this registry with write access.
+        echo
+
+        for component in db api processor; do
           docker load < ./docker/${component}.tar
           docker tag \
             registry.staging.replicated.com/shipretraced/retraced-${component}:1.1.12-slim-20180329 \
@@ -87,6 +98,16 @@ assets:
       dest: docker/db.tar
       source: replicated
       private: true
+  - docker:
+      image: registry.staging.replicated.com/shipretraced/retraced-api:1.1.12-slim-20180329
+      dest: docker/api.tar
+      source: replicated
+      private: true
+  - docker:
+      image: registry.staging.replicated.com/shipretraced/retraced-processor:1.1.12-slim-20180329
+      dest: docker/processor.tar
+      source: replicated
+      private: true
 
 config:
   v1:
@@ -127,6 +148,14 @@ lifecycle:
   v1:
   - render:
       skip_state_warning: true
+  - message:
+     level: info
+     contents: |
+       Assets for retraced have been generated. If you have docker and kubectl set up locally,
+       you can run the following from this directory to install retraced to your cluster.
+
+          bash ./assets/install.sh
+
   - message:
      level: warn
      contents: |

@@ -11,6 +11,33 @@
           "items": {
             "type": "object",
             "properties": {
+              "docker": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "integer"
+                  },
+                  "private": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "dest",
+                  "mode",
+                  "description",
+                  "image",
+                  "private"
+                ]
+              },
               "inline": {
                 "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
                 "examples": [
@@ -49,7 +76,8 @@
               }
             },
             "required": [
-              "inline"
+              "inline",
+              "docker"
             ]
           }
         }
