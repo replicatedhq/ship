@@ -74,6 +74,30 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 }
 
 func (r *APIResolver) resolveConfigGroup(ctx context.Context, builder Builder, configGroup *libyaml.ConfigGroup) (map[string]interface{}, error) {
+	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
+	// set all items as hidden
+
+	builtWhen, err := builder.String(configGroup.When)
+	if err != nil {
+		level.Error(r.Logger).Log("msg", "unable to build 'when' on configgroup", "group_name", configGroup.Name, "err", err)
+		return nil, err
+	}
+	if builtWhen != "" {
+		builtWhenBool, err := builder.Bool(builtWhen, true)
+		if err != nil {
+			level.Error(r.Logger).Log("msg", "unable to build 'when' bool", "err", err)
+			return nil, err
+		}
+
+		if !builtWhenBool {
+			for _, configItem := range configGroup.Items {
+				configItem.Hidden = true
+			}
+		}
+
+		configGroup.When = ""
+	}
+
 	b, err := json.Marshal(configGroup)
 	if err != nil {
 		r.Logger.Log("msg", err)
