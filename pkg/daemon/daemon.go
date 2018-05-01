@@ -85,7 +85,7 @@ func (d *Daemon) configureRoutes(g *gin.Engine) {
 	root.GET("/metricz", d.Metricz)
 
 	v1 := g.Group("/api/v1/config")
-	v1.POST("live", d.getAppConfig)
+	v1.POST("live", d.postAppConfigLive)
 }
 
 // Healthz returns a 200 with the version if provided
@@ -104,14 +104,34 @@ func (d *Daemon) Metricz(c *gin.Context) {
 	c.IndentedJSON(200, map[string]Metric{})
 }
 
-func (d *Daemon) getAppConfig(c *gin.Context) {
+func (d *Daemon) postAppConfigLive(c *gin.Context) {
+	type Request struct {
+		ItemValues []config.ItemValue `json:"item_values"`
+	}
+
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	// TODO: handle multi value fields here
+	itemValues := make(map[string]string)
+	for _, itemValue := range request.ItemValues {
+		if len(itemValue.MultiValue) > 0 {
+			itemValues[itemValue.Name] = itemValue.MultiValue[0]
+		} else {
+			itemValues[itemValue.Name] = itemValue.Value
+		}
+	}
+
 	resolver := &config.APIResolver{
 		Logger:  d.Logger,
 		Release: d.Release,
 		Viper:   d.Viper,
 	}
 
-	resolvedConfig, err := resolver.ResolveConfig(c, nil)
+	resolvedConfig, err := resolver.ResolveConfig(c, nil, request.ItemValues)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 		c.AbortWithError(500, err)

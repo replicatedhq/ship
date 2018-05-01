@@ -13,7 +13,7 @@ import (
 
 // NewConfigContext will return a new config context, initialized with the app config.
 // Once we have state (for upgrades) it should be a parameter here.
-func NewConfigContext(configGroups []libyaml.ConfigGroup) (*ConfigCtx, error) {
+func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemValue) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
 	builder := NewBuilder(
@@ -27,17 +27,30 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup) (*ConfigCtx, error) {
 
 	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
+			// if the pending value is different from the built, then use the pending every time
 			// We have to ignore errors here because we only have the static context loaded
 			// for rendering. some items have templates that need the config context,
 			// so we can ignore these.
 			builtDefault, _ := builder.String(configItem.Default)
 			builtValue, _ := builder.String(configItem.Value)
 
+			var built string
 			if builtValue != "" {
-				configCtx.ItemValues[configItem.Name] = builtValue
+				built = builtValue
 			} else {
-				configCtx.ItemValues[configItem.Name] = builtDefault
+				built = builtDefault
 			}
+
+			// This is super raw, unefficient and needs some ♡ before it should be 🚢'ed
+			for _, pendingValue := range pendingValues {
+				if pendingValue.Name == configItem.Name {
+					if pendingValue.Value != built {
+						built = pendingValue.Value
+					}
+				}
+			}
+
+			configCtx.ItemValues[configItem.Name] = built
 		}
 	}
 
