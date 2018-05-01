@@ -12,6 +12,7 @@
             "type": "object",
             "properties": {
               "docker": {
+                "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image",
                 "type": "object",
                 "properties": {
                   "description": {
@@ -26,16 +27,14 @@
                   "mode": {
                     "type": "integer"
                   },
-                  "private": {
-                    "type": "boolean"
+                  "source": {
+                    "type": "string"
                   }
                 },
                 "required": [
                   "dest",
-                  "mode",
-                  "description",
                   "image",
-                  "private"
+                  "source"
                 ]
               },
               "inline": {
@@ -74,11 +73,7 @@
                   "dest"
                 ]
               }
-            },
-            "required": [
-              "inline",
-              "docker"
-            ]
+            }
           }
         }
       }
@@ -196,6 +191,7 @@
                     "type": "boolean"
                   },
                   "skip_state_warning": {
+                    "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, you YAML should specify a `message` step that explains the purpose and importance of this state file.",
                     "type": "boolean"
                   }
                 },
