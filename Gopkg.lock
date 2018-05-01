@@ -60,6 +60,24 @@
   version = "v1.4.2"
 
 [[projects]]
+  name = "github.com/gin-contrib/cors"
+  packages = ["."]
+  revision = "cf4846e6a636a76237a28d9286f163c132e841bc"
+  version = "v1.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gin-contrib/sse"
+  packages = ["."]
+  revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+
+[[projects]]
+  name = "github.com/gin-gonic/gin"
+  packages = [".","binding","render"]
+  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
+  version = "v1.2"
+
+[[projects]]
   name = "github.com/go-kit/kit"
   packages = ["log","log/level"]
   revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
@@ -88,6 +106,12 @@
   packages = ["gomock"]
   revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
   version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -234,6 +258,12 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "github.com/ugorji/go"
+  packages = ["codec"]
+  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
+  version = "v1.1.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","internal/socks","proxy"]
@@ -266,6 +296,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d47f03993c1fac5bc71afbc35c42368bcaa2ea85c7bc69a4c8b8216c48065d86"
+  inputs-digest = "511ea2543f02e0faebb0325c5f3ad881090dc63413471ff617a112312fabd0c3"
   solver-name = "gps-cdcl"
   solver-version = 1

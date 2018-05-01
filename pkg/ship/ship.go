@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/daemon"
 	"github.com/replicatedcom/ship/pkg/lifecycle"
 	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/specs"
@@ -24,7 +25,8 @@ type Ship struct {
 
 	Logger kitlog.Logger
 
-	Port int
+	APIPort  int
+	Headless bool
 
 	CustomerID     string
 	ReleaseSemver  string
@@ -59,7 +61,9 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		Resolver: resolver,
 		Client:   graphql,
 
-		Port:       v.GetInt("port"),
+		APIPort:  v.GetInt("api-port"),
+		Headless: v.GetBool("headless"),
+
 		CustomerID: v.GetString("customer-id"),
 
 		ReleaseID:      v.GetString("release-id"),
@@ -96,7 +100,8 @@ func (d *Ship) Execute(ctx context.Context) error {
 		"plan_only", d.PlanOnly,
 		"studio-file", d.StudioFile,
 		"studio", specs.AllowInlineSpecs,
-		"port", d.Port,
+		"api-port", d.APIPort,
+		"headless", d.Headless,
 	)
 
 	debug.Log("phase", "validate-inputs")
@@ -104,7 +109,6 @@ func (d *Ship) Execute(ctx context.Context) error {
 	if d.StudioFile != "" && !specs.AllowInlineSpecs {
 		debug.Log("phase", "validate-inputs", "error", "unsupported studio-file")
 		return errors.New("unsupported configuration: studio-file")
-
 	}
 
 	if d.CustomerID == "" && d.StudioFile == "" {
@@ -131,19 +135,33 @@ func (d *Ship) Execute(ctx context.Context) error {
 		return errors.Wrap(err, "resolve specs")
 	}
 
-	// execute lifecycle
-	lc := &lifecycle.Runner{
+	if d.Headless {
+		// execute lifecycle
+		lc := &lifecycle.Runner{
+			CustomerID:     d.CustomerID,
+			InstallationID: d.InstallationID,
+			GraphQLClient:  d.Client,
+			UI:             d.UI,
+			Logger:         d.Logger,
+			Release:        release,
+			Fs:             afero.Afero{Fs: afero.NewOsFs()},
+			Viper:          d.Viper,
+		}
+
+		return errors.Wrap(lc.Run(ctx), "run lifecycle")
+	}
+
+	dm := &daemon.Daemon{
 		CustomerID:     d.CustomerID,
 		InstallationID: d.InstallationID,
 		GraphQLClient:  d.Client,
 		UI:             d.UI,
 		Logger:         d.Logger,
 		Release:        release,
-		Fs:             afero.Afero{Fs: afero.NewOsFs()},
 		Viper:          d.Viper,
 	}
 
-	return errors.Wrap(lc.Run(ctx), "run lifecycle")
+	return errors.Wrap(dm.Serve(ctx), "run daemon")
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.
@@ -154,6 +172,7 @@ func (d *Ship) ExitWithError(err error) {
 		d.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
 	}
 	d.UI.Output("")
+
 	// TODO this should probably be part of lifecycle
 	d.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
