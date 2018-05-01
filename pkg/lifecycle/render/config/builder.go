@@ -6,6 +6,7 @@ package config
 
 import (
 	"bytes"
+	"os"
 	"strconv"
 	"text/template"
 
@@ -19,6 +20,8 @@ type Builder struct {
 
 func NewBuilder(ctxx ...Ctx) Builder {
 	var builder Builder
+
+	builder.Logger = log.NewLogfmtLogger(os.Stderr)
 	for _, ctx := range ctxx {
 		builder.AddCtx(ctx)
 	}
@@ -126,7 +129,7 @@ func (b *Builder) BuildFuncMap() template.FuncMap {
 }
 
 func (b *Builder) GetTemplate(name, text string) (*template.Template, error) {
-	tmpl, err := template.New(name).Delims("{{ship ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
+	tmpl, err := template.New(name).Delims("{{repl ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
 	if err != nil {
 		b.Logger.Log("msg", err)
 		return nil, err

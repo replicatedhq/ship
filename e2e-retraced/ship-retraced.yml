@@ -5,18 +5,18 @@ assets:
   - inline:
       contents: |
         #!/bin/sh
-        kubectl get ns {{ship config "namespace"}} \
+        kubectl get ns {{repl config "namespace"}} \
         || \
-        kubectl create ns {{ship config "namespace" }}
+        kubectl create ns {{repl config "namespace" }}
 
-        kubectl apply -n {{ship config "namespace" }} -f ./assets/k8s/
+        kubectl apply -n {{repl config "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/install.sh
       mode: 0777
   - inline:
       contents: |
         #!/bin/sh
-        kubectl delete -n {{ship config "namespace" }} -f ./assets/k8s/
+        kubectl delete -n {{repl config "namespace" }} -f ./assets/k8s/
 
       dest: ./assets/uninstall.sh
       mode: 0777
@@ -28,12 +28,12 @@ assets:
           name: retraced-pg-migrate
           labels:
             app: retraced-pg-migrate
-        spec:{{ship if (ne (config "image_pull_secret") "") }}
+        spec:{{repl if (ne (config "image_pull_secret") "") }}
           imagePullSecrets:
-            - name: {{ship config "image_pull_secret"}}{{ship end}}
+            - name: {{repl config "image_pull_secret"}}{{repl end}}
           containers:
             - name: db
-              image: {{ship config "docker_registry"}}/retraced-db:1.1.12-slim-20180329
+              image: {{repl config "docker_registry"}}/retraced-db:1.1.12-slim-20180329
               command:
                 - bin/retraceddb
                 - up
@@ -113,5 +113,5 @@ lifecycle:
   - message:
      level: warn
      contents: |
-       A state file has been written to {{ship context "state_file_path" }} -- please store it
+       A state file has been written to {{repl context "state_file_path" }} -- please store it
        somewhere safe, you'll need it if you want to update or recover this installation of SuperBigTool.

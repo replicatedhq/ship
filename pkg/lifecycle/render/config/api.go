@@ -24,9 +24,27 @@ type APIResolver struct {
 func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata) (map[string]interface{}, error) {
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return nil, err
+	}
+
+	configCtx, err := NewConfigContext(r.Release.Spec.Config.V1)
+	if err != nil {
+		return nil, err
+	}
+
 	builder := NewBuilder(
-		StaticCtx{},
+		staticCtx,
+		configCtx,
 	)
+
+	unresolvedConfigItems := make([]*libyaml.ConfigItem, 0, 0)
+	for _, configGroup := range r.Release.Spec.Config.V1 {
+		for _, configItem := range configGroup.Items {
+			unresolvedConfigItems = append(unresolvedConfigItems, configItem)
+		}
+	}
 
 	for _, configGroup := range r.Release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
@@ -119,6 +137,18 @@ func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, co
 			return nil, err
 		}
 		configItem.TestProc.RunOnSave = strconv.FormatBool(builtRunOnSave)
+	}
+
+	// build "hidden" from "when" if it's present
+	if configItem.When != "" {
+		builtWhen, err := builder.Bool(configItem.When, true)
+		if err != nil {
+			level.Error(r.Logger).Log("msg", "unable to build 'when'", "err", err)
+			return nil, err
+		}
+
+            configItem.Hidden = !builtWhen
+            configItem.When = ""
 	}
 
 	// build subitems

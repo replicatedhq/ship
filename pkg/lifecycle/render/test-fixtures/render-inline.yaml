@@ -30,7 +30,7 @@
         - inline:
            contents: |
              #!/bin/sh
-             kubectl delete ns {{ship config "namespace" }}
+             kubectl delete ns {{repl config "namespace" }}
            dest: ./scripts/uninstall.sh
            mode: 0777
   expect:
@@ -53,7 +53,7 @@
         - inline:
            contents: |
              #!/bin/sh
-             kubectl delete ns {{ship config "namespace" }}
+             kubectl delete ns {{repl config "namespace" }}
            dest: ./uninstall.sh
            mode: 0777
   expect:
@@ -68,7 +68,7 @@
         - inline:
            contents: |
              #!/bin/sh
-             cat {{ship context "state_file_path" }}
+             cat {{repl context "state_file_path" }}
            dest: ./inspect_state.sh
            mode: 0777
   expect:

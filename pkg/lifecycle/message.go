@@ -29,7 +29,7 @@ func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
 	debug.Log("event", "step.execute", "step.level", step.Level)
 
 	tpl, err := template.New("message step").
-		Delims("{{ship ", "}}").
+		Delims("{{repl ", "}}").
 		Funcs(e.funcMap()).
 		Parse(step.Contents)
 	if err != nil {
