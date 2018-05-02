@@ -96,17 +96,14 @@ assets:
       image: registry.staging.replicated.com/shipretraced/retraced-db:1.1.12-slim-20180329
       dest: docker/db.tar
       source: replicated
-      private: true
   - docker:
       image: registry.staging.replicated.com/shipretraced/retraced-api:1.1.12-slim-20180329
       dest: docker/api.tar
       source: replicated
-      private: true
   - docker:
       image: registry.staging.replicated.com/shipretraced/retraced-processor:1.1.12-slim-20180329
       dest: docker/processor.tar
       source: replicated
-      private: true
 
 config:
   v1:

@@ -6,6 +6,16 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.docker",
+    "replace": {
+      "required": [
+        "dest",
+        "image",
+        "source"
+      ]
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.inline",
     "merge": {
       "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
@@ -44,6 +54,13 @@
     "path": "properties.assets.properties.v1.items.properties.inline.properties.mode",
     "merge": {
       "description": "Specifies file mode of the created asset, defaults to `0644`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker",
+    "merge": {
+      "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image"
+
     }
   },
   {
@@ -101,6 +118,12 @@
     "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_plan",
     "merge": {
       "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets"
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_state_warning",
+    "merge": {
+      "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, you YAML should specify a `message` step that explains the purpose and importance of this state file."
     }
   },
   {}
