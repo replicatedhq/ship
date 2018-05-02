@@ -44,9 +44,7 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, pendingValues []ItemVa
 			// This is super raw, unefficient and needs some ♡ before it should be 🚢'ed
 			for _, pendingValue := range pendingValues {
 				if pendingValue.Name == configItem.Name {
-					if pendingValue.Value != built {
-						built = pendingValue.Value
-					}
+					built = pendingValue.Value
 				}
 			}
 
