@@ -6,16 +6,6 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.docker",
-    "replace": {
-      "required": [
-        "dest",
-        "image",
-        "source"
-      ]
-    }
-  },
-  {
     "path": "properties.assets.properties.v1.items.properties.inline",
     "merge": {
       "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
@@ -23,10 +13,10 @@
         {
           "dest": "install.sh",
           "mode": 755,
-          "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
+          "contents": "#!/bin/sh\nkubectl apply -f ./deploy.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
         },
         {
-          "dest": "deployment.yml",
+          "dest": "deploy.yml",
           "contents": "\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        app: retraced\n        tier: api\n    spec:\n      volumes:\n        - name: var-run\n          hostPath:\n            path: /var/run/retraced/\n      imagePullSecrets:\n        - name: quayio\n      containers:\n        - name: api\n          image: quay.io/retracedhq/api:{{ tag }}\n          ports:\n            - containerPort: 3000\n\n"
         }
       ]
@@ -59,8 +49,55 @@
   {
     "path": "properties.assets.properties.v1.items.properties.docker",
     "merge": {
-      "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image"
-
+      "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image.",
+      "examples": [
+        {
+          "image": "quay.io/cooltool-enterprise/api:1.0.1",
+          "dest": "images/api.tar",
+          "source": "quayio-private"
+        },
+        {
+          "image": "registry.replicated.com/cooltool/worker:1.1.0",
+          "dest": "images/worker.tar",
+          "source": "replicated"
+        },
+        {
+          "image": "postgres:9.6",
+          "dest": "images/postgres.tar",
+          "source": "public"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "dest",
+        "image",
+        "source"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker.properties.dest",
+    "merge": {
+      "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker.properties.image",
+    "merge": {
+      "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker.properties.source",
+    "merge": {
+      "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [vendor.replicated.com](https://vendor.replicated.com)"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker.properties.mode",
+    "merge": {
+      "description": "The unix file permissions to be set on the image tar archive, e.g `600`"
     }
   },
   {
@@ -90,7 +127,15 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.message",
     "merge": {
-      "description": "A `message` step will print a message to the console or UI. An optional `level` argument can be used to specify the severity of the message. The default level is `info`, but `debug`, `warn`, and `error` are available."
+      "description": "A `message` step will print a message to the console or UI.",
+      "examples": [
+        { "contents": "This tool will prepare assets to deploy CoolTool Enterprise to your Kubernetes cluster" },
+        {
+          "contents": "You may be missing a required prerequisite for this application. Please ensure docker is configured on the target server.",
+          "level": "warn"
+        }
+      ]
+
     }
   },
   {
@@ -102,13 +147,17 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.message.properties.level",
     "merge": {
-      "description": "the severity of the message"
+      "description": "the severity of the message -- defaults to `info`. Other options are `debug`, `warn`, and `error`"
     }
   },
   {
     "path": "properties.lifecycle.properties.v1.items.properties.render",
     "merge": {
-      "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application."
+      "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
+      "examples": [
+        {},
+        { "skip_plan": true, "skip_state_warning": true }
+      ]
     },
     "replace": {
       "required": []
@@ -123,7 +172,7 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_state_warning",
     "merge": {
-      "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, you YAML should specify a `message` step that explains the purpose and importance of this state file."
+      "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, your YAML should specify a `message` step that explains the purpose and importance of this state file."
     }
   },
   {}
