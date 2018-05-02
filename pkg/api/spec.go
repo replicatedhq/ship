@@ -7,15 +7,24 @@ type Spec struct {
 	Config    Config    `json:"config" yaml:"config" hcl:"config"`
 }
 
+// Image
+type Image struct {
+	URL      string `json:"url" yaml:"url" hcl:"url" meta:"url"`
+	Source   string `json:"source" yaml:"source" hcl:"source" meta:"source"`
+	AppSlug  string `json:"appSlug" yaml:"appSlug" hcl:"appSlug" meta:"appSlug"`
+	ImageKey string `json:"imageKey" yaml:"imageKey" hcl:"imageKey" meta:"imageKey"`
+}
+
 // ReleaseMetadata
 type ReleaseMetadata struct {
-	CustomerID     string `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
-	ChannelID      string `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
-	ChannelName    string `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
-	Semver         string `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`
-	ReleaseNotes   string `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
-	Created        string `json:"created" yaml:"created" hcl:"created" meta:"release-date"`
-	RegistrySecret string `json:"registrySecret" yaml:"registrySecret" hcl:"registrySecret" meta:"registry-secret"`
+	CustomerID     string  `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
+	ChannelID      string  `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
+	ChannelName    string  `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
+	Semver         string  `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`
+	ReleaseNotes   string  `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
+	Created        string  `json:"created" yaml:"created" hcl:"created" meta:"release-date"`
+	RegistrySecret string  `json:"registrySecret" yaml:"registrySecret" hcl:"registrySecret" meta:"registry-secret"`
+	Images         []Image `json:"images" yaml:"images" hcl:"images" meta:"images"`
 }
 
 // Release

@@ -12,11 +12,23 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 )
 
-func SaveImage(ctx context.Context, logger log.Logger, image string, dstFile string, authOpts types.AuthConfig) error {
-	debug := level.Debug(log.With(logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest"))
+type SaveOpts struct {
+	PullUrl   string
+	SaveUrl   string
+	IsPrivate bool
+	Filename  string
+	Username  string
+	Password  string
+}
+
+func SaveImage(ctx context.Context, logger log.Logger, saveOpts SaveOpts) error {
+	authOpts := types.AuthConfig{}
+	if saveOpts.IsPrivate {
+		authOpts.Username = saveOpts.Username
+		authOpts.Password = saveOpts.Password
+	}
 
 	cli, err := client.NewEnvClient()
 	if err != nil {
@@ -28,26 +40,31 @@ func SaveImage(ctx context.Context, logger log.Logger, image string, dstFile str
 		return errors.Wrapf(err, "make auth string")
 	}
 
-	opts := types.ImagePullOptions{
+	pullOpts := types.ImagePullOptions{
 		RegistryAuth: authString,
 	}
-	debug.Log("event", "image.pull")
-	progressReader, err := cli.ImagePull(ctx, image, opts)
+	progressReader, err := cli.ImagePull(ctx, saveOpts.PullUrl, pullOpts)
 	if err != nil {
-		return errors.Wrapf(err, "pull image %s", image)
+		return errors.Wrapf(err, "pull image %s", saveOpts.PullUrl)
 	}
 	io.Copy(os.Stdout, progressReader)
 
-	outFile, err := os.Create(dstFile)
+	if saveOpts.PullUrl != saveOpts.SaveUrl {
+		err := cli.ImageTag(ctx, saveOpts.PullUrl, saveOpts.SaveUrl)
+		if err != nil {
+			return errors.Wrapf(err, "tag image %s -> %s", saveOpts.PullUrl, saveOpts.SaveUrl)
+		}
+	}
+
+	outFile, err := os.Create(saveOpts.Filename)
 	if err != nil {
-		return errors.Wrapf(err, "open file %s", dstFile)
+		return errors.Wrapf(err, "open file %s", saveOpts.Filename)
 	}
 	defer outFile.Close()
 
-	debug.Log("event", "image.save")
-	imageReader, err := cli.ImageSave(ctx, []string{image})
+	imageReader, err := cli.ImageSave(ctx, []string{saveOpts.SaveUrl})
 	if err != nil {
-		return errors.Wrapf(err, "save image %s", image)
+		return errors.Wrapf(err, "save image %s", saveOpts.SaveUrl)
 	}
 	defer imageReader.Close()
 
