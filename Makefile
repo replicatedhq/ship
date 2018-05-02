@@ -15,7 +15,7 @@ docker:
 
 shell:
 	docker run --rm -it \
-    -p 8880:8880 \
+		-p 8880:8880 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedcom/ship \
@@ -26,6 +26,12 @@ githooks:
 	chmod +x .git/hooks/pre-push
 	echo 'make fmt' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
+
+mockgen:
+	mockgen \
+		-destination pkg/test-fixtures/config/resolver.go \
+		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		Resolver
 
 dep:
 	dep ensure
@@ -58,7 +64,7 @@ _build: bin/ship
 
 bin/ship: $(SRC)
 	go build \
-	    -i \
+			-i \
 		-o bin/ship \
 		./cmd/ship
 

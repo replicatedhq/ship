@@ -91,7 +91,7 @@ func TestCLIResolver(t *testing.T) {
 					mockUI.EXPECT().Ask(expect.Question).Return(expect.Answer, nil)
 				}
 
-				resolvedConfig, err := resolver.ResolveConfig(nil, ctx)
+				resolvedConfig, err := resolver.ResolveConfig(ctx, nil, nil)
 				req.NoError(err)
 
 				for key, expected := range test.Expect {

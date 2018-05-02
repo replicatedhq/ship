@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/replicatedhq/libyaml"
@@ -20,15 +21,9 @@ type APIResolver struct {
 	Viper   *viper.Viper
 }
 
-// ItemValue is used as an unsaved (pending) value (copied from replicated appliance)
-type ItemValue struct {
-	Name       string   `json:"name"`
-	Value      string   `json:"value"`
-	MultiValue []string `json:"multi_value"`
-}
-
 // ResolveConfig will get all the config values specified in the spec, in JSON format
-func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata, pendingValues []ItemValue) (map[string]interface{}, error) {
+func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata, templateContext map[string]interface{}) (map[string]interface{}, error) {
+
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
 	staticCtx, err := NewStaticContext()
@@ -36,7 +31,7 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(r.Release.Spec.Config.V1, pendingValues)
+	configCtx, err := NewConfigContext(r.Release.Spec.Config.V1, templateContext)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +51,15 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	for _, configGroup := range r.Release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
-			for _, pendingValue := range pendingValues {
-				if pendingValue.Name == configItem.Name {
-					configItem.Value = pendingValue.Value
+			for k, v := range templateContext {
+				if k == configItem.Name {
+					// (implementation logic copied from replicated 1):
+					// this limiation ensures that any config item with a
+					// "default" cannot be ""
+					if configItem.Default != "" && configItem.Value == "" {
+						continue
+					}
+					configItem.Value = fmt.Sprintf("%v", v)
 				}
 			}
 

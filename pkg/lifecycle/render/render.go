@@ -10,6 +10,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/afero"
 )
 
@@ -21,6 +22,7 @@ type Renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
 	Planner        plan.Planner
+	StateManager   *state.StateManager
 
 	Fs      afero.Afero
 	Release *api.Release
@@ -32,7 +34,12 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
 
-	templateContext, err := r.ConfigResolver.ResolveConfig(&r.Release.Metadata, ctx)
+	previousTemplateContext, err := r.StateManager.TryLoad()
+	if err != nil {
+		return err
+	}
+
+	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, &r.Release.Metadata, previousTemplateContext)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
@@ -61,9 +68,9 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 		return errors.Wrap(err, "execute plan")
 	}
 
-	// if not studio:
-	//      save state
-	// else:
-	//      warnStudio
+	if err := r.StateManager.Serialize(r.Release.Spec.Assets.V1, r.Release.Metadata, templateContext); err != nil {
+		return err
+	}
+
 	return nil
 }
