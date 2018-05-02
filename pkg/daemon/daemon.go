@@ -88,6 +88,7 @@ func (d *Daemon) configureRoutes(g *gin.Engine) {
 
 	v1 := g.Group("/api/v1/config")
 	v1.POST("live", d.postAppConfigLive)
+	v1.PUT("", d.putAppConfig)
 }
 
 // Healthz returns a 200 with the version if provided
@@ -146,7 +147,7 @@ func (d *Daemon) postAppConfigLive(c *gin.Context) {
 	savedState, err := state.TryLoad()
 	if err != nil {
 		level.Error(d.Logger).Log("msg", "failed to load state", "err", err)
-		c.Status(500)
+		c.AbortWithStatus(500)
 		return
 	}
 
@@ -157,7 +158,7 @@ func (d *Daemon) postAppConfigLive(c *gin.Context) {
 	resolvedConfig, err := resolver.ResolveConfig(c, nil, savedState)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
-		c.AbortWithError(500, err)
+		c.AbortWithStatus(500)
 		return
 	}
 
@@ -171,4 +172,38 @@ func (d *Daemon) postAppConfigLive(c *gin.Context) {
 	}
 
 	c.JSON(200, r)
+}
+
+func (d *Daemon) putAppConfig(c *gin.Context) {
+	type Request struct {
+		Options []struct {
+			Name       string   `json:"name"`
+			Value      string   `json:"value"`
+			Data       string   `json:"data"`
+			MultiValue []string `json:"multi_value"`
+			MultiData  []string `json:"multi_data"`
+		} `json:"options"`
+		Validate bool `json:"validate"`
+	}
+
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	templateContext := make(map[string]interface{})
+	for _, option := range request.Options {
+		templateContext[option.Name] = option.Value
+	}
+
+	stateManager := state.StateManager{
+		Logger: d.Logger,
+	}
+	if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
+		c.AbortWithStatus(500)
+	}
+
+	c.JSON(200, make(map[string]interface{}))
 }
