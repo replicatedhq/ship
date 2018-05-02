@@ -56,6 +56,12 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	for _, configGroup := range r.Release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
+			for _, pendingValue := range pendingValues {
+				if pendingValue.Name == configItem.Name {
+					configItem.Value = pendingValue.Value
+				}
+			}
+
 			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
 			if err != nil {
 				return nil, err
