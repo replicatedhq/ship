@@ -52,7 +52,7 @@ func TestAPIResolver(t *testing.T) {
 			resolver.Viper = viper.New()
 
 			func() {
-				resolvedConfig, err := resolver.ResolveConfig(ctx, nil)
+				resolvedConfig, err := resolver.ResolveConfig(ctx, nil, make([]ItemValue, 0, 0))
 				req.NoError(err)
 
 				marshalled, err := json.Marshal(resolvedConfig)

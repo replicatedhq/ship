@@ -83,7 +83,7 @@
                   "name": "external_service",
                   "test_proc": null,
                   "title": "",
-                  "when": "",
+                  "when": "{{repl ConfigOptionEquals \"external_service_enabled\" \"external_service_enabled_yes\"}}",
                   "description": "",
                   "filters": null,
                   "items": [

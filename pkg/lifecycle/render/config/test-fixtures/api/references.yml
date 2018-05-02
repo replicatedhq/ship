@@ -100,7 +100,7 @@
                           "type": "text",
                           "value": "",
                           "value_cmd": null,
-                          "when": ""
+                          "when": "false"
                       }
                   ],
                   "name": "advanced_database_settings_section",
