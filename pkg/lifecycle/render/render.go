@@ -8,10 +8,14 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/fs"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // StateFilePath is a placeholder for the default spot we'll store state. todo this should be a param or something
@@ -21,16 +25,25 @@ const StateFilePath = ".ship/state.json"
 type Renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
-	Planner        plan.Planner
+	Planner        planner.Planner
 	StateManager   *state.StateManager
+	Fs             afero.Afero
+	UI             cli.Ui
+}
 
-	Fs      afero.Afero
-	Release *api.Release
-	UI      cli.Ui
+func FromViper(v *viper.Viper) *Renderer {
+	return &Renderer{
+		Logger:         logger.FromViper(v),
+		ConfigResolver: config.ResolverFromViper(v),
+		Planner:        planner.FromViper(v),
+		StateManager:   state.ManagerFromViper(v),
+		Fs:             fs.FromViper(v),
+		UI:             ui.FromViper(v),
+	}
 }
 
 // Execute renders the assets and config
-func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
+func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
 
@@ -39,13 +52,13 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 		return err
 	}
 
-	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, &r.Release.Metadata, previousTemplateContext)
+	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousTemplateContext)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
 	debug.Log("event", "render.plan")
-	pln := r.Planner.Build(r.Release.Spec.Assets.V1, r.Release.Spec.Config.V1, r.Release.Metadata, templateContext)
+	pln := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 
 	if !step.SkipPlan {
 		debug.Log("event", "render.plan.confirm")
@@ -68,7 +81,7 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 		return errors.Wrap(err, "execute plan")
 	}
 
-	if err := r.StateManager.Serialize(r.Release.Spec.Assets.V1, r.Release.Metadata, templateContext); err != nil {
+	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
 		return err
 	}
 

@@ -14,15 +14,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-// APIResolver resolves config values via API
-type APIResolver struct {
-	Logger  log.Logger
-	Release *api.Release
-	Viper   *viper.Viper
+// APIConfigRenderer resolves config values via API
+type APIConfigRenderer struct {
+	Logger log.Logger
+	Viper  *viper.Viper
 }
 
 // ResolveConfig will get all the config values specified in the spec, in JSON format
-func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata, templateContext map[string]interface{}) (map[string]interface{}, error) {
+func (r *APIConfigRenderer) GetConfigForLiveRender(
+	ctx context.Context,
+	release *api.Release,
+	templateContext map[string]interface{},
+) (map[string]interface{}, error) {
 
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
@@ -31,7 +34,7 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(r.Release.Spec.Config.V1, templateContext)
+	configCtx, err := NewConfigContext(release.Spec.Config.V1, templateContext)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +45,13 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	)
 
 	unresolvedConfigItems := make([]*libyaml.ConfigItem, 0, 0)
-	for _, configGroup := range r.Release.Spec.Config.V1 {
+	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
 			unresolvedConfigItems = append(unresolvedConfigItems, configItem)
 		}
 	}
 
-	for _, configGroup := range r.Release.Spec.Config.V1 {
+	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
 			for k, v := range templateContext {
@@ -87,7 +90,7 @@ func (r *APIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	return fit, nil
 }
 
-func (r *APIResolver) resolveConfigGroup(ctx context.Context, builder Builder, configGroup *libyaml.ConfigGroup) (map[string]interface{}, error) {
+func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup *libyaml.ConfigGroup) (map[string]interface{}, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
 	// set all items as hidden
 	builtWhen, err := builder.String(configGroup.When)
@@ -122,7 +125,7 @@ func (r *APIResolver) resolveConfigGroup(ctx context.Context, builder Builder, c
 	return m, nil
 }
 
-func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
 	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {
@@ -202,7 +205,7 @@ func (r *APIResolver) resolveConfigItem(ctx context.Context, builder Builder, co
 	return configItem, nil
 }
 
-func (r *APIResolver) resolveConfigChildItem(ctx context.Context, builder Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
+func (r *APIConfigRenderer) resolveConfigChildItem(ctx context.Context, builder Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
 	// TODO
 	return configChildItem, nil
 }

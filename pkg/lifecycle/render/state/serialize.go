@@ -10,11 +10,19 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/spf13/viper"
 )
 
 // StateManager is the saved output of a plan run to load on future runs
 type StateManager struct {
 	Logger log.Logger
+}
+
+func ManagerFromViper(v *viper.Viper) *StateManager {
+	return &StateManager{
+		Logger: logger.FromViper(v),
+	}
 }
 
 // Serialize takes the application data and input params and serializes a state file to disk

@@ -12,9 +12,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedcom/ship/pkg/test-mocks/config"
-	"github.com/replicatedcom/ship/pkg/test-mocks/planner"
+	mockplanner "github.com/replicatedcom/ship/pkg/test-mocks/planner"
 	"github.com/replicatedcom/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -44,11 +44,11 @@ func TestRender(t *testing.T) {
 			mc := gomock.NewController(t)
 
 			mockUI := ui.NewMockUi(mc)
-			p := planner.NewMockPlanner(mc)
+			p := mockplanner.NewMockPlanner(mc)
 			configResolver := config.NewMockResolver(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			renderer.Release = &api.Release{Spec: test.Spec}
+			release := &api.Release{Spec: test.Spec}
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
@@ -61,22 +61,22 @@ func TestRender(t *testing.T) {
 				defer mc.Finish()
 
 				configResolver.EXPECT().
-					ResolveConfig(ctx, &api.ReleaseMetadata{}, gomock.Any()).
+					ResolveConfig(ctx, release, gomock.Any()).
 					Return(test.ViperConfig, nil)
 
 				p.EXPECT().
-					Build(test.Spec.Assets.V1, gomock.Any(), test.Metadata, test.ViperConfig).
-					Return(plan.Plan{})
+					Build(test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
+					Return(planner.Plan{})
 
 				p.EXPECT().
-					Execute(ctx, plan.Plan{}).
+					Execute(ctx, planner.Plan{}).
 					Return(nil)
 
-				p.EXPECT().Confirm(plan.Plan{}).Return(true, nil)
+				p.EXPECT().Confirm(planner.Plan{}).Return(true, nil)
 
 				// todo test state ops
 
-				err := renderer.Execute(ctx, &api.Render{})
+				err := renderer.Execute(ctx, release, &api.Render{})
 				assert.NoError(t, err)
 			}()
 		})

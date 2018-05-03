@@ -1,5 +1,6 @@
 .PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build
 
+
 SHELL := /bin/bash
 SRC = $(shell find . -name "*.go")
 
@@ -34,7 +35,7 @@ mockgen:
 		Resolver
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
-		-package planner github.com/replicatedcom/ship/pkg/lifecycle/render/plan \
+		-package planner github.com/replicatedcom/ship/pkg/lifecycle/render/planner \
 		Planner
 
 dep:
@@ -71,6 +72,7 @@ bin/ship: $(SRC)
 			-i \
 		-o bin/ship \
 		./cmd/ship
+	: bin/ship
 
 e2e:
 	./bin/ship e2e

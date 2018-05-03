@@ -11,23 +11,23 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 )
 
-type stepExecutor struct {
+type StepExecutor struct {
 	Logger    log.Logger
-	renderer  *render.Renderer
-	messenger *message.CLIMessenger
+	Renderer  *render.Renderer
+	Messenger *message.CLIMessenger
 }
 
-func (s *stepExecutor) Execute(ctx context.Context, step *api.Step) error {
+func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
 	debug := level.Debug(log.With(s.Logger, "method", "execute"))
 
 	if step.Message != nil {
 		debug.Log("event", "step.resolve", "type", "message")
-		err := s.messenger.Execute(ctx, step.Message)
+		err := s.Messenger.Execute(ctx, step.Message)
 		debug.Log("event", "step.complete", "type", "message", "err", err)
 		return errors.Wrap(err, "execute message step")
 	} else if step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "render")
-		err := s.renderer.Execute(ctx, step.Render)
+		err := s.Renderer.Execute(ctx, release, step.Render)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
 	}

@@ -14,16 +14,21 @@ import (
 	"github.com/spf13/viper"
 )
 
+var _ Resolver = &CLIResolver{}
+
 // CLIResolver resolves config values via CLI
 type CLIResolver struct {
-	Logger  log.Logger
-	Release *api.Release
-	UI      cli.Ui
-	Viper   *viper.Viper
+	Logger log.Logger
+	UI     cli.Ui
+	Viper  *viper.Viper
 }
 
 // ResolveConfig will get all the config values specified in the spec
-func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMetadata, templateContext map[string]interface{}) (map[string]interface{}, error) {
+func (c *CLIResolver) ResolveConfig(
+	ctx context.Context,
+	release *api.Release,
+	templateContext map[string]interface{},
+) (map[string]interface{}, error) {
 	debug := level.Debug(log.With(c.Logger, "step.type", "render"))
 	debug.Log("event", "config.resolve")
 
@@ -34,7 +39,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(c.Release.Spec.Config.V1, templateContext)
+	configCtx, err := NewConfigContext(release.Spec.Config.V1, templateContext)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +50,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	)
 
 	// read runner.spec.config
-	for _, configGroup := range c.Release.Spec.Config.V1 {
+	for _, configGroup := range release.Spec.Config.V1 {
 		c.UI.Info(configGroup.Name)
 		for _, configItem := range configGroup.Items {
 			current := c.resolveCurrentValue(templateContext, builder, configItem)
@@ -73,9 +78,7 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 		}
 	}
 
-	if metadata != nil {
-		c.resolveMetadata(metadata, templateContext)
-	}
+	c.resolveMetadata(&release.Metadata, templateContext)
 
 	return templateContext, nil
 }

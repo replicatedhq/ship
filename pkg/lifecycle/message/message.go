@@ -14,6 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/viper"
 )
 
@@ -21,6 +23,15 @@ type CLIMessenger struct {
 	Logger log.Logger
 	UI     cli.Ui
 	Viper  *viper.Viper
+}
+
+func FromViper(v *viper.Viper) *CLIMessenger {
+	// todo read viper, maybe return DaemonMessenger instead
+	return &CLIMessenger{
+		Logger: logger.FromViper(v),
+		UI:     ui.FromViper(v),
+		Viper:  v,
+	}
 }
 
 func (e *CLIMessenger) Execute(ctx context.Context, step *api.Message) error {
