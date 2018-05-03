@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"os"
+
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -62,7 +64,12 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, _ api.ReleaseMetadata, 
 				return errors.Wrapf(err, "write directory to %s", inline.Dest)
 			}
 
-			if err := p.Fs.WriteFile(inline.Dest, rendered.Bytes(), inline.Mode); err != nil {
+			mode := os.FileMode(644)
+			if inline.Mode != 0 {
+				mode = inline.Mode
+			}
+
+			if err := p.Fs.WriteFile(inline.Dest, rendered.Bytes(), mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", inline.Dest)
 			}

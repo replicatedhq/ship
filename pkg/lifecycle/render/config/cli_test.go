@@ -13,8 +13,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
-	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-fixtures"
-	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-cases"
+	"github.com/replicatedcom/ship/pkg/test-mocks/ui"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +46,7 @@ func TestCLIResolver(t *testing.T) {
 		Logger: logger,
 	}
 
-	tests := loadCLITestCases(t, filepath.Join("test-fixtures", "config-test-cli.yml"))
+	tests := loadCLITestCases(t, filepath.Join("test-cases", "config-test-cli.yml"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
