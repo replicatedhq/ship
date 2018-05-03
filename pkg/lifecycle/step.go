@@ -7,13 +7,14 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 )
 
 type stepExecutor struct {
 	Logger    log.Logger
 	renderer  *render.Renderer
-	messenger *messenger
+	messenger *message.CLIMessenger
 }
 
 func (s *stepExecutor) Execute(ctx context.Context, step *api.Step) error {

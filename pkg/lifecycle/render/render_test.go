@@ -7,15 +7,15 @@ import (
 	"testing"
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-fixtures"
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-cases"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
-	"github.com/replicatedcom/ship/pkg/test-fixtures/config"
-	"github.com/replicatedcom/ship/pkg/test-fixtures/planner"
-	"github.com/replicatedcom/ship/pkg/test-fixtures/ui"
+	"github.com/replicatedcom/ship/pkg/test-mocks/config"
+	"github.com/replicatedcom/ship/pkg/test-mocks/planner"
+	"github.com/replicatedcom/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
@@ -37,7 +37,7 @@ func TestRender(t *testing.T) {
 		Logger: log.NewNopLogger(),
 	}
 
-	tests := loadTestCases(t, filepath.Join("test-fixtures", "render-inline.yaml"))
+	tests := loadTestCases(t, filepath.Join("test-cases", "render-inline.yaml"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {

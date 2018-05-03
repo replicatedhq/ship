@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
@@ -58,7 +59,7 @@ func (r *Runner) Run(ctx context.Context) error {
 				Logger: r.Logger,
 			},
 		},
-		messenger: &messenger{
+		messenger: &message.CLIMessenger{
 			Logger: r.Logger,
 			UI:     r.UI,
 			Viper:  r.Viper,

@@ -36,7 +36,7 @@ func TestAPIResolver(t *testing.T) {
 		Logger: log.NewNopLogger(),
 	}
 
-	tests := loadAPITestCases(t, filepath.Join("test-fixtures", "api"))
+	tests := loadAPITestCases(t, filepath.Join("test-cases", "api"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {

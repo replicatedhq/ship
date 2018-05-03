@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build
 
 SHELL := /bin/bash
 SRC = $(shell find . -name "*.go")
@@ -29,7 +29,7 @@ githooks:
 
 mockgen:
 	mockgen \
-		-destination pkg/test-fixtures/config/resolver.go \
+		-destination pkg/test-cases/config/resolver.go \
 		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
 		Resolver
 

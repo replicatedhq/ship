@@ -1,4 +1,4 @@
-package lifecycle
+package message
 
 import (
 	"context"
@@ -17,13 +17,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-type messenger struct {
+type CLIMessenger struct {
 	Logger log.Logger
 	UI     cli.Ui
 	Viper  *viper.Viper
 }
 
-func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
+func (e *CLIMessenger) Execute(ctx context.Context, step *api.Message) error {
 	debug := level.Debug(log.With(e.Logger, "step.type", "message"))
 
 	debug.Log("event", "step.execute", "step.level", step.Level)
@@ -55,7 +55,7 @@ func (e *messenger) Execute(ctx context.Context, step *api.Message) error {
 	return nil
 }
 
-func (e *messenger) funcMap() template.FuncMap {
+func (e *CLIMessenger) funcMap() template.FuncMap {
 	debug := level.Debug(log.With(e.Logger, "step.type", "render", "render.phase", "template"))
 
 	configFunc := func(name string) interface{} {
@@ -74,6 +74,8 @@ func (e *messenger) funcMap() template.FuncMap {
 			switch name {
 			case "state_file_path":
 				return state.Path
+			case "customer_id":
+				return e.Viper.GetString("customer-id")
 			}
 			debug.Log("event", "template.missing", "func", "context", "requested", name)
 			return ""
