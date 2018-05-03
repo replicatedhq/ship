@@ -29,9 +29,13 @@ githooks:
 
 mockgen:
 	mockgen \
-		-destination pkg/test-cases/config/resolver.go \
+		-destination pkg/test-mocks/config/resolver.go \
 		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
 		Resolver
+	mockgen \
+		-destination pkg/test-mocks/planner/planner_mock.go \
+		-package planner github.com/replicatedcom/ship/pkg/lifecycle/render/plan \
+		Planner
 
 dep:
 	dep ensure
