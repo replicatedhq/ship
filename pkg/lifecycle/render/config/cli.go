@@ -29,11 +29,26 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 
 	c.Viper.Unmarshal(&templateContext)
 
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return nil, err
+	}
+
+	configCtx, err := NewConfigContext(c.Release.Spec.Config.V1, templateContext)
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewBuilder(
+		staticCtx,
+		configCtx,
+	)
+
 	// read runner.spec.config
 	for _, configGroup := range c.Release.Spec.Config.V1 {
 		c.UI.Info(configGroup.Name)
 		for _, configItem := range configGroup.Items {
-			current := c.resolveCurrentValue(templateContext, configItem)
+			current := c.resolveCurrentValue(templateContext, builder, configItem)
 
 			for {
 				debug.Log("event", "configitem.ask", "group", configGroup.Name, "item", configItem.Name, "type", configItem.Type)
@@ -65,25 +80,38 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 	return templateContext, nil
 }
 
-func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, configItem *libyaml.ConfigItem) interface{} {
+func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, builder Builder, configItem *libyaml.ConfigItem) interface{} {
 	debug := log.With(level.Debug(c.Logger), "func", "resolve-current", "config-item", configItem.Name)
+
 	// check ctx first
 	current, ok := templateContext[configItem.Name]
 	if ok {
 		debug.Log("event", "templateContext.ok")
-		return current
+		built, err := builder.String(current.(string))
+		if err != nil {
+			return errors.Wrapf(err, "builder.string %q", current)
+		}
+		return built
 	}
 
 	//then check viper
 	current = c.Viper.Get(configItem.Name)
 	if current != "" && current != nil {
 		debug.Log("event", "viper.found", "value", current)
-		return current
+		built, err := builder.String(current.(string))
+		if err != nil {
+			return errors.Wrapf(err, "builder.string %q", current)
+		}
+		return built
 	}
 
 	//then use default viper
 	debug.Log("event", "use.default", "empty", configItem.Default == "")
-	return configItem.Default
+	built, err := builder.String(configItem.Default)
+	if err != nil {
+		return errors.Wrapf(err, "builder.string %q", configItem.Default)
+	}
+	return built
 }
 
 func formatCurrent(configItem *libyaml.ConfigItem, current interface{}) string {

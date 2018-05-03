@@ -45,7 +45,7 @@ func (r *Renderer) Execute(ctx context.Context, step *api.Render) error {
 	}
 
 	debug.Log("event", "render.plan")
-	pln := r.Planner.Build(r.Release.Spec.Assets.V1, r.Release.Metadata, templateContext)
+	pln := r.Planner.Build(r.Release.Spec.Assets.V1, r.Release.Spec.Config.V1, r.Release.Metadata, templateContext)
 
 	if !step.SkipPlan {
 		debug.Log("event", "render.plan.confirm")

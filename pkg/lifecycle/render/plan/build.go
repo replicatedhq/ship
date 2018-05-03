@@ -1,11 +1,9 @@
 package plan
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
-	"text/template"
 
 	"os"
 
@@ -13,18 +11,19 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/libyaml"
 )
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
+func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 	var plan Plan
 	for _, asset := range assets {
 		if asset.Inline != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
-			plan = append(plan, p.inlineStep(asset.Inline, meta, templateContext))
+			plan = append(plan, p.inlineStep(asset.Inline, configGroups, meta, templateContext))
 		} else if asset.Docker != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
 			plan = append(plan, p.dockerStep(asset.Docker, meta, templateContext))
@@ -35,25 +34,32 @@ func (p *CLIPlanner) Build(assets []api.Asset, meta api.ReleaseMetadata, templat
 	return plan
 }
 
-func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, _ api.ReleaseMetadata, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.ConfigGroup, r api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "inline", "dest", inline.Dest, "description", inline.Description))
 	return Step{
 		Dest:        inline.Dest,
 		Description: inline.Description,
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
-			tpl, err := template.New(inline.Description).
-				Delims("{{repl ", "}}").
-				Funcs(p.funcMap(templateContext)).
-				Parse(inline.Contents)
+
+			staticCtx, err := config.NewStaticContext()
 			if err != nil {
-				return errors.Wrapf(err, "Parse template for asset at %s", inline.Dest)
+				return errors.Wrap(err, "getting static context")
 			}
 
-			var rendered bytes.Buffer
-			err = tpl.Execute(&rendered, templateContext)
+			configCtx, err := config.NewConfigContext(configGroups, templateContext)
 			if err != nil {
-				return errors.Wrapf(err, "Execute template for asset at %s", inline.Dest)
+				return errors.Wrap(err, "getting config context")
+			}
+
+			builder := config.NewBuilder(
+				staticCtx,
+				configCtx,
+			)
+
+			built, err := builder.String(inline.Contents)
+			if err != nil {
+				return errors.Wrap(err, "building contents")
 			}
 
 			basePath := filepath.Dir(inline.Dest)
@@ -63,12 +69,13 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, _ api.ReleaseMetadata, 
 				return errors.Wrapf(err, "write directory to %s", inline.Dest)
 			}
 
-			mode := os.FileMode(644)
-			if inline.Mode != 0 {
+			mode := os.FileMode(0644)
+			if inline.Mode != os.FileMode(0) {
+				debug.Log("event", "applying override permissions")
 				mode = inline.Mode
 			}
 
-			if err := p.Fs.WriteFile(inline.Dest, rendered.Bytes(), mode); err != nil {
+			if err := p.Fs.WriteFile(inline.Dest, []byte(built), mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", inline.Dest)
 			}
@@ -111,32 +118,6 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 			}
 
 			return nil
-		},
-	}
-}
-
-func (p *CLIPlanner) funcMap(templateContext map[string]interface{}) template.FuncMap {
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "template"))
-
-	configFunc := func(name string) interface{} {
-		configItemValue, ok := templateContext[name]
-		if !ok {
-			debug.Log("event", "template.missing", "func", "config", "requested", name, "context", templateContext)
-			return ""
-		}
-		return configItemValue
-	}
-
-	return map[string]interface{}{
-		"config":       configFunc,
-		"ConfigOption": configFunc,
-		"context": func(name string) interface{} {
-			switch name {
-			case "state_file_path":
-				return state.Path
-			}
-			debug.Log("event", "template.missing", "func", "context", "requested", name)
-			return ""
 		},
 	}
 }
