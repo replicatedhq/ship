@@ -12,22 +12,43 @@
             "type": "object",
             "properties": {
               "docker": {
-                "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image",
+                "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image.",
+                "examples": [
+                  {
+                    "image": "quay.io/cooltool-enterprise/api:1.0.1",
+                    "dest": "images/api.tar",
+                    "source": "quayio-private"
+                  },
+                  {
+                    "image": "registry.replicated.com/cooltool/worker:1.1.0",
+                    "dest": "images/worker.tar",
+                    "source": "replicated"
+                  },
+                  {
+                    "image": "postgres:9.6",
+                    "dest": "images/postgres.tar",
+                    "source": "public"
+                  }
+                ],
                 "type": "object",
                 "properties": {
                   "description": {
                     "type": "string"
                   },
                   "dest": {
+                    "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`.",
                     "type": "string"
                   },
                   "image": {
+                    "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`.",
                     "type": "string"
                   },
                   "mode": {
+                    "description": "The unix file permissions to be set on the image tar archive, e.g `600`",
                     "type": "integer"
                   },
                   "source": {
+                    "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [vendor.replicated.com](https://vendor.replicated.com)",
                     "type": "string"
                   }
                 },
@@ -43,10 +64,10 @@
                   {
                     "dest": "install.sh",
                     "mode": 755,
-                    "contents": "#!/bin/sh\nkubectl apply -f ./deployment.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
+                    "contents": "#!/bin/sh\nkubectl apply -f ./deploy.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
                   },
                   {
-                    "dest": "deployment.yml",
+                    "dest": "deploy.yml",
                     "contents": "\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        app: retraced\n        tier: api\n    spec:\n      volumes:\n        - name: var-run\n          hostPath:\n            path: /var/run/retraced/\n      imagePullSecrets:\n        - name: quayio\n      containers:\n        - name: api\n          image: quay.io/retracedhq/api:{{ tag }}\n          ports:\n            - containerPort: 3000\n\n"
                   }
                 ],
@@ -166,7 +187,16 @@
             "type": "object",
             "properties": {
               "message": {
-                "description": "A `message` step will print a message to the console or UI. An optional `level` argument can be used to specify the severity of the message. The default level is `info`, but `debug`, `warn`, and `error` are available.",
+                "description": "A `message` step will print a message to the console or UI.",
+                "examples": [
+                  {
+                    "contents": "This tool will prepare assets to deploy CoolTool Enterprise to your Kubernetes cluster"
+                  },
+                  {
+                    "contents": "You may be missing a required prerequisite for this application. Please ensure docker is configured on the target server.",
+                    "level": "warn"
+                  }
+                ],
                 "type": "object",
                 "properties": {
                   "contents": {
@@ -174,7 +204,7 @@
                     "type": "string"
                   },
                   "level": {
-                    "description": "the severity of the message",
+                    "description": "the severity of the message -- defaults to `info`. Other options are `debug`, `warn`, and `error`",
                     "type": "string"
                   }
                 },
@@ -184,6 +214,13 @@
               },
               "render": {
                 "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
+                "examples": [
+                  {},
+                  {
+                    "skip_plan": true,
+                    "skip_state_warning": true
+                  }
+                ],
                 "type": "object",
                 "properties": {
                   "skip_plan": {
@@ -191,7 +228,7 @@
                     "type": "boolean"
                   },
                   "skip_state_warning": {
-                    "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, you YAML should specify a `message` step that explains the purpose and importance of this state file.",
+                    "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, your YAML should specify a `message` step that explains the purpose and importance of this state file.",
                     "type": "boolean"
                   }
                 },

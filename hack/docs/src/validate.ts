@@ -26,7 +26,7 @@ export const handler = (argv) => {
   try {
     validate(schema.properties.lifecycle, "properties.lifecycle", LIFECYCLE_MAX_DEPTH, schema);
     validate(schema.properties.assets, "properties.assets", ASSETS_MAX_DEPTH, schema);
-    validate(schema.properties.config, "properties.config", CONFIG_MAX_DEPTH, schema);
+    // validate(schema.properties.config, "properties.config", CONFIG_MAX_DEPTH, schema);
   } catch (err) {
     console.log(`\n\nFAILED ${err.message}`);
     process.exit(1);

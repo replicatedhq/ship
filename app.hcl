@@ -33,11 +33,26 @@ asset "docker_image" "api" {
   image = "quay.io/retracedhq/api:21023910"
 }
 
+config "Kubernetes Cluster Info" {
+
+  item {
+    name = "namespace"
+    required = "true"
+    default = "default"
+  }
+
+  item {
+    name = "num_workers"
+    required = "true"
+    default = "2"
+  }
+}
+
 lifecycle "message" {
   contents = "generating assets..."
 }
 
-lifecycle "execute" {}
+lifecycle "render" {}
 
 lifecycle "message" {
   contents = "Done!"
