@@ -83,6 +83,12 @@ func (c *CLIResolver) ResolveConfig(ctx context.Context, metadata *api.ReleaseMe
 func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, builder Builder, configItem *libyaml.ConfigItem) interface{} {
 	debug := log.With(level.Debug(c.Logger), "func", "resolve-current", "config-item", configItem.Name)
 
+	// check env first
+	if c.Viper.GetString(configItem.Name) != "" {
+		debug.Log("event", "env.ok")
+		return c.Viper.GetString(configItem.Name)
+	}
+
 	// check ctx first
 	current, ok := templateContext[configItem.Name]
 	if ok {
@@ -98,6 +104,7 @@ func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}
 	current = c.Viper.Get(configItem.Name)
 	if current != "" && current != nil {
 		debug.Log("event", "viper.found", "value", current)
+
 		built, err := builder.String(current.(string))
 		if err != nil {
 			return errors.Wrapf(err, "builder.string %q", current)
