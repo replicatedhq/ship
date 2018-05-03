@@ -9,7 +9,6 @@ import (
 
 	"os"
 
-	dockertypes "github.com/docker/docker/api/types"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -92,13 +91,21 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				return errors.Wrapf(err, "write directory to %s", asset.Dest)
 			}
 
-			authOpts := dockertypes.AuthConfig{}
-			if asset.Source == "replicated" {
-				authOpts.Username = meta.CustomerID
-				authOpts.Password = meta.RegistrySecret
+			pullUrl, err := docker.ResolvePullUrl(asset, meta)
+			if err != nil {
+				return errors.Wrapf(err, "resolve pull url")
 			}
 
-			if err := docker.SaveImage(ctx, p.Logger, asset.Image, asset.Dest, authOpts); err != nil {
+			saveOpts := docker.SaveOpts{
+				PullUrl:   pullUrl,
+				SaveUrl:   asset.Image,
+				IsPrivate: asset.Source != "public" && asset.Source != "",
+				Filename:  asset.Dest,
+				Username:  meta.CustomerID,
+				Password:  meta.RegistrySecret,
+			}
+
+			if err := docker.SaveImage(ctx, p.Logger, saveOpts); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write docker asset to %s", asset.Dest)
 			}

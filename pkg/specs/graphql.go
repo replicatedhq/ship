@@ -24,6 +24,12 @@ query {
     semver
     releaseNotes
     spec
+    images {
+      url
+      source
+      appSlug
+      imageKey
+    }
     created
     registrySecret
   }
@@ -60,16 +66,24 @@ type ShipReleaseWrapper struct {
 	ShipRelease ShipRelease `json:"shipRelease"`
 }
 
+type Image struct {
+	URL      string `json:"url"`
+	Source   string `json:"source"`
+	AppSlug  string `json:"appSlug"`
+	ImageKey string `json:"imageKey"`
+}
+
 // ShipRelease is the release response form GQL
 type ShipRelease struct {
-	ID             string `json:"id"`
-	ChannelID      string `json:"channelId"`
-	ChannelName    string `json:"channelName"`
-	Semver         string `json:"semver"`
-	ReleaseNotes   string `json:"releaseNotes"`
-	Spec           string `json:"spec"`
-	Created        string `json:"created"` // TODO: this time is not in RFC 3339 format
-	RegistrySecret string `json:"registrySecret"`
+	ID             string  `json:"id"`
+	ChannelID      string  `json:"channelId"`
+	ChannelName    string  `json:"channelName"`
+	Semver         string  `json:"semver"`
+	ReleaseNotes   string  `json:"releaseNotes"`
+	Spec           string  `json:"spec"`
+	Images         []Image `json:"images"`
+	Created        string  `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string  `json:"registrySecret"`
 }
 
 // ToReleaseMeta linter
@@ -81,7 +95,16 @@ func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 		ReleaseNotes:   r.ReleaseNotes,
 		Created:        r.Created,
 		RegistrySecret: r.RegistrySecret,
+		Images:         r.apiImages(),
 	}
+}
+
+func (r *ShipRelease) apiImages() []api.Image {
+	result := []api.Image{}
+	for _, image := range r.Images {
+		result = append(result, api.Image(image))
+	}
+	return result
 }
 
 // GraphQLClientFromViper builds a new client using a viper instance
