@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/afero"
 )
 
@@ -23,7 +24,7 @@ type Step struct {
 
 // Planner is a thing that can plan and execute rendering
 type Planner interface {
-	Build([]api.Asset, api.ReleaseMetadata, map[string]interface{}) Plan
+	Build([]api.Asset, []libyaml.ConfigGroup, api.ReleaseMetadata, map[string]interface{}) Plan
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
 }
