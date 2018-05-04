@@ -24,7 +24,7 @@ type APIConfigRenderer struct {
 func (r *APIConfigRenderer) GetConfigForLiveRender(
 	ctx context.Context,
 	release *api.Release,
-	templateContext map[string]interface{},
+	savedStateMergedWithLiveValues map[string]interface{},
 ) (map[string]interface{}, error) {
 
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
@@ -34,7 +34,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(release.Spec.Config.V1, templateContext)
+	configCtx, err := NewConfigContext(release.Spec.Config.V1, savedStateMergedWithLiveValues)
 	if err != nil {
 		return nil, err
 	}
@@ -54,15 +54,15 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
-			for k, v := range templateContext {
+			for k, liveValue := range savedStateMergedWithLiveValues {
 				if k == configItem.Name {
 					// (implementation logic copied from replicated 1):
-					// this limiation ensures that any config item with a
+					// this limitation ensures that any config item with a
 					// "default" cannot be ""
 					if configItem.Default != "" && configItem.Value == "" {
 						continue
 					}
-					configItem.Value = fmt.Sprintf("%v", v)
+					configItem.Value = fmt.Sprintf("%v", liveValue)
 				}
 			}
 

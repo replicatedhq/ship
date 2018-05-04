@@ -23,7 +23,7 @@ type apiTestcase struct {
 	Config      []libyaml.ConfigGroup
 	ViperConfig map[string]interface{} `yaml:"viper_config"`
 	Responses   apiExpectUIAsk         `yaml:"responses"`
-	Expect      map[string]string
+	Input       map[string]interface{} `yaml:"input"`
 }
 
 type apiExpectUIAsk struct {
@@ -53,7 +53,10 @@ func TestAPIResolver(t *testing.T) {
 			resolver.Viper = viper.New()
 
 			func() {
-				resolvedConfig, err := resolver.GetConfigForLiveRender(ctx, release, make(map[string]interface{}))
+				if test.Input == nil {
+					test.Input = make(map[string]interface{})
+				}
+				resolvedConfig, err := resolver.GetConfigForLiveRender(ctx, release, test.Input)
 				req.NoError(err)
 
 				marshalled, err := json.Marshal(resolvedConfig)

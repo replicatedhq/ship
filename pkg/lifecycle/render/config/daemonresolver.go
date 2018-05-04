@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"time"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedcom/ship/pkg/api"
@@ -35,19 +37,31 @@ func (d *DaemonResolver) ResolveConfig(
 			debug.Log("event", "render.found")
 			d.MaybeRunningDaemon.PushStep(ctx, StepNameConfig, step)
 			debug.Log("event", "step.pushed")
-			select {
-			case <-ctx.Done():
-				debug.Log("event", "ctx.done")
-				return nil, ctx.Err()
-			case err := <-daemonExitedChan:
-				debug.Log("event", "daemon.exit")
-				return nil, err
-			case <-d.MaybeRunningDaemon.ConfigSaved:
-				debug.Log("event", "config.saved")
-				return d.MaybeRunningDaemon.CurrentConfig, nil
-			}
+			return d.awaitConfigSaved(ctx, daemonExitedChan)
 		}
 	}
 
 	return nil, errors.New("couldn't find current render Step")
+}
+
+func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan chan error) (map[string]interface{}, error) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemonresolver", "method", "resolveConfig"))
+	for {
+		select {
+		case <-ctx.Done():
+			debug.Log("event", "ctx.done")
+			return nil, ctx.Err()
+		case err := <-daemonExitedChan:
+			debug.Log("event", "daemon.exit")
+			if err != nil {
+				return nil, err
+			}
+			return nil, errors.New("daemon exited")
+		case <-d.MaybeRunningDaemon.ConfigSaved:
+			debug.Log("event", "config.saved")
+			return d.MaybeRunningDaemon.CurrentConfig, nil
+		case <-time.After(10 * time.Second):
+			debug.Log("waitingFor", "config.saved")
+		}
+	}
 }

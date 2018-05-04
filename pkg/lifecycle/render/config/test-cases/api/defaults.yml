@@ -1,4 +1,5 @@
 - name: options with defaults and options with values
+  input: {}
   config:
     - name: group_one
       items:
@@ -114,5 +115,4 @@
               }
           ]
       }
-  expect:
-    namespace: retraced
+

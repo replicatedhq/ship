@@ -109,10 +109,12 @@ func TestDaemonResolver(t *testing.T) {
 			inputContext: map[string]interface{}{},
 			posts: []func(t *testing.T){
 				func(t *testing.T) {
+					//http.Post("")
 
 				},
 			},
 			expect: func(t *testing.T, i map[string]interface{}, e error) {
+				// todo this should not fail
 				require.New(t).Error(e)
 			},
 		},
@@ -120,6 +122,7 @@ func TestDaemonResolver(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v := viper.New()
+
 			viper.Set("api-port", 0)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			log := &logger.TestLogger{T: t}

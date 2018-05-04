@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	errInternal = errors.New("Internal Error")
+	errInternal = errors.New("internal_error")
 )
 
 // Daemon runs the ship api server.
@@ -158,7 +158,8 @@ func (d *Daemon) getCurrentStep(c *gin.Context) {
 
 func (d *Daemon) getCurrentPlan(c *gin.Context) {
 	c.JSON(400, map[string]interface{}{
-		"error": "no plan built",
+		"error":   "no plan built",
+		"subcode": "bad_order",
 	})
 }
 
@@ -166,7 +167,8 @@ func (d *Daemon) postConfirmPlan(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
 	c.JSON(400, map[string]interface{}{
-		"error": "no plan built",
+		"error":   "no plan built",
+		"subcode": "bad_order",
 	})
 }
 
@@ -174,7 +176,8 @@ func (d *Daemon) postConfirmMessage(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
 	c.JSON(400, map[string]interface{}{
-		"error": "no message to confirm",
+		"error":   "no message to confirm",
+		"subcode": "bad_order",
 	})
 }
 
@@ -229,7 +232,7 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			Logger: d.Logger,
 		}
 		debug.Log("event", "state.tryLoad")
-		savedState, err := stateManager.TryLoad()
+		savedStateMergedWithLiveValues, err := stateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -237,7 +240,7 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		for _, unsavedItemValue := range request.ItemValues {
-			savedState[unsavedItemValue.Name] = unsavedItemValue.Value
+			savedStateMergedWithLiveValues[unsavedItemValue.Name] = unsavedItemValue.Value
 		}
 
 		resolver := &APIConfigRenderer{
@@ -246,7 +249,7 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "getConfigForLiveRender")
-		resolvedConfig, err := resolver.GetConfigForLiveRender(c, release, savedState)
+		resolvedConfig, err := resolver.GetConfigForLiveRender(c, release, savedStateMergedWithLiveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -268,6 +271,8 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 }
 
 func (d *Daemon) putAppConfig(c *gin.Context) {
+	d.Lock()
+	defer d.Unlock()
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
 	type Request struct {
 		Options []struct {
@@ -293,23 +298,19 @@ func (d *Daemon) putAppConfig(c *gin.Context) {
 		templateContext[option.Name] = option.Value
 	}
 
-	stateManager := state.StateManager{
-		Logger: d.Logger,
-	}
-	debug.Log("event", "state.serialize")
-	if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
-		level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
-		c.AbortWithStatus(500)
-	}
+	//stateManager := state.StateManager{
+	//	Logger: d.Logger,
+	//}
+	//debug.Log("event", "state.serialize")
+	//if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+	//	level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
+	//	c.AbortWithStatus(500)
+	//}
 
 	d.CurrentConfig = templateContext
-	go func() {
-		debug.Log("event", "configSaved.send.start")
-		d.ConfigSaved <- nil
-		debug.Log("event", "configSaved.send.complete")
-	}()
-
-	debug.Log("event", "return.200")
+	debug.Log("event", "configSaved.send.start")
+	d.ConfigSaved <- nil
+	debug.Log("event", "configSaved.send.complete")
 	c.JSON(200, make(map[string]interface{}))
 }
 
