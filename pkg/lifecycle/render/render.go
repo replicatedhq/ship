@@ -60,21 +60,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	debug.Log("event", "render.plan")
 	pln := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 
-	if !step.SkipPlan {
-		debug.Log("event", "render.plan.confirm")
-		planConfirmed, err := r.Planner.Confirm(pln)
-		if err != nil {
-			debug.Log("event", "render.plan.confirm.fail", "err", err)
-			return errors.Wrap(err, "confirm plan")
-		}
-		if !planConfirmed {
-			debug.Log("event", "render.plan.confirm.deny")
-			return errors.New("plan denied")
-		}
-		debug.Log("event", "render.plan.confirm.confirm")
-	} else {
-		debug.Log("event", "render.plan.skip")
-	}
+	debug.Log("event", "render.plan.skip")
 
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {

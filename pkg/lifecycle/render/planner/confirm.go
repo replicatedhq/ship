@@ -13,7 +13,7 @@ func (p *CLIPlanner) Confirm(plan Plan) (bool, error) {
 	for _, step := range plan {
 		p.UI.Info(fmt.Sprintf("\t%s", step.Dest))
 		if step.Description != "" {
-			p.UI.Output(fmt.Sprintf("\t%s\n", step.Description))
+			p.UI.Output(fmt.Sprintf("\t%s", step.Description))
 
 		}
 	}
