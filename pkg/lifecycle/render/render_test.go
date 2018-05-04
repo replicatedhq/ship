@@ -72,10 +72,6 @@ func TestRender(t *testing.T) {
 					Execute(ctx, planner.Plan{}).
 					Return(nil)
 
-				p.EXPECT().Confirm(planner.Plan{}).Return(true, nil)
-
-				// todo test state ops
-
 				err := renderer.Execute(ctx, release, &api.Render{})
 				assert.NoError(t, err)
 			}()
