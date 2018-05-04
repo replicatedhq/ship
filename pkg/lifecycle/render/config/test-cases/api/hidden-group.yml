@@ -3,6 +3,7 @@
 ## now visible
 
 - name: config items referencing config items
+  input: {}
   config:
     - name: external_service_enable
       title: Enable Some External Service
@@ -139,4 +140,3 @@
               }
           ]
       }
-  expect:

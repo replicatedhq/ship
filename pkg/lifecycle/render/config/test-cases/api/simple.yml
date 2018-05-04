@@ -1,4 +1,5 @@
 - name: one option, implied type
+  input: {}
   config:
     - name: Kubernetes Cluster
       items:
@@ -44,5 +45,3 @@
               }
           ]
       }
-  expect:
-    namespace: retraced

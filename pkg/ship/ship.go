@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"os"
 
-	kitlog "github.com/go-kit/kit/log"
+	"os/signal"
+	"syscall"
+
+	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/daemon"
 	"github.com/replicatedcom/ship/pkg/lifecycle"
-	"github.com/replicatedcom/ship/pkg/logger"
+	pkglogger "github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/specs"
+	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/replicatedcom/ship/pkg/version"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -23,7 +25,7 @@ import (
 type Ship struct {
 	Viper *viper.Viper
 
-	Logger kitlog.Logger
+	Logger log.Logger
 
 	APIPort  int
 	Headless bool
@@ -39,25 +41,35 @@ type Ship struct {
 	StudioFile string
 	Client     *specs.GraphQLClient
 	UI         cli.Ui
+
+	Runner *lifecycle.Runner
 }
 
 // FromViper gets an instance using viper to pull config
 func FromViper(v *viper.Viper) (*Ship, error) {
+	logger := pkglogger.FromViper(v)
+	debug := level.Debug(log.With(logger, "phase", "ship.build", "source", "viper"))
 
+	debug.Log("event", "specresolver.build")
 	resolver, err := specs.ResolverFromViper(v)
 	if err != nil {
 		return nil, errors.Wrap(err, "get spec resolver")
 	}
 
+	debug.Log("event", "graphqlclient.build")
 	graphql, err := specs.GraphQLClientFromViper(v)
 	if err != nil {
 		return nil, errors.Wrap(err, "get graphql client")
 	}
 
+	debug.Log("event", "lifecycle.build")
+	runner := lifecycle.RunnerFromViper(v)
+
+	debug.Log("event", "ui.build")
 	return &Ship{
 		Viper: v,
 
-		Logger:   logger.FromViper(v),
+		Logger:   logger,
 		Resolver: resolver,
 		Client:   graphql,
 
@@ -72,108 +84,108 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
 
-		UI: &cli.ColoredUi{
-			OutputColor: cli.UiColorNone,
-			ErrorColor:  cli.UiColorRed,
-			WarnColor:   cli.UiColorYellow,
-			InfoColor:   cli.UiColorGreen,
-			Ui: &cli.BasicUi{
-				Reader:      os.Stdin,
-				Writer:      os.Stdout,
-				ErrorWriter: os.Stderr,
-			},
-		},
+		UI:     ui.FromViper(v),
+		Runner: runner,
 	}, nil
 }
 
 // Execute starts ship
-func (d *Ship) Execute(ctx context.Context) error {
-	debug := level.Debug(kitlog.With(d.Logger, "method", "execute"))
+func (s *Ship) Execute(ctx context.Context) error {
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer cancelFunc()
+
+	debug := level.Debug(log.With(s.Logger, "method", "execute"))
 
 	debug.Log("method", "configure", "phase", "initialize",
 		"version", version.Version(),
 		"gitSHA", version.GitSHA(),
 		"buildTime", version.BuildTime(),
 		"buildTimeFallback", version.GetBuild().TimeFallback,
-		"customer-id", d.CustomerID,
-		"installation-id", d.InstallationID,
-		"plan_only", d.PlanOnly,
-		"studio-file", d.StudioFile,
+		"customer-id", s.CustomerID,
+		"installation-id", s.InstallationID,
+		"plan_only", s.PlanOnly,
+		"studio-file", s.StudioFile,
 		"studio", specs.AllowInlineSpecs,
-		"api-port", d.APIPort,
-		"headless", d.Headless,
+		"api-port", s.APIPort,
+		"headless", s.Headless,
 	)
 
 	debug.Log("phase", "validate-inputs")
 
-	if d.StudioFile != "" && !specs.AllowInlineSpecs {
+	if s.StudioFile != "" && !specs.AllowInlineSpecs {
 		debug.Log("phase", "validate-inputs", "error", "unsupported studio-file")
 		return errors.New("unsupported configuration: studio-file")
 	}
 
-	if d.CustomerID == "" && d.StudioFile == "" {
+	if s.CustomerID == "" && s.StudioFile == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
-		d.UI.Output("Missing paramter: customer-id")
-		id, err := d.UI.AskSecret("Please enter your customer ID or license key: ")
+		s.UI.Output("Missing paramter: customer-id")
+		id, err := s.UI.AskSecret("Please enter your customer ID or license key: ")
 		if err != nil {
 			return errors.Wrap(err, "resolve customer ID")
 		}
 		viper.Set("customer-id", id)
-		d.CustomerID = id
+		s.CustomerID = id
 	}
-
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	release, err := d.Resolver.ResolveRelease(ctx, specs.Selector{
-		CustomerID:     d.CustomerID,
-		ReleaseSemver:  d.ReleaseSemver,
-		ReleaseID:      d.ReleaseID,
-		ChannelID:      d.ChannelID,
-		InstallationID: d.InstallationID,
+	release, err := s.Resolver.ResolveRelease(ctx, specs.Selector{
+		CustomerID:     s.CustomerID,
+		ReleaseSemver:  s.ReleaseSemver,
+		ReleaseID:      s.ReleaseID,
+		ChannelID:      s.ChannelID,
+		InstallationID: s.InstallationID,
 	})
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
 
-	if d.Headless {
-		// execute lifecycle
-		lc := &lifecycle.Runner{
-			CustomerID:     d.CustomerID,
-			InstallationID: d.InstallationID,
-			GraphQLClient:  d.Client,
-			UI:             d.UI,
-			Logger:         d.Logger,
-			Release:        release,
-			Fs:             afero.Afero{Fs: afero.NewOsFs()},
-			Viper:          d.Viper,
+	errChan := make(chan error)
+	go func() {
+		err = s.Runner.Run(ctx, release)
+		errChan <- errors.Wrap(err, "run lifecycle")
+
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case sig := <-signalChan:
+		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
+		return nil
+	case err := <-errChan:
+		if err != nil {
+			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
 		}
-
-		return errors.Wrap(lc.Run(ctx), "run lifecycle")
+		level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
+		return err
 	}
 
-	dm := &daemon.Daemon{
-		CustomerID:     d.CustomerID,
-		InstallationID: d.InstallationID,
-		GraphQLClient:  d.Client,
-		UI:             d.UI,
-		Logger:         d.Logger,
-		Release:        release,
-		Viper:          d.Viper,
-	}
+	// todo send shipRegisterInstall mutation to pg.
 
-	return errors.Wrap(dm.Serve(ctx), "run daemon")
+	//dm := &daemon.Daemon{
+	//	CustomerID:     s.CustomerID,
+	//	InstallationID: s.InstallationID,
+	//	GraphQLClient:  s.Client,
+	//	UI:             s.UI,
+	//	Logger:         s.Logger,
+	//	Release:        release,
+	//	Viper:          s.Viper,
+	//}
+	//
+	//return errors.Wrap(dm.Serve(ctx), "run daemon")
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.
-func (d *Ship) ExitWithError(err error) {
-	if d.Viper.GetString("log-level") == "debug" {
-		d.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
+func (s *Ship) ExitWithError(err error) {
+	if s.Viper.GetString("log-level") == "debug" {
+		s.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
 	} else {
-		d.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
+		s.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
 	}
-	d.UI.Output("")
+	s.UI.Output("")
 
 	// TODO this should probably be part of lifecycle
-	d.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
+	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
 }

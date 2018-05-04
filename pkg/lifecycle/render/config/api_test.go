@@ -10,11 +10,12 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedcom/ship/pkg/api"
+	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-cases/api"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type apiTestcase struct {
@@ -22,7 +23,7 @@ type apiTestcase struct {
 	Config      []libyaml.ConfigGroup
 	ViperConfig map[string]interface{} `yaml:"viper_config"`
 	Responses   apiExpectUIAsk         `yaml:"responses"`
-	Expect      map[string]string
+	Input       map[string]interface{} `yaml:"input"`
 }
 
 type apiExpectUIAsk struct {
@@ -32,7 +33,7 @@ type apiExpectUIAsk struct {
 func TestAPIResolver(t *testing.T) {
 	ctx := context.Background()
 
-	resolver := &APIResolver{
+	resolver := &APIConfigRenderer{
 		Logger: log.NewNopLogger(),
 	}
 
@@ -42,7 +43,7 @@ func TestAPIResolver(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			resolver.Release = &api.Release{
+			release := &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
 						V1: test.Config,
@@ -52,7 +53,10 @@ func TestAPIResolver(t *testing.T) {
 			resolver.Viper = viper.New()
 
 			func() {
-				resolvedConfig, err := resolver.ResolveConfig(ctx, nil, make(map[string]interface{}))
+				if test.Input == nil {
+					test.Input = make(map[string]interface{})
+				}
+				resolvedConfig, err := resolver.GetConfigForLiveRender(ctx, release, test.Input)
 				req.NoError(err)
 
 				marshalled, err := json.Marshal(resolvedConfig)

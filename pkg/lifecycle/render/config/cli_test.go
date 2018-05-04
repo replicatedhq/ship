@@ -54,7 +54,7 @@ func TestCLIResolver(t *testing.T) {
 			mc := gomock.NewController(t)
 			mockUI := ui.NewMockUi(mc)
 
-			resolver.Release = &api.Release{
+			release := &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
 						V1: test.Config,
@@ -91,7 +91,7 @@ func TestCLIResolver(t *testing.T) {
 					mockUI.EXPECT().Ask(expect.Question).Return(expect.Answer, nil)
 				}
 
-				resolvedConfig, err := resolver.ResolveConfig(ctx, nil, nil)
+				resolvedConfig, err := resolver.ResolveConfig(ctx, release, nil)
 				req.NoError(err)
 
 				for key, expected := range test.Expect {

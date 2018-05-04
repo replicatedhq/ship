@@ -7,68 +7,74 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/plan"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/specs"
-	"github.com/spf13/afero"
+	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/viper"
 )
 
 // A Runner runs a lifecycle using the passed Spec
 type Runner struct {
-	CustomerID     string
-	InstallationID string
-	GraphQLClient  *specs.GraphQLClient
-	UI             cli.Ui
-	Logger         log.Logger
-	Release        *api.Release
-	Fs             afero.Afero
-	Viper          *viper.Viper
+	Logger   log.Logger
+	Executor *StepExecutor
 }
 
-// Run runs a lifecycle using the passed Spec
-func (r *Runner) Run(ctx context.Context) error {
-	level.Debug(r.Logger).Log("event", "lifecycle.execute")
+/*
 
 	// this needs to be pulled up more, but this is enough for now
-	executor := &stepExecutor{
-		Logger: r.Logger,
-		renderer: &render.Renderer{
-			Fs:      r.Fs,
-			Logger:  r.Logger,
-			Release: r.Release,
-			UI:      r.UI,
+	executor := &lifecycle.StepExecutor{
+		Logger: s.Logger,
+		Renderer: &render.Renderer{
+			Fs:      s.Fs,
+			Logger:  s.Logger,
+			Release: s.Release,
+			UI:      s.UI,
 			ConfigResolver: &config.CLIResolver{
-				Logger:  r.Logger,
-				Release: r.Release,
-				UI:      r.UI,
-				Viper:   r.Viper,
+				Logger:  s.Logger,
+				Release: s.Release,
+				UI:      s.UI,
+				Viper:   s.Viper,
 			},
 			Planner: &plan.CLIPlanner{
-				Logger: r.Logger,
-				Fs:     r.Fs,
-				UI:     r.UI,
+				Logger: s.Logger,
+				Fs:     s.Fs,
+				UI:     s.UI,
 			},
 			StateManager: &state.StateManager{
-				Logger: r.Logger,
+				Logger: s.Logger,
 			},
 		},
 		messenger: &message.CLIMessenger{
-			Logger: r.Logger,
-			UI:     r.UI,
-			Viper:  r.Viper,
+			Logger: s.Logger,
+			UI:     s.UI,
+			Viper:  s.Viper,
 		},
 	}
+*/
 
-	for idx, step := range r.Release.Spec.Lifecycle.V1 {
+func RunnerFromViper(v *viper.Viper) *Runner {
+	return &Runner{
+		Logger:   logger.FromViper(v),
+		Executor: ExecutorFromViper(v),
+	}
+}
+func ExecutorFromViper(v *viper.Viper) *StepExecutor {
+	return &StepExecutor{
+		Logger:    logger.FromViper(v),
+		Renderer:  render.FromViper(v),
+		Messenger: message.FromViper(v),
+	}
+}
+
+// Run runs a lifecycle using the passed Spec
+func (r *Runner) Run(ctx context.Context, release *api.Release) error {
+	level.Debug(r.Logger).Log("event", "lifecycle.execute")
+
+	for idx, step := range release.Spec.Lifecycle.V1 {
 		level.Debug(r.Logger).Log("event", "step.execute", "index", idx, "step", fmt.Sprintf("%v", step))
-		if err := executor.Execute(ctx, &step); err != nil {
+		if err := r.Executor.Execute(ctx, release, &step); err != nil {
 			level.Error(r.Logger).Log("event", "step.execute.fail", "index", idx, "step", fmt.Sprintf("%v", step))
 			return errors.Wrapf(err, "execute lifecycle step %d", idx)
 		}
