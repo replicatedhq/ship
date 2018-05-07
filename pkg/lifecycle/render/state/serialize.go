@@ -48,7 +48,7 @@ func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, te
 func (s StateManager) TryLoad() (map[string]interface{}, error) {
 	if _, err := os.Stat(Path); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", Path)
-		return nil, nil
+		return make(map[string]interface{}), nil
 	}
 
 	serialized, err := ioutil.ReadFile(Path)
