@@ -44,6 +44,8 @@ type Daemon struct {
 	ConfigSaved   chan interface{}
 	CurrentConfig map[string]interface{}
 
+	MessageConfirmed chan string
+
 	//currentPlan planner.Plan
 }
 
@@ -130,6 +132,7 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	life := g.Group("/api/v1/lifecycle")
 	life.GET("current", d.getCurrentStep)
+	life.GET("loading", d.getLoadingStep)
 
 	mesg := g.Group("/api/v1/message")
 	mesg.POST("confirm", d.postConfirmMessage)
@@ -139,14 +142,18 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	plan.POST("confirm", d.postConfirmPlan)
 }
 
+func (d *Daemon) getLoadingStep(c *gin.Context) {
+	c.JSON(200, map[string]interface{}{
+		"currentStep": map[string]interface{}{
+			"loading": map[string]interface{}{},
+		},
+		"phase": "loading",
+	})
+}
+
 func (d *Daemon) getCurrentStep(c *gin.Context) {
 	if d.currentStep == nil {
-		c.JSON(200, map[string]interface{}{
-			"currentStep": map[string]interface{}{
-				"loading": map[string]interface{}{},
-			},
-			"phase": "loading",
-		})
+		d.getLoadingStep(c)
 		return
 	}
 
