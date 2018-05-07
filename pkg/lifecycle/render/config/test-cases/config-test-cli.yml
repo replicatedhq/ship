@@ -81,6 +81,22 @@
   expect:
     namespace: default
 
+- name: one option, required, has templated default
+  config:
+    - name: Kubernetes Cluster
+      items:
+        - name: namespace
+          title: Namespace
+          required: true
+          default: '{{repl Add 1 2}}'
+  expect_ui_info:
+    - Kubernetes Cluster
+  responses:
+    - question: 'Enter a value for option "namespace" [3]:'
+      answer: ""
+  expect:
+    namespace: "3"
+
 - name: one option, required, set in the environment
   osenv:
     NAMESPACE: default
@@ -97,3 +113,83 @@
       answer: ""
   expect:
     namespace: default
+
+- name: two options
+  config:
+    - name: Test Config Group
+      items:
+        - name: namespace
+          title: Namespace
+        - name: secondQuestion
+          title: Second Question
+  expect_ui_info:
+    - Test Config Group
+  responses:
+    - question: 'Enter a value for option "namespace":'
+      answer: answer1
+    - question: 'Enter a value for option "secondQuestion":'
+      answer: answer2
+  expect:
+    namespace: answer1
+    secondQuestion: answer2
+
+- name: two options, one default
+  config:
+    - name: Test Config Group
+      items:
+        - name: namespace
+          title: Namespace
+          default: default1
+        - name: secondQuestion
+          title: Second Question
+  expect_ui_info:
+    - Test Config Group
+  responses:
+    - question: 'Enter a value for option "namespace" [default1]:'
+      answer: ""
+    - question: 'Enter a value for option "secondQuestion":'
+      answer: answer2
+  expect:
+    namespace: default1
+    secondQuestion: answer2
+
+#- name: two options, one hidden default
+#  config:
+#    - name: Test Config Group
+#      items:
+#        - name: namespace
+#          title: Namespace
+#          default: default1
+#          hidden: true
+#        - name: secondQuestion
+#          title: Second Question
+#  expect_ui_info:
+#    - Test Config Group
+#  responses:
+#    - question: 'Enter a value for option "secondQuestion":'
+#      answer: answer2
+#  expect:
+#    namespace: default1
+#    secondQuestion: answer2
+#
+#- name: two options, second using template function
+#  config:
+#    - name: Test Config Group
+#      items:
+#        - name: namespace
+#          title: Namespace
+#        - name: templateFunc
+#          title: Template Func Question
+#          hidden: true
+#          readonly: true
+#          value: 'The namespace is: {{repl configOption "namespace"}}'
+#
+#  expect_ui_info:
+#    - Test Config Group
+#  responses:
+#    - question: 'Enter a value for option "namespace":'
+#      answer: answer1
+#  expect:
+#    namespace: answer1
+#    secondQuestion: "The namespace is: answer1"
+
