@@ -69,17 +69,17 @@ _build: bin/ship
 
 bin/ship: $(SRC)
 	go build \
-			-i \
+		-i \
 		-o bin/ship \
 		./cmd/ship
-	: bin/ship
+	@echo built bin/ship
 
-e2e:
+e2e: bin/ship
 	./bin/ship e2e
 
 
 
-run:
+run: bin/ship
 	./bin/ship --log-level=debug --studio-file=./app.yml
 
 # this should really be in a different repo
