@@ -136,6 +136,7 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	mesg := g.Group("/api/v1/message")
 	mesg.POST("confirm", d.postConfirmMessage)
+	mesg.GET("get", d.getCurrentMessage)
 
 	plan := g.Group("/api/v1/plan")
 	plan.GET("get", d.getCurrentPlan)
@@ -206,6 +207,23 @@ func (d *Daemon) postConfirmMessage(c *gin.Context) {
 	d.MessageConfirmed <- request.StepName
 
 	c.String(200, "")
+}
+
+func (d *Daemon) getCurrentMessage(c *gin.Context) {
+	d.Lock()
+	defer d.Unlock()
+
+	if d.currentStep == nil {
+		c.JSON(400, map[string]interface{}{
+			"error": "no steps taken",
+		})
+		return
+	}
+
+	c.JSON(200, map[string]interface{}{
+		"message": d.currentStep.Message,
+	})
+	return
 }
 
 // Healthz returns a 200 with the version if provided
