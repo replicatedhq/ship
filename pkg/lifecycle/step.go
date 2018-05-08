@@ -14,7 +14,7 @@ import (
 type StepExecutor struct {
 	Logger    log.Logger
 	Renderer  *render.Renderer
-	Messenger *message.CLIMessenger
+	Messenger message.Messenger
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -22,7 +22,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 
 	if step.Message != nil {
 		debug.Log("event", "step.resolve", "type", "message")
-		err := s.Messenger.Execute(ctx, step.Message)
+		err := s.Messenger.Execute(ctx, release, step.Message)
 		debug.Log("event", "step.complete", "type", "message", "err", err)
 		return errors.Wrap(err, "execute message step")
 	} else if step.Render != nil {

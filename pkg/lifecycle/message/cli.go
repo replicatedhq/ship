@@ -14,10 +14,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/viper"
 )
+
+var _ Messenger = &CLIMessenger{}
 
 type CLIMessenger struct {
 	Logger log.Logger
@@ -25,16 +25,7 @@ type CLIMessenger struct {
 	Viper  *viper.Viper
 }
 
-func FromViper(v *viper.Viper) *CLIMessenger {
-	// todo read viper, maybe return DaemonMessenger instead
-	return &CLIMessenger{
-		Logger: logger.FromViper(v),
-		UI:     ui.FromViper(v),
-		Viper:  v,
-	}
-}
-
-func (e *CLIMessenger) Execute(ctx context.Context, step *api.Message) error {
+func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {
 	debug := level.Debug(log.With(e.Logger, "step.type", "message"))
 
 	debug.Log("event", "step.execute", "step.level", step.Level)
