@@ -204,7 +204,9 @@ func (d *Daemon) postConfirmMessage(c *gin.Context) {
 		return
 	}
 
-	d.MessageConfirmed <- request.StepName
+	go func() {
+		d.MessageConfirmed <- request.StepName
+	}()
 
 	c.String(200, "")
 }
