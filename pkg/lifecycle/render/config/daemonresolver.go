@@ -3,12 +3,12 @@ package config
 import (
 	"context"
 	"errors"
-
 	"time"
+
+	"github.com/replicatedcom/ship/pkg/api"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/api"
 )
 
 const StepNameConfig = "render.config"

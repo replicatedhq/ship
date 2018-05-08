@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+
 	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
 
@@ -43,11 +44,8 @@ func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []liby
 				built = builtDefault
 			}
 
-			// This is super raw, unefficient and needs some ♡ before it should be 🚢'ed
-			for k, v := range templateContext {
-				if k == configItem.Name {
-					built = fmt.Sprintf("%v", v)
-				}
+			if v, ok := templateContext[configItem.Name]; ok {
+				built = fmt.Sprintf("%v", v)
 			}
 
 			configCtx.ItemValues[configItem.Name] = built
