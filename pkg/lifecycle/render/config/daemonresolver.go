@@ -32,10 +32,10 @@ func (d *DaemonResolver) ResolveConfig(
 
 	daemonExitedChan := d.MaybeRunningDaemon.EnsureStarted(ctx, release)
 
-	for _, step := range release.Spec.Lifecycle.V1 {
+	for i, step := range release.Spec.Lifecycle.V1 {
 		if step.Render != nil {
 			debug.Log("event", "render.found")
-			d.MaybeRunningDaemon.PushStep(ctx, StepNameConfig, step)
+			d.MaybeRunningDaemon.SetStep(ctx, StepNameConfig, i)
 			debug.Log("event", "step.pushed")
 			return d.awaitConfigSaved(ctx, daemonExitedChan)
 		}

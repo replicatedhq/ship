@@ -34,9 +34,10 @@ type Daemon struct {
 	UI     cli.Ui
 
 	sync.Mutex
-	currentStep     *api.Step
+
+	currentStep     int
+	steps           []api.Step
 	currentStepName string
-	pastSteps       []api.Step
 
 	startOnce sync.Once
 
@@ -49,16 +50,13 @@ type Daemon struct {
 	//currentPlan planner.Plan
 }
 
-func (d *Daemon) PushStep(ctx context.Context, stepName string, step api.Step) {
+func (d *Daemon) SetStep(ctx context.Context, stepName string, idx int) {
 
 	d.Lock()
 	defer d.Unlock()
 
-	if d.currentStep != nil {
-		d.pastSteps = append(d.pastSteps, *d.currentStep)
-	}
 	d.currentStepName = stepName
-	d.currentStep = &step
+	d.currentStep = idx
 	d.NotifyStepChanged(stepName)
 }
 
@@ -80,6 +78,9 @@ func (d *Daemon) Serve(ctx context.Context, release *api.Release) error {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "method", "serve"))
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
+
+	d.currentStep = -1
+	d.steps = release.Spec.Lifecycle.V1
 
 	g := gin.New()
 	g.Use(cors.New(config))
@@ -152,13 +153,13 @@ func (d *Daemon) getLoadingStep(c *gin.Context) {
 }
 
 func (d *Daemon) getCurrentStep(c *gin.Context) {
-	if d.currentStep == nil {
+	if d.currentStep == -1 {
 		d.getLoadingStep(c)
 		return
 	}
 
 	c.JSON(200, map[string]interface{}{
-		"currentStep": d.currentStep,
+		"currentStep": d.steps[d.currentStep],
 		"phase":       d.currentStepName,
 	})
 }
@@ -182,10 +183,31 @@ func (d *Daemon) postConfirmPlan(c *gin.Context) {
 func (d *Daemon) postConfirmMessage(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
-	c.JSON(400, map[string]interface{}{
-		"error":   "no message to confirm",
-		"subcode": "bad_order",
-	})
+
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postConfirmMessage"))
+
+	if len(d.steps) == d.currentStep-1 {
+		c.JSON(400, map[string]interface{}{
+			"error": "no more steps",
+		})
+		return
+	}
+
+	type Request struct {
+		NextName string `json:"next_name"`
+	}
+
+	debug.Log("event", "request.bind")
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	d.currentStep = d.currentStep + 1
+	d.currentStepName = request.NextName
+
+	c.String(200, "")
 }
 
 // Healthz returns a 200 with the version if provided
