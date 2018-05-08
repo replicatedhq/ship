@@ -34,10 +34,11 @@ func ResolverFromViper(v *viper.Viper) Resolver {
 }
 func DaemonFromViper(v *viper.Viper) *Daemon {
 	return &Daemon{
-		Logger:      logger.FromViper(v),
-		Fs:          fs.FromViper(v),
-		UI:          ui.FromViper(v),
-		Viper:       v,
-		ConfigSaved: make(chan interface{}),
+		Logger:           logger.FromViper(v),
+		Fs:               fs.FromViper(v),
+		UI:               ui.FromViper(v),
+		Viper:            v,
+		ConfigSaved:      make(chan interface{}),
+		MessageConfirmed: make(chan string, 1),
 	}
 }
