@@ -4,7 +4,7 @@ FROM alpine:latest
 LABEL maintainer="https://github.com/replicatedhq"
 LABEL repo="https://github.com/replicatedhq/ship"
 
-RUN apk add --no-cache ca-certificates curl && update-ca-certificates
+RUN apk add --no-cache ca-certificates curl git && update-ca-certificates
 RUN curl -L https://github.com/yoonitio/cli/releases/download/v0.1/yoonit-`uname -s`-`uname -m` -o /usr/local/bin/yoonit
 RUN chmod +x /usr/local/bin/yoonit
 

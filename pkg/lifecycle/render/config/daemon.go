@@ -182,10 +182,30 @@ func (d *Daemon) postConfirmPlan(c *gin.Context) {
 func (d *Daemon) postConfirmMessage(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
-	c.JSON(400, map[string]interface{}{
-		"error":   "no message to confirm",
-		"subcode": "bad_order",
-	})
+
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postConfirmMessage"))
+
+	type Request struct {
+		StepName string `json:"step_name"`
+	}
+
+	debug.Log("event", "request.bind")
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	if d.currentStepName != request.StepName {
+		c.JSON(400, map[string]interface{}{
+			"error": "not current step",
+		})
+		return
+	}
+
+	d.MessageConfirmed <- request.StepName
+
+	c.String(200, "")
 }
 
 // Healthz returns a 200 with the version if provided

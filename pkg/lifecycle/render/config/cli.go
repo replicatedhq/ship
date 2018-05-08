@@ -39,7 +39,10 @@ func (c *CLIResolver) ResolveConfig(
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(release.Spec.Config.V1, templateContext)
+	configCtx, err := NewConfigContext(
+		c.Viper, c.Logger,
+		release.Spec.Config.V1, templateContext,
+	)
 	if err != nil {
 		return nil, err
 	}
