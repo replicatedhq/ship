@@ -47,7 +47,9 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 				return errors.Wrap(err, "getting static context")
 			}
 
-			configCtx, err := config.NewConfigContext(configGroups, templateContext)
+			configCtx, err := config.NewConfigContext(
+				p.Viper, p.Logger,
+				configGroups, templateContext)
 			if err != nil {
 				return errors.Wrap(err, "getting config context")
 			}

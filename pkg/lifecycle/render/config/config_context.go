@@ -2,18 +2,19 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"text/template"
 
 	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/spf13/viper"
 )
 
 // NewConfigContext will return a new config context, initialized with the app config.
 // Once we have state (for upgrades) it should be a parameter here.
-func NewConfigContext(configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
+func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
 	builder := NewBuilder(
@@ -22,7 +23,8 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, templateContext map[st
 
 	configCtx := &ConfigCtx{
 		ItemValues: templateContext,
-		Logger:     log.NewLogfmtLogger(os.Stderr),
+		Logger:     logger,
+		Viper:      viper,
 	}
 
 	for _, configGroup := range configGroups {
@@ -59,6 +61,7 @@ func NewConfigContext(configGroups []libyaml.ConfigGroup, templateContext map[st
 type ConfigCtx struct {
 	ItemValues map[string]interface{}
 	Logger     log.Logger
+	Viper      *viper.Viper
 }
 
 // FuncMap represents the available functions in the ConfigCtx.
@@ -69,6 +72,25 @@ func (ctx ConfigCtx) FuncMap() template.FuncMap {
 		"ConfigOptionData":      ctx.configOptionData,
 		"ConfigOptionEquals":    ctx.configOptionEquals,
 		"ConfigOptionNotEquals": ctx.configOptionNotEquals,
+
+		// this should probably go somewhere else eventually
+		// Install should have all the details about this ship installation,
+		// including customer Id, customer name release notes, version, etc.
+		"Installation": ctx.Install,
+		// old, remove
+		"context": ctx.Install,
+	}
+}
+
+func (ctx ConfigCtx) Install(name string) string {
+	switch name {
+	case "state_file_path":
+		return state.Path
+	case "customer_id":
+		return ctx.Viper.GetString("customer-id")
+	default:
+		level.Warn(ctx.Logger).Log("event", "ConfigCtx.context.unsuppported", "name", name)
+		return ""
 	}
 }
 

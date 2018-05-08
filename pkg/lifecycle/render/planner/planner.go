@@ -44,6 +44,7 @@ type CLIPlanner struct {
 	Logger log.Logger
 	Fs     afero.Afero
 	UI     cli.Ui
+	Viper  *viper.Viper
 }
 
 func FromViper(v *viper.Viper) Planner {
@@ -52,6 +53,7 @@ func FromViper(v *viper.Viper) Planner {
 		Logger: logger.FromViper(v),
 		Fs:     fs.FromViper(v),
 		UI:     ui.FromViper(v),
+		Viper:  v,
 	}
 
 }

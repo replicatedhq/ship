@@ -34,7 +34,9 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(release.Spec.Config.V1, savedStateMergedWithLiveValues)
+	configCtx, err := NewConfigContext(
+		r.Viper, r.Logger,
+		release.Spec.Config.V1, savedStateMergedWithLiveValues)
 	if err != nil {
 		return nil, err
 	}
