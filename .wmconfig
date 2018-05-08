@@ -3,6 +3,7 @@
   "ignorePatterns": [
     ".git/**",
     "hack/docs/**",
+	"examples",
     ".idea/**",
     "**/*jb_tmp*",
     "e2e-retraced/**",

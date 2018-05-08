@@ -1,0 +1,41 @@
+assets:
+  v1:
+    - inline:
+       dest: ./installer/scripts/troubleshoot/support-bundle.sh
+       contents: |
+         #!/bin/sh
+         OUTPUT_PATH=supportbundle.tar.gz
+
+         pod=$(kubectl get pods --selector=tier=support-bundle -o jsonpath='{.items[*].metadata.name}')
+
+         /bin/sh -c 'kubectl exec -it ${pod} -- support-bundle generate --customer-id={{repl context "customer_id"}} --output - --quiet' > $OUTPUT_PATH
+
+         echo "Bundle generated at to ${OUTPUT_PATH}"
+    - inline:
+        dest: ./installer/k8s/troubleshoot/support-deployment.yml
+        contents: |
+          ---
+          apiVersion: extensions/v1beta1
+          kind: Deployment
+          metadata:
+            name: support-bundle
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                tier: support-bundle
+            template:
+              metadata:
+                labels:
+                tier: support-bundle
+              spec:
+                containers:
+                  - name: support-bundle
+                    image: replicated/support-bundle:unstable
+                    imagePullPolicy: Always
+                    cmd:
+                      - /bin/sleep
+                      - infinity
+lifecycle:
+  v1:
+    - render: {}
