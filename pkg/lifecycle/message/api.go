@@ -48,7 +48,7 @@ func (m *DaemonMessenger) awaitMessageConfirmed(ctx context.Context, daemonExite
 			}
 			return errors.New("daemon exited")
 		case <-m.MaybeRunningDaemon.MessageConfirmed:
-			debug.Log("event", "config.saved")
+			debug.Log("event", "message.confirmed")
 			return nil
 		case <-time.After(10 * time.Second):
 			debug.Log("waitingFor", "message.confirmed")
