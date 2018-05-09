@@ -15,8 +15,8 @@ const StepNameConfig = "render.config"
 const StepNameConfirm = "render.confirm"
 
 type DaemonResolver struct {
-	Logger             log.Logger
-	MaybeRunningDaemon *Daemon
+	Logger log.Logger
+	Daemon *Daemon
 }
 
 func (d *DaemonResolver) ResolveConfig(
@@ -30,12 +30,12 @@ func (d *DaemonResolver) ResolveConfig(
 		return context, nil
 	}
 
-	daemonExitedChan := d.MaybeRunningDaemon.EnsureStarted(ctx, release)
+	daemonExitedChan := d.Daemon.EnsureStarted(ctx, release)
 
 	for _, step := range release.Spec.Lifecycle.V1 {
 		if step.Render != nil {
 			debug.Log("event", "render.found")
-			d.MaybeRunningDaemon.PushStep(ctx, StepNameConfig, step)
+			d.Daemon.PushStep(ctx, StepNameConfig, step)
 			debug.Log("event", "step.pushed")
 			return d.awaitConfigSaved(ctx, daemonExitedChan)
 		}
@@ -57,9 +57,9 @@ func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan 
 				return nil, err
 			}
 			return nil, errors.New("daemon exited")
-		case <-d.MaybeRunningDaemon.ConfigSaved:
+		case <-d.Daemon.ConfigSaved:
 			debug.Log("event", "config.saved")
-			return d.MaybeRunningDaemon.CurrentConfig, nil
+			return d.Daemon.CurrentConfig, nil
 		case <-time.After(10 * time.Second):
 			debug.Log("waitingFor", "config.saved")
 		}

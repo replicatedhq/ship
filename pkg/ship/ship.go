@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/lifecycle"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	pkglogger "github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/replicatedcom/ship/pkg/ui"
@@ -37,6 +38,7 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
+	Daemon     *config.Daemon
 	Resolver   *specs.Resolver
 	StudioFile string
 	Client     *specs.GraphQLClient
@@ -49,6 +51,8 @@ type Ship struct {
 func FromViper(v *viper.Viper) (*Ship, error) {
 	logger := pkglogger.FromViper(v)
 	debug := level.Debug(log.With(logger, "phase", "ship.build", "source", "viper"))
+
+	daemon := config.DaemonFromViper(v)
 
 	debug.Log("event", "specresolver.build")
 	resolver, err := specs.ResolverFromViper(v)
@@ -63,7 +67,7 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 	}
 
 	debug.Log("event", "lifecycle.build")
-	runner := lifecycle.RunnerFromViper(v)
+	runner := lifecycle.RunnerFromViper(v).WithDaemon(daemon)
 
 	debug.Log("event", "ui.build")
 	return &Ship{
@@ -84,6 +88,7 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
 
+		Daemon: daemon,
 		UI:     ui.FromViper(v),
 		Runner: runner,
 	}, nil

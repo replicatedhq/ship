@@ -23,6 +23,10 @@ type CLIResolver struct {
 	Viper  *viper.Viper
 }
 
+func (r *CLIResolver) WithDaemon(_ *Daemon) Resolver {
+	return r
+}
+
 // ResolveConfig will get all the config values specified in the spec
 func (c *CLIResolver) ResolveConfig(
 	ctx context.Context,

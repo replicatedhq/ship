@@ -42,6 +42,11 @@ func FromViper(v *viper.Viper) *Renderer {
 	}
 }
 
+func (r *Renderer) WithDaemon(d *config.Daemon) *Renderer {
+	r.ConfigResolver = r.ConfigResolver.WithDaemon(d)
+	return r
+}
+
 // Execute renders the assets and config
 func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
