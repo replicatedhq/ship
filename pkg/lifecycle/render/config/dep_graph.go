@@ -1,12 +1,10 @@
 package config
 
 import (
-	"text/template"
-
-	"fmt"
-
 	"bytes"
 	"encoding/gob"
+	"fmt"
+	"text/template"
 
 	"github.com/pkg/errors"
 )

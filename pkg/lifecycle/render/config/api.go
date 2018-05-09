@@ -36,7 +36,8 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 	configCtx, err := NewConfigContext(
 		r.Viper, r.Logger,
-		release.Spec.Config.V1, savedStateMergedWithLiveValues)
+		release.Spec.Config.V1,
+		savedStateMergedWithLiveValues)
 	if err != nil {
 		return nil, err
 	}
@@ -46,26 +47,17 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		configCtx,
 	)
 
-	unresolvedConfigItems := make([]*libyaml.ConfigItem, 0, 0)
-	for _, configGroup := range release.Spec.Config.V1 {
-		for _, configItem := range configGroup.Items {
-			unresolvedConfigItems = append(unresolvedConfigItems, configItem)
-		}
-	}
-
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
-			for k, liveValue := range savedStateMergedWithLiveValues {
-				if k == configItem.Name {
-					// (implementation logic copied from replicated 1):
-					// this limitation ensures that any config item with a
-					// "default" cannot be ""
-					if configItem.Default != "" && configItem.Value == "" {
-						continue
-					}
-					configItem.Value = fmt.Sprintf("%v", liveValue)
+			if liveValue, ok := savedStateMergedWithLiveValues[configItem.Name]; ok {
+				// (implementation logic copied from replicated 1):
+				// this limitation ensures that any config item with a
+				// "default" cannot be ""
+				if configItem.Default != "" && configItem.Value == "" {
+					continue
 				}
+				configItem.Value = fmt.Sprintf("%v", liveValue)
 			}
 
 			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
