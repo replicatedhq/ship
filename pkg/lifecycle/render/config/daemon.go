@@ -92,9 +92,8 @@ func (d *Daemon) Serve(ctx context.Context, release *api.Release) error {
 	errChan := make(chan error)
 
 	go func() {
-		debug.Log("event", "server.listen")
+		debug.Log("event", "server.listen", "server.addr", addr)
 		errChan <- server.ListenAndServe()
-
 	}()
 
 	uiPort := 8025
@@ -125,21 +124,31 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
+	v1 := g.Group("/api/v1")
 
-	conf := g.Group("/api/v1/config")
+	conf := v1.Group("/config")
 	conf.POST("live", d.postAppConfigLive(release))
 	conf.PUT("", d.putAppConfig)
 
-	life := g.Group("/api/v1/lifecycle")
+	life := v1.Group("/lifecycle")
 	life.GET("current", d.getCurrentStep)
 	life.GET("loading", d.getLoadingStep)
 
-	mesg := g.Group("/api/v1/message")
+	mesg := v1.Group("/message")
 	mesg.POST("confirm", d.postConfirmMessage)
 
-	plan := g.Group("/api/v1/plan")
-	plan.GET("get", d.getCurrentPlan)
-	plan.POST("confirm", d.postConfirmPlan)
+	v1.GET("/channel", d.getChannel(release))
+
+}
+
+func (d *Daemon) getChannel(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, map[string]interface{}{
+			"channelName": release.Metadata.ChannelName,
+			"channelIcon": release.Metadata.ChannelIcon,
+		})
+	}
+
 }
 
 func (d *Daemon) getLoadingStep(c *gin.Context) {
@@ -160,22 +169,6 @@ func (d *Daemon) getCurrentStep(c *gin.Context) {
 	c.JSON(200, map[string]interface{}{
 		"currentStep": d.currentStep,
 		"phase":       d.currentStepName,
-	})
-}
-
-func (d *Daemon) getCurrentPlan(c *gin.Context) {
-	c.JSON(400, map[string]interface{}{
-		"error":   "no plan built",
-		"subcode": "bad_order",
-	})
-}
-
-func (d *Daemon) postConfirmPlan(c *gin.Context) {
-	d.Lock()
-	defer d.Unlock()
-	c.JSON(400, map[string]interface{}{
-		"error":   "no plan built",
-		"subcode": "bad_order",
 	})
 }
 

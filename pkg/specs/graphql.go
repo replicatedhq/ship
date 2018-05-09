@@ -21,6 +21,7 @@ query {
     id
     channelId
     channelName
+    channelIcon
     semver
     releaseNotes
     spec
