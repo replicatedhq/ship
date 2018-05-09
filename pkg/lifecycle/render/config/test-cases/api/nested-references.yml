@@ -1,0 +1,114 @@
+## this has three options, charlie depends on bravo depends on alpha where bravo is hidden
+## charlie should have the same value as alpha
+
+- name: Refrencing hidden const templated config items
+  config:
+    - name: alpha_group
+      description: Alpha Group
+      items:
+        - name: alpha
+          title: Alpha Value
+          type: text
+          readonly: true
+          value: "hello world"
+
+        - name: bravo
+          type: text
+          hidden: true
+          readonly: true
+          value: '{{repl ConfigOption "alpha"}}'
+
+        - name: charlie
+          title: Charlie Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "bravo"}}'
+
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "description": "Alpha Group",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "alpha",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Alpha Value",
+                          "type": "text",
+                          "value": "hello world",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "bravo",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "",
+                          "type": "text",
+                          "value": "hello world",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "charlie",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Charlie Value",
+                          "type": "text",
+                          "value": "hello world",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "alpha_group",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]
+      }
