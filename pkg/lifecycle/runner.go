@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/viper"
 )
@@ -60,12 +61,22 @@ func RunnerFromViper(v *viper.Viper) *Runner {
 		Executor: ExecutorFromViper(v),
 	}
 }
+func (r *Runner) WithDaemon(d *config.Daemon) *Runner {
+	r.Executor = r.Executor.WithDaemon(d)
+	return r
+}
+
 func ExecutorFromViper(v *viper.Viper) *StepExecutor {
 	return &StepExecutor{
 		Logger:    logger.FromViper(v),
 		Renderer:  render.FromViper(v),
 		Messenger: message.FromViper(v),
 	}
+}
+func (e *StepExecutor) WithDaemon(d *config.Daemon) *StepExecutor {
+	e.Renderer = e.Renderer.WithDaemon(d)
+	e.Messenger = e.Messenger.WithDaemon(d)
+	return e
 }
 
 // Run runs a lifecycle using the passed Spec

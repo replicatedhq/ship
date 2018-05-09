@@ -12,6 +12,7 @@ import (
 
 type Messenger interface {
 	Execute(ctx context.Context, release *api.Release, step *api.Message) error
+	WithDaemon(d *config.Daemon) Messenger
 }
 
 func FromViper(v *viper.Viper) Messenger {
@@ -23,12 +24,14 @@ func FromViper(v *viper.Viper) Messenger {
 		}
 	}
 
-	daemon := config.DaemonFromViper(v)
-
 	return &DaemonMessenger{
-		Logger:             logger.FromViper(v),
-		UI:                 ui.FromViper(v),
-		Viper:              v,
-		MaybeRunningDaemon: daemon,
+		Logger: logger.FromViper(v),
+		UI:     ui.FromViper(v),
+		Viper:  v,
 	}
+}
+
+func (m *DaemonMessenger) WithDaemon(d *config.Daemon) Messenger {
+	m.Daemon = d
+	return m
 }

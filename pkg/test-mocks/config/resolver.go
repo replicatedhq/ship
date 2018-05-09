@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 )
 
 // MockResolver is a mock of Resolver interface
@@ -28,6 +29,10 @@ func NewMockResolver(ctrl *gomock.Controller) *MockResolver {
 	mock := &MockResolver{ctrl: ctrl}
 	mock.recorder = &MockResolverMockRecorder{mock}
 	return mock
+}
+
+func (m *MockResolver) WithDaemon(_ *config.Daemon) config.Resolver {
+	return m
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use

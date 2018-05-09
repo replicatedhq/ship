@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
@@ -23,6 +24,10 @@ type CLIMessenger struct {
 	Logger log.Logger
 	UI     cli.Ui
 	Viper  *viper.Viper
+}
+
+func (m *CLIMessenger) WithDaemon(_ *config.Daemon) Messenger {
+	return m
 }
 
 func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {

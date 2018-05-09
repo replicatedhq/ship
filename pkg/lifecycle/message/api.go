@@ -18,18 +18,18 @@ import (
 )
 
 type DaemonMessenger struct {
-	Logger             log.Logger
-	UI                 cli.Ui
-	Viper              *viper.Viper
-	MaybeRunningDaemon *config.Daemon
+	Logger log.Logger
+	UI     cli.Ui
+	Viper  *viper.Viper
+	Daemon *config.Daemon
 }
 
 func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {
 	debug := level.Debug(log.With(m.Logger, "struct", "daemonmessenger", "method", "execute"))
 
-	daemonExitedChan := m.MaybeRunningDaemon.EnsureStarted(ctx, release)
+	daemonExitedChan := m.Daemon.EnsureStarted(ctx, release)
 
-	m.MaybeRunningDaemon.PushStep(ctx, "message", api.Step{Message: step})
+	m.Daemon.PushStep(ctx, "message", api.Step{Message: step})
 	debug.Log("event", "step.pushed")
 	return m.awaitMessageConfirmed(ctx, daemonExitedChan)
 }
@@ -47,7 +47,7 @@ func (m *DaemonMessenger) awaitMessageConfirmed(ctx context.Context, daemonExite
 				return err
 			}
 			return errors.New("daemon exited")
-		case <-m.MaybeRunningDaemon.MessageConfirmed:
+		case <-m.Daemon.MessageConfirmed:
 			debug.Log("event", "message.confirmed")
 			return nil
 		case <-time.After(10 * time.Second):
