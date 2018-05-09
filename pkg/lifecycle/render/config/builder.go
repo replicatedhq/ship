@@ -15,6 +15,7 @@ import (
 
 type Builder struct {
 	Ctx    []Ctx
+	Functs template.FuncMap
 	Logger log.Logger
 }
 
@@ -119,7 +120,11 @@ func (b *Builder) Uint(text string, defaultVal uint64) (uint64, error) {
 }
 
 func (b *Builder) BuildFuncMap() template.FuncMap {
-	funcMap := template.FuncMap{}
+	if b.Functs == nil {
+		b.Functs = template.FuncMap{}
+	}
+
+	funcMap := b.Functs
 	for _, ctx := range b.Ctx {
 		for name, fn := range ctx.FuncMap() {
 			funcMap[name] = fn

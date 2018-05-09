@@ -1,48 +1,92 @@
 package config
 
 import (
+	"text/template"
+
+	"fmt"
+
+	"bytes"
+	"encoding/gob"
+
 	"github.com/pkg/errors"
 )
 
 type depGraph struct {
-	dependencies map[string]map[string]struct{}
+	Dependencies map[string]map[string]struct{}
+	Parent       string
 }
 
-func (d *depGraph) addNode(source string) {
-	if d.dependencies == nil {
-		d.dependencies = make(map[string]map[string]struct{})
+//these config functions are used to add their dependencies to the depGraph
+func (d *depGraph) FuncMap() template.FuncMap {
+	addDepFunc := func(dep string) string {
+		d.AddDep(d.Parent, dep)
+		return dep
+	}
+	return template.FuncMap{
+		"ConfigOption":          addDepFunc,
+		"ConfigOptionIndex":     addDepFunc,
+		"ConfigOptionData":      addDepFunc,
+		"ConfigOptionEquals":    addDepFunc,
+		"ConfigOptionNotEquals": addDepFunc,
+	}
+}
+
+func (d *depGraph) AddNode(source string) {
+	if d.Dependencies == nil {
+		d.Dependencies = make(map[string]map[string]struct{})
 	}
 
-	if _, ok := d.dependencies[source]; !ok {
-		d.dependencies[source] = make(map[string]struct{})
+	if _, ok := d.Dependencies[source]; !ok {
+		d.Dependencies[source] = make(map[string]struct{})
 	}
 }
 
-func (d *depGraph) addDep(source, newDependency string) {
-	d.addNode(source)
+func (d *depGraph) AddDep(source, newDependency string) {
+	d.AddNode(source)
 
-	d.dependencies[source][newDependency] = struct{}{}
+	d.Dependencies[source][newDependency] = struct{}{}
 }
 
-func (d *depGraph) resolveDep(resolvedDependency string) {
-	for _, depMap := range d.dependencies {
+func (d *depGraph) ResolveDep(resolvedDependency string) {
+	for _, depMap := range d.Dependencies {
 		delete(depMap, resolvedDependency)
 	}
-	delete(d.dependencies, resolvedDependency)
+	delete(d.Dependencies, resolvedDependency)
 }
 
-func (d *depGraph) getHeadNodes() ([]string, error) {
+func (d *depGraph) GetHeadNodes() ([]string, error) {
 	headNodes := []string{}
 
-	for node, deps := range d.dependencies {
+	for node, deps := range d.Dependencies {
 		if len(deps) == 0 {
 			headNodes = append(headNodes, node)
 		}
 	}
 
-	if len(headNodes) == 0 && len(d.dependencies) != 0 {
+	if len(headNodes) == 0 && len(d.Dependencies) != 0 {
 		return headNodes, errors.New("No nodes exist with 0 dependencies")
 	}
 
 	return headNodes, nil
+}
+
+func (d *depGraph) PrintData() string {
+	return fmt.Sprintf("deps: %+v", d.Dependencies)
+}
+
+// returns a deep copy of the dep graph
+func (d *depGraph) Copy() (depGraph, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	dec := gob.NewDecoder(&buf)
+	err := enc.Encode(d)
+	if err != nil {
+		return depGraph{}, err
+	}
+	var copy depGraph
+	err = dec.Decode(&copy)
+	if err != nil {
+		return depGraph{}, err
+	}
+	return copy, nil
 }

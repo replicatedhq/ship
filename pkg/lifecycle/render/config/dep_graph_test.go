@@ -66,14 +66,18 @@ func TestDepGraph(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var graph depGraph
 			for source, deps := range test.dependencies {
-				graph.addNode(source)
+				graph.AddNode(source)
 				for _, dep := range deps {
-					graph.addDep(source, dep)
+					graph.AddDep(source, dep)
 				}
 			}
 
+			depLen := len(graph.Dependencies)
+			graphCopy, err := graph.Copy()
+			require.NoError(t, err)
+
 			for _, toResolve := range test.resolveOrder {
-				available, err := graph.getHeadNodes()
+				available, err := graph.GetHeadNodes()
 				if err != nil && test.expectError {
 					return
 				}
@@ -81,14 +85,16 @@ func TestDepGraph(t *testing.T) {
 				require.NoError(t, err, "toResolve: %s", toResolve)
 				require.Contains(t, available, toResolve)
 
-				graph.resolveDep(toResolve)
+				graph.ResolveDep(toResolve)
 			}
 
-			available, err := graph.getHeadNodes()
+			available, err := graph.GetHeadNodes()
 			require.NoError(t, err)
 			require.Empty(t, available)
 
 			require.False(t, test.expectError, "Did not find expected error")
+
+			require.Equal(t, depLen, len(graphCopy.Dependencies))
 		})
 	}
 }

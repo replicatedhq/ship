@@ -23,9 +23,10 @@ func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []liby
 	)
 
 	configCtx := &ConfigCtx{
-		ItemValues: templateContext,
-		Logger:     logger,
-		Viper:      viper,
+		ItemValues:       templateContext,
+		ItemDependencies: depGraph{},
+		Logger:           logger,
+		Viper:            viper,
 	}
 
 	for _, configGroup := range configGroups {
@@ -49,17 +50,28 @@ func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []liby
 			}
 
 			configCtx.ItemValues[configItem.Name] = built
+
+			// add this to the dependency graph
+			configCtx.ItemDependencies.Parent = configItem.Name
+			depBuilder := NewBuilder()
+			depBuilder.Functs = configCtx.ItemDependencies.FuncMap()
+
+			depBuilder.String(configItem.Default)
+			depBuilder.String(configItem.Value)
 		}
 	}
+
+	fmt.Println(configCtx.ItemDependencies.PrintData())
 
 	return configCtx, nil
 }
 
 // ConfigCtx is the context for builder functions before the application has started.
 type ConfigCtx struct {
-	ItemValues map[string]interface{}
-	Logger     log.Logger
-	Viper      *viper.Viper
+	ItemValues       map[string]interface{}
+	ItemDependencies depGraph
+	Logger           log.Logger
+	Viper            *viper.Viper
 }
 
 // FuncMap represents the available functions in the ConfigCtx.
