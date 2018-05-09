@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
 )
 

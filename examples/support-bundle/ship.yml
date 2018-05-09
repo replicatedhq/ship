@@ -5,10 +5,13 @@ assets:
        contents: |
          #!/bin/sh
          OUTPUT_PATH=supportbundle.tar.gz
+         set -e
 
          pod=$(kubectl get pods --selector=tier=support-bundle -o jsonpath='{.items[*].metadata.name}')
 
-         /bin/sh -c 'kubectl exec -it ${pod} -- support-bundle generate --customer-id={{repl context "customer_id"}} --output - --quiet' > $OUTPUT_PATH
+         echo "Collecting from pod ${pod}"
+
+         /bin/sh -c "kubectl exec ${pod} -- support-bundle generate --customer-id={{repl context "customer_id"}} --out - --quiet --no-upload " > $OUTPUT_PATH
 
          echo "Bundle generated at to ${OUTPUT_PATH}"
     - inline:
@@ -27,13 +30,13 @@ assets:
             template:
               metadata:
                 labels:
-                tier: support-bundle
+                  tier: support-bundle
               spec:
                 containers:
                   - name: support-bundle
                     image: replicated/support-bundle:unstable
                     imagePullPolicy: Always
-                    cmd:
+                    command:
                       - /bin/sleep
                       - infinity
 lifecycle:
