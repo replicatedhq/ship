@@ -1,0 +1,165 @@
+package config
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/mitchellh/cli"
+	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/libyaml"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+)
+
+type daemonAPITestCase struct {
+	name string
+	test func(t *testing.T)
+}
+
+func initDaemon(t *testing.T, release *api.Release) (*Daemon, context.CancelFunc, error) {
+	v := viper.New()
+
+	viper.Set("api-port", 8880)
+	fs := afero.Afero{Fs: afero.NewMemMapFs()}
+	log := &logger.TestLogger{T: t}
+	daemon := &Daemon{
+		Logger:           log,
+		Fs:               fs,
+		Viper:            v,
+		UI:               cli.NewMockUi(),
+		MessageConfirmed: make(chan string, 1),
+	}
+
+	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())
+
+	log.Log("starting daemon")
+	go func() {
+		daemon.Serve(daemonCtx, release)
+	}()
+
+	var daemonError error
+	for i := 0; i < 10; i++ {
+		time.Sleep(1 * time.Second)
+		resp, err := http.Get("http://localhost:8880/healthz")
+		if err == nil && resp.StatusCode == http.StatusOK {
+			daemonError = nil
+			resp.Body.Close()
+			break
+		}
+		daemonError = err
+	}
+	return daemon, daemonCancelFunc, daemonError
+}
+
+func TestDaemonAPI(t *testing.T) {
+	step1 := api.Step{
+		Message: &api.Message{
+			Contents: "hello ship!",
+			Level:    "info",
+		},
+		Render: &api.Render{},
+	}
+
+	step2 := api.Step{
+		Message: &api.Message{
+			Contents: "bye ship!",
+			Level:    "warn",
+		},
+		Render: &api.Render{},
+	}
+
+	release := &api.Release{
+		Spec: api.Spec{
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{step1, step2},
+			},
+			Config: api.Config{
+				V1: []libyaml.ConfigGroup{},
+			},
+		},
+	}
+
+	daemon, daemonCancelFunc, err := initDaemon(t, release)
+	defer daemonCancelFunc()
+	require.New(t).NoError(err)
+
+	tests := []daemonAPITestCase{
+		{
+			name: "read message before steps",
+			test: func(t *testing.T) {
+				resp, err := http.Get("http://localhost:8880/api/v1/message/get")
+				require.New(t).NoError(err)
+				require.New(t).Equal(http.StatusBadRequest, resp.StatusCode)
+				bodyStr, err := ioutil.ReadAll(resp.Body)
+				require.New(t).NoError(err)
+				respMsg := struct {
+					Error string `json:"error"`
+				}{}
+				require.New(t).NoError(json.Unmarshal(bodyStr, &respMsg))
+				require.New(t).Equal("no steps taken", respMsg.Error)
+			},
+		},
+
+		{
+			name: "read message after 1st step",
+			test: func(t *testing.T) {
+				daemon.PushStep(context.Background(), "step1", step1)
+
+				resp, err := http.Get("http://localhost:8880/api/v1/message/get")
+				require.New(t).NoError(err)
+				require.New(t).Equal(http.StatusOK, resp.StatusCode)
+				bodyStr, err := ioutil.ReadAll(resp.Body)
+				require.New(t).NoError(err)
+				respMsg := struct {
+					Message api.Message `json:"message"`
+				}{}
+				require.New(t).NoError(json.Unmarshal(bodyStr, &respMsg))
+				require.New(t).Equal(step1.Message, &respMsg.Message)
+			},
+		},
+
+		{
+			name: "confirm message that is not current",
+			test: func(t *testing.T) {
+				daemon.PushStep(context.Background(), "step2", step2)
+
+				reqBody := bytes.NewReader([]byte(`{"step_name": "step1"}`))
+				resp, err := http.Post("http://localhost:8880/api/v1/message/confirm", "application/json", reqBody)
+				require.New(t).NoError(err)
+				require.New(t).Equal(http.StatusBadRequest, resp.StatusCode)
+				bodyStr, err := ioutil.ReadAll(resp.Body)
+				require.New(t).NoError(err)
+				respMsg := struct {
+					Error string `json:"error"`
+				}{}
+				require.New(t).NoError(json.Unmarshal(bodyStr, &respMsg))
+				require.New(t).Equal("not current step", respMsg.Error)
+			},
+		},
+
+		{
+			name: "confirm message that is current",
+			test: func(t *testing.T) {
+				reqBody := bytes.NewReader([]byte(`{"step_name": "step2"}`))
+				resp, err := http.Post("http://localhost:8880/api/v1/message/confirm", "application/json", reqBody)
+				require.New(t).NoError(err)
+				require.New(t).Equal(http.StatusOK, resp.StatusCode)
+				msg := <-daemon.MessageConfirmed
+				require.New(t).Equal("step2", msg)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.test(t)
+		})
+	}
+}
