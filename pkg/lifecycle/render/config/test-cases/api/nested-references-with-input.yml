@@ -1,7 +1,9 @@
 ## this has three options, charlie depends on bravo depends on alpha where bravo is hidden
 ## charlie should have the same value as alpha
+## an input for alpha is provided
 
-- name: Refrencing hidden const templated config items
+- name: Refrencing hidden const templated config items with input
+  input: {alpha: "a test input"}
   config:
     - name: alpha_group
       description: Alpha Group
@@ -9,7 +11,6 @@
         - name: alpha
           title: Alpha Value
           type: text
-          readonly: true
           default: "hello world"
 
         - name: bravo
@@ -46,13 +47,13 @@
                           "multiple": false,
                           "name": "alpha",
                           "props": null,
-                          "readonly": true,
+                          "readonly": false,
                           "recommended": false,
                           "required": false,
                           "test_proc": null,
                           "title": "Alpha Value",
                           "type": "text",
-                          "value": "",
+                          "value": "a test input",
                           "value_cmd": null,
                           "when": ""
                       },
@@ -76,7 +77,7 @@
                           "test_proc": null,
                           "title": "",
                           "type": "text",
-                          "value": "hello world",
+                          "value": "a test input",
                           "value_cmd": null,
                           "when": ""
                       },
@@ -100,7 +101,7 @@
                           "test_proc": null,
                           "title": "Charlie Value",
                           "type": "text",
-                          "value": "hello world",
+                          "value": "a test input",
                           "value_cmd": null,
                           "when": ""
                       }

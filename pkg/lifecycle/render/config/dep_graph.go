@@ -96,10 +96,17 @@ func (d *depGraph) Copy() (depGraph, error) {
 }
 
 func (d *depGraph) ParseConfigGroup(configGroups []libyaml.ConfigGroup) error {
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return err
+	}
+
 	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
 			// add this to the dependency graph
-			depBuilder := NewBuilder()
+			d.AddNode(configItem.Name)
+
+			depBuilder := NewBuilder(staticCtx)
 			depBuilder.Functs = d.funcMap(configItem.Name)
 
 			depBuilder.String(configItem.Default)

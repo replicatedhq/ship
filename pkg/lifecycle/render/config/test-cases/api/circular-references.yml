@@ -2,6 +2,7 @@
 ## Program should not crash
 
 - name: A circular reference
+  error: true
   config:
     - name: alpha_group
       description: Alpha Group
@@ -27,88 +28,5 @@
   responses:
     json: |
       {
-          "config": [
-              {
-                  "description": "Alpha Group",
-                  "filters": null,
-                  "items": [
-                      {
-                          "affix": "",
-                          "data_cmd": null,
-                          "default": "",
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "name": "alpha",
-                          "props": null,
-                          "readonly": true,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "title": "Alpha Value",
-                          "type": "text",
-                          "value": "",
-                          "value_cmd": null,
-                          "when": ""
-                      },
-                      {
-                          "affix": "",
-                          "data_cmd": null,
-                          "default": "",
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "name": "bravo",
-                          "props": null,
-                          "readonly": true,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "title": "Bravo Value",
-                          "type": "text",
-                          "value": "",
-                          "value_cmd": null,
-                          "when": ""
-                      },
-                      {
-                          "affix": "",
-                          "data_cmd": null,
-                          "default": "",
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "name": "charlie",
-                          "props": null,
-                          "readonly": true,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "title": "Charlie Value",
-                          "type": "text",
-                          "value": "",
-                          "value_cmd": null,
-                          "when": ""
-                      }
-                  ],
-                  "name": "alpha_group",
-                  "test_proc": null,
-                  "title": "",
-                  "when": ""
-              }
-          ]
+          "config": []
       }
