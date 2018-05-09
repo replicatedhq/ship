@@ -1,28 +1,29 @@
-- name: more than one group hidden password
-  input: {}
+## this has three options, charlie depends on bravo depends on alpha depends on charlie
+## Program should not crash
+
+- name: A circular reference
   config:
     - name: alpha_group
       description: Alpha Group
       items:
-      - name: alpha_login
-        title: Alpha Login
-        type: text
-        value: 'abc123'
-      - name: alpha_password
-        title: Alpha Password
-        type: password
-        value: 'abc123'
-    - name: beta_group
-      description: Beta Group
-      items:
-      - name: beta_login
-        title: Beta Login
-        type: text
-        default: 'beta123'
-      - name: beta_password
-        title: Beta Password
-        type: password
-        value: 'beta123'
+        - name: alpha
+          title: Alpha Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "charlie"}}'
+
+        - name: bravo
+          title: Bravo Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "alpha"}}'
+
+        - name: charlie
+          title: Charlie Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "bravo"}}'
+
   responses:
     json: |
       {
@@ -32,13 +33,9 @@
                   "filters": null,
                   "items": [
                       {
-                          "name": "alpha_login",
-                          "title": "Alpha Login",
-                          "type": "text",
-                          "default": "",
-                          "value": "abc123",
                           "affix": "",
                           "data_cmd": null,
+                          "default": "",
                           "default_cmd": null,
                           "filters": null,
                           "help_text": "",
@@ -47,22 +44,22 @@
                           "items": null,
                           "multi_value": null,
                           "multiple": false,
+                          "name": "alpha",
                           "props": null,
-                          "readonly": false,
+                          "readonly": true,
                           "recommended": false,
                           "required": false,
                           "test_proc": null,
+                          "title": "Alpha Value",
+                          "type": "text",
+                          "value": "",
                           "value_cmd": null,
                           "when": ""
                       },
                       {
-                          "name": "alpha_password",
-                          "title": "Alpha Password",
-                          "type": "password",
-                          "default": "",
-                          "value": "******",
                           "affix": "",
                           "data_cmd": null,
+                          "default": "",
                           "default_cmd": null,
                           "filters": null,
                           "help_text": "",
@@ -71,74 +68,44 @@
                           "items": null,
                           "multi_value": null,
                           "multiple": false,
+                          "name": "bravo",
                           "props": null,
-                          "readonly": false,
+                          "readonly": true,
                           "recommended": false,
                           "required": false,
                           "test_proc": null,
+                          "title": "Bravo Value",
+                          "type": "text",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "charlie",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Charlie Value",
+                          "type": "text",
+                          "value": "",
                           "value_cmd": null,
                           "when": ""
                       }
                   ],
                   "name": "alpha_group",
-                  "test_proc": null,
-                  "title": "",
-                  "when": ""
-              },
-              {
-                  "description": "Beta Group",
-                  "filters": null,
-                  "items": [
-                      {
-                          "name": "beta_login",
-                          "title": "Beta Login",
-                          "type": "text",
-                          "default": "beta123",
-                          "value": "",
-                          "affix": "",
-                          "data_cmd": null,
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "props": null,
-                          "readonly": false,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "value_cmd": null,
-                          "when": ""
-                      },
-                      {
-                          "name": "beta_password",
-                          "title": "Beta Password",
-                          "type": "password",
-                          "default": "",
-                          "value": "*******",
-                          "affix": "",
-                          "data_cmd": null,
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "props": null,
-                          "readonly": false,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "value_cmd": null,
-                          "when": ""
-                      }
-                  ],
-                  "name": "beta_group",
                   "test_proc": null,
                   "title": "",
                   "when": ""
