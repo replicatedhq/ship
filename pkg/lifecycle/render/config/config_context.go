@@ -52,9 +52,8 @@ func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []liby
 			configCtx.ItemValues[configItem.Name] = built
 
 			// add this to the dependency graph
-			configCtx.ItemDependencies.Parent = configItem.Name
 			depBuilder := NewBuilder()
-			depBuilder.Functs = configCtx.ItemDependencies.FuncMap()
+			depBuilder.Functs = configCtx.ItemDependencies.FuncMap(configItem.Name)
 
 			depBuilder.String(configItem.Default)
 			depBuilder.String(configItem.Value)

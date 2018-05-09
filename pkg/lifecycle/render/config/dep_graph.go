@@ -13,21 +13,25 @@ import (
 
 type depGraph struct {
 	Dependencies map[string]map[string]struct{}
-	Parent       string
 }
 
 //these config functions are used to add their dependencies to the depGraph
-func (d *depGraph) FuncMap() template.FuncMap {
+func (d *depGraph) FuncMap(parent string) template.FuncMap {
 	addDepFunc := func(dep string) string {
-		d.AddDep(d.Parent, dep)
+		d.AddDep(parent, dep)
 		return dep
 	}
+	addDepFunc2Vars := func(dep, irrelevant string) string {
+		d.AddDep(parent, dep)
+		return dep
+	}
+
 	return template.FuncMap{
 		"ConfigOption":          addDepFunc,
 		"ConfigOptionIndex":     addDepFunc,
 		"ConfigOptionData":      addDepFunc,
-		"ConfigOptionEquals":    addDepFunc,
-		"ConfigOptionNotEquals": addDepFunc,
+		"ConfigOptionEquals":    addDepFunc2Vars,
+		"ConfigOptionNotEquals": addDepFunc2Vars,
 	}
 }
 
