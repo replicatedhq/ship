@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/replicatedhq/libyaml"
+
 	"github.com/pkg/errors"
 )
 
@@ -14,7 +16,7 @@ type depGraph struct {
 }
 
 //these config functions are used to add their dependencies to the depGraph
-func (d *depGraph) FuncMap(parent string) template.FuncMap {
+func (d *depGraph) funcMap(parent string) template.FuncMap {
 	addDepFunc := func(dep string) string {
 		d.AddDep(parent, dep)
 		return dep
@@ -91,4 +93,19 @@ func (d *depGraph) Copy() (depGraph, error) {
 		return depGraph{}, err
 	}
 	return copy, nil
+}
+
+func (d *depGraph) ParseConfigGroup(configGroups []libyaml.ConfigGroup) error {
+	for _, configGroup := range configGroups {
+		for _, configItem := range configGroup.Items {
+			// add this to the dependency graph
+			depBuilder := NewBuilder()
+			depBuilder.Functs = d.funcMap(configItem.Name)
+
+			depBuilder.String(configItem.Default)
+			depBuilder.String(configItem.Value)
+		}
+	}
+
+	return nil
 }
