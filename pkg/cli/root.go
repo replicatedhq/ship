@@ -12,7 +12,6 @@ import (
 	"github.com/replicatedcom/ship/pkg/cli/devtool_releaser"
 	"github.com/replicatedcom/ship/pkg/e2e"
 	"github.com/replicatedcom/ship/pkg/ship"
-	"github.com/replicatedcom/ship/pkg/specs"
 	"github.com/replicatedcom/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,9 +61,9 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().IntP("api-port", "p", 8880, "port to start the API server on.")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 
-	if specs.AllowInlineSpecs {
-		cmd.PersistentFlags().StringP("studio-file", "s", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
-	}
+	cmd.PersistentFlags().String("studio-file", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+	cmd.PersistentFlags().String("studio-channel-name", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+	cmd.PersistentFlags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 
 	cmd.AddCommand(e2e.Cmd())
 	cmd.AddCommand(devtool_releaser.Cmd())

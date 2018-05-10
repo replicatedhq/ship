@@ -79,6 +79,7 @@ type ShipRelease struct {
 	ID             string  `json:"id"`
 	ChannelID      string  `json:"channelId"`
 	ChannelName    string  `json:"channelName"`
+	ChannelIcon    string  `json:"channelIcon"`
 	Semver         string  `json:"semver"`
 	ReleaseNotes   string  `json:"releaseNotes"`
 	Spec           string  `json:"spec"`
@@ -92,6 +93,7 @@ func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 	return api.ReleaseMetadata{
 		ChannelID:      r.ChannelID,
 		ChannelName:    r.ChannelName,
+		ChannelIcon:    r.ChannelIcon,
 		Semver:         r.Semver,
 		ReleaseNotes:   r.ReleaseNotes,
 		Created:        r.Created,

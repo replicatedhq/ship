@@ -110,17 +110,11 @@ func (s *Ship) Execute(ctx context.Context) error {
 		"installation-id", s.InstallationID,
 		"plan_only", s.PlanOnly,
 		"studio-file", s.StudioFile,
-		"studio", specs.AllowInlineSpecs,
 		"api-port", s.APIPort,
 		"headless", s.Headless,
 	)
 
 	debug.Log("phase", "validate-inputs")
-
-	if s.StudioFile != "" && !specs.AllowInlineSpecs {
-		debug.Log("phase", "validate-inputs", "error", "unsupported studio-file")
-		return errors.New("unsupported configuration: studio-file")
-	}
 
 	if s.CustomerID == "" && s.StudioFile == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
