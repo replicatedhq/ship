@@ -141,7 +141,9 @@ func (b *Builder) BuildFuncMap() template.FuncMap {
 func (b *Builder) GetTemplate(name, text string) (*template.Template, error) {
 	tmpl, err := template.New(name).Delims("{{repl ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
 	if err != nil {
-		b.Logger.Log("msg", err)
+		if !templateNotDefinedRegexp.MatchString(err.Error()) {
+			b.Logger.Log("msg", err)
+		}
 		return nil, err
 	}
 	return tmpl, nil
@@ -154,9 +156,7 @@ func (b *Builder) RenderTemplate(name string, text string) (string, error) {
 	}
 	var contents bytes.Buffer
 	if err := tmpl.Execute(&contents, nil); err != nil {
-		if !templateNotDefinedRegexp.MatchString(err.Error()) {
-			b.Logger.Log("msg", err)
-		}
+		b.Logger.Log("msg", err)
 		return "", err
 	}
 	return contents.String(), nil
