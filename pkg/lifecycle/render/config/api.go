@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"context"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -46,8 +45,8 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 
 func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
 	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	dec := gob.NewDecoder(&buf)
+	enc := json.NewEncoder(&buf)
+	dec := json.NewDecoder(&buf)
 	err := enc.Encode(original)
 	if err != nil {
 		return nil, err
