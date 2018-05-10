@@ -9,12 +9,14 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 )
 
 type StepExecutor struct {
 	Logger    log.Logger
 	Renderer  *render.Renderer
 	Messenger message.Messenger
+	Daemon    *config.Daemon
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -32,5 +34,10 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		return errors.Wrap(err, "execute render step")
 	}
 
+	return nil
+}
+
+func (s *StepExecutor) End(ctx context.Context) error {
+	s.Daemon.AllStepsDone(ctx)
 	return nil
 }

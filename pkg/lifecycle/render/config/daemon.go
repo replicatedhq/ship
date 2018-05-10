@@ -34,9 +34,11 @@ type Daemon struct {
 	UI     cli.Ui
 
 	sync.Mutex
-	currentStep     *api.Step
-	currentStepName string
-	pastSteps       []api.Step
+	currentStep          *api.Step
+	currentStepName      string
+	currentStepConfirmed bool
+	allStepsDone         bool
+	pastSteps            []api.Step
 
 	startOnce sync.Once
 
@@ -59,7 +61,14 @@ func (d *Daemon) PushStep(ctx context.Context, stepName string, step api.Step) {
 	}
 	d.currentStepName = stepName
 	d.currentStep = &step
+	d.currentStepConfirmed = false
 	d.NotifyStepChanged(stepName)
+}
+
+func (d *Daemon) AllStepsDone(ctx context.Context) {
+	d.Lock()
+	defer d.Unlock()
+	d.allStepsDone = true
 }
 
 // "this is fine"
@@ -161,9 +170,22 @@ func (d *Daemon) getLoadingStep(c *gin.Context) {
 	})
 }
 
+func (d *Daemon) getDoneStep(c *gin.Context) {
+	c.JSON(200, map[string]interface{}{
+		"currentStep": map[string]interface{}{
+			"done": map[string]interface{}{},
+		},
+		"phase": "done",
+	})
+}
+
 func (d *Daemon) getCurrentStep(c *gin.Context) {
 	if d.currentStep == nil {
 		d.getLoadingStep(c)
+		return
+	}
+	if d.allStepsDone {
+		d.getDoneStep(c)
 		return
 	}
 
@@ -197,9 +219,23 @@ func (d *Daemon) postConfirmMessage(c *gin.Context) {
 		return
 	}
 
-	go func() {
-		d.MessageConfirmed <- request.StepName
-	}()
+	if d.allStepsDone {
+		c.JSON(400, map[string]interface{}{
+			"error": "no more steps",
+		})
+		return
+	}
+
+	debug.Log("event", "confirm.step", "step", d.currentStepName)
+
+	// Confirmation for each step will only be read once from the channel
+	if d.currentStepConfirmed {
+		c.String(200, "")
+		return
+	}
+
+	d.currentStepConfirmed = true
+	d.MessageConfirmed <- request.StepName
 
 	c.String(200, "")
 }
