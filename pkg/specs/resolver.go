@@ -14,12 +14,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	// AllowInlineSpecs enables the use of a local file instead of a properly-licensed customer ID
-	// we might set this to false in the prod build, or just refuse to manage state if studio is used, not sure
-	AllowInlineSpecs = true
-)
-
 // Selector selects a spec from the Vendor's releases and channels.
 // See pkg/cli/root.go for some more info on which are required and why.
 type Selector struct {
@@ -35,9 +29,11 @@ type Selector struct {
 
 // A Resolver resolves specs
 type Resolver struct {
-	Logger     log.Logger
-	StudioFile string
-	Client     *GraphQLClient
+	Logger            log.Logger
+	Client            *GraphQLClient
+	StudioFile        string
+	StudioChannelName string
+	StudioChannelIcon string
 }
 
 // ResolverFromViper builds a resolver from a Viper instance
@@ -47,9 +43,11 @@ func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
 		return nil, errors.Wrap(err, "get graphql client")
 	}
 	return &Resolver{
-		Logger:     logger.FromViper(v),
-		StudioFile: v.GetString("studio-file"),
-		Client:     graphql,
+		Logger:            logger.FromViper(v),
+		Client:            graphql,
+		StudioFile:        v.GetString("studio-file"),
+		StudioChannelName: v.GetString("studio-channel-name"),
+		StudioChannelIcon: v.GetString("studio-channel-icon"),
 	}, nil
 }
 
@@ -62,7 +60,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveSpecs"))
 
-	if r.StudioFile != "" && AllowInlineSpecs {
+	if r.StudioFile != "" {
 		release, err = r.resolveStudioRelease()
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
@@ -100,7 +98,11 @@ func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
 	}
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
-	return &ShipRelease{Spec: string(specYAML)}, nil
+	return &ShipRelease{
+		Spec:        string(specYAML),
+		ChannelName: r.StudioChannelName,
+		ChannelIcon: r.StudioChannelIcon,
+	}, nil
 }
 
 func (r *Resolver) resolveCloudRelease(customerID string) (*ShipRelease, error) {
