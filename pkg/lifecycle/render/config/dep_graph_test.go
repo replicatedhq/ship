@@ -108,7 +108,7 @@ func TestDepGraph(t *testing.T) {
 
 		t.Run(test.name+"+parse", func(t *testing.T) {
 			var graph depGraph
-			groups := buildTestConfigGroups(test.dependencies, "templateStringStart", true)
+			groups := buildTestConfigGroups(test.dependencies, "templateStringStart", "templateStringEnd", true)
 
 			err := graph.ParseConfigGroup(groups)
 			require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestDepGraph(t *testing.T) {
 	}
 }
 
-func buildTestConfigGroups(dependencies map[string][]string, prefix string, rotate bool) []libyaml.ConfigGroup {
+func buildTestConfigGroups(dependencies map[string][]string, prefix string, suffix string, rotate bool) []libyaml.ConfigGroup {
 	group := libyaml.ConfigGroup{}
 	group.Items = make([]*libyaml.ConfigItem, 0)
 	counter := 0
@@ -144,6 +144,7 @@ func buildTestConfigGroups(dependencies map[string][]string, prefix string, rota
 		for i, dep := range deps {
 			depString += fmt.Sprintf(templateFuncs[i%len(templateFuncs)], dep)
 		}
+		depString += suffix
 
 		if counter%2 == 0 {
 			newItem.Value = depString

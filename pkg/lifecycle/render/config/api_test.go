@@ -36,6 +36,7 @@ type configValuesTestCase struct {
 	input        map[string]interface{}
 	results      map[string]interface{}
 	prefix       string
+	suffix       string
 
 	name string
 }
@@ -136,8 +137,9 @@ func TestResolveConfigValuesMap(t *testing.T) {
 				"delta":   {"bravo", "charlie"},
 			},
 			input:   map[string]interface{}{"alpha": "abc"},
-			results: map[string]interface{}{"alpha": "abc", "bravo": "+abc", "charlie": "+abc", "delta": "++abc+abc"},
-			prefix:  "+",
+			results: map[string]interface{}{"alpha": "abc", "bravo": "(abc)", "charlie": "(abc)", "delta": "((abc)(abc))"},
+			prefix:  "(",
+			suffix:  ")",
 			name:    "basic_◇_shape",
 		},
 	}
@@ -147,7 +149,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			req := require.New(t)
 
 			//build a config to test
-			groups := buildTestConfigGroups(test.dependencies, test.prefix, false)
+			groups := buildTestConfigGroups(test.dependencies, test.prefix, test.suffix, false)
 
 			output, err := resolveConfigValuesMap(test.input, groups, log.NewNopLogger(), viper.New())
 			req.NoError(err)
