@@ -57,17 +57,13 @@ workflows:
   version: 2
   build_accept_deploy:
     jobs:
+      - test_yoonit
       - test:
-          filters:
-            tags:
-              only: /.*/
-      - test_yoonit:
           filters:
             tags:
               only: /.*/
       - deploy_unstable:
           requires:
-            # todo remove test, just use yoonit
             - test
             - test_yoonit
           filters:
@@ -76,7 +72,6 @@ workflows:
       - deploy:
           requires:
             - test
-            - test_yoonit
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
