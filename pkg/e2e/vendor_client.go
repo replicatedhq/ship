@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
 
@@ -61,9 +61,7 @@ mutation($channelId: ID!, $semver: String!, $spec: String!, $releaseNotes: Strin
 		semver: $semver
 		spec: $spec
 		releaseNotes: $releaseNotes
-) {
-	id
-  }
+)
 }`,
 		Variables: map[string]string{
 			"spec":         spec,

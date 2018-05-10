@@ -120,23 +120,34 @@ func (s *Ship) Execute(ctx context.Context) error {
 	}
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	release, err := s.Resolver.ResolveRelease(ctx, specs.Selector{
+	selector := specs.Selector{
 		CustomerID:     s.CustomerID,
 		ReleaseSemver:  s.ReleaseSemver,
 		ReleaseID:      s.ReleaseID,
 		ChannelID:      s.ChannelID,
 		InstallationID: s.InstallationID,
-	})
+	}
+	release, err := s.Resolver.ResolveRelease(ctx, selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
 
+	runResultCh := make(chan error)
 	go func() {
+		defer close(runResultCh)
 		err := s.Runner.Run(ctx, release)
 		if err != nil {
 			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
 		} else {
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
+		}
+		runResultCh <- err
+	}()
+
+	go func() {
+		err := <-runResultCh
+		if err == nil {
+			_ = s.Resolver.RegisterInstall(ctx, selector, release)
 		}
 	}()
 

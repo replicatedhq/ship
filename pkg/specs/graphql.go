@@ -91,6 +91,7 @@ type ShipRelease struct {
 // ToReleaseMeta linter
 func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 	return api.ReleaseMetadata{
+		ReleaseID:      r.ID,
 		ChannelID:      r.ChannelID,
 		ChannelName:    r.ChannelName,
 		ChannelIcon:    r.ChannelIcon,
@@ -170,4 +171,62 @@ func (c *GraphQLClient) GetRelease(customerID, installationID string) (*ShipRele
 	}
 
 	return &shipResponse.Data.ShipRelease, nil
+}
+
+func (c *GraphQLClient) RegisterInstall(customerID, installationID, channelID, releaseID string) error {
+	requestObj := GraphQLRequest{
+		Query: `
+mutation($channelId: String!, $releaseId: String!) {
+  shipRegisterInstall(
+    channelId: $channelId
+    releaseId: $releaseId
+  )
+}`,
+		Variables: map[string]string{
+			"channelId": channelID,
+			"releaseId": releaseID,
+		},
+	}
+
+	body, err := json.Marshal(requestObj)
+	if err != nil {
+		return errors.Wrap(err, "marshal request")
+	}
+
+	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
+	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", customerID, installationID)))
+
+	graphQLRequest, err := http.NewRequest(http.MethodPost, c.GQLServer.String(), bodyReader)
+
+	graphQLRequest.Header = map[string][]string{
+		"Authorization": {"Basic " + authString},
+		"Content-Type":  {"application/json"},
+	}
+
+	resp, err := c.Client.Do(graphQLRequest)
+	if err != nil {
+		return errors.Wrap(err, "send request")
+	}
+
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Wrap(err, "read body")
+	}
+
+	shipResponse := GraphQLResponse{}
+
+	if err := json.Unmarshal(responseBody, &shipResponse); err != nil {
+		return errors.Wrapf(err, "unmarshal response %s", responseBody)
+	}
+
+	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
+		var multiErr *multierror.Error
+		for _, err := range shipResponse.Errors {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
+
+		}
+		return multiErr.ErrorOrNil()
+	}
+
+	return nil
 }
