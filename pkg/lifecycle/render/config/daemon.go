@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-
 	"sync"
 	"time"
+
+	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -17,7 +17,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )

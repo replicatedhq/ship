@@ -59,19 +59,13 @@ func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error
 	return updatedValues, nil
 }
 
-// ResolveConfig will get all the config values specified in the spec, in JSON format
-func (r *APIConfigRenderer) GetConfigForLiveRender(
-	ctx context.Context,
-	release *api.Release,
-	liveValues map[string]interface{},
-) (map[string]interface{}, error) {
+//given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
+func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup, logger log.Logger, viper *viper.Viper) (map[string]interface{}, error) {
 	//make a deep copy of the live values map
 	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
 		return nil, err
 	}
-
-	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
 	staticCtx, err := NewStaticContext()
 	if err != nil {
@@ -79,8 +73,8 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 	}
 
 	configCtx, err := NewConfigContext(
-		r.Viper, r.Logger,
-		release.Spec.Config.V1,
+		viper, logger,
+		configGroups,
 		updatedValues)
 	if err != nil {
 		return nil, err
@@ -92,7 +86,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 	)
 
 	configItemsByName := make(map[string]*libyaml.ConfigItem)
-	for _, configGroup := range release.Spec.Config.V1 {
+	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
 			configItemsByName[configItem.Name] = configItem
 		}
@@ -100,7 +94,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 	//Build config values in order & add them to the template builder
 	var deps depGraph
-	deps.ParseConfigGroup(release.Spec.Config.V1)
+	deps.ParseConfigGroup(configGroups)
 	var headNodes []string
 
 	headNodes, err = deps.GetHeadNodes()
@@ -132,8 +126,8 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 		//recalculate builder with new values
 		newConfigCtx, err := NewConfigContext(
-			r.Viper, r.Logger,
-			release.Spec.Config.V1,
+			viper, logger,
+			configGroups,
 			updatedValues)
 		if err != nil {
 			return nil, err
@@ -150,10 +144,44 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		//dependencies could not be resolved for some reason
 		//return the empty config
 		//TODO: Better error messaging
+		return updatedValues, err
+	}
+
+	return updatedValues, nil
+}
+
+// ResolveConfig will get all the config values specified in the spec, in JSON format
+func (r *APIConfigRenderer) GetConfigForLiveRender(
+	ctx context.Context,
+	release *api.Release,
+	liveValues map[string]interface{},
+) (map[string]interface{}, error) {
+	resolvedConfig := make([]map[string]interface{}, 0, 0)
+
+	updatedValues, err := resolveConfigValuesMap(liveValues, release.Spec.Config.V1, r.Logger, r.Viper)
+	if err != nil {
 		fit := make(map[string]interface{})
 		fit["config"] = resolvedConfig
 		return fit, err
 	}
+
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return nil, err
+	}
+
+	newConfigCtx, err := NewConfigContext(
+		r.Viper, r.Logger,
+		release.Spec.Config.V1,
+		updatedValues)
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewBuilder(
+		staticCtx,
+		newConfigCtx,
+	)
 
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)

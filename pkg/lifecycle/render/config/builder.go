@@ -7,10 +7,15 @@ package config
 import (
 	"bytes"
 	"os"
+	"regexp"
 	"strconv"
 	"text/template"
 
 	"github.com/go-kit/kit/log"
+)
+
+var (
+	templateNotDefinedRegexp = regexp.MustCompile(`template.*not defined$`)
 )
 
 type Builder struct {
@@ -136,7 +141,9 @@ func (b *Builder) BuildFuncMap() template.FuncMap {
 func (b *Builder) GetTemplate(name, text string) (*template.Template, error) {
 	tmpl, err := template.New(name).Delims("{{repl ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
 	if err != nil {
-		b.Logger.Log("msg", err)
+		if !templateNotDefinedRegexp.MatchString(err.Error()) {
+			b.Logger.Log("msg", err)
+		}
 		return nil, err
 	}
 	return tmpl, nil
