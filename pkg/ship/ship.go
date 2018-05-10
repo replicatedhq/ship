@@ -124,13 +124,7 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	if s.CustomerID == "" && s.StudioFile == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
-		s.UI.Output("Missing paramter: customer-id")
-		id, err := s.UI.AskSecret("Please enter your customer ID or license key: ")
-		if err != nil {
-			return errors.Wrap(err, "resolve customer ID")
-		}
-		viper.Set("customer-id", id)
-		s.CustomerID = id
+		return errors.New("Missing parameter: customer-id. Please provide your license key or customer ID.")
 	}
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
