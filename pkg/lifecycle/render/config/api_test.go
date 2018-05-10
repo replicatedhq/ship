@@ -20,6 +20,7 @@ import (
 
 type apiTestcase struct {
 	Name        string
+	Error       bool
 	Config      []libyaml.ConfigGroup
 	ViperConfig map[string]interface{} `yaml:"viper_config"`
 	Responses   apiExpectUIAsk         `yaml:"responses"`
@@ -57,13 +58,17 @@ func TestAPIResolver(t *testing.T) {
 					test.Input = make(map[string]interface{})
 				}
 				resolvedConfig, err := resolver.GetConfigForLiveRender(ctx, release, test.Input)
-				req.NoError(err)
+				if test.Error {
+					req.True(err != nil, "Expected this api call to return an error")
+				} else {
+					req.NoError(err)
+				}
 
-				marshalled, err := json.Marshal(resolvedConfig)
+				marshalled, err := json.MarshalIndent(resolvedConfig, "", "    ")
 				req.NoError(err)
 
 				areSame := areSameJSON(t, marshalled, []byte(test.Responses.JSON))
-				req.True(areSame, "%s should be %s", marshalled, test.Responses.JSON)
+				req.True(areSame, "%s\nand should be \n%s", marshalled, test.Responses.JSON)
 			}()
 		})
 	}

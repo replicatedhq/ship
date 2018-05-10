@@ -2,7 +2,7 @@
 ## default. The test will toggle the first item on and confirm the second is
 ## now visible
 
-- name: config items referencing config items
+- name: a when that defaults to false with select_one
   input: {}
   config:
     - name: external_service_enable

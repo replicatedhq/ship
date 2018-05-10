@@ -1,0 +1,32 @@
+## this has three options, charlie depends on bravo depends on alpha depends on charlie
+## Program should not crash
+
+- name: A circular reference
+  error: true
+  config:
+    - name: alpha_group
+      description: Alpha Group
+      items:
+        - name: alpha
+          title: Alpha Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "charlie"}}'
+
+        - name: bravo
+          title: Bravo Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "alpha"}}'
+
+        - name: charlie
+          title: Charlie Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "bravo"}}'
+
+  responses:
+    json: |
+      {
+          "config": []
+      }

@@ -1,7 +1,9 @@
 package config
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -20,12 +22,55 @@ type APIConfigRenderer struct {
 	Viper  *viper.Viper
 }
 
+func isReadOnly(item *libyaml.ConfigItem) bool {
+	if item.ReadOnly || item.Hidden {
+		return true
+	}
+
+	//"" is an editable type because the default type is "text"
+	var EditableItemTypes = map[string]struct{}{
+		"":            {},
+		"bool":        {},
+		"file":        {},
+		"password":    {},
+		"select":      {},
+		"select_many": {},
+		"select_one":  {},
+		"text":        {},
+		"textarea":    {},
+	}
+
+	_, editable := EditableItemTypes[item.Type]
+	return !editable
+}
+
+func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	dec := gob.NewDecoder(&buf)
+	err := enc.Encode(original)
+	if err != nil {
+		return nil, err
+	}
+	var updatedValues map[string]interface{}
+	err = dec.Decode(&updatedValues)
+	if err != nil {
+		return nil, err
+	}
+	return updatedValues, nil
+}
+
 // ResolveConfig will get all the config values specified in the spec, in JSON format
 func (r *APIConfigRenderer) GetConfigForLiveRender(
 	ctx context.Context,
 	release *api.Release,
-	savedStateMergedWithLiveValues map[string]interface{},
+	liveValues map[string]interface{},
 ) (map[string]interface{}, error) {
+	//make a deep copy of the live values map
+	updatedValues, err := deepCopyMap(liveValues)
+	if err != nil {
+		return nil, err
+	}
 
 	resolvedConfig := make([]map[string]interface{}, 0, 0)
 
@@ -36,7 +81,8 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 	configCtx, err := NewConfigContext(
 		r.Viper, r.Logger,
-		release.Spec.Config.V1, savedStateMergedWithLiveValues)
+		release.Spec.Config.V1,
+		updatedValues)
 	if err != nil {
 		return nil, err
 	}
@@ -46,25 +92,79 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		configCtx,
 	)
 
-	unresolvedConfigItems := make([]*libyaml.ConfigItem, 0, 0)
+	configItemsByName := make(map[string]*libyaml.ConfigItem)
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			unresolvedConfigItems = append(unresolvedConfigItems, configItem)
+			configItemsByName[configItem.Name] = configItem
 		}
+	}
+
+	//Build config values in order & add them to the template builder
+	var deps depGraph
+	deps.ParseConfigGroup(release.Spec.Config.V1)
+	var headNodes []string
+
+	headNodes, err = deps.GetHeadNodes()
+
+	for (len(headNodes) > 0) && (err == nil) {
+		for _, node := range headNodes {
+			deps.ResolveDep(node)
+
+			configItem := configItemsByName[node]
+
+			if !isReadOnly(configItem) {
+				//if item is editable and the live state is valid, skip the rest of this
+				val, ok := updatedValues[node]
+				if ok && val != "" {
+					continue
+				}
+			}
+
+			// build "default" and "value"
+			builtDefault, _ := builder.String(configItem.Default)
+			builtValue, _ := builder.String(configItem.Value)
+
+			if builtValue != "" {
+				updatedValues[node] = builtValue
+			} else {
+				updatedValues[node] = builtDefault
+			}
+		}
+
+		//recalculate builder with new values
+		newConfigCtx, err := NewConfigContext(
+			r.Viper, r.Logger,
+			release.Spec.Config.V1,
+			updatedValues)
+		if err != nil {
+			return nil, err
+		}
+
+		builder = NewBuilder(
+			staticCtx,
+			newConfigCtx,
+		)
+
+		headNodes, err = deps.GetHeadNodes()
+	}
+	if err != nil {
+		//dependencies could not be resolved for some reason
+		//return the empty config
+		//TODO: Better error messaging
+		fit := make(map[string]interface{})
+		fit["config"] = resolvedConfig
+		return fit, err
 	}
 
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
-			for k, liveValue := range savedStateMergedWithLiveValues {
-				if k == configItem.Name {
-					// (implementation logic copied from replicated 1):
-					// this limitation ensures that any config item with a
-					// "default" cannot be ""
-					if configItem.Default != "" && configItem.Value == "" {
-						continue
+			if !isReadOnly(configItem) {
+				if val, ok := liveValues[configItem.Name]; ok {
+					newval := fmt.Sprintf("%v", val)
+					if newval != "" {
+						configItem.Value = newval
 					}
-					configItem.Value = fmt.Sprintf("%v", liveValue)
 				}
 			}
 
