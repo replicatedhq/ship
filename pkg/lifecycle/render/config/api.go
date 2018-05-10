@@ -27,12 +27,37 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 		return true
 	}
 
+	//"" is an editable type because the default type is "text"
 	var EditableItemTypes = map[string]struct{}{
-		"select": {}, "text": {}, "textarea": {}, "password": {}, "file": {}, "bool": {}, "select_many": {}, "select_one": {}, "": {},
+		"":            {},
+		"bool":        {},
+		"file":        {},
+		"password":    {},
+		"select":      {},
+		"select_many": {},
+		"select_one":  {},
+		"text":        {},
+		"textarea":    {},
 	}
 
 	_, editable := EditableItemTypes[item.Type]
 	return !editable
+}
+
+func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	dec := gob.NewDecoder(&buf)
+	err := enc.Encode(original)
+	if err != nil {
+		return nil, err
+	}
+	var updatedValues map[string]interface{}
+	err = dec.Decode(&updatedValues)
+	if err != nil {
+		return nil, err
+	}
+	return updatedValues, nil
 }
 
 // ResolveConfig will get all the config values specified in the spec, in JSON format
@@ -42,15 +67,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 	liveValues map[string]interface{},
 ) (map[string]interface{}, error) {
 	//make a deep copy of the live values map
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	dec := gob.NewDecoder(&buf)
-	err := enc.Encode(liveValues)
-	if err != nil {
-		return nil, err
-	}
-	var updatedValues map[string]interface{}
-	err = dec.Decode(&updatedValues)
+	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
 		return nil, err
 	}

@@ -17,11 +17,7 @@ type depGraph struct {
 
 //these config functions are used to add their dependencies to the depGraph
 func (d *depGraph) funcMap(parent string) template.FuncMap {
-	addDepFunc := func(dep string) string {
-		d.AddDep(parent, dep)
-		return dep
-	}
-	addDepFunc2Vars := func(dep, irrelevant string) string {
+	addDepFunc := func(dep string, _ ...string) string {
 		d.AddDep(parent, dep)
 		return dep
 	}
@@ -30,8 +26,8 @@ func (d *depGraph) funcMap(parent string) template.FuncMap {
 		"ConfigOption":          addDepFunc,
 		"ConfigOptionIndex":     addDepFunc,
 		"ConfigOptionData":      addDepFunc,
-		"ConfigOptionEquals":    addDepFunc2Vars,
-		"ConfigOptionNotEquals": addDepFunc2Vars,
+		"ConfigOptionEquals":    addDepFunc,
+		"ConfigOptionNotEquals": addDepFunc,
 	}
 }
 
