@@ -74,6 +74,7 @@ func ExecutorFromViper(v *viper.Viper) *StepExecutor {
 	}
 }
 func (e *StepExecutor) WithDaemon(d *config.Daemon) *StepExecutor {
+	e.Daemon = d
 	e.Renderer = e.Renderer.WithDaemon(d)
 	e.Messenger = e.Messenger.WithDaemon(d)
 	return e
@@ -91,5 +92,5 @@ func (r *Runner) Run(ctx context.Context, release *api.Release) error {
 		}
 	}
 
-	return nil
+	return r.Executor.End(ctx)
 }

@@ -139,26 +139,20 @@ func (s *Ship) Execute(ctx context.Context) error {
 		return errors.Wrap(err, "resolve specs")
 	}
 
-	errChan := make(chan error)
 	go func() {
-		err = s.Runner.Run(ctx, release)
-		errChan <- errors.Wrap(err, "run lifecycle")
-
+		err := s.Runner.Run(ctx, release)
+		if err != nil {
+			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
+		} else {
+			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
+		}
 	}()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case sig := <-signalChan:
-		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
-		return nil
-	case err := <-errChan:
-		if err != nil {
-			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
-		}
-		level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
-		return err
-	}
+	sig := <-signalChan
+	level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
+	return nil
 
 	// todo send shipRegisterInstall mutation to pg.
 
