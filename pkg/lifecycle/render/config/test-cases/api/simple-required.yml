@@ -1,0 +1,80 @@
+- name: one group required
+  input: {}
+  config:
+    - name: alpha_group
+      description: Alpha Group
+      items:
+      - name: alpha_login
+        title: Alpha Login
+        type: text
+        required: true
+      - name: alpha_password
+        title: Alpha Password
+        type: password
+        value: 'abc123'
+        required: true
+
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "description": "Alpha Group",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "alpha_login",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": true,
+                          "test_proc": null,
+                          "title": "Alpha Login",
+                          "type": "text",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "alpha_password",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": true,
+                          "test_proc": null,
+                          "title": "Alpha Password",
+                          "type": "password",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "alpha_group",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]
+      }
