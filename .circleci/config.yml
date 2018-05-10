@@ -57,8 +57,14 @@ workflows:
   version: 2
   build_accept_deploy:
     jobs:
-      - test
-      - test_yoonit
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - test_yoonit:
+          filters:
+            tags:
+              only: /.*/
       - deploy_unstable:
           requires:
             # todo remove test, just use yoonit
