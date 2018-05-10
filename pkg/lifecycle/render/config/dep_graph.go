@@ -2,7 +2,7 @@ package config
 
 import (
 	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"text/template"
 
@@ -77,8 +77,8 @@ func (d *depGraph) PrintData() string {
 // returns a deep copy of the dep graph
 func (d *depGraph) Copy() (depGraph, error) {
 	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	dec := gob.NewDecoder(&buf)
+	enc := json.NewEncoder(&buf)
+	dec := json.NewDecoder(&buf)
 	err := enc.Encode(d)
 	if err != nil {
 		return depGraph{}, err
