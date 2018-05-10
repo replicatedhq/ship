@@ -25,6 +25,7 @@ jobs:
       - run: git remote -v; echo $CIRCLE_REPOSITORY_URL
       # requires YOONIT_AUTH set to a valid token
       - run: /usr/local/bin/yoonit wait
+
   deploy_unstable:
     docker:
       - image: circleci/golang:1.9
@@ -38,6 +39,19 @@ jobs:
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: docker push replicated/ship:unstable
+
+  deploy:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/replicatedcom/ship
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker pull alpine:latest # make sure it's fresh
+      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+      - deploy:
+          command: curl -sL https://git.io/goreleaser | bash
+      # todo drop a release-api message to bump a version in the DB
 
 workflows:
   version: 2

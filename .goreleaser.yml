@@ -1,0 +1,42 @@
+project_name: ship
+release:
+  github:
+    owner: replicatedcom
+    name: ship
+builds:
+- goos:
+  - linux
+  goarch:
+  - amd64
+  - "386"
+  main: cmd/ship/main.go
+  ldflags: -s -w
+    -X github.com/replicatedcom/ship/pkg/version.version={{.Version}}
+    -X github.com/replicatedcom/ship/pkg/version.gitSHA={{.Commit}}
+    -X github.com/replicatedcom/ship/pkg/version.buildTime={{.Date}}
+  binary: ship
+  hooks: {}
+archive:
+  format: tar.gz
+  name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}'
+  files:
+  - licence*
+  - LICENCE*
+  - license*
+  - LICENSE*
+  - readme*
+  - README*
+  - changelog*
+  - CHANGELOG*
+dockers:
+  - image: replicated/ship
+    dockerfile: deploy/Dockerfile
+    tag_templates:
+      - "alpha"
+      - "latest"
+      - "{{ .Major }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+      - "{{ .Commit }}"
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
