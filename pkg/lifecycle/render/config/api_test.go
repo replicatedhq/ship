@@ -31,6 +31,15 @@ type apiExpectUIAsk struct {
 	JSON string `yaml:"json"`
 }
 
+type configValuesTestCase struct {
+	dependencies map[string][]string
+	input        map[string]interface{}
+	results      map[string]interface{}
+	prefix       string
+
+	name string
+}
+
 func TestAPIResolver(t *testing.T) {
 	ctx := context.Background()
 
@@ -70,6 +79,80 @@ func TestAPIResolver(t *testing.T) {
 				areSame := areSameJSON(t, marshalled, []byte(test.Responses.JSON))
 				req.True(areSame, "%s\nand should be \n%s", marshalled, test.Responses.JSON)
 			}()
+		})
+	}
+}
+
+func TestResolveConfigValuesMap(t *testing.T) {
+	tests := []configValuesTestCase{
+		{
+			dependencies: map[string][]string{
+				"alpha": {},
+				"bravo": {"alpha"},
+			},
+			input:   map[string]interface{}{"alpha": "abc"},
+			results: map[string]interface{}{"alpha": "abc", "bravo": "abc"},
+			name:    "basic_dependency",
+		},
+		{
+			dependencies: map[string][]string{
+				"alpha":   {},
+				"bravo":   {"alpha"},
+				"charlie": {"bravo"},
+			},
+			input:   map[string]interface{}{"alpha": "abc"},
+			results: map[string]interface{}{"alpha": "abc", "bravo": "+abc", "charlie": "++abc"},
+			prefix:  "+",
+			name:    "basic_chain",
+		},
+		{
+			dependencies: map[string][]string{
+				"alpha":   {},
+				"bravo":   {},
+				"charlie": {"alpha", "bravo"},
+			},
+			input:   map[string]interface{}{"alpha": "abc", "bravo": "xyz"},
+			results: map[string]interface{}{"alpha": "abc", "bravo": "xyz", "charlie": "+abcxyz"},
+			prefix:  "+",
+			name:    "basic_2deps",
+		},
+		{
+			dependencies: map[string][]string{
+				"alpha":   {},
+				"bravo":   {},
+				"charlie": {"alpha", "bravo"},
+				"delta":   {"charlie"},
+			},
+			input:   map[string]interface{}{"alpha": "abc", "bravo": "xyz"},
+			results: map[string]interface{}{"alpha": "abc", "bravo": "xyz", "charlie": "+abcxyz", "delta": "++abcxyz"},
+			prefix:  "+",
+			name:    "basic_Y_shape",
+		},
+		{
+			dependencies: map[string][]string{
+				"alpha":   {},
+				"bravo":   {"alpha"},
+				"charlie": {"alpha"},
+				"delta":   {"bravo", "charlie"},
+			},
+			input:   map[string]interface{}{"alpha": "abc"},
+			results: map[string]interface{}{"alpha": "abc", "bravo": "+abc", "charlie": "+abc", "delta": "++abc+abc"},
+			prefix:  "+",
+			name:    "basic_◇_shape",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+
+			//build a config to test
+			groups := buildTestConfigGroups(test.dependencies, test.prefix, false)
+
+			output, err := resolveConfigValuesMap(test.input, groups, log.NewNopLogger(), viper.New())
+			req.NoError(err)
+
+			req.Equal(test.results, output)
 		})
 	}
 }

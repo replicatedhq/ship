@@ -1,9 +1,8 @@
 package config
 
 import (
-	"testing"
-
 	"fmt"
+	"testing"
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/stretchr/testify/require"
@@ -109,7 +108,7 @@ func TestDepGraph(t *testing.T) {
 
 		t.Run(test.name+"+parse", func(t *testing.T) {
 			var graph depGraph
-			groups := buildTestConfigGroups(test.dependencies)
+			groups := buildTestConfigGroups(test.dependencies, "templateStringStart", true)
 
 			err := graph.ParseConfigGroup(groups)
 			require.NoError(t, err)
@@ -119,7 +118,7 @@ func TestDepGraph(t *testing.T) {
 	}
 }
 
-func buildTestConfigGroups(dependencies map[string][]string) []libyaml.ConfigGroup {
+func buildTestConfigGroups(dependencies map[string][]string, prefix string, rotate bool) []libyaml.ConfigGroup {
 	group := libyaml.ConfigGroup{}
 	group.Items = make([]*libyaml.ConfigItem, 0)
 	counter := 0
@@ -132,9 +131,16 @@ func buildTestConfigGroups(dependencies map[string][]string) []libyaml.ConfigGro
 		"{{repl ConfigOptionNotEquals \"%s\" \"xyz\" }}",
 	}
 
+	if !rotate {
+		//use only ConfigOption, not all 5
+		templateFuncs = []string{
+			"{{repl ConfigOption \"%s\" }}",
+		}
+	}
+
 	for source, deps := range dependencies {
 		newItem := libyaml.ConfigItem{Type: "text", Name: source}
-		depString := "templateStringStart"
+		depString := prefix
 		for i, dep := range deps {
 			depString += fmt.Sprintf(templateFuncs[i%len(templateFuncs)], dep)
 		}

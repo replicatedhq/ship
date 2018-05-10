@@ -1,0 +1,174 @@
+##this has 5 options, bravo depends on alpha, charlie depends on bravo, delta depends on bravo AND charlie, and echo depends on delta
+##values should be appended properly
+
+- name: Refrencing multiple template items at once
+  config:
+    - name: alpha_group
+      description: Alpha Group
+      items:
+        - name: alpha
+          title: Alpha Value
+          type: text
+          readonly: true
+          default: "abc"
+
+        - name: bravo
+          type: text
+          hidden: true
+          readonly: true
+          value: 'bravo: {{repl ConfigOption "alpha"}}'
+
+        - name: charlie
+          title: Charlie Value
+          type: text
+          readonly: true
+          value: 'charlie: {{repl ConfigOption "bravo"}}'
+
+        - name: delta
+          title: Delta Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "bravo"}} ++ {{repl ConfigOption "charlie"}}'
+
+        - name: echo
+          title: Echo Value
+          type: text
+          readonly: true
+          value: '{{repl ConfigOption "delta"}}'
+
+  responses:
+    json: |
+      {
+          "config": [
+              {
+                  "description": "Alpha Group",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "abc",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "alpha",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Alpha Value",
+                          "type": "text",
+                          "value": "",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "bravo",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "",
+                          "type": "text",
+                          "value": "bravo: abc",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "charlie",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Charlie Value",
+                          "type": "text",
+                          "value": "charlie: bravo: abc",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "delta",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Delta Value",
+                          "type": "text",
+                          "value": "bravo: abc ++ charlie: bravo: abc",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "echo",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "Echo Value",
+                          "type": "text",
+                          "value": "bravo: abc ++ charlie: bravo: abc",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "alpha_group",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]
+      }

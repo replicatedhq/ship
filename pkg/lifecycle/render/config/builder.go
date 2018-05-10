@@ -7,10 +7,15 @@ package config
 import (
 	"bytes"
 	"os"
+	"regexp"
 	"strconv"
 	"text/template"
 
 	"github.com/go-kit/kit/log"
+)
+
+var (
+	templateNotDefinedRegexp = regexp.MustCompile(`template.*not defined$`)
 )
 
 type Builder struct {
@@ -149,7 +154,9 @@ func (b *Builder) RenderTemplate(name string, text string) (string, error) {
 	}
 	var contents bytes.Buffer
 	if err := tmpl.Execute(&contents, nil); err != nil {
-		b.Logger.Log("msg", err)
+		if !templateNotDefinedRegexp.MatchString(err.Error()) {
+			b.Logger.Log("msg", err)
+		}
 		return "", err
 	}
 	return contents.String(), nil
