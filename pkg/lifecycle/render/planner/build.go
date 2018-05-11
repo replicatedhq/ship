@@ -125,6 +125,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				Filename:  asset.Dest,
 				Username:  meta.CustomerID,
 				Password:  meta.RegistrySecret,
+				Logger:    p.Logger,
 			}
 
 			ch := docker.SaveImage(ctx, saveOpts)
