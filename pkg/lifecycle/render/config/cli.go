@@ -23,7 +23,7 @@ type CLIResolver struct {
 	Viper  *viper.Viper
 }
 
-func (r *CLIResolver) WithDaemon(_ *Daemon) Resolver {
+func (r *CLIResolver) WithDaemon(_ Daemon) Resolver {
 	return r
 }
 

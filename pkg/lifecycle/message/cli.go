@@ -26,7 +26,7 @@ type CLIMessenger struct {
 	Viper  *viper.Viper
 }
 
-func (m *CLIMessenger) WithDaemon(_ *config.Daemon) Messenger {
+func (m *CLIMessenger) WithDaemon(_ config.Daemon) Messenger {
 	return m
 }
 

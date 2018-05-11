@@ -13,7 +13,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/planner"
-	"github.com/replicatedcom/ship/pkg/test-mocks/config"
+	mockconfig "github.com/replicatedcom/ship/pkg/test-mocks/config"
 	mockplanner "github.com/replicatedcom/ship/pkg/test-mocks/planner"
 	"github.com/replicatedcom/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
@@ -33,10 +33,6 @@ type testcase struct {
 func TestRender(t *testing.T) {
 	ctx := context.Background()
 
-	renderer := &Renderer{
-		Logger: log.NewNopLogger(),
-	}
-
 	tests := loadTestCases(t, filepath.Join("test-cases", "render-inline.yaml"))
 
 	for _, test := range tests {
@@ -45,10 +41,13 @@ func TestRender(t *testing.T) {
 
 			mockUI := ui.NewMockUi(mc)
 			p := mockplanner.NewMockPlanner(mc)
-			configResolver := config.NewMockResolver(mc)
+			configResolver := mockconfig.NewMockResolver(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
+			mockDaemon := mockconfig.NewMockDaemon(mc)
 
-			release := &api.Release{Spec: test.Spec}
+			renderer := &Renderer{
+				Logger: log.NewNopLogger(),
+			}
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
@@ -56,6 +55,20 @@ func TestRender(t *testing.T) {
 			renderer.StateManager = &state.StateManager{
 				Logger: renderer.Logger,
 			}
+
+			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressResolve).After(prog)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
+			mockDaemon.EXPECT().ClearProgress().After(prog)
+
+			p.EXPECT().WithDaemon(mockDaemon).Return(p)
+			configResolver.EXPECT().WithDaemon(mockDaemon).Return(configResolver)
+
+			renderer = renderer.WithDaemon(mockDaemon)
+
+			release := &api.Release{Spec: test.Spec}
 
 			func() {
 				defer mc.Finish()

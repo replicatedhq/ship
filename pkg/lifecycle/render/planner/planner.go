@@ -12,6 +12,8 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 )
 
 // A Plan is a list of PlanSteps to execute
@@ -37,6 +39,7 @@ type Planner interface {
 
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
+	WithDaemon(d config.Daemon) Planner
 }
 
 // CLIPlanner is the default Planner
@@ -45,6 +48,7 @@ type CLIPlanner struct {
 	Fs     afero.Afero
 	UI     cli.Ui
 	Viper  *viper.Viper
+	Daemon config.Daemon
 }
 
 func FromViper(v *viper.Viper) Planner {
@@ -55,5 +59,9 @@ func FromViper(v *viper.Viper) Planner {
 		UI:     ui.FromViper(v),
 		Viper:  v,
 	}
+}
 
+func (p *CLIPlanner) WithDaemon(d config.Daemon) Planner {
+	p.Daemon = d
+	return p
 }
