@@ -17,6 +17,7 @@ type Image struct {
 
 // ReleaseMetadata
 type ReleaseMetadata struct {
+	ReleaseID      string  `json:"releaseId" yaml:"releaseId" hcl:"releaseId" meta:"release-id"`
 	CustomerID     string  `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
 	ChannelID      string  `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
 	ChannelName    string  `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`

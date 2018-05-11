@@ -58,7 +58,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 	var err error
 	var release *ShipRelease
 
-	debug := level.Debug(log.With(r.Logger, "method", "ResolveSpecs"))
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveRelease"))
 
 	if r.StudioFile != "" {
 		release, err = r.resolveStudioRelease()
@@ -115,4 +115,23 @@ func (r *Resolver) resolveCloudRelease(customerID string) (*ShipRelease, error) 
 		return nil, err
 	}
 	return release, err
+}
+
+func (r *Resolver) RegisterInstall(ctx context.Context, selector Selector, release *api.Release) error {
+	if r.StudioFile != "" {
+		return nil
+	}
+
+	debug := level.Debug(log.With(r.Logger, "method", "RegisterRelease"))
+
+	debug.Log("phase", "register", "with", "gql", "addr", r.Client.GQLServer.String())
+
+	err := r.Client.RegisterInstall(selector.CustomerID, "", release.Metadata.ChannelID, release.Metadata.ReleaseID)
+	if err != nil {
+		return err
+	}
+
+	debug.Log("phase", "register", "status", "complete")
+
+	return nil
 }
