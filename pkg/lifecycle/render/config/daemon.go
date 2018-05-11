@@ -36,6 +36,7 @@ type Daemon struct {
 	currentStep          *api.Step
 	currentStepName      string
 	currentStepConfirmed bool
+	stepProgress         *Progress
 	allStepsDone         bool
 	pastSteps            []api.Step
 
@@ -151,6 +152,18 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 }
 
+func (d *Daemon) SetProgress(p Progress) {
+	d.Lock()
+	defer d.Unlock()
+	d.stepProgress = &p
+}
+
+func (d *Daemon) ClearProgress() {
+	d.Lock()
+	defer d.Unlock()
+	d.stepProgress = nil
+}
+
 func (d *Daemon) getChannel(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(200, map[string]interface{}{
@@ -189,10 +202,15 @@ func (d *Daemon) getCurrentStep(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]interface{}{
+	result := map[string]interface{}{
 		"currentStep": d.currentStep,
 		"phase":       d.currentStepName,
-	})
+	}
+	if d.stepProgress != nil {
+		result["progress"] = d.stepProgress
+	}
+
+	c.JSON(200, result)
 }
 
 func (d *Daemon) postConfirmMessage(c *gin.Context) {

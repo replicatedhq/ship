@@ -29,6 +29,7 @@ type Renderer struct {
 	StateManager   *state.StateManager
 	Fs             afero.Afero
 	UI             cli.Ui
+	Daemon         *config.Daemon
 }
 
 func FromViper(v *viper.Viper) *Renderer {
@@ -43,35 +44,44 @@ func FromViper(v *viper.Viper) *Renderer {
 }
 
 func (r *Renderer) WithDaemon(d *config.Daemon) *Renderer {
+	r.Daemon = d
 	r.ConfigResolver = r.ConfigResolver.WithDaemon(d)
+	r.Planner = r.Planner.WithDaemon(d)
 	return r
 }
 
 // Execute renders the assets and config
 func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
+	defer r.Daemon.ClearProgress()
+
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
 
+	r.Daemon.SetProgress(config.StringProgress("render", "load"))
 	previousTemplateContext, err := r.StateManager.TryLoad()
 	if err != nil {
 		return err
 	}
 
+	r.Daemon.SetProgress(config.StringProgress("render", "resolve"))
 	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousTemplateContext)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
 	debug.Log("event", "render.plan")
+	r.Daemon.SetProgress(config.StringProgress("render", "build"))
 	pln := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 
 	debug.Log("event", "render.plan.skip")
 
+	r.Daemon.SetProgress(config.StringProgress("render", "execute"))
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")
 	}
 
+	r.Daemon.SetProgress(config.StringProgress("render", "commit"))
 	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
 		return err
 	}

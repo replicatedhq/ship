@@ -16,11 +16,24 @@ import (
 	"github.com/replicatedhq/libyaml"
 )
 
+type buildProgress struct {
+	StepNumber int `json:"step_number"`
+	TotalSteps int `json:"total_steps"`
+}
+
 // Build builds a plan in memory from assets+resolved config
 func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
+	defer p.Daemon.ClearProgress()
+
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 	var plan Plan
-	for _, asset := range assets {
+	for i, asset := range assets {
+		progress := buildProgress{
+			StepNumber: i,
+			TotalSteps: len(assets),
+		}
+		p.Daemon.SetProgress(config.JSONProgress("build", progress))
+
 		if asset.Inline != nil {
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
 			plan = append(plan, p.inlineStep(asset.Inline, configGroups, meta, templateContext))
@@ -114,9 +127,29 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				Password:  meta.RegistrySecret,
 			}
 
-			if err := docker.SaveImage(ctx, p.Logger, saveOpts); err != nil {
-				debug.Log("event", "execute.fail", "err", err)
-				return errors.Wrapf(err, "Write docker asset to %s", asset.Dest)
+			ch := docker.SaveImage(ctx, saveOpts)
+
+			var saveError error
+			for msg := range ch {
+				if msg == nil {
+					continue
+				}
+				switch v := msg.(type) {
+				case error:
+					// continue reading on error to ensure channel is not blocked
+					saveError = v
+				case docker.DockerProgress:
+					p.Daemon.SetProgress(config.JSONProgress("docker", v))
+				case string:
+					p.Daemon.SetProgress(config.StringProgress("docker", v))
+				default:
+					debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
+				}
+			}
+
+			if saveError != nil {
+				debug.Log("event", "execute.fail", "err", saveError)
+				return errors.Wrapf(saveError, "Write docker asset to %s", asset.Dest)
 			}
 
 			return nil

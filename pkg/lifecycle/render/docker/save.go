@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/go-kit/kit/log"
 )
 
 type SaveOpts struct {
@@ -23,7 +22,18 @@ type SaveOpts struct {
 	Password  string
 }
 
-func SaveImage(ctx context.Context, logger log.Logger, saveOpts SaveOpts) error {
+func SaveImage(ctx context.Context, saveOpts SaveOpts) chan interface{} {
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		if err := saveImage(ctx, saveOpts, ch); err != nil {
+			ch <- err
+		}
+	}()
+	return ch
+}
+
+func saveImage(ctx context.Context, saveOpts SaveOpts, progressCh chan interface{}) error {
 	authOpts := types.AuthConfig{}
 	if saveOpts.IsPrivate {
 		authOpts.Username = saveOpts.Username
@@ -47,7 +57,7 @@ func SaveImage(ctx context.Context, logger log.Logger, saveOpts SaveOpts) error 
 	if err != nil {
 		return errors.Wrapf(err, "pull image %s", saveOpts.PullUrl)
 	}
-	io.Copy(os.Stdout, progressReader)
+	copyDockerProgress(progressReader, progressCh)
 
 	if saveOpts.PullUrl != saveOpts.SaveUrl {
 		err := cli.ImageTag(ctx, saveOpts.PullUrl, saveOpts.SaveUrl)
