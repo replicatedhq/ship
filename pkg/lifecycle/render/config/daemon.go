@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+
+	"github.com/replicatedhq/libyaml"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -293,8 +293,6 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			})
 			return
 		}
-
-		// ItemValue is used as an unsaved (pending) value (copied from replicated appliance)
 
 		type Request struct {
 			ItemValues []ConfigOption `json:"item_values"`
