@@ -29,7 +29,11 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 
 	daemonExitedChan := m.Daemon.EnsureStarted(ctx, release)
 
-	m.Daemon.PushStep(ctx, "message", api.Step{Message: step})
+	m.Daemon.PushStep(ctx, "message", api.Step{
+		Message: &api.Message{
+			Contents: step.Contents,
+			Level:    step.Level,
+		}})
 	debug.Log("event", "step.pushed")
 	return m.awaitMessageConfirmed(ctx, daemonExitedChan)
 }
@@ -71,7 +75,7 @@ func (m *DaemonMessenger) funcMap() template.FuncMap {
 	return map[string]interface{}{
 		"config":       configFunc,
 		"ConfigOption": configFunc,
-		"context": func(name string) interface{} {
+		"Installation": func(name string) interface{} {
 			switch name {
 			case "state_file_path":
 				return state.Path
