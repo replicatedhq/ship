@@ -27,6 +27,9 @@ func (d *DaemonResolver) ResolveConfig(
 	debug := level.Debug(log.With(d.Logger, "struct", "daemonresolver", "method", "resolveConfig"))
 	if len(release.Spec.Config.V1) == 0 {
 		debug.Log("event", "config.empty")
+		if context == nil {
+			return make(map[string]interface{}), nil
+		}
 		return context, nil
 	}
 

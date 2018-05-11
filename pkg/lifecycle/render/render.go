@@ -84,6 +84,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	debug.Log("event", "render.plan.skip")
 
 	r.Daemon.SetProgress(ProgressExecute)
+	r.Daemon.SetStepName(ctx, config.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")
