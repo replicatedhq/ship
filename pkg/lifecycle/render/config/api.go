@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -222,7 +221,7 @@ func (r *APIConfigRenderer) ValidateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
 ) (interface{}, error) {
 	// FILL ME IN
-	return nil, errors.New("NOT IMPLEMENTED")
+	return nil, nil
 }
 
 func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
