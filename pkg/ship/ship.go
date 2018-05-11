@@ -2,10 +2,8 @@ package ship
 
 import (
 	"context"
-
 	"fmt"
 	"os"
-
 	"os/signal"
 	"syscall"
 
