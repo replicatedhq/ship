@@ -2,34 +2,16 @@
 ---
 assets:
   v1:
-  - github:
-      repo: github.com/replicatedhq/superbigtool-k8s
-      ref: 8fcaebe55af67fe6789fa678faaa76fa867fbc
-      path: '**/*.yml'
-      dest: ./k8s/
-      private: true
-  - github:
-      repo: github.com/replicatedhq/superbigtool-enterprise
-      ref: aef8fe5afe5af67fe6789fa678fe876fa867fbc
-      path: release/k8s/*.sh
-      dest: ./scripts/
-      private: true
   - inline:
       contents: |
         #!/bin/sh
         kubectl delete ns {{repl ConfigOption "namespace" }}
-      dest: ./uninstall.sh
+      dest: ./installer/scripts/uninstall.sh
       mode: 0777
   - docker:
-      image: quay.io/superbigtool/api:2.1.0
-      private: true
-      dest: docker/api.tar
-      no_template: true
-  - docker:
       image: postgres:10.1
-      dest: docker/postgres.tar
-      private: false
-      no_template: true
+      dest: installer/docker/postgres.tar
+      source: public
 
 config:
   v1:
@@ -71,5 +53,5 @@ lifecycle:
   - message:
      level: warn
      contents: |
-       A state file has been written to {{repl context "state_file_path" }} -- please store it
+       A state file has been written to {{repl Installation "state_file_path" }} -- please store it
        somewhere safe, you'll need it if you want to update or recover this installation of SuperBigTool.

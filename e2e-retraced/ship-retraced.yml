@@ -142,8 +142,11 @@ config:
 
 lifecycle:
   v1:
-  - render:
-      skip_state_warning: true
+  - message:
+     level: info
+     contents: |
+       This script will prepare retraced to deploy to your cluster.
+  - render: {}
   - message:
      level: info
      contents: |
