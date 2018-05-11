@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
 	"text/template"
 
@@ -105,7 +106,17 @@ func (ctx ConfigCtx) configOptionIndex(name string) string {
 }
 
 func (ctx ConfigCtx) configOptionData(name string) string {
-	return ""
+	v, err := ctx.getConfigOptionValue(name)
+	if err != nil {
+		return ""
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
+		return ""
+	}
+
+	return string(decoded)
 }
 
 func (ctx ConfigCtx) configOptionEquals(name string, value string) bool {

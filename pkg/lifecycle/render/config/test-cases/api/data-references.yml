@@ -1,0 +1,80 @@
+##Alpha is a file, represented by a base64 encoded blob. Bravo references this and should receive the decoded value
+
+- name: Referencing file contents
+  input: {alpha: "dGVzdGluZ3Rlc3RpbmcxMjM="}
+  config:
+    - name: alpha_group
+      description: Alpha Group
+      items:
+        - name: alpha
+          title: Alpha File
+          type: file
+
+        - name: bravo
+          type: text
+          hidden: true
+          readonly: true
+          value: '{{repl ConfigOptionData "alpha"}}'
+
+  responses:
+    json: |
+      [
+          {
+              "description": "Alpha Group",
+              "filters": null,
+              "items": [
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": false,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "alpha",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Alpha File",
+                      "type": "file",
+                      "value": "dGVzdGluZ3Rlc3RpbmcxMjM=",
+                      "value_cmd": null,
+                      "when": ""
+                  },
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": true,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "bravo",
+                      "props": null,
+                      "readonly": true,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "",
+                      "type": "text",
+                      "value": "testingtesting123",
+                      "value_cmd": null,
+                      "when": ""
+                  }
+              ],
+              "name": "alpha_group",
+              "test_proc": null,
+              "title": "",
+              "when": ""
+          }
+      ]
