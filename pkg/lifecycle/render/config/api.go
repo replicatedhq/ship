@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/replicatedcom/ship/pkg/api"
+
 	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -151,23 +153,21 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 }
 
 // ResolveConfig will get all the config values specified in the spec, in JSON format
-func (r *APIConfigRenderer) GetConfigForLiveRender(
+func (r *APIConfigRenderer) ResolveConfig(
 	ctx context.Context,
 	release *api.Release,
 	liveValues map[string]interface{},
-) (map[string]interface{}, error) {
-	resolvedConfig := make([]map[string]interface{}, 0, 0)
+) ([]libyaml.ConfigGroup, error) {
+	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
 
 	updatedValues, err := resolveConfigValuesMap(liveValues, release.Spec.Config.V1, r.Logger, r.Viper)
 	if err != nil {
-		fit := make(map[string]interface{})
-		fit["config"] = resolvedConfig
-		return fit, err
+		return resolvedConfig, err
 	}
 
 	staticCtx, err := NewStaticContext()
 	if err != nil {
-		return nil, err
+		return resolvedConfig, err
 	}
 
 	newConfigCtx, err := NewConfigContext(
@@ -175,7 +175,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 		release.Spec.Config.V1,
 		updatedValues)
 	if err != nil {
-		return nil, err
+		return resolvedConfig, err
 	}
 
 	builder := NewBuilder(
@@ -197,7 +197,7 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
 			if err != nil {
-				return nil, err
+				return resolvedConfig, err
 			}
 
 			resolvedItems = append(resolvedItems, resolvedItem)
@@ -205,34 +205,40 @@ func (r *APIConfigRenderer) GetConfigForLiveRender(
 
 		configGroup.Items = resolvedItems
 
-		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, &configGroup)
+		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, configGroup)
 		if err != nil {
-			return nil, err
+			return resolvedConfig, err
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
 	}
 
-	// TODO change the interface to make this a better fit
-	fit := make(map[string]interface{})
-	fit["config"] = resolvedConfig
-	return fit, nil
+	return resolvedConfig, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup *libyaml.ConfigGroup) (map[string]interface{}, error) {
+func (r *APIConfigRenderer) ValidateConfig(
+	ctx context.Context,
+	release *api.Release,
+	resolvedConfig []libyaml.ConfigGroup,
+) (interface{}, error) {
+	// FILL ME IN
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
+func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
 	// set all items as hidden
 	builtWhen, err := builder.String(configGroup.When)
 	if err != nil {
 		level.Error(r.Logger).Log("msg", "unable to build 'when' on configgroup", "group_name", configGroup.Name, "err", err)
-		return nil, err
+		return libyaml.ConfigGroup{}, err
 	}
 
 	if builtWhen != "" {
 		builtWhenBool, err := builder.Bool(builtWhen, true)
 		if err != nil {
 			level.Error(r.Logger).Log("msg", "unable to build 'when' bool", "err", err)
-			return nil, err
+			return libyaml.ConfigGroup{}, err
 		}
 
 		for _, configItem := range configGroup.Items {
@@ -240,18 +246,7 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Buil
 		}
 	}
 
-	b, err := json.Marshal(configGroup)
-	if err != nil {
-		r.Logger.Log("msg", err)
-		return nil, err
-	}
-
-	m := make(map[string]interface{})
-	if err := json.Unmarshal(b, &m); err != nil {
-		r.Logger.Log("msg", err)
-	}
-
-	return m, nil
+	return configGroup, nil
 }
 
 func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {

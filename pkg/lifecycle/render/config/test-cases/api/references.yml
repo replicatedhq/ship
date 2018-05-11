@@ -38,8 +38,7 @@
 
   responses:
     json: |
-      {
-          "config": [
+      [
               {
                   "description": "Advanced Database Settings",
                   "filters": null,
@@ -109,4 +108,3 @@
                   "when": ""
               }
           ]
-      }

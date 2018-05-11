@@ -67,7 +67,7 @@ func TestAPIResolver(t *testing.T) {
 				if test.Input == nil {
 					test.Input = make(map[string]interface{})
 				}
-				resolvedConfig, err := resolver.GetConfigForLiveRender(ctx, release, test.Input)
+				resolvedConfig, err := resolver.ResolveConfig(ctx, release, test.Input)
 				if test.Error {
 					req.True(err != nil, "Expected this api call to return an error")
 				} else {

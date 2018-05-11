@@ -27,6 +27,4 @@
 
   responses:
     json: |
-      {
-          "config": []
-      }
+      []

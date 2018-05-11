@@ -11,6 +11,8 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 
+	"github.com/replicatedhq/libyaml"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -148,8 +150,8 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	conf := v1.Group("/config")
 	conf.POST("live", d.postAppConfigLive(release))
-	conf.PUT("", d.putAppConfig)
-	conf.PUT("finalize", d.finalizeAppConfig)
+	conf.PUT("", d.putAppConfig(release))
+	conf.PUT("finalize", d.finalizeAppConfig(release))
 
 	life := v1.Group("/lifecycle")
 	life.GET("current", d.getCurrentStep)
@@ -302,6 +304,14 @@ func (d *ShipDaemon) Metricz(c *gin.Context) {
 	c.IndentedJSON(200, map[string]Metric{})
 }
 
+type ConfigOption struct {
+	Name       string   `json:"name"`
+	Value      string   `json:"value"`
+	Data       string   `json:"data"`
+	MultiValue []string `json:"multi_value"`
+	MultiData  []string `json:"multi_data"`
+}
+
 func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postAppConfigLive"))
@@ -313,15 +323,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		// ItemValue is used as an unsaved (pending) value (copied from replicated appliance)
-		type ItemValue struct {
-			Name       string   `json:"name"`
-			Value      string   `json:"value"`
-			MultiValue []string `json:"multi_value"`
-		}
-
 		type Request struct {
-			ItemValues []ItemValue `json:"item_values"`
+			ItemValues []ConfigOption `json:"item_values"`
 		}
 
 		debug.Log("event", "request.bind")
@@ -329,16 +332,6 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		if err := c.BindJSON(&request); err != nil {
 			level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
 			return
-		}
-
-		// TODO: handle multi value fields here
-		itemValues := make(map[string]string)
-		for _, itemValue := range request.ItemValues {
-			if len(itemValue.MultiValue) > 0 {
-				itemValues[itemValue.Name] = itemValue.MultiValue[0]
-			} else {
-				itemValues[itemValue.Name] = itemValue.Value
-			}
 		}
 
 		stateManager := state.StateManager{
@@ -352,8 +345,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		for _, unsavedItemValue := range request.ItemValues {
-			savedStateMergedWithLiveValues[unsavedItemValue.Name] = unsavedItemValue.Value
+		for _, itemValue := range request.ItemValues {
+			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
 		}
 
 		resolver := &APIConfigRenderer{
@@ -361,8 +354,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			Viper:  d.Viper,
 		}
 
-		debug.Log("event", "getConfigForLiveRender")
-		resolvedConfig, err := resolver.GetConfigForLiveRender(c, release, savedStateMergedWithLiveValues)
+		debug.Log("event", "resolveConfig")
+		resolvedConfig, err := resolver.ResolveConfig(c, release, savedStateMergedWithLiveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -371,11 +364,11 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 
 		type Result struct {
 			Version int
-			Groups  interface{}
+			Groups  []libyaml.ConfigGroup
 		}
 		r := Result{
 			Version: 1,
-			Groups:  resolvedConfig["config"],
+			Groups:  resolvedConfig,
 		}
 
 		debug.Log("event", "returnLiveConfig")
@@ -383,61 +376,97 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	}
 }
 
-func (d *ShipDaemon) finalizeAppConfig(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
-	d.putAppConfig(c)
-	debug.Log("event", "configSaved.send.start")
-	d.ConfigSaved <- nil
-	debug.Log("event", "configSaved.send.complete")
+func (d *ShipDaemon) finalizeAppConfig(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
+		d.putAppConfig(release)(c)
+		debug.Log("event", "configSaved.send.start")
+		d.ConfigSaved <- nil
+		debug.Log("event", "configSaved.send.complete")
+	}
 }
 
-func (d *ShipDaemon) putAppConfig(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
-	d.Lock()
-	defer d.Unlock()
+func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
+		d.Lock()
+		defer d.Unlock()
 
-	if d.currentStepName != "render.config" {
-		c.JSON(400, map[string]interface{}{
-			"error": "no config step active",
-		})
-		return
+		if d.currentStepName != "render.config" {
+			c.JSON(400, map[string]interface{}{
+				"error": "no config step active",
+			})
+			return
+		}
+
+		type Request struct {
+			Options  []ConfigOption `json:"options"`
+			Validate bool           `json:"validate"`
+		}
+
+		debug.Log("event", "request.bind")
+		var request Request
+		if err := c.BindJSON(&request); err != nil {
+			level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+			return
+		}
+
+		stateManager := state.StateManager{
+			Logger: d.Logger,
+		}
+		debug.Log("event", "state.tryLoad")
+		savedStateMergedWithLiveValues, err := stateManager.TryLoad()
+		if err != nil {
+			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
+			c.AbortWithStatus(500)
+			return
+		}
+
+		for _, itemValue := range request.Options {
+			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
+		}
+
+		resolver := &APIConfigRenderer{
+			Logger: d.Logger,
+			Viper:  d.Viper,
+		}
+
+		debug.Log("event", "resolveConfig")
+		resolvedConfig, err := resolver.ResolveConfig(c, release, savedStateMergedWithLiveValues)
+		if err != nil {
+			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
+			c.AbortWithStatus(500)
+			return
+		}
+
+		validationErrors, err := resolver.ValidateConfig(c, release, resolvedConfig)
+		if err != nil {
+			level.Error(d.Logger).Log("event", "validateconfig failed", "err", err)
+			c.AbortWithStatus(500)
+			return
+		} else if validationErrors != nil {
+			// do something here and return parseable errors with 400
+			c.AbortWithStatus(400)
+			return
+		}
+
+		// NOTE: what about multi value, data, multi data?
+		templateContext := make(map[string]interface{})
+		for _, configGroup := range resolvedConfig {
+			for _, configItem := range configGroup.Items {
+				templateContext[configItem.Name] = configItem.Value
+			}
+		}
+
+		debug.Log("event", "state.serialize")
+		if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+			level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
+			c.AbortWithStatus(500)
+		}
+
+		d.CurrentConfig = templateContext
+		c.JSON(200, make(map[string]interface{}))
 	}
-
-	type Request struct {
-		Options []struct {
-			Name       string   `json:"name"`
-			Value      string   `json:"value"`
-			Data       string   `json:"data"`
-			MultiValue []string `json:"multi_value"`
-			MultiData  []string `json:"multi_data"`
-		} `json:"options"`
-
-		Validate bool `json:"validate"`
-	}
-
-	debug.Log("event", "request.bind")
-	var request Request
-	if err := c.BindJSON(&request); err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		return
-	}
-
-	templateContext := make(map[string]interface{})
-	for _, option := range request.Options {
-		templateContext[option.Name] = option.Value
-	}
-
-	stateManager := state.StateManager{
-		Logger: d.Logger,
-	}
-	debug.Log("event", "state.serialize")
-	if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
-		level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
-		c.AbortWithStatus(500)
-	}
-
-	d.CurrentConfig = templateContext
-	c.JSON(200, make(map[string]interface{}))
 }
 
 func (d *ShipDaemon) MessageConfirmedChan() chan string {
