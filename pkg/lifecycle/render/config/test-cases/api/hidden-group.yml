@@ -29,8 +29,7 @@
 
   responses:
     json: |
-      {
-          "config": [
+      [
               {
                   "name": "external_service_enable",
                   "test_proc": null,
@@ -139,4 +138,3 @@
                   ]
               }
           ]
-      }

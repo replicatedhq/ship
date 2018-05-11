@@ -19,100 +19,98 @@
           default: '{{repl Add 1 2}}'
   responses:
     json: |
-      {
-          "config": [
-              {
-                  "description": "",
-                  "filters": null,
-                  "name": "group_one",
-                  "test_proc": null,
-                  "title": "",
-                  "when": "",
-                  "items": [
-                      {
-                          "name": "choice_one",
-                          "title": "ChoiceOne",
-                          "type": "text",
-                          "default": "vendor supplied value",
-                          "value": "",
-                          "affix": "",
-                          "data_cmd": null,
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "props": null,
-                          "readonly": false,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "value_cmd": null,
-                          "when": ""
-                      },
-                      {
-                          "name": "choice_two",
-                          "title": "ChoiceTwo",
-                          "type": "bool",
-                          "default": "",
-                          "value": "true",
-                          "affix": "",
-                          "data_cmd": null,
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "props": null,
-                          "readonly": false,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "value_cmd": null,
-                          "when": ""
-                      }
-                  ]
-              },
-              {
-                  "description": "",
-                  "filters": null,
-                  "name": "group_two",
-                  "test_proc": null,
-                  "title": "",
-                  "when": "",
-                  "items": [
-                      {
-                          "name": "choice_three",
-                          "title": "ChoiceThree",
-                          "type": "text",
-                          "default": "3",
-                          "value": "",
-                          "affix": "",
-                          "data_cmd": null,
-                          "default_cmd": null,
-                          "filters": null,
-                          "help_text": "",
-                          "hidden": false,
-                          "is_excluded_from_support": false,
-                          "items": null,
-                          "multi_value": null,
-                          "multiple": false,
-                          "props": null,
-                          "readonly": false,
-                          "recommended": false,
-                          "required": false,
-                          "test_proc": null,
-                          "value_cmd": null,
-                          "when": ""
-                      }
-                  ]
-              }
-          ]
-      }
+        [
+            {
+                "description": "",
+                "filters": null,
+                "name": "group_one",
+                "test_proc": null,
+                "title": "",
+                "when": "",
+                "items": [
+                    {
+                        "name": "choice_one",
+                        "title": "ChoiceOne",
+                        "type": "text",
+                        "default": "vendor supplied value",
+                        "value": "",
+                        "affix": "",
+                        "data_cmd": null,
+                        "default_cmd": null,
+                        "filters": null,
+                        "help_text": "",
+                        "hidden": false,
+                        "is_excluded_from_support": false,
+                        "items": null,
+                        "multi_value": null,
+                        "multiple": false,
+                        "props": null,
+                        "readonly": false,
+                        "recommended": false,
+                        "required": false,
+                        "test_proc": null,
+                        "value_cmd": null,
+                        "when": ""
+                    },
+                    {
+                        "name": "choice_two",
+                        "title": "ChoiceTwo",
+                        "type": "bool",
+                        "default": "",
+                        "value": "true",
+                        "affix": "",
+                        "data_cmd": null,
+                        "default_cmd": null,
+                        "filters": null,
+                        "help_text": "",
+                        "hidden": false,
+                        "is_excluded_from_support": false,
+                        "items": null,
+                        "multi_value": null,
+                        "multiple": false,
+                        "props": null,
+                        "readonly": false,
+                        "recommended": false,
+                        "required": false,
+                        "test_proc": null,
+                        "value_cmd": null,
+                        "when": ""
+                    }
+                ]
+            },
+            {
+                "description": "",
+                "filters": null,
+                "name": "group_two",
+                "test_proc": null,
+                "title": "",
+                "when": "",
+                "items": [
+                    {
+                        "name": "choice_three",
+                        "title": "ChoiceThree",
+                        "type": "text",
+                        "default": "3",
+                        "value": "",
+                        "affix": "",
+                        "data_cmd": null,
+                        "default_cmd": null,
+                        "filters": null,
+                        "help_text": "",
+                        "hidden": false,
+                        "is_excluded_from_support": false,
+                        "items": null,
+                        "multi_value": null,
+                        "multiple": false,
+                        "props": null,
+                        "readonly": false,
+                        "recommended": false,
+                        "required": false,
+                        "test_proc": null,
+                        "value_cmd": null,
+                        "when": ""
+                    }
+                ]
+            }
+        ]
 

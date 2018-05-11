@@ -7,8 +7,7 @@
           title: Namespace
   responses:
     json: |
-      {
-          "config": [
+      [
               {
                   "description": "",
                   "filters": null,
@@ -44,4 +43,3 @@
                   "when": ""
               }
           ]
-      }

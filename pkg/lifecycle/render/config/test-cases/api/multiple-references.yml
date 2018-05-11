@@ -38,8 +38,7 @@
 
   responses:
     json: |
-      {
-          "config": [
+      [
               {
                   "description": "Alpha Group",
                   "filters": null,
@@ -171,4 +170,3 @@
                   "when": ""
               }
           ]
-      }
