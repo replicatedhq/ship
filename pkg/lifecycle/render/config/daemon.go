@@ -137,6 +137,7 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	conf := v1.Group("/config")
 	conf.POST("live", d.postAppConfigLive(release))
 	conf.PUT("", d.putAppConfig)
+	conf.PUT("finalize", d.finalizeAppConfig)
 
 	life := v1.Group("/lifecycle")
 	life.GET("current", d.getCurrentStep)
@@ -275,6 +276,14 @@ func (d *Daemon) Metricz(c *gin.Context) {
 func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postAppConfigLive"))
+
+		if d.currentStepName != "render.config" {
+			c.JSON(400, map[string]interface{}{
+				"error": "no config step active",
+			})
+			return
+		}
+
 		// ItemValue is used as an unsaved (pending) value (copied from replicated appliance)
 		type ItemValue struct {
 			Name       string   `json:"name"`
@@ -345,10 +354,26 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	}
 }
 
+func (d *Daemon) finalizeAppConfig(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
+	d.putAppConfig(c)
+	debug.Log("event", "configSaved.send.start")
+	d.ConfigSaved <- nil
+	debug.Log("event", "configSaved.send.complete")
+}
+
 func (d *Daemon) putAppConfig(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
 	d.Lock()
 	defer d.Unlock()
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
+
+	if d.currentStepName != "render.config" {
+		c.JSON(400, map[string]interface{}{
+			"error": "no config step active",
+		})
+		return
+	}
+
 	type Request struct {
 		Options []struct {
 			Name       string   `json:"name"`
@@ -373,19 +398,16 @@ func (d *Daemon) putAppConfig(c *gin.Context) {
 		templateContext[option.Name] = option.Value
 	}
 
-	//stateManager := state.StateManager{
-	//	Logger: d.Logger,
-	//}
-	//debug.Log("event", "state.serialize")
-	//if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
-	//	level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
-	//	c.AbortWithStatus(500)
-	//}
+	stateManager := state.StateManager{
+		Logger: d.Logger,
+	}
+	debug.Log("event", "state.serialize")
+	if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
+		c.AbortWithStatus(500)
+	}
 
 	d.CurrentConfig = templateContext
-	debug.Log("event", "configSaved.send.start")
-	d.ConfigSaved <- nil
-	debug.Log("event", "configSaved.send.complete")
 	c.JSON(200, make(map[string]interface{}))
 }
 
