@@ -61,7 +61,7 @@ func RunnerFromViper(v *viper.Viper) *Runner {
 		Executor: ExecutorFromViper(v),
 	}
 }
-func (r *Runner) WithDaemon(d *config.Daemon) *Runner {
+func (r *Runner) WithDaemon(d config.Daemon) *Runner {
 	r.Executor = r.Executor.WithDaemon(d)
 	return r
 }
@@ -73,7 +73,7 @@ func ExecutorFromViper(v *viper.Viper) *StepExecutor {
 		Messenger: message.FromViper(v),
 	}
 }
-func (e *StepExecutor) WithDaemon(d *config.Daemon) *StepExecutor {
+func (e *StepExecutor) WithDaemon(d config.Daemon) *StepExecutor {
 	e.Daemon = d
 	e.Renderer = e.Renderer.WithDaemon(d)
 	e.Messenger = e.Messenger.WithDaemon(d)

@@ -39,7 +39,7 @@ type Planner interface {
 
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
-	WithDaemon(d *config.Daemon) Planner
+	WithDaemon(d config.Daemon) Planner
 }
 
 // CLIPlanner is the default Planner
@@ -48,7 +48,7 @@ type CLIPlanner struct {
 	Fs     afero.Afero
 	UI     cli.Ui
 	Viper  *viper.Viper
-	Daemon *config.Daemon
+	Daemon config.Daemon
 }
 
 func FromViper(v *viper.Viper) Planner {
@@ -61,7 +61,7 @@ func FromViper(v *viper.Viper) Planner {
 	}
 }
 
-func (p *CLIPlanner) WithDaemon(d *config.Daemon) Planner {
+func (p *CLIPlanner) WithDaemon(d config.Daemon) Planner {
 	p.Daemon = d
 	return p
 }

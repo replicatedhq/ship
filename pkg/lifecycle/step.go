@@ -16,7 +16,7 @@ type StepExecutor struct {
 	Logger    log.Logger
 	Renderer  *render.Renderer
 	Messenger message.Messenger
-	Daemon    *config.Daemon
+	Daemon    config.Daemon
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {

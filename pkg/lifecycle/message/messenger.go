@@ -12,7 +12,7 @@ import (
 
 type Messenger interface {
 	Execute(ctx context.Context, release *api.Release, step *api.Message) error
-	WithDaemon(d *config.Daemon) Messenger
+	WithDaemon(d config.Daemon) Messenger
 }
 
 func FromViper(v *viper.Viper) Messenger {
@@ -31,7 +31,7 @@ func FromViper(v *viper.Viper) Messenger {
 	}
 }
 
-func (m *DaemonMessenger) WithDaemon(d *config.Daemon) Messenger {
+func (m *DaemonMessenger) WithDaemon(d config.Daemon) Messenger {
 	m.Daemon = d
 	return m
 }

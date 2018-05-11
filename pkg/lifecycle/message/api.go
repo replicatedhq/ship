@@ -21,7 +21,7 @@ type DaemonMessenger struct {
 	Logger log.Logger
 	UI     cli.Ui
 	Viper  *viper.Viper
-	Daemon *config.Daemon
+	Daemon config.Daemon
 }
 
 func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {
@@ -47,7 +47,7 @@ func (m *DaemonMessenger) awaitMessageConfirmed(ctx context.Context, daemonExite
 				return err
 			}
 			return errors.New("daemon exited")
-		case <-m.Daemon.MessageConfirmed:
+		case <-m.Daemon.MessageConfirmedChan():
 			debug.Log("event", "message.confirmed")
 			return nil
 		case <-time.After(10 * time.Second):

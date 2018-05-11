@@ -34,6 +34,10 @@ mockgen:
 		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
 		Resolver
 	mockgen \
+		-destination pkg/test-mocks/config/daemon.go \
+		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		Daemon
+	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
 		-package planner github.com/replicatedcom/ship/pkg/lifecycle/render/planner \
 		Planner
