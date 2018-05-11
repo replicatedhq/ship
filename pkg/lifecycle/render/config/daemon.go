@@ -356,6 +356,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
 		}
 
+		fmt.Println("***SAVED STATE", savedStateMergedWithLiveValues)
+
 		resolver := &APIConfigRenderer{
 			Logger: d.Logger,
 			Viper:  d.Viper,
@@ -462,6 +464,15 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		for _, configGroup := range resolvedConfig {
 			for _, configItem := range configGroup.Items {
 				templateContext[configItem.Name] = configItem.Value
+			}
+		}
+
+		for _, group := range resolvedConfig {
+			for _, item := range group.Items {
+				if item.Required && templateContext[item.Name] == "" {
+					c.AbortWithStatus(400)
+					return
+				}
 			}
 		}
 

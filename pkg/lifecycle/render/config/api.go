@@ -44,6 +44,10 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 	return !editable
 }
 
+func isRequired(item *libyaml.ConfigItem) bool {
+	return item.Required
+}
+
 func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
@@ -220,7 +224,7 @@ func (r *APIConfigRenderer) ValidateConfig(
 	release *api.Release,
 	resolvedConfig []libyaml.ConfigGroup,
 ) (interface{}, error) {
-	// FILL ME IN
+	// fmt.Println("\n***VALIDATECONFIG***\n", resolvedConfig)
 	return nil, nil
 }
 

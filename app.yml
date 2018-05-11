@@ -22,9 +22,11 @@ config:
       - name: namespace
         title: Namespace to Deploy into
         type: text
+        required: true
       - name: worker_replicas
         title: Number of Workers to Deploy
         type: text
+        required: true
 
 lifecycle:
   v1:
