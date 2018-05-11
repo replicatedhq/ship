@@ -156,20 +156,6 @@ func (s *Ship) Execute(ctx context.Context) error {
 	sig := <-signalChan
 	level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
 	return nil
-
-	// todo send shipRegisterInstall mutation to pg.
-
-	//dm := &daemon.Daemon{
-	//	CustomerID:     s.CustomerID,
-	//	InstallationID: s.InstallationID,
-	//	GraphQLClient:  s.Client,
-	//	UI:             s.UI,
-	//	Logger:         s.Logger,
-	//	Release:        release,
-	//	Viper:          s.Viper,
-	//}
-	//
-	//return errors.Wrap(dm.Serve(ctx), "run daemon")
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.

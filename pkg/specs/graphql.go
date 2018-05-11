@@ -56,8 +56,8 @@ type GraphQLError struct {
 	Code      string                   `json:"code"`
 }
 
-// GraphQLResponse is the top-level response object from the graphql server
-type GraphQLResponse struct {
+// GQLGetReleaseResponse is the top-level response object from the graphql server
+type GQLGetReleaseResponse struct {
 	Data   ShipReleaseWrapper `json:"data,omitempty"`
 	Errors []GraphQLError     `json:"errors,omitempty"`
 }
@@ -86,6 +86,20 @@ type ShipRelease struct {
 	Images         []Image `json:"images"`
 	Created        string  `json:"created"` // TODO: this time is not in RFC 3339 format
 	RegistrySecret string  `json:"registrySecret"`
+}
+
+// GQLRegisterInstallResponse is the top-level response object from the graphql server
+type GQLRegisterInstallResponse struct {
+	Data struct {
+		ShipRegisterInstall bool `json:"shipRegisterInstall"`
+	} `json:"data,omitempty"`
+	Errors []GraphQLError `json:"errors,omitempty"`
+}
+
+type callInfo struct {
+	username string
+	password string
+	request  GraphQLRequest
 }
 
 // ToReleaseMeta linter
@@ -130,35 +144,15 @@ func (c *GraphQLClient) GetRelease(customerID, installationID string) (*ShipRele
 		Query: getAppspecQuery,
 	}
 
-	body, err := json.Marshal(requestObj)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshal request")
+	ci := callInfo{
+		username: customerID,
+		password: installationID,
+		request:  requestObj,
 	}
 
-	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
-	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", customerID, installationID)))
-
-	graphQLRequest, err := http.NewRequest(http.MethodPost, c.GQLServer.String(), bodyReader)
-
-	graphQLRequest.Header = map[string][]string{
-		"Authorization": {"Basic " + authString},
-		"Content-Type":  {"application/json"},
-	}
-
-	resp, err := c.Client.Do(graphQLRequest)
-	if err != nil {
-		return nil, errors.Wrap(err, "send request")
-	}
-
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "read body")
-	}
-
-	shipResponse := GraphQLResponse{}
-
-	if err := json.Unmarshal(responseBody, &shipResponse); err != nil {
-		return nil, errors.Wrapf(err, "unmarshal response %s", responseBody)
+	shipResponse := &GQLGetReleaseResponse{}
+	if err := c.callGQL(ci, shipResponse); err != nil {
+		return nil, err
 	}
 
 	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
@@ -188,13 +182,37 @@ mutation($channelId: String!, $releaseId: String!) {
 		},
 	}
 
-	body, err := json.Marshal(requestObj)
+	ci := callInfo{
+		username: customerID,
+		password: installationID,
+		request:  requestObj,
+	}
+
+	shipResponse := &GQLRegisterInstallResponse{}
+	if err := c.callGQL(ci, shipResponse); err != nil {
+		return err
+	}
+
+	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
+		var multiErr *multierror.Error
+		for _, err := range shipResponse.Errors {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
+
+		}
+		return multiErr.ErrorOrNil()
+	}
+
+	return nil
+}
+
+func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
+	body, err := json.Marshal(ci.request)
 	if err != nil {
 		return errors.Wrap(err, "marshal request")
 	}
 
 	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
-	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", customerID, installationID)))
+	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", ci.username, ci.password)))
 
 	graphQLRequest, err := http.NewRequest(http.MethodPost, c.GQLServer.String(), bodyReader)
 
@@ -213,19 +231,8 @@ mutation($channelId: String!, $releaseId: String!) {
 		return errors.Wrap(err, "read body")
 	}
 
-	shipResponse := GraphQLResponse{}
-
-	if err := json.Unmarshal(responseBody, &shipResponse); err != nil {
+	if err := json.Unmarshal(responseBody, result); err != nil {
 		return errors.Wrapf(err, "unmarshal response %s", responseBody)
-	}
-
-	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
-		var multiErr *multierror.Error
-		for _, err := range shipResponse.Errors {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
-
-		}
-		return multiErr.ErrorOrNil()
 	}
 
 	return nil
