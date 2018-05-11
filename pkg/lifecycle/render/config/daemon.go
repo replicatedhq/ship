@@ -25,8 +25,19 @@ var (
 	errInternal = errors.New("internal_error")
 )
 
+type Daemon interface {
+	EnsureStarted(context.Context, *api.Release) chan error
+	PushStep(context.Context, string, api.Step)
+	AllStepsDone(context.Context)
+	MessageConfirmedChan() chan string
+	ConfigSavedChan() chan interface{}
+	GetCurrentConfig() map[string]interface{}
+	SetProgress(Progress)
+	ClearProgress()
+}
+
 // Daemon runs the ship api server.
-type Daemon struct {
+type ShipDaemon struct {
 	Logger log.Logger
 	Fs     afero.Afero
 	Viper  *viper.Viper
@@ -36,6 +47,7 @@ type Daemon struct {
 	currentStep          *api.Step
 	currentStepName      string
 	currentStepConfirmed bool
+	stepProgress         *Progress
 	allStepsDone         bool
 	pastSteps            []api.Step
 
@@ -50,7 +62,7 @@ type Daemon struct {
 	//currentPlan planner.Plan
 }
 
-func (d *Daemon) PushStep(ctx context.Context, stepName string, step api.Step) {
+func (d *ShipDaemon) PushStep(ctx context.Context, stepName string, step api.Step) {
 
 	d.Lock()
 	defer d.Unlock()
@@ -64,14 +76,14 @@ func (d *Daemon) PushStep(ctx context.Context, stepName string, step api.Step) {
 	d.NotifyStepChanged(stepName)
 }
 
-func (d *Daemon) AllStepsDone(ctx context.Context) {
+func (d *ShipDaemon) AllStepsDone(ctx context.Context) {
 	d.Lock()
 	defer d.Unlock()
 	d.allStepsDone = true
 }
 
 // "this is fine"
-func (d *Daemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
+func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	errChan := make(chan error)
 
 	go d.startOnce.Do(func() {
@@ -84,7 +96,7 @@ func (d *Daemon) EnsureStarted(ctx context.Context, release *api.Release) chan e
 }
 
 // Serve starts the server with the given context
-func (d *Daemon) Serve(ctx context.Context, release *api.Release) error {
+func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "method", "serve"))
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
@@ -127,7 +139,7 @@ func (d *Daemon) Serve(ctx context.Context, release *api.Release) error {
 	}
 }
 
-func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
+func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	root := g.Group("/")
 
 	root.GET("/healthz", d.Healthz)
@@ -151,7 +163,19 @@ func (d *Daemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 }
 
-func (d *Daemon) getChannel(release *api.Release) gin.HandlerFunc {
+func (d *ShipDaemon) SetProgress(p Progress) {
+	d.Lock()
+	defer d.Unlock()
+	d.stepProgress = &p
+}
+
+func (d *ShipDaemon) ClearProgress() {
+	d.Lock()
+	defer d.Unlock()
+	d.stepProgress = nil
+}
+
+func (d *ShipDaemon) getChannel(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(200, map[string]interface{}{
 			"channelName": release.Metadata.ChannelName,
@@ -161,7 +185,7 @@ func (d *Daemon) getChannel(release *api.Release) gin.HandlerFunc {
 
 }
 
-func (d *Daemon) getLoadingStep(c *gin.Context) {
+func (d *ShipDaemon) getLoadingStep(c *gin.Context) {
 	c.JSON(200, map[string]interface{}{
 		"currentStep": map[string]interface{}{
 			"loading": map[string]interface{}{},
@@ -170,7 +194,7 @@ func (d *Daemon) getLoadingStep(c *gin.Context) {
 	})
 }
 
-func (d *Daemon) getDoneStep(c *gin.Context) {
+func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 	c.JSON(200, map[string]interface{}{
 		"currentStep": map[string]interface{}{
 			"done": map[string]interface{}{},
@@ -179,7 +203,7 @@ func (d *Daemon) getDoneStep(c *gin.Context) {
 	})
 }
 
-func (d *Daemon) getCurrentStep(c *gin.Context) {
+func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 	if d.currentStep == nil {
 		d.getLoadingStep(c)
 		return
@@ -189,13 +213,18 @@ func (d *Daemon) getCurrentStep(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]interface{}{
+	result := map[string]interface{}{
 		"currentStep": d.currentStep,
 		"phase":       d.currentStepName,
-	})
+	}
+	if d.stepProgress != nil {
+		result["progress"] = d.stepProgress
+	}
+
+	c.JSON(200, result)
 }
 
-func (d *Daemon) postConfirmMessage(c *gin.Context) {
+func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -240,7 +269,7 @@ func (d *Daemon) postConfirmMessage(c *gin.Context) {
 	c.String(200, "")
 }
 
-func (d *Daemon) getCurrentMessage(c *gin.Context) {
+func (d *ShipDaemon) getCurrentMessage(c *gin.Context) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -258,14 +287,14 @@ func (d *Daemon) getCurrentMessage(c *gin.Context) {
 }
 
 // Healthz returns a 200 with the version if provided
-func (d *Daemon) Healthz(c *gin.Context) {
+func (d *ShipDaemon) Healthz(c *gin.Context) {
 	c.JSON(200, map[string]string{
 		"version": os.Getenv("VERSION"),
 	})
 }
 
 // Metricz returns (empty) metrics for this server
-func (d *Daemon) Metricz(c *gin.Context) {
+func (d *ShipDaemon) Metricz(c *gin.Context) {
 	type Metric struct {
 		M1  float64 `json:"m1"`
 		P95 float64 `json:"p95"`
@@ -273,7 +302,7 @@ func (d *Daemon) Metricz(c *gin.Context) {
 	c.IndentedJSON(200, map[string]Metric{})
 }
 
-func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
+func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postAppConfigLive"))
 
@@ -354,7 +383,7 @@ func (d *Daemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	}
 }
 
-func (d *Daemon) finalizeAppConfig(c *gin.Context) {
+func (d *ShipDaemon) finalizeAppConfig(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
 	d.putAppConfig(c)
 	debug.Log("event", "configSaved.send.start")
@@ -362,7 +391,7 @@ func (d *Daemon) finalizeAppConfig(c *gin.Context) {
 	debug.Log("event", "configSaved.send.complete")
 }
 
-func (d *Daemon) putAppConfig(c *gin.Context) {
+func (d *ShipDaemon) putAppConfig(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
 	d.Lock()
 	defer d.Unlock()
@@ -411,6 +440,18 @@ func (d *Daemon) putAppConfig(c *gin.Context) {
 	c.JSON(200, make(map[string]interface{}))
 }
 
-func (daemon *Daemon) NotifyStepChanged(stepType string) {
+func (d *ShipDaemon) MessageConfirmedChan() chan string {
+	return d.MessageConfirmed
+}
+
+func (d *ShipDaemon) ConfigSavedChan() chan interface{} {
+	return d.ConfigSaved
+}
+
+func (d *ShipDaemon) GetCurrentConfig() map[string]interface{} {
+	return d.CurrentConfig
+}
+
+func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 	// todo something with event streams
 }

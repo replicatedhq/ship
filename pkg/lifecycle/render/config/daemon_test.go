@@ -23,13 +23,13 @@ type daemonAPITestCase struct {
 	test func(t *testing.T)
 }
 
-func initDaemon(t *testing.T, release *api.Release) (*Daemon, context.CancelFunc, error) {
+func initDaemon(t *testing.T, release *api.Release) (Daemon, context.CancelFunc, error) {
 	v := viper.New()
 
 	viper.Set("api-port", 8880)
 	fs := afero.Afero{Fs: afero.NewMemMapFs()}
 	log := &logger.TestLogger{T: t}
-	daemon := &Daemon{
+	daemon := &ShipDaemon{
 		Logger:           log,
 		Fs:               fs,
 		Viper:            v,
@@ -151,7 +151,7 @@ func TestDaemonAPI(t *testing.T) {
 				resp, err := http.Post("http://localhost:8880/api/v1/message/confirm", "application/json", reqBody)
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusOK, resp.StatusCode)
-				msg := <-daemon.MessageConfirmed
+				msg := <-daemon.MessageConfirmedChan()
 				require.New(t).Equal("step2", msg)
 			},
 		},

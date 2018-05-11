@@ -16,7 +16,7 @@ const StepNameConfirm = "render.confirm"
 
 type DaemonResolver struct {
 	Logger log.Logger
-	Daemon *Daemon
+	Daemon Daemon
 }
 
 func (d *DaemonResolver) ResolveConfig(
@@ -57,9 +57,9 @@ func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan 
 				return nil, err
 			}
 			return nil, errors.New("daemon exited")
-		case <-d.Daemon.ConfigSaved:
+		case <-d.Daemon.ConfigSavedChan():
 			debug.Log("event", "config.saved")
-			return d.Daemon.CurrentConfig, nil
+			return d.Daemon.GetCurrentConfig(), nil
 		case <-time.After(10 * time.Second):
 			debug.Log("waitingFor", "config.saved")
 		}

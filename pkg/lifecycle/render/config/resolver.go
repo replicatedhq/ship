@@ -13,7 +13,7 @@ import (
 // Resolver is a thing that can resolve configuration options
 type Resolver interface {
 	ResolveConfig(context.Context, *api.Release, map[string]interface{}) (map[string]interface{}, error)
-	WithDaemon(d *Daemon) Resolver
+	WithDaemon(d Daemon) Resolver
 }
 
 func ResolverFromViper(v *viper.Viper) Resolver {
@@ -30,13 +30,13 @@ func ResolverFromViper(v *viper.Viper) Resolver {
 	}
 
 }
-func (r *DaemonResolver) WithDaemon(d *Daemon) Resolver {
+func (r *DaemonResolver) WithDaemon(d Daemon) Resolver {
 	r.Daemon = d
 	return r
 }
 
-func DaemonFromViper(v *viper.Viper) *Daemon {
-	return &Daemon{
+func DaemonFromViper(v *viper.Viper) Daemon {
+	return &ShipDaemon{
 		Logger:           logger.FromViper(v),
 		Fs:               fs.FromViper(v),
 		UI:               ui.FromViper(v),

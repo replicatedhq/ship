@@ -6,11 +6,10 @@ package config
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	config "github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	reflect "reflect"
 )
 
 // MockResolver is a mock of Resolver interface
@@ -31,10 +30,6 @@ func NewMockResolver(ctrl *gomock.Controller) *MockResolver {
 	return mock
 }
 
-func (m *MockResolver) WithDaemon(_ *config.Daemon) config.Resolver {
-	return m
-}
-
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 	return m.recorder
@@ -51,4 +46,16 @@ func (m *MockResolver) ResolveConfig(arg0 context.Context, arg1 *api.Release, ar
 // ResolveConfig indicates an expected call of ResolveConfig
 func (mr *MockResolverMockRecorder) ResolveConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveConfig", reflect.TypeOf((*MockResolver)(nil).ResolveConfig), arg0, arg1, arg2)
+}
+
+// WithDaemon mocks base method
+func (m *MockResolver) WithDaemon(arg0 config.Daemon) config.Resolver {
+	ret := m.ctrl.Call(m, "WithDaemon", arg0)
+	ret0, _ := ret[0].(config.Resolver)
+	return ret0
+}
+
+// WithDaemon indicates an expected call of WithDaemon
+func (mr *MockResolverMockRecorder) WithDaemon(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDaemon", reflect.TypeOf((*MockResolver)(nil).WithDaemon), arg0)
 }

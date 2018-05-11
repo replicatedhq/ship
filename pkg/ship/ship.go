@@ -38,7 +38,7 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon     *config.Daemon
+	Daemon     config.Daemon
 	Resolver   *specs.Resolver
 	StudioFile string
 	Client     *specs.GraphQLClient

@@ -126,7 +126,7 @@ func TestDaemonResolver(t *testing.T) {
 			viper.Set("api-port", 0)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			log := &logger.TestLogger{T: t}
-			daemon := &Daemon{
+			daemon := &ShipDaemon{
 				Logger: log,
 				Fs:     fs,
 				Viper:  v,

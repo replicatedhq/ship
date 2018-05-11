@@ -6,12 +6,12 @@ package planner
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedcom/ship/pkg/api"
+	config "github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	planner "github.com/replicatedcom/ship/pkg/lifecycle/render/planner"
 	libyaml "github.com/replicatedhq/libyaml"
+	reflect "reflect"
 )
 
 // MockPlanner is a mock of Planner interface
@@ -72,4 +72,16 @@ func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
 // Execute indicates an expected call of Execute
 func (mr *MockPlannerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPlanner)(nil).Execute), arg0, arg1)
+}
+
+// WithDaemon mocks base method
+func (m *MockPlanner) WithDaemon(arg0 config.Daemon) planner.Planner {
+	ret := m.ctrl.Call(m, "WithDaemon", arg0)
+	ret0, _ := ret[0].(planner.Planner)
+	return ret0
+}
+
+// WithDaemon indicates an expected call of WithDaemon
+func (mr *MockPlannerMockRecorder) WithDaemon(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDaemon", reflect.TypeOf((*MockPlanner)(nil).WithDaemon), arg0)
 }
