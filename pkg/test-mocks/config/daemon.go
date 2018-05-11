@@ -6,10 +6,11 @@ package config
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedcom/ship/pkg/api"
 	config "github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	reflect "reflect"
 )
 
 // MockDaemon is a mock of Daemon interface
@@ -121,4 +122,14 @@ func (m *MockDaemon) SetProgress(arg0 config.Progress) {
 // SetProgress indicates an expected call of SetProgress
 func (mr *MockDaemonMockRecorder) SetProgress(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetProgress", reflect.TypeOf((*MockDaemon)(nil).SetProgress), arg0)
+}
+
+// SetStepName mocks base method
+func (m *MockDaemon) SetStepName(arg0 context.Context, arg1 string) {
+	m.ctrl.Call(m, "SetStepName", arg0, arg1)
+}
+
+// SetStepName indicates an expected call of SetStepName
+func (mr *MockDaemonMockRecorder) SetStepName(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStepName", reflect.TypeOf((*MockDaemon)(nil).SetStepName), arg0, arg1)
 }

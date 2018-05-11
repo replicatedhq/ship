@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/test-cases"
 
@@ -60,6 +61,7 @@ func TestRender(t *testing.T) {
 			prog = mockDaemon.EXPECT().SetProgress(ProgressResolve).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
+			prog = mockDaemon.EXPECT().SetStepName(ctx, config.StepNameConfirm).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 

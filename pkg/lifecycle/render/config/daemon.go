@@ -30,6 +30,7 @@ var (
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushStep(context.Context, string, api.Step)
+	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
 	MessageConfirmedChan() chan string
 	ConfigSavedChan() chan interface{}
@@ -76,6 +77,12 @@ func (d *ShipDaemon) PushStep(ctx context.Context, stepName string, step api.Ste
 	d.currentStep = &step
 	d.currentStepConfirmed = false
 	d.NotifyStepChanged(stepName)
+}
+
+func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {
+	d.Lock()
+	defer d.Unlock()
+	d.currentStepName = stepName
 }
 
 func (d *ShipDaemon) AllStepsDone(ctx context.Context) {
@@ -316,7 +323,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postAppConfigLive"))
 
-		if d.currentStepName != "render.config" {
+		if d.currentStepName != StepNameConfig {
 			c.JSON(400, map[string]interface{}{
 				"error": "no config step active",
 			})
@@ -392,7 +399,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		d.Lock()
 		defer d.Unlock()
 
-		if d.currentStepName != "render.config" {
+		if d.currentStepName != StepNameConfig {
 			c.JSON(400, map[string]interface{}{
 				"error": "no config step active",
 			})
@@ -478,6 +485,9 @@ func (d *ShipDaemon) ConfigSavedChan() chan interface{} {
 }
 
 func (d *ShipDaemon) GetCurrentConfig() map[string]interface{} {
+	if d.CurrentConfig == nil {
+		return make(map[string]interface{})
+	}
 	return d.CurrentConfig
 }
 
