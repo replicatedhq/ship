@@ -25,7 +25,7 @@ shell:
 githooks:
 	echo 'make test' > .git/hooks/pre-push
 	chmod +x .git/hooks/pre-push
-	echo 'make fmt' > .git/hooks/pre-commit
+	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
 mockgen:
@@ -48,7 +48,6 @@ dep:
 fmt:
 	goimports -w pkg
 	goimports -w cmd
-
 
 _vet:
 	go vet ./pkg/...
