@@ -219,13 +219,20 @@ func (r *APIConfigRenderer) ResolveConfig(
 	return resolvedConfig, nil
 }
 
-func (r *APIConfigRenderer) ValidateConfig(
+func ValidateConfig(
 	ctx context.Context,
-	release *api.Release,
 	resolvedConfig []libyaml.ConfigGroup,
-) (interface{}, error) {
-	// fmt.Println("\n***VALIDATECONFIG***\n", resolvedConfig)
-	return nil, nil
+) (bool, error) {
+	for _, configGroup := range resolvedConfig {
+		for _, configItem := range configGroup.Items {
+			if configItem.Required && configItem.Value == "" && configItem.Default == "" {
+				if !isReadOnly(configItem) {
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, nil
 }
 
 func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {

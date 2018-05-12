@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type apiTestcase struct {
@@ -38,7 +38,15 @@ type configValuesTestCase struct {
 	prefix       string
 	suffix       string
 
-	name string
+	Name string
+}
+
+type configRequiredTestCase struct {
+	Config        []libyaml.ConfigGroup
+	ExpectedValue bool
+	ExpectErr     bool
+
+	Name string
 }
 
 func TestAPIResolver(t *testing.T) {
@@ -93,7 +101,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			},
 			input:   map[string]interface{}{"alpha": "abc"},
 			results: map[string]interface{}{"alpha": "abc", "bravo": "abc"},
-			name:    "basic_dependency",
+			Name:    "basic_dependency",
 		},
 		{
 			dependencies: map[string][]string{
@@ -105,7 +113,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			results: map[string]interface{}{"alpha": "abc", "bravo": "(abc)", "charlie": "((abc))"},
 			prefix:  "(",
 			suffix:  ")",
-			name:    "basic_chain",
+			Name:    "basic_chain",
 		},
 		{
 			dependencies: map[string][]string{
@@ -117,7 +125,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			results: map[string]interface{}{"alpha": "abc", "bravo": "xyz", "charlie": "(abcxyz)"},
 			prefix:  "(",
 			suffix:  ")",
-			name:    "basic_2deps",
+			Name:    "basic_2deps",
 		},
 		{
 			dependencies: map[string][]string{
@@ -130,7 +138,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			results: map[string]interface{}{"alpha": "abc", "bravo": "xyz", "charlie": "(abcxyz)", "delta": "((abcxyz))"},
 			prefix:  "(",
 			suffix:  ")",
-			name:    "basic_Y_shape",
+			Name:    "basic_Y_shape",
 		},
 		{
 			dependencies: map[string][]string{
@@ -143,12 +151,12 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			results: map[string]interface{}{"alpha": "abc", "bravo": "(abc)", "charlie": "(abc)", "delta": "((abc)(abc))"},
 			prefix:  "(",
 			suffix:  ")",
-			name:    "basic_◇_shape",
+			Name:    "basic_◇_shape",
 		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
 			//build a config to test
@@ -197,4 +205,195 @@ func loadAPITestCases(t *testing.T, path string) []apiTestcase {
 	}
 
 	return tests
+}
+
+func TestValidateConfig(t *testing.T) {
+	tests := []configRequiredTestCase{
+		{
+			Config:        []libyaml.ConfigGroup{},
+			ExpectedValue: false,
+			Name:          "empty test",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "basic fail",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "basic pass",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "value",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "default",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to default",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Hidden:   true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to hidden",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							ReadOnly: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to readonly set",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				libyaml.ConfigGroup{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Type:     "label",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to readonly type",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
+
+			val, err := ValidateConfig(context.Background(), test.Config)
+			if test.ExpectErr {
+				req.Error(err)
+				return
+			} else {
+				req.NoError(err)
+			}
+
+			req.Equal(test.ExpectedValue, val)
+		})
+	}
+
+	// req := require.New(t)
+	//
+	// testGroup := libyaml.ConfigGroup{}
+	// testGroup.Items = make([]*libyaml.ConfigItem, 0)
+	//
+	// testItemFail := libyaml.ConfigItem{
+	// 	Name:     "should_fail",
+	// 	Title:    "should_fail",
+	// 	Type:     "text",
+	// 	Required: true,
+	// 	Value:    "",
+	// }
+	//
+	// testGroup.Items = append(testGroup.Items, &testItemFail)
+	//
+	// val, err := ValidateConfig(context.Background(), []libyaml.ConfigGroup{testGroup})
+	// req.NoError(err)
+	// req.True(val)
+	//
+	// testGroupSuccess := libyaml.ConfigGroup{}
+	// testGroupSuccess.Items = make([]*libyaml.ConfigItem, 0)
+	//
+	// testItemSuccess := libyaml.ConfigItem{
+	// 	Name:     "should_pass",
+	// 	Title:    "should_pass",
+	// 	Type:     "text",
+	// 	Required: false,
+	// 	Value:    "",
+	// }
+	//
+	// testGroupSuccess.Items = append(testGroupSuccess.Items, &testItemSuccess)
+	//
+	// val, err = ValidateConfig(context.Background(), []libyaml.ConfigGroup{testGroupSuccess})
+	// req.NoError(err)
+	// req.False(val)
 }

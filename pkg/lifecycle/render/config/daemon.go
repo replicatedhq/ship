@@ -448,12 +448,12 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		validationErrors, err := resolver.ValidateConfig(c, release, resolvedConfig)
+		validationErrors, err := ValidateConfig(c, resolvedConfig)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "validateconfig failed", "err", err)
 			c.AbortWithStatus(500)
 			return
-		} else if validationErrors != nil {
+		} else if validationErrors != false {
 			// do something here and return parseable errors with 400
 			c.AbortWithStatus(400)
 			return
@@ -464,15 +464,6 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		for _, configGroup := range resolvedConfig {
 			for _, configItem := range configGroup.Items {
 				templateContext[configItem.Name] = configItem.Value
-			}
-		}
-
-		for _, group := range resolvedConfig {
-			for _, item := range group.Items {
-				if item.Required && templateContext[item.Name] == "" {
-					c.AbortWithStatus(400)
-					return
-				}
 			}
 		}
 
