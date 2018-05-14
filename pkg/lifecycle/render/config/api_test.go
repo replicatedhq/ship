@@ -360,40 +360,4 @@ func TestValidateConfig(t *testing.T) {
 			req.Equal(test.ExpectedValue, val)
 		})
 	}
-
-	// req := require.New(t)
-	//
-	// testGroup := libyaml.ConfigGroup{}
-	// testGroup.Items = make([]*libyaml.ConfigItem, 0)
-	//
-	// testItemFail := libyaml.ConfigItem{
-	// 	Name:     "should_fail",
-	// 	Title:    "should_fail",
-	// 	Type:     "text",
-	// 	Required: true,
-	// 	Value:    "",
-	// }
-	//
-	// testGroup.Items = append(testGroup.Items, &testItemFail)
-	//
-	// val, err := ValidateConfig(context.Background(), []libyaml.ConfigGroup{testGroup})
-	// req.NoError(err)
-	// req.True(val)
-	//
-	// testGroupSuccess := libyaml.ConfigGroup{}
-	// testGroupSuccess.Items = make([]*libyaml.ConfigItem, 0)
-	//
-	// testItemSuccess := libyaml.ConfigItem{
-	// 	Name:     "should_pass",
-	// 	Title:    "should_pass",
-	// 	Type:     "text",
-	// 	Required: false,
-	// 	Value:    "",
-	// }
-	//
-	// testGroupSuccess.Items = append(testGroupSuccess.Items, &testItemSuccess)
-	//
-	// val, err = ValidateConfig(context.Background(), []libyaml.ConfigGroup{testGroupSuccess})
-	// req.NoError(err)
-	// req.False(val)
 }
