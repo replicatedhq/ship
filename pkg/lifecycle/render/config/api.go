@@ -27,7 +27,7 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 		return true
 	}
 
-	//"" is an editable type because the default type is "text"
+	// "" is an editable type because the default type is "text"
 	var EditableItemTypes = map[string]struct{}{
 		"":            {},
 		"bool":        {},
@@ -68,9 +68,9 @@ func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error
 	return updatedValues, nil
 }
 
-//given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
+// given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
 func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup, logger log.Logger, viper *viper.Viper) (map[string]interface{}, error) {
-	//make a deep copy of the live values map
+	// make a deep copy of the live values map
 	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		}
 	}
 
-	//Build config values in order & add them to the template builder
+	// Build config values in order & add them to the template builder
 	var deps depGraph
 	deps.ParseConfigGroup(configGroups)
 	var headNodes []string
@@ -115,7 +115,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 			configItem := configItemsByName[node]
 
 			if !isReadOnly(configItem) {
-				//if item is editable and the live state is valid, skip the rest of this
+				// if item is editable and the live state is valid, skip the rest of this
 				val, ok := updatedValues[node]
 				if ok && val != "" {
 					continue

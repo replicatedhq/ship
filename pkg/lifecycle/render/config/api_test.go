@@ -343,6 +343,63 @@ func TestValidateConfig(t *testing.T) {
 			ExpectedValue: false,
 			Name:          "pass due to readonly type",
 		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+							When:     "false",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "pass due to false when, but not required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							When:     "false",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "pass due to false when",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							When:     "now",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "fail due to valid when",
+		},
 	}
 
 	for _, test := range tests {
