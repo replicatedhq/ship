@@ -370,16 +370,16 @@ func TestValidateConfig(t *testing.T) {
 						{
 							Name:     "alpha",
 							Title:    "alpha value",
-							Required: true,
+							Required: false,
 							Value:    "",
 							Default:  "",
-							When:     "false",
+							When:     "",
 						},
 					},
 				},
 			},
 			ExpectedValue: true,
-			Name:          "pass due to false when",
+			Name:          "pass due to empty when",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -392,13 +392,32 @@ func TestValidateConfig(t *testing.T) {
 							Required: true,
 							Value:    "",
 							Default:  "",
-							When:     "now",
+							When:     `{{repl ConfigOptionEquals "a" "a" }}`,
 						},
 					},
 				},
 			},
 			ExpectedValue: false,
-			Name:          "fail due to valid when",
+			Name:          "fail due to true when",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							When:     `{{repl ConfigOptionEquals "a" "b" }}`,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "pass due to false when",
 		},
 	}
 

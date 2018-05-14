@@ -234,8 +234,22 @@ func ValidateConfig(
 					return true, nil
 				}
 			}
+			// TODO: evaluate WHEN
 		}
 	}
+	return false, nil
+}
+
+func validateRequired(
+	ctx context.Context,
+	configItem *libyaml.ConfigItem,
+) (bool, error) {
+	// TODO
+	return false, nil
+}
+
+func evalWhen() (bool, error) {
+	// TODO
 	return false, nil
 }
 
