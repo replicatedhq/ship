@@ -172,23 +172,10 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, err
 	}
 
-	staticCtx, err := NewStaticContext()
+	builder, err := r.newBuilder(ctx, release.Spec.Config.V1, updatedValues)
 	if err != nil {
 		return resolvedConfig, err
 	}
-
-	newConfigCtx, err := NewConfigContext(
-		r.Viper, r.Logger,
-		release.Spec.Config.V1,
-		updatedValues)
-	if err != nil {
-		return resolvedConfig, err
-	}
-
-	builder := NewBuilder(
-		staticCtx,
-		newConfigCtx,
-	)
 
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
@@ -202,7 +189,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				}
 			}
 
-			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
+			resolvedItem, err := r.resolveConfigItem(ctx, *builder, configItem)
 			if err != nil {
 				return resolvedConfig, err
 			}
@@ -212,7 +199,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		configGroup.Items = resolvedItems
 
-		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, configGroup)
+		resolvedGroup, err := r.resolveConfigGroup(ctx, *builder, configGroup)
 		if err != nil {
 			return resolvedConfig, err
 		}
@@ -223,29 +210,50 @@ func (r *APIConfigRenderer) ResolveConfig(
 	return resolvedConfig, nil
 }
 
-func ValidateConfig(
+func validateConfig(
 	ctx context.Context,
 	resolvedConfig []libyaml.ConfigGroup,
 ) (bool, error) {
 	for _, configGroup := range resolvedConfig {
+		// NOTE: hidden is set if when resolves to false
+		// CHECK THE HIDDEN VALUE ON THE GROUP
+
 		for _, configItem := range configGroup.Items {
-			if isRequired(configItem) && isEmpty(configItem) {
-				if !isReadOnly(configItem) {
-					return true, nil
+			if isRequired(configItem) && !isReadOnly(configItem) {
+				if isEmpty(configItem) {
+					return false, nil
 				}
 			}
-			// TODO: evaluate WHEN
+
+			// NOTE: hidden is set if when resolves to false
+			// CHECK THE HIDDEN VALUE ON THE ITEM
 		}
 	}
-	return false, nil
+	return true, nil
 }
 
-func validateRequired(
+func (r *APIConfigRenderer) newBuilder(
 	ctx context.Context,
-	configItem *libyaml.ConfigItem,
-) (bool, error) {
-	// TODO
-	return false, nil
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) (*Builder, error) {
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return nil, err
+	}
+
+	newConfigCtx, err := NewConfigContext(
+		r.Viper, r.Logger,
+		configGroups, templateContext)
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewBuilder(
+		staticCtx,
+		newConfigCtx,
+	)
+	return &builder, nil
 }
 
 func evalWhen() (bool, error) {
@@ -255,12 +263,14 @@ func evalWhen() (bool, error) {
 
 func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
-	// set all items as hidden
+	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
+	// values in items if when is set
 	builtWhen, err := builder.String(configGroup.When)
 	if err != nil {
 		level.Error(r.Logger).Log("msg", "unable to build 'when' on configgroup", "group_name", configGroup.Name, "err", err)
 		return libyaml.ConfigGroup{}, err
 	}
+	configGroup.When = builtWhen
 
 	if builtWhen != "" {
 		builtWhenBool, err := builder.Bool(builtWhen, true)
@@ -270,7 +280,10 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Buil
 		}
 
 		for _, configItem := range configGroup.Items {
-			configItem.Hidden = !builtWhenBool
+			// if the config group is not hidden, don't override the value in the item
+			if !builtWhenBool {
+				configItem.Hidden = true
+			}
 		}
 	}
 
@@ -330,13 +343,16 @@ func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Build
 
 	// build "hidden" from "when" if it's present
 	if configItem.When != "" {
-		builtWhen, err := builder.Bool(configItem.When, true)
+		builtWhenBool, err := builder.Bool(configItem.When, true)
 		if err != nil {
 			level.Error(r.Logger).Log("msg", "unable to build 'when'", "err", err)
 			return nil, err
 		}
 
-		configItem.Hidden = !builtWhen
+		// don't override the hidden value if the when value is false
+		if !builtWhenBool {
+			configItem.Hidden = true
+		}
 	}
 
 	// build subitems
