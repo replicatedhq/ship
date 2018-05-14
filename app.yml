@@ -12,6 +12,12 @@ assets:
       image: postgres:10.1
       dest: installer/docker/postgres.tar
       source: public
+  - github:
+      repo: github.com/replicatedhq/superbigtool-enterprise
+      ref: aef8fe5afe5af67fe6789fa678fe876fa867fbc
+    path: release/k8s/*.sh
+    dest: ./scripts/
+    private: true
 
 config:
   v1:

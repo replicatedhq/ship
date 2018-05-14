@@ -48,6 +48,18 @@ func isRequired(item *libyaml.ConfigItem) bool {
 	return item.Required
 }
 
+func isHidden(item *libyaml.ConfigItem) bool {
+	return item.Hidden
+}
+
+func isEmpty(item *libyaml.ConfigItem) bool {
+	return item.Value == ""
+}
+
+func hasDefault(item *libyaml.ConfigItem) bool {
+	return item.Default == ""
+}
+
 func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
@@ -225,9 +237,9 @@ func ValidateConfig(
 ) (bool, error) {
 	for _, configGroup := range resolvedConfig {
 		for _, configItem := range configGroup.Items {
-			if configItem.Required && configItem.Value == "" && configItem.Default == "" {
-				if !isReadOnly(configItem) {
-					return true, nil
+			if isRequired(configItem) {
+				if isEmpty(configItem) && !hasDefault(configItem) {
+					return false, nil
 				}
 			}
 		}

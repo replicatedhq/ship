@@ -216,7 +216,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -234,7 +234,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -252,7 +252,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -270,7 +270,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -288,7 +288,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -307,7 +307,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
@@ -326,7 +326,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			Config: []libyaml.ConfigGroup{
-				libyaml.ConfigGroup{
+				{
 					Name: "testing",
 					Items: []*libyaml.ConfigItem{
 						{
