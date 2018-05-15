@@ -295,7 +295,7 @@ func TestHiddenConfigGroup(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := configGroupIsHidden(context.Background(), test.Config)
+			val, err := configGroupIsHidden(test.Config)
 			if test.ExpectErr {
 				req.Error(err)
 				return
@@ -412,7 +412,7 @@ func TestValidateConfigItem(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfigItem(context.Background(), test.Config)
+			val, err := validateConfigItem(test.Config)
 			if test.ExpectErr {
 				req.Error(err)
 				return

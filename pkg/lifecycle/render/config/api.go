@@ -221,13 +221,13 @@ func validateConfig(
 	for _, configGroup := range resolvedConfig {
 		// NOTE: hidden is set if when resolves to false
 
-		if hidden, _ := configGroupIsHidden(ctx, configGroup); hidden {
+		if hidden, _ := configGroupIsHidden(configGroup); hidden {
 			continue
 		}
 
 		for _, configItem := range configGroup.Items {
 
-			if validItem, err := validateConfigItem(ctx, configItem); !validItem {
+			if validItem, err := validateConfigItem(configItem); !validItem {
 				return false, err
 			}
 		}
@@ -236,7 +236,6 @@ func validateConfig(
 }
 
 func configGroupIsHidden(
-	ctx context.Context,
 	configGroup libyaml.ConfigGroup,
 ) (bool, error) {
 	// if all the items in the config group are hidden,
@@ -250,7 +249,6 @@ func configGroupIsHidden(
 }
 
 func validateConfigItem(
-	ctx context.Context,
 	configItem *libyaml.ConfigItem,
 ) (bool, error) {
 	if isRequired(configItem) && !isReadOnly(configItem) {
