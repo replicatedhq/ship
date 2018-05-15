@@ -406,33 +406,6 @@ func TestValidateConfigItem(t *testing.T) {
 			ExpectedValue: true,
 			Name:          "pass due to readonly type",
 		},
-		// {
-		// 	Config: libyaml.ConfigItem{
-		//
-		// 		Name:     "alpha",
-		// 		Title:    "alpha value",
-		// 		Required: true,
-		// 		Value:    "",
-		// 		Default:  "",
-		// 		When:     `{{repl ConfigOptionEquals "a" "a" }}`,
-		// 	},
-		//
-		// 	ExpectedValue: false,
-		// 	Name:          "fail due to true when",
-		// },
-		// {
-		// 	Config: libyaml.ConfigItem{
-		//
-		// 		Name:     "alpha",
-		// 		Title:    "alpha value",
-		// 		Required: true,
-		// 		Value:    "",
-		// 		Default:  "",
-		// 		When:     `{{repl ConfigOptionEquals "a" "b" }}`,
-		// 	},
-		// 	ExpectedValue: true,
-		// 	Name:          "pass due to false when",
-		// },
 	}
 
 	for _, test := range tests {
@@ -736,5 +709,4 @@ func TestValidateConfig(t *testing.T) {
 			req.Equal(test.ExpectedValue, val)
 		})
 	}
-
 }
