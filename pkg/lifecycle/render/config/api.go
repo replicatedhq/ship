@@ -256,11 +256,6 @@ func (r *APIConfigRenderer) newBuilder(
 	return &builder, nil
 }
 
-func evalWhen() (bool, error) {
-	// TODO
-	return false, nil
-}
-
 func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
 	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
