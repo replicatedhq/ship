@@ -451,7 +451,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			level.Error(d.Logger).Log("event", "validateconfig failed", "err", err)
 			c.AbortWithStatus(500)
 			return
-		} else if validationErrors != false {
+		} else if !validationErrors {
 			// do something here and return parseable errors with 400
 			c.AbortWithStatus(400)
 			return
