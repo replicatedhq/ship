@@ -448,7 +448,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item",
+			Name:          "one group one item, not required",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -466,7 +466,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: false,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -484,7 +484,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -503,7 +503,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, not required, hidden, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -522,7 +522,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, not hidden, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -541,7 +541,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: false,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, not hidden, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -560,7 +560,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, not hidden, value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -579,7 +579,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, not required, not hidden, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -598,7 +598,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 			ExpectedValue: true,
-			Name:          "one group one item, required",
+			Name:          "one group one item, required, hidden, value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
