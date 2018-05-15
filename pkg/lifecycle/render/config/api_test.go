@@ -453,7 +453,273 @@ func TestValidateConfigItem(t *testing.T) {
 }
 
 func TestValidateConfig(t *testing.T) {
-	tests := []configTestCase{}
+	tests := []configTestCase{
+		{
+			Config:        []libyaml.ConfigGroup{},
+			ExpectedValue: true,
+			Name:          "empty test",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: false,
+							Value:    "",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: false,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group two items",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group two items, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group two items, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "xyz",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group two items, required",
+		},
+	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
