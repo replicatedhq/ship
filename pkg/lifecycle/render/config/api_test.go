@@ -41,8 +41,16 @@ type configValuesTestCase struct {
 	Name string
 }
 
-type configRequiredTestCase struct {
-	Config        []libyaml.ConfigGroup
+type configGroupHiddenTestCase struct {
+	Config        libyaml.ConfigGroup
+	ExpectedValue bool
+	ExpectErr     bool
+
+	Name string
+}
+
+type configItemRequiredTestCase struct {
+	Config        *libyaml.ConfigItem
 	ExpectedValue bool
 	ExpectErr     bool
 
@@ -207,12 +215,72 @@ func loadAPITestCases(t *testing.T, path string) []apiTestcase {
 	return tests
 }
 
-func TestValidateConfigGroup(t *testing.T) {
-	tests := []configRequiredTestCase{
+func TestHiddenConfigGroup(t *testing.T) {
+	tests := []configGroupHiddenTestCase{
 		{
-			Config:        []libyaml.ConfigGroup{},
-			ExpectedValue: false,
+			Config:        libyaml.ConfigGroup{},
+			ExpectedValue: true,
 			Name:          "empty test",
+		},
+		{
+			Config: libyaml.ConfigGroup{
+				Name: "one hidden item = hidden group",
+				Items: []*libyaml.ConfigItem{
+					{
+						Name:   "alpha",
+						Hidden: true,
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one item, hidden => hidden group",
+		},
+		{
+			Config: libyaml.ConfigGroup{
+				Name: "two hidden items = hidden group",
+				Items: []*libyaml.ConfigItem{
+					{
+						Name:   "alpha",
+						Hidden: true,
+					},
+					{
+						Name:   "beta",
+						Hidden: true,
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "two items, both hidden => hidden group",
+		},
+		{
+			Config: libyaml.ConfigGroup{
+				Name: "one item, not hidden",
+				Items: []*libyaml.ConfigItem{
+					{
+						Name:   "alpha",
+						Hidden: false,
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one item, not hidden => NOT hidden group",
+		},
+		{
+			Config: libyaml.ConfigGroup{
+				Name: "two items, one hidden",
+				Items: []*libyaml.ConfigItem{
+					{
+						Name:   "alpha",
+						Hidden: true,
+					},
+					{
+						Name:   "beta",
+						Hidden: false,
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "two items, one hidden => NOT hidden group",
 		},
 	}
 
@@ -220,7 +288,7 @@ func TestValidateConfigGroup(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfig(context.Background(), test.Config)
+			val, err := configGroupIsHidden(context.Background(), test.Config)
 			if test.ExpectErr {
 				req.Error(err)
 				return
@@ -231,179 +299,129 @@ func TestValidateConfigGroup(t *testing.T) {
 			req.Equal(test.ExpectedValue, val)
 		})
 	}
-
 }
 
-func TestValidateConfig(t *testing.T) {
-	tests := []configRequiredTestCase{
+func TestValidateConfigItem(t *testing.T) {
+	tests := []configItemRequiredTestCase{
 		{
-			Config:        []libyaml.ConfigGroup{},
-			ExpectedValue: false,
+			Config:        &libyaml.ConfigItem{},
+			ExpectedValue: true,
 			Name:          "empty test",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: true,
-							Value:    "",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: true,
+				Value:    "",
+				Default:  "",
 			},
+
 			ExpectedValue: false,
 			Name:          "basic fail",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: false,
-							Value:    "",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: false,
+				Value:    "",
+				Default:  "",
 			},
+
 			ExpectedValue: true,
 			Name:          "basic pass",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: true,
-							Value:    "value",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: true,
+				Value:    "value",
+				Default:  "",
 			},
+
 			ExpectedValue: true,
 			Name:          "pass due to value",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: true,
-							Value:    "",
-							Default:  "default",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: true,
+				Value:    "",
+				Default:  "default",
 			},
 			ExpectedValue: true,
 			Name:          "pass due to default",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: true,
-							Hidden:   true,
-							Value:    "",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: true,
+				Hidden:   true,
+				Value:    "",
+				Default:  "",
 			},
-			ExpectedValue: false,
+			ExpectedValue: true,
 			Name:          "pass due to hidden",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Required: true,
-							ReadOnly: true,
-							Value:    "",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Required: true,
+				ReadOnly: true,
+				Value:    "",
+				Default:  "",
 			},
-			ExpectedValue: false,
+			ExpectedValue: true,
 			Name:          "pass due to readonly set",
 		},
 		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:     "alpha",
-							Title:    "alpha value",
-							Type:     "label",
-							Required: true,
-							Value:    "",
-							Default:  "",
-						},
-					},
-				},
+			Config: &libyaml.ConfigItem{
+
+				Name:     "alpha",
+				Title:    "alpha value",
+				Type:     "label",
+				Required: true,
+				Value:    "",
+				Default:  "",
 			},
-			ExpectedValue: false,
+
+			ExpectedValue: true,
 			Name:          "pass due to readonly type",
 		},
 		// {
-		// 	Config: []libyaml.ConfigGroup{
-		// 		{
-		// 			Name: "testing",
-		// 			Items: []*libyaml.ConfigItem{
-		// 				{
-		// 					Name:     "alpha",
-		// 					Title:    "alpha value",
-		// 					Required: true,
-		// 					Value:    "",
-		// 					Default:  "",
-		// 					When:     `{{repl ConfigOptionEquals "a" "a" }}`,
-		// 				},
-		// 			},
-		// 		},
+		// 	Config: libyaml.ConfigItem{
+		//
+		// 		Name:     "alpha",
+		// 		Title:    "alpha value",
+		// 		Required: true,
+		// 		Value:    "",
+		// 		Default:  "",
+		// 		When:     `{{repl ConfigOptionEquals "a" "a" }}`,
 		// 	},
+		//
 		// 	ExpectedValue: false,
 		// 	Name:          "fail due to true when",
 		// },
 		// {
-		// 	Config: []libyaml.ConfigGroup{
-		// 		{
-		// 			Name: "testing",
-		// 			Items: []*libyaml.ConfigItem{
-		// 				{
-		// 					Name:     "alpha",
-		// 					Title:    "alpha value",
-		// 					Required: true,
-		// 					Value:    "",
-		// 					Default:  "",
-		// 					When:     `{{repl ConfigOptionEquals "a" "b" }}`,
-		// 				},
-		// 			},
-		// 		},
+		// 	Config: libyaml.ConfigItem{
+		//
+		// 		Name:     "alpha",
+		// 		Title:    "alpha value",
+		// 		Required: true,
+		// 		Value:    "",
+		// 		Default:  "",
+		// 		When:     `{{repl ConfigOptionEquals "a" "b" }}`,
 		// 	},
 		// 	ExpectedValue: true,
 		// 	Name:          "pass due to false when",
@@ -414,7 +432,7 @@ func TestValidateConfig(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfig(context.Background(), test.Config)
+			val, err := validateConfigItem(context.Background(), test.Config)
 			if test.ExpectErr {
 				req.Error(err)
 				return

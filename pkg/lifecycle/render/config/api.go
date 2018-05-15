@@ -52,6 +52,10 @@ func isEmpty(item *libyaml.ConfigItem) bool {
 	return item.Value == "" && item.Default == ""
 }
 
+func isHidden(item *libyaml.ConfigItem) bool {
+	return item.Hidden
+}
+
 func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
@@ -218,11 +222,16 @@ func validateConfig(
 		// NOTE: hidden is set if when resolves to false
 		// CHECK THE HIDDEN VALUE ON THE GROUP
 
+		hidden, _ := configGroupIsHidden(ctx, configGroup)
+		if hidden {
+			continue
+		}
+
 		for _, configItem := range configGroup.Items {
-			if isRequired(configItem) && !isReadOnly(configItem) {
-				if isEmpty(configItem) {
-					return false, nil
-				}
+
+			ok, err := validateConfigItem(ctx, configItem)
+			if !ok {
+				return false, err
 			}
 
 			// NOTE: hidden is set if when resolves to false
@@ -230,6 +239,33 @@ func validateConfig(
 		}
 	}
 	return true, nil
+}
+
+func configGroupIsHidden(
+	ctx context.Context,
+	configGroup libyaml.ConfigGroup,
+) (bool, error) {
+	// if all the items in the config group are hidden,
+	// we know when is set. thus config group is hidden
+	for _, configItem := range configGroup.Items {
+		if !isHidden(configItem) {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+func validateConfigItem(
+	ctx context.Context,
+	configItem *libyaml.ConfigItem,
+) (bool, error) {
+	if isRequired(configItem) && !isReadOnly(configItem) {
+		if isEmpty(configItem) {
+			return false, nil
+		}
+	}
+	return true, nil
+	// TODO : expanded implementation: return list of error messages
 }
 
 func (r *APIConfigRenderer) newBuilder(
