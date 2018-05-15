@@ -215,11 +215,10 @@ func (r *APIConfigRenderer) ResolveConfig(
 }
 
 func validateConfig(
-	ctx context.Context,
 	resolvedConfig []libyaml.ConfigGroup,
 ) (bool, error) {
 	for _, configGroup := range resolvedConfig {
-		// NOTE: hidden is set if when resolves to false
+		// hidden is set if when resolves to false
 
 		if hidden, _ := configGroupIsHidden(configGroup); hidden {
 			continue
@@ -257,7 +256,6 @@ func validateConfigItem(
 		}
 	}
 	return true, nil
-	// TODO : expanded implementation: return list of error messages
 }
 
 func (r *APIConfigRenderer) newBuilder(
