@@ -356,8 +356,6 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
 		}
 
-		fmt.Println("***SAVED STATE", savedStateMergedWithLiveValues)
-
 		resolver := &APIConfigRenderer{
 			Logger: d.Logger,
 			Viper:  d.Viper,
