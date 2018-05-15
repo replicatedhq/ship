@@ -220,22 +220,16 @@ func validateConfig(
 ) (bool, error) {
 	for _, configGroup := range resolvedConfig {
 		// NOTE: hidden is set if when resolves to false
-		// CHECK THE HIDDEN VALUE ON THE GROUP
 
-		hidden, _ := configGroupIsHidden(ctx, configGroup)
-		if hidden {
+		if hidden, _ := configGroupIsHidden(ctx, configGroup); hidden {
 			continue
 		}
 
 		for _, configItem := range configGroup.Items {
 
-			ok, err := validateConfigItem(ctx, configItem)
-			if !ok {
+			if validItem, err := validateConfigItem(ctx, configItem); !validItem {
 				return false, err
 			}
-
-			// NOTE: hidden is set if when resolves to false
-			// CHECK THE HIDDEN VALUE ON THE ITEM
 		}
 	}
 	return true, nil
