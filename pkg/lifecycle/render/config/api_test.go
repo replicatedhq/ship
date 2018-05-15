@@ -56,6 +56,13 @@ type configItemRequiredTestCase struct {
 
 	Name string
 }
+type configTestCase struct {
+	Config        []libyaml.ConfigGroup
+	ExpectedValue bool
+	ExpectErr     bool
+
+	Name string
+}
 
 func TestAPIResolver(t *testing.T) {
 	ctx := context.Background()
@@ -443,4 +450,25 @@ func TestValidateConfigItem(t *testing.T) {
 			req.Equal(test.ExpectedValue, val)
 		})
 	}
+}
+
+func TestValidateConfig(t *testing.T) {
+	tests := []configTestCase{}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
+
+			val, err := validateConfig(context.Background(), test.Config)
+			if test.ExpectErr {
+				req.Error(err)
+				return
+			} else {
+				req.NoError(err)
+			}
+
+			req.Equal(test.ExpectedValue, val)
+		})
+	}
+
 }
