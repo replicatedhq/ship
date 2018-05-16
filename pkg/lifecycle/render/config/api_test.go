@@ -51,14 +51,14 @@ type configGroupHiddenTestCase struct {
 
 type configItemRequiredTestCase struct {
 	Config        *libyaml.ConfigItem
-	ExpectedValue string
+	ExpectedValue ValidationError
 	ExpectErr     bool
 
 	Name string
 }
 type configTestCase struct {
 	Config        []libyaml.ConfigGroup
-	ExpectedValue []string
+	ExpectedValue []ValidationError
 	ExpectErr     bool
 
 	Name string
@@ -295,13 +295,7 @@ func TestHiddenConfigGroup(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := configGroupIsHidden(test.Config)
-			if test.ExpectErr {
-				req.Error(err)
-				return
-			} else {
-				req.NoError(err)
-			}
+			val := configGroupIsHidden(test.Config)
 
 			req.Equal(test.ExpectedValue, val)
 		})
@@ -312,7 +306,7 @@ func TestValidateConfigItem(t *testing.T) {
 	tests := []configItemRequiredTestCase{
 		{
 			Config:        &libyaml.ConfigItem{},
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "empty test",
 		},
 		{
@@ -325,8 +319,12 @@ func TestValidateConfigItem(t *testing.T) {
 				Default:  "",
 			},
 
-			ExpectedValue: "Config item alpha is required",
-			Name:          "basic fail",
+			ExpectedValue: ValidationError{
+				Message: "Config item alpha is required",
+				Name:    "MISSING_REQUIRED_VALUE",
+				Error:   true,
+			},
+			Name: "basic fail",
 		},
 		{
 			Config: &libyaml.ConfigItem{
@@ -338,7 +336,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Default:  "",
 			},
 
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "basic pass",
 		},
 		{
@@ -351,7 +349,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Default:  "",
 			},
 
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "pass due to value",
 		},
 		{
@@ -363,7 +361,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Value:    "",
 				Default:  "default",
 			},
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "pass due to default",
 		},
 		{
@@ -376,7 +374,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Value:    "",
 				Default:  "",
 			},
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "pass due to hidden",
 		},
 		{
@@ -389,7 +387,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Value:    "",
 				Default:  "",
 			},
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "pass due to readonly set",
 		},
 		{
@@ -403,7 +401,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Default:  "",
 			},
 
-			ExpectedValue: "",
+			ExpectedValue: ValidationError{Message: "", Name: "", Error: false},
 			Name:          "pass due to readonly type",
 		},
 	}
@@ -412,13 +410,7 @@ func TestValidateConfigItem(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfigItem(test.Config)
-			if test.ExpectErr {
-				req.Error(err)
-				return
-			} else {
-				req.NoError(err)
-			}
+			val := validateConfigItem(test.Config)
 
 			req.Equal(test.ExpectedValue, val)
 		})
@@ -429,7 +421,7 @@ func TestValidateConfig(t *testing.T) {
 	tests := []configTestCase{
 		{
 			Config:        []libyaml.ConfigGroup{},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "empty test",
 		},
 		{
@@ -447,7 +439,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, not required",
 		},
 		{
@@ -465,8 +457,14 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string{"Config item alpha is required"},
-			Name:          "one group one item, required, no value",
+			ExpectedValue: []ValidationError{
+				{
+					Message: "Config item alpha is required",
+					Name:    "MISSING_REQUIRED_VALUE",
+					Error:   true,
+				},
+			},
+			Name: "one group one item, required, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -483,7 +481,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, required, value",
 		},
 		{
@@ -502,7 +500,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, not required, hidden, no value",
 		},
 		{
@@ -521,7 +519,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, required, not hidden, no value",
 		},
 		{
@@ -540,8 +538,14 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string{"Config item alpha is required"},
-			Name:          "one group one item, required, not hidden, no value",
+			ExpectedValue: []ValidationError{
+				{
+					Message: "Config item alpha is required",
+					Name:    "MISSING_REQUIRED_VALUE",
+					Error:   true,
+				},
+			},
+			Name: "one group one item, required, not hidden, no value",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -559,7 +563,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, required, not hidden, value",
 		},
 		{
@@ -578,7 +582,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, not required, not hidden, no value",
 		},
 		{
@@ -597,7 +601,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group one item, required, hidden, value",
 		},
 		{
@@ -620,7 +624,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group two items",
 		},
 		{
@@ -643,8 +647,19 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string{"Config item alpha is required", "Config item beta is required"},
-			Name:          "one group two items, required",
+			ExpectedValue: []ValidationError{
+				{
+					Message: "Config item alpha is required",
+					Name:    "MISSING_REQUIRED_VALUE",
+					Error:   true,
+				},
+				{
+					Message: "Config item beta is required",
+					Name:    "MISSING_REQUIRED_VALUE",
+					Error:   true,
+				},
+			},
+			Name: "one group two items, required",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -666,8 +681,14 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string{"Config item beta is required"},
-			Name:          "one group two items, required",
+			ExpectedValue: []ValidationError{
+				{
+					Message: "Config item beta is required",
+					Name:    "MISSING_REQUIRED_VALUE",
+					Error:   true,
+				},
+			},
+			Name: "one group two items, required",
 		},
 		{
 			Config: []libyaml.ConfigGroup{
@@ -689,7 +710,7 @@ func TestValidateConfig(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []string(nil),
+			ExpectedValue: []ValidationError(nil),
 			Name:          "one group two items, required",
 		},
 	}
@@ -698,13 +719,7 @@ func TestValidateConfig(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfig(test.Config)
-			if test.ExpectErr {
-				req.Error(err)
-				return
-			} else {
-				req.NoError(err)
-			}
+			val := validateConfig(test.Config)
 
 			req.Equal(test.ExpectedValue, val)
 		})

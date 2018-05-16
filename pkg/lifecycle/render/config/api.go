@@ -22,6 +22,12 @@ type APIConfigRenderer struct {
 	Viper  *viper.Viper
 }
 
+type ValidationError struct {
+	Message string `json:"message"`
+	Name    string `json:"name"`
+	Error   bool
+}
+
 func isReadOnly(item *libyaml.ConfigItem) bool {
 	if item.ReadOnly || item.Hidden {
 		return true
@@ -216,48 +222,50 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 func validateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
-) ([]string, error) {
-	var multiErrors []string
+) []ValidationError {
+	var validationErrs []ValidationError
 	for _, configGroup := range resolvedConfig {
 		// hidden is set if when resolves to false
 
-		if hidden, _ := configGroupIsHidden(configGroup); hidden {
+		if hidden := configGroupIsHidden(configGroup); hidden {
 			continue
 		}
 
 		for _, configItem := range configGroup.Items {
 
-			if validItem, _ := validateConfigItem(configItem); validItem != "" {
-				multiErrors = append(multiErrors, validItem)
+			if invalidItem := validateConfigItem(configItem); invalidItem.Error {
+				validationErrs = append(validationErrs, invalidItem)
 			}
 		}
 	}
-	return multiErrors, nil
+	return validationErrs
 }
 
 func configGroupIsHidden(
 	configGroup libyaml.ConfigGroup,
-) (bool, error) {
+) bool {
 	// if all the items in the config group are hidden,
 	// we know when is set. thus config group is hidden
 	for _, configItem := range configGroup.Items {
 		if !isHidden(configItem) {
-			return false, nil
+			return false
 		}
 	}
-	return true, nil
+	return true
 }
 
 func validateConfigItem(
 	configItem *libyaml.ConfigItem,
-) (string, error) {
-	errMsg := ""
+) ValidationError {
+	var validationErr ValidationError
 	if isRequired(configItem) && !isReadOnly(configItem) {
 		if isEmpty(configItem) {
-			errMsg = fmt.Sprintf("Config item %s is required", configItem.Name)
+			validationErr.Message = fmt.Sprintf("Config item %s is required", configItem.Name)
+			validationErr.Name = "MISSING_REQUIRED_VALUE"
+			validationErr.Error = true
 		}
 	}
-	return errMsg, nil
+	return validationErr
 }
 
 func (r *APIConfigRenderer) newBuilder(
