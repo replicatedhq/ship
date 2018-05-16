@@ -320,8 +320,9 @@ func TestValidateConfigItem(t *testing.T) {
 			},
 
 			ExpectedValue: &ValidationError{
-				Message: "Config item alpha is required",
-				Name:    "MISSING_REQUIRED_VALUE",
+				Message:   "Config item alpha is required",
+				Name:      "alpha",
+				ErrorCode: "MISSING_REQUIRED_VALUE",
 			},
 			Name: "basic fail",
 		},
@@ -458,8 +459,9 @@ func TestValidateConfig(t *testing.T) {
 			},
 			ExpectedValue: []*ValidationError{
 				{
-					Message: "Config item alpha is required",
-					Name:    "MISSING_REQUIRED_VALUE",
+					Message:   "Config item alpha is required",
+					Name:      "alpha",
+					ErrorCode: "MISSING_REQUIRED_VALUE",
 				},
 			},
 			Name: "one group one item, required, no value",
@@ -538,8 +540,9 @@ func TestValidateConfig(t *testing.T) {
 			},
 			ExpectedValue: []*ValidationError{
 				{
-					Message: "Config item alpha is required",
-					Name:    "MISSING_REQUIRED_VALUE",
+					Message:   "Config item alpha is required",
+					Name:      "alpha",
+					ErrorCode: "MISSING_REQUIRED_VALUE",
 				},
 			},
 			Name: "one group one item, required, not hidden, no value",
@@ -646,12 +649,14 @@ func TestValidateConfig(t *testing.T) {
 			},
 			ExpectedValue: []*ValidationError{
 				{
-					Message: "Config item alpha is required",
-					Name:    "MISSING_REQUIRED_VALUE",
+					Message:   "Config item alpha is required",
+					Name:      "alpha",
+					ErrorCode: "MISSING_REQUIRED_VALUE",
 				},
 				{
-					Message: "Config item beta is required",
-					Name:    "MISSING_REQUIRED_VALUE",
+					Message:   "Config item beta is required",
+					Name:      "beta",
+					ErrorCode: "MISSING_REQUIRED_VALUE",
 				},
 			},
 			Name: "one group two items, required",
@@ -678,8 +683,9 @@ func TestValidateConfig(t *testing.T) {
 			},
 			ExpectedValue: []*ValidationError{
 				{
-					Message: "Config item beta is required",
-					Name:    "MISSING_REQUIRED_VALUE",
+					Message:   "Config item beta is required",
+					Name:      "beta",
+					ErrorCode: "MISSING_REQUIRED_VALUE",
 				},
 			},
 			Name: "one group two items, required",

@@ -23,8 +23,9 @@ type APIConfigRenderer struct {
 }
 
 type ValidationError struct {
-	Message string `json:"message"`
-	Name    string `json:"name"`
+	Message   string `json:"message"`
+	Name      string `json:"name"`
+	ErrorCode string `json:"errorCode"`
 }
 
 func isReadOnly(item *libyaml.ConfigItem) bool {
@@ -260,8 +261,9 @@ func validateConfigItem(
 	if isRequired(configItem) && !isReadOnly(configItem) {
 		if isEmpty(configItem) {
 			validationErr = &ValidationError{
-				Message: fmt.Sprintf("Config item %s is required", configItem.Name),
-				Name:    "MISSING_REQUIRED_VALUE",
+				Message:   fmt.Sprintf("Config item %s is required", configItem.Name),
+				Name:      configItem.Name,
+				ErrorCode: "MISSING_REQUIRED_VALUE",
 			}
 		}
 	}
