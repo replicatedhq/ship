@@ -22,6 +22,10 @@ type APIConfigRenderer struct {
 	Viper  *viper.Viper
 }
 
+type MultiError struct {
+	Errors []string
+}
+
 func isReadOnly(item *libyaml.ConfigItem) bool {
 	if item.ReadOnly || item.Hidden {
 		return true
@@ -216,7 +220,8 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 func validateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
-) (bool, error) {
+) ([]string, error) {
+	var multiErrors []string
 	for _, configGroup := range resolvedConfig {
 		// hidden is set if when resolves to false
 
@@ -226,12 +231,12 @@ func validateConfig(
 
 		for _, configItem := range configGroup.Items {
 
-			if validItem, err := validateConfigItem(configItem); !validItem {
-				return false, err
+			if validItem, _ := validateConfigItem(configItem); validItem != "" {
+				multiErrors = append(multiErrors, validItem)
 			}
 		}
 	}
-	return true, nil
+	return multiErrors, nil
 }
 
 func configGroupIsHidden(
@@ -249,13 +254,14 @@ func configGroupIsHidden(
 
 func validateConfigItem(
 	configItem *libyaml.ConfigItem,
-) (bool, error) {
+) (string, error) {
+	errMsg := ""
 	if isRequired(configItem) && !isReadOnly(configItem) {
 		if isEmpty(configItem) {
-			return false, nil
+			errMsg = fmt.Sprintf("Config item %s is required", configItem.Name)
 		}
 	}
-	return true, nil
+	return errMsg, nil
 }
 
 func (r *APIConfigRenderer) newBuilder(
