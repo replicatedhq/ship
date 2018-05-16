@@ -16,6 +16,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const MissingRequiredValue = "MISSING_REQUIRED_VALUE"
+
 // APIConfigRenderer resolves config values via API
 type APIConfigRenderer struct {
 	Logger log.Logger
@@ -25,7 +27,7 @@ type APIConfigRenderer struct {
 type ValidationError struct {
 	Message   string `json:"message"`
 	Name      string `json:"name"`
-	ErrorCode string `json:"errorCode"`
+	ErrorCode string `json:"error_code"`
 }
 
 func isReadOnly(item *libyaml.ConfigItem) bool {
@@ -263,7 +265,7 @@ func validateConfigItem(
 			validationErr = &ValidationError{
 				Message:   fmt.Sprintf("Config item %s is required", configItem.Name),
 				Name:      configItem.Name,
-				ErrorCode: "MISSING_REQUIRED_VALUE",
+				ErrorCode: MissingRequiredValue,
 			}
 		}
 	}
