@@ -22,10 +22,6 @@ type APIConfigRenderer struct {
 	Viper  *viper.Viper
 }
 
-type MultiError struct {
-	Errors []string
-}
-
 func isReadOnly(item *libyaml.ConfigItem) bool {
 	if item.ReadOnly || item.Hidden {
 		return true
