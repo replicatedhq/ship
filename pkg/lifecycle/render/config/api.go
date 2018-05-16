@@ -25,7 +25,6 @@ type APIConfigRenderer struct {
 type ValidationError struct {
 	Message string `json:"message"`
 	Name    string `json:"name"`
-	Error   bool
 }
 
 func isReadOnly(item *libyaml.ConfigItem) bool {
@@ -222,8 +221,8 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 func validateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
-) []ValidationError {
-	var validationErrs []ValidationError
+) []*ValidationError {
+	var validationErrs []*ValidationError
 	for _, configGroup := range resolvedConfig {
 		// hidden is set if when resolves to false
 
@@ -233,7 +232,7 @@ func validateConfig(
 
 		for _, configItem := range configGroup.Items {
 
-			if invalidItem := validateConfigItem(configItem); invalidItem.Error {
+			if invalidItem := validateConfigItem(configItem); invalidItem != nil {
 				validationErrs = append(validationErrs, invalidItem)
 			}
 		}
@@ -256,13 +255,14 @@ func configGroupIsHidden(
 
 func validateConfigItem(
 	configItem *libyaml.ConfigItem,
-) ValidationError {
-	var validationErr ValidationError
+) *ValidationError {
+	var validationErr *ValidationError
 	if isRequired(configItem) && !isReadOnly(configItem) {
 		if isEmpty(configItem) {
-			validationErr.Message = fmt.Sprintf("Config item %s is required", configItem.Name)
-			validationErr.Name = "MISSING_REQUIRED_VALUE"
-			validationErr.Error = true
+			validationErr = &ValidationError{
+				Message: fmt.Sprintf("Config item %s is required", configItem.Name),
+				Name:    "MISSING_REQUIRED_VALUE",
+			}
 		}
 	}
 	return validationErr
