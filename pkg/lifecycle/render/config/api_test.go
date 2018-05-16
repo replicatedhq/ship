@@ -698,7 +698,7 @@ func TestValidateConfig(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val, err := validateConfig(context.Background(), test.Config)
+			val, err := validateConfig(test.Config)
 			if test.ExpectErr {
 				req.Error(err)
 				return
