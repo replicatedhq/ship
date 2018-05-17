@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"os"
+	"path/filepath"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -13,6 +16,8 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
+
+const Release = ".ship/release.yml"
 
 // Selector selects a spec from the Vendor's releases and channels.
 // See pkg/cli/root.go for some more info on which are required and why.
@@ -98,11 +103,30 @@ func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
 	}
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
+
+	if err := r.persistStudioSpec(specYAML); err != nil {
+		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
+	}
+	debug.Log("phase", "write-yaml", "from", r.StudioFile, "write-location", Release)
+
 	return &ShipRelease{
 		Spec:        string(specYAML),
 		ChannelName: r.StudioChannelName,
 		ChannelIcon: r.StudioChannelIcon,
 	}, nil
+}
+
+// persistStudioSpec persists last-used YAML to disk at .ship/release.yml
+func (r *Resolver) persistStudioSpec(specYAML []byte) error {
+	if err := os.MkdirAll(filepath.Dir(Release), 0700); err != nil {
+		return errors.Wrap(err, "mkdir yaml")
+	}
+
+	if err := ioutil.WriteFile(Release, specYAML, 0644); err != nil {
+		return errors.Wrap(err, "write yaml file")
+	}
+
+	return nil
 }
 
 func (r *Resolver) resolveCloudRelease(customerID string) (*ShipRelease, error) {
