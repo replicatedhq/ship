@@ -16,10 +16,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+const MissingRequiredValue = "MISSING_REQUIRED_VALUE"
+
 // APIConfigRenderer resolves config values via API
 type APIConfigRenderer struct {
 	Logger log.Logger
 	Viper  *viper.Viper
+}
+
+type ValidationError struct {
+	Message   string `json:"message"`
+	Name      string `json:"name"`
+	ErrorCode string `json:"error_code"`
 }
 
 func isReadOnly(item *libyaml.ConfigItem) bool {
@@ -27,7 +35,7 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 		return true
 	}
 
-	//"" is an editable type because the default type is "text"
+	// "" is an editable type because the default type is "text"
 	var EditableItemTypes = map[string]struct{}{
 		"":            {},
 		"bool":        {},
@@ -42,6 +50,18 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 
 	_, editable := EditableItemTypes[item.Type]
 	return !editable
+}
+
+func isRequired(item *libyaml.ConfigItem) bool {
+	return item.Required
+}
+
+func isEmpty(item *libyaml.ConfigItem) bool {
+	return item.Value == "" && item.Default == ""
+}
+
+func isHidden(item *libyaml.ConfigItem) bool {
+	return item.Hidden
 }
 
 func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error) {
@@ -60,9 +80,9 @@ func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error
 	return updatedValues, nil
 }
 
-//given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
+// given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
 func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup, logger log.Logger, viper *viper.Viper) (map[string]interface{}, error) {
-	//make a deep copy of the live values map
+	// make a deep copy of the live values map
 	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
 		return nil, err
@@ -93,7 +113,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		}
 	}
 
-	//Build config values in order & add them to the template builder
+	// Build config values in order & add them to the template builder
 	var deps depGraph
 	deps.ParseConfigGroup(configGroups)
 	var headNodes []string
@@ -107,7 +127,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 			configItem := configItemsByName[node]
 
 			if !isReadOnly(configItem) {
-				//if item is editable and the live state is valid, skip the rest of this
+				// if item is editable and the live state is valid, skip the rest of this
 				val, ok := updatedValues[node]
 				if ok && val != "" {
 					continue
@@ -164,23 +184,10 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, err
 	}
 
-	staticCtx, err := NewStaticContext()
+	builder, err := r.newBuilder(ctx, release.Spec.Config.V1, updatedValues)
 	if err != nil {
 		return resolvedConfig, err
 	}
-
-	newConfigCtx, err := NewConfigContext(
-		r.Viper, r.Logger,
-		release.Spec.Config.V1,
-		updatedValues)
-	if err != nil {
-		return resolvedConfig, err
-	}
-
-	builder := NewBuilder(
-		staticCtx,
-		newConfigCtx,
-	)
 
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
@@ -194,7 +201,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				}
 			}
 
-			resolvedItem, err := r.resolveConfigItem(ctx, builder, configItem)
+			resolvedItem, err := r.resolveConfigItem(ctx, *builder, configItem)
 			if err != nil {
 				return resolvedConfig, err
 			}
@@ -204,7 +211,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		configGroup.Items = resolvedItems
 
-		resolvedGroup, err := r.resolveConfigGroup(ctx, builder, configGroup)
+		resolvedGroup, err := r.resolveConfigGroup(ctx, *builder, configGroup)
 		if err != nil {
 			return resolvedConfig, err
 		}
@@ -215,23 +222,90 @@ func (r *APIConfigRenderer) ResolveConfig(
 	return resolvedConfig, nil
 }
 
-func (r *APIConfigRenderer) ValidateConfig(
-	ctx context.Context,
-	release *api.Release,
+func validateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
-) (interface{}, error) {
-	// FILL ME IN
-	return nil, nil
+) []*ValidationError {
+	var validationErrs []*ValidationError
+	for _, configGroup := range resolvedConfig {
+		// hidden is set if when resolves to false
+
+		if hidden := configGroupIsHidden(configGroup); hidden {
+			continue
+		}
+
+		for _, configItem := range configGroup.Items {
+
+			if invalidItem := validateConfigItem(configItem); invalidItem != nil {
+				validationErrs = append(validationErrs, invalidItem)
+			}
+		}
+	}
+	return validationErrs
+}
+
+func configGroupIsHidden(
+	configGroup libyaml.ConfigGroup,
+) bool {
+	// if all the items in the config group are hidden,
+	// we know when is set. thus config group is hidden
+	for _, configItem := range configGroup.Items {
+		if !isHidden(configItem) {
+			return false
+		}
+	}
+	return true
+}
+
+func validateConfigItem(
+	configItem *libyaml.ConfigItem,
+) *ValidationError {
+	var validationErr *ValidationError
+	if isRequired(configItem) && !isReadOnly(configItem) {
+		if isEmpty(configItem) {
+			validationErr = &ValidationError{
+				Message:   fmt.Sprintf("Config item %s is required", configItem.Name),
+				Name:      configItem.Name,
+				ErrorCode: MissingRequiredValue,
+			}
+		}
+	}
+	return validationErr
+}
+
+func (r *APIConfigRenderer) newBuilder(
+	ctx context.Context,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) (*Builder, error) {
+	staticCtx, err := NewStaticContext()
+	if err != nil {
+		return nil, err
+	}
+
+	newConfigCtx, err := NewConfigContext(
+		r.Viper, r.Logger,
+		configGroups, templateContext)
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewBuilder(
+		staticCtx,
+		newConfigCtx,
+	)
+	return &builder, nil
 }
 
 func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
-	// set all items as hidden
+	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
+	// values in items if when is set
 	builtWhen, err := builder.String(configGroup.When)
 	if err != nil {
 		level.Error(r.Logger).Log("msg", "unable to build 'when' on configgroup", "group_name", configGroup.Name, "err", err)
 		return libyaml.ConfigGroup{}, err
 	}
+	configGroup.When = builtWhen
 
 	if builtWhen != "" {
 		builtWhenBool, err := builder.Bool(builtWhen, true)
@@ -241,7 +315,10 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Buil
 		}
 
 		for _, configItem := range configGroup.Items {
-			configItem.Hidden = !builtWhenBool
+			// if the config group is not hidden, don't override the value in the item
+			if !builtWhenBool {
+				configItem.Hidden = true
+			}
 		}
 	}
 
@@ -301,13 +378,16 @@ func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Build
 
 	// build "hidden" from "when" if it's present
 	if configItem.When != "" {
-		builtWhen, err := builder.Bool(configItem.When, true)
+		builtWhenBool, err := builder.Bool(configItem.When, true)
 		if err != nil {
 			level.Error(r.Logger).Log("msg", "unable to build 'when'", "err", err)
 			return nil, err
 		}
 
-		configItem.Hidden = !builtWhen
+		// don't override the hidden value if the when value is false
+		if !builtWhenBool {
+			configItem.Hidden = true
+		}
 	}
 
 	// build subitems

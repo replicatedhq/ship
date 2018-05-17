@@ -446,14 +446,8 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		validationErrors, err := resolver.ValidateConfig(c, release, resolvedConfig)
-		if err != nil {
-			level.Error(d.Logger).Log("event", "validateconfig failed", "err", err)
-			c.AbortWithStatus(500)
-			return
-		} else if validationErrors != nil {
-			// do something here and return parseable errors with 400
-			c.AbortWithStatus(400)
+		if validationErrors := validateConfig(resolvedConfig); validationErrors != nil {
+			c.AbortWithStatusJSON(400, validationErrors)
 			return
 		}
 
