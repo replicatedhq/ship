@@ -9,6 +9,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedcom/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -58,11 +59,6 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
-			staticCtx, err := config.NewStaticContext()
-			if err != nil {
-				return errors.Wrap(err, "getting static context")
-			}
-
 			configCtx, err := config.NewConfigContext(
 				p.Viper, p.Logger,
 				configGroups, templateContext)
@@ -70,8 +66,8 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 				return errors.Wrap(err, "getting config context")
 			}
 
-			builder := config.NewBuilder(
-				staticCtx,
+			builder := templates.NewBuilder(
+				templates.NewStaticContext(),
 				configCtx,
 			)
 

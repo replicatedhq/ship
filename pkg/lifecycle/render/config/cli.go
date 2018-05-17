@@ -12,6 +12,8 @@ import (
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
+
+	"github.com/replicatedcom/ship/pkg/templates"
 )
 
 var _ Resolver = &CLIResolver{}
@@ -38,11 +40,6 @@ func (c *CLIResolver) ResolveConfig(
 
 	c.Viper.Unmarshal(&templateContext)
 
-	staticCtx, err := NewStaticContext()
-	if err != nil {
-		return nil, err
-	}
-
 	configCtx, err := NewConfigContext(
 		c.Viper, c.Logger,
 		release.Spec.Config.V1, templateContext,
@@ -51,8 +48,8 @@ func (c *CLIResolver) ResolveConfig(
 		return nil, err
 	}
 
-	builder := NewBuilder(
-		staticCtx,
+	builder := templates.NewBuilder(
+		templates.NewStaticContext(),
 		configCtx,
 	)
 
@@ -90,7 +87,7 @@ func (c *CLIResolver) ResolveConfig(
 	return templateContext, nil
 }
 
-func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, builder Builder, configItem *libyaml.ConfigItem) interface{} {
+func (c *CLIResolver) resolveCurrentValue(templateContext map[string]interface{}, builder templates.Builder, configItem *libyaml.ConfigItem) interface{} {
 	debug := log.With(level.Debug(c.Logger), "func", "resolve-current", "config-item", configItem.Name)
 
 	// check env first

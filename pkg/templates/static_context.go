@@ -1,4 +1,4 @@
-package config
+package templates
 
 /*
   This was taken from https://github.com/replicatedcom/replicated/blob/master/templates/context.go
@@ -19,11 +19,11 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
-func NewStaticContext() (*StaticCtx, error) {
+func NewStaticContext() *StaticCtx {
 	staticCtx := &StaticCtx{
 		Logger: log.NewLogfmtLogger(os.Stderr),
 	}
-	return staticCtx, nil
+	return staticCtx
 }
 
 type Ctx interface {
