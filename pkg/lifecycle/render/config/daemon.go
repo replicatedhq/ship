@@ -125,7 +125,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		errChan <- server.ListenAndServe()
 	}()
 
-	uiPort := 8025
+	uiPort := 8800
 	d.UI.Info(fmt.Sprintf(
 		"Please visit the following URL in your browser to continue the installation\n\n        http://localhost:%d\n\n ",
 		uiPort, // todo param this

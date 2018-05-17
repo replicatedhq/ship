@@ -15,5 +15,5 @@ services:
   console:
     image: replicated/ship-console:alpha
     ports:
-      - 8025:80
+      - 8800:80
 
