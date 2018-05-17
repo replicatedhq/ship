@@ -53,6 +53,10 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 	return !editable
 }
 
+func shouldWriteDefault(item *libyaml.ConfigItem) bool {
+	return item.Hidden && item.Value == "" && item.Default != ""
+}
+
 func isRequired(item *libyaml.ConfigItem) bool {
 	return item.Required
 }
@@ -172,6 +176,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 func (r *APIConfigRenderer) ResolveConfig(
 	ctx context.Context,
 	release *api.Release,
+	savedState map[string]interface{},
 	liveValues map[string]interface{},
 ) ([]libyaml.ConfigGroup, error) {
 	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
@@ -189,15 +194,27 @@ func (r *APIConfigRenderer) ResolveConfig(
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
+
+			if val, ok := savedState[configItem.Name]; ok {
+				newval := fmt.Sprintf("%v", val)
+				if newval != "" {
+					configItem.Value = newval
+				}
+			}
+
 			if !isReadOnly(configItem) {
 				if val, ok := liveValues[configItem.Name]; ok {
 					configItem.Value = fmt.Sprintf("%v", val)
 				}
 			}
 
-			resolvedItem, err := r.resolveConfigItem(ctx, *builder, configItem)
+			resolvedItem, err := r.applyConfigItemFieldTemplates(ctx, *builder, configItem)
 			if err != nil {
 				return resolvedConfig, err
+			}
+
+			if shouldWriteDefault(configItem) {
+				configItem.Value = configItem.Default
 			}
 
 			resolvedItems = append(resolvedItems, resolvedItem)
@@ -205,7 +222,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		configGroup.Items = resolvedItems
 
-		resolvedGroup, err := r.resolveConfigGroup(ctx, *builder, configGroup)
+		resolvedGroup, err := r.applyConfigGroupFieldTemplates(ctx, *builder, configGroup)
 		if err != nil {
 			return resolvedConfig, err
 		}
@@ -285,9 +302,9 @@ func (r *APIConfigRenderer) newBuilder(
 	return &builder, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
+func (r *APIConfigRenderer) applyConfigGroupFieldTemplates(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
-	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
+	// set all items as hidden. this is called after applyConfigItemFieldTemplates and will override all hidden
 	// values in items if when is set
 	builtWhen, err := builder.String(configGroup.When)
 	if err != nil {
@@ -314,7 +331,7 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder temp
 	return configGroup, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
 	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {

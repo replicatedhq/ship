@@ -6,6 +6,8 @@ assets:
       contents: |
         #!/bin/sh
         kubectl delete ns {{repl ConfigOption "namespace" }}
+
+        echo something random is {{repl ConfigOption "always_the_same"}}
       dest: ./installer/scripts/uninstall.sh
       mode: 0777
   - docker:
@@ -15,8 +17,8 @@ assets:
 
 config:
   v1:
-    - name: cluster_info
-      title: Kubernetes Cluster Info
+    - name: random-demo
+      title:
       description: information about your kubernetes cluster
       items:
       - name: namespace
@@ -25,6 +27,11 @@ config:
       - name: worker_replicas
         title: Number of Workers to Deploy
         type: text
+      - name: always_the_same
+        title: Number of Workers to Deploy
+        type: text
+        hidden: true
+        default: '{{repl RandomString 25}}'
 
 lifecycle:
   v1:

@@ -344,16 +344,18 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		stateManager := state.StateManager{
 			Logger: d.Logger,
 		}
+
 		debug.Log("event", "state.tryLoad")
-		savedStateMergedWithLiveValues, err := stateManager.TryLoad()
+		savedSate, err := stateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
 			return
 		}
 
+		liveValues := make(map[string]interface{})
 		for _, itemValue := range request.ItemValues {
-			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
+			liveValues[itemValue.Name] = itemValue.Value
 		}
 
 		resolver := &APIConfigRenderer{
@@ -362,7 +364,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := resolver.ResolveConfig(c, release, savedStateMergedWithLiveValues)
+		resolvedConfig, err := resolver.ResolveConfig(c, release, savedSate, liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -422,15 +424,16 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			Logger: d.Logger,
 		}
 		debug.Log("event", "state.tryLoad")
-		savedStateMergedWithLiveValues, err := stateManager.TryLoad()
+		savedSate, err := stateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
 			return
 		}
 
+		liveValues := make(map[string]interface{})
 		for _, itemValue := range request.Options {
-			savedStateMergedWithLiveValues[itemValue.Name] = itemValue.Value
+			liveValues[itemValue.Name] = itemValue.Value
 		}
 
 		resolver := &APIConfigRenderer{
@@ -439,7 +442,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := resolver.ResolveConfig(c, release, savedStateMergedWithLiveValues)
+		resolvedConfig, err := resolver.ResolveConfig(c, release, savedSate, liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)

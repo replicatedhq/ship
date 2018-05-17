@@ -6,7 +6,6 @@ package templates
 
 import (
 	"bytes"
-	"os"
 	"regexp"
 	"strconv"
 	"text/template"
@@ -27,8 +26,6 @@ type Builder struct {
 
 func NewBuilder(ctxx ...Ctx) Builder {
 	var builder Builder
-
-	builder.Logger = log.NewLogfmtLogger(os.Stderr)
 	for _, ctx := range ctxx {
 		builder.AddCtx(ctx)
 	}

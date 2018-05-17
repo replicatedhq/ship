@@ -1,14 +1,18 @@
 {
   "pointer": "replicated-ship",
   "ignorePatterns": [
+    ".circleci/**",
     ".git/**",
-    "hack/docs/**",
+    ".ship/**",
+    "bin/**",
+    "dist/**",
+    "deploy/**"
+    "hack/**",
+    "installer/**",
+    "out/**",
 	"examples",
     ".idea/**",
     "**/*jb_tmp*",
-    "e2e-retraced/**",
-    "dist/**",
-    "deploy/**",
-    ".circleci/**"
+    "e2e-retraced/**"
   ]
 }

@@ -1,5 +1,4 @@
 ##Alpha is a file, represented by a base64 encoded blob. Bravo references this and should receive the decoded value
-
 - name: Referencing file contents
   input: {alpha: "dGVzdGluZ3Rlc3RpbmcxMjM="}
   config:
