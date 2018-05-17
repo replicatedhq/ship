@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedcom/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -19,8 +20,8 @@ import (
 func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
-	builder := NewBuilder(
-		StaticCtx{},
+	builder := templates.NewBuilder(
+		templates.StaticCtx{},
 	)
 
 	configCtx := &ConfigCtx{

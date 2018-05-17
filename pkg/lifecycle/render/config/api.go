@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -88,11 +89,6 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		return nil, err
 	}
 
-	staticCtx, err := NewStaticContext()
-	if err != nil {
-		return nil, err
-	}
-
 	configCtx, err := NewConfigContext(
 		viper, logger,
 		configGroups,
@@ -101,8 +97,9 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		return nil, err
 	}
 
-	builder := NewBuilder(
-		staticCtx,
+	staticCtx := templates.NewStaticContext()
+	builder := templates.NewBuilder(
+		templates.NewStaticContext(),
 		configCtx,
 	)
 
@@ -154,7 +151,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 			return nil, err
 		}
 
-		builder = NewBuilder(
+		builder = templates.NewBuilder(
 			staticCtx,
 			newConfigCtx,
 		)
@@ -184,7 +181,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, err
 	}
 
-	builder, err := r.newBuilder(ctx, release.Spec.Config.V1, updatedValues)
+	builder, err := r.newBuilder(ctx, release, updatedValues)
 	if err != nil {
 		return resolvedConfig, err
 	}
@@ -274,29 +271,24 @@ func validateConfigItem(
 
 func (r *APIConfigRenderer) newBuilder(
 	ctx context.Context,
-	configGroups []libyaml.ConfigGroup,
+	release *api.Release,
 	templateContext map[string]interface{},
-) (*Builder, error) {
-	staticCtx, err := NewStaticContext()
-	if err != nil {
-		return nil, err
-	}
-
+) (*templates.Builder, error) {
 	newConfigCtx, err := NewConfigContext(
 		r.Viper, r.Logger,
-		configGroups, templateContext)
+		release.Spec.Config.V1, templateContext)
 	if err != nil {
 		return nil, err
 	}
 
-	builder := NewBuilder(
-		staticCtx,
+	builder := templates.NewBuilder(
+		templates.NewStaticContext(),
 		newConfigCtx,
 	)
 	return &builder, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
+func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
 	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
 	// values in items if when is set
@@ -325,7 +317,7 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder Buil
 	return configGroup, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
 	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {
@@ -408,7 +400,7 @@ func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder Build
 	return configItem, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigChildItem(ctx context.Context, builder Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
+func (r *APIConfigRenderer) resolveConfigChildItem(ctx context.Context, builder templates.Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
 	// TODO
 	return configChildItem, nil
 }

@@ -1,4 +1,4 @@
-package config
+package templates
 
 /*
   This was taken from https://github.com/replicatedcom/replicated/blob/master/templates/builder.go

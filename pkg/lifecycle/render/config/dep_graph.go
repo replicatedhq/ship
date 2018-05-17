@@ -8,6 +8,8 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 
+	"github.com/replicatedcom/ship/pkg/templates"
+
 	"github.com/pkg/errors"
 )
 
@@ -92,17 +94,13 @@ func (d *depGraph) Copy() (depGraph, error) {
 }
 
 func (d *depGraph) ParseConfigGroup(configGroups []libyaml.ConfigGroup) error {
-	staticCtx, err := NewStaticContext()
-	if err != nil {
-		return err
-	}
-
+	staticCtx := templates.NewStaticContext()
 	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
 			// add this to the dependency graph
 			d.AddNode(configItem.Name)
 
-			depBuilder := NewBuilder(staticCtx)
+			depBuilder := templates.NewBuilder(staticCtx)
 			depBuilder.Functs = d.funcMap(configItem.Name)
 
 			// while builder is normally stateless, the functions it uses within this loop are not

@@ -3,8 +3,6 @@ package message
 import (
 	"context"
 
-	"text/template"
-
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -13,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
 
@@ -29,9 +26,12 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 
 	daemonExitedChan := m.Daemon.EnsureStarted(ctx, release)
 
+	builder := m.getBuilder()
+	built, _ := builder.String(step.Contents)
+
 	m.Daemon.PushStep(ctx, "message", api.Step{
 		Message: &api.Message{
-			Contents: step.Contents,
+			Contents: built,
 			Level:    step.Level,
 		}})
 	debug.Log("event", "step.pushed")
@@ -57,33 +57,5 @@ func (m *DaemonMessenger) awaitMessageConfirmed(ctx context.Context, daemonExite
 		case <-time.After(10 * time.Second):
 			debug.Log("waitingFor", "message.confirmed")
 		}
-	}
-}
-
-func (m *DaemonMessenger) funcMap() template.FuncMap {
-	debug := level.Debug(log.With(m.Logger, "step.type", "render", "render.phase", "template"))
-
-	configFunc := func(name string) interface{} {
-		configItemValue := m.Viper.Get(name)
-		if configItemValue == "" {
-			debug.Log("event", "template.missing", "func", "config", "requested", name)
-			return ""
-		}
-		return configItemValue
-	}
-
-	return map[string]interface{}{
-		"config":       configFunc,
-		"ConfigOption": configFunc,
-		"Installation": func(name string) interface{} {
-			switch name {
-			case "state_file_path":
-				return state.Path
-			case "customer_id":
-				return m.Viper.GetString("customer-id")
-			}
-			debug.Log("event", "template.missing", "func", "context", "requested", name)
-			return ""
-		},
 	}
 }
