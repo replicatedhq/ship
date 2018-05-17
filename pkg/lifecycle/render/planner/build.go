@@ -3,17 +3,18 @@ package planner
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
-	"os"
+	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
+
+	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
-	"github.com/replicatedhq/libyaml"
 )
 
 type buildProgress struct {
@@ -35,9 +36,11 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		p.Daemon.SetProgress(config.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
+			asset.Inline.Dest = filepath.Join("installer", asset.Inline.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
 			plan = append(plan, p.inlineStep(asset.Inline, configGroups, meta, templateContext))
 		} else if asset.Docker != nil {
+			asset.Docker.Dest = filepath.Join("installer", asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
 			plan = append(plan, p.dockerStep(asset.Docker, meta, templateContext))
 		} else {
