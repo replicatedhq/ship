@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWriteYaml(t *testing.T) {
+func TestPersistYaml(t *testing.T) {
 	// Copy any yaml file out of the way
 	if _, err := os.Stat(Release); !os.IsNotExist(err) {
 		savedReleaseFile := fmt.Sprintf("./ship/release.yml.%d", time.Now().UTC().UnixNano())
