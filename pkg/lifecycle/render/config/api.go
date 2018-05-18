@@ -191,10 +191,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 		for _, configItem := range configGroup.Items {
 			if !isReadOnly(configItem) {
 				if val, ok := liveValues[configItem.Name]; ok {
-					newval := fmt.Sprintf("%v", val)
-					if newval != "" {
-						configItem.Value = newval
-					}
+					configItem.Value = fmt.Sprintf("%v", val)
 				}
 			}
 
