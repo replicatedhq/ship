@@ -1,14 +1,13 @@
 package state
 
 import (
-	"fmt"
-	"os"
 	"testing"
+	"os"
+	"fmt"
 	"time"
-
 	"github.com/go-kit/kit/log"
-	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/stretchr/testify/require"
+	"github.com/replicatedcom/ship/pkg/api"
 )
 
 func TestTryLoad(t *testing.T) {
