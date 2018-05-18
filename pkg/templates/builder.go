@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 )
 
 var (
@@ -64,7 +65,7 @@ func (b *Builder) Bool(text string, defaultVal bool) (bool, error) {
 
 	result, err := strconv.ParseBool(value)
 	if err != nil {
-		b.Logger.Log("msg", "Template builder failed to parse bool", "value", value, "err", err)
+		level.Error(b.Logger).Log("msg", "Template builder failed to parse bool", "value", value, "err", err)
 		// for now we are assuming default value if we fail to parse
 		return defaultVal, nil
 	}
@@ -90,7 +91,7 @@ func (b *Builder) Int(text string, defaultVal int64) (int64, error) {
 
 	result, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
-		b.Logger.Log("msg", "Template builder failed to parse int: %v", err)
+		level.Error(b.Logger).Log("msg", "Template builder failed to parse int: %v", err)
 		// for now we are assuming default value if we fail to parse
 		return defaultVal, nil
 	}
@@ -116,7 +117,33 @@ func (b *Builder) Uint(text string, defaultVal uint64) (uint64, error) {
 
 	result, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {
-		b.Logger.Log("msg", "Template builder failed to parse int: %v", err)
+		level.Error(b.Logger).Log("msg", "Template builder failed to parse int: %v", err)
+		// for now we are assuming default value if we fail to parse
+		return defaultVal, nil
+	}
+
+	return result, nil
+}
+
+func (b *Builder) Float64(text string, defaultVal float64) (float64, error) {
+	if text == "" {
+		return defaultVal, nil
+	}
+
+	value, err := b.RenderTemplate(text, text)
+	if err != nil {
+		return defaultVal, err
+	}
+
+	// If the template didn't parse (turns into an empty string), then we should
+	// return the default
+	if value == "" {
+		return defaultVal, nil
+	}
+
+	result, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		level.Error(b.Logger).Log("msg", "Template builder failed to parse float64: %v", err)
 		// for now we are assuming default value if we fail to parse
 		return defaultVal, nil
 	}
@@ -142,7 +169,7 @@ func (b *Builder) GetTemplate(name, text string) (*template.Template, error) {
 	tmpl, err := template.New(name).Delims("{{repl ", "}}").Funcs(b.BuildFuncMap()).Parse(text)
 	if err != nil {
 		if !templateNotDefinedRegexp.MatchString(err.Error()) {
-			b.Logger.Log("msg", err)
+			level.Error(b.Logger).Log("msg", err)
 		}
 		return nil, err
 	}
@@ -156,7 +183,7 @@ func (b *Builder) RenderTemplate(name string, text string) (string, error) {
 	}
 	var contents bytes.Buffer
 	if err := tmpl.Execute(&contents, nil); err != nil {
-		b.Logger.Log("msg", err)
+		level.Error(b.Logger).Log("msg", err)
 		return "", err
 	}
 	return contents.String(), nil
