@@ -47,6 +47,16 @@ func (ctx builderContext) FuncMap() template.FuncMap {
 			return state.Path
 		case "customer_id":
 			return ctx.viper.GetString("customer-id")
+		case "semver":
+			return ctx.viper.GetString("release-semver")
+		case "channel_name":
+			return ctx.viper.GetString("studio-channel-name")
+		case "channel_id":
+			return ctx.viper.GetString("channel-id")
+		case "release_id":
+			return ctx.viper.GetString("release-id")
+		case "installation_id":
+			return ctx.viper.GetString("installation-id")
 		}
 		debug.Log("event", "template.missing", "func", "context", "requested", name)
 		return ""
