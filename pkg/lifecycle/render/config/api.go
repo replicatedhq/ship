@@ -157,6 +157,7 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		)
 
 		headNodes, err = deps.GetHeadNodes()
+
 	}
 	if err != nil {
 		//dependencies could not be resolved for some reason
@@ -191,10 +192,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 		for _, configItem := range configGroup.Items {
 			if !isReadOnly(configItem) {
 				if val, ok := liveValues[configItem.Name]; ok {
-					newval := fmt.Sprintf("%v", val)
-					if newval != "" {
-						configItem.Value = newval
-					}
+					configItem.Value = fmt.Sprintf("%v", val)
 				}
 			}
 
