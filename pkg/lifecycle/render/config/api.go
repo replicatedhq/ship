@@ -157,7 +157,6 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		)
 
 		headNodes, err = deps.GetHeadNodes()
-
 	}
 	if err != nil {
 		//dependencies could not be resolved for some reason
