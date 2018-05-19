@@ -53,7 +53,7 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 	return !editable
 }
 
-func shouldWriteDefault(item *libyaml.ConfigItem) bool {
+func shouldOverrideValueWithDefault(item *libyaml.ConfigItem) bool {
 	return item.Hidden && item.Value == "" && item.Default != ""
 }
 
@@ -213,7 +213,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				return resolvedConfig, err
 			}
 
-			if shouldWriteDefault(configItem) {
+			if shouldOverrideValueWithDefault(configItem) {
 				configItem.Value = configItem.Default
 			}
 

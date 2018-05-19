@@ -27,6 +27,8 @@ config:
       - name: worker_replicas
         title: Number of Workers to Deploy
         type: text
+      # since this is hidden+default, it will get written
+      # to the state one the first save, and then never change again
       - name: always_the_same
         title: Number of Workers to Deploy
         type: text
