@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -183,12 +184,12 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 	updatedValues, err := resolveConfigValuesMap(liveValues, release.Spec.Config.V1, r.Logger, r.Viper)
 	if err != nil {
-		return resolvedConfig, err
+		return resolvedConfig, errors.Wrap(err, "resolve config values map")
 	}
 
 	builder, err := r.newBuilder(ctx, release, updatedValues)
 	if err != nil {
-		return resolvedConfig, err
+		return resolvedConfig, errors.Wrap(err, "initialize tpl builder")
 	}
 
 	for _, configGroup := range release.Spec.Config.V1 {
@@ -196,21 +197,18 @@ func (r *APIConfigRenderer) ResolveConfig(
 		for _, configItem := range configGroup.Items {
 
 			if val, ok := savedState[configItem.Name]; ok {
-				newval := fmt.Sprintf("%v", val)
-				if newval != "" {
-					configItem.Value = newval
-				}
+				configItem.Value = fmt.Sprintf("%s", val)
 			}
 
 			if !isReadOnly(configItem) {
 				if val, ok := liveValues[configItem.Name]; ok {
-					configItem.Value = fmt.Sprintf("%v", val)
+					configItem.Value = fmt.Sprintf("%s", val)
 				}
 			}
 
 			resolvedItem, err := r.applyConfigItemFieldTemplates(ctx, *builder, configItem)
 			if err != nil {
-				return resolvedConfig, err
+				return resolvedConfig, errors.Wrapf(err, "resolve item %s", configItem.Name)
 			}
 
 			if shouldOverrideValueWithDefault(configItem) {
@@ -224,7 +222,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		resolvedGroup, err := r.applyConfigGroupFieldTemplates(ctx, *builder, configGroup)
 		if err != nil {
-			return resolvedConfig, err
+			return resolvedConfig, errors.Wrapf(err, "resolve gropu %s", configGroup.Name)
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
