@@ -21,7 +21,7 @@ func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []liby
 	// Get a static context to render static template functions
 
 	builder := templates.NewBuilder(
-		templates.StaticCtx{},
+		templates.StaticCtx{Logger: logger},
 	)
 
 	configCtx := &ConfigCtx{

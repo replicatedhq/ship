@@ -56,8 +56,8 @@ _vet:
 vet: fmt _vet
 
 _lint:
-	golint ./pkg/... | grep -vE '_mock|e2e' || :
-	golint ./cmd/... | grep -vE '_mock|e2e' || :
+	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" || :
+	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" || :
 
 lint: vet _lint
 

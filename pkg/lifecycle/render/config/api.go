@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -51,6 +52,10 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 
 	_, editable := EditableItemTypes[item.Type]
 	return !editable
+}
+
+func shouldOverrideValueWithDefault(item *libyaml.ConfigItem) bool {
+	return item.Hidden && item.Value == "" && item.Default != ""
 }
 
 func isRequired(item *libyaml.ConfigItem) bool {
@@ -172,32 +177,42 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 func (r *APIConfigRenderer) ResolveConfig(
 	ctx context.Context,
 	release *api.Release,
+	savedState map[string]interface{},
 	liveValues map[string]interface{},
 ) ([]libyaml.ConfigGroup, error) {
 	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
 
 	updatedValues, err := resolveConfigValuesMap(liveValues, release.Spec.Config.V1, r.Logger, r.Viper)
 	if err != nil {
-		return resolvedConfig, err
+		return resolvedConfig, errors.Wrap(err, "resolve config values map")
 	}
 
 	builder, err := r.newBuilder(ctx, release, updatedValues)
 	if err != nil {
-		return resolvedConfig, err
+		return resolvedConfig, errors.Wrap(err, "initialize tpl builder")
 	}
 
 	for _, configGroup := range release.Spec.Config.V1 {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
+
+			if val, ok := savedState[configItem.Name]; ok {
+				configItem.Value = fmt.Sprintf("%s", val)
+			}
+
 			if !isReadOnly(configItem) {
 				if val, ok := liveValues[configItem.Name]; ok {
-					configItem.Value = fmt.Sprintf("%v", val)
+					configItem.Value = fmt.Sprintf("%s", val)
 				}
 			}
 
-			resolvedItem, err := r.resolveConfigItem(ctx, *builder, configItem)
+			resolvedItem, err := r.applyConfigItemFieldTemplates(ctx, *builder, configItem)
 			if err != nil {
-				return resolvedConfig, err
+				return resolvedConfig, errors.Wrapf(err, "resolve item %s", configItem.Name)
+			}
+
+			if shouldOverrideValueWithDefault(configItem) {
+				configItem.Value = configItem.Default
 			}
 
 			resolvedItems = append(resolvedItems, resolvedItem)
@@ -205,9 +220,9 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		configGroup.Items = resolvedItems
 
-		resolvedGroup, err := r.resolveConfigGroup(ctx, *builder, configGroup)
+		resolvedGroup, err := r.applyConfigGroupFieldTemplates(ctx, *builder, configGroup)
 		if err != nil {
-			return resolvedConfig, err
+			return resolvedConfig, errors.Wrapf(err, "resolve gropu %s", configGroup.Name)
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
@@ -285,9 +300,9 @@ func (r *APIConfigRenderer) newBuilder(
 	return &builder, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
+func (r *APIConfigRenderer) applyConfigGroupFieldTemplates(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
-	// set all items as hidden. this is called after resolveConfigItem and will override all hidden
+	// set all items as hidden. this is called after applyConfigItemFieldTemplates and will override all hidden
 	// values in items if when is set
 	builtWhen, err := builder.String(configGroup.When)
 	if err != nil {
@@ -314,7 +329,7 @@ func (r *APIConfigRenderer) resolveConfigGroup(ctx context.Context, builder temp
 	return configGroup, nil
 }
 
-func (r *APIConfigRenderer) resolveConfigItem(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
 	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {

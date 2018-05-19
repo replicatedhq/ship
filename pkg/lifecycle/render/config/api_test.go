@@ -8,14 +8,17 @@ import (
 	"reflect"
 	"testing"
 
+	"strings"
+
 	"github.com/go-kit/kit/log"
+	"github.com/go-test/deep"
 	"github.com/replicatedcom/ship/pkg/api"
 	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-cases/api"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type apiTestcase struct {
@@ -23,11 +26,12 @@ type apiTestcase struct {
 	Error       bool
 	Config      []libyaml.ConfigGroup
 	ViperConfig map[string]interface{} `yaml:"viper_config"`
-	Responses   apiExpectUIAsk         `yaml:"responses"`
-	Input       map[string]interface{} `yaml:"input"`
+	Responses   responsesJson          `yaml:"responses"`
+	LiveValues  map[string]interface{} `yaml:"input"`
+	State       map[string]interface{} `yaml:"state"`
 }
 
-type apiExpectUIAsk struct {
+type responsesJson struct {
 	JSON string `yaml:"json"`
 }
 
@@ -56,6 +60,7 @@ type configItemRequiredTestCase struct {
 
 	Name string
 }
+
 type configTestCase struct {
 	Config        []libyaml.ConfigGroup
 	ExpectedValue []*ValidationError
@@ -87,10 +92,13 @@ func TestAPIResolver(t *testing.T) {
 			resolver.Viper = viper.New()
 
 			func() {
-				if test.Input == nil {
-					test.Input = make(map[string]interface{})
+				if test.LiveValues == nil {
+					test.LiveValues = make(map[string]interface{})
 				}
-				resolvedConfig, err := resolver.ResolveConfig(ctx, release, test.Input)
+				if test.State == nil {
+					test.State = make(map[string]interface{})
+				}
+				resolvedConfig, err := resolver.ResolveConfig(ctx, release, test.State, test.LiveValues)
 				if test.Error {
 					req.True(err != nil, "Expected this api call to return an error")
 				} else {
@@ -101,7 +109,15 @@ func TestAPIResolver(t *testing.T) {
 				req.NoError(err)
 
 				areSame := areSameJSON(t, marshalled, []byte(test.Responses.JSON))
-				req.True(areSame, "%s\nand should be \n%s", marshalled, test.Responses.JSON)
+
+				var expected []libyaml.ConfigGroup
+				err = json.Unmarshal([]byte(test.Responses.JSON), &expected)
+				assert.NoError(t, err)
+				req.NoError(err)
+
+				diff := deep.Equal(resolvedConfig, expected)
+
+				req.True(areSame, "%v", strings.Join(diff, "\n"))
 			}()
 		})
 	}
