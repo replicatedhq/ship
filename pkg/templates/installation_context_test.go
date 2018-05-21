@@ -96,7 +96,7 @@ func TestInstallationContext(t *testing.T) {
 			assertions := require.New(t)
 
 			ctx := &InstallationContext{
-			    release: test.Release,
+			    Release: test.Release,
 			}
 
 			builder := NewBuilder(ctx)
