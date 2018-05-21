@@ -21,6 +21,7 @@ type AssetShared struct {
 type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
+	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -33,5 +34,14 @@ type InlineAsset struct {
 type DockerAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Image       string `json:"image" yaml:"image" hcl:"image"`
+	Source      string `json:"source" yaml:"source" hcl:"source"`
+}
+
+// GithubAsset is an asset whose contents are specified directly in the Spec
+type GithubAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
+	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
+	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
 }

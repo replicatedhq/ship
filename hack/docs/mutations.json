@@ -101,6 +101,29 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.github",
+    "merge": {
+      "description": "A `github` asset is created from files downloaded from either a public or a linked Github repo.",
+      "examples": [
+        {
+          "repo": "github.com/replicatedhq/superbigtool-k8s",
+          "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
+          "path": "**/*.yml",
+          "dest": "./k8s/",
+          "private": true
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "repo",
+        "path",
+        "dest",
+        "source"
+      ]
+    }
+  },
+  {
     "path": "properties.config",
     "merge": {
       "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on"
