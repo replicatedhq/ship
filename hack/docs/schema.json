@@ -58,6 +58,48 @@
                   "source"
                 ]
               },
+              "github": {
+                "description": "A `github` asset is created from files downloaded from either a public or a linked Github repo.",
+                "examples": [
+                  {
+                    "repo": "github.com/replicatedhq/superbigtool-k8s",
+                    "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
+                    "path": "**/*.yml",
+                    "dest": "./k8s/",
+                    "private": true
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "integer"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "ref": {
+                    "type": "string"
+                  },
+                  "repo": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "repo",
+                  "path",
+                  "dest",
+                  "source"
+                ]
+              },
               "inline": {
                 "description": "An `inline` asset is one that is specified directly in your Ship application's spec.",
                 "examples": [

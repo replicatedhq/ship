@@ -5,8 +5,20 @@ hack/docs
 ### NOTE
 
 This is totally copy-pasted from [the support bundle docs generation](https://github.com/replicatedcom/support-bundle) so there may be some extra stuff that doesn't make sense but didn't yet get removed.
- 
- 
+
+#### TLDR:
+
+ 1. Make changes to the `api.Spec` type
+ 1. Run this in dev container
+    ```
+    make deps build pipeline
+    ```
+ 1. Copy generated `schema.json` file into the [replicatedhq/replicated-linter](https://github.com/replicatedhq/replicated-lint/tree/master/projects/replicated-ship) project.
+ 1. In `replicated-lint` project run
+    ```
+    make project-import PROJECT=replicated-ship
+    ```
+
 ### continuing...
 
 This is a pretty big pile of tech debt at the moment. Its janky, untested,
@@ -14,7 +26,7 @@ undocumented. It generates json from golang types, modifies it, validates the fi
 and then generates markdown for help center.
 
 This is less of an experiment now than it was when we started, so it should
-probably get cleaned up somehow, maybe npm-module'd or something. 
+probably get cleaned up somehow, maybe npm-module'd or something.
 
 Currently has several steps:
 
@@ -39,8 +51,3 @@ schema.json
 ### Make commands
 
 Two make commands for e2e, one with validation `make pipeline-strict` and one without `make pipeline`:
-
-
-
-
-
