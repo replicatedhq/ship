@@ -163,6 +163,11 @@ func TestBuildStrings(t *testing.T) {
 			Template: `{{repl ConfigOption "option_3"}}`,
 			Expected: "",
 		},
+		strcase{
+			Name:     "Test ConfigOption",
+			Template: `{{repl ConfigOption "option_3"}}`,
+			Expected: "",
+		},
 		intcase{
 			Name:     "Test Mult",
 			Template: `{{repl Mult 34 2}}`,

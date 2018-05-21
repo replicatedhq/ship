@@ -9,12 +9,14 @@ import (
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedcom/ship/pkg/api"
 )
 
 type builderContext struct {
 	logger log.Logger
 	viper  *viper.Viper
 	daemon config.Daemon
+	release *api.Release
 }
 
 func (ctx builderContext) FuncMap() template.FuncMap {
@@ -48,15 +50,17 @@ func (ctx builderContext) FuncMap() template.FuncMap {
 		case "customer_id":
 			return ctx.viper.GetString("customer-id")
 		case "semver":
-			return ctx.viper.GetString("release-semver")
+			return ctx.release.Metadata.Semver
 		case "channel_name":
-			return ctx.viper.GetString("studio-channel-name")
+			return ctx.release.Metadata.ChannelName
 		case "channel_id":
-			return ctx.viper.GetString("channel-id")
+			return ctx.release.Metadata.ChannelID
 		case "release_id":
-			return ctx.viper.GetString("release-id")
+			return ctx.release.Metadata.ReleaseID
 		case "installation_id":
 			return ctx.viper.GetString("installation-id")
+		case "release_notes":
+			return ctx.release.Metadata.ReleaseNotes
 		}
 		debug.Log("event", "template.missing", "func", "context", "requested", name)
 		return ""
