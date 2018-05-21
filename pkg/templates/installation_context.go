@@ -38,5 +38,4 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 			return ""
 		},
 	}
-
 }

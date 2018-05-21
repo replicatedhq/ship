@@ -80,7 +80,6 @@ func TestInstallationContext(t *testing.T) {
 			Release: &api.Release{
 				Metadata: api.ReleaseMetadata{},
 			},
-			Viper: &viper.Viper{},
 			Tpl:      `It's {{repl Installation "customer_id" }}`,
 			Expected: `It's `,
 		},
@@ -89,7 +88,6 @@ func TestInstallationContext(t *testing.T) {
 			Release: &api.Release{
 				Metadata: api.ReleaseMetadata{},
 			},
-			Viper: &viper.Viper{},
 			Tpl:      `It's {{repl Installation "installation_id" }}`,
 			Expected: `It's `,
 		},
