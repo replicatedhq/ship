@@ -46,7 +46,7 @@ func (m *DaemonMessenger) getBuilder(release *api.Release) templates.Builder {
 			daemon: m.Daemon,
 			release: release,
 		},
-		&templates.InstallationContext{release},
+		&templates.InstallationContext{},
 	)
 	return builder
 }

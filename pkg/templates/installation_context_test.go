@@ -4,13 +4,11 @@ import (
 	"testing"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/stretchr/testify/require"
-	"github.com/spf13/viper"
 )
 
 type TestInstallation struct {
 	Name string
 	Release *api.Release
-	Viper *viper.Viper
 	Tpl string
 	Expected string
 }
