@@ -7,15 +7,13 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/spf13/viper"
 
-	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 )
 
 type builderContext struct {
-	logger  log.Logger
-	viper   *viper.Viper
-	daemon  config.Daemon
-	release *api.Release
+	logger log.Logger
+	viper  *viper.Viper
+	daemon config.Daemon
 }
 
 func (ctx builderContext) FuncMap() template.FuncMap {

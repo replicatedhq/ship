@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/stretchr/testify/require"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
 type TestInstallation struct {
@@ -100,7 +100,7 @@ func TestInstallationContext(t *testing.T) {
 
 			ctx := &InstallationContext{
 				Release: test.Release,
-				Viper: viper.New(),
+				Viper:   viper.New(),
 			}
 			ctx.Viper.Set("customer-id", "abc")
 			ctx.Viper.Set("installation-id", "xyz")
