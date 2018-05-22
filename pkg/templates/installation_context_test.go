@@ -5,6 +5,7 @@ import (
 
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/stretchr/testify/require"
+	"github.com/spf13/viper"
 )
 
 type TestInstallation struct {
@@ -12,6 +13,7 @@ type TestInstallation struct {
 	Release  *api.Release
 	Tpl      string
 	Expected string
+	Viper    *viper.Viper
 }
 
 func TestInstallationContext(t *testing.T) {
@@ -74,22 +76,22 @@ func TestInstallationContext(t *testing.T) {
 			Tpl:      `It's {{repl Installation "state_file_path" }}`,
 			Expected: `It's .ship/state.json`,
 		},
-		// {
-		// 	Name: "customer_id",
-		// 	Release: &api.Release{
-		// 		Metadata: api.ReleaseMetadata{},
-		// 	},
-		// 	Tpl:      `It's {{repl Installation "customer_id" }}`,
-		// 	Expected: `It's `,
-		// },
-		// {
-		// 	Name: "installation_id",
-		// 	Release: &api.Release{
-		// 		Metadata: api.ReleaseMetadata{},
-		// 	},
-		// 	Tpl:      `It's {{repl Installation "installation_id" }}`,
-		// 	Expected: `It's `,
-		// },
+		{
+			Name: "customer_id",
+			Release: &api.Release{
+				Metadata: api.ReleaseMetadata{},
+			},
+			Tpl:      `It's {{repl Installation "customer_id" }}`,
+			Expected: `It's abc`,
+		},
+		{
+			Name: "installation_id",
+			Release: &api.Release{
+				Metadata: api.ReleaseMetadata{},
+			},
+			Tpl:      `It's {{repl Installation "installation_id" }}`,
+			Expected: `It's xyz`,
+		},
 	}
 
 	for _, test := range tests {
@@ -98,7 +100,10 @@ func TestInstallationContext(t *testing.T) {
 
 			ctx := &InstallationContext{
 				Release: test.Release,
+				Viper: viper.New(),
 			}
+			ctx.Viper.Set("customer-id", "abc")
+			ctx.Viper.Set("installation-id", "xyz")
 
 			builder := NewBuilder(ctx)
 
