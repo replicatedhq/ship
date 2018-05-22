@@ -71,7 +71,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
 		}
 	} else {
-		release, err = r.resolveCloudRelease(selector.CustomerID)
+		release, err = r.resolveCloudRelease(selector.CustomerID, selector.InstallationID)
 		debug.Log("spec.resolve", "spec", specYAML, "err", err)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector.CustomerID)
@@ -129,12 +129,12 @@ func (r *Resolver) persistStudioSpec(specYAML []byte) error {
 	return nil
 }
 
-func (r *Resolver) resolveCloudRelease(customerID string) (*ShipRelease, error) {
+func (r *Resolver) resolveCloudRelease(customerID, installationID string) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
 	client := r.Client
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
-	release, err := client.GetRelease(customerID, "")
+	release, err := client.GetRelease(customerID, installationID)
 	if err != nil {
 		return nil, err
 	}
