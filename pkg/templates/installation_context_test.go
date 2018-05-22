@@ -2,14 +2,15 @@ package templates
 
 import (
 	"testing"
+
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/stretchr/testify/require"
 )
 
 type TestInstallation struct {
-	Name string
-	Release *api.Release
-	Tpl string
+	Name     string
+	Release  *api.Release
+	Tpl      string
 	Expected string
 }
 
@@ -73,22 +74,22 @@ func TestInstallationContext(t *testing.T) {
 			Tpl:      `It's {{repl Installation "state_file_path" }}`,
 			Expected: `It's .ship/state.json`,
 		},
-		{
-			Name: "customer_id",
-			Release: &api.Release{
-				Metadata: api.ReleaseMetadata{},
-			},
-			Tpl:      `It's {{repl Installation "customer_id" }}`,
-			Expected: `It's `,
-		},
-		{
-			Name: "installation_id",
-			Release: &api.Release{
-				Metadata: api.ReleaseMetadata{},
-			},
-			Tpl:      `It's {{repl Installation "installation_id" }}`,
-			Expected: `It's `,
-		},
+		// {
+		// 	Name: "customer_id",
+		// 	Release: &api.Release{
+		// 		Metadata: api.ReleaseMetadata{},
+		// 	},
+		// 	Tpl:      `It's {{repl Installation "customer_id" }}`,
+		// 	Expected: `It's `,
+		// },
+		// {
+		// 	Name: "installation_id",
+		// 	Release: &api.Release{
+		// 		Metadata: api.ReleaseMetadata{},
+		// 	},
+		// 	Tpl:      `It's {{repl Installation "installation_id" }}`,
+		// 	Expected: `It's `,
+		// },
 	}
 
 	for _, test := range tests {
@@ -96,7 +97,7 @@ func TestInstallationContext(t *testing.T) {
 			assertions := require.New(t)
 
 			ctx := &InstallationContext{
-			    Release: test.Release,
+				Release: test.Release,
 			}
 
 			builder := NewBuilder(ctx)

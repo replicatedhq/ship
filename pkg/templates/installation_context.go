@@ -1,19 +1,20 @@
 package templates
 
 import (
-	"github.com/replicatedcom/ship/pkg/api"
 	"text/template"
+
+	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
 
 type InstallationContext struct {
 	Release *api.Release
-	Viper *viper.Viper
+	Viper   *viper.Viper
 }
 
 func (ctx *InstallationContext) FuncMap() template.FuncMap {
-	return template.FuncMap {
+	return template.FuncMap{
 		"Installation": func(name string) string {
 			switch name {
 			case "state_file_path":
