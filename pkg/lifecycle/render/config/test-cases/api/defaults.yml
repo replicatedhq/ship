@@ -1,5 +1,6 @@
 - name: options with defaults and options with values
-  input: {}
+  input:
+    - {}
   config:
     - name: group_one
       items:

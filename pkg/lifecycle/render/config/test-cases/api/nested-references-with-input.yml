@@ -3,7 +3,8 @@
 ## an input for alpha is provided
 
 - name: Refrencing hidden const templated config items with input
-  input: {alpha: "a test input"}
+  input:
+    - {alpha: "a test input"}
   config:
     - name: alpha_group
       description: Alpha Group

@@ -6,3 +6,4 @@ state.json
 .idea
 .vscode
 installer/
+.ship/

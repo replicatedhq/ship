@@ -1,5 +1,6 @@
 - name: hidden + default writes to value
-  input: {}
+  input:
+    - {}
   config:
     - name: maths
       items:
@@ -47,7 +48,8 @@
           ]
 
 - name: hidden + default writes to value, unless a prior item was set in the state
-  input: {}
+  input:
+    - {}
   state:
     two_plus_two: "100"
   config:

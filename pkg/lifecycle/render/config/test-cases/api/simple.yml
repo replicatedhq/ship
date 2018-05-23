@@ -1,5 +1,6 @@
 - name: one option, implied type
-  input: {}
+  input:
+    - {}
   config:
     - name: Kubernetes Cluster
       items:

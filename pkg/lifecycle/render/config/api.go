@@ -181,10 +181,15 @@ func (r *APIConfigRenderer) ResolveConfig(
 	liveValues map[string]interface{},
 ) ([]libyaml.ConfigGroup, error) {
 	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
-
-	updatedValues, err := resolveConfigValuesMap(liveValues, release.Spec.Config.V1, r.Logger, r.Viper)
+	configCopy, err := r.deepCopyConfig(release.Spec.Config.V1)
 	if err != nil {
-		return resolvedConfig, errors.Wrap(err, "resolve config values map")
+		return resolvedConfig, errors.Wrap(err, "deep copy config")
+	}
+
+	updatedValues, err := resolveConfigValuesMap(liveValues, configCopy, r.Logger, r.Viper)
+
+	if err != nil {
+		return resolvedConfig, errors.Wrap(err, "resolve configCopy values map")
 	}
 
 	builder, err := r.newBuilder(ctx, release, updatedValues)
@@ -192,7 +197,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, errors.Wrap(err, "initialize tpl builder")
 	}
 
-	for _, configGroup := range release.Spec.Config.V1 {
+	for _, configGroup := range configCopy {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
 
@@ -415,4 +420,22 @@ func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, b
 func (r *APIConfigRenderer) resolveConfigChildItem(ctx context.Context, builder templates.Builder, configChildItem *libyaml.ConfigChildItem) (*libyaml.ConfigChildItem, error) {
 	// TODO
 	return configChildItem, nil
+}
+func (r *APIConfigRenderer) deepCopyConfig(groups []libyaml.ConfigGroup) ([]libyaml.ConfigGroup, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	dec := json.NewDecoder(&buf)
+	err := enc.Encode(groups)
+	if err != nil {
+		return nil, errors.Wrapf(err, "encode group")
+	}
+
+	level.Debug(r.Logger).Log("event", "deepCopyConfig.encode", "encoded", buf.String())
+
+	var groupsCopy []libyaml.ConfigGroup
+	err = dec.Decode(&groupsCopy)
+	if err != nil {
+		return nil, errors.Wrapf(err, "decode group")
+	}
+	return groupsCopy, nil
 }
