@@ -25,10 +25,10 @@ type apiTestcase struct {
 	Name        string
 	Error       bool
 	Config      []libyaml.ConfigGroup
-	ViperConfig map[string]interface{} `yaml:"viper_config"`
-	Responses   responsesJson          `yaml:"responses"`
-	LiveValues  map[string]interface{} `yaml:"input"`
-	State       map[string]interface{} `yaml:"state"`
+	ViperConfig map[string]interface{}   `yaml:"viper_config"`
+	Responses   responsesJson            `yaml:"responses"`
+	LiveValues  []map[string]interface{} `yaml:"input"`
+	State       map[string]interface{}   `yaml:"state"`
 }
 
 type responsesJson struct {
@@ -93,12 +93,24 @@ func TestAPIResolver(t *testing.T) {
 
 			func() {
 				if test.LiveValues == nil {
-					test.LiveValues = make(map[string]interface{})
+					test.LiveValues = make([]map[string]interface{}, 0)
 				}
 				if test.State == nil {
 					test.State = make(map[string]interface{})
 				}
-				resolvedConfig, err := resolver.ResolveConfig(ctx, release, test.State, test.LiveValues)
+
+				var resolvedConfig []libyaml.ConfigGroup
+				var err error
+
+				if len(test.LiveValues) == 0 {
+					resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, make(map[string]interface{}))
+				} else {
+					// simulate multiple inputs
+					for _, liveValues := range test.LiveValues {
+						resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, liveValues)
+					}
+				}
+
 				if test.Error {
 					req.True(err != nil, "Expected this api call to return an error")
 				} else {
@@ -128,6 +140,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 		{
 			dependencies: map[string][]string{
 				"alpha": {},
+
 				"bravo": {"alpha"},
 			},
 			input:   map[string]interface{}{"alpha": "abc"},
@@ -206,10 +219,10 @@ func areSameJSON(t *testing.T, s1, s2 []byte) bool {
 	var o2 interface{}
 
 	err := json.Unmarshal(s1, &o1)
-	assert.NoError(t, err)
+	require.NoError(t, err, string(s1))
 
 	err = json.Unmarshal(s2, &o2)
-	assert.NoError(t, err)
+	require.NoError(t, err, string(s2))
 
 	return reflect.DeepEqual(o1, o2)
 }

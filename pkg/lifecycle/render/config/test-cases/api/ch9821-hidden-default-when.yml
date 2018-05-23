@@ -1,0 +1,239 @@
+- name: checkbox with when on item -- hidden false
+  input:
+    - { airgap_install: "1" }
+  config:
+    - name: cluster_info
+      title: Kubernetes cluster info
+      items:
+      - name: airgap_install
+        title: Airgap cluster
+        type: bool
+        value: '1'
+      - name: docker_registry_address
+        title: Docker registry address
+        type: text
+        when: '{{repl ConfigOptionEquals "airgap_install" "1" }}'
+  responses:
+    json: |
+
+      [
+          {
+              "description": "",
+              "filters": null,
+              "items": [
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": false,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "airgap_install",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Airgap cluster",
+                      "type": "bool",
+                      "value": "1",
+                      "value_cmd": null,
+                      "when": ""
+                  },
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": false,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "docker_registry_address",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Docker registry address",
+                      "type": "text",
+                      "value": "",
+                      "value_cmd": null,
+                      "when": "true"
+                  }
+              ],
+              "name": "cluster_info",
+              "test_proc": null,
+              "title": "Kubernetes cluster info",
+              "when": ""
+          }
+      ]
+
+
+- name: checkbox with when on item -- hidden should be true
+  input:
+    - { airgap_install: "0" }
+  config:
+    - name: cluster_info
+      title: Kubernetes cluster info
+      items:
+      - name: airgap_install
+        title: Airgap cluster
+        type: bool
+        default: '1'
+      - name: docker_registry_address
+        title: Docker registry address
+        type: text
+        when: '{{repl ConfigOptionEquals "airgap_install" "1" }}'
+  responses:
+    json: |
+
+      [
+          {
+              "description": "",
+              "filters": null,
+              "items": [
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "1",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": false,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "airgap_install",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Airgap cluster",
+                      "type": "bool",
+                      "value": "0",
+                      "value_cmd": null,
+                      "when": ""
+                  },
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": true,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "docker_registry_address",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Docker registry address",
+                      "type": "text",
+                      "value": "",
+                      "value_cmd": null,
+                      "when": "false"
+                  }
+              ],
+              "name": "cluster_info",
+              "test_proc": null,
+              "title": "Kubernetes cluster info",
+              "when": ""
+          }
+      ]
+
+# this is wild -- ensures we do a deep copy of the config group, and re-render `when` on every POST /config/live call
+- name: checkbox with when on item -- hidden should be true after toggling
+  input:
+    - { airgap_install: "1" }
+    - { airgap_install: "0" }
+  config:
+    - name: cluster_info
+      title: Kubernetes cluster info
+      items:
+      - name: airgap_install
+        title: Airgap cluster
+        type: bool
+        default: '1'
+      - name: docker_registry_address
+        title: Docker registry address
+        type: text
+        when: '{{repl ConfigOptionEquals "airgap_install" "1" }}'
+  responses:
+    json: |
+
+      [
+          {
+              "description": "",
+              "filters": null,
+              "items": [
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "1",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": false,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "airgap_install",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Airgap cluster",
+                      "type": "bool",
+                      "value": "0",
+                      "value_cmd": null,
+                      "when": ""
+                  },
+                  {
+                      "affix": "",
+                      "data_cmd": null,
+                      "default": "",
+                      "default_cmd": null,
+                      "filters": null,
+                      "help_text": "",
+                      "hidden": true,
+                      "is_excluded_from_support": false,
+                      "items": null,
+                      "multi_value": null,
+                      "multiple": false,
+                      "name": "docker_registry_address",
+                      "props": null,
+                      "readonly": false,
+                      "recommended": false,
+                      "required": false,
+                      "test_proc": null,
+                      "title": "Docker registry address",
+                      "type": "text",
+                      "value": "",
+                      "value_cmd": null,
+                      "when": "false"
+                  }
+              ],
+              "name": "cluster_info",
+              "test_proc": null,
+              "title": "Kubernetes cluster info",
+              "when": ""
+          }
+      ]

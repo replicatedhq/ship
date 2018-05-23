@@ -3,7 +3,8 @@
 ## now visible
 
 - name: a when that defaults to false with select_one
-  input: {}
+  input:
+    - {}
   config:
     - name: external_service_enable
       title: Enable Some External Service
