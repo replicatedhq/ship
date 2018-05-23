@@ -51,7 +51,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 	return plan
 }
 
-func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.ConfigGroup, r api.ReleaseMetadata, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "inline", "dest", inline.Dest, "description", inline.Description))
 	return Step{
 		Dest:        inline.Dest,
@@ -69,6 +69,10 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 			builder := templates.NewBuilder(
 				templates.NewStaticContext(),
 				configCtx,
+				&templates.InstallationContext{
+					Meta:  meta,
+					Viper: p.Viper,
+				},
 			)
 
 			built, err := builder.String(inline.Contents)

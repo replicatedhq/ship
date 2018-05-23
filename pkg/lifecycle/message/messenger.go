@@ -37,13 +37,17 @@ func (m *DaemonMessenger) WithDaemon(d config.Daemon) Messenger {
 	return m
 }
 
-func (m *DaemonMessenger) getBuilder() templates.Builder {
+func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) templates.Builder {
 	builder := templates.NewBuilder(
 		templates.NewStaticContext(),
 		builderContext{
 			logger: m.Logger,
 			viper:  m.Viper,
 			daemon: m.Daemon,
+		},
+		&templates.InstallationContext{
+			Meta:  meta,
+			Viper: m.Viper,
 		},
 	)
 	return builder

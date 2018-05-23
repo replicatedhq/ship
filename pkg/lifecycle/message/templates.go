@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 )
 
 type builderContext struct {
@@ -41,21 +40,8 @@ func (ctx builderContext) FuncMap() template.FuncMap {
 		return configItemValue
 	}
 
-	ctxFunc := func(name string) interface{} {
-		switch name {
-		case "state_file_path":
-			return state.Path
-		case "customer_id":
-			return ctx.viper.GetString("customer-id")
-		}
-		debug.Log("event", "template.missing", "func", "context", "requested", name)
-		return ""
-	}
-
 	return map[string]interface{}{
 		"config":       configFunc,
-		"context":      ctxFunc, // TODO: this one's getting removed in 1.0
 		"ConfigOption": configItemFunc,
-		"Installation": ctxFunc,
 	}
 }
