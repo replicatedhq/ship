@@ -70,7 +70,7 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 				templates.NewStaticContext(),
 				configCtx,
 				&templates.InstallationContext{
-					Release: &meta,
+					Meta:  meta,
 					Viper: p.Viper,
 				},
 			)

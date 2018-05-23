@@ -26,7 +26,7 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 
 	daemonExitedChan := m.Daemon.EnsureStarted(ctx, release)
 
-	builder := m.getBuilder(&release.Metadata)
+	builder := m.getBuilder(release.Metadata)
 	built, _ := builder.String(step.Contents)
 
 	m.Daemon.PushStep(ctx, "message", api.Step{
