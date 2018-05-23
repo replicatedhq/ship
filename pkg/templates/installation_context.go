@@ -9,7 +9,7 @@ import (
 )
 
 type InstallationContext struct {
-	Release *api.Release
+	Release *api.ReleaseMetadata
 	Viper   *viper.Viper
 }
 
@@ -22,17 +22,17 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 			case "customer_id":
 				return ctx.Viper.GetString("customer-id")
 			case "semver":
-				return ctx.Release.Metadata.Semver
+				return ctx.Release.Semver
 			case "channel_name":
-				return ctx.Release.Metadata.ChannelName
+				return ctx.Release.ChannelName
 			case "channel_id":
-				return ctx.Release.Metadata.ChannelID
+				return ctx.Release.ChannelID
 			case "release_id":
-				return ctx.Release.Metadata.ReleaseID
+				return ctx.Release.ReleaseID
 			case "installation_id":
 				return ctx.Viper.GetString("installation-id")
 			case "release_notes":
-				return ctx.Release.Metadata.ReleaseNotes
+				return ctx.Release.ReleaseNotes
 			}
 			return ""
 		},
