@@ -121,7 +121,9 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				return errors.Wrapf(err, "resolve pull url")
 			}
 
-			saveOpts := docker.SaveOpts{
+			// first try with registry secret
+			// TODO remove this once registry is updated
+			registrySecretSaveOpts := docker.SaveOpts{
 				PullUrl:   pullUrl,
 				SaveUrl:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
@@ -130,33 +132,58 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				Password:  meta.RegistrySecret,
 				Logger:    p.Logger,
 			}
+			ch := docker.SaveImage(ctx, registrySecretSaveOpts)
+			saveError := p.watchProgress(ch, debug)
 
-			ch := docker.SaveImage(ctx, saveOpts)
-
-			var saveError error
-			for msg := range ch {
-				if msg == nil {
-					continue
-				}
-				switch v := msg.(type) {
-				case error:
-					// continue reading on error to ensure channel is not blocked
-					saveError = v
-				case docker.DockerProgress:
-					p.Daemon.SetProgress(config.JSONProgress("docker", v))
-				case string:
-					p.Daemon.SetProgress(config.StringProgress("docker", v))
-				default:
-					debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
-				}
+			if saveError == nil {
+				debug.Log("event", "execute.succeed")
+				return nil
 			}
 
+			debug.Log("event", "execute.fail.withRegistrySecret", "err", saveError)
+			debug.Log("event", "execute.try.withInstallationID")
+
+			// next try with installationID for password
+			installationIdSaveOpts := docker.SaveOpts{
+				PullUrl:   pullUrl,
+				SaveUrl:   asset.Image,
+				IsPrivate: asset.Source != "public" && asset.Source != "",
+				Filename:  asset.Dest,
+				Username:  meta.CustomerID,
+				Password:  p.Viper.GetString("installation-id"),
+				Logger:    p.Logger,
+			}
+
+			ch = docker.SaveImage(ctx, installationIdSaveOpts)
+			saveError = p.watchProgress(ch, debug)
+
 			if saveError != nil {
-				debug.Log("event", "execute.fail", "err", saveError)
-				return errors.Wrapf(saveError, "Write docker asset to %s", asset.Dest)
+				debug.Log("event", "execute.fail.withInstallationID", "detail", "both docker auth methods failed", "err", saveError)
+				return errors.Wrap(err, "docker save image, both auth methods failed")
 			}
 
 			return nil
 		},
 	}
+}
+
+func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error {
+	var saveError error
+	for msg := range ch {
+		if msg == nil {
+			continue
+		}
+		switch v := msg.(type) {
+		case error:
+			// continue reading on error to ensure channel is not blocked
+			saveError = v
+		case docker.DockerProgress:
+			p.Daemon.SetProgress(config.JSONProgress("docker", v))
+		case string:
+			p.Daemon.SetProgress(config.StringProgress("docker", v))
+		default:
+			debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
+		}
+	}
+	return saveError
 }
