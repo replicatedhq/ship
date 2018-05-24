@@ -40,15 +40,21 @@ type Renderer struct {
 	Daemon         config.Daemon
 }
 
-func FromViper(v *viper.Viper) *Renderer {
+func FromViper(v *viper.Viper) (*Renderer, error) {
+
+	pln, err := planner.FromViper(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize planner")
+	}
+
 	return &Renderer{
 		Logger:         logger.FromViper(v),
 		ConfigResolver: config.ResolverFromViper(v),
-		Planner:        planner.FromViper(v),
+		Planner:        pln,
 		StateManager:   state.ManagerFromViper(v),
 		Fs:             fs.FromViper(v),
 		UI:             ui.FromViper(v),
-	}
+	}, nil
 }
 
 func (r *Renderer) WithDaemon(d config.Daemon) *Renderer {

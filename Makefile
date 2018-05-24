@@ -28,19 +28,39 @@ githooks:
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
-mockgen:
+_mockgen:
 	mockgen \
 		-destination pkg/test-mocks/config/resolver.go \
-		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		-package config \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/config \
 		Resolver
 	mockgen \
 		-destination pkg/test-mocks/config/daemon.go \
-		-package config github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		-package config \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/config \
 		Daemon
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
-		-package planner github.com/replicatedcom/ship/pkg/lifecycle/render/planner \
+		-package planner \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/planner \
 		Planner
+	mockgen \
+		-destination pkg/test-mocks/docker/image_saver_mock.go \
+		-package docker \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		ImageSaver
+	mockgen \
+		-destination pkg/test-mocks/docker/image_manager_mock.go \
+		-package docker \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		ImageManager
+	mockgen \
+		-destination pkg/test-mocks/docker/pull_url_resovler_mock.go \
+		-package docker \
+		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		PullURLResolver
+
+mockgen: _mockgen fmt
 
 dep:
 	dep ensure

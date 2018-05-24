@@ -13,8 +13,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
+	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
 )
 
 // A Plan is a list of PlanSteps to execute
@@ -51,17 +53,25 @@ type CLIPlanner struct {
 	Viper          *viper.Viper
 	Daemon         config.Daemon
 	BuilderBuilder *templates.BuilderBuilder
+	Saver          docker.ImageSaver
+	URLResolver    docker.PullURLResolver
 }
 
-func FromViper(v *viper.Viper) Planner {
-	// todo do a Web-UI planner impl, steps will probably be mostly the same
+func FromViper(v *viper.Viper) (Planner, error) {
+	saver, err := docker.SaverFromViper(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize docker saver")
+	}
+
 	return &CLIPlanner{
 		Logger:         logger.FromViper(v),
 		Fs:             fs.FromViper(v),
 		UI:             ui.FromViper(v),
 		Viper:          v,
 		BuilderBuilder: templates.BuilderBuilderFromViper(v),
-	}
+		Saver:          saver,
+		URLResolver:    docker.URLResolverFromViper(v),
+	}, nil
 }
 
 func (p *CLIPlanner) WithDaemon(d config.Daemon) Planner {

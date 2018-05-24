@@ -8,11 +8,34 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/spf13/viper"
 )
 
-func ResolvePullUrl(asset *api.DockerAsset, meta api.ReleaseMetadata) (string, error) {
+type PullURLResolver interface {
+	ResolvePullURL(asset *api.DockerAsset, meta api.ReleaseMetadata) (string, error)
+}
+
+var _ PullURLResolver = &URLResolver{}
+
+type URLResolver struct {
+	Logger log.Logger
+}
+
+func URLResolverFromViper(v *viper.Viper) PullURLResolver {
+	return &URLResolver{
+		Logger: logger.FromViper(v),
+	}
+}
+
+func (r *URLResolver) ResolvePullURL(asset *api.DockerAsset, meta api.ReleaseMetadata) (string, error) {
+	debug := level.Debug(r.Logger)
+
 	if asset.Source == "replicated" || asset.Source == "public" || asset.Source == "" {
+		debug.Log("event", "image.rewrite.skip", "source", asset.Source)
 		return asset.Image, nil
 	}
 

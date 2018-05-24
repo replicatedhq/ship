@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 )
 
 func TestResolveImageName(t *testing.T) {
@@ -90,7 +91,7 @@ func TestResolvePullUrl(t *testing.T) {
 		ExpectUrl string
 	}
 	cases := []testcase{
-		testcase{
+		{
 			Name: "replicated private image",
 			Asset: api.DockerAsset{
 				Image:  "registry.replicated.com/library/retraced-api:1.1.12-slim-20180329",
@@ -98,7 +99,7 @@ func TestResolvePullUrl(t *testing.T) {
 			},
 			ExpectUrl: "registry.replicated.com/library/retraced-api:1.1.12-slim-20180329",
 		},
-		testcase{
+		{
 			Name: "public image with host name",
 			Asset: api.DockerAsset{
 				Image:  "quay.io/awesome/redis:1.1",
@@ -106,7 +107,7 @@ func TestResolvePullUrl(t *testing.T) {
 			},
 			ExpectUrl: "quay.io/awesome/redis:1.1",
 		},
-		testcase{
+		{
 			Name: "private proxied image without host name",
 			Asset: api.DockerAsset{
 				Image:  "replicated/www:3",
@@ -114,7 +115,7 @@ func TestResolvePullUrl(t *testing.T) {
 			},
 			ExpectUrl: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz2.www:3", replicatedRegistry()),
 		},
-		testcase{
+		{
 			Name: "private proxied image with host name",
 			Asset: api.DockerAsset{
 				Image:  "quay.io/redacted/chatops:f3c689e",
@@ -125,13 +126,13 @@ func TestResolvePullUrl(t *testing.T) {
 	}
 	meta := api.ReleaseMetadata{
 		Images: []api.Image{
-			api.Image{
+			{
 				URL:      "replicated/www:3",
 				Source:   "dockerhub",
 				AppSlug:  "awesomeapp",
 				ImageKey: "jjzpr9u62gaz2",
 			},
-			api.Image{
+			{
 				URL:      "quay.io/redacted/chatops:f3c689e",
 				Source:   "quayio",
 				AppSlug:  "awesomeapp",
@@ -142,7 +143,8 @@ func TestResolvePullUrl(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
-			url, err := ResolvePullUrl(&test.Asset, meta)
+			r := &URLResolver{Logger: &logger.TestLogger{T: t}}
+			url, err := r.ResolvePullURL(&test.Asset, meta)
 			require.New(t).NoError(err)
 			require.New(t).Equal(test.ExpectUrl, url)
 		})

@@ -25,6 +25,7 @@ type buildProgress struct {
 
 // Build builds a plan in memory from assets+resolved config
 func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
+
 	defer p.Daemon.ClearProgress()
 
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
@@ -43,7 +44,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Docker != nil {
 			asset.Docker.Dest = filepath.Join("installer", asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
-			plan = append(plan, p.dockerStep(asset.Docker, meta, templateContext))
+			plan = append(plan, p.dockerStep(asset.Docker, meta))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
@@ -102,7 +103,7 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 	}
 }
 
-func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", asset.Dest, "description", asset.Description))
 	return Step{
 		Dest:        asset.Dest,
@@ -116,13 +117,13 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				return errors.Wrapf(err, "write directory to %s", asset.Dest)
 			}
 
-			pullUrl, err := docker.ResolvePullUrl(asset, meta)
+			pullUrl, err := p.URLResolver.ResolvePullURL(asset, meta)
 			if err != nil {
 				return errors.Wrapf(err, "resolve pull url")
 			}
 
 			// first try with registry secret
-			// TODO remove this once registry is updated
+			// TODO remove this once registry is updated to read installation ID
 			registrySecretSaveOpts := docker.SaveOpts{
 				PullUrl:   pullUrl,
 				SaveUrl:   asset.Image,
@@ -130,9 +131,8 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				Filename:  asset.Dest,
 				Username:  meta.CustomerID,
 				Password:  meta.RegistrySecret,
-				Logger:    p.Logger,
 			}
-			ch := docker.SaveImage(ctx, registrySecretSaveOpts)
+			ch := p.Saver.SaveImage(ctx, registrySecretSaveOpts)
 			saveError := p.watchProgress(ch, debug)
 
 			if saveError == nil {
@@ -151,10 +151,9 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				Filename:  asset.Dest,
 				Username:  meta.CustomerID,
 				Password:  p.Viper.GetString("installation-id"),
-				Logger:    p.Logger,
 			}
 
-			ch = docker.SaveImage(ctx, installationIdSaveOpts)
+			ch = p.Saver.SaveImage(ctx, installationIdSaveOpts)
 			saveError = p.watchProgress(ch, debug)
 
 			if saveError != nil {
