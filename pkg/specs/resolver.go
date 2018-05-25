@@ -134,7 +134,7 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID string) (*Ship
 	return release, err
 }
 
-// persistStudioSpec persists last-used YAML to disk at .ship/release.yml
+// persistSpec persists last-used YAML to disk at .ship/release.yml
 func (r *Resolver) persistSpec(specYAML []byte) error {
 	if err := os.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
@@ -143,7 +143,6 @@ func (r *Resolver) persistSpec(specYAML []byte) error {
 	if err := ioutil.WriteFile(ReleasePath, specYAML, 0644); err != nil {
 		return errors.Wrap(err, "write yaml file")
 	}
-
 	return nil
 }
 
