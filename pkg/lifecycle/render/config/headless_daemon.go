@@ -28,7 +28,7 @@ func (d *HeadlessDaemon) SetStepName(context.Context, string) {}
 func (d *HeadlessDaemon) AllStepsDone(context.Context) {}
 
 func (d *HeadlessDaemon) MessageConfirmedChan() chan string {
-	panic("implement me")
+	return make(chan string)
 }
 
 func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
