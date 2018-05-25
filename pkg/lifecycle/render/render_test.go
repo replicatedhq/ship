@@ -55,6 +55,7 @@ func TestRender(t *testing.T) {
 			renderer.Planner = p
 			renderer.StateManager = &state.StateManager{
 				Logger: renderer.Logger,
+				FS:     mockFS,
 			}
 
 			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)

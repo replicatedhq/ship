@@ -2,26 +2,30 @@ package state
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"os"
 	"path/filepath"
+
+	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/fs"
 	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // StateManager is the saved output of a plan run to load on future runs
 type StateManager struct {
 	Logger log.Logger
+	FS     afero.Afero
 }
 
 func ManagerFromViper(v *viper.Viper) *StateManager {
 	return &StateManager{
 		Logger: logger.FromViper(v),
+		FS:     fs.FromViper(v),
 	}
 }
 
@@ -32,11 +36,11 @@ func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, te
 		return errors.Wrap(err, "serialize state")
 	}
 
-	if err = os.MkdirAll(filepath.Dir(Path), 0700); err != nil {
+	if err = s.FS.MkdirAll(filepath.Dir(Path), 0700); err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
 
-	err = ioutil.WriteFile(Path, serialized, 0644)
+	err = s.FS.WriteFile(Path, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
 	}
@@ -46,12 +50,12 @@ func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, te
 
 // TryLoad will attempt to load a state file from disk, if present
 func (s StateManager) TryLoad() (map[string]interface{}, error) {
-	if _, err := os.Stat(Path); os.IsNotExist(err) {
+	if _, err := s.FS.Stat(Path); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", Path)
 		return make(map[string]interface{}), nil
 	}
 
-	serialized, err := ioutil.ReadFile(Path)
+	serialized, err := s.FS.ReadFile(Path)
 	if err != nil {
 		return nil, errors.Wrap(err, "read state file")
 	}

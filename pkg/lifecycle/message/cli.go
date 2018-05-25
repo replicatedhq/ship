@@ -31,7 +31,7 @@ func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 
 	debug.Log("event", "step.execute", "step.level", step.Level)
 
-	builder := e.getBuilder()
+	builder := e.getBuilder(release)
 	built, _ := builder.String(step.Contents)
 
 	switch step.Level {
@@ -47,12 +47,16 @@ func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 	return nil
 }
 
-func (e *CLIMessenger) getBuilder() templates.Builder {
+func (e *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
 	builder := templates.NewBuilder(
 		templates.NewStaticContext(),
 		builderContext{
 			logger: e.Logger,
 			viper:  e.Viper,
+		},
+		&templates.InstallationContext{
+			Meta: release.Metadata,
+			Viper: e.Viper,
 		},
 	)
 	return builder
