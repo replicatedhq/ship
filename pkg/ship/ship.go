@@ -141,21 +141,22 @@ func (s *Ship) Execute(ctx context.Context) error {
 		} else {
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
-		runResultCh <- err
-	}()
 
-	go func() {
-		err := <-runResultCh
 		if err == nil {
 			_ = s.Resolver.RegisterInstall(ctx, selector, release)
 		}
+		runResultCh <- err
 	}()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	sig := <-signalChan
-	level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
-	return nil
+	select {
+	case sig := <-signalChan:
+		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
+		return nil
+	case result := <-runResultCh:
+		return result
+	}
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.

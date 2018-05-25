@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +28,7 @@ func TestTryLoad(t *testing.T) {
 
 	state := StateManager{
 		Logger: log.NewNopLogger(),
+		FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 	}
 
 	req := require.New(t)
