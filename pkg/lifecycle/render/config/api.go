@@ -22,8 +22,9 @@ const MissingRequiredValue = "MISSING_REQUIRED_VALUE"
 
 // APIConfigRenderer resolves config values via API
 type APIConfigRenderer struct {
-	Logger log.Logger
-	Viper  *viper.Viper
+	Logger         log.Logger
+	Viper          *viper.Viper
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 type ValidationError struct {
@@ -87,24 +88,25 @@ func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error
 }
 
 // given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
-func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup, logger log.Logger, viper *viper.Viper) (map[string]interface{}, error) {
+func (r *APIConfigRenderer) resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup) (map[string]interface{}, error) {
 	// make a deep copy of the live values map
 	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
 		return nil, err
 	}
 
-	configCtx, err := NewConfigContext(
-		viper, logger,
+	configCtx, err := r.BuilderBuilder.NewConfigContext(
 		configGroups,
-		updatedValues)
+		updatedValues,
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	staticCtx := templates.NewStaticContext()
-	builder := templates.NewBuilder(
-		templates.NewStaticContext(),
+	staticCtx := r.BuilderBuilder.NewStaticContext()
+	builder := r.BuilderBuilder.NewBuilder(
+		r.BuilderBuilder.NewStaticContext(),
 		configCtx,
 	)
 
@@ -116,7 +118,9 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 	}
 
 	// Build config values in order & add them to the template builder
-	var deps depGraph
+	deps := depGraph{
+		BuilderBuilder: r.BuilderBuilder,
+	}
 	deps.ParseConfigGroup(configGroups)
 	var headNodes []string
 
@@ -148,15 +152,15 @@ func resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []li
 		}
 
 		//recalculate builder with new values
-		newConfigCtx, err := NewConfigContext(
-			viper, logger,
+		newConfigCtx, err := r.BuilderBuilder.NewConfigContext(
 			configGroups,
-			updatedValues)
+			updatedValues,
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		builder = templates.NewBuilder(
+		builder = r.BuilderBuilder.NewBuilder(
 			staticCtx,
 			newConfigCtx,
 		)
@@ -186,7 +190,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, errors.Wrap(err, "deep copy config")
 	}
 
-	updatedValues, err := resolveConfigValuesMap(liveValues, configCopy, r.Logger, r.Viper)
+	updatedValues, err := r.resolveConfigValuesMap(liveValues, configCopy)
 
 	if err != nil {
 		return resolvedConfig, errors.Wrap(err, "resolve configCopy values map")
@@ -291,15 +295,17 @@ func (r *APIConfigRenderer) newBuilder(
 	release *api.Release,
 	templateContext map[string]interface{},
 ) (*templates.Builder, error) {
-	newConfigCtx, err := NewConfigContext(
-		r.Viper, r.Logger,
-		release.Spec.Config.V1, templateContext)
+
+	newConfigCtx, err := r.BuilderBuilder.NewConfigContext(
+		release.Spec.Config.V1,
+		templateContext,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	builder := templates.NewBuilder(
-		templates.NewStaticContext(),
+	builder := r.BuilderBuilder.NewBuilder(
+		r.BuilderBuilder.NewStaticContext(),
 		newConfigCtx,
 	)
 	return &builder, nil

@@ -59,14 +59,14 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
-			configCtx, err := config.NewConfigContext(
+			configCtx, err := templates.NewConfigContext(
 				p.Viper, p.Logger,
 				configGroups, templateContext)
 			if err != nil {
 				return errors.Wrap(err, "getting config context")
 			}
 
-			builder := templates.NewBuilder(
+			builder := p.BuilderBuilder.NewBuilder(
 				templates.NewStaticContext(),
 				configCtx,
 				&templates.InstallationContext{

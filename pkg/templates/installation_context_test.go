@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -82,14 +83,20 @@ func TestInstallationContext(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			assertions := require.New(t)
 
+			v := viper.New()
 			ctx := &InstallationContext{
 				Meta:  test.Meta,
-				Viper: viper.New(),
+				Viper: v,
 			}
-			ctx.Viper.Set("customer-id", "abc")
-			ctx.Viper.Set("installation-id", "xyz")
+			v.Set("customer-id", "abc")
+			v.Set("installation-id", "xyz")
 
-			builder := NewBuilder(ctx)
+			builderBuilder := &BuilderBuilder{
+				Viper:  v,
+				Logger: &logger.TestLogger{T: t},
+			}
+
+			builder := builderBuilder.NewBuilder(ctx)
 
 			built, err := builder.String(test.Tpl)
 			assertions.NoError(err, "executing template")

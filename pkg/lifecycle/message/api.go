@@ -11,14 +11,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/spf13/viper"
 )
 
 type DaemonMessenger struct {
-	Logger log.Logger
-	UI     cli.Ui
-	Viper  *viper.Viper
-	Daemon config.Daemon
+	Logger         log.Logger
+	UI             cli.Ui
+	Viper          *viper.Viper
+	Daemon         config.Daemon
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {

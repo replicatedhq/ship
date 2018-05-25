@@ -17,9 +17,10 @@ import (
 var _ Messenger = &CLIMessenger{}
 
 type CLIMessenger struct {
-	Logger log.Logger
-	UI     cli.Ui
-	Viper  *viper.Viper
+	Logger         log.Logger
+	UI             cli.Ui
+	Viper          *viper.Viper
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func (m *CLIMessenger) WithDaemon(_ config.Daemon) Messenger {
@@ -48,14 +49,14 @@ func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 }
 
 func (e *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
-	builder := templates.NewBuilder(
+	builder := e.BuilderBuilder.NewBuilder(
 		templates.NewStaticContext(),
 		builderContext{
 			logger: e.Logger,
 			viper:  e.Viper,
 		},
 		&templates.InstallationContext{
-			Meta: release.Metadata,
+			Meta:  release.Metadata,
 			Viper: e.Viper,
 		},
 	)

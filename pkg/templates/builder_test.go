@@ -4,6 +4,8 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -205,8 +207,13 @@ func TestBuildStrings(t *testing.T) {
 		},
 	}
 
-	builder := NewBuilder(
-		NewStaticContext(),
+	builderBuilder := &BuilderBuilder{
+		Logger: &logger.TestLogger{T: t},
+		Viper:  viper.New(),
+	}
+
+	builder := builderBuilder.NewBuilder(
+		builderBuilder.NewStaticContext(),
 		testContext{},
 	)
 
