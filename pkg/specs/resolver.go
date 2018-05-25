@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const Release = ".ship/release.yml"
+const ReleasePath = ".ship/release.yml"
 
 // Selector selects a spec from the Vendor's releases and channels.
 // See pkg/cli/root.go for some more info on which are required and why.
@@ -104,29 +104,16 @@ func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 	}
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
 
-	if err := r.persistStudioSpec(specYAML); err != nil {
+	if err := r.persistSpec(specYAML); err != nil {
 		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
 	}
-	debug.Log("phase", "write-yaml", "from", r.StudioFile, "write-location", Release)
+	debug.Log("phase", "write-yaml", "from", r.StudioFile, "write-location", ReleasePath)
 
 	return &ShipRelease{
 		Spec:        string(specYAML),
 		ChannelName: r.StudioChannelName,
 		ChannelIcon: r.StudioChannelIcon,
 	}, nil
-}
-
-// persistStudioSpec persists last-used YAML to disk at .ship/release.yml
-func (r *Resolver) persistStudioSpec(specYAML []byte) error {
-	if err := os.MkdirAll(filepath.Dir(Release), 0700); err != nil {
-		return errors.Wrap(err, "mkdir yaml")
-	}
-
-	if err := ioutil.WriteFile(Release, specYAML, 0644); err != nil {
-		return errors.Wrap(err, "write yaml file")
-	}
-
-	return nil
 }
 
 func (r *Resolver) resolveCloudRelease(customerID, installationID string) (*ShipRelease, error) {
@@ -138,7 +125,25 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID string) (*Ship
 	if err != nil {
 		return nil, err
 	}
+
+	if err := r.persistSpec([]byte(release.Spec)); err != nil {
+		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
+	}
+	debug.Log("phase", "write-yaml", "from", release.Spec, "write-location", ReleasePath)
+
 	return release, err
+}
+
+// persistSpec persists last-used YAML to disk at .ship/release.yml
+func (r *Resolver) persistSpec(specYAML []byte) error {
+	if err := os.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
+		return errors.Wrap(err, "mkdir yaml")
+	}
+
+	if err := ioutil.WriteFile(ReleasePath, specYAML, 0644); err != nil {
+		return errors.Wrap(err, "write yaml file")
+	}
+	return nil
 }
 
 func (r *Resolver) RegisterInstall(ctx context.Context, selector Selector, release *api.Release) error {
