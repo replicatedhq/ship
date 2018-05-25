@@ -45,6 +45,7 @@ type ShipDaemon struct {
 	Fs     afero.Afero
 	Viper  *viper.Viper
 	UI     cli.Ui
+	StateManager *state.StateManager
 
 	sync.Mutex
 	currentStep          *api.Step
@@ -341,12 +342,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		stateManager := state.StateManager{
-			Logger: d.Logger,
-		}
-
 		debug.Log("event", "state.tryLoad")
-		savedSate, err := stateManager.TryLoad()
+		savedSate, err := d.StateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -420,11 +417,8 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		stateManager := state.StateManager{
-			Logger: d.Logger,
-		}
 		debug.Log("event", "state.tryLoad")
-		savedSate, err := stateManager.TryLoad()
+		savedSate, err := d.StateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -463,7 +457,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "state.serialize")
-		if err := stateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 			level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
 			c.AbortWithStatus(500)
 		}

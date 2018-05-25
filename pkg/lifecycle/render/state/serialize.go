@@ -49,7 +49,7 @@ func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, te
 }
 
 // TryLoad will attempt to load a state file from disk, if present
-func (s StateManager) TryLoad() (map[string]interface{}, error) {
+func (s *StateManager) TryLoad() (map[string]interface{}, error) {
 	if _, err := s.FS.Stat(Path); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", Path)
 		return make(map[string]interface{}), nil

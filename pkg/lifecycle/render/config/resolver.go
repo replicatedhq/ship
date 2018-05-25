@@ -41,6 +41,7 @@ func DaemonFromViper(v *viper.Viper) Daemon {
 		Logger:           logger.FromViper(v),
 		Fs:               fs.FromViper(v),
 		UI:               ui.FromViper(v),
+		StateManager: state.ManagerFromViper(v),
 		Viper:            v,
 		ConfigSaved:      make(chan interface{}),
 		MessageConfirmed: make(chan string, 1),
