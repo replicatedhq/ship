@@ -41,10 +41,10 @@ type Daemon interface {
 
 // Daemon runs the ship api server.
 type ShipDaemon struct {
-	Logger log.Logger
-	Fs     afero.Afero
-	Viper  *viper.Viper
-	UI     cli.Ui
+	Logger       log.Logger
+	Fs           afero.Afero
+	Viper        *viper.Viper
+	UI           cli.Ui
 	StateManager *state.StateManager
 
 	sync.Mutex
