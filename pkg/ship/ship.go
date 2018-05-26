@@ -118,6 +118,12 @@ func (s *Ship) Execute(ctx context.Context) error {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
 		return errors.New("Missing parameter: customer-id. Please provide your license key or customer ID.")
 	}
+
+	if s.InstallationID == "" && s.StudioFile == "" {
+		debug.Log("phase", "validate-inputs", "error", "missing installation ID")
+		return errors.New("Missing parameter: installation-id. Please provide your license key or installation ID.")
+	}
+
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
 	selector := specs.Selector{
