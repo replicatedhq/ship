@@ -15,5 +15,8 @@ Description for the Changelog
 
 
 
+Picture of a Boat (not required but encouraged)
+------------
+
 <!-- (thanks https://github.com/linuxkit/linuxkit for this template) -->
 
