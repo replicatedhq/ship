@@ -55,7 +55,7 @@ func (e *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
 			viper:  e.Viper,
 		},
 		&templates.InstallationContext{
-			Meta: release.Metadata,
+			Meta:  release.Metadata,
 			Viper: e.Viper,
 		},
 	)
