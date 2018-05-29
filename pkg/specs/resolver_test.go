@@ -1,14 +1,12 @@
 package specs
 
 import (
-	"fmt"
 	"testing"
-	"time"
-
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"reflect"
 )
 
 func TestPersistSpec(t *testing.T) {
@@ -20,18 +18,12 @@ func TestPersistSpec(t *testing.T) {
 		},
 	}
 
-	// Copy any release file out of the way
-	if _, err := r.StateManager.FS.ReadFile(ReleasePath); err != nil {
-		savedSpec := fmt.Sprintf("./ship/release.yml.%d", time.Now().UTC().UnixNano())
-		r.StateManager.FS.Rename(ReleasePath, savedSpec)
-		defer func() {
-			r.StateManager.FS.Remove(ReleasePath)
-			r.StateManager.FS.Rename(savedSpec, ReleasePath)
-		}()
-	}
-
 	req := require.New(t)
 
-	err := r.persistSpec([]byte("my cool spec"))
+	desiredSpec := []byte("my cool spec")
+	err := r.persistSpec(desiredSpec)
 	req.NoError(err)
+
+	persistedSpec, err := r.StateManager.FS.ReadFile(".ship/release.yml")
+	req.True(reflect.DeepEqual(desiredSpec, persistedSpec))
 }
