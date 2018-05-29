@@ -39,16 +39,24 @@ func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
 
 func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
-	m, err := d.StateManager.TryLoad()
+	config, err := d.StateManager.TryLoad()
 	if err != nil {
 		warn.Log("event", "state.missing", "err", err)
 	}
-	return m
+
+	if validateRequired := ValidateRequired(config); !validateRequired {
+		warn.Log("event", "required.missing")
+	}
+
+	return config
+}
+
+func ValidateRequired(c map[string]interface{}) bool {
+	return false
 }
 
 func (d *HeadlessDaemon) SetProgress(progress Progress) {
 	d.UI.Output(fmt.Sprintf("%s: %s", progress.Type, progress.Detail))
 }
 
-func (d *HeadlessDaemon) ClearProgress() {
-}
+func (d *HeadlessDaemon) ClearProgress() {}
