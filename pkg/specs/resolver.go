@@ -3,15 +3,13 @@ package specs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-
-	"os"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -36,6 +34,7 @@ type Selector struct {
 type Resolver struct {
 	Logger            log.Logger
 	Client            *GraphQLClient
+	StateManager      *state.StateManager
 	StudioFile        string
 	StudioChannelName string
 	StudioChannelIcon string
@@ -50,6 +49,7 @@ func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
 	return &Resolver{
 		Logger:            logger.FromViper(v),
 		Client:            graphql,
+		StateManager:      state.ManagerFromViper(v),
 		StudioFile:        v.GetString("studio-file"),
 		StudioChannelName: v.GetString("studio-channel-name"),
 		StudioChannelIcon: v.GetString("studio-channel-icon"),
@@ -98,7 +98,7 @@ func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveStudioSpec"))
 	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
 
-	specYAML, err := ioutil.ReadFile(r.StudioFile)
+	specYAML, err := r.StateManager.FS.ReadFile(r.StudioFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
 	}
@@ -136,11 +136,11 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID string) (*Ship
 
 // persistSpec persists last-used YAML to disk at .ship/release.yml
 func (r *Resolver) persistSpec(specYAML []byte) error {
-	if err := os.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
+	if err := r.StateManager.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
 	}
 
-	if err := ioutil.WriteFile(ReleasePath, specYAML, 0644); err != nil {
+	if err := r.StateManager.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
 		return errors.Wrap(err, "write yaml file")
 	}
 	return nil
