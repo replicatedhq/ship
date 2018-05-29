@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 	"github.com/replicatedhq/libyaml"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,7 +99,14 @@ func TestDepGraph(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var graph depGraph
+
+			builderBuilder := &templates.BuilderBuilder{
+				Logger: &logger.TestLogger{T: t},
+				Viper:  viper.New(),
+			}
+			graph := depGraph{
+				BuilderBuilder: builderBuilder,
+			}
 			for source, deps := range test.dependencies {
 				graph.AddNode(source)
 				for _, dep := range deps {
@@ -107,7 +117,15 @@ func TestDepGraph(t *testing.T) {
 		})
 
 		t.Run(test.name+"+parse", func(t *testing.T) {
-			var graph depGraph
+			builderBuilder := &templates.BuilderBuilder{
+				Logger: &logger.TestLogger{T: t},
+				Viper:  viper.New(),
+			}
+
+			graph := depGraph{
+				BuilderBuilder: builderBuilder,
+			}
+
 			groups := buildTestConfigGroups(test.dependencies, "templateStringStart", "templateStringEnd", true)
 
 			err := graph.ParseConfigGroup(groups)

@@ -19,16 +19,18 @@ type Messenger interface {
 func FromViper(v *viper.Viper) Messenger {
 	if v.GetBool("headless") {
 		return &CLIMessenger{
-			Logger: logger.FromViper(v),
-			UI:     ui.FromViper(v),
-			Viper:  v,
+			Logger:         logger.FromViper(v),
+			UI:             ui.FromViper(v),
+			Viper:          v,
+			BuilderBuilder: templates.BuilderBuilderFromViper(v),
 		}
 	}
 
 	return &DaemonMessenger{
-		Logger: logger.FromViper(v),
-		UI:     ui.FromViper(v),
-		Viper:  v,
+		Logger:         logger.FromViper(v),
+		UI:             ui.FromViper(v),
+		Viper:          v,
+		BuilderBuilder: templates.BuilderBuilderFromViper(v),
 	}
 }
 
@@ -38,8 +40,8 @@ func (m *DaemonMessenger) WithDaemon(d config.Daemon) Messenger {
 }
 
 func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) templates.Builder {
-	builder := templates.NewBuilder(
-		templates.NewStaticContext(),
+	builder := m.BuilderBuilder.NewBuilder(
+		m.BuilderBuilder.NewStaticContext(),
 		builderContext{
 			logger: m.Logger,
 			viper:  m.Viper,

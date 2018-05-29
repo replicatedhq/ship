@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
@@ -92,10 +94,25 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 	}, nil
 }
 
+func (s *Ship) shutdown(cancelFunc context.CancelFunc) {
+	// need to pause beforce canceling the context, because we need
+	// the daemon to stay up for a few seconds so the UI can know its
+	// time to show the "You're all done" page
+	level.Info(s.Logger).Log("event", "shutdown.prePause", "waitTime", "1s")
+	time.Sleep(1 * time.Second)
+
+	// now shut it all down, give things 5 seconds to clean up
+	level.Info(s.Logger).Log("event", "shutdown.commence", "waitTime", "1s")
+	cancelFunc()
+	time.Sleep(1 * time.Second)
+
+	level.Info(s.Logger).Log("event", "shutdown.complete")
+}
+
 // Execute starts ship
 func (s *Ship) Execute(ctx context.Context) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
-	defer cancelFunc()
+	defer s.shutdown(cancelFunc)
 
 	debug := level.Debug(log.With(s.Logger, "method", "execute"))
 

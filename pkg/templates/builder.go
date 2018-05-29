@@ -12,6 +12,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -24,8 +26,21 @@ type Builder struct {
 	Logger log.Logger
 }
 
-func NewBuilder(ctxx ...Ctx) Builder {
-	var builder Builder
+type BuilderBuilder struct {
+	Logger log.Logger
+	Viper  *viper.Viper
+}
+
+func BuilderBuilderFromViper(v *viper.Viper) *BuilderBuilder {
+	return &BuilderBuilder{
+		Logger: logger.FromViper(v),
+	}
+}
+
+func (bb *BuilderBuilder) NewBuilder(ctxx ...Ctx) Builder {
+	builder := Builder{
+		Logger: bb.Logger,
+	}
 	for _, ctx := range ctxx {
 		builder.AddCtx(ctx)
 	}

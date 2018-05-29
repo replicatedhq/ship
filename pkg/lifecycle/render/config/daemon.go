@@ -41,11 +41,12 @@ type Daemon interface {
 
 // Daemon runs the ship api server.
 type ShipDaemon struct {
-	Logger       log.Logger
-	Fs           afero.Afero
-	Viper        *viper.Viper
-	UI           cli.Ui
-	StateManager *state.StateManager
+	Logger         log.Logger
+	Fs             afero.Afero
+	Viper          *viper.Viper
+	UI             cli.Ui
+	StateManager   *state.StateManager
+	ConfigRenderer *APIConfigRenderer
 
 	sync.Mutex
 	currentStep          *api.Step
@@ -355,13 +356,8 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 			liveValues[itemValue.Name] = itemValue.Value
 		}
 
-		resolver := &APIConfigRenderer{
-			Logger: d.Logger,
-			Viper:  d.Viper,
-		}
-
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := resolver.ResolveConfig(c, release, savedSate, liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate, liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -430,13 +426,8 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			liveValues[itemValue.Name] = itemValue.Value
 		}
 
-		resolver := &APIConfigRenderer{
-			Logger: d.Logger,
-			Viper:  d.Viper,
-		}
-
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := resolver.ResolveConfig(c, release, savedSate, liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate, liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)

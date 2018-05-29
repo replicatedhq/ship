@@ -19,6 +19,13 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
+func (bb *BuilderBuilder) NewStaticContext() *StaticCtx {
+	return &StaticCtx{
+		Logger: bb.Logger,
+	}
+}
+
+// deprecated
 func NewStaticContext() *StaticCtx {
 	staticCtx := &StaticCtx{
 		Logger: log.NewLogfmtLogger(os.Stderr),

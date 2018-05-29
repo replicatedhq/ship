@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedcom/ship/pkg/templates"
 )
 
 // A Plan is a list of PlanSteps to execute
@@ -44,20 +45,22 @@ type Planner interface {
 
 // CLIPlanner is the default Planner
 type CLIPlanner struct {
-	Logger log.Logger
-	Fs     afero.Afero
-	UI     cli.Ui
-	Viper  *viper.Viper
-	Daemon config.Daemon
+	Logger         log.Logger
+	Fs             afero.Afero
+	UI             cli.Ui
+	Viper          *viper.Viper
+	Daemon         config.Daemon
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func FromViper(v *viper.Viper) Planner {
 	// todo do a Web-UI planner impl, steps will probably be mostly the same
 	return &CLIPlanner{
-		Logger: logger.FromViper(v),
-		Fs:     fs.FromViper(v),
-		UI:     ui.FromViper(v),
-		Viper:  v,
+		Logger:         logger.FromViper(v),
+		Fs:             fs.FromViper(v),
+		UI:             ui.FromViper(v),
+		Viper:          v,
+		BuilderBuilder: templates.BuilderBuilderFromViper(v),
 	}
 }
 

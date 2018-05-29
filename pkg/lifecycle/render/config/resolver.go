@@ -7,6 +7,7 @@ import (
 	"github.com/replicatedcom/ship/pkg/fs"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/viper"
 )
@@ -37,6 +38,12 @@ func DaemonFromViper(v *viper.Viper) Daemon {
 		}
 	}
 
+	renderer := &APIConfigRenderer{
+		Logger:         logger.FromViper(v),
+		Viper:          v,
+		BuilderBuilder: templates.BuilderBuilderFromViper(v),
+	}
+
 	return &ShipDaemon{
 		Logger:           logger.FromViper(v),
 		Fs:               fs.FromViper(v),
@@ -45,5 +52,6 @@ func DaemonFromViper(v *viper.Viper) Daemon {
 		Viper:            v,
 		ConfigSaved:      make(chan interface{}),
 		MessageConfirmed: make(chan string, 1),
+		ConfigRenderer:   renderer,
 	}
 }

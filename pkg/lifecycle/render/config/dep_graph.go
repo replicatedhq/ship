@@ -14,7 +14,8 @@ import (
 )
 
 type depGraph struct {
-	Dependencies map[string]map[string]struct{}
+	BuilderBuilder *templates.BuilderBuilder
+	Dependencies   map[string]map[string]struct{}
 }
 
 //these config functions are used to add their dependencies to the depGraph
@@ -81,26 +82,31 @@ func (d *depGraph) Copy() (depGraph, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	dec := json.NewDecoder(&buf)
-	err := enc.Encode(d)
+	err := enc.Encode(d.Dependencies)
 	if err != nil {
 		return depGraph{}, err
 	}
-	var copy depGraph
+	var copy map[string]map[string]struct{}
 	err = dec.Decode(&copy)
 	if err != nil {
 		return depGraph{}, err
 	}
-	return copy, nil
+
+	return depGraph{
+		BuilderBuilder: d.BuilderBuilder,
+		Dependencies:   copy,
+	}, nil
+
 }
 
 func (d *depGraph) ParseConfigGroup(configGroups []libyaml.ConfigGroup) error {
-	staticCtx := templates.NewStaticContext()
+	staticCtx := d.BuilderBuilder.NewStaticContext()
 	for _, configGroup := range configGroups {
 		for _, configItem := range configGroup.Items {
 			// add this to the dependency graph
 			d.AddNode(configItem.Name)
 
-			depBuilder := templates.NewBuilder(staticCtx)
+			depBuilder := d.BuilderBuilder.NewBuilder(staticCtx)
 			depBuilder.Functs = d.funcMap(configItem.Name)
 
 			// while builder is normally stateless, the functions it uses within this loop are not

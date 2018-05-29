@@ -1,4 +1,4 @@
-package config
+package templates
 
 import (
 	"encoding/base64"
@@ -6,7 +6,6 @@ import (
 	"text/template"
 
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -15,19 +14,68 @@ import (
 	"github.com/spf13/viper"
 )
 
+func (bb *BuilderBuilder) NewConfigContext(
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) (*ConfigCtx, error) {
+
+	builder := bb.NewBuilder(
+		bb.NewStaticContext(),
+	)
+
+	configCtx := &ConfigCtx{
+		ItemValues: templateContext,
+		Logger:     bb.Logger,
+		Viper:      bb.Viper,
+	}
+
+	for _, configGroup := range configGroups {
+		for _, configItem := range configGroup.Items {
+			// if the pending value is different from the built, then use the pending every time
+			// We have to ignore errors here because we only have the static context loaded
+			// for rendering. some items have templates that need the config context,
+			// so we can ignore these.
+			builtDefault, _ := builder.String(configItem.Default)
+			builtValue, _ := builder.String(configItem.Value)
+
+			var built string
+			if builtValue != "" {
+				built = builtValue
+			} else {
+				built = builtDefault
+			}
+
+			if v, ok := templateContext[configItem.Name]; ok {
+				built = fmt.Sprintf("%v", v)
+			}
+
+			configCtx.ItemValues[configItem.Name] = built
+		}
+	}
+
+	return configCtx, nil
+}
+
 // NewConfigContext will return a new config context, initialized with the app config.
 // Once we have state (for upgrades) it should be a parameter here.
-func NewConfigContext(viper *viper.Viper, logger log.Logger, configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
+// deprecated -- use BuilderBuilder
+func NewConfigContext(
+	v *viper.Viper,
+	logger log.Logger,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
-	builder := templates.NewBuilder(
-		templates.StaticCtx{Logger: logger},
+	builderBuilder := BuilderBuilderFromViper(v)
+	builder := builderBuilder.NewBuilder(
+		builderBuilder.NewStaticContext(),
 	)
 
 	configCtx := &ConfigCtx{
 		ItemValues: templateContext,
 		Logger:     logger,
-		Viper:      viper,
+		Viper:      v,
 	}
 
 	for _, configGroup := range configGroups {

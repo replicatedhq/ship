@@ -10,10 +10,11 @@ import (
 
 	"strings"
 
-	"github.com/go-kit/kit/log"
 	"github.com/go-test/deep"
 	"github.com/replicatedcom/ship/pkg/api"
 	_ "github.com/replicatedcom/ship/pkg/lifecycle/render/config/test-cases/api"
+	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -72,15 +73,24 @@ type configTestCase struct {
 func TestAPIResolver(t *testing.T) {
 	ctx := context.Background()
 
-	resolver := &APIConfigRenderer{
-		Logger: log.NewNopLogger(),
-	}
-
 	tests := loadAPITestCases(t, filepath.Join("test-cases", "api"))
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
+			v := viper.New()
+			testLogger := &logger.TestLogger{T: t}
+
+			builderBuilder := &templates.BuilderBuilder{
+				Logger: testLogger,
+				Viper:  v,
+			}
+
+			resolver := &APIConfigRenderer{
+				Logger:         testLogger,
+				Viper:          v,
+				BuilderBuilder: builderBuilder,
+			}
 
 			release := &api.Release{
 				Spec: api.Spec{
@@ -89,7 +99,6 @@ func TestAPIResolver(t *testing.T) {
 					},
 				},
 			}
-			resolver.Viper = viper.New()
 
 			func() {
 				if test.LiveValues == nil {
@@ -206,7 +215,18 @@ func TestResolveConfigValuesMap(t *testing.T) {
 			//build a config to test
 			groups := buildTestConfigGroups(test.dependencies, test.prefix, test.suffix, false)
 
-			output, err := resolveConfigValuesMap(test.input, groups, log.NewNopLogger(), viper.New())
+			testLogger := &logger.TestLogger{T: t}
+			v := viper.New()
+			builderBuilder := &templates.BuilderBuilder{
+				Logger: testLogger,
+				Viper:  v,
+			}
+			renderer := &APIConfigRenderer{
+				Logger:         testLogger,
+				Viper:          v,
+				BuilderBuilder: builderBuilder,
+			}
+			output, err := renderer.resolveConfigValuesMap(test.input, groups)
 			req.NoError(err)
 
 			req.Equal(test.results, output)
