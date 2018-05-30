@@ -3,10 +3,12 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
+	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 )
@@ -39,20 +41,29 @@ func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
 
 func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
-	config, err := d.StateManager.TryLoad()
+	currentConfig, err := d.StateManager.TryLoad()
 	if err != nil {
 		warn.Log("event", "state.missing", "err", err)
 	}
 
-	if validateRequired := ValidateRequired(config); !validateRequired {
-		warn.Log("event", "required.missing")
+	if err = ValidateSuppliedParams(currentConfig); err != nil {
+		warn.Log("event", "suppliedParams.missing")
+		d.UI.Error(err.Error())
+		os.Exit(1)
 	}
 
-	return config
+	return currentConfig
 }
 
-func ValidateRequired(c map[string]interface{}) bool {
-	return false
+func ValidateSuppliedParams(currentConfig map[string]interface{}) error {
+	// var missingParams []string
+	for _, value := range currentConfig {
+		if value == "" {
+			return errors.New("Supplied parameters are missing. Exiting...")
+			// missingParams = append(missingParams, param)
+		}
+	}
+	return nil
 }
 
 func (d *HeadlessDaemon) SetProgress(progress Progress) {
