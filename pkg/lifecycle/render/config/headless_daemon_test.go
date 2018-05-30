@@ -3,7 +3,6 @@ package config
 import (
 	"testing"
 
-	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 	"github.com/replicatedhq/libyaml"
@@ -20,6 +19,7 @@ type TestHeadless struct {
 type TestSuppliedParams struct {
 	Name     string
 	Config   []libyaml.ConfigGroup
+	Release  map[string]interface{}
 	Expected bool
 }
 
@@ -58,7 +58,7 @@ func TestHeadlessDaemon(t *testing.T) {
 func TestValidateSuppliedParams(t *testing.T) {
 	tests := []TestSuppliedParams{
 		{
-			Name: "basic",
+			Name: "non_required_val_not_present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -73,7 +73,61 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			Expected: false,
+		},
+		{
+			Name: "required_val_not_present",
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
 			Expected: true,
+		},
+		{
+			Name: "required_val_present",
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+					},
+				},
+			},
+			Expected: false,
+		},
+		{
+			Name: "non_required_val_present",
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "abc",
+							Default:  "",
+						},
+					},
+				},
+			},
+			Expected: false,
 		},
 	}
 
@@ -82,8 +136,6 @@ func TestValidateSuppliedParams(t *testing.T) {
 			req := require.New(t)
 
 			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			// err := fakeFS.WriteFile(".ship/state.json", test.Config, 0666)
-			// req.NoError(err)
 
 			testLogger := &logger.TestLogger{T: t}
 			daemon := &HeadlessDaemon{
@@ -94,15 +146,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			release := &api.Release{
-				Spec: api.Spec{
-					Config: api.Config{
-						V1: test.Config,
-					},
-				},
-			}
-
-			err := daemon.ValidateSuppliedParams(nil, release)
+			err := daemon.ValidateSuppliedParams(test.Config)
 			req.Equal(err != nil, test.Expected)
 		})
 	}

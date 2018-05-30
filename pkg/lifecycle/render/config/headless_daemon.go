@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/libyaml"
 )
 
 type HeadlessDaemon struct {
@@ -23,9 +24,17 @@ type HeadlessDaemon struct {
 
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
-	if err := d.ValidateSuppliedParams(ctx, release); err != nil {
+	currentConfig := d.GetCurrentConfig()
+
+	resolved, _ := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	// TODO : deal with potential error
+
+	if err := d.ValidateSuppliedParams(resolved); err != nil {
 		warn.Log("event", "validate.failed", "err", err)
+		d.UI.Error(err.Error())
+		os.Exit(1)
 	}
+
 	return make(chan error)
 }
 
@@ -55,27 +64,13 @@ func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	return currentConfig
 }
 
-func (d *HeadlessDaemon) ValidateSuppliedParams(ctx context.Context, release *api.Release) error {
+func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "validateSuppliedParams"))
-	currentConfig, err := d.StateManager.TryLoad()
-	if err != nil {
-		warn.Log("event", "state.missing", "err", err)
-		return err
-	}
-
-	fmt.Println(currentConfig)
-
-	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
-	if err != nil {
-		warn.Log("event", "resolve.failed", "err", err)
-		return err
-	}
 
 	if validateState := validateConfig(resolved); validateState != nil {
 		err := errors.New("Error: missing parameters. Exiting...")
 		warn.Log("event", "state.invalid", "err", err)
-		d.UI.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 
 	return nil
