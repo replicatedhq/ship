@@ -15,13 +15,14 @@ type TestHeadless struct {
 	Expected map[string]interface{}
 }
 
+type TestSuppliedParams struct {
+	Name     string
+	Config   map[string]interface{}
+	Expected bool
+}
+
 func TestHeadlessDaemon(t *testing.T) {
 	tests := []TestHeadless{
-		{
-			Name:     "basic",
-			Config:   []byte(`{"spam": "eggs"}`),
-			Expected: map[string]interface{}{"spam": "eggs"},
-		},
 		{
 			Name:     "basic",
 			Config:   []byte(`{"spam": "eggs"}`),
@@ -48,6 +49,25 @@ func TestHeadlessDaemon(t *testing.T) {
 
 			cfg := daemon.GetCurrentConfig()
 			req.Equal(cfg, test.Expected)
+		})
+	}
+}
+
+func TestValidateSuppliedParams(t *testing.T) {
+	tests := []TestSuppliedParams{
+		{
+			Name:     "basic",
+			Config:   map[string]interface{}{"spam": ""},
+			Expected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
+
+			err := ValidateSuppliedParams(test.Config)
+			req.Equal(err != nil, test.Expected)
 		})
 	}
 }
