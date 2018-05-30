@@ -60,7 +60,7 @@ func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
 	currentConfig, err := d.StateManager.TryLoad()
 	if err != nil {
-		warn.Log("event", "state.missing", "err", err)
+		warn.Log("event", "headless.state.missing", "err", err)
 	}
 
 	return currentConfig
@@ -71,7 +71,7 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) 
 
 	if validateState := validateConfig(resolved); validateState != nil {
 		err := errors.New("Error: missing parameters. Exiting...")
-		warn.Log("event", "state.invalid", "err", err)
+		warn.Log("event", "headless.state.invalid", "err", err)
 		return err
 	}
 
