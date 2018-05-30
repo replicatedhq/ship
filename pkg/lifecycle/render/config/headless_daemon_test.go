@@ -17,7 +17,7 @@ type TestHeadless struct {
 
 type TestSuppliedParams struct {
 	Name     string
-	Config   map[string]interface{}
+	Config   []byte
 	Expected bool
 }
 
@@ -57,7 +57,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 	tests := []TestSuppliedParams{
 		{
 			Name:     "basic",
-			Config:   map[string]interface{}{"spam": ""},
+			Config:   []byte(`{"spam": "eggs"}`),
 			Expected: true,
 		},
 	}
@@ -66,7 +66,20 @@ func TestValidateSuppliedParams(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			err := ValidateSuppliedParams(test.Config)
+			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
+			err := fakeFS.WriteFile(".ship/state.json", test.Config, 0666)
+			req.NoError(err)
+
+			testLogger := &logger.TestLogger{T: t}
+			daemon := &HeadlessDaemon{
+				StateManager: &state.StateManager{
+					Logger: testLogger,
+					FS:     fakeFS,
+				},
+				Logger: testLogger,
+			}
+
+			// err := daemon.ValidateSuppliedParams()
 			req.Equal(err != nil, test.Expected)
 		})
 	}

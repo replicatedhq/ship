@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+
 	"os"
 
 	"github.com/go-kit/kit/log"
@@ -14,12 +15,19 @@ import (
 )
 
 type HeadlessDaemon struct {
-	StateManager *state.StateManager
-	Logger       log.Logger
-	UI           cli.Ui
+	StateManager   *state.StateManager
+	Logger         log.Logger
+	UI             cli.Ui
+	ConfigRenderer *APIConfigRenderer
 }
 
-func (d *HeadlessDaemon) EnsureStarted(context.Context, *api.Release) chan error {
+func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
+	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
+	if err := d.ValidateSuppliedParams(ctx, release); err != nil {
+		warn.Log("event", "validate.failed", "err", err)
+		d.UI.Error(err.Error())
+		os.Exit(1)
+	}
 	return make(chan error)
 }
 
@@ -46,23 +54,29 @@ func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 		warn.Log("event", "state.missing", "err", err)
 	}
 
-	if err = ValidateSuppliedParams(currentConfig); err != nil {
-		warn.Log("event", "suppliedParams.missing")
-		d.UI.Error(err.Error())
-		os.Exit(1)
-	}
-
 	return currentConfig
 }
 
-func ValidateSuppliedParams(currentConfig map[string]interface{}) error {
-	// var missingParams []string
-	for _, value := range currentConfig {
-		if value == "" {
-			return errors.New("Supplied parameters are missing. Exiting...")
-			// missingParams = append(missingParams, param)
-		}
+func (d *HeadlessDaemon) ValidateSuppliedParams(ctx context.Context, release *api.Release) error {
+	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "validateSuppliedParams"))
+	currentConfig, err := d.StateManager.TryLoad()
+	if err != nil {
+		warn.Log("event", "state.missing", "err", err)
+		return err
 	}
+
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	if err != nil {
+		warn.Log("event", "resolve.failed", "err", err)
+		return err
+	}
+
+	if validateState := validateConfig(resolved); validateState != nil {
+		err := errors.New("Error: missing parameters. Exiting...")
+		warn.Log("event", "state.invalid", "err", err)
+		return err
+	}
+
 	return nil
 }
 
