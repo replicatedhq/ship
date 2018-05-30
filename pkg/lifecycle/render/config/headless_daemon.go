@@ -63,6 +63,8 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(ctx context.Context, release *ap
 		return err
 	}
 
+	fmt.Println(currentConfig)
+
 	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
 	if err != nil {
 		warn.Log("event", "resolve.failed", "err", err)
