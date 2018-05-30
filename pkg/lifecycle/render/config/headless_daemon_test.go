@@ -11,24 +11,24 @@ import (
 )
 
 type TestHeadless struct {
-	Name     string
-	Config   []byte
-	Expected map[string]interface{}
+	Name          string
+	Config        []byte
+	ExpectedValue map[string]interface{}
 }
 
 type TestSuppliedParams struct {
-	Name     string
-	Config   []libyaml.ConfigGroup
-	Release  map[string]interface{}
-	Expected bool
+	Name          string
+	Config        []libyaml.ConfigGroup
+	Release       map[string]interface{}
+	ExpectedValue bool
 }
 
 func TestHeadlessDaemon(t *testing.T) {
 	tests := []TestHeadless{
 		{
-			Name:     "basic",
-			Config:   []byte(`{"spam": "eggs"}`),
-			Expected: map[string]interface{}{"spam": "eggs"},
+			Name:          "basic",
+			Config:        []byte(`{"spam": "eggs"}`),
+			ExpectedValue: map[string]interface{}{"spam": "eggs"},
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestHeadlessDaemon(t *testing.T) {
 			}
 
 			cfg := daemon.GetCurrentConfig()
-			req.Equal(cfg, test.Expected)
+			req.Equal(cfg, test.ExpectedValue)
 		})
 	}
 }
@@ -58,7 +58,11 @@ func TestHeadlessDaemon(t *testing.T) {
 func TestValidateSuppliedParams(t *testing.T) {
 	tests := []TestSuppliedParams{
 		{
-			Name: "non_required_val_not_present",
+			Config:        []libyaml.ConfigGroup{},
+			ExpectedValue: false,
+			Name:          "empty test",
+		},
+		{
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -73,10 +77,10 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			Expected: false,
+			ExpectedValue: false,
+			Name:          "one group one item, not required",
 		},
 		{
-			Name: "required_val_not_present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -91,10 +95,10 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			Expected: true,
+			ExpectedValue: true,
+			Name:          "one group one item, required, no value",
 		},
 		{
-			Name: "required_val_present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -109,10 +113,10 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			Expected: false,
+			ExpectedValue: false,
+			Name:          "one group one item, required, value",
 		},
 		{
-			Name: "non_required_val_present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -121,13 +125,202 @@ func TestValidateSuppliedParams(t *testing.T) {
 							Name:     "alpha",
 							Title:    "alpha value",
 							Required: false,
+							Value:    "",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, not required, hidden, no value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, required, not hidden, no value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group one item, required, not hidden, no value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
 							Value:    "abc",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, required, not hidden, value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: false,
+							Value:    "",
+							Default:  "",
+							Hidden:   false,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, not required, not hidden, no value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Title:    "alpha value",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group one item, required, hidden, value",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: false,
+							Value:    "",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: false,
+							Value:    "",
 							Default:  "",
 						},
 					},
 				},
 			},
-			Expected: false,
+			ExpectedValue: false,
+			Name:          "one group two items",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group two items, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: true,
+			Name:          "one group two items, required",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: true,
+							Value:    "abc",
+							Default:  "",
+						},
+						{
+							Name:     "beta",
+							Required: true,
+							Value:    "xyz",
+							Default:  "",
+						},
+					},
+				},
+			},
+			ExpectedValue: false,
+			Name:          "one group two items, required",
 		},
 	}
 
@@ -147,7 +340,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 			}
 
 			err := daemon.ValidateSuppliedParams(test.Config)
-			req.Equal(err != nil, test.Expected)
+			req.Equal(err != nil, test.ExpectedValue)
 		})
 	}
 }
