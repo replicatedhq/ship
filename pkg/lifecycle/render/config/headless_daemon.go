@@ -26,11 +26,13 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 	currentConfig := d.GetCurrentConfig()
 
-	resolved, _ := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
-	// TODO : deal with potential error
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	if err != nil {
+		warn.Log("event", "headless.resolved.failed", "err", err)
+	}
 
 	if err := d.ValidateSuppliedParams(resolved); err != nil {
-		warn.Log("event", "validate.failed", "err", err)
+		warn.Log("event", "headless.validate.failed", "err", err)
 		d.UI.Error(err.Error())
 		os.Exit(1)
 	}
