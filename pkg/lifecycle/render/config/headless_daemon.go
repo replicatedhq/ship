@@ -25,8 +25,6 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 	if err := d.ValidateSuppliedParams(ctx, release); err != nil {
 		warn.Log("event", "validate.failed", "err", err)
-		d.UI.Error(err.Error())
-		os.Exit(1)
 	}
 	return make(chan error)
 }
@@ -74,7 +72,8 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(ctx context.Context, release *ap
 	if validateState := validateConfig(resolved); validateState != nil {
 		err := errors.New("Error: missing parameters. Exiting...")
 		warn.Log("event", "state.invalid", "err", err)
-		return err
+		d.UI.Error(err.Error())
+		os.Exit(1)
 	}
 
 	return nil
