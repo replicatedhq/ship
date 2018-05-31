@@ -30,18 +30,20 @@ func (r *DaemonResolver) WithDaemon(d Daemon) Resolver {
 }
 
 func DaemonFromViper(v *viper.Viper) Daemon {
-	if v.GetBool("headless") {
-		return &HeadlessDaemon{
-			StateManager: state.ManagerFromViper(v),
-			Logger:       logger.FromViper(v),
-			UI:           ui.FromViper(v),
-		}
-	}
 
 	renderer := &APIConfigRenderer{
 		Logger:         logger.FromViper(v),
 		Viper:          v,
 		BuilderBuilder: templates.BuilderBuilderFromViper(v),
+	}
+
+	if v.GetBool("headless") {
+		return &HeadlessDaemon{
+			StateManager:   state.ManagerFromViper(v),
+			Logger:         logger.FromViper(v),
+			UI:             ui.FromViper(v),
+			ConfigRenderer: renderer,
+		}
 	}
 
 	return &ShipDaemon{

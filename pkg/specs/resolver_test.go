@@ -1,12 +1,13 @@
 package specs
 
 import (
+	"reflect"
 	"testing"
+
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"reflect"
 )
 
 func TestPersistSpec(t *testing.T) {

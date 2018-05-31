@@ -3,21 +3,39 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
+	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/libyaml"
 )
 
 type HeadlessDaemon struct {
-	StateManager *state.StateManager
-	Logger       log.Logger
-	UI           cli.Ui
+	StateManager   *state.StateManager
+	Logger         log.Logger
+	UI             cli.Ui
+	ConfigRenderer *APIConfigRenderer
 }
 
-func (d *HeadlessDaemon) EnsureStarted(context.Context, *api.Release) chan error {
+func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
+	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
+	currentConfig := d.GetCurrentConfig()
+
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	if err != nil {
+		warn.Log("event", "headless.resolved.failed", "err", err)
+	}
+
+	if err := d.ValidateSuppliedParams(resolved); err != nil {
+		warn.Log("event", "headless.validate.failed", "err", err)
+		d.UI.Error(err.Error())
+		os.Exit(1)
+	}
+
 	return make(chan error)
 }
 
@@ -39,16 +57,28 @@ func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
 
 func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
-	m, err := d.StateManager.TryLoad()
+	currentConfig, err := d.StateManager.TryLoad()
 	if err != nil {
-		warn.Log("event", "state.missing", "err", err)
+		warn.Log("event", "headless.state.missing", "err", err)
 	}
-	return m
+
+	return currentConfig
+}
+
+func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) error {
+	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "validateSuppliedParams"))
+
+	if validateState := validateConfig(resolved); validateState != nil {
+		err := errors.New("Error: missing parameters. Exiting...")
+		warn.Log("event", "headless.state.invalid", "err", err)
+		return err
+	}
+
+	return nil
 }
 
 func (d *HeadlessDaemon) SetProgress(progress Progress) {
 	d.UI.Output(fmt.Sprintf("%s: %s", progress.Type, progress.Detail))
 }
 
-func (d *HeadlessDaemon) ClearProgress() {
-}
+func (d *HeadlessDaemon) ClearProgress() {}
