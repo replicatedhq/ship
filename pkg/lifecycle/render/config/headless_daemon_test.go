@@ -22,6 +22,12 @@ type TestSuppliedParams struct {
 	ExpectedError bool
 }
 
+type TestRenderChainedConfigOpts struct {
+	Name          string
+	Config        []libyaml.ConfigGroup
+	ExpectedValue map[string]interface{}
+}
+
 func TestHeadlessDaemon(t *testing.T) {
 	tests := []TestHeadless{
 		{
@@ -359,6 +365,38 @@ func TestValidateSuppliedParams(t *testing.T) {
 			} else {
 				req.NoError(err)
 			}
+		})
+	}
+}
+
+func TestChainedConfig(t *testing.T) {
+	tests := []TestRenderChainedConfigOpts{
+		{
+			Name:          "empty",
+			Config:        []libyaml.ConfigGroup{},
+			ExpectedValue: map[string]interface{}{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			// req := require.New(t)
+
+			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
+			// err := fakeFS.WriteFile(".ship/state.json", test.Config, 0666)
+			// req.NoError(err)
+
+			testLogger := &logger.TestLogger{T: t}
+			daemon := &HeadlessDaemon{
+				StateManager: &state.StateManager{
+					Logger: testLogger,
+					FS:     fakeFS,
+				},
+				Logger: testLogger,
+			}
+
+			// cfg := daemon.GetCurrentConfig()
+			// req.Equal(cfg, test.ExpectedValue)
 		})
 	}
 }

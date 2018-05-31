@@ -77,6 +77,10 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) 
 	return nil
 }
 
+func (d *HeadlessDaemon) ChainConfigOptions() error {
+	return nil
+}
+
 func (d *HeadlessDaemon) SetProgress(progress Progress) {
 	d.UI.Output(fmt.Sprintf("%s: %s", progress.Type, progress.Detail))
 }
