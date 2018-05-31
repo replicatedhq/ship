@@ -17,18 +17,31 @@ type TestHeadless struct {
 }
 
 type TestSuppliedParams struct {
-	Name    string
-	Config  []libyaml.ConfigGroup
-	Release map[string]interface{}
-	// ExpectedValue bool
+	Name   string
+	Config []libyaml.ConfigGroup
 }
 
 func TestHeadlessDaemon(t *testing.T) {
 	tests := []TestHeadless{
 		{
+			Name:          "empty",
+			Config:        []byte(`{}`),
+			ExpectedValue: map[string]interface{}{},
+		},
+		{
 			Name:          "basic",
 			Config:        []byte(`{"spam": "eggs"}`),
 			ExpectedValue: map[string]interface{}{"spam": "eggs"},
+		},
+		{
+			Name:          "multiple",
+			Config:        []byte(`{"spam": "eggs", "ford": "bernard"}`),
+			ExpectedValue: map[string]interface{}{"spam": "eggs", "ford": "bernard"},
+		},
+		{
+			Name:          "some empty fields",
+			Config:        []byte(`{"spam": "", "ford": "bernard"}`),
+			ExpectedValue: map[string]interface{}{"spam": "", "ford": "bernard"},
 		},
 	}
 
