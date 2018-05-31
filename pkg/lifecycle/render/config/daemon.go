@@ -421,10 +421,18 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
+		fmt.Println("*** SAVED STATE ***")
+		fmt.Println(savedSate)
+		fmt.Println("*** SAVED STATE ***")
+
 		liveValues := make(map[string]interface{})
 		for _, itemValue := range request.Options {
 			liveValues[itemValue.Name] = itemValue.Value
 		}
+
+		fmt.Println("*** LIVE VALUES ***")
+		fmt.Println(liveValues)
+		fmt.Println("*** LIVE VALUES ***")
 
 		debug.Log("event", "resolveConfig")
 		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate, liveValues)
@@ -439,6 +447,10 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
+		fmt.Println("*** RESOLVED CFG ***")
+		fmt.Println(resolvedConfig)
+		fmt.Println("*** RESOLVED CFG ***")
+
 		// NOTE: what about multi value, data, multi data?
 		templateContext := make(map[string]interface{})
 		for _, configGroup := range resolvedConfig {
@@ -446,6 +458,10 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 				templateContext[configItem.Name] = configItem.Value
 			}
 		}
+
+		fmt.Println("*** TEMPLATE CTX ***")
+		fmt.Println(templateContext)
+		fmt.Println("*** TEMPLATE CTX ***")
 
 		debug.Log("event", "state.serialize")
 		if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {

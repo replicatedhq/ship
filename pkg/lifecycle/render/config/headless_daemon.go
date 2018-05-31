@@ -36,6 +36,14 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 		os.Exit(1)
 	}
 
+	chained, _ := d.ConfigRenderer.resolveConfigValuesMap(currentConfig, resolved)
+	fmt.Println("*********")
+	fmt.Println(chained)
+
+	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, currentConfig); err != nil {
+		warn.Log("msg", "headless.serialize state failed", "err", err)
+	}
+
 	return make(chan error)
 }
 
@@ -74,10 +82,6 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) 
 		return err
 	}
 
-	return nil
-}
-
-func (d *HeadlessDaemon) ChainConfigOptions() error {
 	return nil
 }
 
