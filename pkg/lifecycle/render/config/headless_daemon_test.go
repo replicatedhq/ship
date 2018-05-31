@@ -17,8 +17,9 @@ type TestHeadless struct {
 }
 
 type TestSuppliedParams struct {
-	Name   string
-	Config []libyaml.ConfigGroup
+	Name          string
+	Config        []libyaml.ConfigGroup
+	ExpectedError bool
 }
 
 func TestHeadlessDaemon(t *testing.T) {
@@ -71,8 +72,9 @@ func TestHeadlessDaemon(t *testing.T) {
 func TestValidateSuppliedParams(t *testing.T) {
 	tests := []TestSuppliedParams{
 		{
-			Name:   "empty test",
-			Config: []libyaml.ConfigGroup{},
+			Name:          "empty test",
+			Config:        []libyaml.ConfigGroup{},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, not required, no value",
@@ -90,6 +92,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, required, no value",
@@ -107,6 +110,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: true,
 		},
 		{
 			Name: "one group one item, required, value",
@@ -124,6 +128,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, not required, no value, hidden",
@@ -142,6 +147,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, required, no value, hidden",
@@ -160,6 +166,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, required, no value, not hidden",
@@ -178,6 +185,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: true,
 		},
 		{
 			Name: "one group one item, required, value, not hidden",
@@ -196,6 +204,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, not required, no value, not hidden",
@@ -214,6 +223,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group one item, required, value, hidden",
@@ -232,6 +242,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group two items, neither required, neither present",
@@ -254,6 +265,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 		{
 			Name: "one group two items, both required, neither present",
@@ -276,6 +288,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: true,
 		},
 		{
 			Name: "one group two items, both required, one present",
@@ -298,6 +311,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: true,
 		},
 		{
 			Name: "one group two items, both required, both present",
@@ -320,6 +334,7 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
+			ExpectedError: false,
 		},
 	}
 
@@ -338,7 +353,8 @@ func TestValidateSuppliedParams(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			if err := daemon.ValidateSuppliedParams(test.Config); err != nil {
+			err := daemon.ValidateSuppliedParams(test.Config)
+			if test.ExpectedError {
 				req.Error(err)
 			} else {
 				req.NoError(err)
