@@ -17,10 +17,10 @@ type TestHeadless struct {
 }
 
 type TestSuppliedParams struct {
-	Name          string
-	Config        []libyaml.ConfigGroup
-	Release       map[string]interface{}
-	ExpectedValue bool
+	Name    string
+	Config  []libyaml.ConfigGroup
+	Release map[string]interface{}
+	// ExpectedValue bool
 }
 
 func TestHeadlessDaemon(t *testing.T) {
@@ -58,11 +58,11 @@ func TestHeadlessDaemon(t *testing.T) {
 func TestValidateSuppliedParams(t *testing.T) {
 	tests := []TestSuppliedParams{
 		{
-			Config:        []libyaml.ConfigGroup{},
-			ExpectedValue: false,
-			Name:          "empty test",
+			Name:   "empty test",
+			Config: []libyaml.ConfigGroup{},
 		},
 		{
+			Name: "one group one item, not required, no value",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -77,10 +77,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, not required",
 		},
 		{
+			Name: "one group one item, required, no value",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -95,10 +94,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: true,
-			Name:          "one group one item, required, no value",
 		},
 		{
+			Name: "one group one item, required, value",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -113,10 +111,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, required, value",
 		},
 		{
+			Name: "one group one item, not required, no value, hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -132,10 +129,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, not required, hidden, no value",
 		},
 		{
+			Name: "one group one item, required, no value, hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -151,10 +147,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, required, not hidden, no value",
 		},
 		{
+			Name: "one group one item, required, no value, not hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -170,10 +165,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: true,
-			Name:          "one group one item, required, not hidden, no value",
 		},
 		{
+			Name: "one group one item, required, value, not hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -189,10 +183,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, required, not hidden, value",
 		},
 		{
+			Name: "one group one item, not required, no value, not hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -208,10 +201,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, not required, not hidden, no value",
 		},
 		{
+			Name: "one group one item, required, value, hidden",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -227,10 +219,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group one item, required, hidden, value",
 		},
 		{
+			Name: "one group two items, neither required, neither present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -250,10 +241,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group two items",
 		},
 		{
+			Name: "one group two items, both required, neither present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -273,10 +263,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: true,
-			Name:          "one group two items, required",
 		},
 		{
+			Name: "one group two items, both required, one present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -296,10 +285,9 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: true,
-			Name:          "one group two items, required",
 		},
 		{
+			Name: "one group two items, both required, both present",
 			Config: []libyaml.ConfigGroup{
 				{
 					Name: "testing",
@@ -319,8 +307,6 @@ func TestValidateSuppliedParams(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: false,
-			Name:          "one group two items, required",
 		},
 	}
 
@@ -339,8 +325,11 @@ func TestValidateSuppliedParams(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			err := daemon.ValidateSuppliedParams(test.Config)
-			req.Equal(err != nil, test.ExpectedValue)
+			if err := daemon.ValidateSuppliedParams(test.Config); err != nil {
+				req.Error(err)
+			} else {
+				req.NoError(err)
+			}
 		})
 	}
 }
