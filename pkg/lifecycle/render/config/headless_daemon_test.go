@@ -416,17 +416,17 @@ func TestChainedConfig(t *testing.T) {
 			err := fakeFS.WriteFile(".ship/state.json", test.State, 0666)
 			req.NoError(err)
 
-			// testLogger := &logger.TestLogger{T: t}
-			// daemon := &HeadlessDaemon{
-			// 	StateManager: &state.StateManager{
-			// 		Logger: testLogger,
-			// 		FS:     fakeFS,
-			// 	},
-			// 	Logger: testLogger,
-			// }
+			testLogger := &logger.TestLogger{T: t}
+			daemon := &HeadlessDaemon{
+				StateManager: &state.StateManager{
+					Logger: testLogger,
+					FS:     fakeFS,
+				},
+				Logger: testLogger,
+			}
 
-			// cfg := daemon.GetCurrentConfig()
-			// req.Equal(cfg, test.ExpectedValue)
+			cfg := daemon.ChainConfig()
+			req.Equal(cfg, test.ExpectedValue)
 		})
 	}
 }

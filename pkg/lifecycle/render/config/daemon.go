@@ -448,7 +448,11 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		fmt.Println("*** RESOLVED CFG ***")
-		fmt.Println(resolvedConfig)
+		for _, group := range resolvedConfig {
+			for _, item := range group.Items {
+				fmt.Println(item.Name + ": " + item.Value)
+			}
+		}
 		fmt.Println("*** RESOLVED CFG ***")
 
 		// NOTE: what about multi value, data, multi data?

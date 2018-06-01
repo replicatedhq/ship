@@ -36,7 +36,7 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 		os.Exit(1)
 	}
 
-	chained, _ := d.ConfigRenderer.resolveConfigValuesMap(currentConfig, resolved)
+	chained := d.ChainConfig(currentConfig)
 	fmt.Println("*********")
 	fmt.Println(chained)
 
@@ -82,6 +82,10 @@ func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) 
 		return err
 	}
 
+	return nil
+}
+
+func (d *HeadlessDaemon) ChainConfig(currentConfig map[string]interface{}) map[string]interface{} {
 	return nil
 }
 
