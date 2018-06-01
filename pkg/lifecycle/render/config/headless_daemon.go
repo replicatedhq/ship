@@ -36,11 +36,14 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 		os.Exit(1)
 	}
 
-	chained := d.ChainConfig(currentConfig)
-	fmt.Println("*********")
-	fmt.Println(chained)
+	templateContext := make(map[string]interface{})
+	for _, configGroup := range resolved {
+		for _, configItem := range configGroup.Items {
+			templateContext[configItem.Name] = configItem.Value
+		}
+	}
 
-	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, currentConfig); err != nil {
+	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 		warn.Log("msg", "headless.serialize state failed", "err", err)
 	}
 
