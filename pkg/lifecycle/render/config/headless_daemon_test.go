@@ -12,7 +12,7 @@ import (
 
 type TestHeadless struct {
 	Name          string
-	Config        []byte
+	State         []byte
 	ExpectedValue map[string]interface{}
 }
 
@@ -24,6 +24,7 @@ type TestSuppliedParams struct {
 
 type TestRenderChainedConfigOpts struct {
 	Name          string
+	State         []byte
 	Config        []libyaml.ConfigGroup
 	ExpectedValue map[string]interface{}
 }
@@ -32,22 +33,22 @@ func TestHeadlessDaemon(t *testing.T) {
 	tests := []TestHeadless{
 		{
 			Name:          "empty",
-			Config:        []byte(`{}`),
+			State:         []byte(`{}`),
 			ExpectedValue: map[string]interface{}{},
 		},
 		{
 			Name:          "basic",
-			Config:        []byte(`{"spam": "eggs"}`),
+			State:         []byte(`{"spam": "eggs"}`),
 			ExpectedValue: map[string]interface{}{"spam": "eggs"},
 		},
 		{
 			Name:          "multiple",
-			Config:        []byte(`{"spam": "eggs", "ford": "bernard"}`),
+			State:         []byte(`{"spam": "eggs", "ford": "bernard"}`),
 			ExpectedValue: map[string]interface{}{"spam": "eggs", "ford": "bernard"},
 		},
 		{
 			Name:          "some empty fields",
-			Config:        []byte(`{"spam": "", "ford": "bernard"}`),
+			State:         []byte(`{"spam": "", "ford": "bernard"}`),
 			ExpectedValue: map[string]interface{}{"spam": "", "ford": "bernard"},
 		},
 	}
@@ -57,7 +58,7 @@ func TestHeadlessDaemon(t *testing.T) {
 			req := require.New(t)
 
 			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			err := fakeFS.WriteFile(".ship/state.json", test.Config, 0666)
+			err := fakeFS.WriteFile(".ship/state.json", test.State, 0666)
 			req.NoError(err)
 
 			testLogger := &logger.TestLogger{T: t}
@@ -373,27 +374,56 @@ func TestChainedConfig(t *testing.T) {
 	tests := []TestRenderChainedConfigOpts{
 		{
 			Name:          "empty",
+			State:         []byte(`{}`),
 			Config:        []libyaml.ConfigGroup{},
 			ExpectedValue: map[string]interface{}{},
+		},
+		{
+			Name:  "beta value resolves to alpha value",
+			State: []byte(`{"alpha": "100"}`),
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:     "alpha",
+							Required: false,
+							Value:    "100",
+							Default:  "",
+							Hidden:   false,
+						},
+						{
+							Name:     "beta",
+							Required: false,
+							Value:    `{{repl ConfigOption "alpha" }}`,
+							Default:  "",
+							Hidden:   true,
+						},
+					},
+				}},
+			ExpectedValue: map[string]interface{}{
+				"alpha": "100",
+				"beta":  "100",
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			// req := require.New(t)
+			req := require.New(t)
 
 			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			// err := fakeFS.WriteFile(".ship/state.json", test.Config, 0666)
-			// req.NoError(err)
+			err := fakeFS.WriteFile(".ship/state.json", test.State, 0666)
+			req.NoError(err)
 
-			testLogger := &logger.TestLogger{T: t}
-			daemon := &HeadlessDaemon{
-				StateManager: &state.StateManager{
-					Logger: testLogger,
-					FS:     fakeFS,
-				},
-				Logger: testLogger,
-			}
+			// testLogger := &logger.TestLogger{T: t}
+			// daemon := &HeadlessDaemon{
+			// 	StateManager: &state.StateManager{
+			// 		Logger: testLogger,
+			// 		FS:     fakeFS,
+			// 	},
+			// 	Logger: testLogger,
+			// }
 
 			// cfg := daemon.GetCurrentConfig()
 			// req.Equal(cfg, test.ExpectedValue)
