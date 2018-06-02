@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"os"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
@@ -70,7 +68,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 		err := errors.New("Error: missing parameters. Exiting...")
 		warn.Log("event", "state invalid", "err", err)
 		d.UI.Error(err.Error())
-		os.Exit(1)
+		// os.Exit(1)
 		return err
 	}
 

@@ -4,13 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"time"
-
+	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +19,7 @@ type TestHeadless struct {
 	Name          string
 	State         []byte
 	Release       *api.Release
-	ExpectedValue map[string]interface{}
+	ExpectedValue []byte
 	ExpectedError bool
 }
 
@@ -34,7 +35,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{},
+			ExpectedValue: []byte(`{}`),
 			ExpectedError: false,
 		},
 		{
@@ -58,7 +59,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": ""},
+			ExpectedValue: []byte(`{"alpha":""}`),
 			ExpectedError: false,
 		},
 		{
@@ -82,7 +83,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{},
+			ExpectedValue: []byte(`{}`),
 			ExpectedError: true,
 		},
 		{
@@ -106,7 +107,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100"},
+			ExpectedValue: []byte(`{"alpha":"100"}`),
 			ExpectedError: false,
 		},
 		{
@@ -130,7 +131,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100"},
+			ExpectedValue: []byte(`{"alpha":"100"}`),
 			ExpectedError: false,
 		},
 		{
@@ -154,7 +155,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": ""},
+			ExpectedValue: []byte(`{"alpha":""}`),
 			ExpectedError: false,
 		},
 		{
@@ -178,7 +179,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": ""},
+			ExpectedValue: []byte(`{"alpha":""}`),
 			ExpectedError: false,
 		},
 		{
@@ -202,7 +203,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100"},
+			ExpectedValue: []byte(`{"alpha":"100"}`),
 			ExpectedError: false,
 		},
 		{
@@ -226,7 +227,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": ""},
+			ExpectedValue: []byte(`{"alpha":""}`),
 			ExpectedError: false,
 		},
 		{
@@ -250,7 +251,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100"},
+			ExpectedValue: []byte(`{"alpha":"100"}`),
 			ExpectedError: false,
 		},
 		{
@@ -281,7 +282,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "", "beta": ""},
+			ExpectedValue: []byte(`{"alpha":"","beta":""}`),
 			ExpectedError: false,
 		},
 		{
@@ -312,12 +313,12 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{},
+			ExpectedValue: []byte(`{}`),
 			ExpectedError: true,
 		},
 		{
 			Name:  "one group two items, both required, one present",
-			State: []byte(`{"alpha": "", "beta": ""}`),
+			State: []byte(`{"alpha":"", "beta": ""}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -343,12 +344,12 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{},
+			ExpectedValue: []byte(`{"alpha":"","beta":""}`),
 			ExpectedError: true,
 		},
 		{
 			Name:  "one group two items, both required, both present",
-			State: []byte(`{"alpha": "", "beta": ""}`),
+			State: []byte(`{}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -374,12 +375,12 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100", "beta": "200"},
+			ExpectedValue: []byte(`{"alpha":"100","beta":"200"}`),
 			ExpectedError: false,
 		},
 		{
 			Name:  "beta value resolves to alpha value",
-			State: []byte(`{"alpha": ""}`),
+			State: []byte(`{"alpha": "100"}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -405,7 +406,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: map[string]interface{}{"alpha": "100", "beta": "100"},
+			ExpectedValue: []byte(`{"alpha":"100","beta":"100"}`),
 			ExpectedError: false,
 		},
 	}
@@ -415,22 +416,39 @@ func TestHeadlessDaemon(t *testing.T) {
 			req := require.New(t)
 
 			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
+
 			err := fakeFS.WriteFile(".ship/state.json", test.State, 0666)
 			req.NoError(err)
 
+			v := viper.New()
 			testLogger := &logger.TestLogger{T: t}
-			daemon := &HeadlessDaemon{
-				StateManager: &state.StateManager{
-					Logger: testLogger,
-					FS:     fakeFS,
-				},
+
+			builder := &templates.BuilderBuilder{
 				Logger: testLogger,
+				Viper:  v,
 			}
 
-			resolveContext, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-			defer cancel()
+			manager := &state.StateManager{
+				Logger: testLogger,
+				FS:     fakeFS,
+			}
 
-			err = daemon.HeadlessResolve(resolveContext, test.Release)
+			resolver := &APIConfigRenderer{
+				Logger:         testLogger,
+				Viper:          v,
+				BuilderBuilder: builder,
+			}
+
+			daemon := &HeadlessDaemon{
+				StateManager:   manager,
+				Logger:         testLogger,
+				ConfigRenderer: resolver,
+				UI:             cli.NewMockUi(),
+			}
+
+			ctx := context.Background()
+
+			err = daemon.HeadlessResolve(ctx, test.Release)
 			if test.ExpectedError {
 				req.Error(err)
 			} else {
