@@ -3,8 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-
-	"os"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -24,13 +23,17 @@ type HeadlessDaemon struct {
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 
+	chanerrors := make(chan error)
+
 	if err := d.HeadlessResolve(ctx, release); err != nil {
 		warn.Log("event", "headless resolved failed", "err", err)
-		d.UI.Error(err.Error())
-		os.Exit(1)
+		go func() {
+			chanerrors <- err
+			close(chanerrors)
+		}()
 	}
 
-	return make(chan error)
+	return chanerrors
 }
 
 func (d *HeadlessDaemon) PushStep(context.Context, string, api.Step) {}
@@ -65,13 +68,20 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 
 	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
 	if err != nil {
-		err := errors.New("Error: failed to resolve config. Exiting...")
-		warn.Log("event", "resolve failed", "err", err)
+		warn.Log("event", "resolveconfig failed", "err", err)
 		return err
 	}
 
 	if validateState := validateConfig(resolved); validateState != nil {
-		err := errors.New("Error: missing parameters. Exiting...")
+		var invalidItemNames []string
+		for _, invalidConfigItems := range validateState {
+			invalidItemNames = append(invalidItemNames, invalidConfigItems.Name)
+		}
+
+		err := errors.New(
+			fmt.Sprintf("validate config failed. missing config values: %s",
+				strings.Join(invalidItemNames, ",")),
+		)
 		warn.Log("event", "state invalid", "err", err)
 		return err
 	}
@@ -84,8 +94,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	}
 
 	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
-		err := errors.New("Error: failed to serialize state to disk. Exiting...")
-		warn.Log("msg", "serialize failed", "err", err)
+		warn.Log("msg", "serialize state failed", "err", err)
 		return err
 	}
 
