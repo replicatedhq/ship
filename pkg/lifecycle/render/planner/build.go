@@ -167,5 +167,12 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 
 func (p *CLIPlanner) webStep(asset *api.WebAsset, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", asset.Dest, "description", asset.Description))
-	return Step{}
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute: func(ctx context.Context) error {
+			debug.Log("event", "execute")
+			return nil
+		},
+	}
 }

@@ -21,8 +21,8 @@ type AssetShared struct {
 type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
-	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 	Web    *WebAsset    `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	// Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
