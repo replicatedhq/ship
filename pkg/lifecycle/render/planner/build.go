@@ -175,11 +175,13 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
+			// TODO : add header functionality
 			resp, getErr := http.Get(web.URL)
 			if getErr != nil {
 				debug.Log("event", "execute.fail", "err", getErr)
 				return errors.Wrapf(getErr, "Get web asset from %s", web.URL)
 			}
+			defer resp.Body.Close()
 
 			// Write dest file path
 			basePath := filepath.Dir(web.Dest)
