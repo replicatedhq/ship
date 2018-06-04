@@ -22,6 +22,7 @@ type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
 	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Web    *WebAsset    `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -38,10 +39,17 @@ type DockerAsset struct {
 }
 
 // GithubAsset is an asset whose contents are specified directly in the Spec
-type GithubAsset struct {
+// type GithubAsset struct {
+// 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+// 	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
+// 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
+// 	Path        string `json:"path" yaml:"path" hcl:"path"`
+// 	Source      string `json:"source" yaml:"source" hcl:"source"`
+// }
+
+// WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
+type WebAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
-	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
-	Path        string `json:"path" yaml:"path" hcl:"path"`
-	Source      string `json:"source" yaml:"source" hcl:"source"`
+	Headers     string `json:"headers" yaml:"headers" hcl:"headers"`
+	URL         string `json:"url" yaml:"url" hcl:"url"`
 }
