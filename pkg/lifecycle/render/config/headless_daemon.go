@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"os"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
@@ -24,6 +26,8 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 
 	if err := d.HeadlessResolve(ctx, release); err != nil {
 		warn.Log("event", "headless resolved failed", "err", err)
+		d.UI.Error(err.Error())
+		os.Exit(1)
 	}
 
 	return make(chan error)
@@ -61,14 +65,14 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 
 	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
 	if err != nil {
+		err := errors.New("Error: failed to resolve config. Exiting...")
 		warn.Log("event", "resolve failed", "err", err)
+		return err
 	}
 
 	if validateState := validateConfig(resolved); validateState != nil {
 		err := errors.New("Error: missing parameters. Exiting...")
 		warn.Log("event", "state invalid", "err", err)
-		d.UI.Error(err.Error())
-		// os.Exit(1)
 		return err
 	}
 
@@ -80,6 +84,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	}
 
 	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		err := errors.New("Error: failed to serialize state to disk. Exiting...")
 		warn.Log("msg", "serialize failed", "err", err)
 		return err
 	}
