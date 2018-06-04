@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"os"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedhq/libyaml"
 )
 
 type HeadlessDaemon struct {
@@ -23,20 +22,18 @@ type HeadlessDaemon struct {
 
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
-	currentConfig := d.GetCurrentConfig()
 
-	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
-	if err != nil {
-		warn.Log("event", "headless.resolved.failed", "err", err)
+	chanerrors := make(chan error)
+
+	if err := d.HeadlessResolve(ctx, release); err != nil {
+		warn.Log("event", "headless resolved failed", "err", err)
+		go func() {
+			chanerrors <- err
+			close(chanerrors)
+		}()
 	}
 
-	if err := d.ValidateSuppliedParams(resolved); err != nil {
-		warn.Log("event", "headless.validate.failed", "err", err)
-		d.UI.Error(err.Error())
-		os.Exit(1)
-	}
-
-	return make(chan error)
+	return chanerrors
 }
 
 func (d *HeadlessDaemon) PushStep(context.Context, string, api.Step) {}
@@ -59,18 +56,45 @@ func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
 	currentConfig, err := d.StateManager.TryLoad()
 	if err != nil {
-		warn.Log("event", "headless.state.missing", "err", err)
+		warn.Log("event", "state missing", "err", err)
 	}
 
 	return currentConfig
 }
 
-func (d *HeadlessDaemon) ValidateSuppliedParams(resolved []libyaml.ConfigGroup) error {
-	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "validateSuppliedParams"))
+func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Release) error {
+	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "HeadlessResolve"))
+	currentConfig := d.GetCurrentConfig()
+
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	if err != nil {
+		warn.Log("event", "resolveconfig failed", "err", err)
+		return err
+	}
 
 	if validateState := validateConfig(resolved); validateState != nil {
-		err := errors.New("Error: missing parameters. Exiting...")
-		warn.Log("event", "headless.state.invalid", "err", err)
+		var invalidItemNames []string
+		for _, invalidConfigItems := range validateState {
+			invalidItemNames = append(invalidItemNames, invalidConfigItems.Name)
+		}
+
+		err := errors.New(
+			fmt.Sprintf("validate config failed. missing config values: %s",
+				strings.Join(invalidItemNames, ",")),
+		)
+		warn.Log("event", "state invalid", "err", err)
+		return err
+	}
+
+	templateContext := make(map[string]interface{})
+	for _, configGroup := range resolved {
+		for _, configItem := range configGroup.Items {
+			templateContext[configItem.Name] = configItem.Value
+		}
+	}
+
+	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		warn.Log("msg", "serialize state failed", "err", err)
 		return err
 	}
 
