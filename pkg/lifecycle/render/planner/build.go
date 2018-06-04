@@ -13,6 +13,8 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 
+	"net/http"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -166,12 +168,18 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 }
 
 func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", asset.Dest, "description", asset.Description))
+	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", web.Dest, "description", web.Description))
 	return Step{
 		Dest:        web.Dest,
 		Description: web.Description,
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
+
+			resp, getErr := http.Get(web.URL)
+			if getErr != nil {
+				debug.Log("event", "execute.fail", "err", getErr)
+				return errors.Wrapf(getErr, "Get web asset from %s", web.URL)
+			}
 
 			// Write dest file path
 			basePath := filepath.Dir(web.Dest)
