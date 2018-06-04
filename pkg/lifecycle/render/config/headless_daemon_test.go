@@ -409,6 +409,44 @@ func TestHeadlessDaemon(t *testing.T) {
 			ExpectedValue: []byte(`{"alpha":"100","beta":"100"}`),
 			ExpectedError: false,
 		},
+		{
+			Name:  "charlie value resolves to beta value resolves to alpha value",
+			State: []byte(`{"alpha": "100"}`),
+			Release: &api.Release{
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{{
+							Name: "testing",
+							Items: []*libyaml.ConfigItem{
+								{
+									Name:     "alpha",
+									Value:    "100",
+									Default:  "",
+									Required: false,
+									Hidden:   false,
+								},
+								{
+									Name:     "beta",
+									Value:    `{{repl ConfigOption "alpha" }}`,
+									Default:  "",
+									Required: false,
+									Hidden:   true,
+								},
+								{
+									Name:     "charlie",
+									Value:    `{{repl ConfigOption "beta" }}`,
+									Default:  "",
+									Required: false,
+									Hidden:   true,
+								},
+							},
+						}},
+					},
+				},
+			},
+			ExpectedValue: []byte(`{"alpha":"100","beta":"100","charlie":"100"}`),
+			ExpectedError: false,
+		},
 	}
 
 	for _, test := range tests {
