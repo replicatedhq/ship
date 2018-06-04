@@ -448,7 +448,7 @@ func TestHeadlessDaemon(t *testing.T) {
 			ExpectedError: false,
 		},
 		{
-			Name:  "weird",
+			Name:  "multiple groups with multiple items",
 			State: []byte(`{}`),
 			Release: &api.Release{
 				Spec: api.Spec{
