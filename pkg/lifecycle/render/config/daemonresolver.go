@@ -61,6 +61,7 @@ func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan 
 			}
 			return nil, errors.New("daemon exited")
 		case <-time.After(1 * time.Millisecond):
+			// need to pause here to ensure err channel priority
 		}
 		select {
 		case <-d.Daemon.ConfigSavedChan():
