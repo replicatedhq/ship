@@ -196,6 +196,7 @@ func (p *CLIPlanner) webStep(web *api.WebAsset) Step {
 				mode = web.Mode
 			}
 
+			// TODO : write raw html or bytes to file?
 			if err := p.Fs.WriteFile(web.Dest, body, mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write web asset to %s", web.Dest)
@@ -209,10 +210,8 @@ func (p *CLIPlanner) webStep(web *api.WebAsset) Step {
 func pullWebAsset(web *api.WebAsset) ([]byte, error) {
 	client := &http.Client{}
 
-	fmt.Println(web.URL)
 	req, reqErr := http.NewRequest("GET", web.URL, nil)
 	if reqErr != nil {
-		fmt.Println("here")
 		return nil, errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
 	}
 
