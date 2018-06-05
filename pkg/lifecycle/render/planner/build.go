@@ -51,7 +51,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Web != nil {
 			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "web")
-			plan = append(plan, p.webStep(asset.Web, configGroups, meta, templateContext))
+			plan = append(plan, p.webStep(asset.Web))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
@@ -169,7 +169,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 	}
 }
 
-func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) webStep(web *api.WebAsset) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", web.Dest, "description", web.Description))
 	return Step{
 		Dest:        web.Dest,
@@ -177,24 +177,11 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
-			// create a client to handle http client headers
-			client := &http.Client{}
-
-			// make the request
-			req, reqErr := http.NewRequest("GET", web.URL, nil)
-			if reqErr != nil {
-				debug.Log("event", "execute.fail", "err", reqErr)
-				return errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
+			body, err := pullWebAsset(web)
+			if err != nil {
+				debug.Log("event", "execute.fail", "err", err)
+				return errors.Wrapf(err, "Get web asset from", web.Dest)
 			}
-
-			// TODO: support headers
-
-			resp, respErr := client.Do(req)
-			if respErr != nil {
-				debug.Log("event", "execute.fail", "err", respErr)
-				return errors.Wrapf(respErr, "Get web asset from %s", web.URL)
-			}
-			defer resp.Body.Close()
 
 			basePath := filepath.Dir(web.Dest)
 			debug.Log("event", "mkdirall.attempt", "dest", web.Dest, "basePath", basePath)
@@ -209,13 +196,7 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 				mode = web.Mode
 			}
 
-			bodyBytes, byteErr := ioutil.ReadAll(resp.Body)
-			if byteErr != nil {
-				debug.Log("event", "execute.fail", "err", byteErr)
-				return errors.Wrapf(respErr, "Decode response body")
-			}
-
-			if err := p.Fs.WriteFile(web.Dest, bodyBytes, mode); err != nil {
+			if err := p.Fs.WriteFile(web.Dest, body, mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write web asset to %s", web.Dest)
 			}
@@ -223,4 +204,31 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 			return nil
 		},
 	}
+}
+
+func pullWebAsset(web *api.WebAsset) ([]byte, error) {
+	client := &http.Client{}
+
+	fmt.Println(web.URL)
+	req, reqErr := http.NewRequest("GET", web.URL, nil)
+	if reqErr != nil {
+		fmt.Println("here")
+		return nil, errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
+	}
+
+	// TODO: support headers
+
+	resp, respErr := client.Do(req)
+	if respErr != nil {
+		return nil, errors.Wrapf(respErr, "Get web asset from %s", web.URL)
+	}
+	defer resp.Body.Close()
+
+	// convert response body to byte slice for writing
+	bodyToBytes, byteErr := ioutil.ReadAll(resp.Body)
+	if byteErr != nil {
+		return nil, errors.Wrapf(respErr, "Decode response body")
+	}
+
+	return bodyToBytes, nil
 }
