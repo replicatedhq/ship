@@ -15,6 +15,8 @@ import (
 
 	"net/http"
 
+	"io/ioutil"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -175,15 +177,25 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
-			// TODO : add header functionality
-			resp, getErr := http.Get(web.URL)
-			if getErr != nil {
-				debug.Log("event", "execute.fail", "err", getErr)
-				return errors.Wrapf(getErr, "Get web asset from %s", web.URL)
+			// create a client to handle http client headers
+			client := &http.Client{}
+
+			// make the request
+			req, reqErr := http.NewRequest("GET", web.URL, nil)
+			if reqErr != nil {
+				debug.Log("event", "execute.fail", "err", reqErr)
+				return errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
+			}
+
+			// TODO: support headers
+
+			resp, respErr := client.Do(req)
+			if respErr != nil {
+				debug.Log("event", "execute.fail", "err", respErr)
+				return errors.Wrapf(respErr, "Get web asset from %s", web.URL)
 			}
 			defer resp.Body.Close()
 
-			// Write dest file path
 			basePath := filepath.Dir(web.Dest)
 			debug.Log("event", "mkdirall.attempt", "dest", web.Dest, "basePath", basePath)
 			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
@@ -196,6 +208,18 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 				debug.Log("event", "applying override permissions")
 				mode = web.Mode
 			}
+
+			bodyBytes, byteErr := ioutil.ReadAll(resp.Body)
+			if byteErr != nil {
+				debug.Log("event", "execute.fail", "err", byteErr)
+				return errors.Wrapf(respErr, "Decode response body")
+			}
+
+			if err := p.Fs.WriteFile(web.Dest, bodyBytes, mode); err != nil {
+				debug.Log("event", "execute.fail", "err", err)
+				return errors.Wrapf(err, "Write web asset to %s", web.Dest)
+			}
+
 			return nil
 		},
 	}
