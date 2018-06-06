@@ -71,7 +71,7 @@ type configTestCase struct {
 }
 
 type configItemWhenTestCase struct {
-	Config    *libyaml.ConfigItem
+	Config    []libyaml.ConfigGroup
 	ExpectErr bool
 
 	Name string
@@ -785,8 +785,27 @@ func TestValidateConfig(t *testing.T) {
 func TestWhenConfigItem(t *testing.T) {
 	tests := []configItemWhenTestCase{
 		{
-			Config: &libyaml.ConfigItem{},
+			Config: []libyaml.ConfigGroup{},
 			Name:   "empty test",
+		},
+		{
+			Config: []libyaml.ConfigGroup{
+				{
+					Name: "testing",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:  "alpha",
+							Value: "1",
+						},
+						{
+							Name: "beta",
+							Type: "bool",
+							When: `{{repl ConfigOptionEquals "alpha" "1" }}`,
+						},
+					},
+				},
+			},
+			Name: "type bool",
 		},
 	}
 
