@@ -70,10 +70,6 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 				return errors.Wrap(err, "getting config context")
 			}
 
-			fmt.Println("*********")
-			fmt.Println(configCtx)
-			fmt.Println("*********")
-
 			builder := p.BuilderBuilder.NewBuilder(
 				templates.NewStaticContext(),
 				configCtx,

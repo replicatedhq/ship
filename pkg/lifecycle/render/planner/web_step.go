@@ -9,8 +9,6 @@ import (
 
 	"encoding/base64"
 
-	"fmt"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -72,8 +70,7 @@ func pullWebAsset(web *api.WebAsset, ctx *templates.ConfigCtx) ([]byte, error) {
 		return nil, errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
 	}
 
-	fmt.Println(ctx)
-
+	// TODO: parse resolved config?
 	if len(web.Headers) != 0 {
 		for header := range web.Headers {
 			for value := range header {
