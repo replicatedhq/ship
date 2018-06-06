@@ -4,7 +4,7 @@ hack/docs
 
 ### NOTE
 
-This is totally copy-pasted from [the support bundle docs generation](https://github.com/replicatedcom/support-bundle) so there may be some extra stuff that doesn't make sense but didn't yet get removed.
+This is totally copy-pasted from [the support bundle docs generation](https://github.com/replicatedhq/support-bundle) so there may be some extra stuff that doesn't make sense but didn't yet get removed.
 
 #### TLDR:
 

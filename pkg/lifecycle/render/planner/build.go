@@ -45,6 +45,10 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			asset.Docker.Dest = filepath.Join("installer", asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
 			plan = append(plan, p.dockerStep(asset.Docker, meta))
+		} else if asset.Helm != nil {
+			asset.Helm.Dest = filepath.Join("installer", asset.Helm.Dest)
+			debug.Log("event", "asset.resolve", "asset.type", "helm")
+			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
@@ -183,4 +187,16 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		}
 	}
 	return saveError
+}
+
+func (p *CLIPlanner) helmStep(
+	asset api.HelmAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Helm.Execute(asset, meta, templateContext),
+	}
 }

@@ -21,7 +21,8 @@ type AssetShared struct {
 type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
-	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	GitHub *GitHubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Helm   *HelmAsset   `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -30,18 +31,35 @@ type InlineAsset struct {
 	Contents    string `json:"contents" yaml:"contents" hcl:"contents"`
 }
 
-// DockerAsset is an asset whose contents are specified directly in the Spec
+// DockerAsset is an asset that declares a docker image
 type DockerAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Image       string `json:"image" yaml:"image" hcl:"image"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
 }
 
-// GithubAsset is an asset whose contents are specified directly in the Spec
-type GithubAsset struct {
+// GitHubAsset is an asset whose contents are specified directly in the Spec
+type GitHubAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
 	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+}
+
+// HelmAsset is an asset that declares a helm chart on github
+type HelmAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Values      map[string]string `json:"values" yaml:"values" hcl:"values"`
+	HelmOpts    []string          `json:"helm_opts" yaml:"helm_opts" hcl:"helm_opts"`
+	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
+	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
+	// coming soon
+	//GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
+}
+
+// LocalHelmOpts specifies a helm chart that should be templated
+// using other assets that are already present at `ChartRoot`
+type LocalHelmOpts struct {
+	ChartRoot string `json:"chart_root" yaml:"chart_root" hcl:"chart_root"`
 }
