@@ -70,6 +70,13 @@ type configTestCase struct {
 	Name string
 }
 
+type configItemWhenTestCase struct {
+	Config    *libyaml.ConfigItem
+	ExpectErr bool
+
+	Name string
+}
+
 func TestAPIResolver(t *testing.T) {
 	ctx := context.Background()
 
@@ -771,6 +778,21 @@ func TestValidateConfig(t *testing.T) {
 			val := validateConfig(test.Config)
 
 			req.Equal(test.ExpectedValue, val)
+		})
+	}
+}
+
+func TestWhenConfigItem(t *testing.T) {
+	tests := []configItemWhenTestCase{
+		{
+			Config: &libyaml.ConfigItem{},
+			Name:   "empty test",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+
 		})
 	}
 }
