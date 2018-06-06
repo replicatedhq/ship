@@ -1,0 +1,143 @@
+package helm
+
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+
+	"io/ioutil"
+
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/spf13/afero"
+)
+
+// Templater is something that can consume and render a helm chart pulled by ship.
+// the chart should already be present at the specified path.
+type Templater interface {
+	Template(
+		chartRoot string,
+		asset api.HelmAsset,
+		meta api.ReleaseMetadata,
+	) error
+}
+
+// ForkTemplater implements Templater by forking out to an embedded helm binary
+// and creating the chart in place
+type ForkTemplater struct {
+	Helm   func() *exec.Cmd
+	Logger log.Logger
+	FS     afero.Afero
+}
+
+func (f *ForkTemplater) Template(
+	chartRoot string,
+	asset api.HelmAsset,
+	meta api.ReleaseMetadata,
+) error {
+	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "dest", asset.Dest, "description", asset.Description))
+
+	debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", asset.Dest)
+	if err := f.FS.MkdirAll(asset.Dest, 0755); err != nil {
+		debug.Log("event", "mkdirall.fail", "err", err, "basePath", asset.Dest)
+		return errors.Wrapf(err, "write directory to %s", asset.Dest)
+	}
+
+	releaseName := strings.ToLower(fmt.Sprintf("%s-%s", meta.ChannelName, meta.Semver))
+	debug.Log("event", "releasename.resolve", "releasename", releaseName)
+
+	// initialize command
+	cmd := f.Helm()
+	cmd.Args = append(
+		cmd.Args,
+		"template", chartRoot,
+		"--output-dir", asset.Dest,
+		"--name", releaseName,
+	)
+
+	if asset.HelmOpts != nil {
+		cmd.Args = append(cmd.Args, asset.HelmOpts...)
+	}
+
+	stdout, stderr, err := f.fork(cmd)
+
+	if err != nil {
+		debug.Log("event", "cmd.err")
+		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
+			return errors.New(fmt.Sprintf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr))
+		}
+		return errors.Wrap(err, "execute helm")
+	}
+
+	// todo link up stdout/stderr debug logs
+	return nil
+}
+
+func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
+	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm"))
+	debug.Log("event", "cmd.run", "base", cmd.Path, "args", strings.Join(cmd.Args, " "))
+
+	var stdout, stderr []byte
+	stdoutReader, err := cmd.StdoutPipe()
+	if err != nil {
+		return stdout, stderr, errors.Wrapf(err, "pipe stdout")
+	}
+	stderrReader, err := cmd.StderrPipe()
+	if err != nil {
+		return stdout, stderr, errors.Wrapf(err, "pipe stderr")
+	}
+
+	stdoutDone := make(chan interface{})
+	stderrDone := make(chan interface{})
+	go func() {
+		defer close(stdoutDone)
+		stdout, err = ioutil.ReadAll(stdoutReader)
+		if err != nil {
+			debug.Log("event", "stdout.read.fail", "err", err)
+			return
+		}
+		debug.Log("event", "stdout.read", "value", string(stdout))
+	}()
+	go func() {
+		defer close(stderrDone)
+		stderr, err = ioutil.ReadAll(stderrReader)
+		if err != nil {
+			debug.Log("event", "stderr.read.fail", "err", err)
+			return
+		}
+		debug.Log("event", "stderr.read", "value", string(stderr))
+	}()
+
+	debug.Log("event", "cmd.start")
+	err = cmd.Start()
+	if err != nil {
+		return stdout, stderr, errors.Wrap(err, "start cmd")
+	}
+	debug.Log("event", "cmd.started")
+
+	debug.Log("event", "cmd.wait")
+	err = cmd.Wait()
+	debug.Log("event", "cmd.waited")
+
+	<-stdoutDone
+	<-stderrDone
+	debug.Log("event", "cmd.streams.read.done")
+
+	return stdout, stderr, err
+}
+
+// NewTemplater returns a configured Templater. For now we just always fork
+func NewTemplater(
+	logger log.Logger,
+	fs afero.Afero,
+) Templater {
+	return &ForkTemplater{
+		Helm: func() *exec.Cmd {
+			return exec.Command("/usr/local/bin/helm")
+		},
+		Logger: logger,
+		FS:     fs,
+	}
+}

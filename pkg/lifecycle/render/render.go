@@ -66,7 +66,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	defer r.Daemon.ClearProgress()
 
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
-	debug.Log("event", "step.execute", "step.skipPlan", step.SkipPlan)
+	debug.Log("event", "step.execute")
 
 	r.Daemon.SetProgress(ProgressLoad)
 	previousTemplateContext, err := r.StateManager.TryLoad()

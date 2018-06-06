@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedhq/ship/pkg/logger"
@@ -46,6 +47,10 @@ func buildInjector() (*dig.Container, error) {
 		docker.URLResolverFromViper,
 		docker.SaverFromViper,
 		dockercli.NewEnvClient,
+
+		helm.NewRenderer,
+		helm.NewFetcher,
+		helm.NewTemplater,
 
 		NewShip,
 	}
