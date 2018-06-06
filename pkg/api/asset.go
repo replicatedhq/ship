@@ -50,6 +50,6 @@ type DockerAsset struct {
 // WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
 type WebAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Headers     string `json:"headers" yaml:"headers" hcl:"headers"`
-	URL         string `json:"url" yaml:"url" hcl:"url"`
+	URL         string              `json:"url" yaml:"url" hcl:"url"`
+	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
 }

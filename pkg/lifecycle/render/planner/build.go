@@ -196,7 +196,7 @@ func (p *CLIPlanner) webStep(web *api.WebAsset) Step {
 				mode = web.Mode
 			}
 
-			// TODO : write raw html or bytes to file?
+			// TODO: write raw html or bytes to file?
 			if err := p.Fs.WriteFile(web.Dest, body, mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write web asset to %s", web.Dest)
@@ -215,7 +215,13 @@ func pullWebAsset(web *api.WebAsset) ([]byte, error) {
 		return nil, errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
 	}
 
-	// TODO: support headers
+	if len(web.Headers) != 0 {
+		for header := range web.Headers {
+			for value := range header {
+				req.Header.Add(header, string(value))
+			}
+		}
+	}
 
 	resp, respErr := client.Do(req)
 	if respErr != nil {
@@ -223,7 +229,7 @@ func pullWebAsset(web *api.WebAsset) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	// convert response body to byte slice for writing
+	// TODO: remove if writing raw html?
 	bodyToBytes, byteErr := ioutil.ReadAll(resp.Body)
 	if byteErr != nil {
 		return nil, errors.Wrapf(respErr, "Decode response body")

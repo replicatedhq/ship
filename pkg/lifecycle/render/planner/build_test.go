@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type TestWebAsset struct {
-	Name        string
-	Release     *api.Release
-	ExpectedErr bool
-}
-
 type TestPullWeb struct {
 	Name         string
 	Release      *api.Release
 	ExpectedErr  bool
 	ExpectedResp []byte
+}
+
+type TestWebAsset struct {
+	Name        string
+	Release     *api.Release
+	ExpectedErr bool
 }
 
 func TestPullHelper(t *testing.T) {
@@ -99,7 +99,7 @@ func TestWebAssetStep(t *testing.T) {
 			ExpectedErr: true,
 		},
 		{
-			Name: "simple google",
+			Name: "empty",
 			Release: &api.Release{
 				Spec: api.Spec{
 					Assets: api.Assets{
@@ -107,9 +107,10 @@ func TestWebAssetStep(t *testing.T) {
 							Web: &api.WebAsset{
 								URL: "https://www.google.com",
 								AssetShared: api.AssetShared{
-									Dest:        "./google.txt",
-									Description: "google",
+									Dest:        "google.txt",
+									Description: "",
 								},
+								Headers: map[string][]string{},
 							},
 						}},
 					},
@@ -117,6 +118,25 @@ func TestWebAssetStep(t *testing.T) {
 			},
 			ExpectedErr: false,
 		},
+		// {
+		// 	Name: "simple google",
+		// 	Release: &api.Release{
+		// 		Spec: api.Spec{
+		// 			Assets: api.Assets{
+		// 				V1: []api.Asset{{
+		// 					Web: &api.WebAsset{
+		// 						URL: "https://www.google.com",
+		// 						AssetShared: api.AssetShared{
+		// 							Dest:        "./google.txt",
+		// 							Description: "google",
+		// 						},
+		// 					},
+		// 				}},
+		// 			},
+		// 		},
+		// 	},
+		// 	ExpectedErr: false,
+		// },
 	}
 
 	for _, test := range tests {
@@ -139,6 +159,7 @@ func TestWebAssetStep(t *testing.T) {
 			} else {
 				req.NoError(executeErr)
 
+				// TODO: compare
 				_, readErr := mockFS.ReadFile(step.Dest)
 				req.NoError(readErr)
 			}
