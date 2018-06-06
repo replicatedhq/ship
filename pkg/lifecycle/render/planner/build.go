@@ -13,10 +13,6 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 
-	"net/http"
-
-	"io/ioutil"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -51,7 +47,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Web != nil {
 			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "web")
-			plan = append(plan, p.webStep(asset.Web))
+			plan = append(plan, p.webStep(asset.Web, configGroups, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
@@ -73,6 +69,10 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 			if err != nil {
 				return errors.Wrap(err, "getting config context")
 			}
+
+			fmt.Println("*********")
+			fmt.Println(configCtx)
+			fmt.Println("*********")
 
 			builder := p.BuilderBuilder.NewBuilder(
 				templates.NewStaticContext(),
@@ -167,73 +167,4 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 			return nil
 		},
 	}
-}
-
-func (p *CLIPlanner) webStep(web *api.WebAsset) Step {
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", web.Dest, "description", web.Description))
-	return Step{
-		Dest:        web.Dest,
-		Description: web.Description,
-		Execute: func(ctx context.Context) error {
-			debug.Log("event", "execute")
-
-			body, err := pullWebAsset(web)
-			if err != nil {
-				debug.Log("event", "execute.fail", "err", err)
-				return errors.Wrapf(err, "Get web asset from", web.Dest)
-			}
-
-			basePath := filepath.Dir(web.Dest)
-			debug.Log("event", "mkdirall.attempt", "dest", web.Dest, "basePath", basePath)
-			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-				debug.Log("event", "mkdirall.fail", "err", err, "dest", web.Dest, "basePath", basePath)
-				return errors.Wrapf(err, "write directory to %s", web.Dest)
-			}
-
-			mode := os.FileMode(0644)
-			if web.Mode != os.FileMode(0) {
-				debug.Log("event", "applying override permissions")
-				mode = web.Mode
-			}
-
-			// TODO: write raw html or bytes to file?
-			if err := p.Fs.WriteFile(web.Dest, body, mode); err != nil {
-				debug.Log("event", "execute.fail", "err", err)
-				return errors.Wrapf(err, "Write web asset to %s", web.Dest)
-			}
-
-			return nil
-		},
-	}
-}
-
-func pullWebAsset(web *api.WebAsset) ([]byte, error) {
-	client := &http.Client{}
-
-	req, reqErr := http.NewRequest("GET", web.URL, nil)
-	if reqErr != nil {
-		return nil, errors.Wrapf(reqErr, "Request web asset from %s", web.URL)
-	}
-
-	if len(web.Headers) != 0 {
-		for header := range web.Headers {
-			for value := range header {
-				req.Header.Add(header, string(value))
-			}
-		}
-	}
-
-	resp, respErr := client.Do(req)
-	if respErr != nil {
-		return nil, errors.Wrapf(respErr, "Get web asset from %s", web.URL)
-	}
-	defer resp.Body.Close()
-
-	// TODO: remove if writing raw html?
-	bodyToBytes, byteErr := ioutil.ReadAll(resp.Body)
-	if byteErr != nil {
-		return nil, errors.Wrapf(respErr, "Decode response body")
-	}
-
-	return bodyToBytes, nil
 }
