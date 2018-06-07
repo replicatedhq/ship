@@ -39,17 +39,20 @@ type DockerAsset struct {
 }
 
 // GithubAsset is an asset whose contents are specified directly in the Spec
-// type GithubAsset struct {
-// 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-// 	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
-// 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
-// 	Path        string `json:"path" yaml:"path" hcl:"path"`
-// 	Source      string `json:"source" yaml:"source" hcl:"source"`
-// }
+type GithubAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Repo        string `json:"repo" yaml:"repo" hcl:"repo"`
+	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
+	Path        string `json:"path" yaml:"path" hcl:"path"`
+	Source      string `json:"source" yaml:"source" hcl:"source"`
+}
 
 // WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
 type WebAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-	URL         string              `json:"url" yaml:"url" hcl:"url"`
+	Body        string              `json:"body" yaml:"body" hcl:"body"`
 	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
+	Method      string              `json:"method" yaml:"method" hcl:"method"`
+	URL         string              `json:"url" yaml:"url" hcl:"url"`
+	// Checksum    string              `json:"checksum" yaml:"checksum" hcl:"checksum"`
 }

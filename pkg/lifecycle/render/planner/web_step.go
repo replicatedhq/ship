@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 
 	"encoding/base64"
+	"encoding/json"
+
+	"bytes"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -51,6 +54,16 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 				return errors.Wrap(err, "building dest")
 			}
 
+			builtMethod, err := builder.String(web.Method)
+			if err != nil {
+				return errors.Wrap(err, "building method")
+			}
+
+			builtBody, err := builder.String(web.Body)
+			if err != nil {
+				return errors.Wrap(err, "building body")
+			}
+
 			builtHeaders := make(map[string][]string)
 			for header, listOfValues := range web.Headers {
 				for _, value := range listOfValues {
@@ -58,11 +71,11 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 					if err != nil {
 						return errors.Wrap(err, "building header val")
 					}
-					builtHeaders[header] = append(web.Headers[header], builtHeaderVal)
+					builtHeaders[header] = append(builtHeaders[header], builtHeaderVal)
 				}
 			}
 
-			body, err := pullWebAsset(builtUrl, builtHeaders)
+			body, err := pullWebAsset(builtUrl, builtMethod, builtBody, builtHeaders)
 			if err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Get web asset from", web.Dest)
@@ -91,10 +104,8 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 	}
 }
 
-func pullWebAsset(url string, headers map[string][]string) ([]byte, error) {
-	client := &http.Client{}
-
-	req, reqErr := http.NewRequest("GET", url, nil)
+func pullWebAsset(url string, method string, body string, headers map[string][]string) ([]byte, error) {
+	req, reqErr := parseRequest(url, method, body)
 	if reqErr != nil {
 		return nil, errors.Wrapf(reqErr, "Request web asset from %s", url)
 	}
@@ -107,9 +118,10 @@ func pullWebAsset(url string, headers map[string][]string) ([]byte, error) {
 		}
 	}
 
+	client := &http.Client{}
 	resp, respErr := client.Do(req)
 	if respErr != nil {
-		return nil, errors.Wrapf(respErr, "Get web asset from %s", url)
+		return nil, errors.Wrapf(respErr, "%s web asset from %s", method, url)
 	}
 	defer resp.Body.Close()
 
@@ -119,4 +131,20 @@ func pullWebAsset(url string, headers map[string][]string) ([]byte, error) {
 	}
 
 	return bodyToBytes, nil
+}
+
+func parseRequest(url string, method string, body string) (*http.Request, error) {
+	switch method {
+	case "GET":
+		req, err := http.NewRequest("GET", url, nil)
+		return req, err
+	case "POST":
+		jsonValue, err := json.Marshal(body)
+		if err != nil {
+			return nil, errors.Wrapf(err, "marshal body", body)
+		}
+		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonValue))
+		return req, nil
+	}
+	return nil, errors.New("Parse web request")
 }
