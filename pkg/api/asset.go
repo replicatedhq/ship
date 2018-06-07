@@ -21,7 +21,7 @@ type AssetShared struct {
 type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
-	Web    *WebAsset    `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Web    *WebAsset    `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
 	// Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 

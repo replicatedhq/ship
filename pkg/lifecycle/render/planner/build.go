@@ -47,7 +47,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Web != nil {
 			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "web")
-			plan = append(plan, p.webStep(asset.Web, configGroups, templateContext))
+			plan = append(plan, p.webStep(asset.Web, configGroups, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 		}
