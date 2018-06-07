@@ -22,7 +22,7 @@ type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
 	Web    *WebAsset    `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
-	// Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -54,5 +54,4 @@ type WebAsset struct {
 	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
 	Method      string              `json:"method" yaml:"method" hcl:"method"`
 	URL         string              `json:"url" yaml:"url" hcl:"url"`
-	// Checksum    string              `json:"checksum" yaml:"checksum" hcl:"checksum"`
 }

@@ -121,7 +121,7 @@ func pullWebAsset(url string, method string, body string, headers map[string][]s
 	client := &http.Client{}
 	resp, respErr := client.Do(req)
 	if respErr != nil {
-		return nil, errors.Wrapf(respErr, "%s web asset from %s", method, url)
+		return nil, errors.Wrapf(respErr, "%s web asset at %s", method, url)
 	}
 	defer resp.Body.Close()
 
