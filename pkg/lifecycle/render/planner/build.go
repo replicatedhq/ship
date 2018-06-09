@@ -158,7 +158,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 
 			if saveError != nil {
 				debug.Log("event", "execute.fail.withInstallationID", "detail", "both docker auth methods failed", "err", saveError)
-				return errors.Wrap(err, "docker save image, both auth methods failed")
+				return errors.Wrap(saveError, "docker save image, both auth methods failed")
 			}
 
 			return nil

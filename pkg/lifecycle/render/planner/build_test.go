@@ -32,16 +32,16 @@ func TestDockerStep(t *testing.T) {
 			Expect:                  nil,
 		},
 		{
-			name: "registry succeeds",
+			name: "registry fails, install id succeeds",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: nil,
 			Expect:                  nil,
 		},
 		{
-			name: "registry succeeds",
+			name: "registry fails, install id fails",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: errors.New("nope nope nope"),
-			Expect:                  errors.New("nope nope nope"),
+			Expect:                  errors.New("docker save image, both auth methods failed: nope nope nope"),
 		},
 	}
 	for _, test := range tests {
@@ -86,40 +86,47 @@ func TestDockerStep(t *testing.T) {
 				Password:  "lutz",
 			}
 
-			// When
-			step := pln.dockerStep(asset, metadata)
-
 			registrySaveCh := make(chan interface{})
 			go func() {
 				registrySaveCh <- test.RegistrySecretSaveError
+				close(registrySaveCh)
 			}()
 			saver.EXPECT().SaveImage(ctx, registrySecretSaveOpts).Return(registrySaveCh)
 
-			installIdSaveCh := make(chan interface{})
-			go func() {
-				installIdSaveCh <- test.InstallationIDSaveError
-			}()
+			if test.RegistrySecretSaveError != nil {
+				installIdSaveCh := make(chan interface{})
+				go func() {
+					installIdSaveCh <- test.InstallationIDSaveError
+					close(installIdSaveCh)
+				}()
 
-			installationIDSaveOpts := docker2.SaveOpts{
-				PullUrl:   "some-pull-url",
-				SaveUrl:   asset.Image,
-				IsPrivate: asset.Source != "public" && asset.Source != "",
-				Filename:  asset.Dest,
-				Username:  "tanker",
-				Password:  "vernon",
-			}
-			if test.RegistrySecretSaveError == nil {
+				installationIDSaveOpts := docker2.SaveOpts{
+					PullUrl:   "some-pull-url",
+					SaveUrl:   asset.Image,
+					IsPrivate: asset.Source != "public" && asset.Source != "",
+					Filename:  asset.Dest,
+					Username:  "tanker",
+					Password:  "vernon",
+				}
 				saver.EXPECT().SaveImage(ctx, installationIDSaveOpts).Return(installIdSaveCh)
 			}
 
 			req := require.New(t)
 
+			// When
+			step := pln.dockerStep(asset, metadata)
 			err := step.Execute(ctx)
+
+			// Then
 			if test.Expect == nil {
 				req.NoError(err)
 				return
 			}
-			req.Equal(test.Expect.Error(), err.Error())
+			if err == nil {
+				req.FailNowf("expected error did not occur", "expected error \"%v\" to be returned by step", test.Expect)
+			}
+
+			req.Equal(test.Expect.Error(), err.Error(), "expected errors to be equal")
 
 		})
 	}

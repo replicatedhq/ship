@@ -1,5 +1,5 @@
 {
-  "pointer": "replicated-ship",
+  "pointer": "replicatedcom__ship",
   "ignorePatterns": [
     ".circleci/**",
     ".git/**",
@@ -12,7 +12,7 @@
     "out/**",
 	"examples",
     ".idea/**",
-    "**/*jb_tmp*",
+    "**/*jb_*",
     "e2e-retraced/**"
   ]
 }

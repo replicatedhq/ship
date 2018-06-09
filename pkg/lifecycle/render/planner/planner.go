@@ -15,8 +15,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedcom/ship/pkg/templates"
 )
 
 // A Plan is a list of PlanSteps to execute

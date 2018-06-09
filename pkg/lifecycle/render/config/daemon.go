@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/ship/pkg/version"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -299,8 +299,10 @@ func (d *ShipDaemon) getCurrentMessage(c *gin.Context) {
 
 // Healthz returns a 200 with the version if provided
 func (d *ShipDaemon) Healthz(c *gin.Context) {
-	c.JSON(200, map[string]string{
-		"version": os.Getenv("VERSION"),
+	c.JSON(200, map[string]interface{}{
+		"version":   version.Version(),
+		"sha":       version.GitSHA(),
+		"buildTime": version.BuildTime(),
 	})
 }
 
