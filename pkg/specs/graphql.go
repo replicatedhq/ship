@@ -125,8 +125,8 @@ func (r *ShipRelease) apiImages() []api.Image {
 	return result
 }
 
-// GraphQLClientFromViper builds a new client using a viper instance
-func GraphQLClientFromViper(v *viper.Viper) (*GraphQLClient, error) {
+// NewGraphqlClient builds a new client using a viper instance
+func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
 	addr := v.GetString("customer-endpoint")
 	server, err := url.ParseRequestURI(addr)
 	if err != nil {

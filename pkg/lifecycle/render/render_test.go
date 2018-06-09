@@ -53,7 +53,7 @@ func TestRender(t *testing.T) {
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
 			renderer.Planner = p
-			renderer.StateManager = &state.StateManager{
+			renderer.StateManager = &state.Manager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
 			}

@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-
 	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/spf13/viper"
 )
 
 func (bb *BuilderBuilder) NewConfigContext(
@@ -26,7 +23,6 @@ func (bb *BuilderBuilder) NewConfigContext(
 	configCtx := &ConfigCtx{
 		ItemValues: templateContext,
 		Logger:     bb.Logger,
-		Viper:      bb.Viper,
 	}
 
 	for _, configGroup := range configGroups {
@@ -60,14 +56,13 @@ func (bb *BuilderBuilder) NewConfigContext(
 // Once we have state (for upgrades) it should be a parameter here.
 // deprecated -- use BuilderBuilder
 func NewConfigContext(
-	v *viper.Viper,
 	logger log.Logger,
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) (*ConfigCtx, error) {
 	// Get a static context to render static template functions
 
-	builderBuilder := BuilderBuilderFromViper(v)
+	builderBuilder := NewBuilderBuilder(logger)
 	builder := builderBuilder.NewBuilder(
 		builderBuilder.NewStaticContext(),
 	)
@@ -75,7 +70,6 @@ func NewConfigContext(
 	configCtx := &ConfigCtx{
 		ItemValues: templateContext,
 		Logger:     logger,
-		Viper:      v,
 	}
 
 	for _, configGroup := range configGroups {
@@ -109,7 +103,6 @@ func NewConfigContext(
 type ConfigCtx struct {
 	ItemValues map[string]interface{}
 	Logger     log.Logger
-	Viper      *viper.Viper
 }
 
 // FuncMap represents the available functions in the ConfigCtx.
@@ -120,25 +113,6 @@ func (ctx ConfigCtx) FuncMap() template.FuncMap {
 		"ConfigOptionData":      ctx.configOptionData,
 		"ConfigOptionEquals":    ctx.configOptionEquals,
 		"ConfigOptionNotEquals": ctx.configOptionNotEquals,
-
-		// this should probably go somewhere else eventually
-		// Install should have all the details about this ship installation,
-		// including customer Id, customer name release notes, version, etc.
-		"Installation": ctx.Install,
-		// old, remove
-		"context": ctx.Install,
-	}
-}
-
-func (ctx ConfigCtx) Install(name string) string {
-	switch name {
-	case "state_file_path":
-		return state.Path
-	case "customer_id":
-		return ctx.Viper.GetString("customer-id")
-	default:
-		level.Warn(ctx.Logger).Log("event", "ConfigCtx.context.unsuppported", "name", name)
-		return ""
 	}
 }
 

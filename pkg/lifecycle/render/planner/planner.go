@@ -6,14 +6,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/fs"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/replicatedhq/libyaml"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
-	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedcom/ship/pkg/templates"
@@ -57,21 +53,24 @@ type CLIPlanner struct {
 	URLResolver    docker.PullURLResolver
 }
 
-func FromViper(v *viper.Viper) (Planner, error) {
-	saver, err := docker.SaverFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize docker saver")
-	}
-
+func NewPlanner(
+	v *viper.Viper,
+	logger log.Logger,
+	fs afero.Afero,
+	ui cli.Ui,
+	builderBuilder *templates.BuilderBuilder,
+	saver docker.ImageSaver,
+	urlResolver docker.PullURLResolver,
+) Planner {
 	return &CLIPlanner{
-		Logger:         logger.FromViper(v),
-		Fs:             fs.FromViper(v),
-		UI:             ui.FromViper(v),
+		Logger:         logger,
+		Fs:             fs,
+		UI:             ui,
 		Viper:          v,
-		BuilderBuilder: templates.BuilderBuilderFromViper(v),
+		BuilderBuilder: builderBuilder,
 		Saver:          saver,
-		URLResolver:    docker.URLResolverFromViper(v),
-	}, nil
+		URLResolver:    urlResolver,
+	}
 }
 
 func (p *CLIPlanner) WithDaemon(d config.Daemon) Planner {

@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
@@ -34,26 +33,27 @@ type Selector struct {
 type Resolver struct {
 	Logger            log.Logger
 	Client            *GraphQLClient
-	StateManager      *state.StateManager
+	StateManager      *state.Manager
 	StudioFile        string
 	StudioChannelName string
 	StudioChannelIcon string
 }
 
-// ResolverFromViper builds a resolver from a Viper instance
-func ResolverFromViper(v *viper.Viper) (*Resolver, error) {
-	graphql, err := GraphQLClientFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "get graphql client")
-	}
+// NewResolver builds a resolver from a Viper instance
+func NewResolver(
+	v *viper.Viper,
+	logger log.Logger,
+	graphql *GraphQLClient,
+	stateManager *state.Manager,
+) *Resolver {
 	return &Resolver{
-		Logger:            logger.FromViper(v),
+		Logger:            logger,
 		Client:            graphql,
-		StateManager:      state.ManagerFromViper(v),
+		StateManager:      stateManager,
 		StudioFile:        v.GetString("studio-file"),
 		StudioChannelName: v.GetString("studio-channel-name"),
 		StudioChannelIcon: v.GetString("studio-channel-icon"),
-	}, nil
+	}
 }
 
 // ResolveRelease uses the passed config options to get specs from pg.replicated.com or

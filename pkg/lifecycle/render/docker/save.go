@@ -13,8 +13,6 @@ import (
 	docker "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/spf13/viper"
 )
 
 // ImageSaver saves an image
@@ -48,16 +46,11 @@ type DockerSaver struct {
 	client ImageManager
 }
 
-func SaverFromViper(v *viper.Viper) (*DockerSaver, error) {
-	client, err := docker.NewEnvClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize docker client")
-	}
-
+func SaverFromViper(logger log.Logger, client *docker.Client) ImageSaver {
 	return &DockerSaver{
-		Logger: logger.FromViper(v),
+		Logger: logger,
 		client: client,
-	}, nil
+	}
 }
 
 func (s *DockerSaver) SaveImage(ctx context.Context, saveOpts SaveOpts) chan interface{} {

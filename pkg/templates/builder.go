@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/viper"
 )
 
@@ -31,9 +30,9 @@ type BuilderBuilder struct {
 	Viper  *viper.Viper
 }
 
-func BuilderBuilderFromViper(v *viper.Viper) *BuilderBuilder {
+func NewBuilderBuilder(logger log.Logger) *BuilderBuilder {
 	return &BuilderBuilder{
-		Logger: logger.FromViper(v),
+		Logger: logger,
 	}
 }
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
+
 	"os/signal"
 	"syscall"
-
-	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -15,9 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/lifecycle"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	pkglogger "github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/specs"
-	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/replicatedcom/ship/pkg/version"
 	"github.com/spf13/viper"
 )
@@ -47,58 +45,38 @@ type Ship struct {
 	Runner *lifecycle.Runner
 }
 
-// FromViper gets an instance using viper to pull config
-func FromViper(v *viper.Viper) (*Ship, error) {
-	logger := pkglogger.FromViper(v)
-	debug := level.Debug(log.With(logger, "phase", "ship.build", "source", "viper"))
+// NewShip gets an instance using viper to pull config
+func NewShip(
+	logger log.Logger,
+	v *viper.Viper,
+	daemon config.Daemon,
+	resolver *specs.Resolver,
+	graphql *specs.GraphQLClient,
+	runner *lifecycle.Runner,
+	ui cli.Ui,
+) (*Ship, error) {
 
-	daemon := config.DaemonFromViper(v)
-
-	debug.Log("event", "specresolver.build")
-	resolver, err := specs.ResolverFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "get spec resolver")
-	}
-
-	debug.Log("event", "graphqlclient.build")
-	graphql, err := specs.GraphQLClientFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "get graphql client")
-	}
-
-	debug.Log("event", "lifecycle.build")
-	runner, err := lifecycle.RunnerFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize lifecycle runner")
-	}
-	runner = runner.WithDaemon(daemon)
-
-	debug.Log("event", "ui.build")
 	return &Ship{
-		Viper: v,
-
-		Logger:   logger,
-		Resolver: resolver,
-		Client:   graphql,
-
-		APIPort:  v.GetInt("api-port"),
-		Headless: v.GetBool("headless"),
-
-		CustomerID: v.GetString("customer-id"),
-
+		APIPort:        v.GetInt("api-port"),
+		Headless:       v.GetBool("headless"),
+		CustomerID:     v.GetString("customer-id"),
 		ReleaseID:      v.GetString("release-id"),
 		ReleaseSemver:  v.GetString("release-semver"),
 		ChannelID:      v.GetString("channel-id"),
 		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
 
-		Daemon: daemon,
-		UI:     ui.FromViper(v),
-		Runner: runner,
+		Viper:    v,
+		Logger:   logger,
+		Resolver: resolver,
+		Client:   graphql,
+		Daemon:   daemon,
+		UI:       ui,
+		Runner:   runner.WithDaemon(daemon),
 	}, nil
 }
 
-func (s *Ship) shutdown(cancelFunc context.CancelFunc) {
+func (s *Ship) Shutdown(cancelFunc context.CancelFunc) {
 	// need to pause beforce canceling the context, because we need
 	// the daemon to stay up for a few seconds so the UI can know its
 	// time to show the "You're all done" page
@@ -113,12 +91,18 @@ func (s *Ship) shutdown(cancelFunc context.CancelFunc) {
 	level.Info(s.Logger).Log("event", "shutdown.complete")
 }
 
-// Execute starts ship
+// ExecuteAndMaybeExit runs ship to completion, and os.Exit()'s if it fails
+func (s *Ship) ExecuteAndMaybeExit(ctx context.Context) {
+	if err := s.Execute(ctx); err != nil {
+		s.ExitWithError(err)
+	}
+}
+
 func (s *Ship) Execute(ctx context.Context) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
-	defer s.shutdown(cancelFunc)
+	defer s.Shutdown(cancelFunc)
 
-	debug := level.Debug(log.With(s.Logger, "method", "execute"))
+	debug := level.Debug(log.With(s.Logger, "method", "Execute"))
 
 	debug.Log("method", "configure", "phase", "initialize",
 		"version", version.Version(),
@@ -180,10 +164,12 @@ func (s *Ship) Execute(ctx context.Context) error {
 	select {
 	case sig := <-signalChan:
 		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
-		return nil
+		s.UI.Warn(fmt.Sprintf("%s received...", sig))
+		return errors.New(fmt.Sprintf("received signal %s", sig))
 	case result := <-runResultCh:
 		return result
 	}
+
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.

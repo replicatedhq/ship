@@ -13,9 +13,11 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
 )
 
 type DaemonMessenger struct {
+	dig.In
 	Logger         log.Logger
 	UI             cli.Ui
 	Viper          *viper.Viper

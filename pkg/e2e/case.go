@@ -3,22 +3,22 @@ package e2e
 import (
 	"testing"
 
-	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/url"
 
 	"time"
 
+	"context"
+
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/ship"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
 type CaseRunner struct {
 	t        *testing.T
-	assert   *require.Assertions
+	req      *require.Assertions
 	testcase testcase
 }
 
@@ -32,14 +32,14 @@ type testcase struct {
 func (r *CaseRunner) promoteRelease() {
 
 	gqlServer, err := url.Parse(r.testcase.config.GQL)
-	r.assert.NoError(err)
+	r.req.NoError(err)
 	client := &GraphQLClient{
 		GQLServer: gqlServer,
 		Token:     r.testcase.config.Token,
 	}
 
 	spec, err := json.Marshal(r.testcase.Spec)
-	r.assert.NoError(err)
+	r.req.NoError(err)
 
 	_, err = client.PromoteRelease(
 		string(spec),
@@ -47,31 +47,28 @@ func (r *CaseRunner) promoteRelease() {
 		r.testcase.config.Semver,
 		`Integration test run on `+time.Now().String(),
 	)
-	r.assert.NoError(err)
+	r.req.NoError(err)
 
 }
 
 func (r *CaseRunner) Run() {
-
 	r.promoteRelease()
 	r.runShipForCustomer()
 	r.validateFiles()
-
 }
+
 func (r *CaseRunner) runShipForCustomer() {
-	// todo do each testcase in its own tmp directory,
-	// also maybe fork or docker run or something
-	s, err := ship.FromViper(viper.GetViper())
-	r.assert.NoError(err)
+	s, err := ship.Get()
+	r.req.NoError(err)
 
 	err = s.Execute(context.Background())
-	r.assert.NoError(err)
+	r.req.NoError(err)
 }
 func (r *CaseRunner) validateFiles() {
 	for path, expected := range r.testcase.Expect {
 		actual, err := ioutil.ReadFile(path)
-		r.assert.NoError(err)
-		r.assert.Equal(expected, string(actual))
+		r.req.NoError(err)
+		r.req.Equal(expected, string(actual))
 	}
 
 }

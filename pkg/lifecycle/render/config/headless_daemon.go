@@ -14,7 +14,7 @@ import (
 )
 
 type HeadlessDaemon struct {
-	StateManager   *state.StateManager
+	StateManager   *state.Manager
 	Logger         log.Logger
 	UI             cli.Ui
 	ConfigRenderer *APIConfigRenderer

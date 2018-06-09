@@ -3,12 +3,13 @@ package config
 import (
 	"context"
 
+	"github.com/go-kit/kit/log"
+	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/fs"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/replicatedcom/ship/pkg/ui"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -18,9 +19,9 @@ type Resolver interface {
 	WithDaemon(d Daemon) Resolver
 }
 
-func ResolverFromViper(v *viper.Viper) Resolver {
+func NewResolver(logger log.Logger) Resolver {
 	return &DaemonResolver{
-		Logger: logger.FromViper(v),
+		Logger: logger,
 	}
 
 }
@@ -29,31 +30,60 @@ func (r *DaemonResolver) WithDaemon(d Daemon) Resolver {
 	return r
 }
 
-func DaemonFromViper(v *viper.Viper) Daemon {
-
-	renderer := &APIConfigRenderer{
-		Logger:         logger.FromViper(v),
-		Viper:          v,
-		BuilderBuilder: templates.BuilderBuilderFromViper(v),
-	}
-
+func NewDaemon(
+	v *viper.Viper,
+	headless *HeadlessDaemon,
+	headed *ShipDaemon,
+) Daemon {
 	if v.GetBool("headless") {
-		return &HeadlessDaemon{
-			StateManager:   state.ManagerFromViper(v),
-			Logger:         logger.FromViper(v),
-			UI:             ui.FromViper(v),
-			ConfigRenderer: renderer,
-		}
+		return headless
 	}
+	return headed
+}
 
+func NewRenderer(
+	logger log.Logger,
+	v *viper.Viper,
+	builderBuilder *templates.BuilderBuilder,
+) *APIConfigRenderer {
+	return &APIConfigRenderer{
+		Logger:         logger,
+		Viper:          v,
+		BuilderBuilder: builderBuilder,
+	}
+}
+
+func NewHeadlessDaemon(
+	v *viper.Viper,
+	logger log.Logger,
+	renderer *APIConfigRenderer,
+	stateManager *state.Manager,
+) *HeadlessDaemon {
+	return &HeadlessDaemon{
+		StateManager:   stateManager,
+		Logger:         logger,
+		UI:             ui.FromViper(v),
+		ConfigRenderer: renderer,
+	}
+}
+
+func NewHeadedDaemon(
+	v *viper.Viper,
+	renderer *APIConfigRenderer,
+	stateManager *state.Manager,
+	logger log.Logger,
+	ui cli.Ui,
+	fs afero.Afero,
+) *ShipDaemon {
 	return &ShipDaemon{
-		Logger:           logger.FromViper(v),
-		Fs:               fs.FromViper(v),
-		UI:               ui.FromViper(v),
-		StateManager:     state.ManagerFromViper(v),
+		Logger:           logger,
+		Fs:               fs,
+		UI:               ui,
+		StateManager:     stateManager,
 		Viper:            v,
 		ConfigSaved:      make(chan interface{}),
 		MessageConfirmed: make(chan string, 1),
 		ConfigRenderer:   renderer,
 	}
+
 }

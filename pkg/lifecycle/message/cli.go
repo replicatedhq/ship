@@ -12,11 +12,14 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
 )
 
 var _ Messenger = &CLIMessenger{}
 
 type CLIMessenger struct {
+	dig.In
+
 	Logger         log.Logger
 	UI             cli.Ui
 	Viper          *viper.Viper
@@ -50,7 +53,7 @@ func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 
 func (e *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
 	builder := e.BuilderBuilder.NewBuilder(
-		templates.NewStaticContext(),
+		e.BuilderBuilder.NewStaticContext(),
 		builderContext{
 			logger: e.Logger,
 			viper:  e.Viper,
