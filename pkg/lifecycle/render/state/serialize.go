@@ -10,27 +10,27 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/fs"
-	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
-// StateManager is the saved output of a plan run to load on future runs
-type StateManager struct {
+// Manager is the saved output of a plan run to load on future runs
+type Manager struct {
 	Logger log.Logger
 	FS     afero.Afero
 }
 
-func ManagerFromViper(v *viper.Viper) *StateManager {
-	return &StateManager{
-		Logger: logger.FromViper(v),
-		FS:     fs.FromViper(v),
+func NewManager(
+	logger log.Logger,
+	fs afero.Afero,
+) *Manager {
+	return &Manager{
+		Logger: logger,
+		FS:     fs,
 	}
 }
 
 // Serialize takes the application data and input params and serializes a state file to disk
-func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
+func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
 	serialized, err := json.Marshal(templateContext)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
@@ -49,7 +49,7 @@ func (s StateManager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, te
 }
 
 // TryLoad will attempt to load a state file from disk, if present
-func (s *StateManager) TryLoad() (map[string]interface{}, error) {
+func (s *Manager) TryLoad() (map[string]interface{}, error) {
 	if _, err := s.FS.Stat(Path); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", Path)
 		return make(map[string]interface{}), nil

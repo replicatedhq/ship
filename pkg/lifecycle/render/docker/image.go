@@ -11,8 +11,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/spf13/viper"
 )
 
 type PullURLResolver interface {
@@ -25,9 +23,9 @@ type URLResolver struct {
 	Logger log.Logger
 }
 
-func URLResolverFromViper(v *viper.Viper) PullURLResolver {
+func URLResolverFromViper(logger log.Logger) PullURLResolver {
 	return &URLResolver{
-		Logger: logger.FromViper(v),
+		Logger: logger,
 	}
 }
 

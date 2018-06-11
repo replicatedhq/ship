@@ -9,11 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/message"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/spf13/viper"
 )
 
 // A Runner runs a lifecycle using the passed Spec
@@ -55,35 +51,18 @@ type Runner struct {
 	}
 */
 
-func RunnerFromViper(v *viper.Viper) (*Runner, error) {
-	executor, err := ExecutorFromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize executor")
-	}
-
+func NewRunner(logger log.Logger, executor StepExecutor) *Runner {
 	return &Runner{
-		Logger:   logger.FromViper(v),
-		Executor: executor,
-	}, nil
+		Logger:   logger,
+		Executor: &executor,
+	}
 }
+
 func (r *Runner) WithDaemon(d config.Daemon) *Runner {
 	r.Executor = r.Executor.WithDaemon(d)
 	return r
 }
 
-func ExecutorFromViper(v *viper.Viper) (*StepExecutor, error) {
-	renderer, err := render.FromViper(v)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize renderer")
-	}
-
-	return &StepExecutor{
-		Logger:    logger.FromViper(v),
-		Renderer:  renderer,
-		Messenger: message.FromViper(v),
-	}, nil
-}
 func (e *StepExecutor) WithDaemon(d config.Daemon) *StepExecutor {
 	e.Daemon = d
 	e.Renderer = e.Renderer.WithDaemon(d)

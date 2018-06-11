@@ -13,7 +13,7 @@ import (
 func TestPersistSpec(t *testing.T) {
 
 	r := &Resolver{
-		StateManager: &state.StateManager{
+		StateManager: &state.Manager{
 			Logger: log.NewNopLogger(),
 			FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 		},

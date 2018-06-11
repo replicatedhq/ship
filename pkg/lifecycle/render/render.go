@@ -8,14 +8,10 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/fs"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
-	"github.com/replicatedcom/ship/pkg/logger"
-	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
 // StateFilePath is a placeholder for the default spot we'll store state. todo this should be a param or something
@@ -34,27 +30,28 @@ type Renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
 	Planner        planner.Planner
-	StateManager   *state.StateManager
+	StateManager   *state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
 	Daemon         config.Daemon
 }
 
-func FromViper(v *viper.Viper) (*Renderer, error) {
-
-	pln, err := planner.FromViper(v)
-	if err != nil {
-		return nil, errors.Wrap(err, "initialize planner")
-	}
-
+func NewRenderer(
+	logger log.Logger,
+	fs afero.Afero,
+	ui cli.Ui,
+	stateManager *state.Manager,
+	planner planner.Planner,
+	resolver config.Resolver,
+) *Renderer {
 	return &Renderer{
-		Logger:         logger.FromViper(v),
-		ConfigResolver: config.ResolverFromViper(v),
-		Planner:        pln,
-		StateManager:   state.ManagerFromViper(v),
-		Fs:             fs.FromViper(v),
-		UI:             ui.FromViper(v),
-	}, nil
+		Logger:         logger,
+		ConfigResolver: resolver,
+		Planner:        planner,
+		StateManager:   stateManager,
+		Fs:             fs,
+		UI:             ui,
+	}
 }
 
 func (r *Renderer) WithDaemon(d config.Daemon) *Renderer {

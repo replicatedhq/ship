@@ -10,9 +10,12 @@ import (
 	"github.com/replicatedcom/ship/pkg/lifecycle/message"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"go.uber.org/dig"
 )
 
 type StepExecutor struct {
+	dig.In
+
 	Logger    log.Logger
 	Renderer  *render.Renderer
 	Messenger message.Messenger

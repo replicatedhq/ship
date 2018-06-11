@@ -47,7 +47,7 @@ func (r *Runner) TestCase(test testcase) func(t *testing.T) {
 	return func(t *testing.T) {
 		(&CaseRunner{
 			t:        t,
-			assert:   require.New(t),
+			req:      require.New(t),
 			testcase: test,
 		}).Run()
 	}

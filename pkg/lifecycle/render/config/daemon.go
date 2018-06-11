@@ -45,7 +45,7 @@ type ShipDaemon struct {
 	Fs             afero.Afero
 	Viper          *viper.Viper
 	UI             cli.Ui
-	StateManager   *state.StateManager
+	StateManager   *state.Manager
 	ConfigRenderer *APIConfigRenderer
 
 	sync.Mutex

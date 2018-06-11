@@ -5,9 +5,7 @@ import (
 
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/logger"
 	"github.com/replicatedcom/ship/pkg/templates"
-	"github.com/replicatedcom/ship/pkg/ui"
 	"github.com/spf13/viper"
 )
 
@@ -16,22 +14,16 @@ type Messenger interface {
 	WithDaemon(d config.Daemon) Messenger
 }
 
-func FromViper(v *viper.Viper) Messenger {
+func NewMessenger(
+	v *viper.Viper,
+	cli CLIMessenger,
+	daemon DaemonMessenger,
+) Messenger {
 	if v.GetBool("headless") {
-		return &CLIMessenger{
-			Logger:         logger.FromViper(v),
-			UI:             ui.FromViper(v),
-			Viper:          v,
-			BuilderBuilder: templates.BuilderBuilderFromViper(v),
-		}
+		return &cli
 	}
 
-	return &DaemonMessenger{
-		Logger:         logger.FromViper(v),
-		UI:             ui.FromViper(v),
-		Viper:          v,
-		BuilderBuilder: templates.BuilderBuilderFromViper(v),
-	}
+	return &daemon
 }
 
 func (m *DaemonMessenger) WithDaemon(d config.Daemon) Messenger {

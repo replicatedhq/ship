@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"context"
-
 	"strings"
 
-	"github.com/pkg/errors"
+	"context"
+
 	"github.com/replicatedcom/ship/pkg/cli/devtool_releaser"
 	"github.com/replicatedcom/ship/pkg/e2e"
 	"github.com/replicatedcom/ship/pkg/ship"
@@ -33,15 +32,7 @@ application specs to be used in on-prem installations.
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rc, err := ship.FromViper(viper.GetViper())
-			if err != nil {
-				return errors.Wrap(err, "initialize")
-			}
-			err = rc.Execute(context.Background())
-			if err != nil {
-				rc.ExitWithError(err)
-			}
-			return nil // let ExitWithError handle it ^
+			return ship.RunE(context.Background())
 		},
 	}
 	cobra.OnInitialize(initConfig)

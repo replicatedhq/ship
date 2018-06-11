@@ -26,7 +26,7 @@ func TestTryLoad(t *testing.T) {
 	templateContext := make(map[string]interface{})
 	templateContext["key"] = "value"
 
-	state := StateManager{
+	state := Manager{
 		Logger: log.NewNopLogger(),
 		FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 	}
