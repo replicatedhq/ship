@@ -21,6 +21,7 @@ type AssetShared struct {
 type Asset struct {
 	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
+	Web    *WebAsset    `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
 	Github *GithubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 }
 
@@ -44,4 +45,13 @@ type GithubAsset struct {
 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
 	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+}
+
+// WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
+type WebAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Body        string              `json:"body" yaml:"body" hcl:"body"`
+	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
+	Method      string              `json:"method" yaml:"method" hcl:"method"`
+	URL         string              `json:"url" yaml:"url" hcl:"url"`
 }
