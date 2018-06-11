@@ -1,0 +1,5 @@
+### Configs
+watch("**", "!.git/**")
+
+### Commands to execute
+sh("make _test | grep -B 10 FAIL || :")

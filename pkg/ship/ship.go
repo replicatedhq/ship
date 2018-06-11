@@ -67,7 +67,11 @@ func FromViper(v *viper.Viper) (*Ship, error) {
 	}
 
 	debug.Log("event", "lifecycle.build")
-	runner := lifecycle.RunnerFromViper(v).WithDaemon(daemon)
+	runner, err := lifecycle.RunnerFromViper(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize lifecycle runner")
+	}
+	runner = runner.WithDaemon(daemon)
 
 	debug.Log("event", "ui.build")
 	return &Ship{

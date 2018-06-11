@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
+	"math/rand"
+
 	"github.com/mitchellh/cli"
 	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
@@ -23,10 +26,11 @@ type daemonAPITestCase struct {
 	test func(t *testing.T)
 }
 
-func initDaemon(t *testing.T, release *api.Release) (Daemon, context.CancelFunc, error) {
+func initTestDaemon(t *testing.T, release *api.Release) (Daemon, int, context.CancelFunc, error) {
 	v := viper.New()
 
-	viper.Set("api-port", 8880)
+	port := rand.Intn(2000) + 33000
+	viper.Set("api-port", port)
 	fs := afero.Afero{Fs: afero.NewMemMapFs()}
 	log := &logger.TestLogger{T: t}
 	daemon := &ShipDaemon{
@@ -45,9 +49,9 @@ func initDaemon(t *testing.T, release *api.Release) (Daemon, context.CancelFunc,
 	}()
 
 	var daemonError error
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		time.Sleep(1 * time.Second)
-		resp, err := http.Get("http://localhost:8880/healthz")
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/healthz", port))
 		if err == nil && resp.StatusCode == http.StatusOK {
 			daemonError = nil
 			resp.Body.Close()
@@ -55,7 +59,11 @@ func initDaemon(t *testing.T, release *api.Release) (Daemon, context.CancelFunc,
 		}
 		daemonError = err
 	}
-	return daemon, daemonCancelFunc, daemonError
+
+	if daemonError != nil {
+		daemonCancelFunc()
+	}
+	return daemon, port, daemonCancelFunc, daemonError
 }
 
 func TestDaemonAPI(t *testing.T) {
@@ -86,7 +94,7 @@ func TestDaemonAPI(t *testing.T) {
 		},
 	}
 
-	daemon, daemonCancelFunc, err := initDaemon(t, release)
+	daemon, port, daemonCancelFunc, err := initTestDaemon(t, release)
 	defer daemonCancelFunc()
 	require.New(t).NoError(err)
 
@@ -94,7 +102,7 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "read message before steps",
 			test: func(t *testing.T) {
-				resp, err := http.Get("http://localhost:8880/api/v1/message/get")
+				resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/message/get", port))
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusBadRequest, resp.StatusCode)
 				bodyStr, err := ioutil.ReadAll(resp.Body)
@@ -112,7 +120,7 @@ func TestDaemonAPI(t *testing.T) {
 			test: func(t *testing.T) {
 				daemon.PushStep(context.Background(), "step1", step1)
 
-				resp, err := http.Get("http://localhost:8880/api/v1/message/get")
+				resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/message/get", port))
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusOK, resp.StatusCode)
 				bodyStr, err := ioutil.ReadAll(resp.Body)
@@ -131,7 +139,7 @@ func TestDaemonAPI(t *testing.T) {
 				daemon.PushStep(context.Background(), "step2", step2)
 
 				reqBody := bytes.NewReader([]byte(`{"step_name": "step1"}`))
-				resp, err := http.Post("http://localhost:8880/api/v1/message/confirm", "application/json", reqBody)
+				resp, err := http.Post(fmt.Sprintf("http://localhost:%d/api/v1/message/confirm", port), "application/json", reqBody)
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusBadRequest, resp.StatusCode)
 				bodyStr, err := ioutil.ReadAll(resp.Body)
@@ -148,7 +156,7 @@ func TestDaemonAPI(t *testing.T) {
 			name: "confirm message that is current",
 			test: func(t *testing.T) {
 				reqBody := bytes.NewReader([]byte(`{"step_name": "step2"}`))
-				resp, err := http.Post("http://localhost:8880/api/v1/message/confirm", "application/json", reqBody)
+				resp, err := http.Post(fmt.Sprintf("http://localhost:%d/api/v1/message/confirm", port), "application/json", reqBody)
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusOK, resp.StatusCode)
 				msg := <-daemon.MessageConfirmedChan()

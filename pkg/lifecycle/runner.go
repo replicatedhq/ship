@@ -55,23 +55,34 @@ type Runner struct {
 	}
 */
 
-func RunnerFromViper(v *viper.Viper) *Runner {
+func RunnerFromViper(v *viper.Viper) (*Runner, error) {
+	executor, err := ExecutorFromViper(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize executor")
+	}
+
 	return &Runner{
 		Logger:   logger.FromViper(v),
-		Executor: ExecutorFromViper(v),
-	}
+		Executor: executor,
+	}, nil
 }
 func (r *Runner) WithDaemon(d config.Daemon) *Runner {
 	r.Executor = r.Executor.WithDaemon(d)
 	return r
 }
 
-func ExecutorFromViper(v *viper.Viper) *StepExecutor {
+func ExecutorFromViper(v *viper.Viper) (*StepExecutor, error) {
+	renderer, err := render.FromViper(v)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize renderer")
+	}
+
 	return &StepExecutor{
 		Logger:    logger.FromViper(v),
-		Renderer:  render.FromViper(v),
+		Renderer:  renderer,
 		Messenger: message.FromViper(v),
-	}
+	}, nil
 }
 func (e *StepExecutor) WithDaemon(d config.Daemon) *StepExecutor {
 	e.Daemon = d
