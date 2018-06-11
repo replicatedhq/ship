@@ -71,7 +71,8 @@ type configTestCase struct {
 }
 
 type configItemWhenTestCase struct {
-	Config    []libyaml.ConfigGroup
+	Release   *api.Release
+	State     map[string]interface{}
 	ExpectErr bool
 
 	Name string
@@ -782,36 +783,53 @@ func TestValidateConfig(t *testing.T) {
 	}
 }
 
-func TestWhenConfigItem(t *testing.T) {
-	tests := []configItemWhenTestCase{
-		{
-			Config: []libyaml.ConfigGroup{},
-			Name:   "empty test",
-		},
-		{
-			Config: []libyaml.ConfigGroup{
-				{
-					Name: "testing",
-					Items: []*libyaml.ConfigItem{
-						{
-							Name:  "alpha",
-							Value: "1",
-						},
-						{
-							Name: "beta",
-							Type: "bool",
-							When: `{{repl ConfigOptionEquals "alpha" "1" }}`,
-						},
-					},
-				},
-			},
-			Name: "type bool",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-
-		})
-	}
-}
+// func TestWhenConfigItem(t *testing.T) {
+// 	tests := []configItemWhenTestCase{
+// 		{
+// 			Release: &api.Release{},
+// 			Name:    "empty test",
+// 		},
+// 		{
+// 			Release: &api.Release{
+// 				Spec: api.Spec{
+// 					Config: api.Config{
+// 						V1: []libyaml.ConfigGroup{{
+// 							Name: "testing",
+// 							Items: []*libyaml.ConfigItem{
+// 								{
+// 									Name:  "alpha",
+// 									Value: "1",
+// 								},
+// 								{
+// 									Name: "beta",
+// 									When: `{{repl ConfigOptionEquals "alpha" "1" }}`,
+// 								},
+// 							},
+// 						}},
+// 					},
+// 				},
+// 			},
+// 			Name: "type text",
+// 		},
+// 	}
+//
+// 	for _, test := range tests {
+// 		t.Run(test.Name, func(t *testing.T) {
+// 			req := require.New(t)
+//
+// 			testLogger := &logger.TestLogger{T: t}
+// 			v := viper.New()
+//
+// 			renderer := &APIConfigRenderer{
+// 				Logger: testLogger,
+// 				Viper:  v,
+// 			}
+//
+// 			ctx := context.Background()
+//
+// 			req.NoError(err)
+//
+// 			fmt.Println(templatedGroup)
+// 		})
+// 	}
+// }

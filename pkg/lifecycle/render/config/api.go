@@ -231,7 +231,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		resolvedGroup, err := r.applyConfigGroupFieldTemplates(ctx, *builder, configGroup)
 		if err != nil {
-			return resolvedConfig, errors.Wrapf(err, "resolve gropu %s", configGroup.Name)
+			return resolvedConfig, errors.Wrapf(err, "resolve group %s", configGroup.Name)
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
