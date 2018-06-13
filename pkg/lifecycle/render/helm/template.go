@@ -89,27 +89,6 @@ func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
 		return stdout, stderr, errors.Wrapf(err, "pipe stderr")
 	}
 
-	stdoutDone := make(chan interface{})
-	stderrDone := make(chan interface{})
-	go func() {
-		defer close(stdoutDone)
-		stdout, err = ioutil.ReadAll(stdoutReader)
-		if err != nil {
-			debug.Log("event", "stdout.read.fail", "err", err)
-			return
-		}
-		debug.Log("event", "stdout.read", "value", string(stdout))
-	}()
-	go func() {
-		defer close(stderrDone)
-		stderr, err = ioutil.ReadAll(stderrReader)
-		if err != nil {
-			debug.Log("event", "stderr.read.fail", "err", err)
-			return
-		}
-		debug.Log("event", "stderr.read", "value", string(stderr))
-	}()
-
 	debug.Log("event", "cmd.start")
 	err = cmd.Start()
 	if err != nil {
@@ -117,12 +96,24 @@ func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
 	}
 	debug.Log("event", "cmd.started")
 
+	stdout, err = ioutil.ReadAll(stdoutReader)
+	if err != nil {
+		debug.Log("event", "stdout.read.fail", "err", err)
+		return stdout, stderr, errors.Wrap(err, "read stdout")
+	}
+	debug.Log("event", "stdout.read", "value", string(stdout))
+
+	stderr, err = ioutil.ReadAll(stderrReader)
+	if err != nil {
+		debug.Log("event", "stderr.read.fail", "err", err)
+		return stdout, stderr, errors.Wrap(err, "read stderr")
+	}
+	debug.Log("event", "stderr.read", "value", string(stderr))
+
 	debug.Log("event", "cmd.wait")
 	err = cmd.Wait()
 	debug.Log("event", "cmd.waited")
 
-	<-stdoutDone
-	<-stderrDone
 	debug.Log("event", "cmd.streams.read.done")
 
 	return stdout, stderr, err
