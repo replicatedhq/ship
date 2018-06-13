@@ -27,12 +27,12 @@ type apiTestcase struct {
 	Error       bool
 	Config      []libyaml.ConfigGroup
 	ViperConfig map[string]interface{}   `yaml:"viper_config"`
-	Responses   responsesJson            `yaml:"responses"`
+	Responses   responsesJSON            `yaml:"responses"`
 	LiveValues  []map[string]interface{} `yaml:"input"`
 	State       map[string]interface{}   `yaml:"state"`
 }
 
-type responsesJson struct {
+type responsesJSON struct {
 	JSON string `yaml:"json"`
 }
 

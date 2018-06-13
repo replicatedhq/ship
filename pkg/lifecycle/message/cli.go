@@ -30,37 +30,37 @@ func (m *CLIMessenger) WithDaemon(_ config.Daemon) Messenger {
 	return m
 }
 
-func (e *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {
-	debug := level.Debug(log.With(e.Logger, "step.type", "message"))
+func (m *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *api.Message) error {
+	debug := level.Debug(log.With(m.Logger, "step.type", "message"))
 
 	debug.Log("event", "step.execute", "step.level", step.Level)
 
-	builder := e.getBuilder(release)
+	builder := m.getBuilder(release)
 	built, _ := builder.String(step.Contents)
 
 	switch step.Level {
 	case "error":
-		e.UI.Error(fmt.Sprintf("\n%s", built))
+		m.UI.Error(fmt.Sprintf("\n%s", built))
 	case "warn":
-		e.UI.Warn(fmt.Sprintf("\n%s", built))
+		m.UI.Warn(fmt.Sprintf("\n%s", built))
 	case "debug":
-		e.UI.Output(fmt.Sprintf("\n%s", built))
+		m.UI.Output(fmt.Sprintf("\n%s", built))
 	default:
-		e.UI.Info(fmt.Sprintf("\n%s", built))
+		m.UI.Info(fmt.Sprintf("\n%s", built))
 	}
 	return nil
 }
 
-func (e *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
-	builder := e.BuilderBuilder.NewBuilder(
-		e.BuilderBuilder.NewStaticContext(),
+func (m *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
+	builder := m.BuilderBuilder.NewBuilder(
+		m.BuilderBuilder.NewStaticContext(),
 		builderContext{
-			logger: e.Logger,
-			viper:  e.Viper,
+			logger: m.Logger,
+			viper:  m.Viper,
 		},
 		&templates.InstallationContext{
 			Meta:  release.Metadata,
-			Viper: e.Viper,
+			Viper: m.Viper,
 		},
 	)
 	return builder

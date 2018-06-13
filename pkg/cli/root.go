@@ -8,7 +8,7 @@ import (
 
 	"context"
 
-	"github.com/replicatedhq/ship/pkg/cli/devtool_releaser"
+	"github.com/replicatedhq/ship/pkg/cli/devtoolreleaser"
 	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/replicatedhq/ship/pkg/version"
@@ -57,7 +57,7 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 
 	cmd.AddCommand(e2e.Cmd())
-	cmd.AddCommand(devtool_releaser.Cmd())
+	cmd.AddCommand(devtoolreleaser.Cmd())
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()

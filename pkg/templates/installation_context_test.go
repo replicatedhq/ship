@@ -18,6 +18,36 @@ type TestInstallation struct {
 }
 
 func TestInstallationContext(t *testing.T) {
+	tests := testCases()
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assertions := require.New(t)
+
+			v := viper.New()
+			ctx := &InstallationContext{
+				Meta:  test.Meta,
+				Viper: v,
+			}
+			v.Set("customer-id", "abc")
+			v.Set("installation-id", "xyz")
+
+			builderBuilder := &BuilderBuilder{
+				Viper:  v,
+				Logger: &logger.TestLogger{T: t},
+			}
+
+			builder := builderBuilder.NewBuilder(ctx)
+
+			built, err := builder.String(test.Tpl)
+			assertions.NoError(err, "executing template")
+
+			assertions.Equal(test.Expected, built)
+		})
+	}
+}
+
+func testCases() []TestInstallation {
 	tests := []TestInstallation{
 		{
 			Name: "semver",
@@ -78,30 +108,5 @@ func TestInstallationContext(t *testing.T) {
 			Expected: `It's xyz`,
 		},
 	}
-
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			assertions := require.New(t)
-
-			v := viper.New()
-			ctx := &InstallationContext{
-				Meta:  test.Meta,
-				Viper: v,
-			}
-			v.Set("customer-id", "abc")
-			v.Set("installation-id", "xyz")
-
-			builderBuilder := &BuilderBuilder{
-				Viper:  v,
-				Logger: &logger.TestLogger{T: t},
-			}
-
-			builder := builderBuilder.NewBuilder(ctx)
-
-			built, err := builder.String(test.Tpl)
-			assertions.NoError(err, "executing template")
-
-			assertions.Equal(test.Expected, built)
-		})
-	}
+	return tests
 }

@@ -63,40 +63,7 @@ func NewConfigContext(
 	// Get a static context to render static template functions
 
 	builderBuilder := NewBuilderBuilder(logger)
-	builder := builderBuilder.NewBuilder(
-		builderBuilder.NewStaticContext(),
-	)
-
-	configCtx := &ConfigCtx{
-		ItemValues: templateContext,
-		Logger:     logger,
-	}
-
-	for _, configGroup := range configGroups {
-		for _, configItem := range configGroup.Items {
-			// if the pending value is different from the built, then use the pending every time
-			// We have to ignore errors here because we only have the static context loaded
-			// for rendering. some items have templates that need the config context,
-			// so we can ignore these.
-			builtDefault, _ := builder.String(configItem.Default)
-			builtValue, _ := builder.String(configItem.Value)
-
-			var built string
-			if builtValue != "" {
-				built = builtValue
-			} else {
-				built = builtDefault
-			}
-
-			if v, ok := templateContext[configItem.Name]; ok {
-				built = fmt.Sprintf("%v", v)
-			}
-
-			configCtx.ItemValues[configItem.Name] = built
-		}
-	}
-
-	return configCtx, nil
+	return builderBuilder.NewConfigContext(configGroups, templateContext)
 }
 
 // ConfigCtx is the context for builder functions before the application has started.

@@ -10,7 +10,7 @@ import (
 // TODO: This only supports json messages like this one:
 // {"status":"Waiting","progressDetail":{},"id":"462d60a56b09"}
 
-type DockerProgress struct {
+type Progress struct {
 	ID             string      `json:"id"` // this will be layer ID
 	Status         string      `json:"status"`
 	ProgressDetail interface{} `json:"progressDetail"`
@@ -19,7 +19,7 @@ type DockerProgress struct {
 func copyDockerProgress(reader io.ReadCloser, ch chan interface{}) error {
 	dec := json.NewDecoder(reader)
 	for {
-		var m DockerProgress
+		var m Progress
 		if err := dec.Decode(&m); err == io.EOF {
 			return nil
 		} else if err != nil {

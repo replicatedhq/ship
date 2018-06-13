@@ -66,7 +66,7 @@ func (f *ForkTemplater) Template(
 	if err != nil {
 		debug.Log("event", "cmd.err")
 		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return errors.New(fmt.Sprintf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr))
+			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
 		}
 		return errors.Wrap(err, "execute helm")
 	}

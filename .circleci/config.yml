@@ -12,11 +12,11 @@ experimental:
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
-      - run: make build-deps test
+      - run: make build-deps citest ci-build-deps ci-upload-coverage
   test_yoonit:
     docker:
       - image: replicated/yoonit:latest
@@ -28,7 +28,7 @@ jobs:
 
   deploy_unstable:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -42,7 +42,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
