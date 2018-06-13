@@ -18,39 +18,6 @@ type Runner struct {
 	Executor *StepExecutor
 }
 
-/*
-
-	// this needs to be pulled up more, but this is enough for now
-	executor := &lifecycle.StepExecutor{
-		Logger: s.Logger,
-		Renderer: &render.Renderer{
-			Fs:      s.Fs,
-			Logger:  s.Logger,
-			Release: s.Release,
-			UI:      s.UI,
-			ConfigResolver: &config.CLIResolver{
-				Logger:  s.Logger,
-				Release: s.Release,
-				UI:      s.UI,
-				Viper:   s.Viper,
-			},
-			Planner: &plan.CLIPlanner{
-				Logger: s.Logger,
-				Fs:     s.Fs,
-				UI:     s.UI,
-			},
-			StateManager: &state.StateManager{
-				Logger: s.Logger,
-			},
-		},
-		messenger: &message.CLIMessenger{
-			Logger: s.Logger,
-			UI:     s.UI,
-			Viper:  s.Viper,
-		},
-	}
-*/
-
 func NewRunner(logger log.Logger, executor StepExecutor) *Runner {
 	return &Runner{
 		Logger:   logger,

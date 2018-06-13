@@ -12,13 +12,14 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 // A Plan is a list of PlanSteps to execute
 type Plan []Step
 
-// A Step describes a single unit of work that Ship will do
+// A Execute describes a single unit of work that Ship will do
 // to render the application
 type Step struct {
 	Description string `json:"description" yaml:"description" hcl:"description"`
@@ -51,6 +52,7 @@ type CLIPlanner struct {
 	BuilderBuilder *templates.BuilderBuilder
 	Saver          docker.ImageSaver
 	URLResolver    docker.PullURLResolver
+	Helm           helm.Renderer
 }
 
 func NewPlanner(
@@ -61,6 +63,7 @@ func NewPlanner(
 	builderBuilder *templates.BuilderBuilder,
 	saver docker.ImageSaver,
 	urlResolver docker.PullURLResolver,
+	helmRenderer helm.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -70,6 +73,7 @@ func NewPlanner(
 		BuilderBuilder: builderBuilder,
 		Saver:          saver,
 		URLResolver:    urlResolver,
+		Helm:           helmRenderer,
 	}
 }
 
