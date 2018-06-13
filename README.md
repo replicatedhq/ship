@@ -32,8 +32,7 @@ make githooks
 
 ### Architecture & Foundations
 
-Entrypoint is a Cobra command, two commands are `ship apply` and `ship plan`. Right now `plan` is the same,
-but sets a Flag that will keep it from actually doing any asset generation or state modifications.
+Entrypoint is a Cobra command, root commands runs the main workflow. Other commands are `e2e` for integration testing and `devtool-releaser` for interacting with g.replicated.com to manage releases.
 
 Both commands create an instances of `ship.Ship` which, in order:
 
