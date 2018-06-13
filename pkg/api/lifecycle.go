@@ -11,14 +11,12 @@ type Step struct {
 	Render  *Render  `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
 }
 
-// Message is a lifeycle step to
+// Message is a lifeycle step to print a message
 type Message struct {
 	Contents string `json:"contents" yaml:"contents" hcl:"contents"`
 	Level    string `json:"level,omitempty" yaml:"level,omitempty" hcl:"level,omitempty"`
 }
 
-// Render is a lifeycle step to
+// Render is a lifeycle step to collect config and render assets
 type Render struct {
-	SkipPlan         bool `json:"skip_plan" yaml:"skip_plan" hcl:"skip_plan"`
-	SkipStateWarning bool `json:"skip_state_warning" yaml:"skip_state_warning" hcl:"skip_state_warning"`
 }
