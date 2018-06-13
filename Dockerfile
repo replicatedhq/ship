@@ -6,8 +6,6 @@ RUN go get -u github.com/golang/dep/cmd/dep
 RUN go get github.com/golang/mock/gomock
 RUN go install github.com/golang/mock/mockgen
 
-
-
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
   echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
   apt-get update || true && \
