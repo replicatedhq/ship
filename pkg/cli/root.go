@@ -53,6 +53,7 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 
 	cmd.PersistentFlags().String("studio-file", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+	cmd.PersistentFlags().String("state-file", ".ship/state.json", "path to the state file, defaults to .ship/state.json")
 	cmd.PersistentFlags().String("studio-channel-name", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	cmd.PersistentFlags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 
