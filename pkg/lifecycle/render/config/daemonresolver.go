@@ -44,7 +44,7 @@ func (d *DaemonResolver) ResolveConfig(
 		}
 	}
 
-	return nil, errors.New("couldn't find current render Step")
+	return nil, errors.New("couldn't find current render Execute")
 }
 
 func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan chan error) (map[string]interface{}, error) {

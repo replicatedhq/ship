@@ -59,6 +59,21 @@ _mockgen:
 		-package docker \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
 		PullURLResolver
+	mockgen \
+		-destination pkg/test-mocks/helm/chart_fetcher_mock.go \
+		-package helm \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
+		ChartFetcher
+	mockgen \
+		-destination pkg/test-mocks/helm/templater_mock.go \
+		-package helm \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
+		Templater
+	mockgen \
+		-destination pkg/test-mocks/helm/renderer_mock.go \
+		-package helm \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
+		Renderer
 
 mockgen: _mockgen fmt
 
