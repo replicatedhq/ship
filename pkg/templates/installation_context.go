@@ -3,8 +3,8 @@ package templates
 import (
 	"text/template"
 
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/viper"
 )
 

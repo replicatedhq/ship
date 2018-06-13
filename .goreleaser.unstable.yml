@@ -1,7 +1,7 @@
 project_name: ship
 release:
   github:
-    owner: replicatedcom
+    owner: replicatedhq
     name: ship
 builds:
 - goos:
@@ -13,9 +13,9 @@ builds:
    - CGO_ENABLED=0
   main: cmd/ship/main.go
   ldflags: -s -w 
-    -X github.com/replicatedcom/ship/pkg/version.version={{.Version}}
-    -X github.com/replicatedcom/ship/pkg/version.gitSHA={{.Commit}}
-    -X github.com/replicatedcom/ship/pkg/version.buildTime={{.Date}}
+    -X github.com/replicatedhq/ship/pkg/version.version={{.Version}}
+    -X github.com/replicatedhq/ship/pkg/version.gitSHA={{.Commit}}
+    -X github.com/replicatedhq/ship/pkg/version.buildTime={{.Date}}
     -extldflags "-static"
   flags: -tags netgo -installsuffix netgo
   binary: ship

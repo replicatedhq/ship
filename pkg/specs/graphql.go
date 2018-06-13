@@ -11,7 +11,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/viper"
 )
 

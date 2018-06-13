@@ -8,7 +8,7 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 
-	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/pkg/errors"
 )

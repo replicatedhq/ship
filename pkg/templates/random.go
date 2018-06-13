@@ -15,7 +15,7 @@ const (
 	DefaultCharset = "[_A-Za-z0-9]"
 )
 
-// stolen from https://github.com/replicatedcom/replicated/blob/8ce3ed40436e38b8089387d103623dbe09bbf1c0/pkg/commands/random.go#L22
+// stolen from https://github.com/replicatedhq/replicated/blob/8ce3ed40436e38b8089387d103623dbe09bbf1c0/pkg/commands/random.go#L22
 func (ctx *StaticCtx) RandomString(length uint64) string {
 	debug := log.With(level.Debug(ctx.Logger), "func", "random")
 	debug.Log("event", "start")

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
 )
 
 func TestResolveImageName(t *testing.T) {

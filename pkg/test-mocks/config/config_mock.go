@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api"
 )
 
 // MockIResolver is a mock of IResolver interface

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"

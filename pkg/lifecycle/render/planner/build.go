@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
-	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 

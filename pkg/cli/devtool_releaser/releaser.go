@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/e2e"
+	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/spf13/viper"
 )
 

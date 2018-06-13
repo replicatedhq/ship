@@ -15,7 +15,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
   apt-get install -y nodejs
 
-ENV PROJECTPATH=/go/src/github.com/replicatedcom/ship
+ENV PROJECTPATH=/go/src/github.com/replicatedhq/ship
 
 WORKDIR $PROJECTPATH
 CMD ["/bin/bash"]

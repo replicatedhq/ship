@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

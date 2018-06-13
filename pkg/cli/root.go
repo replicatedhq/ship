@@ -8,10 +8,10 @@ import (
 
 	"context"
 
-	"github.com/replicatedcom/ship/pkg/cli/devtool_releaser"
-	"github.com/replicatedcom/ship/pkg/e2e"
-	"github.com/replicatedcom/ship/pkg/ship"
-	"github.com/replicatedcom/ship/pkg/version"
+	"github.com/replicatedhq/ship/pkg/cli/devtool_releaser"
+	"github.com/replicatedhq/ship/pkg/e2e"
+	"github.com/replicatedhq/ship/pkg/ship"
+	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

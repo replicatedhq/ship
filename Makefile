@@ -19,7 +19,7 @@ shell:
 		-p 8880:8880 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/github.com/replicatedcom/ship \
+		-v `pwd`:/go/src/github.com/replicatedhq/ship \
 		ship
 
 githooks:
@@ -32,32 +32,32 @@ _mockgen:
 	mockgen \
 		-destination pkg/test-mocks/config/resolver.go \
 		-package config \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/config \
 		Resolver
 	mockgen \
 		-destination pkg/test-mocks/config/daemon.go \
 		-package config \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/config \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/config \
 		Daemon
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
 		-package planner \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/planner \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
 		Planner
 	mockgen \
 		-destination pkg/test-mocks/docker/image_saver_mock.go \
 		-package docker \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
 		ImageSaver
 	mockgen \
 		-destination pkg/test-mocks/docker/image_manager_mock.go \
 		-package docker \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
 		ImageManager
 	mockgen \
 		-destination pkg/test-mocks/docker/pull_url_resovler_mock.go \
 		-package docker \
-		github.com/replicatedcom/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
 		PullURLResolver
 
 mockgen: _mockgen fmt

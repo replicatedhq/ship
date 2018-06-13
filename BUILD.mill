@@ -3,7 +3,7 @@
 load('go', 'go_create_tree', 'go_fmt', 'go_vet', 'go_build', 'go_test')
 
 def main(s):
-  root_package = "github.com/replicatedcom/ship"
+  root_package = "github.com/replicatedhq/ship"
   tree = go_create_tree(s, root_package)
 
   j = new_job_set()

@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/spf13/viper"
 
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 )
 
 type builderContext struct {

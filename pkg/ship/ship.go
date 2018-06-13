@@ -13,10 +13,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/lifecycle"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/specs"
-	"github.com/replicatedcom/ship/pkg/version"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
 

@@ -11,8 +11,8 @@ import (
 
 	"context"
 
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/ship"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/stretchr/testify/require"
 )
 

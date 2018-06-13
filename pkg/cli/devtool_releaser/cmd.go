@@ -9,7 +9,7 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/logger"
+	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

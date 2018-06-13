@@ -3,7 +3,7 @@ package templates
 import (
 	"testing"
 
-	"github.com/replicatedcom/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
 	"github.com/stretchr/testify/assert"
 )
 

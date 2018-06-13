@@ -1,5 +1,5 @@
 {
-  "pointer": "replicatedcom__ship",
+  "pointer": "replicatedhq__ship",
   "ignorePatterns": [
     ".circleci/**",
     ".git/**",

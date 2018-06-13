@@ -13,7 +13,7 @@ jobs:
   test:
     docker:
       - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/replicatedcom/ship
+    working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
       - run: make build-deps test
@@ -29,7 +29,7 @@ jobs:
   deploy_unstable:
     docker:
       - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/replicatedcom/ship
+    working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
       - setup_remote_docker
@@ -43,7 +43,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/replicatedcom/ship
+    working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
       - setup_remote_docker
@@ -57,7 +57,6 @@ workflows:
   version: 2
   build_accept_deploy:
     jobs:
-      - test_yoonit
       - test:
           filters:
             tags:
@@ -65,7 +64,6 @@ workflows:
       - deploy_unstable:
           requires:
             - test
-            - test_yoonit
           filters:
             branches:
               only: /master/

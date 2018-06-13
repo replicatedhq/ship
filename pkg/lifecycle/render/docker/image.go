@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api"
 )
 
 type PullURLResolver interface {

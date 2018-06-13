@@ -6,10 +6,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/message"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/message"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"go.uber.org/dig"
 )
 

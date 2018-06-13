@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/replicatedcom/ship.git"
+    "url": "git+https://github.com/replicatedhq/ship.git"
   },
   "keywords": [
     "lol"
@@ -16,9 +16,9 @@
   "author": "replicated",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/replicatedcom/ship/issues"
+    "url": "https://github.com/replicatedhq/ship/issues"
   },
-  "homepage": "https://github.com/replicatedcom/ship#readme",
+  "homepage": "https://github.com/replicatedhq/ship#readme",
   "dependencies": {
     "chalk": "^2.3.0",
     "js-yaml": "^3.10.0",

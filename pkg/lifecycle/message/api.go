@@ -9,9 +9,9 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/replicatedcom/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

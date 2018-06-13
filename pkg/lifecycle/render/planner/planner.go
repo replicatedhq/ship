@@ -5,14 +5,14 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
-	"github.com/replicatedcom/ship/pkg/api"
 	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/docker"
-	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 // A Plan is a list of PlanSteps to execute
