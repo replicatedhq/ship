@@ -78,9 +78,9 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 			invalidItemNames = append(invalidItemNames, invalidConfigItems.Name)
 		}
 
-		err := errors.New(
-			fmt.Sprintf("validate config failed. missing config values: %s",
-				strings.Join(invalidItemNames, ",")),
+		err := errors.Errorf(
+			"validate config failed. missing config values: %s",
+			strings.Join(invalidItemNames, ","),
 		)
 		warn.Log("event", "state invalid", "err", err)
 		return err

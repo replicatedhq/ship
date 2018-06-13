@@ -193,9 +193,9 @@ func runGraphTests(t *testing.T, test depGraphTestCase, graph depGraph) {
 		if test.expectNotFound != "" && toResolve == test.expectNotFound {
 			require.NotContains(t, available, toResolve)
 			return
-		} else {
-			require.Contains(t, available, toResolve)
 		}
+
+		require.Contains(t, available, toResolve)
 
 		graph.ResolveDep(toResolve)
 	}

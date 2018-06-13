@@ -1,4 +1,4 @@
-FROM golang:1.9
+FROM golang:1.10
 
 RUN go get golang.org/x/tools/cmd/goimports
 RUN go get -u github.com/golang/lint/golint

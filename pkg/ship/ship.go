@@ -121,12 +121,12 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	if s.CustomerID == "" && s.StudioFile == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
-		return errors.New("Missing parameter: customer-id. Please provide your license key or customer ID.")
+		return errors.New("missing parameter customer-id, Please provide your license key or customer ID")
 	}
 
 	if s.InstallationID == "" && s.StudioFile == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing installation ID")
-		return errors.New("Missing parameter: installation-id. Please provide your license key or installation ID.")
+		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
 	}
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
@@ -165,7 +165,7 @@ func (s *Ship) Execute(ctx context.Context) error {
 	case sig := <-signalChan:
 		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
 		s.UI.Warn(fmt.Sprintf("%s received...", sig))
-		return errors.New(fmt.Sprintf("received signal %s", sig))
+		return errors.Errorf("received signal %s", sig)
 	case result := <-runResultCh:
 		return result
 	}

@@ -119,7 +119,7 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 				return errors.Wrapf(err, "write directory to %s", asset.Dest)
 			}
 
-			pullUrl, err := p.URLResolver.ResolvePullURL(asset, meta)
+			pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)
 			if err != nil {
 				return errors.Wrapf(err, "resolve pull url")
 			}
@@ -127,8 +127,8 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 			// first try with registry secret
 			// TODO remove this once registry is updated to read installation ID
 			registrySecretSaveOpts := docker.SaveOpts{
-				PullUrl:   pullUrl,
-				SaveUrl:   asset.Image,
+				PullURL:   pullURL,
+				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
 				Filename:  asset.Dest,
 				Username:  meta.CustomerID,
@@ -146,16 +146,16 @@ func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata
 			debug.Log("event", "execute.try.withInstallationID")
 
 			// next try with installationID for password
-			installationIdSaveOpts := docker.SaveOpts{
-				PullUrl:   pullUrl,
-				SaveUrl:   asset.Image,
+			installationIDSaveOpts := docker.SaveOpts{
+				PullURL:   pullURL,
+				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
 				Filename:  asset.Dest,
 				Username:  meta.CustomerID,
 				Password:  p.Viper.GetString("installation-id"),
 			}
 
-			ch = p.Saver.SaveImage(ctx, installationIdSaveOpts)
+			ch = p.Saver.SaveImage(ctx, installationIDSaveOpts)
 			saveError = p.watchProgress(ch, debug)
 
 			if saveError != nil {
@@ -178,7 +178,7 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		case error:
 			// continue reading on error to ensure channel is not blocked
 			saveError = v
-		case docker.DockerProgress:
+		case docker.Progress:
 			p.Daemon.SetProgress(config.JSONProgress("docker", v))
 		case string:
 			p.Daemon.SetProgress(config.StringProgress("docker", v))

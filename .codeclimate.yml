@@ -1,0 +1,21 @@
+---
+plugins:
+  govet:
+   enabled: true
+  gofmt:
+    enabled: true
+  golint:
+    enabled: true
+    config:
+      min_confidence: 0.9
+    checks:
+      GoLint/Comments/DocComments:
+        enabled: false
+
+
+ratings:
+  paths:
+    - "cmd/**.go"
+    - "pkg/**.go"
+exclude_paths:
+  - vendor

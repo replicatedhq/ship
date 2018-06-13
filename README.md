@@ -1,8 +1,11 @@
 Ship
 =======
 
-Replicated Ship on-prem components
+[![Test Coverage](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/test_coverage)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/maintainability)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/maintainability)
 
+
+Deploy 3rd-party applications using modern pipelines.
 
 ### ship
 

@@ -7,3 +7,5 @@ state.json
 .vscode
 installer/
 .ship/
+coverage.out
+coverage/

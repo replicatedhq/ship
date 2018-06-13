@@ -30,30 +30,30 @@ type ImageManager interface {
 }
 
 type SaveOpts struct {
-	PullUrl   string
-	SaveUrl   string
+	PullURL   string
+	SaveURL   string
 	IsPrivate bool
 	Filename  string
 	Username  string
 	Password  string
 }
 
-var _ ImageSaver = &DockerSaver{}
+var _ ImageSaver = &CLISaver{}
 
-// DockerSaver implementes ImageSaver via a docker client
-type DockerSaver struct {
+// CLISaver implementes ImageSaver via a docker client
+type CLISaver struct {
 	Logger log.Logger
 	client ImageManager
 }
 
 func SaverFromViper(logger log.Logger, client *docker.Client) ImageSaver {
-	return &DockerSaver{
+	return &CLISaver{
 		Logger: logger,
 		client: client,
 	}
 }
 
-func (s *DockerSaver) SaveImage(ctx context.Context, saveOpts SaveOpts) chan interface{} {
+func (s *CLISaver) SaveImage(ctx context.Context, saveOpts SaveOpts) chan interface{} {
 	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
@@ -64,8 +64,8 @@ func (s *DockerSaver) SaveImage(ctx context.Context, saveOpts SaveOpts) chan int
 	return ch
 }
 
-func (s *DockerSaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh chan interface{}) error {
-	debug := level.Debug(log.With(s.Logger, "method", "saveImage", "image", saveOpts.SaveUrl))
+func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh chan interface{}) error {
+	debug := level.Debug(log.With(s.Logger, "method", "saveImage", "image", saveOpts.SaveURL))
 
 	authOpts := types.AuthConfig{}
 	if saveOpts.IsPrivate {
@@ -85,17 +85,17 @@ func (s *DockerSaver) saveImage(ctx context.Context, saveOpts SaveOpts, progress
 	pullOpts := types.ImagePullOptions{
 		RegistryAuth: authString,
 	}
-	progressReader, err := s.client.ImagePull(ctx, saveOpts.PullUrl, pullOpts)
+	progressReader, err := s.client.ImagePull(ctx, saveOpts.PullURL, pullOpts)
 	if err != nil {
-		return errors.Wrapf(err, "pull image %s", saveOpts.PullUrl)
+		return errors.Wrapf(err, "pull image %s", saveOpts.PullURL)
 	}
 	copyDockerProgress(progressReader, progressCh)
 
-	if saveOpts.PullUrl != saveOpts.SaveUrl {
-		debug.Log("stage", "tag", "old.tag", saveOpts.PullUrl, "new.tag", saveOpts.SaveUrl)
-		err := s.client.ImageTag(ctx, saveOpts.PullUrl, saveOpts.SaveUrl)
+	if saveOpts.PullURL != saveOpts.SaveURL {
+		debug.Log("stage", "tag", "old.tag", saveOpts.PullURL, "new.tag", saveOpts.SaveURL)
+		err := s.client.ImageTag(ctx, saveOpts.PullURL, saveOpts.SaveURL)
 		if err != nil {
-			return errors.Wrapf(err, "tag image %s -> %s", saveOpts.PullUrl, saveOpts.SaveUrl)
+			return errors.Wrapf(err, "tag image %s -> %s", saveOpts.PullURL, saveOpts.SaveURL)
 		}
 	}
 
@@ -109,9 +109,9 @@ func (s *DockerSaver) saveImage(ctx context.Context, saveOpts SaveOpts, progress
 
 	debug.Log("stage", "save")
 
-	imageReader, err := s.client.ImageSave(ctx, []string{saveOpts.SaveUrl})
+	imageReader, err := s.client.ImageSave(ctx, []string{saveOpts.SaveURL})
 	if err != nil {
-		return errors.Wrapf(err, "save image %s", saveOpts.SaveUrl)
+		return errors.Wrapf(err, "save image %s", saveOpts.SaveURL)
 	}
 	defer imageReader.Close()
 

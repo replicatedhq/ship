@@ -47,7 +47,7 @@ type ShipReleaseResult struct {
 
 func (c *GraphQLClient) PromoteRelease(
 	spec,
-	channelId,
+	channelID,
 	semver,
 	releaseNotes string,
 ) (*ShipReleaseResult, error) {
@@ -65,7 +65,7 @@ mutation($channelId: ID!, $semver: String!, $spec: String!, $releaseNotes: Strin
 }`,
 		Variables: map[string]string{
 			"spec":         spec,
-			"channelId":    channelId,
+			"channelId":    channelID,
 			"semver":       semver,
 			"releaseNotes": releaseNotes,
 		},

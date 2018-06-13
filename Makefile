@@ -8,6 +8,7 @@ build-deps:
 	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 
+
 dep-deps:
 	go get -u github.com/golang/dep/cmd/dep
 
@@ -101,6 +102,20 @@ _test:
 	go test -v ./pkg/...
 
 test: lint _test
+
+_citest:
+	go test -coverprofile=coverage.out -v ./pkg/...
+
+citest: lint _citest
+
+ci-build-deps:
+	wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+	chmod +x cc-test-reporter
+
+ci-upload-coverage:
+	./cc-test-reporter format-coverage -t gocov coverage.out
+	./cc-test-reporter upload-coverage
+
 
 build: test bin/ship
 

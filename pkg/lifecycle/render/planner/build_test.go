@@ -78,8 +78,8 @@ func TestDockerStep(t *testing.T) {
 			urlResolver.EXPECT().ResolvePullURL(asset, metadata).Return("some-pull-url", nil)
 
 			registrySecretSaveOpts := docker2.SaveOpts{
-				PullUrl:   "some-pull-url",
-				SaveUrl:   asset.Image,
+				PullURL:   "some-pull-url",
+				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
 				Filename:  asset.Dest,
 				Username:  "tanker",
@@ -94,21 +94,21 @@ func TestDockerStep(t *testing.T) {
 			saver.EXPECT().SaveImage(ctx, registrySecretSaveOpts).Return(registrySaveCh)
 
 			if test.RegistrySecretSaveError != nil {
-				installIdSaveCh := make(chan interface{})
+				installIDSaveCh := make(chan interface{})
 				go func() {
-					installIdSaveCh <- test.InstallationIDSaveError
-					close(installIdSaveCh)
+					installIDSaveCh <- test.InstallationIDSaveError
+					close(installIDSaveCh)
 				}()
 
 				installationIDSaveOpts := docker2.SaveOpts{
-					PullUrl:   "some-pull-url",
-					SaveUrl:   asset.Image,
+					PullURL:   "some-pull-url",
+					SaveURL:   asset.Image,
 					IsPrivate: asset.Source != "public" && asset.Source != "",
 					Filename:  asset.Dest,
 					Username:  "tanker",
 					Password:  "vernon",
 				}
-				saver.EXPECT().SaveImage(ctx, installationIDSaveOpts).Return(installIdSaveCh)
+				saver.EXPECT().SaveImage(ctx, installationIDSaveOpts).Return(installIDSaveCh)
 			}
 
 			req := require.New(t)

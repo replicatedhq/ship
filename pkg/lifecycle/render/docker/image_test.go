@@ -18,14 +18,14 @@ func TestResolveImageName(t *testing.T) {
 	}
 	type testcase struct {
 		Name     string
-		ImageUrl string
+		ImageURL string
 		Expect   oneResult
 	}
 
 	cases := []testcase{
 		{
 			Name:     "just image name",
-			ImageUrl: "redis",
+			ImageURL: "redis",
 			Expect: oneResult{
 				Name:  "redis",
 				Tag:   "latest",
@@ -34,7 +34,7 @@ func TestResolveImageName(t *testing.T) {
 		},
 		{
 			Name:     "image name and tag",
-			ImageUrl: "redis:7",
+			ImageURL: "redis:7",
 			Expect: oneResult{
 				Name:  "redis",
 				Tag:   "7",
@@ -43,7 +43,7 @@ func TestResolveImageName(t *testing.T) {
 		},
 		{
 			Name:     "image name, org, and tag",
-			ImageUrl: "awesome/redis:1.3",
+			ImageURL: "awesome/redis:1.3",
 			Expect: oneResult{
 				Name:  "redis",
 				Tag:   "1.3",
@@ -52,7 +52,7 @@ func TestResolveImageName(t *testing.T) {
 		},
 		{
 			Name:     "host, image name, org, and tag",
-			ImageUrl: "quay.io/awesome/redis:3.5",
+			ImageURL: "quay.io/awesome/redis:3.5",
 			Expect: oneResult{
 				Name:  "redis",
 				Tag:   "3.5",
@@ -61,7 +61,7 @@ func TestResolveImageName(t *testing.T) {
 		},
 		{
 			Name:     "just some url",
-			ImageUrl: "https://www.google.com",
+			ImageURL: "https://www.google.com",
 			Expect: oneResult{
 				Name:  "",
 				Tag:   "",
@@ -72,7 +72,7 @@ func TestResolveImageName(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
-			imageName, imageTag, err := resolveImageName(test.ImageUrl)
+			imageName, imageTag, err := resolveImageName(test.ImageURL)
 			if test.Expect.IsErr {
 				require.New(t).Error(err)
 			} else {
@@ -88,7 +88,7 @@ func TestResolvePullUrl(t *testing.T) {
 	type testcase struct {
 		Name      string
 		Asset     api.DockerAsset
-		ExpectUrl string
+		ExpectURL string
 	}
 	cases := []testcase{
 		{
@@ -97,7 +97,7 @@ func TestResolvePullUrl(t *testing.T) {
 				Image:  "registry.replicated.com/library/retraced-api:1.1.12-slim-20180329",
 				Source: "replicated",
 			},
-			ExpectUrl: "registry.replicated.com/library/retraced-api:1.1.12-slim-20180329",
+			ExpectURL: "registry.replicated.com/library/retraced-api:1.1.12-slim-20180329",
 		},
 		{
 			Name: "public image with host name",
@@ -105,7 +105,7 @@ func TestResolvePullUrl(t *testing.T) {
 				Image:  "quay.io/awesome/redis:1.1",
 				Source: "public",
 			},
-			ExpectUrl: "quay.io/awesome/redis:1.1",
+			ExpectURL: "quay.io/awesome/redis:1.1",
 		},
 		{
 			Name: "private proxied image without host name",
@@ -113,7 +113,7 @@ func TestResolvePullUrl(t *testing.T) {
 				Image:  "replicated/www:3",
 				Source: "dockerhub",
 			},
-			ExpectUrl: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz2.www:3", replicatedRegistry()),
+			ExpectURL: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz2.www:3", replicatedRegistry()),
 		},
 		{
 			Name: "private proxied image with host name",
@@ -121,7 +121,7 @@ func TestResolvePullUrl(t *testing.T) {
 				Image:  "quay.io/redacted/chatops:f3c689e",
 				Source: "quayio",
 			},
-			ExpectUrl: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz4.chatops:f3c689e", replicatedRegistry()),
+			ExpectURL: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz4.chatops:f3c689e", replicatedRegistry()),
 		},
 	}
 	meta := api.ReleaseMetadata{
@@ -146,7 +146,7 @@ func TestResolvePullUrl(t *testing.T) {
 			r := &URLResolver{Logger: &logger.TestLogger{T: t}}
 			url, err := r.ResolvePullURL(&test.Asset, meta)
 			require.New(t).NoError(err)
-			require.New(t).Equal(test.ExpectUrl, url)
+			require.New(t).Equal(test.ExpectURL, url)
 		})
 	}
 }

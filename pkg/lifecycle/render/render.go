@@ -95,7 +95,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	r.Daemon.SetProgress(ProgressCommit)
 	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
-		return err
+		return errors.Wrap(err, "serialize state")
 	}
 
 	return nil

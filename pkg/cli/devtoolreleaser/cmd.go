@@ -1,4 +1,4 @@
-package devtool_releaser
+package devtoolreleaser
 
 import (
 	"strings"
