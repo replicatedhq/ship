@@ -54,6 +54,12 @@
   version = "v0.3.3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dsnet/compress"
+  packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
+  revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "629574ca2a5df945712d3079857300b5e4da0236"
@@ -168,6 +174,12 @@
   revision = "821f57ef6082dacf56d3354643f2ef36e06ebf29"
 
 [[projects]]
+  name = "github.com/mholt/archiver"
+  packages = ["."]
+  revision = "cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006"
+  version = "v2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/mitchellh/cli"
   packages = ["."]
@@ -178,6 +190,12 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "06020f85339e21b2478f756a78e295255ffa4d6a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/nwaples/rardecode"
+  packages = ["."]
+  revision = "e06696f847aeda6f39a8f0b7cdff193b7690aef6"
 
 [[projects]]
   name = "github.com/opencontainers/go-digest"
@@ -270,6 +288,12 @@
   version = "v1.1.1"
 
 [[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [".","internal/hash","internal/xlog","lzma"]
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
+
+[[projects]]
   name = "go.uber.org/dig"
   packages = [".","internal/digreflect"]
   revision = "d100de9c8cc8358591507951141bc107713ba671"
@@ -308,6 +332,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a39908b9df36d1a1909b3ebcf56155f6919c4e7e9b09bd681b0a20c3a312467a"
+  inputs-digest = "1cc3cccc58c8ece313debefc1c05ad55b2c9b6aa1f28e5b583790819081a86f1"
   solver-name = "gps-cdcl"
   solver-version = 1

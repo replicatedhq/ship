@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/stretchr/testify/require"

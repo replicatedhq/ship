@@ -12,6 +12,7 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
@@ -35,7 +36,7 @@ type Planner interface {
 		[]libyaml.ConfigGroup,
 		api.ReleaseMetadata,
 		map[string]interface{},
-	) Plan
+	) (Plan, error)
 
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
@@ -50,9 +51,10 @@ type CLIPlanner struct {
 	Viper          *viper.Viper
 	Daemon         config.Daemon
 	BuilderBuilder *templates.BuilderBuilder
-	Saver          docker.ImageSaver
-	URLResolver    docker.PullURLResolver
-	Helm           helm.Renderer
+
+	Helm        helm.Renderer
+	Docker      docker.Renderer
+	DockerLayer *dockerlayer.Unpacker
 }
 
 func NewPlanner(
@@ -61,9 +63,9 @@ func NewPlanner(
 	fs afero.Afero,
 	ui cli.Ui,
 	builderBuilder *templates.BuilderBuilder,
-	saver docker.ImageSaver,
-	urlResolver docker.PullURLResolver,
+	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
+	dockerlayers *dockerlayer.Unpacker,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -71,9 +73,9 @@ func NewPlanner(
 		UI:             ui,
 		Viper:          v,
 		BuilderBuilder: builderBuilder,
-		Saver:          saver,
-		URLResolver:    urlResolver,
 		Helm:           helmRenderer,
+		Docker:         dockerRenderer,
+		DockerLayer:    dockerlayers,
 	}
 }
 

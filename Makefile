@@ -29,7 +29,22 @@ githooks:
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+
+
 _mockgen:
+	rm -rf pkg/test-mocks
+	mkdir -p pkg/test-mocks/ui
+	mkdir -p pkg/test-mocks/config
+	mkdir -p pkg/test-mocks/planner
+	mkdir -p pkg/test-mocks/images
+	mkdir -p pkg/test-mocks/docker
+	mkdir -p pkg/test-mocks/helm
+	mkdir -p pkg/test-mocks/dockerlayer
+	mockgen \
+		-destination pkg/test-mocks/ui/ui.go \
+		-package ui \
+		github.com/mitchellh/cli \
+		Ui
 	mockgen \
 		-destination pkg/test-mocks/config/resolver.go \
 		-package config \
@@ -46,19 +61,19 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
 		Planner
 	mockgen \
-		-destination pkg/test-mocks/docker/image_saver_mock.go \
-		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		-destination pkg/test-mocks/images/image_saver_mock.go \
+		-package images \
+		github.com/replicatedhq/ship/pkg/images \
 		ImageSaver
 	mockgen \
-		-destination pkg/test-mocks/docker/image_manager_mock.go \
-		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		-destination pkg/test-mocks/images/image_manager_mock.go \
+		-package images \
+		github.com/replicatedhq/ship/pkg/images \
 		ImageManager
 	mockgen \
-		-destination pkg/test-mocks/docker/pull_url_resovler_mock.go \
-		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		-destination pkg/test-mocks/images/pull_url_resovler_mock.go \
+		-package images \
+		github.com/replicatedhq/ship/pkg/images \
 		PullURLResolver
 	mockgen \
 		-destination pkg/test-mocks/helm/chart_fetcher_mock.go \
@@ -75,6 +90,16 @@ _mockgen:
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
 		Renderer
+	mockgen \
+		-destination pkg/test-mocks/docker/renderer_mock.go \
+		-package docker \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		Renderer
+	mockgen \
+		-destination pkg/test-mocks/dockerlayer/archive_mock.go \
+		-package dockerlayer \
+		github.com/mholt/archiver \
+		Archiver
 
 mockgen: _mockgen fmt
 

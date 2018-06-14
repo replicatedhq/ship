@@ -42,10 +42,6 @@
   version = "1.0.0"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/zsais/go-gin-prometheus"
-
-[[constraint]]
   name = "github.com/docker/docker"
   revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
 

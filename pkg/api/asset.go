@@ -19,10 +19,11 @@ type AssetShared struct {
 
 // Asset is a spec to generate one or more deployment assets
 type Asset struct {
-	Inline *InlineAsset `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
-	Docker *DockerAsset `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
-	GitHub *GitHubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
-	Helm   *HelmAsset   `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
+	Inline      *InlineAsset      `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
+	Docker      *DockerAsset      `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
+	DockerLayer *DockerLayerAsset `json:"dockerlayer,omitempty" yaml:"dockerlayer,omitempty" hcl:"dockerlayer,omitempty"`
+	GitHub      *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -36,6 +37,12 @@ type DockerAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Image       string `json:"image" yaml:"image" hcl:"image"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+}
+
+// DockerLayerAsset is an asset that will unpack a docker layer at `dest`
+type DockerLayerAsset struct {
+	DockerAsset `json:",inline" yaml:",inline" hcl:",inline"`
+	Layer       string `json:"layer" yaml:"layer" hcl:"layer"`
 }
 
 // GitHubAsset is an asset whose contents are specified directly in the Spec
