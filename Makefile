@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage
 
 
 SHELL := /bin/bash
@@ -103,18 +103,20 @@ _test:
 
 test: lint _test
 
-_citest:
-	go test -coverprofile=coverage.out -v ./pkg/...
+.state/coverage.out: $(SRC)
+	@mkdir -p .state/
+	go test -coverprofile=.state/coverage.out -v ./pkg/...
 
-citest: lint _citest
+citest: lint .state/coverage.out
 
-ci-build-deps:
-	wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-	chmod +x cc-test-reporter
+.state/cc-test-reporter:
+	@mkdir -p .state/
+	wget -O .state/cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+	chmod +x .state/cc-test-reporter
 
-ci-upload-coverage:
-	./cc-test-reporter format-coverage -t gocov coverage.out
-	./cc-test-reporter upload-coverage
+ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
+	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
+	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
 
 build: test bin/ship

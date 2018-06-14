@@ -16,7 +16,7 @@ jobs:
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
-      - run: make build-deps citest ci-build-deps ci-upload-coverage
+      - run: make build-deps citest ci-upload-coverage
   test_yoonit:
     docker:
       - image: replicated/yoonit:latest
