@@ -93,11 +93,29 @@ var _ = Describe("basic", func() {
 				testOutputPath := path.Join(testPath, "tmp")
 				testInputPath := path.Join(testPath, "input")
 
-				idBytes, err := ioutil.ReadFile(path.Join(testPath, "customer_id"))
+				custIdBytes, err := ioutil.ReadFile(path.Join(testPath, "customer_id"))
 				if err != nil {
 					panic(err)
 				}
-				customerId := string(idBytes)
+				customerId := string(custIdBytes)
+
+				installationIdBytes, err := ioutil.ReadFile(path.Join(testPath, "installation_id"))
+				if err != nil {
+					panic(err)
+				}
+				installationId := string(installationIdBytes)
+
+				channelIdBytes, err := ioutil.ReadFile(path.Join(testPath, "channel_id"))
+				if err != nil {
+					panic(err)
+				}
+				channelId := string(channelIdBytes)
+
+				releaseVersionBytes, err := ioutil.ReadFile(path.Join(testPath, "release_version"))
+				if err != nil {
+					panic(err)
+				}
+				releaseVersion := string(releaseVersionBytes)
 
 				BeforeEach(func() {
 					//create a temporary directory within this directory to compare files with
@@ -126,9 +144,31 @@ var _ = Describe("basic", func() {
 						"--headless",
 						fmt.Sprintf("--studio-file=%s", path.Join(testInputPath, ".ship/release.yml")),
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
+						"--log-level=off",
+					}))
+					err := cmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
+
+					//compare the files in the temporary directory with those in the "expected" directory
+					result, err := CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(result).To(BeTrue())
+
+				}, 60)
+
+				It("Should output files matching those expected when communicating with the graphql api", func() {
+					cmd := cli.RootCmd()
+					buf := new(bytes.Buffer)
+					cmd.SetOutput(buf)
+					cmd.SetArgs(append([]string{
+						"--headless",
+						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
 						"--log-level=off",
 						fmt.Sprintf("--customer-id=%s", customerId),
+						fmt.Sprintf("--installation-id=%s", installationId),
+						fmt.Sprintf("--channel-id=%s", channelId),
+						fmt.Sprintf("--release-semver=%s", releaseVersion),
 					}))
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
