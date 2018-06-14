@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,6 +17,7 @@ func TestPersistSpec(t *testing.T) {
 		StateManager: &state.Manager{
 			Logger: log.NewNopLogger(),
 			FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+			V:      viper.New(),
 		},
 	}
 

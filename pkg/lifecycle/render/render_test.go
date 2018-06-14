@@ -18,6 +18,7 @@ import (
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
 	ui "github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
@@ -56,6 +57,7 @@ func TestRender(t *testing.T) {
 			renderer.StateManager = &state.Manager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
+				V:      viper.New(),
 			}
 
 			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)

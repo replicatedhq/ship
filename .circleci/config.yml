@@ -41,7 +41,7 @@ jobs:
           command: docker push replicated/ship:unstable
   integration:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout

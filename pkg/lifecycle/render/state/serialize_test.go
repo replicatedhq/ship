@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,6 +30,7 @@ func TestTryLoad(t *testing.T) {
 	state := Manager{
 		Logger: log.NewNopLogger(),
 		FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+		V:      viper.New(),
 	}
 
 	req := require.New(t)

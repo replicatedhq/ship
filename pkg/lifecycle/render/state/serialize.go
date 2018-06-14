@@ -53,10 +53,7 @@ func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templat
 
 // TryLoad will attempt to load a state file from disk, if present
 func (s *Manager) TryLoad() (map[string]interface{}, error) {
-	statePath := ""
-	if s.V != nil {
-		statePath = s.V.GetString("state-file")
-	}
+	statePath := s.V.GetString("state-file")
 	if statePath == "" {
 		statePath = Path
 	}

@@ -16,8 +16,8 @@ import (
 )
 
 const getAppspecQuery = `
-query {
-  shipRelease {
+query($semver: String) {
+  shipRelease (semver: $semver) {
     id
     channelId
     channelName
@@ -139,9 +139,12 @@ func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
 }
 
 // GetRelease gets a payload from the graphql server
-func (c *GraphQLClient) GetRelease(customerID, installationID string) (*ShipRelease, error) {
+func (c *GraphQLClient) GetRelease(customerID, installationID, semver string) (*ShipRelease, error) {
 	requestObj := GraphQLRequest{
 		Query: getAppspecQuery,
+		Variables: map[string]string{
+			"semver": semver,
+		},
 	}
 
 	ci := callInfo{

@@ -88,51 +88,38 @@ var _ = Describe("basic", func() {
 
 	for _, file := range files {
 		if file.IsDir() {
-			Context(fmt.Sprintf("When the spec in %s is run", file.Name()), func() {
+			Context(fmt.Sprintf("When the spec in %q is run", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
 				testOutputPath := path.Join(testPath, "tmp")
 				testInputPath := path.Join(testPath, "input")
 
-				custIdBytes, err := ioutil.ReadFile(path.Join(testPath, "customer_id"))
-				if err != nil {
-					panic(err)
-				}
-				customerId := string(custIdBytes)
-
-				installationIdBytes, err := ioutil.ReadFile(path.Join(testPath, "installation_id"))
-				if err != nil {
-					panic(err)
-				}
-				installationId := string(installationIdBytes)
-
-				channelIdBytes, err := ioutil.ReadFile(path.Join(testPath, "channel_id"))
-				if err != nil {
-					panic(err)
-				}
-				channelId := string(channelIdBytes)
-
-				releaseVersionBytes, err := ioutil.ReadFile(path.Join(testPath, "release_version"))
-				if err != nil {
-					panic(err)
-				}
-				releaseVersion := string(releaseVersionBytes)
+				var customerID, installationID, releaseVersion string
 
 				BeforeEach(func() {
-					//create a temporary directory within this directory to compare files with
+					// create a temporary directory within this directory to compare files with
 					os.RemoveAll(testOutputPath)
 					err := os.Mkdir(testOutputPath, os.ModeDir|os.ModePerm)
-					if err != nil {
-						panic(err)
-					}
+					Expect(err).NotTo(HaveOccurred())
 					os.Chdir(testOutputPath)
+
+					// read the customer ID, installation ID and release version for this test
+					custIDBytes, err := ioutil.ReadFile(path.Join(testPath, "customer_id"))
+					Expect(err).NotTo(HaveOccurred())
+					customerID = string(custIDBytes)
+
+					installationIDBytes, err := ioutil.ReadFile(path.Join(testPath, "installation_id"))
+					Expect(err).NotTo(HaveOccurred())
+					installationID = string(installationIDBytes)
+
+					releaseVersionBytes, err := ioutil.ReadFile(path.Join(testPath, "release_version"))
+					Expect(err).NotTo(HaveOccurred())
+					releaseVersion = string(releaseVersionBytes)
 				})
 
 				AfterEach(func() {
-					//remove the temporary directory
+					// remove the temporary directory
 					err := os.RemoveAll(testOutputPath)
-					if err != nil {
-						panic(err)
-					}
+					Expect(err).NotTo(HaveOccurred())
 					os.Chdir(integrationDir)
 				})
 
@@ -140,12 +127,12 @@ var _ = Describe("basic", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs(append([]string{
+					cmd.SetArgs([]string{
 						"--headless",
 						fmt.Sprintf("--studio-file=%s", path.Join(testInputPath, ".ship/release.yml")),
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--log-level=off",
-					}))
+					})
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
@@ -165,9 +152,8 @@ var _ = Describe("basic", func() {
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
 						"--log-level=off",
-						fmt.Sprintf("--customer-id=%s", customerId),
-						fmt.Sprintf("--installation-id=%s", installationId),
-						fmt.Sprintf("--channel-id=%s", channelId),
+						fmt.Sprintf("--customer-id=%s", customerID),
+						fmt.Sprintf("--installation-id=%s", installationID),
 						fmt.Sprintf("--release-semver=%s", releaseVersion),
 					}))
 					err := cmd.Execute()
