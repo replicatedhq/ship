@@ -39,7 +39,6 @@ type Ship struct {
 	Daemon     config.Daemon
 	Resolver   *specs.Resolver
 	StudioFile string
-	StateFile  string
 	Client     *specs.GraphQLClient
 	UI         cli.Ui
 
@@ -66,7 +65,6 @@ func NewShip(
 		ChannelID:      v.GetString("channel-id"),
 		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
-		StateFile:      v.GetString("state-file"),
 
 		Viper:    v,
 		Logger:   logger,
@@ -115,7 +113,6 @@ func (s *Ship) Execute(ctx context.Context) error {
 		"installation-id", s.InstallationID,
 		"plan_only", s.PlanOnly,
 		"studio-file", s.StudioFile,
-		"state-file", s.StateFile,
 		"api-port", s.APIPort,
 		"headless", s.Headless,
 	)
