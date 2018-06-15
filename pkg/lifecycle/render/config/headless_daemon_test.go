@@ -9,7 +9,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
