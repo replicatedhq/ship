@@ -31,7 +31,7 @@ func TarArchiver() archiver.Archiver {
 
 func NewUnpacker(
 	logger log.Logger,
-	dockerStep *docker.DefaultStep,
+	dockerStep docker.Renderer,
 	fs afero.Afero,
 	viper *viper.Viper,
 	tar archiver.Archiver,
@@ -79,10 +79,12 @@ func (u *Unpacker) Execute(
 
 func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
-	savePath, err := u.FS.TempDir("/tmp", "dockerlayer")
+	saveDir, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(err)
 	}
+
+	savePath := path.Join(saveDir, "image.tar")
 
 	firstPassUnpackPath, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {

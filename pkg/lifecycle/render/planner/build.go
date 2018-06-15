@@ -24,7 +24,7 @@ type buildProgress struct {
 }
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Plan {
+func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
 
 	defer p.Daemon.ClearProgress()
 
@@ -49,11 +49,16 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			asset.Helm.Dest = filepath.Join("installer", asset.Helm.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "helm")
 			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext))
+		} else if asset.DockerLayer != nil {
+			asset.DockerLayer.Dest = filepath.Join("installer", asset.DockerLayer.Dest)
+			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
+			plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
+			return nil, errors.New("Unknown asset: type is not one of [inline docker helm dockerlayer]")
 		}
 	}
-	return plan
+	return plan, nil
 }
 
 func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
@@ -122,6 +127,17 @@ func (p *CLIPlanner) helmStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.Helm.Execute(asset, meta, templateContext),
+	}
+}
+
+func (p *CLIPlanner) dockerLayerStep(
+	asset api.DockerLayerAsset,
+	metadata api.ReleaseMetadata,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.DockerLayer.Execute(asset, metadata, p.watchProgress),
 	}
 }
 

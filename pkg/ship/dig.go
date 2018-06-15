@@ -4,8 +4,11 @@ import (
 	"context"
 
 	dockercli "github.com/docker/docker/client"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/fs"
+	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
@@ -45,9 +48,11 @@ func buildInjector() (*dig.Container, error) {
 		specs.NewGraphqlClient,
 		lifecycle.NewRunner,
 
-		docker.URLResolverFromViper,
-		docker.NewImageSaver,
+		images.URLResolverFromViper,
+		images.NewImageSaver,
+
 		docker.NewStep,
+
 		dockercli.NewEnvClient,
 
 		dockerlayer.NewUnpacker,
@@ -73,21 +78,27 @@ func buildInjector() (*dig.Container, error) {
 }
 
 func Get() (*Ship, error) {
+	// who injects the injectors?
+	debug := log.With(level.Debug(logger.FromViper(viper.GetViper())), "component", "injector", "phase", "instance.get")
 
+	debug.Log("event", "injector.build")
 	injector, err := buildInjector()
 	if err != nil {
+		debug.Log("event", "injector.build.fail")
 		return nil, errors.Wrap(err, "build injector")
 	}
 
 	var ship *Ship
 
 	// we return nil below , so the error will only ever be a construction error
-	errorWhenConstructingShip := injector.Invoke(func(s *Ship) error {
+	debug.Log("event", "injector.invoke")
+	errorWhenConstructingShip := injector.Invoke(func(s *Ship) {
+		debug.Log("event", "injector.invoke.resolve")
 		ship = s
-		return nil
 	})
 
 	if errorWhenConstructingShip != nil {
+		debug.Log("event", "injector.invoke.fail")
 		return nil, errors.Wrap(err, "resolve dependencies")
 	}
 	return ship, nil

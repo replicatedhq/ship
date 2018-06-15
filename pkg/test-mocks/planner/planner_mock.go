@@ -39,10 +39,11 @@ func (m *MockPlanner) EXPECT() *MockPlannerMockRecorder {
 }
 
 // Build mocks base method
-func (m *MockPlanner) Build(arg0 []api.Asset, arg1 []libyaml.ConfigGroup, arg2 api.ReleaseMetadata, arg3 map[string]interface{}) planner.Plan {
+func (m *MockPlanner) Build(arg0 []api.Asset, arg1 []libyaml.ConfigGroup, arg2 api.ReleaseMetadata, arg3 map[string]interface{}) (planner.Plan, error) {
 	ret := m.ctrl.Call(m, "Build", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(planner.Plan)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Build indicates an expected call of Build

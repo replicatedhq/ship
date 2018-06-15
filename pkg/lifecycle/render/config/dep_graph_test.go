@@ -6,7 +6,7 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )

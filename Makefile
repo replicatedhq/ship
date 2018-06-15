@@ -29,7 +29,22 @@ githooks:
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+
+
 _mockgen:
+	rm -rf pkg/test-mocks
+	mkdir -p pkg/test-mocks/ui
+	mkdir -p pkg/test-mocks/config
+	mkdir -p pkg/test-mocks/planner
+	mkdir -p pkg/test-mocks/images
+	mkdir -p pkg/test-mocks/docker
+	mkdir -p pkg/test-mocks/helm
+	mkdir -p pkg/test-mocks/dockerlayer
+	mockgen \
+		-destination pkg/test-mocks/ui/ui.go \
+		-package ui \
+		github.com/mitchellh/cli \
+		Ui
 	mockgen \
 		-destination pkg/test-mocks/config/resolver.go \
 		-package config \
@@ -47,17 +62,17 @@ _mockgen:
 		Planner
 	mockgen \
 		-destination pkg/test-mocks/images/image_saver_mock.go \
-		-package docker \
+		-package images \
 		github.com/replicatedhq/ship/pkg/images \
 		ImageSaver
 	mockgen \
 		-destination pkg/test-mocks/images/image_manager_mock.go \
-		-package docker \
+		-package images \
 		github.com/replicatedhq/ship/pkg/images \
 		ImageManager
 	mockgen \
 		-destination pkg/test-mocks/images/pull_url_resovler_mock.go \
-		-package docker \
+		-package images \
 		github.com/replicatedhq/ship/pkg/images \
 		PullURLResolver
 	mockgen \

@@ -11,9 +11,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/test-mocks/config"
-	"github.com/replicatedhq/ship/pkg/test-mocks/docker"
-	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/images"
+	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -49,9 +49,8 @@ func TestDockerStep(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			mc := gomock.NewController(t)
 			v := viper.New()
-			daemon := config.NewMockDaemon(mc)
-			saver := docker.NewMockImageSaver(mc)
-			urlResolver := docker.NewMockPullURLResolver(mc)
+			saver := mockimages.NewMockImageSaver(mc)
+			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
 			ctx := context.Background()
 
@@ -63,7 +62,7 @@ func TestDockerStep(t *testing.T) {
 				Viper:       v,
 			}
 
-			asset := &api.DockerAsset{
+			asset := api.DockerAsset{
 				Image:  "registry.replicated.com/retracedio/api:v2.0.0",
 				Source: "replicated",
 			}
@@ -76,7 +75,7 @@ func TestDockerStep(t *testing.T) {
 
 			urlResolver.EXPECT().ResolvePullURL(asset, metadata).Return("some-pull-url", nil)
 
-			registrySecretSaveOpts := SaveOpts{
+			registrySecretSaveOpts := images.SaveOpts{
 				PullURL:   "some-pull-url",
 				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
@@ -99,7 +98,7 @@ func TestDockerStep(t *testing.T) {
 					close(installIDSaveCh)
 				}()
 
-				installationIDSaveOpts := SaveOpts{
+				installationIDSaveOpts := images.SaveOpts{
 					PullURL:   "some-pull-url",
 					SaveURL:   asset.Image,
 					IsPrivate: asset.Source != "public" && asset.Source != "",

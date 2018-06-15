@@ -16,7 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	mockconfig "github.com/replicatedhq/ship/pkg/test-mocks/config"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
-	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
+	ui "github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
@@ -82,7 +82,7 @@ func TestRender(t *testing.T) {
 
 				p.EXPECT().
 					Build(test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
-					Return(planner.Plan{})
+					Return(planner.Plan{}, nil)
 
 				p.EXPECT().
 					Execute(ctx, planner.Plan{}).
