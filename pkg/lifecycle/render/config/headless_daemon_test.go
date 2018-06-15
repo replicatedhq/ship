@@ -469,6 +469,7 @@ func TestHeadlessDaemon(t *testing.T) {
 			manager := &state.Manager{
 				Logger: testLogger,
 				FS:     fakeFS,
+				V:      viper.New(),
 			}
 
 			resolver := &APIConfigRenderer{

@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test
 
 
 SHELL := /bin/bash
@@ -158,7 +158,15 @@ bin/ship: $(SRC)
 e2e: bin/ship
 	./bin/ship e2e
 
+integration-test:
+	go test -v ./integration
 
+goreleaser: .state/goreleaser
+
+.state/goreleaser: .goreleaser.unstable.yml deploy/Dockerfile $(SRC)
+	@mkdir -p .state
+	@touch .state/goreleaser
+	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
 
 run: bin/ship
 	./bin/ship --log-level=debug --studio-file=./app.yml
