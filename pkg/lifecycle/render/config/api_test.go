@@ -15,7 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/config/test-cases/api"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

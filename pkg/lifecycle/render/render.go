@@ -82,9 +82,11 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	debug.Log("event", "render.plan")
 	r.Daemon.SetProgress(ProgressBuild)
-	pln := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
+	pln, err := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
+	if err != nil {
+		return errors.Wrap(err, "build plan")
 
-	debug.Log("event", "render.plan.skip")
+	}
 
 	r.Daemon.SetProgress(ProgressExecute)
 	r.Daemon.SetStepName(ctx, config.StepNameConfirm)

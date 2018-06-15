@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
