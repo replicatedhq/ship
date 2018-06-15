@@ -46,19 +46,19 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
 		Planner
 	mockgen \
-		-destination pkg/test-mocks/docker/image_saver_mock.go \
+		-destination pkg/test-mocks/images/image_saver_mock.go \
 		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/images \
 		ImageSaver
 	mockgen \
-		-destination pkg/test-mocks/docker/image_manager_mock.go \
+		-destination pkg/test-mocks/images/image_manager_mock.go \
 		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/images \
 		ImageManager
 	mockgen \
-		-destination pkg/test-mocks/docker/pull_url_resovler_mock.go \
+		-destination pkg/test-mocks/images/pull_url_resovler_mock.go \
 		-package docker \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		github.com/replicatedhq/ship/pkg/images \
 		PullURLResolver
 	mockgen \
 		-destination pkg/test-mocks/helm/chart_fetcher_mock.go \

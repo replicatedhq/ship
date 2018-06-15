@@ -8,7 +8,6 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
@@ -16,6 +15,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/images"
 )
 
 type buildProgress struct {
@@ -135,7 +135,7 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		case error:
 			// continue reading on error to ensure channel is not blocked
 			saveError = v
-		case docker.Progress:
+		case images.Progress:
 			p.Daemon.SetProgress(config.JSONProgress("docker", v))
 		case string:
 			p.Daemon.SetProgress(config.StringProgress("docker", v))

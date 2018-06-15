@@ -1,4 +1,4 @@
-package docker
+package images
 
 import (
 	"encoding/json"

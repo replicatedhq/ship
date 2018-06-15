@@ -8,7 +8,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	mockdocker "github.com/replicatedhq/ship/pkg/test-mocks/docker"
+	"github.com/replicatedhq/ship/pkg/test-mocks/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -26,14 +28,17 @@ func TestUnpackLayer(t *testing.T) {
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			renderer := mockdocker.NewMockRenderer(mc)
-			archiver := NewMockA
+			archiver := dockerlayer.NewMockArchiver(mc)
 			testLogger := &logger.TestLogger{T: t}
 			ctx := context.Background()
+			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			unpacker := &Unpacker{
 				Logger:      testLogger,
 				Viper:       viper.New(),
 				DockerSaver: renderer,
+				Tar:         archiver,
+				FS:          mockFS,
 			}
 
 			asset := api.DockerLayerAsset{
@@ -58,7 +63,7 @@ func TestUnpackLayer(t *testing.T) {
 			func() {
 				defer mc.Finish()
 
-				renderer.EXPECT().Execute(asset.DockerAsset, meta, watchProgress).Return(func(ctx2 context.Context) error {
+				renderer.EXPECT().Execute(asset.DockerAsset, meta, watchProgress, gomock.Any()).Return(func(ctx2 context.Context) error {
 					// todo make sure this thing got called
 					return nil
 				})

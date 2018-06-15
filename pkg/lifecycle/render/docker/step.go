@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -29,8 +30,8 @@ type Renderer interface {
 type DefaultStep struct {
 	Logger      log.Logger
 	Fs          afero.Afero
-	URLResolver PullURLResolver
-	ImageSaver  ImageSaver
+	URLResolver images.PullURLResolver
+	ImageSaver  images.ImageSaver
 	Viper       *viper.Viper
 }
 
@@ -38,8 +39,8 @@ type DefaultStep struct {
 func NewStep(
 	logger log.Logger,
 	fs afero.Afero,
-	resolver PullURLResolver,
-	saver ImageSaver,
+	resolver images.PullURLResolver,
+	saver images.ImageSaver,
 	v *viper.Viper,
 ) Renderer {
 	return &DefaultStep{
@@ -81,7 +82,7 @@ func (p *DefaultStep) Execute(
 
 		// first try with registry secret
 		// TODO remove this once registry is updated to read installation ID
-		registrySecretSaveOpts := SaveOpts{
+		registrySecretSaveOpts := images.SaveOpts{
 			PullURL:   pullURL,
 			SaveURL:   asset.Image,
 			IsPrivate: asset.Source != "public" && asset.Source != "",
@@ -101,7 +102,7 @@ func (p *DefaultStep) Execute(
 		debug.Log("event", "execute.try.withInstallationID")
 
 		// next try with installationID for password
-		installationIDSaveOpts := SaveOpts{
+		installationIDSaveOpts := images.SaveOpts{
 			PullURL:   pullURL,
 			SaveURL:   asset.Image,
 			IsPrivate: asset.Source != "public" && asset.Source != "",

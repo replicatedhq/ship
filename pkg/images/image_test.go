@@ -1,4 +1,4 @@
-package docker
+package images
 
 import (
 	"fmt"
@@ -144,7 +144,7 @@ func TestResolvePullUrl(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
 			r := &URLResolver{Logger: &logger.TestLogger{T: t}}
-			url, err := r.ResolvePullURL(&test.Asset, meta)
+			url, err := r.ResolvePullURL(test.Asset, meta)
 			require.New(t).NoError(err)
 			require.New(t).Equal(test.ExpectURL, url)
 		})

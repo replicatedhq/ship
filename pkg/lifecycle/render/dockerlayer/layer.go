@@ -19,7 +19,7 @@ import (
 // An unpacker
 type Unpacker struct {
 	Logger      log.Logger
-	Fs          afero.Afero
+	FS          afero.Afero
 	Viper       *viper.Viper
 	DockerSaver docker.Renderer
 	Tar         archiver.Archiver
@@ -39,7 +39,7 @@ func NewUnpacker(
 
 	return &Unpacker{
 		Logger:      logger,
-		Fs:          fs,
+		FS:          fs,
 		Viper:       viper,
 		DockerSaver: dockerStep,
 		Tar:         tar,
@@ -79,12 +79,12 @@ func (u *Unpacker) Execute(
 
 func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
-	savePath, err := u.Fs.TempDir("/tmp", "dockerlayer")
+	savePath, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(err)
 	}
 
-	firstPassUnpackPath, err := u.Fs.TempDir("/tmp", "dockerlayer")
+	firstPassUnpackPath, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(err)
 	}
@@ -121,15 +121,16 @@ func (u *Unpacker) unpack(src string, dest string) func() error {
 
 func (u *Unpacker) mkdirall(basePath string) func() error {
 	return func() error {
-		return errors.Wrapf(u.Fs.MkdirAll(basePath, 0755), "mkdirall %s", basePath)
+		return errors.Wrapf(u.FS.MkdirAll(basePath, 0755), "mkdirall %s", basePath)
 	}
 }
 
+// this is here because it makes sense here, not trying to reinvent any wheels
 func (u *Unpacker) chain(fs ...func() error) error {
 	for _, f := range fs {
 		if err := f(); err != nil {
 			return err
 		}
 	}
-
+	return nil
 }

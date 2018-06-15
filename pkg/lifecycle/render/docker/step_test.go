@@ -1,4 +1,4 @@
-package planner
+package docker
 
 import (
 	"errors"
@@ -6,10 +6,11 @@ import (
 
 	"context"
 
+	"fmt"
+
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
-	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/api"
-	docker2 "github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/test-mocks/config"
 	"github.com/replicatedhq/ship/pkg/test-mocks/docker"
 	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
@@ -54,14 +55,12 @@ func TestDockerStep(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			ctx := context.Background()
 
-			pln := &CLIPlanner{
+			step := &DefaultStep{
 				Logger:      testLogger,
 				Fs:          afero.Afero{Fs: afero.NewMemMapFs()},
-				UI:          cli.NewMockUi(),
-				Viper:       v,
-				Daemon:      daemon,
-				Saver:       saver,
 				URLResolver: urlResolver,
+				ImageSaver:  saver,
+				Viper:       v,
 			}
 
 			asset := &api.DockerAsset{
@@ -77,7 +76,7 @@ func TestDockerStep(t *testing.T) {
 
 			urlResolver.EXPECT().ResolvePullURL(asset, metadata).Return("some-pull-url", nil)
 
-			registrySecretSaveOpts := docker2.SaveOpts{
+			registrySecretSaveOpts := SaveOpts{
 				PullURL:   "some-pull-url",
 				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
@@ -100,7 +99,7 @@ func TestDockerStep(t *testing.T) {
 					close(installIDSaveCh)
 				}()
 
-				installationIDSaveOpts := docker2.SaveOpts{
+				installationIDSaveOpts := SaveOpts{
 					PullURL:   "some-pull-url",
 					SaveURL:   asset.Image,
 					IsPrivate: asset.Source != "public" && asset.Source != "",
@@ -114,8 +113,7 @@ func TestDockerStep(t *testing.T) {
 			req := require.New(t)
 
 			// When
-			step := pln.dockerStep(asset, metadata)
-			err := step.Execute(ctx)
+			err := step.Execute(asset, metadata, mockProgress, asset.Dest)(ctx)
 
 			// Then
 			if test.Expect == nil {
@@ -130,4 +128,22 @@ func TestDockerStep(t *testing.T) {
 
 		})
 	}
+}
+
+func mockProgress(ch chan interface{}, debug log.Logger) error {
+	var saveError error
+	for msg := range ch {
+		if msg == nil {
+			continue
+		}
+		switch v := msg.(type) {
+		case error:
+			// continue reading on error to ensure channel is not blocked
+			saveError = v
+			debug.Log("event", "error", "message", fmt.Sprintf("%#v", v))
+		default:
+			debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
+		}
+	}
+	return saveError
 }
