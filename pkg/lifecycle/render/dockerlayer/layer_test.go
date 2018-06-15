@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/docker/api/types"
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/test-mocks/docker"
+	mockdocker "github.com/replicatedhq/ship/pkg/test-mocks/docker"
 	"github.com/replicatedhq/ship/pkg/test-mocks/logger"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,15 +25,15 @@ func TestUnpackLayer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 			mc := gomock.NewController(t)
-			urlResolver := docker.NewMockPullURLResolver(mc)
-			imageManager := docker.NewMockImageManager(mc)
+			renderer := mockdocker.NewMockRenderer(mc)
+			archiver := NewMockA
 			testLogger := &logger.TestLogger{T: t}
 			ctx := context.Background()
 
 			unpacker := &Unpacker{
-				Logger:       testLogger,
-				URLResolver:  urlResolver,
-				ImageManager: imageManager,
+				Logger:      testLogger,
+				Viper:       viper.New(),
+				DockerSaver: renderer,
 			}
 
 			asset := api.DockerLayerAsset{
@@ -50,13 +51,19 @@ func TestUnpackLayer(t *testing.T) {
 				Images: []api.Image{},
 			}
 
+			watchProgress := func(ch chan interface{}, logger log.Logger) error {
+				return nil
+			}
+
 			func() {
 				defer mc.Finish()
 
-				urlResolver.EXPECT().ResolvePullURL(&asset.DockerAsset, meta).Return("pull-url", nil)
-				imageManager.EXPECT().ImagePull(ctx, "pull-url", types.ImagePullOptions{})
+				renderer.EXPECT().Execute(asset.DockerAsset, meta, watchProgress).Return(func(ctx2 context.Context) error {
+					// todo make sure this thing got called
+					return nil
+				})
 
-				err := unpacker.Execute(asset, meta)(ctx)
+				err := unpacker.Execute(asset, meta, watchProgress)(ctx)
 				req.NoError(err)
 			}()
 		})

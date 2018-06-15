@@ -35,7 +35,7 @@ func (m *MockPullURLResolver) EXPECT() *MockPullURLResolverMockRecorder {
 }
 
 // ResolvePullURL mocks base method
-func (m *MockPullURLResolver) ResolvePullURL(arg0 *api.DockerAsset, arg1 api.ReleaseMetadata) (string, error) {
+func (m *MockPullURLResolver) ResolvePullURL(arg0 api.DockerAsset, arg1 api.ReleaseMetadata) (string, error) {
 	ret := m.ctrl.Call(m, "ResolvePullURL", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)

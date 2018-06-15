@@ -14,7 +14,7 @@ import (
 )
 
 type PullURLResolver interface {
-	ResolvePullURL(asset *api.DockerAsset, meta api.ReleaseMetadata) (string, error)
+	ResolvePullURL(asset api.DockerAsset, meta api.ReleaseMetadata) (string, error)
 }
 
 var _ PullURLResolver = &URLResolver{}
@@ -29,7 +29,7 @@ func URLResolverFromViper(logger log.Logger) PullURLResolver {
 	}
 }
 
-func (r *URLResolver) ResolvePullURL(asset *api.DockerAsset, meta api.ReleaseMetadata) (string, error) {
+func (r *URLResolver) ResolvePullURL(asset api.DockerAsset, meta api.ReleaseMetadata) (string, error) {
 	debug := level.Debug(r.Logger)
 
 	if asset.Source == "replicated" || asset.Source == "public" || asset.Source == "" {

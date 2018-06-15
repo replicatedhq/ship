@@ -44,7 +44,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Docker != nil {
 			asset.Docker.Dest = filepath.Join("installer", asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
-			plan = append(plan, p.dockerStep(asset.Docker, meta))
+			plan = append(plan, p.dockerStep(*asset.Docker, meta))
 		} else if asset.Helm != nil {
 			asset.Helm.Dest = filepath.Join("installer", asset.Helm.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "helm")
@@ -105,66 +105,23 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 	}
 }
 
-func (p *CLIPlanner) dockerStep(asset *api.DockerAsset, meta api.ReleaseMetadata) Step {
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", asset.Dest, "description", asset.Description))
+func (p *CLIPlanner) dockerStep(asset api.DockerAsset, meta api.ReleaseMetadata) Step {
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute: func(ctx context.Context) error {
-			debug.Log("event", "execute")
-			basePath := filepath.Dir(asset.Dest)
-			debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", basePath)
-			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-				debug.Log("event", "mkdirall.fail", "err", err, "dest", asset.Dest, "basePath", basePath)
-				return errors.Wrapf(err, "write directory to %s", asset.Dest)
-			}
+		Execute:     p.Docker.Execute(asset, meta, p.watchProgress, asset.Dest),
+	}
+}
 
-			pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)
-			if err != nil {
-				return errors.Wrapf(err, "resolve pull url")
-			}
-
-			// first try with registry secret
-			// TODO remove this once registry is updated to read installation ID
-			registrySecretSaveOpts := docker.SaveOpts{
-				PullURL:   pullURL,
-				SaveURL:   asset.Image,
-				IsPrivate: asset.Source != "public" && asset.Source != "",
-				Filename:  asset.Dest,
-				Username:  meta.CustomerID,
-				Password:  meta.RegistrySecret,
-			}
-			ch := p.Saver.SaveImage(ctx, registrySecretSaveOpts)
-			saveError := p.watchProgress(ch, debug)
-
-			if saveError == nil {
-				debug.Log("event", "execute.succeed")
-				return nil
-			}
-
-			debug.Log("event", "execute.fail.withRegistrySecret", "err", saveError)
-			debug.Log("event", "execute.try.withInstallationID")
-
-			// next try with installationID for password
-			installationIDSaveOpts := docker.SaveOpts{
-				PullURL:   pullURL,
-				SaveURL:   asset.Image,
-				IsPrivate: asset.Source != "public" && asset.Source != "",
-				Filename:  asset.Dest,
-				Username:  meta.CustomerID,
-				Password:  p.Viper.GetString("installation-id"),
-			}
-
-			ch = p.Saver.SaveImage(ctx, installationIDSaveOpts)
-			saveError = p.watchProgress(ch, debug)
-
-			if saveError != nil {
-				debug.Log("event", "execute.fail.withInstallationID", "detail", "both docker auth methods failed", "err", saveError)
-				return errors.Wrap(saveError, "docker save image, both auth methods failed")
-			}
-
-			return nil
-		},
+func (p *CLIPlanner) helmStep(
+	asset api.HelmAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Helm.Execute(asset, meta, templateContext),
 	}
 }
 
@@ -187,16 +144,4 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		}
 	}
 	return saveError
-}
-
-func (p *CLIPlanner) helmStep(
-	asset api.HelmAsset,
-	meta api.ReleaseMetadata,
-	templateContext map[string]interface{},
-) Step {
-	return Step{
-		Dest:        asset.Dest,
-		Description: asset.Description,
-		Execute:     p.Helm.Execute(asset, meta, templateContext),
-	}
 }

@@ -46,10 +46,12 @@ func buildInjector() (*dig.Container, error) {
 		lifecycle.NewRunner,
 
 		docker.URLResolverFromViper,
-		docker.SaverFromViper,
+		docker.NewImageSaver,
+		docker.NewStep,
 		dockercli.NewEnvClient,
 
 		dockerlayer.NewUnpacker,
+		dockerlayer.TarArchiver,
 
 		helm.NewRenderer,
 		helm.NewFetcher,

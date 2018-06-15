@@ -75,6 +75,16 @@ _mockgen:
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
 		Renderer
+	mockgen \
+		-destination pkg/test-mocks/docker/renderer_mock.go \
+		-package docker \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
+		Renderer
+	mockgen \
+		-destination pkg/test-mocks/dockerlayer/archive_mock.go \
+		-package dockerlayer \
+		github.com/mholt/archiver \
+		Archiver
 
 mockgen: _mockgen fmt
 

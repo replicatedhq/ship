@@ -50,9 +50,9 @@ type CLIPlanner struct {
 	Viper          *viper.Viper
 	Daemon         config.Daemon
 	BuilderBuilder *templates.BuilderBuilder
-	Saver          docker.ImageSaver
-	URLResolver    docker.PullURLResolver
-	Helm           helm.Renderer
+
+	Helm   helm.Renderer
+	Docker docker.Renderer
 }
 
 func NewPlanner(
@@ -61,8 +61,7 @@ func NewPlanner(
 	fs afero.Afero,
 	ui cli.Ui,
 	builderBuilder *templates.BuilderBuilder,
-	saver docker.ImageSaver,
-	urlResolver docker.PullURLResolver,
+	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
 ) Planner {
 	return &CLIPlanner{
@@ -71,9 +70,8 @@ func NewPlanner(
 		UI:             ui,
 		Viper:          v,
 		BuilderBuilder: builderBuilder,
-		Saver:          saver,
-		URLResolver:    urlResolver,
 		Helm:           helmRenderer,
+		Docker:         dockerRenderer,
 	}
 }
 

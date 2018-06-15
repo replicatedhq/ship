@@ -46,7 +46,7 @@ type CLISaver struct {
 	client ImageManager
 }
 
-func SaverFromViper(logger log.Logger, client *docker.Client) ImageSaver {
+func NewImageSaver(logger log.Logger, client *docker.Client) ImageSaver {
 	return &CLISaver{
 		Logger: logger,
 		client: client,
