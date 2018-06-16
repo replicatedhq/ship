@@ -63,6 +63,7 @@ func TestRender(t *testing.T) {
 			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressResolve).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressBackup).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
 			prog = mockDaemon.EXPECT().SetStepName(ctx, config.StepNameConfirm).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)

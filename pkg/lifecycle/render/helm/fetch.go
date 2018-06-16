@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 )
 
 // ChartFetcher fetches a chart based on an asset. it returns
@@ -26,7 +27,7 @@ func (f *ClientFetcher) FetchChart(asset api.HelmAsset, meta api.ReleaseMetadata
 	if asset.Local != nil {
 		debug.Log("event", "chart.fetch", "source", "local", "root", asset.Local.ChartRoot)
 		// this is not great but it'll do -- prepend `installer` since this is off of inline assets
-		chartRootPath := path.Join("installer", asset.Local.ChartRoot)
+		chartRootPath := path.Join(constants.InstallerPrefix, asset.Local.ChartRoot)
 
 		return chartRootPath, nil
 	}

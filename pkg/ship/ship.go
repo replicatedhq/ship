@@ -181,6 +181,8 @@ func (s *Ship) ExitWithError(err error) {
 	}
 	s.UI.Output("")
 
+	time.Sleep(100 * time.Millisecond)
+
 	// TODO this should probably be part of lifecycle
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)

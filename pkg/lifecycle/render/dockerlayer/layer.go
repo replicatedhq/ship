@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"path"
-	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -79,19 +78,20 @@ func (u *Unpacker) Execute(
 
 func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
+
 	saveDir, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {
-		return fail(err)
+		return fail(errors.Wrap(err, "get image save tmpdir"))
 	}
 
 	savePath := path.Join(saveDir, "image.tar")
 
 	firstPassUnpackPath, err := u.FS.TempDir("/tmp", "dockerlayer")
 	if err != nil {
-		return fail(err)
+		return fail(errors.Wrap(err, "get unpack tmpdir"))
 	}
 
-	basePath := filepath.Dir(asset.Dest)
+	basePath := asset.Dest //TODO enforce that this is a directory
 	layerPath := path.Join(firstPassUnpackPath, asset.Layer, "layer.tar")
 	return savePath, firstPassUnpackPath, basePath, layerPath, nil
 }
