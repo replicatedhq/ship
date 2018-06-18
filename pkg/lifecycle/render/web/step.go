@@ -133,23 +133,15 @@ func (p *DefaultStep) buildAsset(
 	)
 
 	builtURL, err := builder.String(asset.URL)
-	if err != nil {
-		return nil, errors.Wrap(err, "building url")
-	}
 
 	builtDest, err := builder.String(asset.Dest)
-	if err != nil {
-		return nil, errors.Wrap(err, "building dest")
-	}
 
 	builtMethod, err := builder.String(asset.Method)
-	if err != nil {
-		return nil, errors.Wrap(err, "building method")
-	}
 
 	builtBody, err := builder.String(asset.Body)
+
 	if err != nil {
-		return nil, errors.Wrap(err, "building body")
+		return nil, errors.Wrap(err, "build web asset")
 	}
 
 	builtHeaders := make(map[string][]string)
@@ -157,11 +149,12 @@ func (p *DefaultStep) buildAsset(
 		for _, value := range listOfValues {
 			builtHeaderVal, err := builder.String(value)
 			if err != nil {
-				return nil, errors.Wrap(err, "building header val")
+				return nil, errors.Wrap(err, "build web asset")
 			}
 			builtHeaders[header] = append(builtHeaders[header], builtHeaderVal)
 		}
 	}
+
 	return &Built{
 		URL:     builtURL,
 		Dest:    builtDest,
