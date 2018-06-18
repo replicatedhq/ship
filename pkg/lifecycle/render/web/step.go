@@ -37,6 +37,7 @@ type DefaultStep struct {
 	Fs             afero.Afero
 	Viper          *viper.Viper
 	BuilderBuilder *templates.BuilderBuilder
+	Client         *http.Client
 }
 
 func NewStep(
@@ -50,6 +51,7 @@ func NewStep(
 		Fs:             fs,
 		Viper:          v,
 		BuilderBuilder: builderBuilder,
+		Client:         &http.Client{},
 	}
 }
 
@@ -80,10 +82,10 @@ func (p *DefaultStep) Execute(
 			return errors.Wrapf(err, "Build web asset")
 		}
 
-		body, err := pullWebAsset(built)
+		body, err := p.pullWebAsset(built)
 		if err != nil {
 			debug.Log("event", "execute.fail", "err", err)
-			return errors.Wrapf(err, "Get web asset from", asset.Dest)
+			return errors.Wrapf(err, "Get web asset from %s", asset.URL)
 		}
 
 		basePath := filepath.Dir(asset.Dest)
@@ -171,7 +173,7 @@ func (p *DefaultStep) buildAsset(
 	}, nil
 }
 
-func pullWebAsset(built *Built) (*http.Response, error) {
+func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
 	req, reqErr := parseRequest(built.URL, built.Method, built.Body)
 	if reqErr != nil {
 		return nil, errors.Wrapf(reqErr, "Request web asset from %s", built.URL)
@@ -185,11 +187,15 @@ func pullWebAsset(built *Built) (*http.Response, error) {
 		}
 	}
 
-	client := &http.Client{}
-	resp, respErr := client.Do(req)
+	resp, respErr := p.Client.Do(req)
 	if respErr != nil {
 		return nil, errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
 	}
+
+	if resp.StatusCode > 299 {
+		return nil, errors.Errorf("received response with status %d", resp.StatusCode)
+	}
+
 	defer resp.Body.Close()
 
 	return resp, nil
@@ -208,5 +214,6 @@ func parseRequest(url string, method string, body string) (*http.Request, error)
 		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonValue))
 		return req, nil
 	}
+	// TODO default
 	return nil, errors.New("Parse web request")
 }

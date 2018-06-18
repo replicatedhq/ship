@@ -200,6 +200,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/jarcoal/httpmock"
+  packages = ["."]
+  revision = "9c70cfe4a1dad2f143c2244b45f2161fc72ceddf"
+
+[[projects]]
+  branch = "master"
   name = "github.com/kr/logfmt"
   packages = ["."]
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
@@ -479,6 +485,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6401e3fbe4af11f08ff2f0a4cc8ce2c17aa6eacfee965c293c85bc82da2c42ad"
+  inputs-digest = "4c1a78385241a6a78c02d2da1813c87fe8cb741af7831bb56acdf60e2428d211"
   solver-name = "gps-cdcl"
   solver-version = 1
