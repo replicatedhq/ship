@@ -40,7 +40,7 @@
                     "type": "string"
                   },
                   "image": {
-                    "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`.",
+                    "description": "The docker image URL",
                     "type": "string"
                   },
                   "mode": {
@@ -48,7 +48,7 @@
                     "type": "integer"
                   },
                   "source": {
-                    "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [vendor.replicated.com](https://vendor.replicated.com)",
+                    "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)",
                     "type": "string"
                   }
                 },
@@ -58,15 +58,14 @@
                   "source"
                 ]
               },
-              "github": {
-                "description": "A `github` asset is created from files downloaded from either a public or a linked Github repo.",
+              "dockerlayer": {
+                "description": "A `dockerlayer` asset will pull an image from registry.replicated.com or from a configured third party private registry and extract a single layer from the image in a `dest` directory",
                 "examples": [
                   {
-                    "repo": "github.com/replicatedhq/superbigtool-k8s",
-                    "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
-                    "path": "**/*.yml",
-                    "dest": "./k8s/",
-                    "private": true
+                    "image": "quay.io/cooltool-enterprise/configs:1.0.1",
+                    "dest": "config/",
+                    "source": "quayio-private",
+                    "layer": "f7126e84abc96fbc8495c33052724fad48115829e86987adbf556474f0ead5c1"
                   }
                 ],
                 "type": "object",
@@ -75,29 +74,98 @@
                     "type": "string"
                   },
                   "dest": {
+                    "description": "The directory in which the layer should be unpacked",
+                    "type": "string"
+                  },
+                  "image": {
+                    "description": "The docker image URL",
+                    "type": "string"
+                  },
+                  "layer": {
+                    "description": "a SHA256 of the layer to extract. You can inspect the layer SHAs of a docker image by running something like `docker save myimage > myimage.tar && tar xvf myimage.tar -C /tmp`. Ship will unpack the archive at `<layer sha>/layer.tar` to the `dest` directory.",
                     "type": "string"
                   },
                   "mode": {
+                    "description": "The unix file permissions to be set on target unpack directory, e.g `777`",
                     "type": "integer"
                   },
-                  "path": {
-                    "type": "string"
-                  },
-                  "ref": {
-                    "type": "string"
-                  },
-                  "repo": {
-                    "type": "string"
-                  },
                   "source": {
+                    "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)",
                     "type": "string"
                   }
                 },
                 "required": [
-                  "repo",
-                  "path",
                   "dest",
-                  "source"
+                  "image",
+                  "source",
+                  "layer"
+                ]
+              },
+              "helm": {
+                "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should included assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
+                "examples": [
+                  {
+                    "values": {
+                      "AppFlavor": "ship",
+                      "NginxReplicas": "{{repl ConfigOption \\\"nginx_replicas\\\"}}"
+                    },
+                    "helm_opts": [
+                      "--name",
+                      "{{repl Installation \\\"channel_name\\\"}}-{{repl Installation \\\"semver\\\"}}"
+                    ],
+                    "local": {
+                      "chart_root": "charts/src/nginx/"
+                    },
+                    "dest": "charts/rendered/"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "The directory in which to render the. If the source chart is at `charts/src/nginx`, and `dest` is set to `charts/rendered/`, then the chart will be templated at `charts/rendered/nginx`",
+                    "type": "string"
+                  },
+                  "helm_opts": {
+                    "description": "Additional options as would be passed to `helm template`",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "local": {
+                    "description": "Configuration for indicating an already existing source chart to render from.",
+                    "type": "object",
+                    "properties": {
+                      "chart_root": {
+                        "description": "The base directory of the existing chart.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "chart_root"
+                    ]
+                  },
+                  "mode": {
+                    "description": "The unix permisions to set on the chart's parent directory",
+                    "type": "integer"
+                  },
+                  "values": {
+                    "description": "Values to set during rendering, overrides defaults in `values.yaml` if present in the chart root.",
+                    "type": "object",
+                    "properties": {
+                      ".*": {
+                        "description": "Key-value pairs to set.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "dest",
+                  "local"
                 ]
               },
               "inline": {
@@ -211,7 +279,6 @@
             },
             "required": [
               "name",
-              "title",
               "items"
             ]
           }
@@ -257,23 +324,9 @@
               "render": {
                 "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
                 "examples": [
-                  {},
-                  {
-                    "skip_plan": true,
-                    "skip_state_warning": true
-                  }
+                  {}
                 ],
                 "type": "object",
-                "properties": {
-                  "skip_plan": {
-                    "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets",
-                    "type": "boolean"
-                  },
-                  "skip_state_warning": {
-                    "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, your YAML should specify a `message` step that explains the purpose and importance of this state file.",
-                    "type": "boolean"
-                  }
-                },
                 "required": []
               }
             }

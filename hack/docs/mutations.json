@@ -85,19 +85,141 @@
   {
     "path": "properties.assets.properties.v1.items.properties.docker.properties.image",
     "merge": {
-      "description": "The destination for the docker image, such as `api.tar` or `docker-images/worker.tar`."
+      "description": "The docker image URL"
     }
   },
   {
     "path": "properties.assets.properties.v1.items.properties.docker.properties.source",
     "merge": {
-      "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [vendor.replicated.com](https://vendor.replicated.com)"
+      "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)"
     }
   },
   {
     "path": "properties.assets.properties.v1.items.properties.docker.properties.mode",
     "merge": {
-      "description": "The unix file permissions to be set on the image tar archive, e.g `600`"
+      "description": "The unix file permissions to be set on the image tar archive, e.g `600`."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm",
+    "merge": {
+      "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should included assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
+      "examples": [
+        {
+          "values":  {
+            "AppFlavor": "ship",
+            "NginxReplicas": "{{repl ConfigOption \\\"nginx_replicas\\\"}}"
+          },
+          "helm_opts": [
+            "--name",
+            "{{repl Installation \\\"channel_name\\\"}}-{{repl Installation \\\"semver\\\"}}"
+          ],
+          "local": {
+            "chart_root": "charts/src/nginx/"
+          },
+          "dest": "charts/rendered/"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "dest",
+        "local"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.dest",
+    "merge": {
+      "description": "The directory in which to render the chart. If the source chart is at `charts/src/nginx`, and `dest` is set to `charts/rendered/`, then the chart will be templated at `charts/rendered/nginx`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_opts",
+    "merge": {
+      "description": "Additional options as would be passed to `helm template`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.local",
+    "merge": {
+      "description": "Configuration for indicating an already existing source chart to render from."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.local.properties.chart_root",
+    "merge": {
+      "description": "The base directory of the existing chart."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.mode",
+    "merge": {
+      "description": "The unix permisions to set on the chart's parent directory."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.values",
+    "merge": {
+      "description": "Values to set during rendering, overrides defaults in `values.yaml` if present in the chart root."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.values.properties[\".*\"]",
+    "merge": {
+      "description": "Key-value pairs to set."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer",
+    "merge": {
+      "description": "A `dockerlayer` asset will pull an image from registry.replicated.com or from a configured third party private registry and extract a single layer from the image in a `dest` directory",
+      "examples": [
+        {
+          "image": "quay.io/cooltool-enterprise/configs:1.0.1",
+          "dest": "config/",
+          "source": "quayio-private",
+          "layer": "f7126e84abc96fbc8495c33052724fad48115829e86987adbf556474f0ead5c1"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "dest",
+        "image",
+        "source",
+        "layer"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.dest",
+    "merge": {
+      "description": "The directory in which the layer should be unpacked"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.image",
+    "merge": {
+      "description": "The docker image URL"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.source",
+    "merge": {
+      "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.mode",
+    "merge": {
+      "description": "The unix file permissions to be set on target unpack directory, e.g `0777`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.layer",
+    "merge": {
+      "description": "a SHA256 of the layer to extract. You can inspect the layer SHAs of a docker image by running something like `docker save myimage > myimage.tar && tar xvf myimage.tar -C /tmp`. Ship will unpack the archive at `<layer sha>/layer.tar` to the `dest` directory."
     }
   },
   {
@@ -132,7 +254,7 @@
   {
     "path": "properties.config.properties.v1.items",
     "replace": {
-      "required": ["name", "title", "items"]
+      "required": ["name", "items"]
     }
   },
   {
@@ -178,8 +300,7 @@
     "merge": {
       "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
       "examples": [
-        {},
-        { "skip_plan": true, "skip_state_warning": true }
+        {}
       ]
     },
     "replace": {
@@ -187,16 +308,10 @@
     }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_plan",
-    "merge": {
-      "description": "Whether to skip the \"plan\" phase of `render`, in which the user can confirm the actions that Ship will take to generate application assets"
-    }
-  },
-  {
-    "path": "properties.lifecycle.properties.v1.items.properties.render.properties.skip_state_warning",
-    "merge": {
-      "description": "If set to `true`, will omit the default warning message informing the user that a state file has been created and to save that state file for future ship runs. If this is set to `true`, your YAML should specify a `message` step that explains the purpose and importance of this state file."
-    }
+    "path": "properties.assets.properties.v1.items.properties",
+    "delete": [
+      "github"
+    ]
   },
   {}
 ]
