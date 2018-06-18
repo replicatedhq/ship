@@ -49,12 +49,12 @@
   {
     "path": "properties.assets.properties.v1.items.properties.docker",
     "merge": {
-      "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image.",
+      "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
       "examples": [
         {
           "image": "quay.io/cooltool-enterprise/api:1.0.1",
-          "dest": "images/api.tar",
-          "source": "quayio-private"
+          "source": "quayio-private",
+          "dest": "images/api.tar"
         },
         {
           "image": "registry.replicated.com/cooltool/worker:1.1.0",
@@ -64,7 +64,8 @@
         {
           "image": "postgres:9.6",
           "dest": "images/postgres.tar",
-          "source": "public"
+          "source": "public",
+          "mode": "600"
         }
       ]
     },
@@ -153,10 +154,10 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.mode",
-    "merge": {
-      "description": "The unix permisions to set on the chart's parent directory."
-    }
+    "path": "properties.assets.properties.v1.items.properties.helm.properties",
+    "delete": [
+      "mode"
+    ]
   },
   {
     "path": "properties.assets.properties.v1.items.properties.helm.properties.values",
@@ -173,7 +174,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.dockerlayer",
     "merge": {
-      "description": "A `dockerlayer` asset will pull an image from registry.replicated.com or from a configured third party private registry and extract a single layer from the image in a `dest` directory",
+      "description": "A `dockerlayer` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
       "examples": [
         {
           "image": "quay.io/cooltool-enterprise/configs:1.0.1",
@@ -211,10 +212,10 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.mode",
-    "merge": {
-      "description": "The unix file permissions to be set on target unpack directory, e.g `0777`"
-    }
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties",
+    "delete": [
+      "mode"
+    ]
   },
   {
     "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.layer",
