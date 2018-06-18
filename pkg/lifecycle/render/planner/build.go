@@ -53,6 +53,10 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			asset.DockerLayer.Dest = filepath.Join("installer", asset.DockerLayer.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
 			plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
+		} else if asset.Web != nil {
+			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
+			debug.Log("event", "asset.resolve", "asset.type", "web")
+			plan = append(plan, p.webStep(asset.Web, configGroups, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New("Unknown asset: type is not one of [inline docker helm dockerlayer]")

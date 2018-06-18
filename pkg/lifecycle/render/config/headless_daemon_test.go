@@ -447,6 +447,79 @@ func TestHeadlessDaemon(t *testing.T) {
 			ExpectedValue: []byte(`{"alpha":"100","beta":"100","charlie":"100"}`),
 			ExpectedError: false,
 		},
+		{
+			Name:  "multiple groups with multiple items",
+			State: []byte(`{}`),
+			Release: &api.Release{
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{
+							{
+								Name: "testing",
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "cluster info",
+										Value:    "",
+										Default:  "",
+										Required: true,
+										Hidden:   false,
+									},
+									{
+										Name:     "worker replicas",
+										Value:    "",
+										Default:  "",
+										Required: true,
+										Hidden:   false,
+									},
+								},
+							},
+							{
+								Name: "testing",
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "semver",
+										Value:    "",
+										Default:  "",
+										Required: true,
+										Hidden:   false,
+									},
+								},
+							},
+							{
+								Name: "testing",
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "alpha",
+										Value:    "hello world",
+										Default:  "",
+										Required: false,
+										Hidden:   false,
+									},
+									{
+										Name:     "beta",
+										Value:    `{{repl ConfigOption "alpha" }}`,
+										Default:  "",
+										Required: false,
+										ReadOnly: true,
+										Hidden:   true,
+									},
+									{
+										Name:     "charlie",
+										Value:    `{{repl ConfigOption "beta" }}`,
+										Default:  "",
+										Required: false,
+										ReadOnly: true,
+										Hidden:   false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ExpectedValue: []byte(`{"alpha":"100","beta":"100","charlie":"100"}`),
+			ExpectedError: true,
+		},
 	}
 
 	for _, test := range tests {
