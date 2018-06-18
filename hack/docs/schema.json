@@ -12,12 +12,12 @@
             "type": "object",
             "properties": {
               "docker": {
-                "description": "A `docker` asset will pull an image from registry.replicated.com or from a configured third party private registry and produce a tar archive of the container image.",
+                "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
                 "examples": [
                   {
                     "image": "quay.io/cooltool-enterprise/api:1.0.1",
-                    "dest": "images/api.tar",
-                    "source": "quayio-private"
+                    "source": "quayio-private",
+                    "dest": "images/api.tar"
                   },
                   {
                     "image": "registry.replicated.com/cooltool/worker:1.1.0",
@@ -27,7 +27,8 @@
                   {
                     "image": "postgres:9.6",
                     "dest": "images/postgres.tar",
-                    "source": "public"
+                    "source": "public",
+                    "mode": "600"
                   }
                 ],
                 "type": "object",
@@ -44,7 +45,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "The unix file permissions to be set on the image tar archive, e.g `600`",
+                    "description": "The unix file permissions to be set on the image tar archive, e.g `600`.",
                     "type": "integer"
                   },
                   "source": {
@@ -59,7 +60,7 @@
                 ]
               },
               "dockerlayer": {
-                "description": "A `dockerlayer` asset will pull an image from registry.replicated.com or from a configured third party private registry and extract a single layer from the image in a `dest` directory",
+                "description": "A `dockerlayer` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
                 "examples": [
                   {
                     "image": "quay.io/cooltool-enterprise/configs:1.0.1",
@@ -84,10 +85,6 @@
                   "layer": {
                     "description": "a SHA256 of the layer to extract. You can inspect the layer SHAs of a docker image by running something like `docker save myimage > myimage.tar && tar xvf myimage.tar -C /tmp`. Ship will unpack the archive at `<layer sha>/layer.tar` to the `dest` directory.",
                     "type": "string"
-                  },
-                  "mode": {
-                    "description": "The unix file permissions to be set on target unpack directory, e.g `777`",
-                    "type": "integer"
                   },
                   "source": {
                     "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)",
@@ -125,7 +122,7 @@
                     "type": "string"
                   },
                   "dest": {
-                    "description": "The directory in which to render the. If the source chart is at `charts/src/nginx`, and `dest` is set to `charts/rendered/`, then the chart will be templated at `charts/rendered/nginx`",
+                    "description": "The directory in which to render the chart. If the source chart is at `charts/src/nginx`, and `dest` is set to `charts/rendered/`, then the chart will be templated at `charts/rendered/nginx`",
                     "type": "string"
                   },
                   "helm_opts": {
@@ -147,10 +144,6 @@
                     "required": [
                       "chart_root"
                     ]
-                  },
-                  "mode": {
-                    "description": "The unix permisions to set on the chart's parent directory",
-                    "type": "integer"
                   },
                   "values": {
                     "description": "Values to set during rendering, overrides defaults in `values.yaml` if present in the chart root.",
