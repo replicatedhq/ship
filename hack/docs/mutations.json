@@ -104,7 +104,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.helm",
     "merge": {
-      "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should included assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
+      "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should include assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
       "examples": [
         {
           "values":  {
