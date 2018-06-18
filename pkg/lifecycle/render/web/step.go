@@ -53,6 +53,14 @@ func NewStep(
 	}
 }
 
+type Built struct {
+	URL     string
+	Dest    string
+	Method  string
+	Body    string
+	Headers map[string][]string
+}
+
 func (p *DefaultStep) Execute(
 	asset api.WebAsset,
 	meta api.ReleaseMetadata,
@@ -66,62 +74,23 @@ func (p *DefaultStep) Execute(
 	return func(ctx context.Context) error {
 		debug.Log("event", "execute")
 
-		configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
+		built, err := p.buildAsset(asset, meta, configGroups, templateContext)
 		if err != nil {
-			return errors.Wrap(err, "getting config context")
+			debug.Log("event", "build.fail", "err", err)
+			return errors.Wrapf(err, "Build web asset")
 		}
 
-		builder := p.BuilderBuilder.NewBuilder(
-			p.BuilderBuilder.NewStaticContext(),
-			configCtx,
-			&templates.InstallationContext{
-				Meta:  meta,
-				Viper: p.Viper,
-			},
-		)
-
-		builtURL, err := builder.String(asset.URL)
-		if err != nil {
-			return errors.Wrap(err, "building url")
-		}
-
-		builtDest, err := builder.String(asset.Dest)
-		if err != nil {
-			return errors.Wrap(err, "building dest")
-		}
-
-		builtMethod, err := builder.String(asset.Method)
-		if err != nil {
-			return errors.Wrap(err, "building method")
-		}
-
-		builtBody, err := builder.String(asset.Body)
-		if err != nil {
-			return errors.Wrap(err, "building body")
-		}
-
-		builtHeaders := make(map[string][]string)
-		for header, listOfValues := range asset.Headers {
-			for _, value := range listOfValues {
-				builtHeaderVal, err := builder.String(value)
-				if err != nil {
-					return errors.Wrap(err, "building header val")
-				}
-				builtHeaders[header] = append(builtHeaders[header], builtHeaderVal)
-			}
-		}
-
-		body, err := pullWebAsset(builtURL, builtMethod, builtBody, builtHeaders)
+		body, err := pullWebAsset(built)
 		if err != nil {
 			debug.Log("event", "execute.fail", "err", err)
 			return errors.Wrapf(err, "Get web asset from", asset.Dest)
 		}
 
 		basePath := filepath.Dir(asset.Dest)
-		debug.Log("event", "mkdirall.attempt", "dest", builtDest, "basePath", basePath)
+		debug.Log("event", "mkdirall.attempt", "dest", built.Dest, "basePath", basePath)
 		if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-			debug.Log("event", "mkdirall.fail", "err", err, "dest", builtDest, "basePath", basePath)
-			return errors.Wrapf(err, "write directory to %s", builtDest)
+			debug.Log("event", "mkdirall.fail", "err", err, "dest", built.Dest, "basePath", basePath)
+			return errors.Wrapf(err, "write directory to %s", built.Dest)
 		}
 
 		mode := os.FileMode(0644)
@@ -134,23 +103,82 @@ func (p *DefaultStep) Execute(
 		if byteErr != nil {
 			return errors.Wrapf(byteErr, "Decode response body")
 		}
-		if err := p.Fs.WriteFile(builtDest, bodyToBytes, mode); err != nil {
+		if err := p.Fs.WriteFile(built.Dest, bodyToBytes, mode); err != nil {
 			debug.Log("event", "execute.fail", "err", err)
-			return errors.Wrapf(err, "Write web asset to %s", builtDest)
+			return errors.Wrapf(err, "Write web asset to %s", built.Dest)
 		}
 
 		return nil
 	}
 }
 
-func pullWebAsset(url string, method string, body string, headers map[string][]string) (*http.Response, error) {
-	req, reqErr := parseRequest(url, method, body)
-	if reqErr != nil {
-		return nil, errors.Wrapf(reqErr, "Request web asset from %s", url)
+func (p *DefaultStep) buildAsset(
+	asset api.WebAsset,
+	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) (*Built, error) {
+	configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting config context")
 	}
 
-	if len(headers) != 0 {
-		for header, listOfValues := range headers {
+	builder := p.BuilderBuilder.NewBuilder(
+		p.BuilderBuilder.NewStaticContext(),
+		configCtx,
+		&templates.InstallationContext{
+			Meta:  meta,
+			Viper: p.Viper,
+		},
+	)
+
+	builtURL, err := builder.String(asset.URL)
+	if err != nil {
+		return nil, errors.Wrap(err, "building url")
+	}
+
+	builtDest, err := builder.String(asset.Dest)
+	if err != nil {
+		return nil, errors.Wrap(err, "building dest")
+	}
+
+	builtMethod, err := builder.String(asset.Method)
+	if err != nil {
+		return nil, errors.Wrap(err, "building method")
+	}
+
+	builtBody, err := builder.String(asset.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "building body")
+	}
+
+	builtHeaders := make(map[string][]string)
+	for header, listOfValues := range asset.Headers {
+		for _, value := range listOfValues {
+			builtHeaderVal, err := builder.String(value)
+			if err != nil {
+				return nil, errors.Wrap(err, "building header val")
+			}
+			builtHeaders[header] = append(builtHeaders[header], builtHeaderVal)
+		}
+	}
+	return &Built{
+		URL:     builtURL,
+		Dest:    builtDest,
+		Method:  builtMethod,
+		Body:    builtBody,
+		Headers: builtHeaders,
+	}, nil
+}
+
+func pullWebAsset(built *Built) (*http.Response, error) {
+	req, reqErr := parseRequest(built.URL, built.Method, built.Body)
+	if reqErr != nil {
+		return nil, errors.Wrapf(reqErr, "Request web asset from %s", built.URL)
+	}
+
+	if len(built.Headers) != 0 {
+		for header, listOfValues := range built.Headers {
 			for _, value := range listOfValues {
 				req.Header.Add(header, base64.StdEncoding.EncodeToString([]byte(string(value))))
 			}
@@ -160,7 +188,7 @@ func pullWebAsset(url string, method string, body string, headers map[string][]s
 	client := &http.Client{}
 	resp, respErr := client.Do(req)
 	if respErr != nil {
-		return nil, errors.Wrapf(respErr, "%s web asset at %s", method, url)
+		return nil, errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
 	}
 	defer resp.Body.Close()
 
