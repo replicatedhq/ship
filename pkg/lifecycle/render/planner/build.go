@@ -114,6 +114,19 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 	}
 }
 
+func (p *CLIPlanner) webStep(
+	asset api.WebAsset,
+	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Web.Execute(asset, meta, configGroups, templateContext),
+	}
+}
+
 func (p *CLIPlanner) dockerStep(asset api.DockerAsset, meta api.ReleaseMetadata) Step {
 	return Step{
 		Dest:        asset.Dest,

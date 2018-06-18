@@ -14,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
 
@@ -55,6 +56,7 @@ type CLIPlanner struct {
 	Helm        helm.Renderer
 	Docker      docker.Renderer
 	DockerLayer *dockerlayer.Unpacker
+	Web         web.Renderer
 }
 
 func NewPlanner(
