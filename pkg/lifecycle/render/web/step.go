@@ -60,7 +60,9 @@ func (p *DefaultStep) Execute(
 	templateContext map[string]interface{},
 ) func(ctx context.Context) error {
 
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "web", "dest", web.Dest, "description", web.Description))
+	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute",
+		"asset.type", "web", "dest", asset.Dest, "description", asset.Description))
+
 	return func(ctx context.Context) error {
 		debug.Log("event", "execute")
 
