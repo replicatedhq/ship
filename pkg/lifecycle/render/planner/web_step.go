@@ -15,9 +15,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/templates"
 	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
@@ -28,15 +28,13 @@ func (p *CLIPlanner) webStep(web *api.WebAsset, configGroups []libyaml.ConfigGro
 		Execute: func(ctx context.Context) error {
 			debug.Log("event", "execute")
 
-			configCtx, err := templates.NewConfigContext(
-				p.Viper, p.Logger,
-				configGroups, templateContext)
+			configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
 			if err != nil {
 				return errors.Wrap(err, "getting config context")
 			}
 
 			builder := p.BuilderBuilder.NewBuilder(
-				templates.NewStaticContext(),
+				p.BuilderBuilder.NewStaticContext(),
 				configCtx,
 				&templates.InstallationContext{
 					Meta:  meta,
