@@ -75,7 +75,7 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body: "some body that is supposed to be posted",
+				Body: "some stuff to post",
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
@@ -101,7 +101,7 @@ func TestWebStep(t *testing.T) {
 							return httpmock.NewStringResponse(500, "mock headers not equal to test headers"), nil
 						}
 
-						resp, err := httpmock.NewJsonResponse(200, header)
+						resp, err := httpmock.NewJsonResponse(200, "some stuff to post")
 						if err != nil {
 							return httpmock.NewStringResponse(500, ""), nil
 						}
