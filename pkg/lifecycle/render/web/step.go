@@ -182,7 +182,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
 	if len(built.Headers) != 0 {
 		for header, listOfValues := range built.Headers {
 			for _, value := range listOfValues {
-				req.Header.Add(header, base64.StdEncoding.EncodeToString([]byte(string(value))))
+				req.Header.Add(header, base64.StdEncoding.EncodeToString([]byte(value)))
 			}
 		}
 	}
