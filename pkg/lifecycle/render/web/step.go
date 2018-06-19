@@ -213,7 +213,7 @@ func parseRequest(url string, method string, body string) (*http.Request, error)
 		}
 		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonValue))
 		return req, nil
+	default:
+		return nil, errors.New("Parse web request")
 	}
-	// TODO default
-	return nil, errors.New("Parse web request")
 }
