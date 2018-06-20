@@ -18,6 +18,7 @@ type HeadlessDaemon struct {
 	Logger         log.Logger
 	UI             cli.Ui
 	ConfigRenderer *APIConfigRenderer
+	ResolvedConfig map[string]interface{}
 }
 
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
@@ -53,6 +54,10 @@ func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
 }
 
 func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
+	if d.ResolvedConfig != nil {
+		return d.ResolvedConfig
+	}
+
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
 	currentConfig, err := d.StateManager.TryLoad()
 	if err != nil {
@@ -66,7 +71,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "HeadlessResolve"))
 	currentConfig := d.GetCurrentConfig()
 
-	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, currentConfig)
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, make(map[string]interface{}))
 	if err != nil {
 		warn.Log("event", "resolveconfig failed", "err", err)
 		return err
@@ -93,6 +98,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 		}
 	}
 
+	d.ResolvedConfig = templateContext
 	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 		warn.Log("msg", "serialize state failed", "err", err)
 		return err
