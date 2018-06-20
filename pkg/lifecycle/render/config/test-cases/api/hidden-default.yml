@@ -97,3 +97,83 @@
                   "when": ""
               }
           ]
+
+- name: hidden + default writes to value, unless a prior item was set in the state. Dependent template functions show correct value.
+  input:
+    - {}
+  state:
+    two_plus_two: "100"
+  config:
+    - name: maths
+      items:
+        - name: two_plus_two
+          title: two plus two
+          hidden: true
+          default: '{{repl Add 2 3}}'
+        - name: two_plus_two_plus_5
+          title: two plus two plus 5
+          readonly: true
+          value: '{{repl Add (ParseInt (ConfigOption "two_plus_two")) 5}}'
+
+  responses:
+    json: |
+      [
+              {
+                  "description": "",
+                  "filters": null,
+                  "items": [
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "5",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": true,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "two_plus_two",
+                          "props": null,
+                          "readonly": false,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "two plus two",
+                          "type": "text",
+                          "value": "100",
+                          "value_cmd": null,
+                          "when": ""
+                      },
+                      {
+                          "affix": "",
+                          "data_cmd": null,
+                          "default": "",
+                          "default_cmd": null,
+                          "filters": null,
+                          "help_text": "",
+                          "hidden": false,
+                          "is_excluded_from_support": false,
+                          "items": null,
+                          "multi_value": null,
+                          "multiple": false,
+                          "name": "two_plus_two_plus_5",
+                          "props": null,
+                          "readonly": true,
+                          "recommended": false,
+                          "required": false,
+                          "test_proc": null,
+                          "title": "two plus two plus 5",
+                          "type": "text",
+                          "value": "105",
+                          "value_cmd": null,
+                          "when": ""
+                      }
+                  ],
+                  "name": "maths",
+                  "test_proc": null,
+                  "title": "",
+                  "when": ""
+              }
+          ]

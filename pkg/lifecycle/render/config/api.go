@@ -34,7 +34,7 @@ type ValidationError struct {
 }
 
 func isReadOnly(item *libyaml.ConfigItem) bool {
-	if item.ReadOnly || item.Hidden {
+	if item.ReadOnly {
 		return true
 	}
 
@@ -190,7 +190,17 @@ func (r *APIConfigRenderer) ResolveConfig(
 		return resolvedConfig, errors.Wrap(err, "deep copy config")
 	}
 
-	updatedValues, err := r.resolveConfigValuesMap(liveValues, configCopy)
+	combinedState, err := deepCopyMap(liveValues)
+	if err != nil {
+		return resolvedConfig, errors.Wrap(err, "deep copy state")
+	}
+	for key, val := range savedState {
+		if _, ok := combinedState[key]; !ok {
+			combinedState[key] = val
+		}
+	}
+
+	updatedValues, err := r.resolveConfigValuesMap(combinedState, configCopy)
 
 	if err != nil {
 		return resolvedConfig, errors.Wrap(err, "resolve configCopy values map")
@@ -204,13 +214,8 @@ func (r *APIConfigRenderer) ResolveConfig(
 	for _, configGroup := range configCopy {
 		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
 		for _, configItem := range configGroup.Items {
-
-			if val, ok := savedState[configItem.Name]; ok {
-				configItem.Value = fmt.Sprintf("%s", val)
-			}
-
 			if !isReadOnly(configItem) {
-				if val, ok := liveValues[configItem.Name]; ok {
+				if val, ok := combinedState[configItem.Name]; ok {
 					configItem.Value = fmt.Sprintf("%s", val)
 				}
 			}
@@ -231,7 +236,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 
 		resolvedGroup, err := r.applyConfigGroupFieldTemplates(ctx, *builder, configGroup)
 		if err != nil {
-			return resolvedConfig, errors.Wrapf(err, "resolve gropu %s", configGroup.Name)
+			return resolvedConfig, errors.Wrapf(err, "resolve group %s", configGroup.Name)
 		}
 
 		resolvedConfig = append(resolvedConfig, resolvedGroup)
@@ -278,7 +283,7 @@ func validateConfigItem(
 	configItem *libyaml.ConfigItem,
 ) *ValidationError {
 	var validationErr *ValidationError
-	if isRequired(configItem) && !isReadOnly(configItem) {
+	if isRequired(configItem) && !(isReadOnly(configItem) || isHidden(configItem)) {
 		if isEmpty(configItem) {
 			validationErr = &ValidationError{
 				Message:   fmt.Sprintf("Config item %s is required", configItem.Name),
