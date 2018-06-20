@@ -13,14 +13,19 @@ import (
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/replicatedhq/ship/pkg/cli"
 	"gopkg.in/yaml.v2"
 )
 
 type TestMetadata struct {
-	CustomerID     string `yaml:"customer_id"`
-	InstallationID string `yaml:"installation_id"`
-	ReleaseVersion string `yaml:"release_version"`
+	CustomerID        string `yaml:"customer_id"`
+	InstallationID    string `yaml:"installation_id"`
+	ReleaseVersion    string `yaml:"release_version"`
+	StudioChannelName string `yaml:"studio_channel_name"`
+
+	//debugging
+	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
 func TestCore(t *testing.T) {
@@ -36,17 +41,21 @@ func CompareDir(expected, actual string) (bool, error) {
 	actualDir, err := ioutil.ReadDir(actual)
 	Expect(err).NotTo(HaveOccurred())
 
-	Expect(len(actualDir)).To(Equal(len(expectedDir)), fmt.Sprintf("Number of files in %s and %s differed", expected, actual))
-
 	expectedMap := make(map[string]os.FileInfo)
+	expectedFilenamesMap := make(map[string]struct{})
 	for _, file := range expectedDir {
 		expectedMap[file.Name()] = file
+		expectedFilenamesMap[file.Name()] = struct{}{}
 	}
 
 	actualMap := make(map[string]os.FileInfo)
-	for _, file := range expectedDir {
+	actualFilenamesMap := make(map[string]struct{})
+	for _, file := range actualDir {
 		actualMap[file.Name()] = file
+		actualFilenamesMap[file.Name()] = struct{}{}
 	}
+
+	Expect(actualFilenamesMap).To(Equal(expectedFilenamesMap), fmt.Sprintf("Contents of directories %s (expected) and %s (actual) did not match", expected, actual))
 
 	for name, expectedFile := range expectedMap {
 		actualFile, ok := actualMap[name]
@@ -69,7 +78,17 @@ func CompareDir(expected, actual string) (bool, error) {
 			actualContents, err := ioutil.ReadFile(actualFilePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(string(actualContents)).To(Equal(string(expectedContents)), fmt.Sprintf("Contents of files %s (expected) and %s (actual) did not match", expectedFilePath, actualFilePath))
+			diff := difflib.UnifiedDiff{
+				A:        difflib.SplitLines(string(expectedContents)),
+				B:        difflib.SplitLines(string(actualContents)),
+				FromFile: "expected contents",
+				ToFile:   "actual contents",
+				Context:  3,
+			}
+
+			diffText, err := difflib.GetUnifiedDiffString(diff)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(diffText).To(BeEmpty(), fmt.Sprintf("Contents of files %s (expected) and %s (actual) did not match", expectedFilePath, actualFilePath))
 		}
 	}
 
@@ -97,14 +116,13 @@ var _ = Describe("basic", func() {
 		if file.IsDir() {
 			Context(fmt.Sprintf("When the spec in %q is run", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
-				testOutputPath := path.Join(testPath, "tmp")
 				testInputPath := path.Join(testPath, "input")
+				var testOutputPath string
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
 					// create a temporary directory within this directory to compare files with
-					os.RemoveAll(testOutputPath)
-					err := os.Mkdir(testOutputPath, os.ModeDir|os.ModePerm)
+					testOutputPath, err = ioutil.TempDir(testPath, "test")
 					Expect(err).NotTo(HaveOccurred())
 					os.Chdir(testOutputPath)
 
@@ -116,9 +134,11 @@ var _ = Describe("basic", func() {
 				})
 
 				AfterEach(func() {
-					// remove the temporary directory
-					err := os.RemoveAll(testOutputPath)
-					Expect(err).NotTo(HaveOccurred())
+					if !testMetadata.SkipCleanup {
+						// remove the temporary directory
+						err := os.RemoveAll(testOutputPath)
+						Expect(err).NotTo(HaveOccurred())
+					}
 					os.Chdir(integrationDir)
 				})
 
@@ -130,6 +150,8 @@ var _ = Describe("basic", func() {
 						"--headless",
 						fmt.Sprintf("--studio-file=%s", path.Join(testInputPath, ".ship/release.yml")),
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
+						fmt.Sprintf("--studio-channel-name=%s", testMetadata.StudioChannelName),
+						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--log-level=off",
 					})
 					err := cmd.Execute()

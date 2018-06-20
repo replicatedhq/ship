@@ -31,12 +31,13 @@ type Selector struct {
 
 // A Resolver resolves specs
 type Resolver struct {
-	Logger            log.Logger
-	Client            *GraphQLClient
-	StateManager      *state.Manager
-	StudioFile        string
-	StudioChannelName string
-	StudioChannelIcon string
+	Logger              log.Logger
+	Client              *GraphQLClient
+	StateManager        *state.Manager
+	StudioFile          string
+	StudioChannelName   string
+	StudioReleaseSemver string
+	StudioChannelIcon   string
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -47,12 +48,13 @@ func NewResolver(
 	stateManager *state.Manager,
 ) *Resolver {
 	return &Resolver{
-		Logger:            logger,
-		Client:            graphql,
-		StateManager:      stateManager,
-		StudioFile:        v.GetString("studio-file"),
-		StudioChannelName: v.GetString("studio-channel-name"),
-		StudioChannelIcon: v.GetString("studio-channel-icon"),
+		Logger:              logger,
+		Client:              graphql,
+		StateManager:        stateManager,
+		StudioFile:          v.GetString("studio-file"),
+		StudioChannelName:   v.GetString("studio-channel-name"),
+		StudioChannelIcon:   v.GetString("studio-channel-icon"),
+		StudioReleaseSemver: v.GetString("release-semver"),
 	}
 }
 
@@ -113,6 +115,7 @@ func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
 		Spec:        string(specYAML),
 		ChannelName: r.StudioChannelName,
 		ChannelIcon: r.StudioChannelIcon,
+		Semver:      r.StudioReleaseSemver,
 	}, nil
 }
 
