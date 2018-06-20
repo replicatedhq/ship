@@ -6,9 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/replicatedcom/ship/pkg/api"
-	"github.com/replicatedcom/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedcom/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -17,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (p *CLIPlanner) githubStep(asset *api.GithubAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
+func (p *CLIPlanner) githubStep(asset *api.GitHubAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", asset.Dest, "description", asset.Description))
 	return Step{
 		Dest:        asset.Dest,
@@ -44,15 +43,13 @@ func (p *CLIPlanner) githubStep(asset *api.GithubAsset, configGroups []libyaml.C
 				return nil
 			}
 
-			configCtx, err := config.NewConfigContext(
-				p.Viper, p.Logger,
-				configGroups, templateContext)
+			configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
 			if err != nil {
 				return errors.Wrap(err, "getting config context")
 			}
 
-			builder := templates.NewBuilder(
-				templates.NewStaticContext(),
+			builder := p.BuilderBuilder.NewBuilder(
+				p.BuilderBuilder.NewStaticContext(),
 				configCtx,
 			)
 
