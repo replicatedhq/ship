@@ -31,9 +31,22 @@ jobs:
     docker:
       - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
+    environment:
+      HELM_VERSION: "v2.9.1"
+      HELM_URL: "https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz"
+      HELM_TGZ: "helm-v2.9.1-linux-amd64.tar.gz"
+      HELM: "linux-amd64/helm"
+      HELM_SHA256SUM: "56ae2d5d08c68d6e7400d462d6ed10c929effac929fedce18d2636a9b4e166ba"
     steps:
       - checkout
       - setup_remote_docker
+      - run: |
+          curl -fsSLO "${HELM_URL}" \
+            && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
+            && tar xvf "$HELM_TGZ" \
+            && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
+            && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
+
       - run: make integration-test
 
   deploy_unstable:

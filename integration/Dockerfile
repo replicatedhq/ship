@@ -4,9 +4,7 @@ ENV GOPATH=/go/
 ADD . /go/src/github.com/replicatedhq/ship
 RUN cd /go/src/github.com/replicatedhq/ship && go test -c ./integration
 
-# package things up
-FROM alpine
-WORKDIR /test
+RUN apk update && apk add ca-certificates && apk add curl
 
 ENV HELM_VERSION=v2.9.1
 ENV HELM_URL=https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
@@ -18,9 +16,15 @@ RUN curl -fsSLO "${HELM_URL}" \
     && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
     && tar xvf "$HELM_TGZ" \
     && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
-    && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
+    && cp "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
 
+# package things up
+FROM alpine
+WORKDIR /test
+
+COPY --from=build-step /usr/local/bin/helm /usr/local/bin/helm
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+
 ADD ./integration /test
 RUN cd /test && rm *.go
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration.test /test/
