@@ -1,0 +1,34 @@
+
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "{{repl ConfigOption "option" }}"
+        dest: ./scripts/install.sh
+        mode: 0777
+    - inline:
+        contents: |
+          #!/bin/bash
+        dest: ./scripts/test.sh
+        mode: 0777
+    - dockerlayer:
+        dest: docker/
+        image: replicated/statsd-graphite:168eb98
+        source: public
+        layer: 845cc65ea7756352f043d8fa257f82d3785817fb7c624202f304d9b1ed93ec9b
+
+config:
+  v1:
+    - name: info
+      title: Info
+      description: information
+      items:
+      - name: option
+        title: Option
+        type: text
+
+lifecycle:
+  v1:
+  - render: {}
