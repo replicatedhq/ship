@@ -97,7 +97,7 @@ func (p *DefaultStep) Execute(
 
 		mode := os.FileMode(0644)
 		if asset.Mode != os.FileMode(0) {
-			debug.Log("event", "applying override permissions")
+			debug.Log("event", "applying override permissions", asset.Mode)
 			mode = asset.Mode
 		}
 
@@ -120,7 +120,7 @@ func (p *DefaultStep) buildAsset(
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) (*Built, error) {
-	configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
+	configCtx, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting config context")
 	}
@@ -191,12 +191,11 @@ func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
 	if respErr != nil {
 		return nil, errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 {
 		return nil, errors.Errorf("received response with status %d", resp.StatusCode)
 	}
-
-	defer resp.Body.Close()
 
 	return resp, nil
 }
