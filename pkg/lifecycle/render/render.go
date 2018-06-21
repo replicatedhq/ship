@@ -39,6 +39,7 @@ type Renderer struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	Daemon         config.Daemon
+	Now            func() time.Time
 }
 
 func NewRenderer(
@@ -56,6 +57,7 @@ func NewRenderer(
 		StateManager:   stateManager,
 		Fs:             fs,
 		UI:             ui,
+		Now:            time.Now,
 	}
 }
 
@@ -124,7 +126,7 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 		return nil
 	}
 
-	backupDest := fmt.Sprintf("%s.%d.bak", basePath, time.Now().Unix())
+	backupDest := fmt.Sprintf("%s.%d.bak", basePath, r.Now().Unix())
 	level.Info(r.Logger).Log("step.type", "render", "event", "unpackTarget.backup", "src", basePath, "dest", backupDest)
 	if err := r.Fs.Rename(basePath, backupDest); err != nil {
 		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
