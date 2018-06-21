@@ -2,9 +2,10 @@ FROM golang:1.10
 
 RUN go get golang.org/x/tools/cmd/goimports
 RUN go get -u github.com/golang/lint/golint
-RUN go get -u github.com/golang/dep/cmd/dep
 RUN go get github.com/golang/mock/gomock
 RUN go install github.com/golang/mock/mockgen
+
+
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
   echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
@@ -26,6 +27,16 @@ RUN curl -fsSLO "${HELM_URL}" \
     && tar xvf "$HELM_TGZ" \
     && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
     && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
+
+ENV DEP_URL=https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
+ENV DEP_BIN=dep-linux-amd64
+ENV DEP_SHA256SUM=31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
+
+RUN curl -fsSLO "${DEP_URL}" \
+    && echo "${DEP_SHA256SUM}  ${DEP_BIN}" | sha256sum -c - \
+	&& chmod +x ${DEP_BIN} \
+    && mv ${DEP_BIN} /usr/local/bin/dep-linux-amd64 \
+    && ln -s /usr/local/bin/dep-linux-amd64 /usr/local/bin/dep
 
 ENV PROJECTPATH=/go/src/github.com/replicatedhq/ship
 

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/templates"
 
@@ -38,19 +39,19 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		p.Daemon.SetProgress(config.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
-			asset.Inline.Dest = filepath.Join("installer", asset.Inline.Dest)
+			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
 			plan = append(plan, p.inlineStep(asset.Inline, configGroups, meta, templateContext))
 		} else if asset.Docker != nil {
-			asset.Docker.Dest = filepath.Join("installer", asset.Docker.Dest)
+			asset.Docker.Dest = filepath.Join(constants.InstallerPrefix, asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
 			plan = append(plan, p.dockerStep(*asset.Docker, meta))
 		} else if asset.Helm != nil {
-			asset.Helm.Dest = filepath.Join("installer", asset.Helm.Dest)
+			asset.Helm.Dest = filepath.Join(constants.InstallerPrefix, asset.Helm.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "helm")
 			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext))
 		} else if asset.DockerLayer != nil {
-			asset.DockerLayer.Dest = filepath.Join("installer", asset.DockerLayer.Dest)
+			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefix, asset.DockerLayer.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
 			plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
 		} else if asset.GitHub != nil {

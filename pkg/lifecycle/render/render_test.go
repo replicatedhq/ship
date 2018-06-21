@@ -10,16 +10,22 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
 
+	"os"
+	"strings"
+	"time"
+
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	mockconfig "github.com/replicatedhq/ship/pkg/test-mocks/config"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
-	ui "github.com/replicatedhq/ship/pkg/test-mocks/ui"
+	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
 
@@ -49,6 +55,7 @@ func TestRender(t *testing.T) {
 
 			renderer := &Renderer{
 				Logger: log.NewNopLogger(),
+				Now:    time.Now,
 			}
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
@@ -63,6 +70,7 @@ func TestRender(t *testing.T) {
 			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressResolve).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressBackup).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
 			prog = mockDaemon.EXPECT().SetStepName(ctx, config.StepNameConfirm).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
@@ -93,6 +101,67 @@ func TestRender(t *testing.T) {
 				err := renderer.Execute(ctx, release, &api.Render{})
 				assert.NoError(t, err)
 			}()
+		})
+	}
+}
+
+func TestBacksUpExisting(t *testing.T) {
+	tests := []struct {
+		name     string
+		target   string
+		existing []string
+		expect   []string
+	}{
+		{
+			name:     "first",
+			target:   "/tmp/installer",
+			existing: []string{},
+			expect:   []string{},
+		},
+		{
+			name:   "first",
+			target: "/tmp/installer",
+			existing: []string{
+				"/tmp/installer",
+			},
+			expect: []string{
+				"/tmp/installer.12345.bak",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
+			r := Renderer{
+				Logger: &logger.TestLogger{T: t},
+				Fs:     mockFS,
+				Now: func() time.Time {
+					return time.Unix(12345, 0)
+				},
+			}
+
+			for _, filename := range test.existing {
+				err := mockFS.WriteFile(filename, []byte("not a directory but thats okay"), 0755)
+				req.NoError(err)
+			}
+
+			r.backupIfPresent(test.target)
+
+			debugFs := &strings.Builder{}
+			r.Fs.Walk("/", func(path string, info os.FileInfo, err error) error {
+				debugFs.WriteString(path)
+				debugFs.WriteString("\n")
+				return nil
+			})
+
+			for _, filename := range test.expect {
+				exists, err := mockFS.Exists(filename)
+				req.NoError(err)
+				req.True(exists, "expected file %s to exist, fs had %s", filename, debugFs)
+			}
+
 		})
 	}
 }

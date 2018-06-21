@@ -26,6 +26,8 @@ type Renderer interface {
 	) func(ctx context.Context) error
 }
 
+var _ Renderer = &DefaultStep{}
+
 // DefaultStep is the default implementation of Renderer
 type DefaultStep struct {
 	Logger      log.Logger

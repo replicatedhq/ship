@@ -2,4 +2,6 @@
 watch("**", "!.git/**")
 
 ### Commands to execute
-sh("wm test")
+sh("make _lint")
+sh("make _vet")
+sh("make _test")
