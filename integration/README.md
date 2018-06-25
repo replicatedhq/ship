@@ -1,10 +1,10 @@
-#Running the integration tests (from the parent directory)
+## Running the integration tests (from the parent directory)
 
 ```shell
 make integration-test
 ```
 
-#Running the integration tests (from a docker image)
+## Running the integration tests (from a docker image)
 
 The integration test docker image can be built with
 
@@ -18,7 +18,7 @@ The resulting image can be run with
 docker run -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
 ```
 
-#Adding a new integration test
+## Adding a new integration test
 
 Each integration test is a folder containing a yaml file with the
 desired customer ID/installation ID/release semver, a folder 'input' containing
