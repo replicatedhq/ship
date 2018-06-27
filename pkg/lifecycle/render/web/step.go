@@ -91,18 +91,18 @@ func (p *DefaultStep) Execute(
 		debug.Log("event", "mkdirall.attempt", "dest", built.Dest, "basePath", basePath)
 		if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
 			debug.Log("event", "mkdirall.fail", "err", err, "dest", built.Dest, "basePath", basePath)
-			return errors.Wrapf(err, "write directory to %s", built.Dest)
+			return errors.Wrapf(err, "Create directory path %s", basePath)
 		}
 
 		file, err := p.Fs.Create(built.Dest)
 		if err != nil {
-			debug.Log("event", "create.fail", "err", err, "dest", file)
-			return errors.Wrapf(err, "create file %s", file)
+			debug.Log("event", "create.fail", "err", err, "file", file)
+			return errors.Wrapf(err, "Create file %s", file)
 		}
 
 		if _, err := io.Copy(file, body.Body); err != nil {
 			debug.Log("event", "stream.fail", "err", err)
-			return errors.Wrapf(err, "Stream web asset to %s", file)
+			return errors.Wrapf(err, "Stream HTTP response body to %s", file)
 		}
 
 		return nil
@@ -169,9 +169,9 @@ func (p *DefaultStep) buildAsset(
 }
 
 func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
-	req, reqErr := parseRequest(built.URL, built.Method, built.Body)
-	if reqErr != nil {
-		return nil, errors.Wrapf(reqErr, "Request web asset from %s", built.URL)
+	req, err := makeRequest(built.URL, built.Method, built.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
 
 	if len(built.Headers) != 0 {
@@ -195,7 +195,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
 	return resp, nil
 }
 
-func parseRequest(url string, method string, body string) (*http.Request, error) {
+func makeRequest(url string, method string, body string) (*http.Request, error) {
 	switch method {
 	case "GET":
 		req, err := http.NewRequest("GET", url, nil)
