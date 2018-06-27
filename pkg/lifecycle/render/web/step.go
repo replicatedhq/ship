@@ -2,16 +2,15 @@ package web
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"path/filepath"
-
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 
 	"bytes"
 
-	"io/ioutil"
+	"path/filepath"
+
+	"io"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -95,19 +94,15 @@ func (p *DefaultStep) Execute(
 			return errors.Wrapf(err, "write directory to %s", built.Dest)
 		}
 
-		mode := os.FileMode(0644)
-		if asset.Mode != os.FileMode(0) {
-			debug.Log("event", "applying override permissions", asset.Mode)
-			mode = asset.Mode
+		file, err := p.Fs.Create(built.Dest)
+		if err != nil {
+			debug.Log("event", "create.fail", "err", err, "dest", file)
+			return errors.Wrapf(err, "create file %s", file)
 		}
 
-		bodyToBytes, byteErr := ioutil.ReadAll(body.Body)
-		if byteErr != nil {
-			return errors.Wrapf(byteErr, "Decode response body")
-		}
-		if err := p.Fs.WriteFile(built.Dest, bodyToBytes, mode); err != nil {
-			debug.Log("event", "execute.fail", "err", err)
-			return errors.Wrapf(err, "Write web asset to %s", built.Dest)
+		if _, err := io.Copy(file, body.Body); err != nil {
+			debug.Log("event", "stream.fail", "err", err)
+			return errors.Wrapf(err, "Stream web asset to %s", file)
 		}
 
 		return nil
