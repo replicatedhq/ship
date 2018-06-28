@@ -1,8 +1,10 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test
 
 
 SHELL := /bin/bash
 SRC = $(shell find . -name "*.go")
+
+DOCKER_REPO ?= replicated
 
 build-deps:
 	go get -u github.com/golang/lint/golint
@@ -174,3 +176,6 @@ run: bin/ship
 # this should really be in a different repo
 build_yoonit_docker_image:
 	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
+
+build_ship_integration_test:
+	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .

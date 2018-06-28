@@ -3,11 +3,15 @@ package render
 import (
 	"context"
 
+	"fmt"
+	"time"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
@@ -21,6 +25,7 @@ var (
 	ProgressLoad    = config.StringProgress("render", "load")
 	ProgressResolve = config.StringProgress("render", "resolve")
 	ProgressBuild   = config.StringProgress("render", "build")
+	ProgressBackup  = config.StringProgress("render", "backup")
 	ProgressExecute = config.StringProgress("render", "execute")
 	ProgressCommit  = config.StringProgress("render", "commit")
 )
@@ -34,6 +39,7 @@ type Renderer struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	Daemon         config.Daemon
+	Now            func() time.Time
 }
 
 func NewRenderer(
@@ -51,6 +57,7 @@ func NewRenderer(
 		StateManager:   stateManager,
 		Fs:             fs,
 		UI:             ui,
+		Now:            time.Now,
 	}
 }
 
@@ -88,6 +95,13 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	}
 
+	debug.Log("event", "backup.start")
+	r.Daemon.SetProgress(ProgressBackup)
+	err = r.backupIfPresent(constants.InstallerPrefix)
+	if err != nil {
+		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefix)
+	}
+
 	r.Daemon.SetProgress(ProgressExecute)
 	r.Daemon.SetStepName(ctx, config.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
@@ -98,6 +112,24 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	r.Daemon.SetProgress(ProgressCommit)
 	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
+	}
+
+	return nil
+}
+
+func (r *Renderer) backupIfPresent(basePath string) error {
+	exists, err := r.Fs.Exists(basePath)
+	if err != nil {
+		return errors.Wrapf(err, "check file exists")
+	}
+	if !exists {
+		return nil
+	}
+
+	backupDest := fmt.Sprintf("%s.%d.bak", basePath, r.Now().Unix())
+	level.Info(r.Logger).Log("step.type", "render", "event", "unpackTarget.backup", "src", basePath, "dest", backupDest)
+	if err := r.Fs.Rename(basePath, backupDest); err != nil {
+		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
 	}
 
 	return nil

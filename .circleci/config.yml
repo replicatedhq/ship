@@ -17,6 +17,7 @@ jobs:
     steps:
       - checkout
       - run: make build-deps citest ci-upload-coverage
+
   test_yoonit:
     docker:
       - image: replicated/yoonit:latest
@@ -25,6 +26,28 @@ jobs:
       - run: git remote -v; echo $CIRCLE_REPOSITORY_URL
       # requires YOONIT_AUTH set to a valid token
       - run: /usr/local/bin/yoonit wait
+
+  integration:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/replicatedhq/ship
+    environment:
+      HELM_VERSION: "v2.9.1"
+      HELM_URL: "https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz"
+      HELM_TGZ: "helm-v2.9.1-linux-amd64.tar.gz"
+      HELM: "linux-amd64/helm"
+      HELM_SHA256SUM: "56ae2d5d08c68d6e7400d462d6ed10c929effac929fedce18d2636a9b4e166ba"
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+          curl -fsSLO "${HELM_URL}" \
+            && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
+            && tar xvf "$HELM_TGZ" \
+            && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
+            && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
+
+      - run: make integration-test
 
   deploy_unstable:
     docker:
@@ -39,14 +62,18 @@ jobs:
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: docker push replicated/ship:unstable
-  integration:
+
+  deploy_integration:
     docker:
       - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
       - setup_remote_docker
-      - run: make integration-test
+      - run: make build_ship_integration_test
+      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+      - deploy:
+          command: docker push replicated/ship-e2e-test:latest
 
   deploy:
     docker:
@@ -70,6 +97,7 @@ workflows:
           filters:
             tags:
               only: /.*/
+
       - deploy_unstable:
           requires:
             - test
@@ -77,9 +105,19 @@ workflows:
           filters:
             branches:
               only: /master/
+
+      - deploy_integration:
+          requires:
+            - integration
+            - deploy_unstable
+          filters:
+            branches:
+              only: /master/
+
       - deploy:
           requires:
             - test
+            - integration
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/

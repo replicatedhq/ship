@@ -380,7 +380,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "beta value resolves to alpha value",
-			State: []byte(`{"alpha": "100"}`),
+			State: []byte(`{"alpha": "101"}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -399,14 +399,45 @@ func TestHeadlessDaemon(t *testing.T) {
 									Value:    `{{repl ConfigOption "alpha" }}`,
 									Default:  "",
 									Required: false,
-									Hidden:   true,
+									ReadOnly: true,
 								},
 							},
 						}},
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100","beta":"100"}`),
+			ExpectedValue: []byte(`{"alpha":"101","beta":"101"}`),
+			ExpectedError: false,
+		},
+		{
+			Name:  "beta value resolves to alpha value when wrong beta value is presented",
+			State: []byte(`{"alpha": "101", "beta":"abc"}`),
+			Release: &api.Release{
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{{
+							Name: "testing",
+							Items: []*libyaml.ConfigItem{
+								{
+									Name:     "alpha",
+									Value:    "100",
+									Default:  "",
+									Required: false,
+									Hidden:   false,
+								},
+								{
+									Name:     "beta",
+									Value:    `{{repl ConfigOption "alpha" }}`,
+									Default:  "",
+									Required: false,
+									ReadOnly: true,
+								},
+							},
+						}},
+					},
+				},
+			},
+			ExpectedValue: []byte(`{"alpha":"101","beta":"101"}`),
 			ExpectedError: false,
 		},
 		{
@@ -430,14 +461,14 @@ func TestHeadlessDaemon(t *testing.T) {
 									Value:    `{{repl ConfigOption "alpha" }}`,
 									Default:  "",
 									Required: false,
-									Hidden:   true,
+									ReadOnly: true,
 								},
 								{
 									Name:     "charlie",
 									Value:    `{{repl ConfigOption "beta" }}`,
 									Default:  "",
 									Required: false,
-									Hidden:   true,
+									ReadOnly: true,
 								},
 							},
 						}},

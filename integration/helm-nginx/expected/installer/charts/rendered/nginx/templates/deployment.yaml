@@ -1,0 +1,50 @@
+##---
+# Source: nginx/templates/deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  # This uses a "fullname" template (see _helpers)
+  # Basing names on .Release.Name means that the same chart can be installed
+  # multiple times into the same namespace.
+  name: integration-test-helm-0.0.1-nginx
+  labels:
+    # The "heritage" label is used to track which tool deployed a given chart.
+    # It is useful for admins who want to see what releases a particular tool
+    # is responsible for.
+    heritage: Tiller
+    # The "release" convention makes it easy to tie a release to all of the
+    # Kubernetes resources that were created as part of that release.
+    release: integration-test-helm-0.0.1
+    # This makes it easy to audit chart usage.
+    chart: nginx-0.1.0
+    app: nginx
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+        release: integration-test-helm-0.0.1
+    spec:
+      containers:
+        - name: nginx
+          image: "nginx:1.11.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # This (and the volumes section below) mount the config map as a volume.
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html
+              name: wwwdata-volume
+          resources:
+# Allow chart users to specify resources. Usually, no default should be set, so this is left to be a conscious
+# choice to the chart users and avoids that charts don't run out of the box on, e. g., Minikube when high resource
+# requests are specified by default.
+            {}
+            
+      volumes:
+        - name: wwwdata-volume
+          configMap:
+            name: integration-test-helm-0.0.1-nginx
