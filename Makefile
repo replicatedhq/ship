@@ -42,6 +42,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/docker
 	mkdir -p pkg/test-mocks/helm
 	mkdir -p pkg/test-mocks/dockerlayer
+	mkdir -p pkg/test-mocks/github
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -102,6 +103,11 @@ _mockgen:
 		-package dockerlayer \
 		github.com/mholt/archiver \
 		Archiver
+	mockgen \
+		-destination pkg/test-mocks/github/github_mock.go \
+		-package github \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/github \
+		Renderer
 
 mockgen: _mockgen fmt
 
@@ -126,7 +132,7 @@ _lint:
 lint: vet _lint
 
 _test:
-	go test -v ./pkg/...
+	go test ./pkg/... | grep -v '?'
 
 test: lint _test
 

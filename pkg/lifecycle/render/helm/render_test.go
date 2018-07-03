@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
 	"github.com/stretchr/testify/require"
@@ -55,8 +56,11 @@ func TestRender(t *testing.T) {
 			asset := api.HelmAsset{}
 			metadata := api.ReleaseMetadata{}
 			templateContext := map[string]interface{}{}
+			configGroups := []libyaml.ConfigGroup{}
 
-			mockFetcher.EXPECT().FetchChart(asset, metadata).Return(test.fetchPath, test.fetchErr)
+			ctx := context.Background()
+
+			mockFetcher.EXPECT().FetchChart(ctx, asset, metadata, configGroups, templateContext).Return(test.fetchPath, test.fetchErr)
 
 			if test.fetchErr == nil {
 				mockTemplater.EXPECT().Template(test.fetchPath, asset, metadata).Return(test.templateErr)
@@ -66,7 +70,8 @@ func TestRender(t *testing.T) {
 				asset,
 				metadata,
 				templateContext,
-			)(context.Background())
+				configGroups,
+			)(ctx)
 
 			if test.expectErr == nil {
 				req.NoError(err)

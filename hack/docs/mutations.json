@@ -104,8 +104,18 @@
   {
     "path": "properties.assets.properties.v1.items.properties.helm",
     "merge": {
-      "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should include assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
+      "description": "A `helm` asset will template and render an existing helm chart. You can either reference an existing chart in a private or public github repo, or your installer runbook can include assets to drop an existing helm chart at `local.chart_root`.",
       "examples": [
+        {
+          "github": {
+            "repo": "github.com/replicatedhq/superbigtool-k8s",
+            "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
+            "path": "k8s-yamls/",
+            "dest": "./k8s/",
+            "private": true
+          },
+          "dest": "charts/rendered/"
+        },
         {
           "values":  {
             "AppFlavor": "ship",
@@ -124,8 +134,7 @@
     },
     "replace": {
       "required": [
-        "dest",
-        "local"
+        "dest"
       ]
     }
   },
@@ -151,6 +160,44 @@
     "path": "properties.assets.properties.v1.items.properties.helm.properties.local.properties.chart_root",
     "merge": {
       "description": "The base directory of the existing chart."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github",
+    "merge": {
+      "description": "Configuration for indicating a chart hosted in a private or public github repo. Fields are same as `assets.v1.github`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties",
+    "delete": [
+      "dest",
+      "mode"
+    ]
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.path",
+    "merge": {
+      "description": "Path in repo from which to pull file or directory"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.ref",
+
+    "merge": {
+      "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.repo",
+    "merge": {
+      "description": "The GitHub repository to pull from, formated as `owner`/`repo` e.g. `replicatedhq/ship`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.source",
+    "merge": {
+      "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation"
     }
   },
   {
@@ -231,7 +278,7 @@
         {
           "repo": "github.com/replicatedhq/superbigtool-k8s",
           "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
-          "path": "**/*.yml",
+          "path": "k8s-yamls/",
           "dest": "./k8s/",
           "private": true
         }
@@ -244,6 +291,42 @@
         "dest",
         "source"
       ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.dest",
+    "merge": {
+      "description": "Destination directory"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties",
+    "delete": [
+      "mode"
+    ]
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.path",
+    "merge": {
+      "description": "Path in repo from which to pull file or directory"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.ref",
+    "merge": {
+      "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.repo",
+    "merge": {
+      "description": "The GitHub repository to pull from, formated as `owner`/`repo` e.g. `replicatedhq/ship`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.source",
+    "merge": {
+      "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation"
     }
   },
   {
@@ -307,12 +390,6 @@
     "replace": {
       "required": []
     }
-  },
-  {
-    "path": "properties.assets.properties.v1.items.properties",
-    "delete": [
-      "github"
-    ]
   },
   {}
 ]
