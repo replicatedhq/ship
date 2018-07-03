@@ -57,7 +57,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.GitHub != nil {
 			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "github")
-			plan = append(plan, p.githubStep(asset.GitHub, configGroups, meta, templateContext))
+			plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New("Unknown asset: type is not one of [inline docker helm dockerlayer]")

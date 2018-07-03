@@ -30,6 +30,10 @@ func (f *ClientFetcher) FetchChart(asset api.HelmAsset, meta api.ReleaseMetadata
 		chartRootPath := path.Join(constants.InstallerPrefix, asset.Local.ChartRoot)
 
 		return chartRootPath, nil
+	} else if asset.GitHub != nil {
+
+		chartRootPath
+
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
