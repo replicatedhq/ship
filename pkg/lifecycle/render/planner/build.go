@@ -49,7 +49,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Helm != nil {
 			asset.Helm.Dest = filepath.Join(constants.InstallerPrefix, asset.Helm.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "helm")
-			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext))
+			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext, configGroups))
 		} else if asset.DockerLayer != nil {
 			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefix, asset.DockerLayer.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
@@ -57,7 +57,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.GitHub != nil {
 			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "github")
-			plan = append(plan, p.githubStep(asset.GitHub, configGroups, meta, templateContext))
+			plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New("Unknown asset: type is not one of [inline docker helm dockerlayer]")
@@ -127,11 +127,12 @@ func (p *CLIPlanner) helmStep(
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) Step {
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.Helm.Execute(asset, meta, templateContext),
+		Execute:     p.Helm.Execute(asset, meta, templateContext, configGroups),
 	}
 }
 

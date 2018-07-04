@@ -5,9 +5,11 @@
 package helm
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
 )
 
@@ -35,14 +37,14 @@ func (m *MockChartFetcher) EXPECT() *MockChartFetcherMockRecorder {
 }
 
 // FetchChart mocks base method
-func (m *MockChartFetcher) FetchChart(arg0 api.HelmAsset, arg1 api.ReleaseMetadata) (string, error) {
-	ret := m.ctrl.Call(m, "FetchChart", arg0, arg1)
+func (m *MockChartFetcher) FetchChart(arg0 context.Context, arg1 api.HelmAsset, arg2 api.ReleaseMetadata, arg3 []libyaml.ConfigGroup, arg4 map[string]interface{}) (string, error) {
+	ret := m.ctrl.Call(m, "FetchChart", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchChart indicates an expected call of FetchChart
-func (mr *MockChartFetcherMockRecorder) FetchChart(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchChart", reflect.TypeOf((*MockChartFetcher)(nil).FetchChart), arg0, arg1)
+func (mr *MockChartFetcherMockRecorder) FetchChart(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchChart", reflect.TypeOf((*MockChartFetcher)(nil).FetchChart), arg0, arg1, arg2, arg3, arg4)
 }

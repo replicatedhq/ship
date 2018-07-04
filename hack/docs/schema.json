@@ -98,9 +98,63 @@
                   "layer"
                 ]
               },
-              "helm": {
-                "description": "A `helm` asset will template and render an existing helm chart. Your installer runbook should included assets to drop an existing helm chart at `local.chart_root`. Future releases will include support for charts stored in private github repos or in chart repositories like ChartMuseum.",
+              "github": {
+                "description": "A `github` asset is created from files downloaded from either a public or a linked Github repo.",
                 "examples": [
+                  {
+                    "repo": "github.com/replicatedhq/superbigtool-k8s",
+                    "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
+                    "path": "k8s-yamls/",
+                    "dest": "./k8s/",
+                    "private": true
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "Destination directory",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "Path in repo from which to pull file or directory",
+                    "type": "string"
+                  },
+                  "ref": {
+                    "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
+                    "type": "string"
+                  },
+                  "repo": {
+                    "description": "The GitHub repository to pull from, formated as `owner`/`repo` e.g. `replicatedhq/ship`",
+                    "type": "string"
+                  },
+                  "source": {
+                    "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "repo",
+                  "path",
+                  "dest",
+                  "source"
+                ]
+              },
+              "helm": {
+                "description": "A `helm` asset will template and render an existing helm chart. You can either reference an existing chart in a private or public github repo, or your installer runbook can include assets to drop an existing helm chart at `local.chart_root`.",
+                "examples": [
+                  {
+                    "github": {
+                      "repo": "github.com/replicatedhq/superbigtool-k8s",
+                      "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
+                      "path": "k8s-yamls/",
+                      "dest": "./k8s/",
+                      "private": true
+                    },
+                    "dest": "charts/rendered/"
+                  },
                   {
                     "values": {
                       "AppFlavor": "ship",
@@ -124,6 +178,40 @@
                   "dest": {
                     "description": "The directory in which to render the chart. If the source chart is at `charts/src/nginx`, and `dest` is set to `charts/rendered/`, then the chart will be templated at `charts/rendered/nginx`",
                     "type": "string"
+                  },
+                  "github": {
+                    "description": "Configuration for indicating a chart hosted in a private or public github repo. Fields are same as `assets.v1.github`",
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "description": "Path in repo from which to pull file or directory",
+                        "type": "string"
+                      },
+                      "ref": {
+                        "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
+                        "type": "string"
+                      },
+                      "repo": {
+                        "description": "The GitHub repository to pull from, formated as `owner`/`repo` e.g. `replicatedhq/ship`",
+                        "type": "string"
+                      },
+                      "source": {
+                        "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "dest",
+                      "mode",
+                      "description",
+                      "repo",
+                      "ref",
+                      "path",
+                      "source"
+                    ]
                   },
                   "helm_opts": {
                     "description": "Additional options as would be passed to `helm template`",
@@ -157,8 +245,7 @@
                   }
                 },
                 "required": [
-                  "dest",
-                  "local"
+                  "dest"
                 ]
               },
               "inline": {

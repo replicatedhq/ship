@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 )
 
 // Renderer is something that can render a helm asset as part of a planner.Plan
@@ -13,6 +15,7 @@ type Renderer interface {
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
+		configGroups []libyaml.ConfigGroup,
 	) func(ctx context.Context) error
 }
 
@@ -23,13 +26,15 @@ var _ Renderer = &LocalRenderer{}
 type LocalRenderer struct {
 	Templater Templater
 	Fetcher   ChartFetcher
+	GitHub    github.Renderer
 }
 
 // NewRenderer makes a new renderer
-func NewRenderer(cloner ChartFetcher, templater Templater) Renderer {
+func NewRenderer(cloner ChartFetcher, templater Templater, github github.Renderer) Renderer {
 	return &LocalRenderer{
 		Fetcher:   cloner,
 		Templater: templater,
+		GitHub:    github,
 	}
 }
 
@@ -37,9 +42,18 @@ func (r *LocalRenderer) Execute(
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-		chartLocation, err := r.Fetcher.FetchChart(asset, meta)
+
+		chartLocation, err := r.Fetcher.FetchChart(
+			ctx,
+			asset,
+			meta,
+			configGroups,
+			templateContext,
+		)
+
 		if err != nil {
 			return errors.Wrap(err, "fetch chart")
 		}

@@ -8,3 +8,4 @@ e2e-retraced/retraced-post.sh
 /.ship/
 
 /.state/
+/pkg/testing/
