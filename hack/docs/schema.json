@@ -28,7 +28,7 @@
                     "image": "postgres:9.6",
                     "dest": "images/postgres.tar",
                     "source": "public",
-                    "mode": "600"
+                    "mode": 600
                   }
                 ],
                 "type": "object",
@@ -106,7 +106,7 @@
                     "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
                     "path": "k8s-yamls/",
                     "dest": "./k8s/",
-                    "private": true
+                    "source": "private"
                   }
                 ],
                 "type": "object",
@@ -150,8 +150,7 @@
                       "repo": "github.com/replicatedhq/superbigtool-k8s",
                       "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
                       "path": "k8s-yamls/",
-                      "dest": "./k8s/",
-                      "private": true
+                      "source": "private"
                     },
                     "dest": "charts/rendered/"
                   },
@@ -204,13 +203,9 @@
                       }
                     },
                     "required": [
-                      "dest",
-                      "mode",
-                      "description",
                       "repo",
                       "ref",
-                      "path",
-                      "source"
+                      "path"
                     ]
                   },
                   "helm_opts": {
@@ -238,8 +233,17 @@
                     "type": "object",
                     "properties": {
                       ".*": {
-                        "description": "Key-value pairs to set.",
                         "type": "string"
+                      }
+                    },
+                    "patternProperties": {
+                      ".*": {
+                        "description": "Key-value pairs to set.",
+                        "type": [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
                       }
                     }
                   }

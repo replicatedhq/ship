@@ -25,7 +25,7 @@ export interface Mutation {
 }
 
 export const handler = (argv) => {
-  process.stderr.write("merge-mutations called\n");
+  process.stderr.write("merge-mutations\n");
   const schema = JSON.parse(fs.readFileSync(argv.infile).toString());
   const mutations: Mutation[] = JSON.parse(fs.readFileSync(argv.mutations).toString());
 

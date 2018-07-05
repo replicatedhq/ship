@@ -7,10 +7,13 @@ import (
 
 	"io/ioutil"
 
+	"regexp"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
 
@@ -24,12 +27,15 @@ type Templater interface {
 	) error
 }
 
+var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+
 // ForkTemplater implements Templater by forking out to an embedded helm binary
 // and creating the chart in place
 type ForkTemplater struct {
-	Helm   func() *exec.Cmd
-	Logger log.Logger
-	FS     afero.Afero
+	Helm           func() *exec.Cmd
+	Logger         log.Logger
+	FS             afero.Afero
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func (f *ForkTemplater) Template(
@@ -45,7 +51,8 @@ func (f *ForkTemplater) Template(
 		return errors.Wrapf(err, "write directory to %s", asset.Dest)
 	}
 
-	releaseName := strings.ToLower(fmt.Sprintf("%s-%s", meta.ChannelName, meta.Semver))
+	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ChannelName))
+	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
 	// initialize command
@@ -59,6 +66,13 @@ func (f *ForkTemplater) Template(
 
 	if asset.HelmOpts != nil {
 		cmd.Args = append(cmd.Args, asset.HelmOpts...)
+	}
+
+	if asset.Values != nil {
+		for key, value := range asset.Values {
+			cmd.Args = append(cmd.Args, "--set")
+			cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, value))
+		}
 	}
 
 	stdout, stderr, err := f.fork(cmd)
@@ -123,12 +137,14 @@ func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
 func NewTemplater(
 	logger log.Logger,
 	fs afero.Afero,
+	builderBuilder *templates.BuilderBuilder,
 ) Templater {
 	return &ForkTemplater{
 		Helm: func() *exec.Cmd {
 			return exec.Command("/usr/local/bin/helm")
 		},
-		Logger: logger,
-		FS:     fs,
+		Logger:         logger,
+		FS:             fs,
+		BuilderBuilder: builderBuilder,
 	}
 }

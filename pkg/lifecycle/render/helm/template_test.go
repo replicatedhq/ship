@@ -22,6 +22,8 @@ func TestForkTemplater(t *testing.T) {
 		helmForkEnv []string
 		expectError string
 		helmOpts    []string
+		helmValues  map[string]interface{}
+		channelName string
 	}{
 		{
 			name:     "helm crashes",
@@ -41,7 +43,7 @@ func TestForkTemplater(t *testing.T) {
 				// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
 				"EXPECT_HELM_ARGV=--foo|bar|--output-dir|fake",
 			},
-			expectError: "execute helm: exit status 2: stdout: \"\"; stderr: \"expected args [--foo bar --output-dir fake], got args [template /tmp/chartroot --output-dir k8s/ --name frobnitz-1.0.0]; FAIL\";",
+			expectError: "execute helm: exit status 2: stdout: \"\"; stderr: \"expected args [--foo bar --output-dir fake], got args [template /tmp/chartroot --output-dir k8s/ --name frobnitz]; FAIL\";",
 		},
 		{
 			name:     "helm test proper args",
@@ -52,7 +54,7 @@ func TestForkTemplater(t *testing.T) {
 					"template|" +
 					"/tmp/chartroot|" +
 					"--output-dir|k8s/|" +
-					"--name|frobnitz-1.0.0",
+					"--name|frobnitz",
 			},
 			expectError: "",
 		},
@@ -65,11 +67,46 @@ func TestForkTemplater(t *testing.T) {
 					"template|" +
 					"/tmp/chartroot|" +
 					"--output-dir|k8s/|" +
-					"--name|frobnitz-1.0.0|" +
+					"--name|frobnitz|" +
 					"--set|service.clusterIP=10.3.9.2",
 			},
 			expectError: "",
 			helmOpts:    []string{"--set", "service.clusterIP=10.3.9.2"},
+		},
+		{
+			name:     "helm values from asset value",
+			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
+			helmForkEnv: []string{
+				"GOTEST_SUBPROCESS_MOCK=1",
+				"EXPECT_HELM_ARGV=" +
+					"template|" +
+					"/tmp/chartroot|" +
+					"--output-dir|k8s/|" +
+					"--name|frobnitz|" +
+					"--set|service.clusterIP=10.3.9.2",
+			},
+			expectError: "",
+			helmValues: map[string]interface{}{
+				"service.clusterIP": "10.3.9.2",
+			},
+		},
+		{
+			name:     "helm replaces spacial characters in ",
+			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
+			helmForkEnv: []string{
+				"GOTEST_SUBPROCESS_MOCK=1",
+				"EXPECT_HELM_ARGV=" +
+					"template|" +
+					"/tmp/chartroot|" +
+					"--output-dir|k8s/|" +
+					"--name|1-2-3---------frobnitz|" +
+					"--set|service.clusterIP=10.3.9.2",
+			},
+			expectError: "",
+			helmValues: map[string]interface{}{
+				"service.clusterIP": "10.3.9.2",
+			},
+			channelName: "1.2.3-$#(%*)@-frobnitz",
 		},
 	}
 	for _, test := range tests {
@@ -86,6 +123,11 @@ func TestForkTemplater(t *testing.T) {
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 			}
 
+			channelName := "Frobnitz"
+			if test.channelName != "" {
+				channelName = test.channelName
+			}
+
 			err := tpl.Template(
 				"/tmp/chartroot",
 				api.HelmAsset{
@@ -93,9 +135,10 @@ func TestForkTemplater(t *testing.T) {
 						Dest: "k8s/",
 					},
 					HelmOpts: test.helmOpts,
+					Values:   test.helmValues,
 				}, api.ReleaseMetadata{
 					Semver:      "1.0.0",
-					ChannelName: "Frobnitz",
+					ChannelName: channelName,
 				})
 
 			t.Logf("checking error %v", err)

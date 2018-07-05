@@ -65,7 +65,7 @@
           "image": "postgres:9.6",
           "dest": "images/postgres.tar",
           "source": "public",
-          "mode": "600"
+          "mode": 600
         }
       ]
     },
@@ -111,8 +111,7 @@
             "repo": "github.com/replicatedhq/superbigtool-k8s",
             "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
             "path": "k8s-yamls/",
-            "dest": "./k8s/",
-            "source": "private",
+            "source": "private"
           },
           "dest": "charts/rendered/"
         },
@@ -126,6 +125,7 @@
             "{{repl Installation \\\"channel_name\\\"}}-{{repl Installation \\\"semver\\\"}}"
           ],
           "local": {
+
             "chart_root": "charts/src/nginx/"
           },
           "dest": "charts/rendered/"
@@ -166,6 +166,13 @@
     "path": "properties.assets.properties.v1.items.properties.helm.properties.github",
     "merge": {
       "description": "Configuration for indicating a chart hosted in a private or public github repo. Fields are same as `assets.v1.github`"
+    },
+    "replace": {
+      "required": [
+        "repo",
+        "ref",
+        "path"
+      ]
     }
   },
   {
@@ -210,10 +217,17 @@
     "path": "properties.assets.properties.v1.items.properties.helm.properties.values",
     "merge": {
       "description": "Values to set during rendering, overrides defaults in `values.yaml` if present in the chart root."
+    },
+    "replace": {
+      "patternProperties": {
+        ".*": {
+          "type": ["string", "number", "boolean"]
+        }
+      }
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.values.properties[\".*\"]",
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.values.patternProperties[\".*\"]",
     "merge": {
       "description": "Key-value pairs to set."
     }
@@ -280,7 +294,7 @@
           "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
           "path": "k8s-yamls/",
           "dest": "./k8s/",
-          "private": true
+          "source": "private"
         }
       ]
     },
