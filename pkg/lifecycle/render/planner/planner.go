@@ -68,6 +68,7 @@ func NewPlanner(
 	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
 	dockerlayers *dockerlayer.Unpacker,
+	gh github.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -78,6 +79,7 @@ func NewPlanner(
 		Helm:           helmRenderer,
 		Docker:         dockerRenderer,
 		DockerLayer:    dockerlayers,
+		GitHub:         gh,
 	}
 }
 
