@@ -125,7 +125,7 @@ func TestBacksUpExisting(t *testing.T) {
 				"/tmp/installer",
 			},
 			expect: []string{
-				"/tmp/installer.12345.bak",
+				"/tmp/installer.bak",
 			},
 		},
 	}

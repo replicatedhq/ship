@@ -126,8 +126,11 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 		return nil
 	}
 
-	backupDest := fmt.Sprintf("%s.%d.bak", basePath, r.Now().Unix())
-	level.Info(r.Logger).Log("step.type", "render", "event", "unpackTarget.backup", "src", basePath, "dest", backupDest)
+	backupDest := fmt.Sprintf("%s.bak", basePath)
+	level.Info(r.Logger).Log("step.type", "render", "event", "unpackTarget.backup.remove", "src", basePath, "dest", backupDest)
+	if err := r.Fs.RemoveAll(backupDest); err != nil {
+		return errors.Wrapf(err, "backup existing dir %s to %s: remove existing %s", basePath, backupDest, backupDest)
+	}
 	if err := r.Fs.Rename(basePath, backupDest); err != nil {
 		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
 	}
