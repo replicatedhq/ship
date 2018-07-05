@@ -28,12 +28,14 @@ merge-mutations:
 	mv $(SCHEMA_JSON).tmp $(SCHEMA_JSON)
 
 validate:
-	`yarn bin`/ts-node src/index.ts validate -f $(SCHEMA_JSON)
+	`yarn bin`/ts-node --inspect=0.0.0.0 src/index.ts validate -f $(SCHEMA_JSON)
 
+done:
+   : ✓ All Clear!
 
 markdown-assets:
 	mkdir -p build
-	`yarn bin`/ts-node src/index.ts markdown-assets -f $(SCHEMA_JSON) -o ./assets
+	`yarn bin`/ts-node --inspect=0.0.0.0 src/index.ts markdown-assets -f $(SCHEMA_JSON) -o ./assets
 
 
 pipeline-strict: prebuild gen-schema merge-mutations validate markdown-assets

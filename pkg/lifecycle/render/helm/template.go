@@ -7,10 +7,14 @@ import (
 
 	"io/ioutil"
 
+	"regexp"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
 
@@ -21,21 +25,28 @@ type Templater interface {
 		chartRoot string,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
+		configGroups []libyaml.ConfigGroup,
+		templateContext map[string]interface{},
 	) error
 }
+
+var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 
 // ForkTemplater implements Templater by forking out to an embedded helm binary
 // and creating the chart in place
 type ForkTemplater struct {
-	Helm   func() *exec.Cmd
-	Logger log.Logger
-	FS     afero.Afero
+	Helm           func() *exec.Cmd
+	Logger         log.Logger
+	FS             afero.Afero
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func (f *ForkTemplater) Template(
 	chartRoot string,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
 ) error {
 	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "dest", asset.Dest, "description", asset.Description))
 
@@ -45,7 +56,8 @@ func (f *ForkTemplater) Template(
 		return errors.Wrapf(err, "write directory to %s", asset.Dest)
 	}
 
-	releaseName := strings.ToLower(fmt.Sprintf("%s-%s", meta.ChannelName, meta.Semver))
+	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ChannelName))
+	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
 	// initialize command
@@ -61,6 +73,23 @@ func (f *ForkTemplater) Template(
 		cmd.Args = append(cmd.Args, asset.HelmOpts...)
 	}
 
+	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	if err != nil {
+		return errors.Wrap(err, "create config context")
+	}
+	builder := f.BuilderBuilder.NewBuilder(
+		f.BuilderBuilder.NewStaticContext(),
+		configCtx,
+	)
+
+	if asset.Values != nil {
+		for key, value := range asset.Values {
+			if err := appendHelmValue(value, builder, cmd, key); err != nil {
+				return errors.Wrapf(err, "append helm value %s", key)
+			}
+		}
+	}
+
 	stdout, stderr, err := f.fork(cmd)
 
 	if err != nil {
@@ -72,6 +101,23 @@ func (f *ForkTemplater) Template(
 	}
 
 	// todo link up stdout/stderr debug logs
+	return nil
+}
+
+func appendHelmValue(value interface{}, builder templates.Builder, cmd *exec.Cmd, key string) error {
+	stringValue, ok := value.(string)
+	if !ok {
+		cmd.Args = append(cmd.Args, "--set")
+		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, value))
+		return nil
+	}
+
+	renderedValue, err := builder.String(stringValue)
+	if err != nil {
+		return errors.Wrapf(err, "render value for %s", key)
+	}
+	cmd.Args = append(cmd.Args, "--set")
+	cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, renderedValue))
 	return nil
 }
 
@@ -123,12 +169,14 @@ func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
 func NewTemplater(
 	logger log.Logger,
 	fs afero.Afero,
+	builderBuilder *templates.BuilderBuilder,
 ) Templater {
 	return &ForkTemplater{
 		Helm: func() *exec.Cmd {
 			return exec.Command("/usr/local/bin/helm")
 		},
-		Logger: logger,
-		FS:     fs,
+		Logger:         logger,
+		FS:             fs,
+		BuilderBuilder: builderBuilder,
 	}
 }

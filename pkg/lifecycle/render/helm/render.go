@@ -58,7 +58,7 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "fetch chart")
 		}
 
-		err = r.Templater.Template(chartLocation, asset, meta)
+		err = r.Templater.Template(chartLocation, asset, meta, configGroups, templateContext)
 		if err != nil {
 			return errors.Wrap(err, "execute templating")
 		}
