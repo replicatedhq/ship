@@ -74,9 +74,14 @@ func (f *ClientFetcher) FetchChart(
 }
 
 // NewFetcher makes a new chart fetcher
-func NewFetcher(logger log.Logger, github github.Renderer) ChartFetcher {
+func NewFetcher(
+	logger log.Logger,
+	github github.Renderer,
+	fs afero.Afero,
+) ChartFetcher {
 	return &ClientFetcher{
 		Logger: logger,
 		GitHub: github,
+		FS:     fs,
 	}
 }

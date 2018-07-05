@@ -125,7 +125,6 @@
             "{{repl Installation \\\"channel_name\\\"}}-{{repl Installation \\\"semver\\\"}}"
           ],
           "local": {
-
             "chart_root": "charts/src/nginx/"
           },
           "dest": "charts/rendered/"
