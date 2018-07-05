@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
@@ -24,6 +25,8 @@ type Templater interface {
 		chartRoot string,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
+		configGroups []libyaml.ConfigGroup,
+		templateContext map[string]interface{},
 	) error
 }
 
@@ -42,6 +45,8 @@ func (f *ForkTemplater) Template(
 	chartRoot string,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
 ) error {
 	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "dest", asset.Dest, "description", asset.Description))
 
@@ -68,10 +73,20 @@ func (f *ForkTemplater) Template(
 		cmd.Args = append(cmd.Args, asset.HelmOpts...)
 	}
 
+	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	if err != nil {
+		return errors.Wrap(err, "create config context")
+	}
+	builder := f.BuilderBuilder.NewBuilder(
+		f.BuilderBuilder.NewStaticContext(),
+		configCtx,
+	)
+
 	if asset.Values != nil {
 		for key, value := range asset.Values {
-			cmd.Args = append(cmd.Args, "--set")
-			cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, value))
+			if err := appendHelmValue(value, builder, cmd, key); err != nil {
+				return errors.Wrapf(err, "append helm value %s", key)
+			}
 		}
 	}
 
@@ -86,6 +101,23 @@ func (f *ForkTemplater) Template(
 	}
 
 	// todo link up stdout/stderr debug logs
+	return nil
+}
+
+func appendHelmValue(value interface{}, builder templates.Builder, cmd *exec.Cmd, key string) error {
+	stringValue, ok := value.(string)
+	if !ok {
+		cmd.Args = append(cmd.Args, "--set")
+		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, value))
+		return nil
+	}
+
+	renderedValue, err := builder.String(stringValue)
+	if err != nil {
+		return errors.Wrapf(err, "render value for %s", key)
+	}
+	cmd.Args = append(cmd.Args, "--set")
+	cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, renderedValue))
 	return nil
 }
 

@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/go-kit/kit/log"
@@ -108,7 +107,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 }
 
 func (d *HeadlessDaemon) SetProgress(progress Progress) {
-	d.UI.Output(fmt.Sprintf("%s: %s", progress.Type, progress.Detail))
+	d.UI.Output(progress.Detail)
 }
 
 func (d *HeadlessDaemon) ClearProgress() {}

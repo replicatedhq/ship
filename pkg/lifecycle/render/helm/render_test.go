@@ -60,10 +60,14 @@ func TestRender(t *testing.T) {
 
 			ctx := context.Background()
 
-			mockFetcher.EXPECT().FetchChart(ctx, asset, metadata, configGroups, templateContext).Return(test.fetchPath, test.fetchErr)
+			mockFetcher.EXPECT().
+				FetchChart(ctx, asset, metadata, configGroups, templateContext).
+				Return(test.fetchPath, test.fetchErr)
 
 			if test.fetchErr == nil {
-				mockTemplater.EXPECT().Template(test.fetchPath, asset, metadata).Return(test.templateErr)
+				mockTemplater.EXPECT().
+					Template(test.fetchPath, asset, metadata, configGroups, templateContext).
+					Return(test.templateErr)
 			}
 
 			err := renderer.Execute(

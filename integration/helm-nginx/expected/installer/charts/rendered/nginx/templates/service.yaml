@@ -7,8 +7,8 @@ metadata:
     app: nginx
     chart: nginx-0.1.0
     heritage: Tiller
-    release: integration-test-helm-0.0.1
-  name: integration-test-helm-0.0.1-nginx
+    release: integration-test-helm
+  name: integration-test-helm-nginx
 spec:
 # Provides options for the service so chart users have the full choice
   type: "ClusterIP"
@@ -20,4 +20,4 @@ spec:
       targetPort: http
   selector:
     app: nginx
-    release: integration-test-helm-0.0.1
+    release: integration-test-helm

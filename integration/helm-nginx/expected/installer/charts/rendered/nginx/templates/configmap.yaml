@@ -4,10 +4,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: integration-test-helm-0.0.1-nginx
+  name: integration-test-helm-nginx
   labels:
     heritage: Tiller
-    release: integration-test-helm-0.0.1
+    release: integration-test-helm
     chart: nginx-0.1.0
     app: nginx
 data:

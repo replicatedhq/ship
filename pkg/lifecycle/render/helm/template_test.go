@@ -9,7 +9,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -17,13 +19,14 @@ import (
 
 func TestForkTemplater(t *testing.T) {
 	tests := []struct {
-		name        string
-		describe    string
-		helmForkEnv []string
-		expectError string
-		helmOpts    []string
-		helmValues  map[string]interface{}
-		channelName string
+		name            string
+		describe        string
+		helmForkEnv     []string
+		expectError     string
+		helmOpts        []string
+		helmValues      map[string]interface{}
+		templateContext map[string]interface{}
+		channelName     string
 	}{
 		{
 			name:     "helm crashes",
@@ -91,8 +94,7 @@ func TestForkTemplater(t *testing.T) {
 			},
 		},
 		{
-			name:     "helm replaces spacial characters in ",
-			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
+			name: "helm replaces spacial characters in ",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
 				"EXPECT_HELM_ARGV=" +
@@ -108,24 +110,50 @@ func TestForkTemplater(t *testing.T) {
 			},
 			channelName: "1.2.3-$#(%*)@-frobnitz",
 		},
+		{
+			name: "helm templates values from context",
+			helmForkEnv: []string{
+				"GOTEST_SUBPROCESS_MOCK=1",
+				"EXPECT_HELM_ARGV=" +
+					"template|" +
+					"/tmp/chartroot|" +
+					"--output-dir|k8s/|" +
+					"--name|1-2-3---------frobnitz|" +
+					"--set|service.clusterIP=10.3.9.2",
+			},
+			expectError: "",
+			helmValues: map[string]interface{}{
+				"service.clusterIP": "{{repl ConfigOption \"cluster_ip\"}}",
+			},
+			templateContext: map[string]interface{}{
+				"cluster_ip": "10.3.9.2",
+			},
+			channelName: "1.2.3-$#(%*)@-frobnitz",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 
+			testLogger := &logger.TestLogger{T: t}
 			tpl := &ForkTemplater{
 				Helm: func() *exec.Cmd {
 					cmd := exec.Command(os.Args[0], "-test.run=TestMockHelm")
 					cmd.Env = append(os.Environ(), test.helmForkEnv...)
 					return cmd
 				},
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				Logger:         testLogger,
+				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 			}
 
 			channelName := "Frobnitz"
 			if test.channelName != "" {
 				channelName = test.channelName
+			}
+
+			if test.templateContext == nil {
+				test.templateContext = map[string]interface{}{}
 			}
 
 			err := tpl.Template(
@@ -139,7 +167,10 @@ func TestForkTemplater(t *testing.T) {
 				}, api.ReleaseMetadata{
 					Semver:      "1.0.0",
 					ChannelName: channelName,
-				})
+				},
+				[]libyaml.ConfigGroup{},
+				test.templateContext,
+			)
 
 			t.Logf("checking error %v", err)
 			if test.expectError == "" {
