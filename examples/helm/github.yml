@@ -1,11 +1,5 @@
 assets:
   v1:
-    - github:
-       repo: kubernetes/charts
-       path: stable/jasperreports
-       ref: fd35ab34bfd26878fb5970fbc7c3e75760df10ec
-       source: public
-       dest: jasperreports
     - helm:
         dest: charts
         github:
