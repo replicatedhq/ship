@@ -193,6 +193,19 @@ func TestMockHelm(t *testing.T) {
 		return
 	}
 
+	receivedArgs := os.Args[2:]
+	expectInit := []string{"init", "--client-only"}
+	expectUpdate := []string{"dependency", "update", "/tmp/chartroot"}
+	if reflect.DeepEqual(receivedArgs, expectInit) {
+		// we good, these are exepcted calls, and we just need to test one type of forking
+		os.Exit(0)
+	}
+
+	if reflect.DeepEqual(receivedArgs, expectUpdate) {
+		// we good, these are exepcted calls
+		os.Exit(0)
+	}
+
 	if os.Getenv("CRASHING_HELM_ERROR") != "" {
 		fmt.Fprintf(os.Stdout, os.Getenv("CRASHING_HELM_ERROR"))
 		os.Exit(1)
@@ -201,7 +214,6 @@ func TestMockHelm(t *testing.T) {
 	if os.Getenv("EXPECT_HELM_ARGV") != "" {
 		// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
 		expectedArgs := strings.Split(os.Getenv("EXPECT_HELM_ARGV"), "|")
-		receivedArgs := os.Args[2:]
 
 		fmt.Fprintf(os.Stderr, "expected args %v, got args %v", expectedArgs, receivedArgs)
 		if !reflect.DeepEqual(receivedArgs, expectedArgs) {
