@@ -1,5 +1,10 @@
 assets:
   v1:
+    - inline:
+         dest: jasper_values.yaml
+         contents: |
+           two_plus_two: {{repl Add 2 3}}
+           service_type: {{repl ConfigOption "service_type"}}
     - helm:
         dest: charts
         github:
@@ -7,9 +12,17 @@ assets:
           path: stable/jasperreports
           ref: fd35ab34bfd26878fb5970fbc7c3e75760df10ec
           source: public
+        helm_opts:
+          - --values
+          - installer/jasper_values.yaml
 
 config:
-  v1: []
+  v1:
+    - name: k8s
+      items: 
+        - name: service_type
+          type: text
+          title: "Service Type (LoadBalancer, NodePort, etc)"
 
 lifecycle:
   v1:
