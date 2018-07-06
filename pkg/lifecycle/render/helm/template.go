@@ -73,25 +73,23 @@ func (f *ForkTemplater) Template(
 		cmd.Args = append(cmd.Args, asset.HelmOpts...)
 	}
 
-	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	args, err := f.appendHelmValues(configGroups, templateContext, asset)
 	if err != nil {
-		return errors.Wrap(err, "create config context")
+		return errors.Wrap(err, "build helm values")
 	}
-	builder := f.BuilderBuilder.NewBuilder(
-		f.BuilderBuilder.NewStaticContext(),
-		configCtx,
-	)
+	cmd.Args = append(cmd.Args, args...)
 
-	if asset.Values != nil {
-		for key, value := range asset.Values {
-			if err := appendHelmValue(value, builder, cmd, key); err != nil {
-				return errors.Wrapf(err, "append helm value %s", key)
-			}
-		}
+	err = f.helmInitClient(chartRoot)
+	if err != nil {
+		return errors.Wrap(err, "init helm client")
+	}
+
+	err = f.helmDependencyUpdate(chartRoot)
+	if err != nil {
+		return errors.Wrap(err, "update helm dependencies")
 	}
 
 	stdout, stderr, err := f.fork(cmd)
-
 	if err != nil {
 		debug.Log("event", "cmd.err")
 		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
@@ -104,21 +102,52 @@ func (f *ForkTemplater) Template(
 	return nil
 }
 
-func appendHelmValue(value interface{}, builder templates.Builder, cmd *exec.Cmd, key string) error {
+func (f *ForkTemplater) appendHelmValues(
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+	asset api.HelmAsset,
+) ([]string, error) {
+	var cmdArgs []string
+	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	if err != nil {
+		return nil, errors.Wrap(err, "create config context")
+	}
+	builder := f.BuilderBuilder.NewBuilder(
+		f.BuilderBuilder.NewStaticContext(),
+		configCtx,
+	)
+	if asset.Values != nil {
+		for key, value := range asset.Values {
+			args, err := appendHelmValue(value, builder, cmdArgs, key)
+			if err != nil {
+				return nil, errors.Wrapf(err, "append helm value %s", key)
+			}
+			cmdArgs = append(cmdArgs, args...)
+		}
+	}
+	return cmdArgs, nil
+}
+
+func appendHelmValue(
+	value interface{},
+	builder templates.Builder,
+	args []string,
+	key string,
+) ([]string, error) {
 	stringValue, ok := value.(string)
 	if !ok {
-		cmd.Args = append(cmd.Args, "--set")
-		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, value))
-		return nil
+		args = append(args, "--set")
+		args = append(args, fmt.Sprintf("%s=%s", key, value))
+		return args, nil
 	}
 
 	renderedValue, err := builder.String(stringValue)
 	if err != nil {
-		return errors.Wrapf(err, "render value for %s", key)
+		return nil, errors.Wrapf(err, "render value for %s", key)
 	}
-	cmd.Args = append(cmd.Args, "--set")
-	cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", key, renderedValue))
-	return nil
+	args = append(args, "--set")
+	args = append(args, fmt.Sprintf("%s=%s", key, renderedValue))
+	return args, nil
 }
 
 func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
@@ -163,6 +192,52 @@ func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
 	debug.Log("event", "cmd.streams.read.done")
 
 	return stdout, stderr, err
+}
+func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
+	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "render.step", "helm.dependencyUpdate"))
+	cmd := f.Helm()
+	cmd.Args = append(cmd.Args,
+		"dependency",
+		"update",
+		chartRoot,
+	)
+
+	debug.Log("event", "helm.update", "args", cmd.Args)
+
+	stdout, stderr, err := f.fork(cmd)
+
+	if err != nil {
+		debug.Log("event", "cmd.err")
+		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
+			return errors.Errorf(`execute helm dependency update: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
+		}
+		return errors.Wrap(err, "execute helm dependency update")
+	}
+
+	return nil
+}
+
+func (f *ForkTemplater) helmInitClient(chartRoot string) error {
+	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm"))
+	cmd := f.Helm()
+	cmd.Args = append(cmd.Args,
+		"init",
+		"--client-only",
+	)
+
+	debug.Log("event", "helm.initClient", "args", cmd.Args)
+
+	stdout, stderr, err := f.fork(cmd)
+
+	if err != nil {
+		debug.Log("event", "cmd.err")
+		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
+			return errors.Errorf(`execute helm dependency update: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
+		}
+		return errors.Wrap(err, "execute helm dependency update")
+	}
+
+	return nil
 }
 
 // NewTemplater returns a configured Templater. For now we just always fork

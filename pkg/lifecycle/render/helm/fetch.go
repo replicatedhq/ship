@@ -66,7 +66,7 @@ func (f *ClientFetcher) FetchChart(
 			return "", errors.Wrap(err, "fetch github asset")
 		}
 
-		return checkoutDir, nil
+		return path.Join(checkoutDir, asset.GitHub.Path), nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")

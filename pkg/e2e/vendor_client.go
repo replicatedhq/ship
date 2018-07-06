@@ -61,7 +61,8 @@ mutation($channelId: ID!, $semver: String!, $spec: String!, $releaseNotes: Strin
 		semver: $semver
 		spec: $spec
 		releaseNotes: $releaseNotes
-)
+) {
+  id }
 }`,
 		Variables: map[string]string{
 			"spec":         spec,

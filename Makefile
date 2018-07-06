@@ -156,6 +156,9 @@ build: test bin/ship
 
 _build: bin/ship
 
+_build_docker: bin/ship
+	docker build -t replicated/ship:unstable -f deploy/Dockerfile .
+
 bin/ship: $(SRC)
 	go build \
 		-i \
