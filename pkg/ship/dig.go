@@ -19,6 +19,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -63,6 +64,8 @@ func buildInjector() (*dig.Container, error) {
 		helm.NewFetcher,
 		helm.NewTemplater,
 
+		web.NewStep,
+    
 		github.NewRenderer,
 
 		NewShip,

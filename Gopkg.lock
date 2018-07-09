@@ -200,6 +200,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/jarcoal/httpmock"
+  packages = ["."]
+  revision = "9c70cfe4a1dad2f143c2244b45f2161fc72ceddf"
+
+[[projects]]
+  branch = "master"
   name = "github.com/kr/logfmt"
   packages = ["."]
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"

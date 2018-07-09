@@ -54,6 +54,10 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefix, asset.DockerLayer.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
 			plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
+		} else if asset.Web != nil {
+			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
+			debug.Log("event", "asset.resolve", "asset.type", "web")
+			plan = append(plan, p.webStep(*asset.Web, meta, configGroups, templateContext))
 		} else if asset.GitHub != nil {
 			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "github")
@@ -112,6 +116,19 @@ func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.
 			}
 			return nil
 		},
+	}
+}
+
+func (p *CLIPlanner) webStep(
+	asset api.WebAsset,
+	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	templateContext map[string]interface{},
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Web.Execute(asset, meta, configGroups, templateContext),
 	}
 }
 
