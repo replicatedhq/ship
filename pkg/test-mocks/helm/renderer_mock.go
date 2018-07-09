@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
 )
 
@@ -36,13 +37,13 @@ func (m *MockRenderer) EXPECT() *MockRendererMockRecorder {
 }
 
 // Execute mocks base method
-func (m *MockRenderer) Execute(arg0 api.HelmAsset, arg1 api.ReleaseMetadata, arg2 map[string]interface{}) func(context.Context) error {
-	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2)
+func (m *MockRenderer) Execute(arg0 api.HelmAsset, arg1 api.ReleaseMetadata, arg2 map[string]interface{}, arg3 []libyaml.ConfigGroup) func(context.Context) error {
+	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(func(context.Context) error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2)
+func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2, arg3)
 }

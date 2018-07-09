@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"fmt"
-	"strings"
-
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -14,6 +11,7 @@ import (
 	mockdocker "github.com/replicatedhq/ship/pkg/test-mocks/docker"
 	"github.com/replicatedhq/ship/pkg/test-mocks/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -81,8 +79,8 @@ func TestUnpackLayer(t *testing.T) {
 				})
 
 				if test.dockerError == nil {
-					archiver.EXPECT().Open(&startswith{"/tmp/dockerlayer"}, &startswith{"/tmp/dockerlayer"}).Return(nil)
-					archiver.EXPECT().Open(&startswith{"/tmp/dockerlayer"}, asset.Dest).Return(nil)
+					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, &matchers.StartsWith{Value: "/tmp/dockerlayer"}).Return(nil)
+					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, asset.Dest).Return(nil)
 				}
 
 				err := unpacker.Execute(asset, meta, watchProgress)(ctx)
@@ -102,18 +100,4 @@ func TestUnpackLayer(t *testing.T) {
 			}()
 		})
 	}
-}
-
-var _ gomock.Matcher = &startswith{}
-
-type startswith struct {
-	value string
-}
-
-func (s *startswith) String() string {
-	return fmt.Sprintf("start with %s", s.value)
-}
-func (s *startswith) Matches(x interface{}) bool {
-	str := fmt.Sprintf("%v", x)
-	return strings.HasPrefix(str, s.value)
 }

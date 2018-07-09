@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -57,6 +58,7 @@ type CLIPlanner struct {
 	Docker      docker.Renderer
 	DockerLayer *dockerlayer.Unpacker
 	Web         web.Renderer
+	GitHub      github.Renderer
 }
 
 func NewPlanner(
@@ -68,6 +70,7 @@ func NewPlanner(
 	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
 	dockerlayers *dockerlayer.Unpacker,
+	gh github.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -78,6 +81,7 @@ func NewPlanner(
 		Helm:           helmRenderer,
 		Docker:         dockerRenderer,
 		DockerLayer:    dockerlayers,
+		GitHub:         gh,
 	}
 }
 

@@ -6,5 +6,7 @@ e2e-retraced/retraced-post.sh
 .vscode
 /installer/
 /.ship/
+integration/*/test*
 
 /.state/
+/pkg/testing/
