@@ -231,11 +231,7 @@
                   "values": {
                     "description": "Values to set during rendering, overrides defaults in `values.yaml` if present in the chart root.",
                     "type": "object",
-                    "properties": {
-                      ".*": {
-                        "type": "string"
-                      }
-                    },
+                    "additionalProperties": true,
                     "patternProperties": {
                       ".*": {
                         "description": "Key-value pairs to set.",
@@ -286,6 +282,72 @@
                 "required": [
                   "contents",
                   "dest"
+                ]
+              },
+              "web": {
+                "description": "A `web` asset allows to pull content from a private or public URL",
+                "examples": [
+                  {
+                    "url": "https://www.replicated.com",
+                    "dest": "./installer/replicated.html",
+                    "method": "GET"
+                  },
+                  {
+                    "url": "https://www.replicated.com",
+                    "dest": "replicated.html",
+                    "method": "POST",
+                    "body": "Hello from Replicated!",
+                    "headers": {
+                      "Authorization": [
+                        "{{repl ConfigOption \"authKey\"}}"
+                      ]
+                    }
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "description": "Content to send with a `POST` request",
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  },
+                  "headers": {
+                    "description": "HTTP request headers to send with the request",
+                    "patternProperties": {
+                      ".*": {
+                        "description": "Header values",
+                        "type": "array"
+                      }
+                    },
+                    "type": "object",
+                    "properties": {
+                      ".*": {
+                        "type": "array"
+                      }
+                    }
+                  },
+                  "method": {
+                    "description": "The HTTP method, supports `GET` and `POST` methods",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Unix file permissions to set on the asset",
+                    "type": "integer"
+                  },
+                  "url": {
+                    "description": "A public or private URL to pull content from",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url",
+                  "dest",
+                  "method"
                 ]
               }
             }
