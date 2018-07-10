@@ -25,6 +25,7 @@ type Asset struct {
 	GitHub      *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 	Web         *WebAsset         `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
 	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
+	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -79,4 +80,13 @@ type HelmAsset struct {
 // using other assets that are already present at `ChartRoot`
 type LocalHelmOpts struct {
 	ChartRoot string `json:"chart_root" yaml:"chart_root" hcl:"chart_root"`
+}
+
+// TerraformAsset
+type TerraformAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	// GitHub references a github asset from which to pull a terraform module
+	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
+	// Inline allows a vendor to specify a terraform module inline in ship
+	Inline string `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 }

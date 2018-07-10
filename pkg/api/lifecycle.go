@@ -7,8 +7,9 @@ type Lifecycle struct {
 
 // Step represents vendor-customized configuration steps & messaging
 type Step struct {
-	Message *Message `json:"message,omitempty" yaml:"message,omitempty" hcl:"message,omitempty"`
-	Render  *Render  `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
+	Message   *Message   `json:"message,omitempty" yaml:"message,omitempty" hcl:"message,omitempty"`
+	Render    *Render    `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
+	Terraform *Terraform `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 }
 
 // Message is a lifeycle step to print a message
@@ -19,4 +20,8 @@ type Message struct {
 
 // Render is a lifeycle step to collect config and render assets
 type Render struct {
+}
+
+// Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
+type Terraform struct {
 }

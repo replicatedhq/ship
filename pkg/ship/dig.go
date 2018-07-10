@@ -17,8 +17,10 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
@@ -50,6 +52,8 @@ func buildInjector() (*dig.Container, error) {
 		specs.NewGraphqlClient,
 		lifecycle.NewRunner,
 
+		inline.NewRenderer,
+
 		images.URLResolverFromViper,
 		images.NewImageSaver,
 
@@ -65,8 +69,10 @@ func buildInjector() (*dig.Container, error) {
 		helm.NewTemplater,
 
 		web.NewStep,
-    
+
 		github.NewRenderer,
+
+		terraform.NewRenderer,
 
 		NewShip,
 	}
