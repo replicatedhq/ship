@@ -343,6 +343,71 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.web",
+    "replace": {
+      "required": ["url", "dest", "method"]
+    },
+    "merge": {
+      "description": "A `web` asset allows to pull content from a private or public URL",
+      "examples": [
+        {
+          "url": "https://www.replicated.com",
+          "dest": "./installer/replicated.html",
+          "method": "GET"
+        },
+        {
+          "url": "https://www.replicated.com",
+          "dest": "replicated.html",
+          "method": "POST",
+          "body": "Hello from Replicated!",
+          "headers": {
+            "Authorization": [
+              "{{repl ConfigOption \"authKey\"}}"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.body",
+    "merge": {
+      "description": "Content to send with a `POST` request"
+    }
+
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.url",
+    "merge": {
+      "description": "A public or private URL to pull content from"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.method",
+    "merge": {
+      "description": "The HTTP method, supports `GET` and `POST` methods"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.headers",
+    "merge": {
+      "description": "HTTP request headers to send with the request",
+      "patternProperties": {
+        ".*": {
+          "description": "Header values",
+          "type": "array"
+        }
+      }
+    },
+    "delete": "properties"
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.mode",
+    "merge": {
+      "description": "Unix file permissions to set on the asset"
+    }
+  },
+  {
     "path": "properties.config",
     "merge": {
       "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on"
