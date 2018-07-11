@@ -15,6 +15,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
@@ -54,11 +56,13 @@ type CLIPlanner struct {
 	Daemon         config.Daemon
 	BuilderBuilder *templates.BuilderBuilder
 
+	Inline      inline.Renderer
 	Helm        helm.Renderer
 	Docker      docker.Renderer
 	DockerLayer *dockerlayer.Unpacker
 	Web         web.Renderer
 	GitHub      github.Renderer
+	Terraform   terraform.Renderer
 }
 
 func NewPlanner(
@@ -67,10 +71,12 @@ func NewPlanner(
 	fs afero.Afero,
 	ui cli.Ui,
 	builderBuilder *templates.BuilderBuilder,
+	inlineRenderer inline.Renderer,
 	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
 	dockerlayers *dockerlayer.Unpacker,
 	gh github.Renderer,
+	tf terraform.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -78,10 +84,13 @@ func NewPlanner(
 		UI:             ui,
 		Viper:          v,
 		BuilderBuilder: builderBuilder,
-		Helm:           helmRenderer,
-		Docker:         dockerRenderer,
-		DockerLayer:    dockerlayers,
-		GitHub:         gh,
+
+		Inline:      inlineRenderer,
+		Helm:        helmRenderer,
+		Docker:      dockerRenderer,
+		DockerLayer: dockerlayers,
+		GitHub:      gh,
+		Terraform:   tf,
 	}
 }
 

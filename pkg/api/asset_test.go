@@ -125,6 +125,25 @@ assets:
 				},
 			},
 		},
+		{
+			name: "terraform",
+			yaml: `
+---
+assets:
+  v1:
+    - terraform:
+        dest: tf/io.tf
+        inline: |
+          variable "project-name" {}`,
+			expect: Asset{
+				Terraform: &TerraformAsset{
+					Inline: `variable "project-name" {}`,
+					AssetShared: AssetShared{
+						Dest: "tf/io.tf",
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

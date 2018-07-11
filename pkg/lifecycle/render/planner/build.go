@@ -1,17 +1,13 @@
 package planner
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
-	"github.com/replicatedhq/ship/pkg/templates"
-
-	"github.com/replicatedhq/libyaml"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -41,7 +37,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		if asset.Inline != nil {
 			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "inline")
-			plan = append(plan, p.inlineStep(asset.Inline, configGroups, meta, templateContext))
+			plan = append(plan, p.inlineStep(*asset.Inline, configGroups, meta, templateContext))
 		} else if asset.Docker != nil {
 			asset.Docker.Dest = filepath.Join(constants.InstallerPrefix, asset.Docker.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "docker")
@@ -62,60 +58,31 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
 			debug.Log("event", "asset.resolve", "asset.type", "github")
 			plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
+		} else if asset.Terraform != nil {
+			asset.Terraform.Dest = filepath.Join("installer", asset.Terraform.Dest)
+			debug.Log("event", "asset.resolve", "asset.type", "terraform")
+			plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
-			return nil, errors.New("Unknown asset: type is not one of [inline docker helm dockerlayer]")
+			return nil, errors.New(
+				"Unknown asset: type is not one of " +
+					"[inline docker helm dockerlayer github terraform]",
+			)
 		}
 	}
 	return plan, nil
 }
 
-func (p *CLIPlanner) inlineStep(inline *api.InlineAsset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) Step {
-	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "inline", "dest", inline.Dest, "description", inline.Description))
+func (p *CLIPlanner) inlineStep(
+	inline api.InlineAsset,
+	configGroups []libyaml.ConfigGroup,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+) Step {
 	return Step{
 		Dest:        inline.Dest,
 		Description: inline.Description,
-		Execute: func(ctx context.Context) error {
-			debug.Log("event", "execute")
-
-			configCtx, err := templates.NewConfigContext(p.Logger, configGroups, templateContext)
-			if err != nil {
-				return errors.Wrap(err, "getting config context")
-			}
-
-			builder := p.BuilderBuilder.NewBuilder(
-				p.BuilderBuilder.NewStaticContext(),
-				configCtx,
-				&templates.InstallationContext{
-					Meta:  meta,
-					Viper: p.Viper,
-				},
-			)
-
-			built, err := builder.String(inline.Contents)
-			if err != nil {
-				return errors.Wrap(err, "building contents")
-			}
-
-			basePath := filepath.Dir(inline.Dest)
-			debug.Log("event", "mkdirall.attempt", "dest", inline.Dest, "basePath", basePath)
-			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-				debug.Log("event", "mkdirall.fail", "err", err, "dest", inline.Dest, "basePath", basePath)
-				return errors.Wrapf(err, "write directory to %s", inline.Dest)
-			}
-
-			mode := os.FileMode(0644)
-			if inline.Mode != os.FileMode(0) {
-				debug.Log("event", "applying override permissions")
-				mode = inline.Mode
-			}
-
-			if err := p.Fs.WriteFile(inline.Dest, []byte(built), mode); err != nil {
-				debug.Log("event", "execute.fail", "err", err)
-				return errors.Wrapf(err, "Write inline asset to %s", inline.Dest)
-			}
-			return nil
-		},
+		Execute:     p.Inline.Execute(inline, meta, templateContext, configGroups),
 	}
 }
 
@@ -161,6 +128,19 @@ func (p *CLIPlanner) dockerLayerStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.DockerLayer.Execute(asset, metadata, p.watchProgress),
+	}
+}
+
+func (p *CLIPlanner) terraformStep(
+	asset api.TerraformAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Terraform.Execute(asset, meta, configGroups, templateContext),
 	}
 }
 
