@@ -32,9 +32,45 @@ func NewManager(
 	}
 }
 
+type State interface {
+	CurrentConfig() map[string]interface{}
+}
+
+type V0 map[string]interface{}
+type V1 struct {
+	Config    map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
+	Terraform interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+}
+
+var _ State = VersionedState{}
+var _ State = empty{}
+var _ State = V0{}
+
+type VersionedState struct {
+	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
+}
+
+func (u VersionedState) CurrentConfig() map[string]interface{} {
+	if u.V1 != nil && u.V1.Config != nil {
+		return u.V1.Config
+	}
+	return make(map[string]interface{})
+}
+
+type empty struct{}
+
+func (empty) CurrentConfig() map[string]interface{} {
+	return make(map[string]interface{})
+}
+
+func (v V0) CurrentConfig() map[string]interface{} {
+	return v
+}
+
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	serialized, err := json.Marshal(templateContext)
+	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
+	serialized, err := json.Marshal(toSerialize)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
@@ -52,7 +88,7 @@ func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templat
 }
 
 // TryLoad will attempt to load a state file from disk, if present
-func (s *Manager) TryLoad() (map[string]interface{}, error) {
+func (s *Manager) TryLoad() (State, error) {
 	statePath := s.V.GetString("state-file")
 	if statePath == "" {
 		statePath = Path
@@ -60,7 +96,7 @@ func (s *Manager) TryLoad() (map[string]interface{}, error) {
 
 	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", statePath)
-		return make(map[string]interface{}), nil
+		return empty{}, nil
 	}
 
 	serialized, err := s.FS.ReadFile(statePath)
@@ -68,10 +104,24 @@ func (s *Manager) TryLoad() (map[string]interface{}, error) {
 		return nil, errors.Wrap(err, "read state file")
 	}
 
-	templateContext := make(map[string]interface{})
-	if err := json.Unmarshal(serialized, &templateContext); err != nil {
+	// HACK -- try to deserialize it as VersionedState, otherwise, assume its a raw map of config values
+	var state VersionedState
+	if err := json.Unmarshal(serialized, &state); err != nil {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	return templateContext, nil
+	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", state)
+
+	if state.V1 != nil && state.V1.Config != nil {
+		level.Debug(s.Logger).Log("event", "state.resolve", "type", "versioned")
+		return state, nil
+	}
+
+	var mapState map[string]interface{}
+	if err := json.Unmarshal(serialized, &mapState); err != nil {
+		return nil, errors.Wrap(err, "unmarshal state")
+	}
+
+	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
+	return V0(mapState), nil
 }

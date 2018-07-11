@@ -63,7 +63,7 @@ func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
 		warn.Log("event", "state missing", "err", err)
 	}
 
-	return currentConfig
+	return currentConfig.CurrentConfig()
 }
 
 func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Release) error {

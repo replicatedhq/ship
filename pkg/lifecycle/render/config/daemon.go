@@ -27,6 +27,9 @@ var (
 	errInternal = errors.New("internal_error")
 )
 
+// Daemon is a sort of UI interface. Some implementations start an API to
+// power the on-prem web console. A headless implementation logs progress
+// to stdout.
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushStep(context.Context, string, api.Step)
@@ -359,7 +362,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate, liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -416,7 +419,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "state.tryLoad")
-		savedSate, err := d.StateManager.TryLoad()
+		savedState, err := d.StateManager.TryLoad()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -429,7 +432,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate, liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
