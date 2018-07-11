@@ -2,32 +2,14 @@
 ---
 assets:
   v1:
-    - inline:
-        contents: |
-          #!/bin/bash
-          echo "{{repl ConfigOption "option" }}"
-        dest: ./scripts/install.sh
-        mode: 0777
-    - inline:
-        contents: |
-          #!/bin/bash
-        dest: ./scripts/test.sh
-        mode: 0777
     - dockerlayer:
         dest: docker/
-        image: replicated/statsd-graphite:168eb98
+        image: replicated/helloscratch:1.0.0
         source: public
-        layer: 845cc65ea7756352f043d8fa257f82d3785817fb7c624202f304d9b1ed93ec9b
+        layer: a0303cd8f7f11c340b0ef7dcaf5a90f6303f5125750f9413e50a2e5e7c3708ee
 
 config:
-  v1:
-    - name: info
-      title: Info
-      description: information
-      items:
-      - name: option
-        title: Option
-        type: text
+  v1: []
 
 lifecycle:
   v1:

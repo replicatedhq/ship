@@ -70,7 +70,6 @@ func (v V0) CurrentConfig() map[string]interface{} {
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
 	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
-	//toSerialize := templateContext
 	serialized, err := json.Marshal(toSerialize)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")

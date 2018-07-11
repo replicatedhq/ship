@@ -27,10 +27,10 @@ assets:
         dest: ./scripts/test.sh
         mode: 0777
     - docker:
-        image: alpine:3.5
+        image: replicated/helloscratch:1.0.0
         source: public
-        dest: docker/alpine3-5.tar    
-    
+        dest: docker/hello.tar
+
     # "docker" can be used to provide proxied access to private docker images
 #    - docker:
 #        image: postgres
@@ -57,4 +57,3 @@ config:
 lifecycle:
   v1:
     - render: {}
-  
