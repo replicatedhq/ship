@@ -50,7 +50,8 @@ config:
          - name: gce_project
            title: Google Cloud project name
            type: text
-           required: true - name: gce_region
+           required: true
+         - name: gce_region
            title: Google Cloud compute region
            type: text
            default: us-central1
