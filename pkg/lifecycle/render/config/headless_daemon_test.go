@@ -28,6 +28,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		{
 			Name:  "empty",
 			State: []byte(`{}`),
+
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -35,7 +36,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{}`),
+			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -59,7 +60,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -83,7 +84,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{}`),
+			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
 			ExpectedError: true,
 		},
 		{
@@ -107,7 +108,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -131,7 +132,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -155,7 +156,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -179,7 +180,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -203,7 +204,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -227,7 +228,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -251,7 +252,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -282,7 +283,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"","beta":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"","beta":""}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -313,7 +314,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{}`),
+			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
 			ExpectedError: true,
 		},
 		{
@@ -344,7 +345,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"","beta":""}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"","beta":""}}}`),
 			ExpectedError: true,
 		},
 		{
@@ -375,7 +376,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100","beta":"200"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"200"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -406,7 +407,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"101","beta":"101"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"101","beta":"101"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -437,7 +438,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"101","beta":"101"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"101","beta":"101"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -475,7 +476,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100","beta":"100","charlie":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"100","charlie":"100"}}}`),
 			ExpectedError: false,
 		},
 		{
@@ -548,7 +549,7 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"alpha":"100","beta":"100","charlie":"100"}`),
+			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"100","charlie":"100"}}}`),
 			ExpectedError: true,
 		},
 	}

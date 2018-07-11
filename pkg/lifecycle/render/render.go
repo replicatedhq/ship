@@ -76,13 +76,13 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	debug.Log("event", "step.execute")
 
 	r.Daemon.SetProgress(ProgressLoad)
-	previousTemplateContext, err := r.StateManager.TryLoad()
+	previousState, err := r.StateManager.TryLoad()
 	if err != nil {
 		return err
 	}
 
 	r.Daemon.SetProgress(ProgressResolve)
-	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousTemplateContext)
+	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousState.CurrentConfig())
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}

@@ -22,6 +22,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
+	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -45,6 +46,8 @@ func buildInjector() (*dig.Container, error) {
 		config.NewHeadedDaemon,
 		config.NewHeadlessDaemon,
 		config.NewResolver,
+		terraform2.NewTerraformer,
+
 		state.NewManager,
 		planner.NewPlanner,
 		render.NewRenderer,
