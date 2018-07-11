@@ -10,16 +10,18 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"go.uber.org/dig"
 )
 
 type StepExecutor struct {
 	dig.In
 
-	Logger    log.Logger
-	Renderer  *render.Renderer
-	Messenger message.Messenger
-	Daemon    config.Daemon
+	Logger      log.Logger
+	Renderer    *render.Renderer
+	Messenger   message.Messenger
+	Terraformer terraform.Terraformer
+	Daemon      config.Daemon
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -35,8 +37,14 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		err := s.Renderer.Execute(ctx, release, step.Render)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
+	} else if step.Terraform != nil {
+		debug.Log("event", "step.resolve", "type", "terraform")
+		err := s.Terraformer.Execute(ctx, *release, *step.Terraform)
+		debug.Log("event", "step.complete", "type", "terraform", "err", err)
+		return errors.Wrap(err, "execute terraform step")
 	}
 
+	debug.Log("event", "step.unknown")
 	return nil
 }
 
