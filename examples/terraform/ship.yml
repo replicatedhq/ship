@@ -3,17 +3,17 @@ assets:
     - terraform:
         inline: |
           provider "google" {
-            project     = {{repl ConfigOption "gce_project"}}
-            region      = {{repl ConfigOption "gce_region"}}
+            project     = "{{repl ConfigOption "gce_project"}}"
+            region      = "{{repl ConfigOption "gce_region"}}"
             credentials = <<EOF
-            {{repl ConfigOptionData "gcloud_account_json"}}
+          {{repl ConfigOptionData "gcloud_account_json"}}
           EOF
 
           }
 
           resource "google_container_cluster" "primary" {
             name               = "marcellus-wallace"
-            region             = {{repl ConfigOption "gce_zone"}}
+            region             = "{{repl ConfigOption "gce_zone"}}"
             initial_node_count = 3
 
             additional_zones = [
@@ -50,8 +50,7 @@ config:
          - name: gce_project
            title: Google Cloud project name
            type: text
-           required: true
-         - name: gce_region
+           required: true - name: gce_region
            title: Google Cloud compute region
            type: text
            default: us-central1
