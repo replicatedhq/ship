@@ -87,15 +87,15 @@ func (p *CLIPlanner) inlineStep(
 }
 
 func (p *CLIPlanner) webStep(
-	asset api.WebAsset,
+	web api.WebAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) Step {
 	return Step{
-		Dest:        asset.Dest,
-		Description: asset.Description,
-		Execute:     p.Web.Execute(asset, meta, configGroups, templateContext),
+		Dest:        web.Dest,
+		Description: web.Description,
+		Execute:     p.Web.Execute(web, meta, configGroups, templateContext),
 	}
 }
 

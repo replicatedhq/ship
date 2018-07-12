@@ -31,6 +31,8 @@ type Renderer interface {
 	) func(ctx context.Context) error
 }
 
+var _ Renderer = &DefaultStep{}
+
 type DefaultStep struct {
 	Logger         log.Logger
 	Fs             afero.Afero
@@ -81,12 +83,6 @@ func (p *DefaultStep) Execute(
 			return errors.Wrapf(err, "Build web asset")
 		}
 
-		body, err := p.pullWebAsset(built)
-		if err != nil {
-			debug.Log("event", "execute.fail", "err", err)
-			return errors.Wrapf(err, "Get web asset from %s", asset.URL)
-		}
-
 		basePath := filepath.Dir(asset.Dest)
 		debug.Log("event", "mkdirall.attempt", "dest", built.Dest, "basePath", basePath)
 		if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
@@ -94,15 +90,9 @@ func (p *DefaultStep) Execute(
 			return errors.Wrapf(err, "Create directory path %s", basePath)
 		}
 
-		file, err := p.Fs.Create(built.Dest)
-		if err != nil {
-			debug.Log("event", "create.fail", "err", err, "file", file)
-			return errors.Wrapf(err, "Create file %s", file)
-		}
-
-		if _, err := io.Copy(file, body.Body); err != nil {
-			debug.Log("event", "stream.fail", "err", err)
-			return errors.Wrapf(err, "Stream HTTP response body to %s", file)
+		if err := p.pullWebAsset(built); err != nil {
+			debug.Log("event", "pullWebAsset.fail", "err", err)
+			return errors.Wrapf(err, "Get web asset from %s", asset.URL)
 		}
 
 		return nil
@@ -168,10 +158,10 @@ func (p *DefaultStep) buildAsset(
 	}, nil
 }
 
-func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
+func (p *DefaultStep) pullWebAsset(built *Built) error {
 	req, err := makeRequest(built.URL, built.Method, built.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Request web asset from %s", built.URL)
+		return errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
 
 	if len(built.Headers) != 0 {
@@ -184,15 +174,25 @@ func (p *DefaultStep) pullWebAsset(built *Built) (*http.Response, error) {
 
 	resp, respErr := p.Client.Do(req)
 	if respErr != nil {
-		return nil, errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
+		return errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 {
-		return nil, errors.Errorf("received response with status %d", resp.StatusCode)
+		return errors.Errorf("received response with status %d", resp.StatusCode)
 	}
 
-	return resp, nil
+	file, err := p.Fs.Create(built.Dest)
+	if err != nil {
+		return errors.Wrapf(err, "Create file %s", file)
+	}
+
+	if _, err := io.Copy(file, resp.Body); err != nil {
+		return errors.Wrapf(err, "Stream HTTP response body to %s", file.Name())
+	}
+	file.Close()
+
+	return nil
 }
 
 func makeRequest(url string, method string, body string) (*http.Request, error) {
