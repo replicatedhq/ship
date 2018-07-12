@@ -77,6 +77,7 @@ func NewPlanner(
 	dockerlayers *dockerlayer.Unpacker,
 	gh github.Renderer,
 	tf terraform.Renderer,
+	webRenderer web.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -91,6 +92,7 @@ func NewPlanner(
 		DockerLayer: dockerlayers,
 		GitHub:      gh,
 		Terraform:   tf,
+		Web:         webRenderer,
 	}
 }
 
