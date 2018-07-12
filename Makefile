@@ -118,7 +118,7 @@ _mockgen:
 mockgen: _mockgen fmt
 
 deps:
-	dep ensure -v; dep prune -v
+	dep ensure -v
 
 
 fmt:
