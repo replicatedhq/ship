@@ -231,6 +231,24 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		"currentStep": d.currentStep,
 		"phase":       d.currentStepName,
 	}
+
+	// a bit of a hack, we're migrating UI to
+	// render dynamic buttons
+	if d.currentStepName == "message" {
+		result["actions"] = []map[string]interface{}{
+			{
+				"buttonType":  "primary",
+				"text":        "Confirm",
+				"loadingText": "Confirming",
+				"onclick": map[string]string{
+					"uri":    "/message/confirm",
+					"method": "POST",
+					"body":   `{"step_name": "message"}`,
+				},
+			},
+		}
+	}
+
 	if d.stepProgress != nil {
 		result["progress"] = d.stepProgress
 	}
