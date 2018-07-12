@@ -43,6 +43,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/helm
 	mkdir -p pkg/test-mocks/dockerlayer
 	mkdir -p pkg/test-mocks/github
+	mkdir -p pkg/test-mocks/inline
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -107,6 +108,11 @@ _mockgen:
 		-destination pkg/test-mocks/github/github_mock.go \
 		-package github \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/github \
+		Renderer
+	mockgen \
+		-destination pkg/test-mocks/inline/inline_mock.go \
+		-package inline \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/inline \
 		Renderer
 
 mockgen: _mockgen fmt
