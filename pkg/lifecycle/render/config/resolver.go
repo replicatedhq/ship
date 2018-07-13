@@ -65,14 +65,15 @@ func NewHeadedDaemon(
 	fs afero.Afero,
 ) *daemon.ShipDaemon {
 	return &daemon.ShipDaemon{
-		Logger:           logger,
-		Fs:               fs,
-		UI:               ui,
-		StateManager:     stateManager,
-		Viper:            v,
-		ConfigSaved:      make(chan interface{}),
-		MessageConfirmed: make(chan string, 1),
-		ConfigRenderer:   renderer,
+		Logger:             logger,
+		Fs:                 fs,
+		UI:                 ui,
+		StateManager:       stateManager,
+		Viper:              v,
+		ConfigSaved:        make(chan interface{}),
+		MessageConfirmed:   make(chan string, 1),
+		TerraformConfirmed: make(chan bool, 1),
+		ConfigRenderer:     renderer,
 	}
 
 }

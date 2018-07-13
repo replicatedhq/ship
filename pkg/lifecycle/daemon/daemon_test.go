@@ -26,7 +26,7 @@ type daemonAPITestCase struct {
 	test func(t *testing.T)
 }
 
-func initTestDaemon(t *testing.T, release *api.Release) (Daemon, int, context.CancelFunc, error) {
+func initTestDaemon(t *testing.T, release *api.Release) (*ShipDaemon, int, context.CancelFunc, error) {
 	v := viper.New()
 
 	port := rand.Intn(2000) + 33000
@@ -118,7 +118,10 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "read message after 1st step",
 			test: func(t *testing.T) {
-				daemon.PushStep(context.Background(), "step1", step1)
+				daemon.PushMessageStep(context.Background(), Message{
+					Contents: step1.Message.Contents,
+					Level:    step1.Message.Level,
+				}, MessageActions())
 
 				resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/message/get", port))
 				require.New(t).NoError(err)
@@ -136,9 +139,14 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "confirm message that is not current",
 			test: func(t *testing.T) {
-				daemon.PushStep(context.Background(), "step2", step2)
+				log := &logger.TestLogger{T: t}
+				daemon.PushMessageStep(context.Background(), Message{
+					Contents: step2.Message.Contents,
+					Level:    step2.Message.Level,
+				}, MessageActions())
 
-				reqBody := bytes.NewReader([]byte(`{"step_name": "step1"}`))
+				reqBody := bytes.NewReader([]byte(`{"step_name": "wrong-name"}`))
+				log.Log("daemon.current", daemon.currentStepName)
 				resp, err := http.Post(fmt.Sprintf("http://localhost:%d/api/v1/message/confirm", port), "application/json", reqBody)
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusBadRequest, resp.StatusCode)
@@ -155,12 +163,14 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "confirm message that is current",
 			test: func(t *testing.T) {
-				reqBody := bytes.NewReader([]byte(`{"step_name": "step2"}`))
+				log := &logger.TestLogger{T: t}
+				reqBody := bytes.NewReader([]byte(`{"step_name": "message"}`))
+				log.Log("daemon.current", daemon.currentStepName)
 				resp, err := http.Post(fmt.Sprintf("http://localhost:%d/api/v1/message/confirm", port), "application/json", reqBody)
 				require.New(t).NoError(err)
 				require.New(t).Equal(http.StatusOK, resp.StatusCode)
 				msg := <-daemon.MessageConfirmedChan()
-				require.New(t).Equal("step2", msg)
+				require.New(t).Equal("message", msg)
 			},
 		},
 	}

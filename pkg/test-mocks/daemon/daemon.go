@@ -104,14 +104,24 @@ func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).MessageConfirmedChan))
 }
 
-// PushStep mocks base method
-func (m *MockDaemon) PushStep(arg0 context.Context, arg1 string, arg2 api.Step) {
-	m.ctrl.Call(m, "PushStep", arg0, arg1, arg2)
+// PushMessageStep mocks base method
+func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemon.Message, arg2 []daemon.Action) {
+	m.ctrl.Call(m, "PushMessageStep", arg0, arg1, arg2)
 }
 
-// PushStep indicates an expected call of PushStep
-func (mr *MockDaemonMockRecorder) PushStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStep", reflect.TypeOf((*MockDaemon)(nil).PushStep), arg0, arg1, arg2)
+// PushMessageStep indicates an expected call of PushMessageStep
+func (mr *MockDaemonMockRecorder) PushMessageStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushMessageStep", reflect.TypeOf((*MockDaemon)(nil).PushMessageStep), arg0, arg1, arg2)
+}
+
+// PushRenderStep mocks base method
+func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemon.Render) {
+	m.ctrl.Call(m, "PushRenderStep", arg0, arg1)
+}
+
+// PushRenderStep indicates an expected call of PushRenderStep
+func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1)
 }
 
 // SetProgress mocks base method
@@ -132,4 +142,16 @@ func (m *MockDaemon) SetStepName(arg0 context.Context, arg1 string) {
 // SetStepName indicates an expected call of SetStepName
 func (mr *MockDaemonMockRecorder) SetStepName(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStepName", reflect.TypeOf((*MockDaemon)(nil).SetStepName), arg0, arg1)
+}
+
+// TerraformConfirmedChan mocks base method
+func (m *MockDaemon) TerraformConfirmedChan() chan bool {
+	ret := m.ctrl.Call(m, "TerraformConfirmedChan")
+	ret0, _ := ret[0].(chan bool)
+	return ret0
+}
+
+// TerraformConfirmedChan indicates an expected call of TerraformConfirmedChan
+func (mr *MockDaemonMockRecorder) TerraformConfirmedChan() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerraformConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).TerraformConfirmedChan))
 }

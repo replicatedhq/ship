@@ -33,11 +33,11 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 	builder := m.getBuilder(release.Metadata)
 	built, _ := builder.String(step.Contents)
 
-	m.Daemon.PushStep(ctx, "message", api.Step{
-		Message: &api.Message{
-			Contents: built,
-			Level:    step.Level,
-		}})
+	m.Daemon.PushMessageStep(ctx, daemon.Message{
+		Contents: built,
+		Level:    step.Level,
+	}, daemon.MessageActions())
+
 	debug.Log("event", "step.pushed")
 	return m.awaitMessageConfirmed(ctx, daemonExitedChan)
 }
