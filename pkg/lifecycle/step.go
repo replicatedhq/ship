@@ -7,9 +7,9 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"go.uber.org/dig"
 )
@@ -21,7 +21,7 @@ type StepExecutor struct {
 	Renderer    *render.Renderer
 	Messenger   message.Messenger
 	Terraformer terraform.Terraformer
-	Daemon      config.Daemon
+	Daemon      daemon.Daemon
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {

@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -44,7 +44,7 @@ type Planner interface {
 
 	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
-	WithDaemon(d config.Daemon) Planner
+	WithDaemon(d daemon.Daemon) Planner
 }
 
 // CLIPlanner is the default Planner
@@ -53,7 +53,7 @@ type CLIPlanner struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	Viper          *viper.Viper
-	Daemon         config.Daemon
+	Daemon         daemon.Daemon
 	BuilderBuilder *templates.BuilderBuilder
 
 	Inline      inline.Renderer
@@ -96,7 +96,7 @@ func NewPlanner(
 	}
 }
 
-func (p *CLIPlanner) WithDaemon(d config.Daemon) Planner {
+func (p *CLIPlanner) WithDaemon(d daemon.Daemon) Planner {
 	p.Daemon = d
 	return p
 }

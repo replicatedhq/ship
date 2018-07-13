@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/test-mocks/config"
+	"github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 )
 
@@ -22,7 +22,7 @@ func TestTerraformer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			//req := require.New(t)
 			mc := gomock.NewController(t)
-			mockDaemon := config.NewMockDaemon(mc)
+			mockDaemon := daemon.NewMockDaemon(mc)
 			tf := &ForkTerraformer{
 				Logger: &logger.TestLogger{T: t},
 				Daemon: mockDaemon,

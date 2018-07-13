@@ -1,4 +1,4 @@
-package config
+package daemon
 
 import (
 	"context"
@@ -18,6 +18,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -26,6 +27,9 @@ import (
 var (
 	errInternal = errors.New("internal_error")
 )
+
+const StepNameConfig = "render.config"
+const StepNameConfirm = "render.confirm"
 
 // Daemon is a sort of UI interface. Some implementations start an API to
 // power the on-prem web console. A headless implementation logs progress
@@ -49,7 +53,7 @@ type ShipDaemon struct {
 	Viper          *viper.Viper
 	UI             cli.Ui
 	StateManager   *state.Manager
-	ConfigRenderer *APIConfigRenderer
+	ConfigRenderer *resolve.APIConfigRenderer
 
 	sync.Mutex
 	currentStep          *api.Step
@@ -66,8 +70,6 @@ type ShipDaemon struct {
 	CurrentConfig map[string]interface{}
 
 	MessageConfirmed chan string
-
-	//currentPlan planner.Plan
 }
 
 func (d *ShipDaemon) PushStep(ctx context.Context, stepName string, step api.Step) {
@@ -457,7 +459,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 			return
 		}
 
-		if validationErrors := validateConfig(resolvedConfig); validationErrors != nil {
+		if validationErrors := resolve.ValidateConfig(resolvedConfig); validationErrors != nil {
 			c.AbortWithStatusJSON(400, validationErrors)
 			return
 		}

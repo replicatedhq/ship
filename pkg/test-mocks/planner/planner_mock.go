@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
-	config "github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	planner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 )
 
@@ -77,7 +77,7 @@ func (mr *MockPlannerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // WithDaemon mocks base method
-func (m *MockPlanner) WithDaemon(arg0 config.Daemon) planner.Planner {
+func (m *MockPlanner) WithDaemon(arg0 daemon.Daemon) planner.Planner {
 	ret := m.ctrl.Call(m, "WithDaemon", arg0)
 	ret0, _ := ret[0].(planner.Planner)
 	return ret0

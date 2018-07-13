@@ -1,4 +1,4 @@
-package config
+package daemon
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 )
 
@@ -16,7 +17,7 @@ type HeadlessDaemon struct {
 	StateManager   *state.Manager
 	Logger         log.Logger
 	UI             cli.Ui
-	ConfigRenderer *APIConfigRenderer
+	ConfigRenderer *resolve.APIConfigRenderer
 	ResolvedConfig map[string]interface{}
 }
 
@@ -76,7 +77,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 		return err
 	}
 
-	if validateState := validateConfig(resolved); validateState != nil {
+	if validateState := resolve.ValidateConfig(resolved); validateState != nil {
 		var invalidItemNames []string
 		for _, invalidConfigItems := range validateState {
 			invalidItemNames = append(invalidItemNames, invalidConfigItems.Name)

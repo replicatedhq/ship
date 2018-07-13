@@ -7,12 +7,12 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 )
 
 type buildProgress struct {
@@ -32,7 +32,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			StepNumber: i,
 			TotalSteps: len(assets),
 		}
-		p.Daemon.SetProgress(config.JSONProgress("build", progress))
+		p.Daemon.SetProgress(daemon.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
 			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
@@ -155,9 +155,9 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 			// continue reading on error to ensure channel is not blocked
 			saveError = v
 		case images.Progress:
-			p.Daemon.SetProgress(config.JSONProgress("docker", v))
+			p.Daemon.SetProgress(daemon.JSONProgress("docker", v))
 		case string:
-			p.Daemon.SetProgress(config.StringProgress("docker", v))
+			p.Daemon.SetProgress(daemon.StringProgress("docker", v))
 		default:
 			debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
 		}

@@ -1,4 +1,4 @@
-package config
+package daemon
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -577,7 +578,7 @@ func TestHeadlessDaemon(t *testing.T) {
 				V:      viper.New(),
 			}
 
-			resolver := &APIConfigRenderer{
+			resolver := &resolve.APIConfigRenderer{
 				Logger:         testLogger,
 				Viper:          v,
 				BuilderBuilder: builder,

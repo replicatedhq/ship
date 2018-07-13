@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
+	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	config "github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 )
 
@@ -50,7 +51,7 @@ func (mr *MockResolverMockRecorder) ResolveConfig(arg0, arg1, arg2 interface{}) 
 }
 
 // WithDaemon mocks base method
-func (m *MockResolver) WithDaemon(arg0 config.Daemon) config.Resolver {
+func (m *MockResolver) WithDaemon(arg0 daemon.Daemon) config.Resolver {
 	ret := m.ctrl.Call(m, "WithDaemon", arg0)
 	ret0, _ := ret[0].(config.Resolver)
 	return ret0
