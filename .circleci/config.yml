@@ -47,6 +47,7 @@ jobs:
             && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
             && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
 
+      - run: go get github.com/onsi/ginkgo/ginkgo
       - run: make integration-test
 
   deploy_unstable:
