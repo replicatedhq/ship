@@ -28,22 +28,24 @@ var (
 	errInternal = errors.New("internal_error")
 )
 
-const StepNameConfig = "render.config"
-const StepNameConfirm = "render.confirm"
-
 // Daemon is a sort of UI interface. Some implementations start an API to
 // power the on-prem web console. A headless implementation logs progress
 // to stdout.
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
-	PushStep(context.Context, string, api.Step)
+	PushMessageStep(context.Context, Message, []Action)
+	PushRenderStep(context.Context, Render)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
 	MessageConfirmedChan() chan string
 	ConfigSavedChan() chan interface{}
+	TerraformConfirmedChan() chan bool
 	GetCurrentConfig() map[string]interface{}
 	SetProgress(Progress)
 	ClearProgress()
+
+	//deprecated
+	PushStep(context.Context, string, api.Step, []Action)
 }
 
 // Daemon runs the ship api server.
@@ -56,12 +58,16 @@ type ShipDaemon struct {
 	ConfigRenderer *resolve.APIConfigRenderer
 
 	sync.Mutex
-	currentStep          *api.Step
+	currentStep          *Step
 	currentStepName      string
 	currentStepConfirmed bool
 	stepProgress         *Progress
 	allStepsDone         bool
-	pastSteps            []api.Step
+	pastSteps            []Step
+
+	// this is kind of kludged in,
+	// it only makes sense for Message steps
+	currentStepActions []Action
 
 	startOnce sync.Once
 
@@ -70,20 +76,60 @@ type ShipDaemon struct {
 	CurrentConfig map[string]interface{}
 
 	MessageConfirmed chan string
+
+	TerraformConfirmed chan bool
 }
 
-func (d *ShipDaemon) PushStep(ctx context.Context, stepName string, step api.Step) {
+// resets previous step and prepares for new step.
+// caller is responsible for locking the daemon before
+// calling this
+func (d *ShipDaemon) cleanPreviousStep() {
+	if d.currentStep != nil {
+		d.pastSteps = append(d.pastSteps, *d.currentStep)
+	}
+	d.currentStepName = ""
+	d.currentStep = nil
+	d.currentStepConfirmed = false
+}
 
+func (d *ShipDaemon) PushMessageStep(
+	ctx context.Context,
+	step Message,
+	actions []Action,
+) {
+	d.Lock()
+	defer d.Unlock()
+
+	d.currentStepName = StepNameMessage
+	d.currentStep = &Step{Message: &step}
+	d.currentStepActions = actions
+	d.currentStepConfirmed = false
+	d.NotifyStepChanged(StepNameConfig)
+}
+
+func (d *ShipDaemon) TerraformConfirmedChan() chan bool {
+	return d.TerraformConfirmed
+}
+
+func (d *ShipDaemon) PushStep(context.Context, string, api.Step, []Action) {
+	panic("implement me")
+}
+
+func (d *ShipDaemon) PushRenderStep(
+	ctx context.Context,
+	step Render,
+) {
 	d.Lock()
 	defer d.Unlock()
 
 	if d.currentStep != nil {
 		d.pastSteps = append(d.pastSteps, *d.currentStep)
 	}
-	d.currentStepName = stepName
-	d.currentStep = &step
+	d.currentStepName = StepNameConfig
+	d.currentStep = &Step{Render: &step}
 	d.currentStepConfirmed = false
-	d.NotifyStepChanged(stepName)
+	d.currentStepActions = nil
+	d.NotifyStepChanged(StepNameConfig)
 }
 
 func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {
@@ -175,6 +221,10 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	mesg.POST("confirm", d.postConfirmMessage)
 	mesg.GET("get", d.getCurrentMessage)
 
+	tf := v1.Group("/terraform")
+	tf.POST("apply", d.terraformApply)
+	tf.POST("skip", d.terraformSkip)
+
 	v1.GET("/channel", d.getChannel(release))
 
 }
@@ -219,6 +269,13 @@ func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 	})
 }
 
+type StepResponse struct {
+	CurrentStep Step      `json:"currentStep"`
+	Phase       string    `json:"phase"`
+	Actions     []Action  `json:"actions,omitempty"`
+	Progress    *Progress `json:"progress,omitempty"`
+}
+
 func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 	if d.currentStep == nil {
 		d.getLoadingStep(c)
@@ -229,33 +286,34 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		return
 	}
 
-	result := map[string]interface{}{
-		"currentStep": d.currentStep,
-		"phase":       d.currentStepName,
+	result := StepResponse{
+		CurrentStep: *d.currentStep,
+		Phase:       d.currentStepName,
+		Actions:     d.currentStepActions,
 	}
 
-	// a bit of a hack, we're migrating UI to
-	// render dynamic buttons
-	if d.currentStepName == "message" {
-		result["actions"] = []map[string]interface{}{
-			{
-				"buttonType":  "primary",
-				"text":        "Confirm",
-				"loadingText": "Confirming",
-				"onclick": map[string]string{
-					"uri":    "/message/confirm",
-					"method": "POST",
-					"body":   `{"step_name": "message"}`,
-				},
-			},
-		}
+	if d.currentStepName == StepNameMessage {
+		result.Actions = MessageActions()
 	}
 
-	if d.stepProgress != nil {
-		result["progress"] = d.stepProgress
+	if d.currentStepName == StepNamePlan {
+		result.Actions = TerraformActions()
 	}
+
+	result.Progress = d.stepProgress
 
 	c.JSON(200, result)
+}
+func (d *ShipDaemon) terraformApply(c *gin.Context) {
+	d.Lock()
+	defer d.Unlock()
+	d.TerraformConfirmed <- true
+}
+
+func (d *ShipDaemon) terraformSkip(c *gin.Context) {
+	d.Lock()
+	defer d.Unlock()
+	d.TerraformConfirmed <- false
 }
 
 func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {

@@ -36,7 +36,7 @@ func (d *DaemonResolver) ResolveConfig(
 	for _, step := range release.Spec.Lifecycle.V1 {
 		if step.Render != nil {
 			debug.Log("event", "render.found")
-			d.Daemon.PushStep(ctx, daemon.StepNameConfig, step)
+			d.Daemon.PushRenderStep(ctx, daemon.Render{})
 			debug.Log("event", "step.pushed")
 			return d.awaitConfigSaved(ctx, daemonExitedChan)
 		}

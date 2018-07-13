@@ -21,6 +21,20 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
+func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
+
+func (d *HeadlessDaemon) PushRenderStep(context.Context, Render) {}
+
+// todo I think if headless we should blow up here, but for now just skipping
+func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
+	ch := make(chan bool, 1)
+	level.Debug(d.Logger).Log("event", "terraform.skip", "detail", "running in automation, auto-skipping terraform plan")
+	ch <- false
+	return ch
+}
+
+func (d *HeadlessDaemon) PushStep(context.Context, string, api.Step, []Action) {}
+
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 
@@ -36,8 +50,6 @@ func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release
 
 	return chanerrors
 }
-
-func (d *HeadlessDaemon) PushStep(context.Context, string, api.Step) {}
 
 func (d *HeadlessDaemon) SetStepName(context.Context, string) {}
 

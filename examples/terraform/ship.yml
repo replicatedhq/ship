@@ -64,5 +64,9 @@ config:
 
 lifecycle:
   v1:
+    - message:
+       contents: "hi"
     - render: {}
     - terraform: {}
+    - message:
+       contents: "hi"
