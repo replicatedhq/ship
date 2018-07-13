@@ -43,9 +43,6 @@ type Daemon interface {
 	GetCurrentConfig() map[string]interface{}
 	SetProgress(Progress)
 	ClearProgress()
-
-	//deprecated
-	PushStep(context.Context, string, api.Step, []Action)
 }
 
 // Daemon runs the ship api server.
@@ -90,6 +87,7 @@ func (d *ShipDaemon) cleanPreviousStep() {
 	d.currentStepName = ""
 	d.currentStep = nil
 	d.currentStepConfirmed = false
+	d.currentStepActions = nil
 }
 
 func (d *ShipDaemon) PushMessageStep(
@@ -99,20 +97,16 @@ func (d *ShipDaemon) PushMessageStep(
 ) {
 	d.Lock()
 	defer d.Unlock()
+	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameMessage
 	d.currentStep = &Step{Message: &step}
 	d.currentStepActions = actions
-	d.currentStepConfirmed = false
 	d.NotifyStepChanged(StepNameConfig)
 }
 
 func (d *ShipDaemon) TerraformConfirmedChan() chan bool {
 	return d.TerraformConfirmed
-}
-
-func (d *ShipDaemon) PushStep(context.Context, string, api.Step, []Action) {
-	panic("implement me")
 }
 
 func (d *ShipDaemon) PushRenderStep(
@@ -121,14 +115,10 @@ func (d *ShipDaemon) PushRenderStep(
 ) {
 	d.Lock()
 	defer d.Unlock()
+	d.cleanPreviousStep()
 
-	if d.currentStep != nil {
-		d.pastSteps = append(d.pastSteps, *d.currentStep)
-	}
 	d.currentStepName = StepNameConfig
 	d.currentStep = &Step{Render: &step}
-	d.currentStepConfirmed = false
-	d.currentStepActions = nil
 	d.NotifyStepChanged(StepNameConfig)
 }
 
@@ -267,13 +257,6 @@ func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 		},
 		"phase": "done",
 	})
-}
-
-type StepResponse struct {
-	CurrentStep Step      `json:"currentStep"`
-	Phase       string    `json:"phase"`
-	Actions     []Action  `json:"actions,omitempty"`
-	Progress    *Progress `json:"progress,omitempty"`
 }
 
 func (d *ShipDaemon) getCurrentStep(c *gin.Context) {

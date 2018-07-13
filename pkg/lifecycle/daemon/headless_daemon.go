@@ -33,8 +33,6 @@ func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
 	return ch
 }
 
-func (d *HeadlessDaemon) PushStep(context.Context, string, api.Step, []Action) {}
-
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 

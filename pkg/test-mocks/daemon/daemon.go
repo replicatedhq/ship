@@ -124,16 +124,6 @@ func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1)
 }
 
-// PushStep mocks base method
-func (m *MockDaemon) PushStep(arg0 context.Context, arg1 string, arg2 api.Step, arg3 []daemon.Action) {
-	m.ctrl.Call(m, "PushStep", arg0, arg1, arg2, arg3)
-}
-
-// PushStep indicates an expected call of PushStep
-func (mr *MockDaemonMockRecorder) PushStep(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStep", reflect.TypeOf((*MockDaemon)(nil).PushStep), arg0, arg1, arg2, arg3)
-}
-
 // SetProgress mocks base method
 func (m *MockDaemon) SetProgress(arg0 daemon.Progress) {
 	m.ctrl.Call(m, "SetProgress", arg0)

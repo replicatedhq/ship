@@ -21,3 +21,23 @@ type Message struct {
 }
 
 type Render struct{}
+
+type StepResponse struct {
+	CurrentStep Step      `json:"currentStep"`
+	Phase       string    `json:"phase"`
+	Actions     []Action  `json:"actions,omitempty"`
+	Progress    *Progress `json:"progress,omitempty"`
+}
+
+type ActionRequest struct {
+	URI    string `json:"uri"`
+	Method string `json:"method"`
+	Body   string `json:"body"`
+}
+
+type Action struct {
+	ButtonType  string        `json:"buttonType"`
+	Text        string        `json:"text"`
+	LoadingText string        `json:"loadingText"`
+	OnClick     ActionRequest `json:"onclick"`
+}
