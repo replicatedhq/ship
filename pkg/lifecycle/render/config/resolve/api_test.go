@@ -1,4 +1,4 @@
-package config
+package resolve
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/go-test/deep"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/config/test-cases/api"
+	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve/test-cases/api"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
@@ -768,7 +768,7 @@ func TestValidateConfig(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
 
-			val := validateConfig(test.Config)
+			val := ValidateConfig(test.Config)
 
 			req.Equal(test.ExpectedValue, val)
 		})

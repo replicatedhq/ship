@@ -1,0 +1,6 @@
+sh("make build")
+sh("ginkgo -p -noColor integration")
+
+def wf_mockgen():
+    sh("make mockgen")
+

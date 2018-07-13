@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
@@ -22,12 +23,12 @@ import (
 const StateFilePath = ".ship/state.json"
 
 var (
-	ProgressLoad    = config.StringProgress("render", "load")
-	ProgressResolve = config.StringProgress("render", "resolve")
-	ProgressBuild   = config.StringProgress("render", "build")
-	ProgressBackup  = config.StringProgress("render", "backup")
-	ProgressExecute = config.StringProgress("render", "execute")
-	ProgressCommit  = config.StringProgress("render", "commit")
+	ProgressLoad    = daemon.StringProgress("render", "load")
+	ProgressResolve = daemon.StringProgress("render", "resolve")
+	ProgressBuild   = daemon.StringProgress("render", "build")
+	ProgressBackup  = daemon.StringProgress("render", "backup")
+	ProgressExecute = daemon.StringProgress("render", "execute")
+	ProgressCommit  = daemon.StringProgress("render", "commit")
 )
 
 // A Renderer takes a resolved spec, collects config values, and renders assets
@@ -38,7 +39,7 @@ type Renderer struct {
 	StateManager   *state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
-	Daemon         config.Daemon
+	Daemon         daemon.Daemon
 	Now            func() time.Time
 }
 
@@ -61,7 +62,7 @@ func NewRenderer(
 	}
 }
 
-func (r *Renderer) WithDaemon(d config.Daemon) *Renderer {
+func (r *Renderer) WithDaemon(d daemon.Daemon) *Renderer {
 	r.Daemon = d
 	r.ConfigResolver = r.ConfigResolver.WithDaemon(d)
 	r.Planner = r.Planner.WithDaemon(d)
@@ -103,7 +104,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	}
 
 	r.Daemon.SetProgress(ProgressExecute)
-	r.Daemon.SetStepName(ctx, config.StepNameConfirm)
+	r.Daemon.SetStepName(ctx, daemon.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
 
@@ -17,8 +16,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	mockconfig "github.com/replicatedhq/ship/pkg/test-mocks/config"
+	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -51,7 +52,7 @@ func TestRender(t *testing.T) {
 			p := mockplanner.NewMockPlanner(mc)
 			configResolver := mockconfig.NewMockResolver(mc)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			mockDaemon := mockconfig.NewMockDaemon(mc)
+			mockDaemon := mockdaemon.NewMockDaemon(mc)
 
 			renderer := &Renderer{
 				Logger: log.NewNopLogger(),
@@ -72,7 +73,7 @@ func TestRender(t *testing.T) {
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBackup).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
-			prog = mockDaemon.EXPECT().SetStepName(ctx, config.StepNameConfirm).After(prog)
+			prog = mockDaemon.EXPECT().SetStepName(ctx, daemon.StepNameConfirm).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 

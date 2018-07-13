@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -42,10 +43,10 @@ func buildInjector() (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		message.NewMessenger,
 		config.NewDaemon,
-		config.NewRenderer,
 		config.NewHeadedDaemon,
 		config.NewHeadlessDaemon,
 		config.NewResolver,
+		resolve.NewRenderer,
 		terraform2.NewTerraformer,
 
 		state.NewManager,

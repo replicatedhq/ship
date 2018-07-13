@@ -10,7 +10,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
@@ -21,7 +21,7 @@ type DaemonMessenger struct {
 	Logger         log.Logger
 	UI             cli.Ui
 	Viper          *viper.Viper
-	Daemon         config.Daemon
+	Daemon         daemon.Daemon
 	BuilderBuilder *templates.BuilderBuilder
 }
 

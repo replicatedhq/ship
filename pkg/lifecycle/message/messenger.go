@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 )
 
 type Messenger interface {
 	Execute(ctx context.Context, release *api.Release, step *api.Message) error
-	WithDaemon(d config.Daemon) Messenger
+	WithDaemon(d daemon.Daemon) Messenger
 }
 
 func NewMessenger(
@@ -26,7 +26,7 @@ func NewMessenger(
 	return &daemon
 }
 
-func (m *DaemonMessenger) WithDaemon(d config.Daemon) Messenger {
+func (m *DaemonMessenger) WithDaemon(d daemon.Daemon) Messenger {
 	m.Daemon = d
 	return m
 }

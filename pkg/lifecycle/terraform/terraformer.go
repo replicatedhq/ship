@@ -8,23 +8,23 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/version"
 )
 
 type Terraformer interface {
 	Execute(ctx context.Context, release api.Release, step api.Terraform) error
-	WithDaemon(d config.Daemon) Terraformer
+	WithDaemon(d daemon.Daemon) Terraformer
 }
 
 type ForkTerraformer struct {
 	Logger log.Logger
-	Daemon config.Daemon
+	Daemon daemon.Daemon
 }
 
 func NewTerraformer(
 	logger log.Logger,
-	daemon config.Daemon,
+	daemon daemon.Daemon,
 ) Terraformer {
 	return &ForkTerraformer{
 		Logger: logger,
@@ -32,7 +32,7 @@ func NewTerraformer(
 	}
 }
 
-func (t *ForkTerraformer) WithDaemon(daemon config.Daemon) Terraformer {
+func (t *ForkTerraformer) WithDaemon(daemon daemon.Daemon) Terraformer {
 	return &ForkTerraformer{
 		Logger: t.Logger,
 		Daemon: daemon,

@@ -44,6 +44,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/dockerlayer
 	mkdir -p pkg/test-mocks/github
 	mkdir -p pkg/test-mocks/inline
+	mkdir -p pkg/test-mocks/daemon
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -55,9 +56,9 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/config \
 		Resolver
 	mockgen \
-		-destination pkg/test-mocks/config/daemon.go \
-		-package config \
-		github.com/replicatedhq/ship/pkg/lifecycle/render/config \
+		-destination pkg/test-mocks/daemon/daemon.go \
+		-package daemon \
+		github.com/replicatedhq/ship/pkg/lifecycle/daemon \
 		Daemon
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
@@ -173,7 +174,7 @@ e2e: bin/ship
 	./bin/ship e2e
 
 integration-test:
-	go test -v ./integration
+	ginkgo -p integration
 
 goreleaser: .state/goreleaser
 

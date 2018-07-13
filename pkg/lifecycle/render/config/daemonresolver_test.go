@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -126,7 +127,7 @@ func TestDaemonResolver(t *testing.T) {
 			viper.Set("api-port", 0)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			log := &logger.TestLogger{T: t}
-			daemon := &ShipDaemon{
+			daemon := &daemon.ShipDaemon{
 				Logger: log,
 				Fs:     fs,
 				Viper:  v,

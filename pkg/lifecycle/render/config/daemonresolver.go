@@ -9,14 +9,12 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 )
-
-const StepNameConfig = "render.config"
-const StepNameConfirm = "render.confirm"
 
 type DaemonResolver struct {
 	Logger log.Logger
-	Daemon Daemon
+	Daemon daemon.Daemon
 }
 
 func (d *DaemonResolver) ResolveConfig(
@@ -38,7 +36,7 @@ func (d *DaemonResolver) ResolveConfig(
 	for _, step := range release.Spec.Lifecycle.V1 {
 		if step.Render != nil {
 			debug.Log("event", "render.found")
-			d.Daemon.PushStep(ctx, StepNameConfig, step)
+			d.Daemon.PushStep(ctx, daemon.StepNameConfig, step)
 			debug.Log("event", "step.pushed")
 			return d.awaitConfigSaved(ctx, daemonExitedChan)
 		}

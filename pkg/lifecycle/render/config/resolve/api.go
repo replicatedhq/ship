@@ -1,4 +1,4 @@
-package config
+package resolve
 
 import (
 	"bytes"
@@ -17,6 +17,18 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
+
+func NewRenderer(
+	logger log.Logger,
+	v *viper.Viper,
+	builderBuilder *templates.BuilderBuilder,
+) *APIConfigRenderer {
+	return &APIConfigRenderer{
+		Logger:         logger,
+		Viper:          v,
+		BuilderBuilder: builderBuilder,
+	}
+}
 
 const MissingRequiredValue = "MISSING_REQUIRED_VALUE"
 
@@ -245,7 +257,8 @@ func (r *APIConfigRenderer) ResolveConfig(
 	return resolvedConfig, nil
 }
 
-func validateConfig(
+// ValidateConfig validates a list of resolved config items
+func ValidateConfig(
 	resolvedConfig []libyaml.ConfigGroup,
 ) []*ValidationError {
 	var validationErrs []*ValidationError
