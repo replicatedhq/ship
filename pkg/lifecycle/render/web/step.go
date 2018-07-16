@@ -3,10 +3,7 @@ package web
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"net/http"
-
-	"bytes"
 
 	"path/filepath"
 
@@ -59,8 +56,6 @@ func NewStep(
 type Built struct {
 	URL     string
 	Dest    string
-	Method  string
-	Body    string
 	Headers map[string][]string
 }
 
@@ -129,16 +124,6 @@ func (p *DefaultStep) buildAsset(
 		return nil, errors.Wrap(err, "building dest")
 	}
 
-	builtMethod, err := builder.String(asset.Method)
-	if err != nil {
-		return nil, errors.Wrap(err, "building method")
-	}
-
-	builtBody, err := builder.String(asset.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "building body")
-	}
-
 	builtHeaders := make(map[string][]string)
 	for header, listOfValues := range asset.Headers {
 		for _, value := range listOfValues {
@@ -152,14 +137,12 @@ func (p *DefaultStep) buildAsset(
 	return &Built{
 		URL:     builtURL,
 		Dest:    builtDest,
-		Method:  builtMethod,
-		Body:    builtBody,
 		Headers: builtHeaders,
 	}, nil
 }
 
 func (p *DefaultStep) pullWebAsset(built *Built) error {
-	req, err := makeRequest(built.URL, built.Method, built.Body)
+	req, err := http.NewRequest("GET", built.URL, nil)
 	if err != nil {
 		return errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
@@ -174,7 +157,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 
 	resp, respErr := p.Client.Do(req)
 	if respErr != nil {
-		return errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
+		return errors.Wrapf(respErr, "%s web asset at %s", "GET", built.URL)
 	}
 	defer resp.Body.Close()
 
@@ -193,21 +176,4 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 	file.Close()
 
 	return nil
-}
-
-func makeRequest(url string, method string, body string) (*http.Request, error) {
-	switch method {
-	case "GET":
-		req, err := http.NewRequest("GET", url, nil)
-		return req, err
-	case "POST":
-		jsonValue, err := json.Marshal(body)
-		if err != nil {
-			return nil, errors.Wrapf(err, "marshal body", body)
-		}
-		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonValue))
-		return req, nil
-	default:
-		return nil, errors.New("Parse web request")
-	}
 }

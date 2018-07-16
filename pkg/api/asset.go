@@ -59,9 +59,7 @@ type GitHubAsset struct {
 // WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
 type WebAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Body        string              `json:"body" yaml:"body" hcl:"body"`
 	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
-	Method      string              `json:"method" yaml:"method" hcl:"method"`
 	URL         string              `json:"url" yaml:"url" hcl:"url"`
 }
 
