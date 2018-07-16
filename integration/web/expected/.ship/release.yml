@@ -6,9 +6,28 @@ assets:
         url: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
         dest: ./README.md
         method: GET
+    - web:
+        url: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
+        dest: ./methodType/README.md
+        method: '{{repl ConfigOption "methodType" }}'
+    - web:
+        url: '{{repl ConfigOption "resourceURL" }}'
+        dest: ./resourceURL/README.md
+        method: GET
 
 config:
-  v1: []
+  v1:
+    - name: option_items
+      title: Various Asset Params
+      items:
+      - name: methodType
+        title: Method Type
+        type: text
+        value: GET
+      - name: resourceURL
+        title: Resource URL
+        type: text
+        value: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
 
 lifecycle:
   v1:
