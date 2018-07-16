@@ -3,23 +3,12 @@
 assets:
   v1:
     - web:
-        url: https://kevinsvm.io
-        dest: ./kevinsvm.html
+        url: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
+        dest: ./README.md
         method: GET
-#    - web:
-#        url: https://s3.us-east-2.amazonaws.com/kevin-web-integration/test_option
-#        dest: ./test_option.sh
-#        method: GET
 
 config:
-  v1:
-    - name: test_options
-      title: Test Options
-      description: testing testing 123
-      items:
-      - name: test_option
-        title: Test Option
-        type: text
+  v1: []
 
 lifecycle:
   v1:
