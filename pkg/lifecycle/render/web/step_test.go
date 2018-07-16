@@ -35,9 +35,7 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "",
 				Headers: nil,
-				Method:  "GET",
 				URL:     "http://foo.bar",
 			},
 			RegisterResponders: func() {
@@ -55,9 +53,7 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "",
 				Headers: nil,
-				Method:  "GET",
 				URL:     "http://foo.bar",
 			},
 			RegisterResponders: func() {
