@@ -1,5 +1,9 @@
 assets:
   v1:
+    - docker:
+       image: postgres:8
+       dest: pg.tar
+       source: public
     - terraform:
         inline: |
           provider "google" {
@@ -67,6 +71,6 @@ lifecycle:
     - message:
        contents: "hi"
     - render: {}
-    - terraform: {}
+#    - terraform: {}
     - message:
        contents: "hi"

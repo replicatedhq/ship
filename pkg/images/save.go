@@ -9,6 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"fmt"
+
 	"github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
@@ -108,6 +110,11 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 	defer outFile.Close()
 
 	debug.Log("stage", "save")
+
+	progressCh <- Progress{
+		ID:     saveOpts.SaveURL,
+		Status: fmt.Sprintf("Saving %s", saveOpts.SaveURL),
+	}
 
 	imageReader, err := s.client.ImageSave(ctx, []string{saveOpts.SaveURL})
 	if err != nil {
