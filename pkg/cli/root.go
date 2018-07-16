@@ -56,6 +56,7 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
 	cmd.PersistentFlags().String("studio-channel-name", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	cmd.PersistentFlags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+	cmd.PersistentFlags().Bool("terraform-yes", false, "Automatically answer \"yes\" to all terraform prompts")
 
 	cmd.AddCommand(e2e.Cmd())
 	cmd.AddCommand(devtoolreleaser.Cmd())

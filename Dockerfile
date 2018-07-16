@@ -28,6 +28,18 @@ RUN curl -fsSLO "${HELM_URL}" \
     && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
     && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
 
+ENV TERRAFORM_VERSION=0.11.7
+ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
+
+RUN curl -fsSLO "$TERRAFORM_URL" \
+	&& echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
+	&& apt-get install -y unzip \
+	&& unzip "$TERRAFORM_ZIP" \
+	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
+	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
+
 ENV DEP_URL=https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
 ENV DEP_BIN=dep-linux-amd64
 ENV DEP_SHA256SUM=31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
