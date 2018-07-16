@@ -1,0 +1,84 @@
+<!-- *
+	 *	File: index.html
+	 *	Description: Personal site
+	 *	Bugs: None known
+	 *	Author: Kevin Herro, Copyright 2017
+	 *
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Slab" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Bangers|Kelly+Slab|Press+Start+2P" rel="stylesheet">
+        <title>Kevin Herro</title>
+        <style>
+            body {
+                background: #232526;  /* fallback for old browsers */
+                background: -webkit-linear-gradient(to right, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
+                background: linear-gradient(to right, #414345, #232526); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            }
+
+            .name {
+                color: #e6e6e6;
+                font-size: 150px;
+                font-family: 'Press Start 2P', cursive;
+                margin-top: 180px;
+                margin-bottom: 50px;
+                /* Text border or some styling */
+                text-shadow:
+                    -3px -3px 0 #00ccff,
+                    3px -3px 0 #00ccff,
+                    -3px 3px 0 #00ccff,
+                    3px 3px 0 #00ccff;
+                letter-spacing: 15px;
+            }
+
+            .links {
+                color: #00ccff;
+                font-size: 40px;
+                font-family: 'Kelly Slab', cursive;
+                text-decoration: none;
+            }
+
+            .isDisabled {
+                color: #00ccff;
+                font-size: 40px;
+                font-family: 'Kelly Slab', cursive;
+                text-decoration: none;
+                cursor: not-allowed;
+            }
+
+        </style>
+	</head>
+
+    <body>
+        <center>
+            <h1 class='name'>KEVIN HERRO</h1>
+        </center>
+
+        <center>
+            <table align='center' cellspacing='15' style='margin-bottom: 130px;'>
+                <tr>
+                    <td>
+                        <a href='https://github.com/kevinherro' class='links'>GitHub</a>
+                    </td>
+
+                    <td class='table-spacing'>&#x26C8</td>
+
+                    <td>
+                        <a href='https://docs.google.com/document/d/1YtgwCHq_kCYowpyD7cIDhkNnu60RX4MHd8LgWoNZ5h4/edit?usp=sharing' class='links'>Resume</a>
+                    </td>
+
+                    <td class='table-spacing'>&#x26C8</td>
+
+                    <td>
+                        <a class='isDisabled'>README.md</a>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </body>
+</html>
