@@ -3,16 +3,16 @@
 assets:
   v1:
     - web:
-        url: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
-        dest: ./README.md
+        url: https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test
+        dest: ./integration-test
         method: GET
     - web:
-        url: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
-        dest: ./methodType/README.md
+        url: https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test
+        dest: ./methodType/integration-test
         method: '{{repl ConfigOption "methodType" }}'
     - web:
         url: '{{repl ConfigOption "resourceURL" }}'
-        dest: ./resourceURL/README.md
+        dest: ./resourceURL/integration-test
         method: GET
     - web:
         url: https://s3.us-east-2.amazonaws.com/kevin-ship-integration-tests/hello.txt
@@ -31,7 +31,7 @@ config:
       - name: resourceURL
         title: Resource URL
         type: text
-        value: https://raw.githubusercontent.com/replicatedhq/ship/master/README.md?token=AJ-btnYHMIBbEk4Gek6ngPV4fzhS2nZPks5bVhvQwA%3D%3D
+        value: https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test
 
 lifecycle:
   v1:
