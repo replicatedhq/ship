@@ -32,4 +32,3 @@ config:
 lifecycle:
   v1:
     - render: {}
-
