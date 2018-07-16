@@ -45,6 +45,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/github
 	mkdir -p pkg/test-mocks/inline
 	mkdir -p pkg/test-mocks/daemon
+	mkdir -p pkg/test-mocks/tfplan
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -115,6 +116,11 @@ _mockgen:
 		-package inline \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/inline \
 		Renderer
+	mockgen \
+		-destination pkg/test-mocks/tfplan/confirmer_mock.go \
+		-package tfplan \
+		github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan \
+		PlanConfirmer
 
 mockgen: _mockgen fmt
 

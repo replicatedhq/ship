@@ -62,6 +62,9 @@ type ShipDaemon struct {
 	allStepsDone         bool
 	pastSteps            []Step
 
+	// errChan will receive an error when the daemon exits
+	errChan chan error
+
 	// this is kind of kludged in,
 	// it only makes sense for Message steps
 	currentStepActions []Action
@@ -136,15 +139,14 @@ func (d *ShipDaemon) AllStepsDone(ctx context.Context) {
 
 // "this is fine"
 func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
-	errChan := make(chan error)
 
 	go d.startOnce.Do(func() {
 		err := d.Serve(ctx, release)
 		level.Info(d.Logger).Log("event", "daemon.startonce.exit", err, "err")
-		errChan <- err
+		d.errChan <- err
 	})
 
-	return errChan
+	return d.errChan
 }
 
 // Serve starts the server with the given context
@@ -277,10 +279,6 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 
 	if d.currentStepName == StepNameMessage {
 		result.Actions = MessageActions()
-	}
-
-	if d.currentStepName == StepNamePlan {
-		result.Actions = TerraformActions()
 	}
 
 	result.Progress = d.stepProgress

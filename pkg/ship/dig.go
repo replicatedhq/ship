@@ -10,6 +10,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/fs"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
@@ -24,6 +25,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
+	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -43,11 +45,12 @@ func buildInjector() (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		message.NewMessenger,
 		config.NewDaemon,
-		config.NewHeadedDaemon,
-		config.NewHeadlessDaemon,
+		daemon.NewHeadedDaemon,
+		daemon.NewHeadlessDaemon,
 		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
+		tfplan.NewPlanner,
 
 		state.NewManager,
 		planner.NewPlanner,
