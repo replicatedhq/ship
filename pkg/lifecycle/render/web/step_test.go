@@ -41,7 +41,6 @@ func TestWebStep(t *testing.T) {
 				},
 				Body:    "",
 				Headers: nil,
-				Method:  "GET",
 				URL:     "http://foo.bar",
 			},
 			RegisterResponders: func() {
@@ -61,7 +60,6 @@ func TestWebStep(t *testing.T) {
 				},
 				Body:    "",
 				Headers: nil,
-				Method:  "GET",
 				URL:     "http://foo.bar",
 			},
 			RegisterResponders: func() {
@@ -127,8 +125,7 @@ func TestWebStep(t *testing.T) {
 					func(req *http.Request) (*http.Response, error) {
 						header := req.Header.Get("Authorization")
 
-						decoded, _ := base64.StdEncoding.DecodeString(header)
-						if string(decoded) != "my auth" {
+						if header != "my auth" {
 							return httpmock.NewStringResponse(500, "mock headers != test headers"), nil
 						}
 

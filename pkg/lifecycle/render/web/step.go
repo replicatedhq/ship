@@ -164,7 +164,7 @@ func (p *DefaultStep) buildAsset(
 }
 
 func (p *DefaultStep) pullWebAsset(built *Built) error {
-	resp, err := p.makeRequest(built.URL, built.ContentType, built.Method, built.Body)
+	resp, err := p.makeRequest(built.URL, built.BodyFormat, built.Method, built.Body)
 	if err != nil {
 		return errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
@@ -177,8 +177,6 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 	if len(built.Headers) != 0 {
 		for header, listOfValues := range built.Headers {
 			for _, value := range listOfValues {
-				// TODO: potential bug encoding
-				// req.Header.Add(header, base64.StdEncoding.EncodeToString([]byte(value)))
 				req.Header.Add(header, value)
 			}
 		}
@@ -208,9 +206,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 }
 
 func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, body string) (*http.Response, error) {
-	// Default to GET. Could be implemented with if/else, but switch
-	// will prove useful on future iterations when PUT, DEL, etc.
-	// are supported
+	// Default to GET
 	switch method {
 	case "POST":
 		resp, err := p.Client.Post(url, bodyFormat, strings.NewReader(body))
