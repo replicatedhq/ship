@@ -284,64 +284,6 @@
                   "dest"
                 ]
               },
-              "terraform": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "dest": {
-                    "type": "string"
-                  },
-                  "github": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "dest": {
-                        "type": "string"
-                      },
-                      "mode": {
-                        "type": "integer"
-                      },
-                      "path": {
-                        "type": "string"
-                      },
-                      "ref": {
-                        "type": "string"
-                      },
-                      "repo": {
-                        "type": "string"
-                      },
-                      "source": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "dest",
-                      "mode",
-                      "description",
-                      "repo",
-                      "ref",
-                      "path",
-                      "source"
-                    ]
-                  },
-                  "inline": {
-                    "type": "string"
-                  },
-                  "mode": {
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "dest",
-                  "mode",
-                  "description",
-                  "github"
-                ]
-              },
               "web": {
                 "description": "A `web` asset delivers web content from a private or public URL",
                 "examples": [

@@ -401,6 +401,10 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties",
+    "delete": ["terraform"]
+  },
+  {
     "path": "properties.config",
     "merge": {
       "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on"
