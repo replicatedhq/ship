@@ -208,7 +208,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, body string) (*http.Response, error) {
 	switch method {
 	case "":
-		// Empty method defaults to GET
+		// Empty method defaults to 'GET'
 		resp, err := p.Client.Get(url)
 		if err != nil {
 			return nil, errors.Wrapf(err, "Request web asset from %s", url)
