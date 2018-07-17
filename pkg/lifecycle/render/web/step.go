@@ -206,8 +206,14 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 }
 
 func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, body string) (*http.Response, error) {
-	// Default to GET
 	switch method {
+	case "":
+		// Empty method defaults to GET
+		resp, err := p.Client.Get(url)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Request web asset from %s", url)
+		}
+		return resp, err
 	case "POST":
 		resp, err := p.Client.Post(url, bodyFormat, strings.NewReader(body))
 		if err != nil {
@@ -215,10 +221,7 @@ func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, 
 		}
 		return resp, nil
 	default:
-		resp, err := p.Client.Get(url)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Request web asset from %s", url)
-		}
-		return resp, err
+		// Unsupported method
+		return nil, errors.New("Parse web request")
 	}
 }
