@@ -214,6 +214,12 @@ func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, 
 			return nil, errors.Wrapf(err, "Request web asset from %s", url)
 		}
 		return resp, err
+	case "GET":
+		resp, err := p.Client.Get(url)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Request web asset from %s", url)
+		}
+		return resp, err
 	case "POST":
 		resp, err := p.Client.Post(url, bodyFormat, strings.NewReader(body))
 		if err != nil {
