@@ -39,10 +39,7 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "",
-				Headers: nil,
-				Method:  "GET",
-				URL:     "http://foo.bar",
+				URL: "http://foo.bar",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("GET", "http://foo.bar",
@@ -59,10 +56,7 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "",
-				Headers: nil,
-				Method:  "GET",
-				URL:     "http://foo.bar",
+				URL: "http://foo.bar",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("GET", "http://foo.bar",
@@ -77,10 +71,10 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "stuff to post",
-				Headers: nil,
-				Method:  "POST",
-				URL:     "http://foo.bar",
+				Body:       "stuff to post",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -97,10 +91,10 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:    "stuff to post",
-				Headers: nil,
-				Method:  "POST",
-				URL:     "http://foo.bar",
+				Body:       "stuff to post",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -119,16 +113,16 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
 					func(req *http.Request) (*http.Response, error) {
 						header := req.Header.Get("Authorization")
 
-						decoded, _ := base64.StdEncoding.DecodeString(header)
-						if string(decoded) != "my auth" {
+						if header != "my auth" {
 							return httpmock.NewStringResponse(500, "mock headers != test headers"), nil
 						}
 
@@ -150,8 +144,9 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -179,8 +174,9 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",

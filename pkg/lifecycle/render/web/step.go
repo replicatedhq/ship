@@ -2,15 +2,13 @@ package web
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
-
-	"bytes"
 
 	"path/filepath"
 
 	"io"
+
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -57,11 +55,12 @@ func NewStep(
 }
 
 type Built struct {
-	URL     string
-	Dest    string
-	Method  string
-	Body    string
-	Headers map[string][]string
+	URL        string
+	Dest       string
+	Method     string
+	Body       string
+	Headers    map[string][]string
+	BodyFormat string
 }
 
 func (p *DefaultStep) Execute(
@@ -139,6 +138,11 @@ func (p *DefaultStep) buildAsset(
 		return nil, errors.Wrap(err, "building body")
 	}
 
+	builtBodyFormat, err := builder.String(asset.BodyFormat)
+	if err != nil {
+		return nil, errors.Wrap(err, "building content type")
+	}
+
 	builtHeaders := make(map[string][]string)
 	for header, listOfValues := range asset.Headers {
 		for _, value := range listOfValues {
@@ -150,16 +154,22 @@ func (p *DefaultStep) buildAsset(
 		}
 	}
 	return &Built{
-		URL:     builtURL,
-		Dest:    builtDest,
-		Method:  builtMethod,
-		Body:    builtBody,
-		Headers: builtHeaders,
+		URL:        builtURL,
+		Dest:       builtDest,
+		Method:     builtMethod,
+		Body:       builtBody,
+		BodyFormat: builtBodyFormat,
+		Headers:    builtHeaders,
 	}, nil
 }
 
 func (p *DefaultStep) pullWebAsset(built *Built) error {
-	req, err := makeRequest(built.URL, built.Method, built.Body)
+	resp, err := p.makeRequest(built.URL, built.BodyFormat, built.Method, built.Body)
+	if err != nil {
+		return errors.Wrapf(err, "Request web asset from %s", built.URL)
+	}
+
+	req, err := http.NewRequest(built.Method, built.URL, strings.NewReader(built.Body))
 	if err != nil {
 		return errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
@@ -167,7 +177,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 	if len(built.Headers) != 0 {
 		for header, listOfValues := range built.Headers {
 			for _, value := range listOfValues {
-				req.Header.Add(header, base64.StdEncoding.EncodeToString([]byte(value)))
+				req.Header.Add(header, value)
 			}
 		}
 	}
@@ -195,19 +205,20 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 	return nil
 }
 
-func makeRequest(url string, method string, body string) (*http.Request, error) {
+func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, body string) (*http.Response, error) {
+	// Default to GET
 	switch method {
-	case "GET":
-		req, err := http.NewRequest("GET", url, nil)
-		return req, err
 	case "POST":
-		jsonValue, err := json.Marshal(body)
+		resp, err := p.Client.Post(url, bodyFormat, strings.NewReader(body))
 		if err != nil {
-			return nil, errors.Wrapf(err, "marshal body", body)
+			return nil, errors.Wrapf(err, "Request web asset from %s", url)
 		}
-		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonValue))
-		return req, nil
+		return resp, nil
 	default:
-		return nil, errors.New("Parse web request")
+		resp, err := p.Client.Get(url)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Request web asset from %s", url)
+		}
+		return resp, err
 	}
 }
