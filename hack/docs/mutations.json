@@ -345,26 +345,14 @@
   {
     "path": "properties.assets.properties.v1.items.properties.web",
     "replace": {
-      "required": ["url", "dest", "method"]
+      "required": ["url", "dest"]
     },
     "merge": {
-      "description": "A `web` asset allows to pull content from a private or public URL",
+      "description": "A `web` asset delivers any web content from a private or public URL",
       "examples": [
         {
-          "url": "https://www.replicated.com",
-          "dest": "./installer/replicated.html",
-          "method": "GET"
-        },
-        {
-          "url": "https://www.replicated.com",
-          "dest": "replicated.html",
-          "method": "POST",
-          "body": "Hello from Replicated!",
-          "headers": {
-            "Authorization": [
-              "{{repl ConfigOption \"authKey\"}}"
-            ]
-          }
+          "url": "https://my_bucket.s3.amazonaws.com/path-to-file",
+          "dest": "./my-bucket-contents"
         }
       ]
     }
@@ -372,9 +360,14 @@
   {
     "path": "properties.assets.properties.v1.items.properties.web.properties.body",
     "merge": {
-      "description": "Content to send with a `POST` request"
+      "description": "Content to send with a `POST` request, if used"
     }
-
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.bodyFormat",
+    "merge": {
+      "description": "The content type of the `POST` body, if used"
+    }
   },
   {
     "path": "properties.assets.properties.v1.items.properties.web.properties.url",
@@ -385,7 +378,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.web.properties.method",
     "merge": {
-      "description": "The HTTP method, supports `GET` and `POST` methods"
+      "description": "The HTTP method, defaults to `GET` if not present, supports `POST` when used"
     }
   },
   {

@@ -284,30 +284,80 @@
                   "dest"
                 ]
               },
+              "terraform": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  },
+                  "github": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "dest": {
+                        "type": "string"
+                      },
+                      "mode": {
+                        "type": "integer"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "ref": {
+                        "type": "string"
+                      },
+                      "repo": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "dest",
+                      "mode",
+                      "description",
+                      "repo",
+                      "ref",
+                      "path",
+                      "source"
+                    ]
+                  },
+                  "inline": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "dest",
+                  "mode",
+                  "description",
+                  "github"
+                ]
+              },
               "web": {
-                "description": "A `web` asset allows to pull content from a private or public URL",
+                "description": "A `web` asset delivers any web content from a private or public URL",
                 "examples": [
                   {
-                    "url": "https://www.replicated.com",
-                    "dest": "./installer/replicated.html",
-                    "method": "GET"
-                  },
-                  {
-                    "url": "https://www.replicated.com",
-                    "dest": "replicated.html",
-                    "method": "POST",
-                    "body": "Hello from Replicated!",
-                    "headers": {
-                      "Authorization": [
-                        "{{repl ConfigOption \"authKey\"}}"
-                      ]
-                    }
+                    "url": "https://my_bucket.s3.amazonaws.com/path-to-file",
+                    "dest": "./my-bucket-contents"
                   }
                 ],
                 "type": "object",
                 "properties": {
                   "body": {
-                    "description": "Content to send with a `POST` request",
+                    "description": "Content to send with a `POST` request, if used",
+                    "type": "string"
+                  },
+                  "bodyFormat": {
+                    "description": "The content type of the `POST` body, if used",
                     "type": "string"
                   },
                   "description": {
@@ -332,7 +382,7 @@
                     }
                   },
                   "method": {
-                    "description": "The HTTP method, supports `GET` and `POST` methods",
+                    "description": "The HTTP method, defaults to `GET` if not present, supports `POST` when used",
                     "type": "string"
                   },
                   "mode": {
@@ -346,8 +396,7 @@
                 },
                 "required": [
                   "url",
-                  "dest",
-                  "method"
+                  "dest"
                 ]
               }
             }
@@ -474,6 +523,9 @@
                 ],
                 "type": "object",
                 "required": []
+              },
+              "terraform": {
+                "type": "object"
               }
             }
           }
