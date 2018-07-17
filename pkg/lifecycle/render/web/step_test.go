@@ -71,9 +71,10 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:   "stuff to post",
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Body:       "stuff to post",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -90,9 +91,10 @@ func TestWebStep(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "asset.txt",
 				},
-				Body:   "stuff to post",
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Body:       "stuff to post",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -111,8 +113,9 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -141,8 +144,9 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
@@ -170,8 +174,9 @@ func TestWebStep(t *testing.T) {
 				Headers: map[string][]string{
 					"Authorization": {"my auth"},
 				},
-				Method: "POST",
-				URL:    "http://foo.bar",
+				Method:     "POST",
+				URL:        "http://foo.bar",
+				BodyFormat: "text/plain",
 			},
 			RegisterResponders: func() {
 				httpmock.RegisterResponder("POST", "http://foo.bar",
