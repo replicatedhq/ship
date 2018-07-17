@@ -60,6 +60,7 @@ type GitHubAsset struct {
 type WebAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Body        string              `json:"body" yaml:"body" hcl:"body"`
+	BodyFormat  string              `json:"bodyFormat" yaml:"bodyFormat" hcl:"bodyFormat"`
 	Headers     map[string][]string `json:"headers" yaml:"headers" hcl:"headers"`
 	Method      string              `json:"method" yaml:"method" hcl:"method"`
 	URL         string              `json:"url" yaml:"url" hcl:"url"`
