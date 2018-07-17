@@ -5,29 +5,21 @@ assets:
     - web:
         url: https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test
         dest: ./integration-test
-        method: GET
     - web:
         url: https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test
         dest: ./methodType/integration-test
-        method: '{{repl ConfigOption "methodType" }}'
     - web:
         url: '{{repl ConfigOption "resourceURL" }}'
         dest: ./resourceURL/integration-test
-        method: GET
     - web:
         url: https://s3.us-east-2.amazonaws.com/kevin-ship-integration-tests/hello.txt
         dest: ./hello.txt
-        method: GET
 
 config:
   v1:
     - name: option_items
       title: Various Asset Params
       items:
-      - name: methodType
-        title: Method Type
-        type: text
-        value: GET
       - name: resourceURL
         title: Resource URL
         type: text
