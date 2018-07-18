@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo namespace is {{repl ConfigOption "namespace"}}
-echo cluster is {{repl ConfigOption "cluster"}}
+echo namespace is Foo
+echo cluster is Bar
