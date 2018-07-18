@@ -1,2 +1,3 @@
-#!/bin/bash
-echo "tested nothing"
+#!/bin/sh
+
+echo namespace is {{repl ConfigOption "namespace"}}

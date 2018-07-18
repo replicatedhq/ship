@@ -7,7 +7,7 @@ assets:
         #!/bin/sh
 
         echo namespace is {{repl ConfigOption "namespace"}}
-      dest: ./installer/scripts/echo.sh
+      dest: ./scripts/echo.sh
       mode: 0777
 
 config:
