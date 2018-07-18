@@ -18,10 +18,10 @@ config:
       items:
       - name: namespace
         type: text
-        default: SourceGraph
+        default: Foo
       - name: cluster
         type: text
-        default: Big Cluster
+        default: Bar
 
 
 lifecycle:
