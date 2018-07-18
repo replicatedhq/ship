@@ -465,9 +465,6 @@
                 ],
                 "type": "object",
                 "required": []
-              },
-              "terraform": {
-                "type": "object"
               }
             }
           }
