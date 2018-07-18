@@ -1,0 +1,26 @@
+# example, enter or POST to console.replicated.com
+---
+assets:
+  v1:
+  - inline:
+      contents: |
+        #!/bin/sh
+
+        echo namespace is {{repl ConfigOption "namespace"}}
+      dest: ./installer/scripts/echo.sh
+      mode: 0777
+
+config:
+  v1:
+    - name: default-values-bug
+      title: Bug
+      description: information about your kubernetes cluster
+      items:
+      - name: namespace
+        title: Namespace to Deploy into
+        type: text
+        default: SourceGraph
+
+lifecycle:
+  v1:
+  - render: {}
