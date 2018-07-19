@@ -8,6 +8,7 @@ assets:
 
         echo namespace is {{repl ConfigOption "namespace"}}
         echo cluster is {{repl ConfigOption "cluster"}}
+        echo ingress controller is {{repl ConfigOption "ingress"}}
       dest: ./scripts/echo.sh
       mode: 0777
 
@@ -18,10 +19,13 @@ config:
       items:
       - name: namespace
         type: text
-        default: Foo
+        default: Alpha
       - name: cluster
         type: text
-        default: Bar
+        default: Beta
+      - name: ingress
+        type: text
+        default: Charlie
 
 
 lifecycle:

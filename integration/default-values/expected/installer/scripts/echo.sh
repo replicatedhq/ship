@@ -1,4 +1,5 @@
 #!/bin/sh
 
-echo namespace is Foo
-echo cluster is Bar
+echo namespace is Alpha
+echo cluster is Beta
+echo ingress controller is Charlie
