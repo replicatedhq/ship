@@ -114,7 +114,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	stateTemplateContext := make(map[string]interface{})
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			if isCustomerProvided(configItem, templateContext) {
+			if isCustomerProvidedValue(configItem, templateContext) {
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}
@@ -149,6 +149,6 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 	return nil
 }
 
-func isCustomerProvided(item *libyaml.ConfigItem, templateContext map[string]interface{}) bool {
+func isCustomerProvidedValue(item *libyaml.ConfigItem, templateContext map[string]interface{}) bool {
 	return !item.Hidden && templateContext[item.Name] != item.Default
 }
