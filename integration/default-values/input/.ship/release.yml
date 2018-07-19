@@ -9,6 +9,7 @@ assets:
         echo namespace is {{repl ConfigOption "namespace"}}
         echo cluster is {{repl ConfigOption "cluster"}}
         echo ingress controller is {{repl ConfigOption "ingress"}}
+        echo scheduler is {{repl ConfigOption "scheduler"}}
       dest: ./scripts/echo.sh
       mode: 0777
 
@@ -24,10 +25,14 @@ config:
       - name: cluster
         type: text
         default: Bravo
-        # No customer-value, vendor-default provided: should use vendor-default and NOT render ingress to `state.json`
+        # No customer-value, vendor-default provided: should use vendor-default and NOT render ingress to `state.json` (testing render to `state.json`)
       - name: ingress
         type: text
         default: Charlie
+        # No customer-value, vendor-default provided: should use vendor-default and NOT render scheduler to `state.json` (testing useage in app)
+      - name: scheduler
+        type: text
+        default: Delta
 
 lifecycle:
   v1:

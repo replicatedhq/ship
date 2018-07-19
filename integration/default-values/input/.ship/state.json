@@ -1,1 +1,1 @@
-{"v1":{"config":{"cluster":"Ovarb", "ingress":"", "namespace":"Alpha"}}}
+{"v1":{"config":{"cluster":"Ovarb", "namespace":"Alpha", "scheduler":""}}}
