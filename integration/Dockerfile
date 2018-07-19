@@ -18,11 +18,23 @@ RUN curl -fsSLO "${HELM_URL}" \
     && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
     && cp "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
 
+ENV TERRAFORM_VERSION=0.11.7
+ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
+
+RUN curl -fsSLO "$TERRAFORM_URL" \
+	&& echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
+	&& unzip "$TERRAFORM_ZIP" \
+	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
+	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
+
 # package things up
 FROM alpine
 WORKDIR /test
 
 COPY --from=build-step /usr/local/bin/helm /usr/local/bin/helm
+COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 
 ADD ./integration /test

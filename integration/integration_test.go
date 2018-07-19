@@ -153,6 +153,7 @@ var _ = Describe("basic", func() {
 						fmt.Sprintf("--studio-channel-name=%s", testMetadata.StudioChannelName),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--log-level=off",
+						"--terraform-yes",
 					})
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
@@ -176,6 +177,7 @@ var _ = Describe("basic", func() {
 						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
 						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
+						"--terraform-yes",
 					}))
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())

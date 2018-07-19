@@ -13,7 +13,20 @@ RUN curl -fsSLO "${HELM_URL}" \
     && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
     && tar xvf "$HELM_TGZ" \
     && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
-    && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
+    && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm \
+    && rm "$HELM_TGZ"
+
+ENV TERRAFORM_VERSION=0.11.7
+ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
+
+RUN curl -fsSLO "${TERRAFORM_URL}" \
+	&& echo "${TERRAFORM_SHA256SUM}  ${TERRAFORM_ZIP}" | sha256sum -c - \
+	&& unzip "$TERRAFORM_ZIP" \
+	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
+	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform \
+	&& rm "$TERRAFORM_ZIP"
 
 
 LABEL "com.replicated.ship"="true"
