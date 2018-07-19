@@ -51,7 +51,7 @@
                           "test_proc": null,
                           "title": "Alpha Value",
                           "type": "text",
-                          "value": "",
+                          "value": "hello world",
                           "value_cmd": null,
                           "when": ""
                       },

@@ -68,7 +68,7 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 }
 
 func shouldOverrideValueWithDefault(item *libyaml.ConfigItem) bool {
-	return item.Hidden && item.Value == "" && item.Default != ""
+	return item.Value == "" && item.Default != ""
 }
 
 func isRequired(item *libyaml.ConfigItem) bool {
