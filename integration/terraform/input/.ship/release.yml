@@ -2,35 +2,20 @@ assets:
   v1:
     - terraform:
         inline: |
-          provider "google" {
-            project     = "{{repl ConfigOption "gce_project"}}"
-            region      = "{{repl ConfigOption "gce_region"}}"
-          }
-          
-          resource "google_compute_disk" "test-disk" {
-            name = "test-disk"
-            size = "1"
-            zone = "{{repl ConfigOption "gce_zone"}}"
+          resource "random_id" "server" {
+            byte_length = {{repl ConfigOption "id_length" | ParseInt}}
           }
 
 config:
   v1:
-    - name: gce
+    - name: id
       items:
-         - name: gce_project
-           title: Google Cloud project name
+         - name: id_length
+           title: ID Length
            type: text
            required: true
-         - name: gce_region
-           title: Google Cloud compute region
-           type: text
-           default: us-central1
-           required: true
-         - name: gce_zone
-           title: Google Cloud compute zone
-           type: text
-           default: us-central1-a
-           required: true
+           default: 8
+           help_text: bigger numbers make longer ids
 
 lifecycle:
   v1:
