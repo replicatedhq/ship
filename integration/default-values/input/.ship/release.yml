@@ -9,7 +9,6 @@ assets:
         echo namespace is {{repl ConfigOption "namespace"}}
         echo cluster is {{repl ConfigOption "cluster"}}
         echo ingress controller is {{repl ConfigOption "ingress"}}
-        echo scheduler is {{repl ConfigOption "scheduler"}}
       dest: ./scripts/echo.sh
       mode: 0777
 
@@ -18,20 +17,17 @@ config:
     - name: default-values-bug
       description: information about your kubernetes cluster
       items:
+        # Customer-value provided, no vendor-default: should use customer-provided value and render namespace to `state.json`
       - name: namespace
         type: text
-        default: Alpha
+        # Customer-value provided, vendor-default provided: should use customer-provided value and render cluster to `state.json`
       - name: cluster
         type: text
-        default: Beta
+        default: Bravo
+        # No customer-value, vendor-default provided: should use vendor-default and NOT render ingress to `state.json`
       - name: ingress
         type: text
         default: Charlie
-      - name: scheduler
-        type: text
-        required: true
-        default: Delta
-
 
 lifecycle:
   v1:
