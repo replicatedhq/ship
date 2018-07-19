@@ -9,6 +9,7 @@ assets:
         echo namespace is {{repl ConfigOption "namespace"}}
         echo cluster is {{repl ConfigOption "cluster"}}
         echo ingress controller is {{repl ConfigOption "ingress"}}
+        echo scheduler is {{repl ConfigOption "scheduler"}}
       dest: ./scripts/echo.sh
       mode: 0777
 
@@ -26,6 +27,10 @@ config:
       - name: ingress
         type: text
         default: Charlie
+      - name: scheduler
+        type: text
+        required: true
+        default: Delta
 
 
 lifecycle:
