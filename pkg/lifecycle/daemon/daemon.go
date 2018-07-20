@@ -508,6 +508,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		for _, configGroup := range resolvedConfig {
 			for _, configItem := range configGroup.Items {
 				if isCustomerProvidedValue(configItem) {
+					// do not persist configs with value overridden by default
 					templateContext[configItem.Name] = configItem.Value
 				}
 			}

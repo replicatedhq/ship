@@ -115,6 +115,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
 			if isCustomerProvidedValue(configItem, templateContext) {
+				// do not persist configs with value overridden by default
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}
