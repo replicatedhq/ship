@@ -16,8 +16,9 @@ type Step struct {
 	Render  *Render  `json:"render"`
 }
 type Message struct {
-	Contents string `json:"contents"`
-	Level    string `json:"level"`
+	Contents    string `json:"contents"`
+	TrustedHTML bool   `json:"trusted_html"`
+	Level       string `json:"level"`
 }
 
 type Render struct{}

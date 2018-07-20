@@ -50,7 +50,7 @@ func (d *DaemonPlanner) ConfirmPlan(
 	daemonExitedChan := d.Daemon.EnsureStarted(ctx, &release)
 	d.Daemon.PushMessageStep(
 		ctx,
-		daemon.Message{Contents: formmatedTerraformPlan},
+		daemon.Message{Contents: formmatedTerraformPlan, TrustedHTML: true},
 		planActions(),
 	)
 

@@ -5,8 +5,8 @@ import (
 	"context"
 	"os/exec"
 	"path/filepath"
-
-	"path"
+	"strings"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -17,6 +17,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
+
+const tfSep = "------------------------------------------------------------------------"
+const tfNoChanges = "No changes. Infrastructure is up-to-date."
 
 type Terraformer interface {
 	Execute(ctx context.Context, release api.Release, step api.Terraform) error
@@ -56,6 +59,7 @@ func (t *ForkTerraformer) WithDaemon(daemon daemon.Daemon) Terraformer {
 }
 
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
 	assetsPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset")
 
@@ -63,19 +67,28 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		return errors.Wrapf(err, "init %s", assetsPath)
 	}
 
-	_, err := t.plan(assetsPath)
-	if err != nil {
-		return errors.Wrapf(err, "create plan for %s", assetsPath)
+	// Observed ~10% flake with errors such as:
+	// Error acquiring the state lock: resource temporarily unavailable
+	var plan string
+	var hasChanges bool
+	var err error
+	for i := 0; i < 5; i++ {
+		plan, hasChanges, err = t.plan(assetsPath)
+		if err != nil {
+			debug.Log("plan.backoff", i)
+			time.Sleep(time.Second * time.Duration(i))
+			continue
+		}
+		if !hasChanges {
+			return nil
+		}
 	}
-	// create plan, save to state
-	// push infra plan step
-	// maybe exit
-	// set progress applying
-
-	fakePlan := "We're gonna make you some servers"
+	if err != nil {
+		return err
+	}
 
 	if !viper.GetBool("terraform-yes") {
-		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, fakePlan, release)
+		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
 		if err != nil {
 			return errors.Wrapf(err, "confirm plan for %s", assetsPath)
 		}
@@ -85,7 +98,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		}
 	}
 
-	// next: apply plan
+	// next: apply plan, set progress
 	return nil
 }
 
@@ -109,8 +122,41 @@ func (t *ForkTerraformer) init(assetsPath string) error {
 	return nil
 }
 
-func (t *ForkTerraformer) plan(modulePath string) (string, error) {
+// plan returns a human readable plan and a changes-required flag
+func (t *ForkTerraformer) plan(assetsPath string) (string, bool, error) {
+	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
+	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
+
+	planPath := filepath.Join(filepath.Dir(assetsPath), "plan")
 	// we really shouldn't write plan to a file, but this will do for now
-	planOut := path.Join("tmp", "ship-terraform", version.RunAtEpoch, "plan")
-	return planOut, nil
+	cmd := t.Terraform()
+	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out="+planPath)
+	cmd.Dir = assetsPath
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	out, err := cmd.Output()
+	debug.Log("stdout", string(out))
+	debug.Log("stderr", stderr.String())
+	if err != nil {
+		return "", false, errors.Wrap(err, string(out)+"\n"+stderr.String())
+		// return "", false, errors.Wrap(err, "exec terraform plan")
+	}
+	plan := string(out)
+
+	if strings.Contains(plan, tfNoChanges) {
+		debug.Log("changes", false)
+		return "", false, nil
+	}
+	debug.Log("changes", true)
+
+	// Drop 1st and 3rd sections with notes on state and how to apply
+	sections := strings.Split(plan, tfSep)
+	if len(sections) != 3 {
+		warn.Log("plan.output.sections", len(sections))
+		return plan, true, nil
+	}
+
+	return sections[1], true, nil
 }

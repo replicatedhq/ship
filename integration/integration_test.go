@@ -131,7 +131,7 @@ var _ = Describe("basic", func() {
 					Expect(err).NotTo(HaveOccurred())
 					err = yaml.Unmarshal(metadataBytes, &testMetadata)
 					Expect(err).NotTo(HaveOccurred())
-				})
+				}, 20)
 
 				AfterEach(func() {
 					if !testMetadata.SkipCleanup {
@@ -140,7 +140,7 @@ var _ = Describe("basic", func() {
 						Expect(err).NotTo(HaveOccurred())
 					}
 					os.Chdir(integrationDir)
-				})
+				}, 20)
 
 				It("Should output files matching those expected when running in local mode", func() {
 					cmd := cli.RootCmd()
@@ -162,7 +162,6 @@ var _ = Describe("basic", func() {
 					result, err := CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
-
 				}, 60)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
@@ -186,7 +185,6 @@ var _ = Describe("basic", func() {
 					result, err := CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
-
 				}, 60)
 			})
 		}
