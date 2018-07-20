@@ -507,8 +507,8 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		templateContext := make(map[string]interface{})
 		for _, configGroup := range resolvedConfig {
 			for _, configItem := range configGroup.Items {
-				if isCustomerProvidedValue(configItem) {
-					// do not persist configs with value overridden by default
+				if emptyDefault(configItem) {
+					// only persist configs with empty default
 					templateContext[configItem.Name] = configItem.Value
 				}
 			}
@@ -544,6 +544,6 @@ func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 	// todo something with event streams
 }
 
-func isCustomerProvidedValue(item *libyaml.ConfigItem) bool {
-	return !item.Hidden && item.Value != item.Default
+func emptyDefault(item *libyaml.ConfigItem) bool {
+	return item.Default == ""
 }

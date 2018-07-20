@@ -114,8 +114,8 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	stateTemplateContext := make(map[string]interface{})
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			if isCustomerProvidedValue(configItem, templateContext) {
-				// do not persist configs with value overridden by default
+			if emptyDefault(configItem) {
+				// only persist configs with empty default
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}
@@ -150,6 +150,6 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 	return nil
 }
 
-func isCustomerProvidedValue(item *libyaml.ConfigItem, templateContext map[string]interface{}) bool {
-	return !item.Hidden && templateContext[item.Name] != item.Default
+func emptyDefault(item *libyaml.ConfigItem) bool {
+	return item.Default == ""
 }
