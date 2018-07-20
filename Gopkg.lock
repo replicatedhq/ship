@@ -26,6 +26,12 @@
   version = "v3.5.1"
 
 [[projects]]
+  name = "github.com/buildkite/terminal"
+  packages = ["."]
+  revision = "05a77905c468b9150cac41298fdb8a0735024d42"
+  version = "v3.1.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -485,6 +491,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5458ef931be6a60f1fac6ace3f53bbaa7bdc232c3aa02e43b765b9ed64186022"
+  inputs-digest = "10b25e6c6668d7c3fd21da46cf4c8514803a0a9f06a2df08111c23a85a3097d9"
   solver-name = "gps-cdcl"
   solver-version = 1
