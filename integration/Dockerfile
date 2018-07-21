@@ -24,7 +24,7 @@ ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
 
 RUN curl -fsSLO "$TERRAFORM_URL" \
-	&& echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
+	&& echo "${TERRAFORM_SHA256SUM}  ${TERRAFORM_ZIP}" | sha256sum -c - \
 	&& unzip "$TERRAFORM_ZIP" \
 	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
 	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
