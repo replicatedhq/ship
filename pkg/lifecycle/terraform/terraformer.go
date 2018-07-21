@@ -3,10 +3,11 @@ package terraform
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -61,36 +62,33 @@ func (t *ForkTerraformer) WithDaemon(daemon daemon.Daemon) Terraformer {
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
-	assetsPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset")
+	dir, err := ioutil.TempDir("", "ship-terraform")
+	if err != nil {
+		return errors.Wrap(err, "make terraform temp workspace directory")
+	}
+	debug.Log("workspace", dir)
 
-	if err := t.init(assetsPath); err != nil {
-		return errors.Wrapf(err, "init %s", assetsPath)
+	assetPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset", "main.tf")
+	if err := os.Link(assetPath, filepath.Join(dir, "main.tf")); err != nil {
+		return errors.Wrap(err, "copy rendered terraform to workspace")
 	}
 
-	// Observed ~10% flake with errors such as:
-	// Error acquiring the state lock: resource temporarily unavailable
-	var plan string
-	var hasChanges bool
-	var err error
-	for i := 0; i < 5; i++ {
-		plan, hasChanges, err = t.plan(assetsPath)
-		if err != nil {
-			debug.Log("plan.backoff", i)
-			time.Sleep(time.Second * time.Duration(i))
-			continue
-		}
-		if !hasChanges {
-			return nil
-		}
+	if err := t.init(dir); err != nil {
+		return errors.Wrapf(err, "init %s", dir)
 	}
+
+	plan, hasChanges, err := t.plan(dir)
 	if err != nil {
 		return err
+	}
+	if !hasChanges {
+		return nil
 	}
 
 	if !viper.GetBool("terraform-yes") {
 		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
 		if err != nil {
-			return errors.Wrapf(err, "confirm plan for %s", assetsPath)
+			return errors.Wrapf(err, "confirm plan for %s", dir)
 		}
 
 		if !shouldApply {

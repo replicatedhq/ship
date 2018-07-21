@@ -70,6 +70,11 @@ func TestTerraformer(t *testing.T) {
 			if err := os.MkdirAll(d, 0755); err != nil {
 				t.Fatal(err)
 			}
+			f, err := os.Create(filepath.Join(d, "main.tf"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			f.Close()
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			mockDaemon := daemon.NewMockDaemon(mc)
@@ -107,7 +112,7 @@ func TestTerraformer(t *testing.T) {
 					Return(false, nil)
 			}
 
-			err := tf.Execute(
+			err = tf.Execute(
 				context.Background(),
 				api.Release{},
 				api.Terraform{},
