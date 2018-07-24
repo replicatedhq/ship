@@ -54,6 +54,22 @@ lifecycle:
 				Terraform: &Terraform{},
 			},
 		},
+		{
+			name: "kustomize",
+
+			yaml: `
+---
+lifecycle:
+  v1:
+    - kustomize: 
+         base_path: "k8s/"`,
+
+			expect: Step{
+				Kustomize: &Kustomize{
+					BasePath: "k8s/",
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
