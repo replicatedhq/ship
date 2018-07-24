@@ -47,7 +47,8 @@ assets:
     - docker:
         image: foo
         source: public
-        dest: docker/foo.tar`,
+        dest: docker/foo.tar
+        when: '{{repl ConfigOptionEquals "airgap_install" "1"}}'`,
 
 			expect: Asset{
 				Docker: &DockerAsset{
@@ -55,6 +56,7 @@ assets:
 					Source: "public",
 					AssetShared: AssetShared{
 						Dest: "docker/foo.tar",
+						When: "{{repl ConfigOptionEquals \"airgap_install\" \"1\"}}",
 					},
 				},
 			},
