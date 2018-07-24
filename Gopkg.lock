@@ -171,6 +171,18 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
+  version = "v15.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+
+[[projects]]
   branch = "master"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
@@ -491,6 +503,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "10b25e6c6668d7c3fd21da46cf4c8514803a0a9f06a2df08111c23a85a3097d9"
+  inputs-digest = "314c3f3d26d147225b2816e5ea1bfba5b23176c5c8d58417591f6a03a552c440"
   solver-name = "gps-cdcl"
   solver-version = 1
