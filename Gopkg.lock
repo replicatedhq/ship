@@ -98,6 +98,12 @@
   revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
 
 [[projects]]
+  name = "github.com/elazarl/go-bindata-assetfs"
+  packages = ["."]
+  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "629574ca2a5df945712d3079857300b5e4da0236"
@@ -114,6 +120,12 @@
   name = "github.com/gin-contrib/sse"
   packages = ["."]
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gin-gonic/contrib"
+  packages = ["static"]
+  revision = "39cfb9727134fef3120d2458fce5fab14265a46c"
 
 [[projects]]
   name = "github.com/gin-gonic/gin"
@@ -503,6 +515,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "314c3f3d26d147225b2816e5ea1bfba5b23176c5c8d58417591f6a03a552c440"
+  inputs-digest = "a81543cf0ea9459b235aa02efeca79923f9c53c4edcb61349d9dafde9840ee26"
   solver-name = "gps-cdcl"
   solver-version = 1

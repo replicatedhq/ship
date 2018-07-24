@@ -31,6 +31,7 @@ func NewHeadedDaemon(
 	logger log.Logger,
 	ui cli.Ui,
 	fs afero.Afero,
+	webUIFactory WebUIBuilder,
 ) *ShipDaemon {
 	return &ShipDaemon{
 		Logger:             logger,
@@ -38,6 +39,7 @@ func NewHeadedDaemon(
 		UI:                 ui,
 		StateManager:       stateManager,
 		Viper:              v,
+		WebUIFactory:       webUIFactory,
 		ConfigSaved:        make(chan interface{}),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),

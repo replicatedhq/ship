@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-gonic/contrib/static"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 
@@ -53,6 +54,7 @@ type ShipDaemon struct {
 	UI             cli.Ui
 	StateManager   *state.Manager
 	ConfigRenderer *resolve.APIConfigRenderer
+	WebUIFactory   WebUIBuilder
 
 	sync.Mutex
 	currentStep          *Step
@@ -170,10 +172,13 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		errChan <- server.ListenAndServe()
 	}()
 
-	uiPort := 8800
+	uiPortToDisplay := 8800
+	if serveUIFromAPIDaemon(d) {
+		uiPortToDisplay = 8880
+	}
 	d.UI.Info(fmt.Sprintf(
 		"Please visit the following URL in your browser to continue the installation\n\n        http://localhost:%d\n\n ",
-		uiPort, // todo param this
+		uiPortToDisplay, // todo param this
 	))
 
 	defer func() {
@@ -194,7 +199,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 }
 
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
+
 	root := g.Group("/")
+	if serveUIFromAPIDaemon(d) {
+		g.Use(static.Serve("/", d.WebUIFactory("ui")))
+	}
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
@@ -220,6 +229,11 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.GET("/channel", d.getChannel(release))
 
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))
+}
+
+// if not, we're hosting the UI separately
+func serveUIFromAPIDaemon(d *ShipDaemon) bool {
+	return !d.Viper.GetBool("ship-compose-ui")
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
