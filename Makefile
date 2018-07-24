@@ -180,7 +180,7 @@ e2e: bin/ship
 	./bin/ship e2e
 
 integration-test:
-	ginkgo -p integration
+	ginkgo -p -stream integration
 
 goreleaser: .state/goreleaser
 

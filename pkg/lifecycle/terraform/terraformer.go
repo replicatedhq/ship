@@ -3,10 +3,11 @@ package terraform
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
-
-	"path"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -18,9 +19,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+const tfSep = "------------------------------------------------------------------------"
+const tfNoChanges = "No changes. Infrastructure is up-to-date."
+
 type Terraformer interface {
 	Execute(ctx context.Context, release api.Release, step api.Terraform) error
-	WithDaemon(d daemon.Daemon) Terraformer
 }
 
 type ForkTerraformer struct {
@@ -48,36 +51,36 @@ func NewTerraformer(
 	}
 }
 
-func (t *ForkTerraformer) WithDaemon(daemon daemon.Daemon) Terraformer {
-	return &ForkTerraformer{
-		Logger: t.Logger,
-		Daemon: daemon,
-	}
-}
-
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
-	assetsPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset")
-
-	if err := t.init(assetsPath); err != nil {
-		return errors.Wrapf(err, "init %s", assetsPath)
-	}
-
-	_, err := t.plan(assetsPath)
+	dir, err := ioutil.TempDir("", "ship-terraform")
 	if err != nil {
-		return errors.Wrapf(err, "create plan for %s", assetsPath)
+		return errors.Wrap(err, "make terraform temp workspace directory")
 	}
-	// create plan, save to state
-	// push infra plan step
-	// maybe exit
-	// set progress applying
+	debug.Log("workspace", dir)
 
-	fakePlan := "We're gonna make you some servers"
+	assetPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset", "main.tf")
+	if err := os.Link(assetPath, filepath.Join(dir, "main.tf")); err != nil {
+		return errors.Wrap(err, "copy rendered terraform to workspace")
+	}
+
+	if err := t.init(dir); err != nil {
+		return errors.Wrapf(err, "init %s", dir)
+	}
+
+	plan, hasChanges, err := t.plan(dir)
+	if err != nil {
+		return err
+	}
+	if !hasChanges {
+		return nil
+	}
 
 	if !viper.GetBool("terraform-yes") {
-		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, fakePlan, release)
+		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
 		if err != nil {
-			return errors.Wrapf(err, "confirm plan for %s", assetsPath)
+			return errors.Wrapf(err, "confirm plan for %s", dir)
 		}
 
 		if !shouldApply {
@@ -85,7 +88,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		}
 	}
 
-	// next: apply plan
+	// next: apply plan, set progress
 	return nil
 }
 
@@ -109,8 +112,41 @@ func (t *ForkTerraformer) init(assetsPath string) error {
 	return nil
 }
 
-func (t *ForkTerraformer) plan(modulePath string) (string, error) {
+// plan returns a human readable plan and a changes-required flag
+func (t *ForkTerraformer) plan(assetsPath string) (string, bool, error) {
+	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
+	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
+
+	planPath := filepath.Join(filepath.Dir(assetsPath), "plan")
 	// we really shouldn't write plan to a file, but this will do for now
-	planOut := path.Join("tmp", "ship-terraform", version.RunAtEpoch, "plan")
-	return planOut, nil
+	cmd := t.Terraform()
+	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out="+planPath)
+	cmd.Dir = assetsPath
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	out, err := cmd.Output()
+	debug.Log("stdout", string(out))
+	debug.Log("stderr", stderr.String())
+	if err != nil {
+		return "", false, errors.Wrap(err, string(out)+"\n"+stderr.String())
+		// return "", false, errors.Wrap(err, "exec terraform plan")
+	}
+	plan := string(out)
+
+	if strings.Contains(plan, tfNoChanges) {
+		debug.Log("changes", false)
+		return "", false, nil
+	}
+	debug.Log("changes", true)
+
+	// Drop 1st and 3rd sections with notes on state and how to apply
+	sections := strings.Split(plan, tfSep)
+	if len(sections) != 3 {
+		warn.Log("plan.output.sections", len(sections))
+		return plan, true, nil
+	}
+
+	return sections[1], true, nil
 }

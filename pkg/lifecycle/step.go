@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform"
@@ -22,6 +23,7 @@ type StepExecutor struct {
 	Messenger   message.Messenger
 	Terraformer terraform.Terraformer
 	Daemon      daemon.Daemon
+	Kustomizer  kustomize.Kustomizer
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -42,6 +44,11 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		err := s.Terraformer.Execute(ctx, *release, *step.Terraform)
 		debug.Log("event", "step.complete", "type", "terraform", "err", err)
 		return errors.Wrap(err, "execute terraform step")
+	} else if step.Kustomize != nil {
+		debug.Log("event", "step.resolve", "type", "kustomize")
+		err := s.Kustomizer.Execute(ctx, *release, *step.Kustomize)
+		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
+		return errors.Wrap(err, "execute kustomize step")
 	}
 
 	debug.Log("event", "step.unknown")

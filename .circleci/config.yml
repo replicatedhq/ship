@@ -37,6 +37,10 @@ jobs:
       HELM_TGZ: "helm-v2.9.1-linux-amd64.tar.gz"
       HELM: "linux-amd64/helm"
       HELM_SHA256SUM: "56ae2d5d08c68d6e7400d462d6ed10c929effac929fedce18d2636a9b4e166ba"
+      TERRAFORM_VERSION: "0.11.7"
+      TERRAFORM_URL: "https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip"
+      TERRAFORM_ZIP: "terraform_0.11.7_linux_amd64.zip"
+      TERRAFORM_SHA256SUM: "6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418"
     steps:
       - checkout
       - setup_remote_docker
@@ -46,7 +50,12 @@ jobs:
             && tar xvf "$HELM_TGZ" \
             && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
             && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
-
+      - run: |
+          curl -fsSLO "${TERRAFORM_URL}" \
+            && echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
+            && unzip "$TERRAFORM_ZIP" \
+            && sudo mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
+            && sudo ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
       - run: go get github.com/onsi/ginkgo/ginkgo
       - run: make integration-test
 
