@@ -219,6 +219,7 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	v1.GET("/channel", d.getChannel(release))
 
+	v1.GET("/helm-metadata", d.getHelmMetadata(release))
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
@@ -231,6 +232,14 @@ func (d *ShipDaemon) ClearProgress() {
 	d.Lock()
 	defer d.Unlock()
 	d.stepProgress = nil
+}
+
+func (d *ShipDaemon) getHelmMetadata(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, map[string]interface{}{
+			"metadata": release.Metadata.HelmChartMetadata,
+		})
+	}
 }
 
 func (d *ShipDaemon) getChannel(release *api.Release) gin.HandlerFunc {

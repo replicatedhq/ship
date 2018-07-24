@@ -31,19 +31,27 @@ type GithubFile struct {
 	Data string `json:"data" yaml:"data" hcl:"data" meta:"data"`
 }
 
+type HelmChartMetadata struct {
+	Description string `json:"description" yaml:"description" hcl:"description" meta:"description"`
+	Version     string `json:"version" yaml:"version" hcl:"version" meta:"version"`
+	Icon        string `json:"icon" yaml:"icon" hcl:"icon" meta:"icon"`
+	Release     string `json:"release" yaml:"release" hcl:"release" meta:"release"`
+}
+
 // ReleaseMetadata
 type ReleaseMetadata struct {
-	ReleaseID      string          `json:"releaseId" yaml:"releaseId" hcl:"releaseId" meta:"release-id"`
-	CustomerID     string          `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
-	ChannelID      string          `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
-	ChannelName    string          `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
-	ChannelIcon    string          `json:"channelIcon" yaml:"channelIcon" hcl:"channelIcon" meta:"channel-icon"`
-	Semver         string          `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`
-	ReleaseNotes   string          `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
-	Created        string          `json:"created" yaml:"created" hcl:"created" meta:"release-date"`
-	RegistrySecret string          `json:"registrySecret" yaml:"registrySecret" hcl:"registrySecret" meta:"registry-secret"`
-	Images         []Image         `json:"images" yaml:"images" hcl:"images" meta:"images"`
-	GithubContents []GithubContent `json:"githubContents" yaml:"githubContents" hcl:"githubContents" meta:"githubContents"`
+	ReleaseID         string            `json:"releaseId" yaml:"releaseId" hcl:"releaseId" meta:"release-id"`
+	CustomerID        string            `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
+	ChannelID         string            `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
+	ChannelName       string            `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
+	ChannelIcon       string            `json:"channelIcon" yaml:"channelIcon" hcl:"channelIcon" meta:"channel-icon"`
+	Semver            string            `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`
+	ReleaseNotes      string            `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
+	Created           string            `json:"created" yaml:"created" hcl:"created" meta:"release-date"`
+	RegistrySecret    string            `json:"registrySecret" yaml:"registrySecret" hcl:"registrySecret" meta:"registry-secret"`
+	Images            []Image           `json:"images" yaml:"images" hcl:"images" meta:"images"`
+	GithubContents    []GithubContent   `json:"githubContents" yaml:"githubContents" hcl:"githubContents" meta:"githubContents"`
+	HelmChartMetadata HelmChartMetadata `json:"helmChartMetadata" yaml:"helmChartMetadata" hcl:"helmChartMetadata" meta:"helmChartMetadata"`
 }
 
 // Release
