@@ -27,4 +27,3 @@ type kustomizer struct {
 func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.Kustomize) error {
 	panic("I'm not implemented yet!")
 }
-

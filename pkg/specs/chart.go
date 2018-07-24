@@ -17,7 +17,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func getChartAndReadmeContents(ctx context.Context, chartURLString string) error {
+type GithubClient struct {
+	client   *github.Client
+	savePath string
+}
+
+func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
 	if !strings.HasPrefix(chartURLString, "http") {
 		chartURLString = fmt.Sprintf("http://%s", chartURLString)
 	}
@@ -29,8 +34,7 @@ func getChartAndReadmeContents(ctx context.Context, chartURLString string) error
 	repo := splitPath[2]
 	path := strings.Join(splitPath[3:], "/")
 
-	client := github.NewClient(nil)
-	_, dirContent, _, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{})
+	_, dirContent, _, err := g.client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{})
 	if err != nil {
 		return err
 	}
@@ -38,9 +42,9 @@ func getChartAndReadmeContents(ctx context.Context, chartURLString string) error
 	for _, gitContent := range dirContent {
 		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" {
 			downloadURL := gitContent.GetDownloadURL()
-			savePath := filepath.Join(constants.BasePath, gitContent.GetName())
-			err := downloadFile(savePath, downloadURL)
+			savePath := filepath.Join(g.savePath, gitContent.GetName())
 
+			err := downloadFile(savePath, downloadURL)
 			if err != nil {
 				return err
 			}
@@ -74,7 +78,13 @@ func downloadFile(path string, url string) error {
 func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
 	var md api.HelmChartMetadata
 
-	err := getChartAndReadmeContents(ctx, path)
+	gitClient := github.NewClient(nil)
+	githubClient := GithubClient{
+		client:   gitClient,
+		savePath: constants.BasePath,
+	}
+
+	err := githubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {
 		return api.HelmChartMetadata{}, err
 	}

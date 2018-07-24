@@ -87,6 +87,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 	}
 	result.Metadata.CustomerID = selector.CustomerID
 
+	// TODO(Robert): HelmChartGitPath will need to be required eventually
 	if r.HelmChartGitPath != "" {
 		result.Metadata.HelmChartMetadata, err = r.resolveChartMetadata(ctx, r.HelmChartGitPath)
 		if err != nil {
