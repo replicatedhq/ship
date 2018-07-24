@@ -24,7 +24,6 @@ const tfNoChanges = "No changes. Infrastructure is up-to-date."
 
 type Terraformer interface {
 	Execute(ctx context.Context, release api.Release, step api.Terraform) error
-	WithDaemon(d daemon.Daemon) Terraformer
 }
 
 type ForkTerraformer struct {
@@ -49,13 +48,6 @@ func NewTerraformer(
 			return exec.Command("/usr/local/bin/terraform")
 		},
 		Viper: viper,
-	}
-}
-
-func (t *ForkTerraformer) WithDaemon(daemon daemon.Daemon) Terraformer {
-	return &ForkTerraformer{
-		Logger: t.Logger,
-		Daemon: daemon,
 	}
 }
 

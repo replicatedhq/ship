@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
@@ -50,6 +51,7 @@ func buildInjector() (*dig.Container, error) {
 		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
+		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
 
 		state.NewManager,
