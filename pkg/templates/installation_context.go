@@ -4,7 +4,7 @@ import (
 	"text/template"
 
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/viper"
 )
 
@@ -18,7 +18,7 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 		"Installation": func(name string) string {
 			switch name {
 			case "state_file_path":
-				return state.Path
+				return constants.StatePath
 			case "customer_id":
 				return ctx.Viper.GetString("customer-id")
 			case "semver":

@@ -2,20 +2,28 @@ package specs
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 
 	"github.com/google/go-github/github"
 	"github.com/replicatedhq/ship/pkg/api"
 	"gopkg.in/yaml.v2"
 )
 
-const baseSavePath = ".ship"
+func getChartAndReadmeContents(ctx context.Context, chartURLString string) error {
+	if !strings.HasPrefix(chartURLString, "http") {
+		chartURLString = fmt.Sprintf("http://%s", chartURLString)
+	}
 
-func getChartAndReadmeContents(ctx context.Context, chartPath string) error {
+	chartURL, err := url.Parse(chartURLString)
+	chartPath := chartURL.Path
 	splitPath := strings.Split(chartPath, "/")
 	owner := splitPath[1]
 	repo := splitPath[2]
@@ -30,7 +38,7 @@ func getChartAndReadmeContents(ctx context.Context, chartPath string) error {
 	for _, gitContent := range dirContent {
 		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" {
 			downloadURL := gitContent.GetDownloadURL()
-			savePath := filepath.Join(baseSavePath, gitContent.GetName())
+			savePath := filepath.Join(constants.BasePath, gitContent.GetName())
 			err := downloadFile(savePath, downloadURL)
 
 			if err != nil {
@@ -71,7 +79,7 @@ func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, err
 	}
 
-	localChartPath := filepath.Join(baseSavePath, "Chart.yaml")
+	localChartPath := filepath.Join(constants.BasePath, "Chart.yaml")
 	chart, err := r.StateManager.FS.ReadFile(localChartPath)
 	if err != nil {
 		return api.HelmChartMetadata{}, err

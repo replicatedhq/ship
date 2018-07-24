@@ -21,7 +21,6 @@ with a git ops style workflow.`,
 	}
 
 	cmd.Flags().String("chart", "", "Link to github with helm chart")
-	cmd.MarkFlagRequired("chart")
 
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
