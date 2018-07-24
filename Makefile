@@ -1,14 +1,17 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test embed-ui
 
 
 SHELL := /bin/bash
 SRC = $(shell find . -name "*.go")
+UI = $(shell find ui/ -name "*.js")
 
 DOCKER_REPO ?= replicated
 
 build-deps:
 	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
+	go get github.com/elazarl/go-bindata-assetfs/...
+	go get -u github.com/jteeuwen/go-bindata/...
 
 
 dep-deps:
@@ -136,7 +139,9 @@ _vet:
 	go vet ./pkg/...
 	go vet ./cmd/...
 
-vet: fmt _vet
+# we have to build bindata here, because for some reason goimports
+# hacks up that generated file in a way that makes vet fail
+vet: fmt pkg/lifeycle/daemon/ui.bindatafs.go _vet
 
 _lint:
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" || :
@@ -165,7 +170,7 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
 
-build: test bin/ship
+build: test embed-ui bin/ship
 
 _build: bin/ship
 
@@ -198,3 +203,10 @@ build_yoonit_docker_image:
 
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
+
+pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
+	go-bindata-assetfs -pkg daemon \
+	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
+	  ui/...
+
+embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go

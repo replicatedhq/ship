@@ -39,6 +39,7 @@ func initTestDaemon(t *testing.T, release *api.Release) (*ShipDaemon, int, conte
 		Viper:            v,
 		UI:               cli.NewMockUi(),
 		MessageConfirmed: make(chan string, 1),
+		WebUIFactory:     WebUIFactoryFactory(log),
 	}
 
 	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

@@ -5,6 +5,7 @@ e2e-retraced/retraced-post.sh
 .idea
 .vscode
 /installer/
+/installer.bak/
 /.ship/
 integration/*/test*
 
