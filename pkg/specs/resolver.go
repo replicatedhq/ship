@@ -38,6 +38,7 @@ type Resolver struct {
 	StudioChannelName   string
 	StudioReleaseSemver string
 	StudioChannelIcon   string
+	HelmChartPath       string
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -55,6 +56,7 @@ func NewResolver(
 		StudioChannelName:   v.GetString("studio-channel-name"),
 		StudioChannelIcon:   v.GetString("studio-channel-icon"),
 		StudioReleaseSemver: v.GetString("release-semver"),
+		HelmChartPath:       v.GetString("file"),
 	}
 }
 
@@ -84,6 +86,13 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 		Metadata: release.ToReleaseMeta(),
 	}
 	result.Metadata.CustomerID = selector.CustomerID
+
+	if r.HelmChartPath != "" {
+		result.Metadata.HelmChartMetadata, err = resolveChartMetadata(ctx, r.HelmChartPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "resolve helm metadata for %s", r.HelmChartPath)
+		}
+	}
 
 	if err := yaml.Unmarshal([]byte(release.Spec), &result.Spec); err != nil {
 		return nil, errors.Wrapf(err, "decode spec")
