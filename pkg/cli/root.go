@@ -50,6 +50,7 @@ application specs to be used in on-prem installations.
 	cmd.PersistentFlags().String("channel-id", "", "ship channel to install from")
 	cmd.PersistentFlags().StringP("installation-id", "i", "", "Installation ID for which to query app specs")
 	cmd.PersistentFlags().IntP("api-port", "p", 8880, "port to start the API server on.")
+	cmd.PersistentFlags().Bool("ship-compose-ui", false, "using UI in docker-compose")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 
 	cmd.PersistentFlags().String("studio-file", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")

@@ -41,6 +41,7 @@ func buildInjector() (*dig.Container, error) {
 		logger.FromViper,
 		ui.FromViper,
 		fs.FromViper,
+		daemon.WebUIFactoryFactory,
 
 		templates.NewBuilderBuilder,
 		message.NewMessenger,
