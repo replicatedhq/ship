@@ -9,10 +9,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"path"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/specs"
@@ -42,7 +47,9 @@ type Ship struct {
 	Client     *specs.GraphQLClient
 	UI         cli.Ui
 
-	Runner *lifecycle.Runner
+	IsKustomize  bool
+	KustomizeRaw string
+	Runner       *lifecycle.Runner
 }
 
 // NewShip gets an instance using viper to pull config
@@ -65,6 +72,8 @@ func NewShip(
 		ChannelID:      v.GetString("channel-id"),
 		InstallationID: v.GetString("installation-id"),
 		StudioFile:     v.GetString("studio-file"),
+
+		KustomizeRaw: v.GetString("raw"),
 
 		Viper:    v,
 		Logger:   logger,
@@ -119,28 +128,35 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	debug.Log("phase", "validate-inputs")
 
-	if s.CustomerID == "" && s.StudioFile == "" {
+	if s.CustomerID == "" && s.StudioFile == "" && s.KustomizeRaw == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
 		return errors.New("missing parameter customer-id, Please provide your license key or customer ID")
 	}
 
-	if s.InstallationID == "" && s.StudioFile == "" {
+	if s.InstallationID == "" && s.StudioFile == "" && s.KustomizeRaw == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing installation ID")
 		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
 	}
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	selector := specs.Selector{
-		CustomerID:     s.CustomerID,
-		ReleaseSemver:  s.ReleaseSemver,
-		ReleaseID:      s.ReleaseID,
-		ChannelID:      s.ChannelID,
-		InstallationID: s.InstallationID,
-	}
-	release, err := s.Resolver.ResolveRelease(ctx, selector)
-	if err != nil {
-		return errors.Wrap(err, "resolve specs")
+	var release *api.Release
+	var selector *specs.Selector
+	if s.IsKustomize && s.KustomizeRaw != "" {
+		release = s.fakeKustomizeRawRelease()
+	} else {
+		selector := &specs.Selector{
+			CustomerID:     s.CustomerID,
+			ReleaseSemver:  s.ReleaseSemver,
+			ReleaseID:      s.ReleaseID,
+			ChannelID:      s.ChannelID,
+			InstallationID: s.InstallationID,
+		}
+		cloudOrStudioRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
+		if err != nil {
+			return errors.Wrap(err, "resolve specs")
+		}
+		release = cloudOrStudioRelease
 	}
 
 	runResultCh := make(chan error)
@@ -153,8 +169,8 @@ func (s *Ship) Execute(ctx context.Context) error {
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
 
-		if err == nil {
-			_ = s.Resolver.RegisterInstall(ctx, selector, release)
+		if err == nil && !s.IsKustomize && selector != nil {
+			_ = s.Resolver.RegisterInstall(ctx, *selector, release)
 		}
 		runResultCh <- err
 	}()
@@ -186,4 +202,39 @@ func (s *Ship) ExitWithError(err error) {
 	// TODO this should probably be part of lifecycle
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
+}
+func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	release := &api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{},
+			},
+			Config: api.Config{
+				V1: []libyaml.ConfigGroup{},
+			},
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: s.KustomizeRaw,
+							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+						},
+					},
+					{
+						Message: &api.Message{
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/kustomized
+
+to deploy the overlaid assets to your cluster.
+						`},
+					},
+				},
+			},
+		},
+	}
+
+	return release
+
 }

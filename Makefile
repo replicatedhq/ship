@@ -184,8 +184,13 @@ bin/ship: $(SRC)
 e2e: bin/ship
 	./bin/ship e2e
 
+# tests base "ship" cli
 integration-test:
-	ginkgo -p -stream integration
+	ginkgo -p -stream integration/base
+
+# tests "ship kustomize"
+integration-test-kustomize:
+	ginkgo -p -stream integration/kustomize
 
 goreleaser: .state/goreleaser
 
@@ -202,7 +207,7 @@ build_yoonit_docker_image:
 	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
 
 build_ship_integration_test:
-	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
+	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
 
 pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
 	go-bindata-assetfs -pkg daemon \

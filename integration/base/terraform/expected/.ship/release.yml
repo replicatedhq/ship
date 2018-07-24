@@ -1,0 +1,27 @@
+assets:
+  v1:
+    - terraform:
+        inline: |
+          resource "random_id" "server" {
+            byte_length = {{repl ConfigOption "id_length" | ParseInt}}
+          }
+
+config:
+  v1:
+    - name: id
+      items:
+         - name: id_length
+           title: ID Length
+           type: text
+           required: true
+           default: 8
+           help_text: bigger numbers make longer ids
+
+lifecycle:
+  v1:
+    - message:
+       contents: "hi"
+    - render: {}
+    - terraform: {}
+    - message:
+       contents: "bye"

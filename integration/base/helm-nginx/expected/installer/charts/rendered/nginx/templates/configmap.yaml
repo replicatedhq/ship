@@ -1,0 +1,16 @@
+##---
+# Source: nginx/templates/configmap.yaml
+# This is a simple example of using a config map to create a single page static site.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: integration-test-helm-nginx
+  labels:
+    heritage: Tiller
+    release: integration-test-helm
+    chart: nginx-0.1.0
+    app: nginx
+data:
+  # When the config map is mounted as a volume, these will be created as files.
+  index.html: "<h1>Hello</h1> <p>This is a test</p>"
+  test.txt: test
