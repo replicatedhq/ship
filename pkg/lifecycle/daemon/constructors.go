@@ -3,6 +3,7 @@ package daemon
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
+	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	"github.com/replicatedhq/ship/pkg/ui"
@@ -32,6 +33,7 @@ func NewHeadedDaemon(
 	ui cli.Ui,
 	fs afero.Afero,
 	webUIFactory WebUIBuilder,
+	treeLoader filetree.Loader,
 ) *ShipDaemon {
 	return &ShipDaemon{
 		Logger:             logger,
@@ -40,6 +42,7 @@ func NewHeadedDaemon(
 		StateManager:       stateManager,
 		Viper:              v,
 		WebUIFactory:       webUIFactory,
+		TreeLoader:         treeLoader,
 		ConfigSaved:        make(chan interface{}),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),

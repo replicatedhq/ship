@@ -1,5 +1,7 @@
 package daemon
 
+import "github.com/replicatedhq/ship/pkg/filetree"
+
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
 const StepNameHelmIntro = "helm.intro"
@@ -54,12 +56,6 @@ type HelmIntro struct {
 }
 
 type Kustomize struct {
-	Tree TreeNode `json:"tree"`
-}
-
-type TreeNode struct {
-	Children   []TreeNode `json:"children"`
-	Name       string     `json:"name"`
-	Path       string     `json:"path"`
-	HasOverlay bool       `json:"hasOverlay"`
+	BasePath string        `json:"basePath"`
+	Tree     filetree.Node `json:"tree"`
 }

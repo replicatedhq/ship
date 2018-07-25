@@ -41,7 +41,9 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	debug.Log("event", "daemon.started")
 
-	l.Daemon.PushKustomizeStep(ctx)
+	l.Daemon.PushKustomizeStep(ctx, daemon.Kustomize{
+		BasePath: step.BasePath,
+	})
 	debug.Log("event", "step.pushed")
 
 	return l.awaitMessageConfirmed(ctx, daemonExitedChan)
