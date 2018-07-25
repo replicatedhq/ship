@@ -16,7 +16,9 @@ func Kustomize() *cobra.Command {
 		Long: `Build and deploy kustomize configured helm charts to be integrated
 with a git ops style workflow.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			viper.Set("chart", args[0])
+			if len(args) != 0 {
+				viper.Set("chart", args[0])
+			}
 			s, err := ship.Get()
 			if err != nil {
 				return err

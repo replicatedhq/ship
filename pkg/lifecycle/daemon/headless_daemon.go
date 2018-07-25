@@ -13,6 +13,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 )
 
+var _ Daemon = &HeadlessDaemon{}
+
 type HeadlessDaemon struct {
 	StateManager   *state.Manager
 	Logger         log.Logger
@@ -21,9 +23,16 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context)                  {}
 func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
+func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
 
-func (d *HeadlessDaemon) PushRenderStep(context.Context, Render) {}
+func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
+	ch := make(chan interface{}, 1)
+	level.Debug(d.Logger).Log("event", "kustomize.skip", "detail", "running in automation, not waiting for kustomize")
+	ch <- nil
+	return ch
+}
 
 func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
 

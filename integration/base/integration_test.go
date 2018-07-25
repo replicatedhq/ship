@@ -12,9 +12,9 @@ import (
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
 	"gopkg.in/yaml.v2"
-	"github.com/replicatedhq/ship/integration"
 )
 
 type TestMetadata struct {
@@ -23,6 +23,7 @@ type TestMetadata struct {
 	ReleaseVersion    string `yaml:"release_version"`
 	StudioChannelName string `yaml:"studio_channel_name"`
 	Flavor            string `yaml:"flavor"`
+	DisableOnline     bool   `yaml:"disable_online"`
 
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -100,6 +101,9 @@ var _ = Describe("basic", func() {
 				}, 60)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
+					if testMetadata.DisableOnline {
+						Skip("Online test skipped")
+					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)

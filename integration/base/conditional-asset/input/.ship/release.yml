@@ -1,0 +1,36 @@
+
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "Asset not ignored"
+        dest: ./scripts/not-ignored.sh
+        mode: 0777
+        when: '{{repl ConfigOptionEquals "bool_option" "0"}}'
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "Asset ignored"
+        dest: ./scripts/ignored.sh
+        mode: 0777
+        when: '{{repl ConfigOptionEquals "bool_option" "1"}}'
+    - docker:
+        dest: ./images/postgres.tar
+        image: postgres:10.1
+        source: public
+        when: '{{repl ConfigOptionEquals "bool_option" "1"}}'
+config:
+  v1:
+    - name: test_options
+      title: Test Options
+      description: testing testing 123
+      items:
+      - name: bool_option
+        title: Boolean Option
+        type: bool
+        default: "0"
+lifecycle:
+  v1:
+    - render: {}

@@ -15,6 +15,8 @@ type AssetShared struct {
 	Mode os.FileMode `json:"mode" yaml:"mode" hcl:"mode"`
 	// Description is an optional description
 	Description string `json:"description" yaml:"description" hcl:"description"`
+	// When is an optional boolean to determine whether to pull asset
+	When string `json:"when" yaml:"when" hcl:"when"`
 }
 
 // Asset is a spec to generate one or more deployment assets
