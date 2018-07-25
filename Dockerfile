@@ -4,7 +4,7 @@ RUN go get golang.org/x/tools/cmd/goimports
 RUN go get -u github.com/golang/lint/golint
 RUN go get github.com/golang/mock/gomock
 RUN go install github.com/golang/mock/mockgen
-
+RUN make build-deps
 
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
