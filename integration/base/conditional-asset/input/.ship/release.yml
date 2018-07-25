@@ -27,11 +27,11 @@ assets:
         dest: ./scripts/ignored.sh
         mode: 0777
         when: '{{repl ConfigOptionEquals "bool_option" "1"}}'
-    # "docker" can be used to provide proxied access to private docker images
-#   - docker:
-#       image: postgres
-#       source: public
-#       dest: docker/postgres.tar
+    - docker:
+        dest: ./images/postgres.tar
+        image: postgres:10.1
+        source: public
+        when: '{{repl ConfigOptionEquals "bool_option" "1"}}'
 
 # Config defines the configuration options available to your application.
 # Values supplied by the end customer will be used during asset generation.
