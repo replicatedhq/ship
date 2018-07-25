@@ -10,7 +10,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
-	"github.com/replicatedhq/ship/pkg/version"
+	"github.com/spf13/afero"
 )
 
 // Renderer is something that can render a terraform asset as part of a planner.Plan
@@ -27,6 +27,7 @@ type Renderer interface {
 type LocalRenderer struct {
 	Logger log.Logger
 	Inline inline.Renderer
+	Fs     afero.Afero
 }
 
 var _ Renderer = &LocalRenderer{}
@@ -34,10 +35,12 @@ var _ Renderer = &LocalRenderer{}
 func NewRenderer(
 	logger log.Logger,
 	inline inline.Renderer,
+	fs afero.Afero,
 ) Renderer {
 	return &LocalRenderer{
 		Logger: logger,
 		Inline: inline,
+		Fs:     fs,
 	}
 }
 
@@ -53,9 +56,7 @@ func (r *LocalRenderer) Execute(
 			return errors.New("online \"inline\" terraform assets are supported")
 		}
 
-		// todo this is duped from lifecycle/terraformer. And we should maybe put this
-		// in state instead of the FS anyway
-		assetsPath := path.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset", "main.tf")
+		assetsPath := path.Join("terraform", "main.tf")
 
 		// write the inline spec
 		err := r.Inline.Execute(
