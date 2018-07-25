@@ -17,10 +17,21 @@ func Kustomize() *cobra.Command {
 with a git ops style workflow.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			viper.Set("chart", args[0])
-			return ship.RunE(context.Background())
+			s, err := ship.Get()
+			if err != nil {
+				return err
+			}
+			s.IsKustomize = true
+			s.ExecuteAndMaybeExit(context.Background())
+			return nil
 		},
 	}
 
+	cmd.Flags().String("file", "", "File path to helm chart")
+
+	cmd.Flags().String("raw", "", "File path to already rendered kubernetes YAML. Intended for use with non-helm K8s YAML or with a helm chart that has already been templated.")
+	viper.BindPFlags(cmd.Flags())
+	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd

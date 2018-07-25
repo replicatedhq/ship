@@ -1,0 +1,16 @@
+
+---
+assets:
+  v1:
+    - dockerlayer:
+        dest: docker/
+        image: replicated/helloscratch:1.0.0
+        source: public
+        layer: a0303cd8f7f11c340b0ef7dcaf5a90f6303f5125750f9413e50a2e5e7c3708ee
+
+config:
+  v1: []
+
+lifecycle:
+  v1:
+  - render: {}

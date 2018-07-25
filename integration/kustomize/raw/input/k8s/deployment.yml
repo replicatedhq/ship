@@ -1,0 +1,22 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: support-bundle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: support-bundle
+  template:
+    metadata:
+      labels:
+        tier: support-bundle
+    spec:
+      containers:
+        - name: support-bundle
+          image: replicated/support-bundle:alpha
+          imagePullPolicy: Always
+          command:
+            - /bin/sleep
+            - infinity

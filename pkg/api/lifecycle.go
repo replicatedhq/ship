@@ -31,4 +31,5 @@ type Terraform struct {
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
 type Kustomize struct {
 	BasePath string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
+	Dest     string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 }
