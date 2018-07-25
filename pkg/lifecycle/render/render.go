@@ -114,11 +114,14 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	stateTemplateContext := make(map[string]interface{})
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			if emptyDefault(configItem) {
-				// only persist configs with empty default
+			if isCustomerProvided(configItem, templateContext, previousState.CurrentConfig()) {
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}
+	}
+
+	if len(release.Spec.Config.V1) == 0 {
+		stateTemplateContext = templateContext
 	}
 
 	r.Daemon.SetProgress(ProgressCommit)
@@ -150,6 +153,13 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 	return nil
 }
 
-func emptyDefault(item *libyaml.ConfigItem) bool {
-	return item.Default == ""
+func isCustomerProvided(item *libyaml.ConfigItem, templateContext map[string]interface{}, savedState map[string]interface{}) bool {
+	_, inTemplateCtx := templateContext[item.Name]
+	_, inSavedState := savedState[item.Name]
+
+	if !inSavedState {
+		return item.Default == ""
+	} else {
+		return inTemplateCtx
+	}
 }

@@ -507,10 +507,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		templateContext := make(map[string]interface{})
 		for _, configGroup := range resolvedConfig {
 			for _, configItem := range configGroup.Items {
-				if emptyDefault(configItem) {
-					// only persist configs with empty default
-					templateContext[configItem.Name] = configItem.Value
-				}
+				templateContext[configItem.Name] = configItem.Value
 			}
 		}
 
@@ -542,8 +539,4 @@ func (d *ShipDaemon) GetCurrentConfig() map[string]interface{} {
 
 func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 	// todo something with event streams
-}
-
-func emptyDefault(item *libyaml.ConfigItem) bool {
-	return item.Default == ""
 }

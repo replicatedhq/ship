@@ -3,4 +3,5 @@
 echo namespace is Alpha
 echo cluster is Ovarb
 echo ingress controller is Charlie
-echo scheduler is Delta
+echo scheduler is
+echo environment is Epsilon

@@ -63,7 +63,7 @@
                           "test_proc": null,
                           "title": "Show advanced database settings",
                           "type": "bool",
-                          "value": "false",
+                          "value": "",
                           "value_cmd": null,
                           "when": ""
                       }
