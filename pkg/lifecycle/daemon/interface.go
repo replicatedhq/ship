@@ -48,12 +48,12 @@ type Action struct {
 }
 
 type Kustomize struct {
-	Tree TreeNode
+	Tree TreeNode `json:"tree"`
 }
 
 type TreeNode struct {
-	Children   []TreeNode
-	Name       string
-	Path       string
-	HasOverlay bool
+	Children   []TreeNode `json:"children"`
+	Name       string     `json:"name"`
+	Path       string     `json:"path"`
+	HasOverlay bool       `json:"has_overlay"`
 }
