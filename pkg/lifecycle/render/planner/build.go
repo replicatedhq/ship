@@ -27,7 +27,15 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 	defer p.Daemon.ClearProgress()
 
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
-	builder := p.BuilderBuilder.NewBuilder(p.BuilderBuilder.NewStaticContext())
+
+	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	if err != nil {
+		return nil, err
+	}
+	builder := p.BuilderBuilder.NewBuilder(
+		p.BuilderBuilder.NewStaticContext(),
+		newConfigContext,
+	)
 
 	var plan Plan
 	for i, asset := range assets {
@@ -39,7 +47,6 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 
 		if asset.Inline != nil {
 			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
-			plan = append(plan, p.dockerStep(*asset.Docker, meta))
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Inline.AssetShared.When)
 			if err != nil {
 				return nil, err
