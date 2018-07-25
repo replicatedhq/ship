@@ -60,6 +60,7 @@ func buildInjector() (*dig.Container, error) {
 		render.NewRenderer,
 		specs.NewResolver,
 		specs.NewGraphqlClient,
+		specs.NewGithubClient,
 		lifecycle.NewRunner,
 
 		inline.NewRenderer,

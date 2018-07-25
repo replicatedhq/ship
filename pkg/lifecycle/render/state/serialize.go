@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -75,11 +76,11 @@ func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templat
 		return errors.Wrap(err, "serialize state")
 	}
 
-	if err = s.FS.MkdirAll(filepath.Dir(Path), 0700); err != nil {
+	if err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
 
-	err = s.FS.WriteFile(Path, serialized, 0644)
+	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
 	}
@@ -91,7 +92,7 @@ func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templat
 func (s *Manager) TryLoad() (State, error) {
 	statePath := s.V.GetString("state-file")
 	if statePath == "" {
-		statePath = Path
+		statePath = constants.StatePath
 	}
 
 	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {

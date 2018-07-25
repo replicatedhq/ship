@@ -16,15 +16,11 @@ func Kustomize() *cobra.Command {
 		Long: `Build and deploy kustomize configured helm charts to be integrated
 with a git ops style workflow.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			viper.Set("chart", args[0])
 			return ship.RunE(context.Background())
 		},
 	}
 
-	cmd.Flags().String("file", "", "File path to helm chart")
-	cmd.MarkFlagRequired("file")
-
-	viper.BindPFlags(cmd.Flags())
-	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd
