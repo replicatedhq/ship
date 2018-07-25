@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
@@ -54,6 +55,7 @@ func buildInjector() (*dig.Container, error) {
 		terraform2.NewTerraformer,
 		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
+		helmIntro.NewHelmIntro,
 
 		state.NewManager,
 		planner.NewPlanner,

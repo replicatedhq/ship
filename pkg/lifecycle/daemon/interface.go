@@ -2,6 +2,7 @@ package daemon
 
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
+const StepNameHelmIntro = "helm.intro"
 
 // StepNameConfirm means that config is confirmed and assets are being rendered
 const StepNameConfirm = "render.confirm"
@@ -16,6 +17,7 @@ const StepNameKustomize = "kustomize"
 type Step struct {
 	Message   *Message   `json:"message"`
 	Render    *Render    `json:"render"`
+	HelmIntro *HelmIntro `json:"helmIntro"`
 	Kustomize *Kustomize `json:"kustomize"`
 }
 
@@ -45,6 +47,10 @@ type Action struct {
 	Text        string        `json:"text"`
 	LoadingText string        `json:"loadingText"`
 	OnClick     ActionRequest `json:"onclick"`
+}
+
+type HelmIntro struct {
+	Readme string `json:"readme"`
 }
 
 type Kustomize struct {

@@ -9,15 +9,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"path"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/specs"
@@ -141,24 +137,23 @@ func (s *Ship) Execute(ctx context.Context) error {
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
 	var release *api.Release
-	var selector *specs.Selector
-	if s.IsKustomize && s.KustomizeRaw != "" {
-		release = s.fakeKustomizeRawRelease()
-	} else {
-		selector := &specs.Selector{
-			CustomerID:     s.CustomerID,
-			ReleaseSemver:  s.ReleaseSemver,
-			ReleaseID:      s.ReleaseID,
-			ChannelID:      s.ChannelID,
-			InstallationID: s.InstallationID,
-		}
-		cloudOrStudioRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
-		if err != nil {
-			return errors.Wrap(err, "resolve specs")
-		}
-		release = cloudOrStudioRelease
+	selector := &specs.Selector{
+		CustomerID:     s.CustomerID,
+		ReleaseSemver:  s.ReleaseSemver,
+		ReleaseID:      s.ReleaseID,
+		ChannelID:      s.ChannelID,
+		InstallationID: s.InstallationID,
 	}
+	cloudOrStudioRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
+	if err != nil {
+		return errors.Wrap(err, "resolve specs")
+	}
+	release = cloudOrStudioRelease
 
+	return s.execute(ctx, release, selector)
+}
+
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector) error {
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
@@ -185,7 +180,6 @@ func (s *Ship) Execute(ctx context.Context) error {
 	case result := <-runResultCh:
 		return result
 	}
-
 }
 
 // ExitWithError should be called by the parent cobra commands if something goes wrong.
@@ -202,39 +196,4 @@ func (s *Ship) ExitWithError(err error) {
 	// TODO this should probably be part of lifecycle
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
-}
-func (s *Ship) fakeKustomizeRawRelease() *api.Release {
-	release := &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{},
-			},
-			Config: api.Config{
-				V1: []libyaml.ConfigGroup{},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
-						},
-					},
-					{
-						Message: &api.Message{
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/kustomized
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
-
-	return release
-
 }

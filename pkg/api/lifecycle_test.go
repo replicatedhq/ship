@@ -61,13 +61,24 @@ lifecycle:
 ---
 lifecycle:
   v1:
-    - kustomize: 
+    - kustomize:
          base_path: "k8s/"`,
 
 			expect: Step{
 				Kustomize: &Kustomize{
 					BasePath: "k8s/",
 				},
+			},
+		},
+		{
+			name: "helmIntro",
+			yaml: `
+---
+lifecycle:
+  v1:
+    - helmIntro: {}`,
+			expect: Step{
+				HelmIntro: &HelmIntro{},
 			},
 		},
 	}

@@ -34,6 +34,8 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
+func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
+
 // todo I think if headless we should blow up here, but for now just skipping
 func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
 	ch := make(chan bool, 1)

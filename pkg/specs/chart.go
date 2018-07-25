@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 
@@ -51,7 +53,6 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" {
 			downloadURL := gitContent.GetDownloadURL()
 			savePath := filepath.Join(constants.BasePath, gitContent.GetName())
-
 			err := g.downloadFile(savePath, downloadURL)
 			if err != nil {
 				return err
@@ -63,6 +64,11 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 }
 
 func (g *GithubClient) downloadFile(path string, url string) error {
+	err := g.fs.MkdirAll(constants.BasePath, 0700)
+	if err != nil {
+		return err
+	}
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -82,7 +88,10 @@ func (g *GithubClient) downloadFile(path string, url string) error {
 	return nil
 }
 
-func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
+func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartMetadata"))
+
+	debug.Log("phase", "fetch-readme", "for", path)
 	var md api.HelmChartMetadata
 	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {
@@ -90,11 +99,13 @@ func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.H
 	}
 
 	localChartPath := filepath.Join(constants.BasePath, "Chart.yaml")
+	debug.Log("phase", "read-readme", "from", localChartPath)
 	chart, err := r.StateManager.FS.ReadFile(localChartPath)
 	if err != nil {
 		return api.HelmChartMetadata{}, err
 	}
 
+	debug.Log("phase", "unmarshal-chart.yaml")
 	if err := yaml.Unmarshal(chart, &md); err != nil {
 		return api.HelmChartMetadata{}, err
 	}
