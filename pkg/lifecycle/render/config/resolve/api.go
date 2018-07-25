@@ -67,7 +67,12 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 	return !editable
 }
 
-func shouldOverrideValueWithDefault(item *libyaml.ConfigItem) bool {
+func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigItem, savedState map[string]interface{}) bool {
+	if r.Viper.GetBool("headless") {
+		_, ok := savedState[item.Name]
+		return !ok && item.Value == "" && item.Default != ""
+	}
+
 	return item.Hidden && item.Value == "" && item.Default != ""
 }
 
@@ -237,7 +242,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				return resolvedConfig, errors.Wrapf(err, "resolve item %s", configItem.Name)
 			}
 
-			if shouldOverrideValueWithDefault(configItem) {
+			if r.shouldOverrideValueWithDefault(configItem, savedState) {
 				configItem.Value = configItem.Default
 			}
 
