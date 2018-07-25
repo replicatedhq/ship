@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/fs"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
@@ -44,8 +45,9 @@ func buildInjector() (*dig.Container, error) {
 		ui.FromViper,
 		fs.FromViper,
 		daemon.WebUIFactoryFactory,
-
+		filetree.NewLoader,
 		templates.NewBuilderBuilder,
+
 		message.NewMessenger,
 		config.NewDaemon,
 		daemon.NewHeadedDaemon,

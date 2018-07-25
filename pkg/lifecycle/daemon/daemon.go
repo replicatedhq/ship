@@ -19,6 +19,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/afero"
@@ -40,7 +41,7 @@ type Daemon interface {
 	PushMessageStep(context.Context, Message, []Action)
 	PushRenderStep(context.Context, Render)
 	PushHelmIntroStep(context.Context, HelmIntro, []Action)
-	PushKustomizeStep(context.Context)
+	PushKustomizeStep(context.Context, Kustomize)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
 
@@ -65,6 +66,7 @@ type ShipDaemon struct {
 	StateManager   *state.Manager
 	ConfigRenderer *resolve.APIConfigRenderer
 	WebUIFactory   WebUIBuilder
+	TreeLoader     filetree.Loader
 
 	sync.Mutex
 	currentStep          *Step
@@ -98,13 +100,13 @@ func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
 	return d.KustomizeSaved
 }
 
-func (d *ShipDaemon) PushKustomizeStep(ctx context.Context) {
+func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
 	d.Lock()
 	defer d.Unlock()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameKustomize
-	d.currentStep = &Step{Kustomize: &Kustomize{}}
+	d.currentStep = &Step{Kustomize: &kustomize}
 	d.KustomizeSaved = make(chan interface{}, 1)
 	d.NotifyStepChanged(StepNameKustomize)
 }
@@ -342,7 +344,13 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 
 	// checking non-nil instead of step name
 	if d.currentStep.Kustomize != nil {
-		d.currentStep.Kustomize.Tree = d.loadKustomizeTree()
+		tree, err := d.loadKustomizeTree()
+		if err != nil {
+			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
+			c.AbortWithError(500, errors.New("internal_server_error"))
+			return
+		}
+		d.currentStep.Kustomize.Tree = *tree
 	}
 
 	result := StepResponse{
@@ -361,28 +369,15 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 }
 
 // todo load the tree and any overlays, but fake it for now
-func (d *ShipDaemon) loadKustomizeTree() TreeNode {
-	level.Debug(d.Logger).Log("event", "kustomize.loadTree", "detail", "fake/not implemented")
-	return TreeNode{
-		Path:       "k8s",
-		Name:       "k8s",
-		HasOverlay: true,
-		Children: []TreeNode{
-			{
-				Name:       "deployment.yml",
-				Path:       "k8s/deployment.yml",
-				HasOverlay: true,
-				Children:   []TreeNode{},
-			},
-			{
-				Name:       "service.yml",
-				Path:       "k8s/serivce.yml",
-				HasOverlay: false,
-				Children:   []TreeNode{},
-			},
-		},
+func (d *ShipDaemon) loadKustomizeTree() (*filetree.Node, error) {
+	level.Debug(d.Logger).Log("event", "kustomize.loadTree")
+	tree, err := d.TreeLoader.LoadTree(d.currentStep.Kustomize.BasePath)
+	if err != nil {
+		return nil, errors.Wrap(err, "daemon.loadTree")
 	}
+	return tree, nil
 }
+
 func (d *ShipDaemon) terraformApply(c *gin.Context) {
 	level.Debug(d.Logger).Log("event", "terraform.apply.send", "owner", "daemon")
 	d.Lock()
@@ -642,6 +637,8 @@ func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 }
 
 func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
+	//todo bad request if wrong state
+
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "kustomizeSaveOverlay"))
 	d.Lock()
 	defer d.Unlock()
@@ -662,6 +659,8 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 }
 
 func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
+	//todo bad request if wrong state
+
 	type Request struct {
 		Path string `json:"path"`
 	}
@@ -729,6 +728,9 @@ spec:
 }
 
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
+
+	//todo bad request if wrong state
+
 	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
 	d.KustomizeSaved <- nil
 	// todo render stuff to the state or something?

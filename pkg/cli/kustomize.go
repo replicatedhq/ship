@@ -11,9 +11,9 @@ import (
 
 func Kustomize() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "kustomize [CHART]",
+		Use:     "kustomize [CHART]",
 		Aliases: []string{"init"},
-		Short: "Build and deploy kustomize configured helm charts",
+		Short:   "Build and deploy kustomize configured helm charts",
 		Long: `Build and deploy kustomize configured helm charts to be integrated
 with a git ops style workflow.`,
 		RunE: func(cmd *cobra.Command, args []string) error {

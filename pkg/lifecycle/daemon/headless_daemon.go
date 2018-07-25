@@ -23,7 +23,7 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
-func (d *HeadlessDaemon) PushKustomizeStep(context.Context)                  {}
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize)       {}
 func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
 func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
 
