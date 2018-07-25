@@ -9,12 +9,16 @@ const StepNamePlan = "terraform.plan"
 const StepNameApply = "terraform.apply"
 const StepNameReport = "terraform.report"
 
+const StepNameKustomize = "kustomize"
+
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
-	Message *Message `json:"message"`
-	Render  *Render  `json:"render"`
+	Message   *Message   `json:"message"`
+	Render    *Render    `json:"render"`
+	Kustomize *Kustomize `json:"kustomize"`
 }
+
 type Message struct {
 	Contents    string `json:"contents"`
 	TrustedHTML bool   `json:"trusted_html"`
@@ -41,4 +45,15 @@ type Action struct {
 	Text        string        `json:"text"`
 	LoadingText string        `json:"loadingText"`
 	OnClick     ActionRequest `json:"onclick"`
+}
+
+type Kustomize struct {
+	Tree TreeNode
+}
+
+type TreeNode struct {
+	Children   []TreeNode
+	Name       string
+	Path       string
+	HasOverlay bool
 }

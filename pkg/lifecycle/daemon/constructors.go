@@ -43,6 +43,7 @@ func NewHeadedDaemon(
 		ConfigSaved:        make(chan interface{}),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
+		KustomizeSaved:     make(chan interface{}, 1),
 		ConfigRenderer:     renderer,
 		errChan:            make(chan error, 1),
 	}

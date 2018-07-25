@@ -92,6 +92,18 @@ func (mr *MockDaemonMockRecorder) GetCurrentConfig() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentConfig", reflect.TypeOf((*MockDaemon)(nil).GetCurrentConfig))
 }
 
+// KustomizeSavedChan mocks base method
+func (m *MockDaemon) KustomizeSavedChan() chan interface{} {
+	ret := m.ctrl.Call(m, "KustomizeSavedChan")
+	ret0, _ := ret[0].(chan interface{})
+	return ret0
+}
+
+// KustomizeSavedChan indicates an expected call of KustomizeSavedChan
+func (mr *MockDaemonMockRecorder) KustomizeSavedChan() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KustomizeSavedChan", reflect.TypeOf((*MockDaemon)(nil).KustomizeSavedChan))
+}
+
 // MessageConfirmedChan mocks base method
 func (m *MockDaemon) MessageConfirmedChan() chan string {
 	ret := m.ctrl.Call(m, "MessageConfirmedChan")
@@ -102,6 +114,16 @@ func (m *MockDaemon) MessageConfirmedChan() chan string {
 // MessageConfirmedChan indicates an expected call of MessageConfirmedChan
 func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).MessageConfirmedChan))
+}
+
+// PushKustomizeStep mocks base method
+func (m *MockDaemon) PushKustomizeStep(arg0 context.Context) {
+	m.ctrl.Call(m, "PushKustomizeStep", arg0)
+}
+
+// PushKustomizeStep indicates an expected call of PushKustomizeStep
+func (mr *MockDaemonMockRecorder) PushKustomizeStep(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushKustomizeStep", reflect.TypeOf((*MockDaemon)(nil).PushKustomizeStep), arg0)
 }
 
 // PushMessageStep mocks base method
