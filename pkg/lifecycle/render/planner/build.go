@@ -7,6 +7,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -26,6 +27,16 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 	defer p.Daemon.ClearProgress()
 
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
+
+	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	if err != nil {
+		return nil, err
+	}
+	builder := p.BuilderBuilder.NewBuilder(
+		p.BuilderBuilder.NewStaticContext(),
+		newConfigContext,
+	)
+
 	var plan Plan
 	for i, asset := range assets {
 		progress := buildProgress{
@@ -36,32 +47,81 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 
 		if asset.Inline != nil {
 			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "inline")
-			plan = append(plan, p.inlineStep(*asset.Inline, configGroups, meta, templateContext))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Inline.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "inline")
+			if evaluatedWhen {
+				plan = append(plan, p.inlineStep(*asset.Inline, configGroups, meta, templateContext))
+			}
 		} else if asset.Docker != nil {
 			asset.Docker.Dest = filepath.Join(constants.InstallerPrefix, asset.Docker.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "docker")
-			plan = append(plan, p.dockerStep(*asset.Docker, meta))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Docker.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "docker")
+			if evaluatedWhen {
+				plan = append(plan, p.dockerStep(*asset.Docker, meta))
+			}
 		} else if asset.Helm != nil {
 			asset.Helm.Dest = filepath.Join(constants.InstallerPrefix, asset.Helm.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "helm")
-			plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext, configGroups))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "helm")
+			if evaluatedWhen {
+				plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext, configGroups))
+			}
 		} else if asset.DockerLayer != nil {
 			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefix, asset.DockerLayer.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "dockerlayer")
-			plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.DockerLayer.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "dockerlayer")
+			if evaluatedWhen {
+				plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta))
+			}
 		} else if asset.Web != nil {
 			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "web")
-			plan = append(plan, p.webStep(*asset.Web, meta, configGroups, templateContext))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Web.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "web")
+			if evaluatedWhen {
+				plan = append(plan, p.webStep(*asset.Web, meta, configGroups, templateContext))
+			}
 		} else if asset.GitHub != nil {
 			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "github")
-			plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.GitHub.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "github")
+			if evaluatedWhen {
+				plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
+			}
 		} else if asset.Terraform != nil {
 			asset.Terraform.Dest = filepath.Join("installer", asset.Terraform.Dest)
-			debug.Log("event", "asset.resolve", "asset.type", "terraform")
-			plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Terraform.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "terraform")
+			if evaluatedWhen {
+				plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
+			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
@@ -141,6 +201,31 @@ func (p *CLIPlanner) terraformStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.Terraform.Execute(asset, meta, configGroups, templateContext),
+	}
+}
+
+func (p *CLIPlanner) evalAssetWhen(debug log.Logger, builder templates.Builder, asset api.Asset, assetWhen string) (bool, error) {
+	builtWhen, err := builder.String(assetWhen)
+	if err != nil {
+		debug.Log("event", "asset.when.fail", "asset", fmt.Sprintf("%#v", asset))
+		return false, err
+	}
+
+	builtWhenBool, err := builder.Bool(builtWhen, true)
+	if err != nil {
+		debug.Log("event", "asset.when.fail", "asset", fmt.Sprintf("%#v", asset))
+		return false, err
+	}
+
+	return builtWhenBool, nil
+}
+
+func (p *CLIPlanner) logAssetResolve(debug log.Logger, when bool, assetType string) {
+	if when {
+		debug.Log("event", "asset.when.true", "asset.type", assetType)
+		debug.Log("event", "asset.resolve", "asset.type", assetType)
+	} else {
+		debug.Log("event", "asset.when.false", "asset.type", assetType)
 	}
 }
 
