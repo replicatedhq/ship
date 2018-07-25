@@ -55,5 +55,5 @@ type TreeNode struct {
 	Children   []TreeNode `json:"children"`
 	Name       string     `json:"name"`
 	Path       string     `json:"path"`
-	HasOverlay bool       `json:"has_overlay"`
+	HasOverlay bool       `json:"hasOverlay"`
 }

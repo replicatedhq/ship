@@ -326,7 +326,7 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 
 	// checking non-nil instead of step name
 	if d.currentStep.Kustomize != nil {
-		d.currentStep.Kustomize.Tree = loadKustomizeTree()
+		d.currentStep.Kustomize.Tree = d.loadKustomizeTree()
 	}
 
 	result := StepResponse{
@@ -345,7 +345,8 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 }
 
 // todo load the tree and any overlays, but fake it for now
-func loadKustomizeTree() TreeNode {
+func (d *ShipDaemon) loadKustomizeTree() TreeNode {
+	level.Debug(d.Logger).Log("event", "kustomize.loadTree", "detail", "fake/not implemented")
 	return TreeNode{
 		Path:       "k8s",
 		Name:       "k8s",
@@ -367,9 +368,11 @@ func loadKustomizeTree() TreeNode {
 	}
 }
 func (d *ShipDaemon) terraformApply(c *gin.Context) {
+	level.Debug(d.Logger).Log("event", "terraform.apply.send", "owner", "daemon")
 	d.Lock()
 	defer d.Unlock()
 	d.TerraformConfirmed <- true
+	level.Debug(d.Logger).Log("event", "terraform.apply.sent", "owner", "daemon")
 }
 
 func (d *ShipDaemon) terraformSkip(c *gin.Context) {
@@ -660,6 +663,7 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	var response Response
 
 	if request.Path == "k8s/deployment.yml" {
+		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
 		response = Response{
 			Base: `---
 apiVersion: apps/v1
@@ -680,6 +684,7 @@ spec:
 	}
 
 	if request.Path == "k8s/service.yml" {
+		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
 		response = Response{
 			Base: `---
 apiVersion: v1
@@ -702,11 +707,13 @@ spec:
 		return
 	}
 
+	level.Debug(d.Logger).Log("event", "kustomize.notFound", "path", request.Path)
 	c.JSON(404, map[string]string{"error": "not_found"})
 
 }
 
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
+	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
 	d.KustomizeSaved <- nil
 	// todo render stuff to the state or something?
 	// I think we might wanna do that outside daemon though
