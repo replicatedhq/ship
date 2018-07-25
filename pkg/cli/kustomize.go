@@ -24,7 +24,7 @@ with a git ops style workflow.`,
 				return err
 			}
 			s.IsKustomize = true
-			s.ExecuteAndMaybeExit(context.Background())
+			s.KustomizeAndMaybeExit(context.Background())
 			return nil
 		},
 	}
