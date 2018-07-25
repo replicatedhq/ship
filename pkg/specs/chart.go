@@ -82,7 +82,7 @@ func (g *GithubClient) downloadFile(path string, url string) error {
 	return nil
 }
 
-func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
+func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
 	var md api.HelmChartMetadata
 	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {

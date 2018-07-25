@@ -203,6 +203,7 @@ func (s *Ship) ExitWithError(err error) {
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
 }
+
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 	release := &api.Release{
 		Spec: api.Spec{
@@ -238,6 +239,14 @@ to deploy the overlaid assets to your cluster.
 		},
 	}
 
-	return release
+	helmChartPath := s.Viper.GetString("chart")
+	if helmChartPath != "" {
+		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
+		release.Metadata.HelmChartMetadata = helmChartMetadata
+		if err != nil {
+			errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
+		}
+	}
 
+	return release
 }
