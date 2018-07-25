@@ -32,19 +32,28 @@ var (
 // Daemon is a sort of UI interface. Some implementations start an API to
 // power the on-prem web console. A headless implementation logs progress
 // to stdout.
+//
+// A daemon is manipulated by lifecycle step handlers to present the
+// correct UI to the user and collect necessary information
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushMessageStep(context.Context, Message, []Action)
 	PushRenderStep(context.Context, Render)
+	PushKustomizeStep(context.Context)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
+
 	MessageConfirmedChan() chan string
 	ConfigSavedChan() chan interface{}
 	TerraformConfirmedChan() chan bool
+	KustomizeSavedChan() chan interface{}
+
 	GetCurrentConfig() map[string]interface{}
 	SetProgress(Progress)
 	ClearProgress()
 }
+
+var _ Daemon = &ShipDaemon{}
 
 // Daemon runs the ship api server.
 type ShipDaemon struct {
@@ -80,6 +89,23 @@ type ShipDaemon struct {
 	MessageConfirmed chan string
 
 	TerraformConfirmed chan bool
+
+	KustomizeSaved chan interface{}
+}
+
+func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
+	return d.KustomizeSaved
+}
+
+func (d *ShipDaemon) PushKustomizeStep(ctx context.Context) {
+	d.Lock()
+	defer d.Unlock()
+	d.cleanPreviousStep()
+
+	d.currentStepName = StepNameKustomize
+	d.currentStep = &Step{Kustomize: &Kustomize{}}
+	d.KustomizeSaved = make(chan interface{}, 1)
+	d.NotifyStepChanged(StepNameKustomize)
 }
 
 // resets previous step and prepares for new step.
@@ -229,6 +255,10 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.GET("/channel", d.getChannel(release))
 
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))
+
+	v1.POST("/kustomize/file", d.kustomizeGetFile)
+	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
+	v1.POST("/kustomize/finalize", d.kustomizeFinalize)
 }
 
 // if not, we're hosting the UI separately
@@ -294,6 +324,11 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		return
 	}
 
+	// checking non-nil instead of step name
+	if d.currentStep.Kustomize != nil {
+		d.currentStep.Kustomize.Tree = d.loadKustomizeTree()
+	}
+
 	result := StepResponse{
 		CurrentStep: *d.currentStep,
 		Phase:       d.currentStepName,
@@ -308,10 +343,36 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 
 	c.JSON(200, result)
 }
+
+// todo load the tree and any overlays, but fake it for now
+func (d *ShipDaemon) loadKustomizeTree() TreeNode {
+	level.Debug(d.Logger).Log("event", "kustomize.loadTree", "detail", "fake/not implemented")
+	return TreeNode{
+		Path:       "k8s",
+		Name:       "k8s",
+		HasOverlay: true,
+		Children: []TreeNode{
+			{
+				Name:       "deployment.yml",
+				Path:       "k8s/deployment.yml",
+				HasOverlay: true,
+				Children:   []TreeNode{},
+			},
+			{
+				Name:       "service.yml",
+				Path:       "k8s/serivce.yml",
+				HasOverlay: false,
+				Children:   []TreeNode{},
+			},
+		},
+	}
+}
 func (d *ShipDaemon) terraformApply(c *gin.Context) {
+	level.Debug(d.Logger).Log("event", "terraform.apply.send", "owner", "daemon")
 	d.Lock()
 	defer d.Unlock()
 	d.TerraformConfirmed <- true
+	level.Debug(d.Logger).Log("event", "terraform.apply.sent", "owner", "daemon")
 }
 
 func (d *ShipDaemon) terraformSkip(c *gin.Context) {
@@ -562,4 +623,99 @@ func (d *ShipDaemon) GetCurrentConfig() map[string]interface{} {
 
 func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 	// todo something with event streams
+}
+
+func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "kustomizeSaveOverlay"))
+	d.Lock()
+	defer d.Unlock()
+	type Request struct {
+		Path     string `json:"path"`
+		Contents string `json:"contents"`
+	}
+
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	debug.Log("event", "request.bind")
+	debug.Log("event", "bail", "detail", "not implemented, bailing early")
+	c.JSON(200, map[string]interface{}{"status": "not-implemented (coming soon)"})
+}
+
+func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
+	type Request struct {
+		Path string `json:"path"`
+	}
+
+	var request Request
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		return
+	}
+
+	type Response struct {
+		Base    string `json:"base"`
+		Overlay string `json:"overlay"`
+	}
+	var response Response
+
+	if request.Path == "k8s/deployment.yml" {
+		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
+		response = Response{
+			Base: `---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: some-deploy
+spec:
+  replicas: 100
+  template:
+    spec:
+      containers:
+        - image: redis:3.2
+          name: redis
+`,
+		}
+		c.JSON(200, response)
+		return
+	}
+
+	if request.Path == "k8s/service.yml" {
+		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
+		response = Response{
+			Base: `---
+apiVersion: v1
+kind: Service
+metadata:
+  name: some-svc
+spec:
+  type: NodePort
+`,
+			Overlay: `---
+apiVersion: v1
+kind: Service
+metadata:
+  name: some-svc
+spec:
+  type: ClusterIP
+`,
+		}
+		c.JSON(200, response)
+		return
+	}
+
+	level.Debug(d.Logger).Log("event", "kustomize.notFound", "path", request.Path)
+	c.JSON(404, map[string]string{"error": "not_found"})
+
+}
+
+func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
+	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
+	d.KustomizeSaved <- nil
+	// todo render stuff to the state or something?
+	// I think we might wanna do that outside daemon though
+	c.JSON(200, map[string]interface{}{"status": "success"})
 }
