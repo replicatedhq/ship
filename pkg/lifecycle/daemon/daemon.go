@@ -36,6 +36,7 @@ type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushMessageStep(context.Context, Message, []Action)
 	PushRenderStep(context.Context, Render)
+	PushHelmIntroStep(context.Context, HelmIntro, []Action)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
 	MessageConfirmedChan() chan string
@@ -125,6 +126,21 @@ func (d *ShipDaemon) PushRenderStep(
 	d.currentStepName = StepNameConfig
 	d.currentStep = &Step{Render: &step}
 	d.NotifyStepChanged(StepNameConfig)
+}
+
+func (d *ShipDaemon) PushHelmIntroStep(
+	ctx context.Context,
+	step HelmIntro,
+	actions []Action,
+) {
+	d.Lock()
+	defer d.Unlock()
+	d.cleanPreviousStep()
+
+	d.currentStepName = StepNameHelmIntro
+	d.currentStep = &Step{HelmIntro: &step}
+	d.currentStepActions = actions
+	d.NotifyStepChanged(StepNameHelmIntro)
 }
 
 func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {

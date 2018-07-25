@@ -142,7 +142,7 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	var release *api.Release
 	var selector *specs.Selector
-	if s.IsKustomize && s.KustomizeRaw != "" {
+	if s.IsKustomize {
 		release = s.fakeKustomizeRawRelease()
 	} else {
 		selector := &specs.Selector{
@@ -214,6 +214,9 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 			},
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
+					{
+						HelmIntro: &api.HelmIntro{},
+					},
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: s.KustomizeRaw,

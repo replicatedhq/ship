@@ -11,6 +11,7 @@ type Step struct {
 	Render    *Render    `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
 	Terraform *Terraform `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	Kustomize *Kustomize `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
+	HelmIntro *HelmIntro `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 }
 
 // Message is a lifeycle step to print a message
@@ -32,4 +33,8 @@ type Terraform struct {
 type Kustomize struct {
 	BasePath string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
 	Dest     string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+}
+
+// HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
+type HelmIntro struct {
 }

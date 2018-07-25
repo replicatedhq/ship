@@ -14,3 +14,18 @@ func MessageActions() []Action {
 		},
 	}
 }
+
+func HelmIntroActions() []Action {
+	return []Action{
+		{
+			ButtonType:  "primary",
+			Text:        "Get started",
+			LoadingText: "Confirming",
+			OnClick: ActionRequest{
+				URI:    "/helmIntro/confirm",
+				Method: "POST",
+				Body:   `{"step_name": "helm.intro"}`,
+			},
+		},
+	}
+}

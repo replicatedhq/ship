@@ -2,6 +2,7 @@ package daemon
 
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
+const StepNameHelmIntro = "helm.intro"
 
 // StepNameConfirm means that config is confirmed and assets are being rendered
 const StepNameConfirm = "render.confirm"
@@ -12,8 +13,9 @@ const StepNameReport = "terraform.report"
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
-	Message *Message `json:"message"`
-	Render  *Render  `json:"render"`
+	Message   *Message   `json:"message"`
+	Render    *Render    `json:"render"`
+	HelmIntro *HelmIntro `json:"helmIntro"`
 }
 type Message struct {
 	Contents    string `json:"contents"`
@@ -41,4 +43,8 @@ type Action struct {
 	Text        string        `json:"text"`
 	LoadingText string        `json:"loadingText"`
 	OnClick     ActionRequest `json:"onclick"`
+}
+
+type HelmIntro struct {
+	Readme string `json:"readme"`
 }
