@@ -3,20 +3,19 @@ package specs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"path"
 	"testing"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 
 	"github.com/google/go-github/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/spf13/afero"
 )
-
-const testSavePath = ".test"
 
 var client *github.Client
 var mux *http.ServeMux
@@ -38,10 +37,6 @@ func TestGithubClient(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "GithubClient")
 }
-
-var _ = BeforeSuite(func() {
-	os.Mkdir(testSavePath, 0700)
-})
 
 var _ = Describe("GithubClient", func() {
 	client, mux, serverURL, teardown = setupGitClient()
@@ -67,13 +62,15 @@ var _ = Describe("GithubClient", func() {
 		Context("With a url prefixed with http(s)", func() {
 			It("should fetch and persist README.md and Chart.yaml", func() {
 				validGitURLWithPrefix := "http://www.github.com/o/r/"
+				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := GithubClient{
-					client:   client,
-					savePath: testSavePath,
+					client: client,
+					fs:     mockFs,
 				}
+
 				gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithPrefix)
-				readme, err := ioutil.ReadFile(path.Join(testSavePath, "README.md"))
-				chart, err := ioutil.ReadFile(path.Join(testSavePath, "Chart.yaml"))
+				readme, err := gitClient.fs.ReadFile(path.Join(constants.BasePath, "README.md"))
+				chart, err := gitClient.fs.ReadFile(path.Join(constants.BasePath, "Chart.yaml"))
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(readme)).To(Equal("foo"))
@@ -82,16 +79,17 @@ var _ = Describe("GithubClient", func() {
 		})
 
 		Context("With a url not prefixed with http", func() {
-			It("should be a short story", func() {
-				Expect(true).To(Equal(true))
+			It("should fetch and persist README.md and Chart.yaml", func() {
 				validGitURLWithoutPrefix := "github.com/o/r/"
+				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := GithubClient{
-					client:   client,
-					savePath: testSavePath,
+					client: client,
+					fs:     mockFs,
 				}
+
 				gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithoutPrefix)
-				readme, err := ioutil.ReadFile(path.Join(testSavePath, "README.md"))
-				chart, err := ioutil.ReadFile(path.Join(testSavePath, "Chart.yaml"))
+				readme, err := gitClient.fs.ReadFile(path.Join(constants.BasePath, "README.md"))
+				chart, err := gitClient.fs.ReadFile(path.Join(constants.BasePath, "Chart.yaml"))
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(readme)).To(Equal("foo"))
@@ -103,5 +101,4 @@ var _ = Describe("GithubClient", func() {
 
 var _ = AfterSuite(func() {
 	teardown()
-	os.RemoveAll(testSavePath)
 })

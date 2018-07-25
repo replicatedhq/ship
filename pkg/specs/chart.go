@@ -3,14 +3,14 @@ package specs
 import (
 	"context"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/spf13/afero"
 
 	"github.com/google/go-github/github"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -18,8 +18,16 @@ import (
 )
 
 type GithubClient struct {
-	client   *github.Client
-	savePath string
+	client *github.Client
+	fs     afero.Afero
+}
+
+func NewGithubClient(fs afero.Afero) *GithubClient {
+	client := github.NewClient(nil)
+	return &GithubClient{
+		client: client,
+		fs:     fs,
+	}
 }
 
 func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
@@ -42,9 +50,9 @@ func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLStr
 	for _, gitContent := range dirContent {
 		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" {
 			downloadURL := gitContent.GetDownloadURL()
-			savePath := filepath.Join(g.savePath, gitContent.GetName())
+			savePath := filepath.Join(constants.BasePath, gitContent.GetName())
 
-			err := downloadFile(savePath, downloadURL)
+			err := g.downloadFile(savePath, downloadURL)
 			if err != nil {
 				return err
 			}
@@ -54,20 +62,19 @@ func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLStr
 	return nil
 }
 
-func downloadFile(path string, url string) error {
-	out, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
+func (g GithubClient) downloadFile(path string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = g.fs.WriteFile(path, bytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -77,14 +84,7 @@ func downloadFile(path string, url string) error {
 
 func (r *Resolver) resolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
 	var md api.HelmChartMetadata
-
-	gitClient := github.NewClient(nil)
-	githubClient := GithubClient{
-		client:   gitClient,
-		savePath: constants.BasePath,
-	}
-
-	err := githubClient.GetChartAndReadmeContents(ctx, path)
+	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {
 		return api.HelmChartMetadata{}, err
 	}

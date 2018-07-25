@@ -33,6 +33,7 @@ type Selector struct {
 type Resolver struct {
 	Logger              log.Logger
 	Client              *GraphQLClient
+	GithubClient        *GithubClient
 	StateManager        *state.Manager
 	StudioFile          string
 	StudioChannelName   string
@@ -46,11 +47,13 @@ func NewResolver(
 	v *viper.Viper,
 	logger log.Logger,
 	graphql *GraphQLClient,
+	githubClient *GithubClient,
 	stateManager *state.Manager,
 ) *Resolver {
 	return &Resolver{
 		Logger:              logger,
 		Client:              graphql,
+		GithubClient:        githubClient,
 		StateManager:        stateManager,
 		StudioFile:          v.GetString("studio-file"),
 		StudioChannelName:   v.GetString("studio-channel-name"),
