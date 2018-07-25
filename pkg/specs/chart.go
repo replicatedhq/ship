@@ -30,7 +30,7 @@ func NewGithubClient(fs afero.Afero) *GithubClient {
 	}
 }
 
-func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
+func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
 	if !strings.HasPrefix(chartURLString, "http") {
 		chartURLString = fmt.Sprintf("http://%s", chartURLString)
 	}
@@ -62,7 +62,7 @@ func (g GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLStr
 	return nil
 }
 
-func (g GithubClient) downloadFile(path string, url string) error {
+func (g *GithubClient) downloadFile(path string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
