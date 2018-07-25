@@ -116,6 +116,16 @@ func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).MessageConfirmedChan))
 }
 
+// PushHelmIntroStep mocks base method
+func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemon.HelmIntro, arg2 []daemon.Action) {
+	m.ctrl.Call(m, "PushHelmIntroStep", arg0, arg1, arg2)
+}
+
+// PushHelmIntroStep indicates an expected call of PushHelmIntroStep
+func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmIntroStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmIntroStep), arg0, arg1, arg2)
+}
+
 // PushKustomizeStep mocks base method
 func (m *MockDaemon) PushKustomizeStep(arg0 context.Context) {
 	m.ctrl.Call(m, "PushKustomizeStep", arg0)

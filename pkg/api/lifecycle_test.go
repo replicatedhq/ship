@@ -71,13 +71,12 @@ lifecycle:
 			},
 		},
 		{
-			name: "kustomize",
-
+			name: "helmIntro",
 			yaml: `
 ---
 lifecycle:
   v1:
-    - helmIntro`,
+    - helmIntro: {}`,
 			expect: Step{
 				HelmIntro: &HelmIntro{},
 			},
