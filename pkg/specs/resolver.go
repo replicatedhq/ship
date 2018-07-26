@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
@@ -35,6 +36,7 @@ type Resolver struct {
 	Client              *GraphQLClient
 	GithubClient        *GithubClient
 	StateManager        *state.Manager
+	FS                  afero.Afero
 	StudioFile          string
 	StudioChannelName   string
 	StudioReleaseSemver string
@@ -46,6 +48,7 @@ type Resolver struct {
 func NewResolver(
 	v *viper.Viper,
 	logger log.Logger,
+	fs afero.Afero,
 	graphql *GraphQLClient,
 	githubClient *GithubClient,
 	stateManager *state.Manager,
@@ -55,6 +58,7 @@ func NewResolver(
 		Client:              graphql,
 		GithubClient:        githubClient,
 		StateManager:        stateManager,
+		FS:                  fs,
 		StudioFile:          v.GetString("studio-file"),
 		StudioChannelName:   v.GetString("studio-channel-name"),
 		StudioChannelIcon:   v.GetString("studio-channel-icon"),
