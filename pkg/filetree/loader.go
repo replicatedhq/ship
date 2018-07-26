@@ -14,6 +14,8 @@ import (
 // of a filesystem directory tree
 type Loader interface {
 	LoadTree(root string) (*Node, error)
+	// someday this should return an overlay too
+	LoadFile(root string, path string) (string, error)
 }
 
 // NewLoader builds an aferoLoader, used with dig
@@ -49,6 +51,17 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 	populated, err := a.loadTree(rootNode, files)
 
 	return &populated, errors.Wrap(err, "load tree")
+}
+
+// todo move this to a new struct or something
+func (a *aferoLoader) LoadFile(root string, file string) (string, error) {
+	fs := afero.Afero{Fs: afero.NewBasePathFs(a.FS, root)}
+	contents, err := fs.ReadFile(file)
+	if err != nil {
+		return "", errors.Wrap(err, "read file")
+	}
+
+	return string(contents), nil
 }
 
 func (a *aferoLoader) loadTree(current Node, files []os.FileInfo) (Node, error) {

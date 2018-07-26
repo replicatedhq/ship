@@ -689,6 +689,7 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	var request Request
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		c.AbortWithError(500, err)
 		return
 	}
 
@@ -696,56 +697,14 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 		Base    string `json:"base"`
 		Overlay string `json:"overlay"`
 	}
-	var response Response
-
-	if request.Path == "k8s/deployment.yml" {
-		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
-		response = Response{
-			Base: `---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: some-deploy
-spec:
-  replicas: 100
-  template:
-    spec:
-      containers:
-        - image: redis:3.2
-          name: redis
-`,
-		}
-		c.JSON(200, response)
+	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		c.AbortWithError(500, err)
 		return
 	}
 
-	if request.Path == "k8s/service.yml" {
-		level.Debug(d.Logger).Log("event", "kustomize.fakeFile", "path", request.Path)
-		response = Response{
-			Base: `---
-apiVersion: v1
-kind: Service
-metadata:
-  name: some-svc
-spec:
-  type: NodePort
-`,
-			Overlay: `---
-apiVersion: v1
-kind: Service
-metadata:
-  name: some-svc
-spec:
-  type: ClusterIP
-`,
-		}
-		c.JSON(200, response)
-		return
-	}
-
-	level.Debug(d.Logger).Log("event", "kustomize.notFound", "path", request.Path)
-	c.JSON(404, map[string]string{"error": "not_found"})
-
+	c.JSON(200, Response{Base: base})
 }
 
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
