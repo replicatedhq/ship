@@ -2,11 +2,9 @@ package helmIntro
 
 import (
 	"context"
-	"path"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/constants"
 
 	"github.com/spf13/afero"
 
@@ -43,15 +41,7 @@ func (h *helmIntro) Execute(ctx context.Context, release *api.Release, step *api
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.BasePath, "README.md"))
-	bytes, err := h.Fs.ReadFile(path.Join(constants.BasePath, "README.md"))
-	if err != nil {
-		return errors.Wrap(err, "read file README.md")
-	}
-
-	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{
-		Readme: string(bytes),
-	}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{}, daemon.HelmIntroActions())
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)

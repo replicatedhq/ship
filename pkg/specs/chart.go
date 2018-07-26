@@ -99,8 +99,15 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	}
 
 	localChartPath := filepath.Join(constants.BasePath, "Chart.yaml")
-	debug.Log("phase", "read-readme", "from", localChartPath)
+	debug.Log("phase", "read-chart", "from", localChartPath)
 	chart, err := r.StateManager.FS.ReadFile(localChartPath)
+	if err != nil {
+		return api.HelmChartMetadata{}, err
+	}
+
+	localReadmePath := filepath.Join(constants.BasePath, "README.md")
+	debug.Log("phase", "read-readme", "from", localReadmePath)
+	readme, err := r.StateManager.FS.ReadFile(localReadmePath)
 	if err != nil {
 		return api.HelmChartMetadata{}, err
 	}
@@ -110,5 +117,6 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, err
 	}
 
+	md.Readme = string(readme)
 	return md, nil
 }
