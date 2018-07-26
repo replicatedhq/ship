@@ -46,6 +46,16 @@ func (mr *MockDaemonMockRecorder) AllStepsDone(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllStepsDone", reflect.TypeOf((*MockDaemon)(nil).AllStepsDone), arg0)
 }
 
+// CleanPreviousStep mocks base method
+func (m *MockDaemon) CleanPreviousStep() {
+	m.ctrl.Call(m, "CleanPreviousStep")
+}
+
+// CleanPreviousStep indicates an expected call of CleanPreviousStep
+func (mr *MockDaemonMockRecorder) CleanPreviousStep() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanPreviousStep", reflect.TypeOf((*MockDaemon)(nil).CleanPreviousStep))
+}
+
 // ClearProgress mocks base method
 func (m *MockDaemon) ClearProgress() {
 	m.ctrl.Call(m, "ClearProgress")
@@ -154,6 +164,16 @@ func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemon.Render) {
 // PushRenderStep indicates an expected call of PushRenderStep
 func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1)
+}
+
+// PushStreamStep mocks base method
+func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemon.Message) {
+	m.ctrl.Call(m, "PushStreamStep", arg0, arg1)
+}
+
+// PushStreamStep indicates an expected call of PushStreamStep
+func (mr *MockDaemonMockRecorder) PushStreamStep(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStreamStep", reflect.TypeOf((*MockDaemon)(nil).PushStreamStep), arg0, arg1)
 }
 
 // SetProgress mocks base method

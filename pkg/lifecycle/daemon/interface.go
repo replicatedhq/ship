@@ -5,6 +5,7 @@ import "github.com/replicatedhq/ship/pkg/filetree"
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
 const StepNameHelmIntro = "helm.intro"
+const StepNameStream = "stream"
 
 // StepNameConfirm means that config is confirmed and assets are being rendered
 const StepNameConfirm = "render.confirm"
