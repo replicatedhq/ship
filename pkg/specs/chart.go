@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 
@@ -99,10 +100,17 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	}
 
 	localChartPath := filepath.Join(constants.BasePath, "Chart.yaml")
-	debug.Log("phase", "read-readme", "from", localChartPath)
-	chart, err := r.StateManager.FS.ReadFile(localChartPath)
+	debug.Log("phase", "read-chart", "from", localChartPath)
+	chart, err := r.FS.ReadFile(localChartPath)
 	if err != nil {
-		return api.HelmChartMetadata{}, err
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "read file from %s", localChartPath)
+	}
+
+	localReadmePath := filepath.Join(constants.BasePath, "README.md")
+	debug.Log("phase", "read-readme", "from", localReadmePath)
+	readme, err := r.FS.ReadFile(localReadmePath)
+	if err != nil {
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "read file from %s", localReadmePath)
 	}
 
 	debug.Log("phase", "unmarshal-chart.yaml")
@@ -110,5 +118,6 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, err
 	}
 
+	md.Readme = string(readme)
 	return md, nil
 }
