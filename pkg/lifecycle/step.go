@@ -9,6 +9,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
+	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
@@ -26,6 +27,7 @@ type StepExecutor struct {
 	Daemon      daemon.Daemon
 	Kustomizer  kustomize.Kustomizer
 	HelmIntro   helmIntro.HelmIntro
+	HelmValues  helmValues.HelmValues
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -55,6 +57,10 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.helmIntro", "type", "helmIntro")
 		err := s.HelmIntro.Execute(ctx, release, step.HelmIntro)
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
+	} else if step.HelmValues != nil {
+		debug.Log("event", "step.helmValues", "type", "helmValues")
+		err := s.HelmValues.Execute(ctx, release, step.HelmValues)
+		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
 	}
 
 	debug.Log("event", "step.unknown")

@@ -7,11 +7,12 @@ type Lifecycle struct {
 
 // Step represents vendor-customized configuration steps & messaging
 type Step struct {
-	Message   *Message   `json:"message,omitempty" yaml:"message,omitempty" hcl:"message,omitempty"`
-	Render    *Render    `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
-	Terraform *Terraform `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
-	Kustomize *Kustomize `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
-	HelmIntro *HelmIntro `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
+	Message    *Message    `json:"message,omitempty" yaml:"message,omitempty" hcl:"message,omitempty"`
+	Render     *Render     `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
+	Terraform  *Terraform  `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	Kustomize  *Kustomize  `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
+	HelmIntro  *HelmIntro  `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
+	HelmValues *HelmValues `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 }
 
 // Message is a lifeycle step to print a message
@@ -37,4 +38,9 @@ type Kustomize struct {
 
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {
+}
+
+// HelmValues is a lifecycle step to render persisted values.yaml in the .ship folder
+// and save user input changes to values.yaml
+type HelmValues struct {
 }

@@ -19,9 +19,6 @@ import (
 	"github.com/spf13/afero"
 )
 
-// StateFilePath is a placeholder for the default spot we'll store state. todo this should be a param or something
-const StateFilePath = ".ship/state.json"
-
 var (
 	ProgressLoad    = daemon.StringProgress("render", "load")
 	ProgressResolve = daemon.StringProgress("render", "resolve")

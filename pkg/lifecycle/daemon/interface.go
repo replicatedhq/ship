@@ -5,6 +5,7 @@ import "github.com/replicatedhq/ship/pkg/filetree"
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
 const StepNameHelmIntro = "helm.intro"
+const StepNameHelmValues = "helm.values"
 const StepNameStream = "stream"
 
 // StepNameConfirm means that config is confirmed and assets are being rendered
@@ -18,10 +19,11 @@ const StepNameKustomize = "kustomize"
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
-	Message   *Message   `json:"message"`
-	Render    *Render    `json:"render"`
-	HelmIntro *HelmIntro `json:"helmIntro"`
-	Kustomize *Kustomize `json:"kustomize"`
+	Message    *Message    `json:"message"`
+	Render     *Render     `json:"render"`
+	HelmIntro  *HelmIntro  `json:"helmIntro"`
+	HelmValues *HelmValues `json:"helmValues"`
+	Kustomize  *Kustomize  `json:"kustomize"`
 }
 
 type Message struct {
@@ -46,6 +48,7 @@ type ActionRequest struct {
 }
 
 type Action struct {
+	Sort        int32         `json:"sort"`
 	ButtonType  string        `json:"buttonType"`
 	Text        string        `json:"text"`
 	LoadingText string        `json:"loadingText"`
@@ -54,6 +57,10 @@ type Action struct {
 
 type HelmIntro struct {
 	Readme string `json:"readme"`
+}
+
+type HelmValues struct {
+	Values string `json:"values"`
 }
 
 type Kustomize struct {

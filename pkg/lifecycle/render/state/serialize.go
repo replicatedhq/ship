@@ -39,8 +39,9 @@ type State interface {
 
 type V0 map[string]interface{}
 type V1 struct {
-	Config    map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
-	Terraform interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	Config     map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
+	Terraform  interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 }
 
 var _ State = VersionedState{}
@@ -68,15 +69,26 @@ func (v V0) CurrentConfig() map[string]interface{} {
 	return v
 }
 
+// SerializeHelmValues takes user input helm values and serializes a state file to disk
+func (s *Manager) SerializeHelmValues(values string) error {
+	toSerialize := VersionedState{V1: &V1{HelmValues: values}}
+	return s.serializeAndWriteState(toSerialize)
+}
+
 // Serialize takes the application data and input params and serializes a state file to disk
-func (s Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
+func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
 	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
-	serialized, err := json.Marshal(toSerialize)
+	return s.serializeAndWriteState(toSerialize)
+}
+
+func (s *Manager) serializeAndWriteState(state VersionedState) error {
+	serialized, err := json.Marshal(state)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
 
-	if err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700); err != nil {
+	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
+	if err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
 

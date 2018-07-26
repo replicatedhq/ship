@@ -50,7 +50,7 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	}
 
 	for _, gitContent := range dirContent {
-		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" {
+		if gitContent.GetName() == "README.md" || gitContent.GetName() == "Chart.yaml" || gitContent.GetName() == "values.yaml" {
 			downloadURL := gitContent.GetDownloadURL()
 			savePath := filepath.Join(constants.BasePath, gitContent.GetName())
 			err := g.downloadFile(savePath, downloadURL)
