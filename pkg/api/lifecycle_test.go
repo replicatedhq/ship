@@ -81,6 +81,17 @@ lifecycle:
 				HelmIntro: &HelmIntro{},
 			},
 		},
+		{
+			name: "helmValues",
+			yaml: `
+---
+lifecycle:
+  v1:
+    - helmValues: {}`,
+			expect: Step{
+				HelmValues: &HelmValues{},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

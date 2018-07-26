@@ -29,6 +29,9 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 					{
 						HelmIntro: &api.HelmIntro{},
 					},
+					{
+						HelmValues: &api.HelmValues{},
+					},
 				},
 			},
 		},

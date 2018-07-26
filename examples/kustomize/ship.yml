@@ -23,6 +23,7 @@ config:
 lifecycle:
   v1:
     - helmIntro: {}
+    - helmValues: {}
     - render: {}
     - kustomize:
         base_path: charts/templates/

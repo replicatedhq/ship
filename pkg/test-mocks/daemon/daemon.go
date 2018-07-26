@@ -126,6 +126,16 @@ func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmIntroStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmIntroStep), arg0, arg1, arg2)
 }
 
+// PushHelmValuesStep mocks base method
+func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemon.HelmValues, arg2 []daemon.Action) {
+	m.ctrl.Call(m, "PushHelmValuesStep", arg0, arg1, arg2)
+}
+
+// PushHelmValuesStep indicates an expected call of PushHelmValuesStep
+func (mr *MockDaemonMockRecorder) PushHelmValuesStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmValuesStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmValuesStep), arg0, arg1, arg2)
+}
+
 // PushKustomizeStep mocks base method
 func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemon.Kustomize) {
 	m.ctrl.Call(m, "PushKustomizeStep", arg0, arg1)

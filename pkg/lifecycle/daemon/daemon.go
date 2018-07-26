@@ -41,6 +41,7 @@ type Daemon interface {
 	PushMessageStep(context.Context, Message, []Action)
 	PushRenderStep(context.Context, Render)
 	PushHelmIntroStep(context.Context, HelmIntro, []Action)
+	PushHelmValuesStep(context.Context, HelmValues, []Action)
 	PushKustomizeStep(context.Context, Kustomize)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
@@ -169,6 +170,21 @@ func (d *ShipDaemon) PushHelmIntroStep(
 	d.currentStep = &Step{HelmIntro: &step}
 	d.currentStepActions = actions
 	d.NotifyStepChanged(StepNameHelmIntro)
+}
+
+func (d *ShipDaemon) PushHelmValuesStep(
+	ctx context.Context,
+	step HelmValues,
+	actions []Action,
+) {
+	d.Lock()
+	defer d.Unlock()
+	d.cleanPreviousStep()
+
+	d.currentStepName = StepNameHelmValues
+	d.currentStep = &Step{HelmValues: &step}
+	d.currentStepActions = actions
+	d.NotifyStepChanged(StepNameHelmValues)
 }
 
 func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {

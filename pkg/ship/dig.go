@@ -3,6 +3,8 @@ package ship
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
+
 	dockercli "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -58,6 +60,7 @@ func buildInjector() (*dig.Container, error) {
 		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
 		helmIntro.NewHelmIntro,
+		helmValues.NewHelmValues,
 
 		state.NewManager,
 		planner.NewPlanner,
