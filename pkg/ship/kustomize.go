@@ -23,6 +23,7 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 	}
 
 	release := &api.Release{
+
 		Spec: api.Spec{
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
