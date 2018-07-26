@@ -29,7 +29,7 @@ type Render struct {
 type Terraform struct {
 }
 
-// Kustomize is a lifeycle step to generate overlays for generated assets.
+// CurrentKustomize is a lifeycle step to generate overlays for generated assets.
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
 type Kustomize struct {
 	BasePath string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`

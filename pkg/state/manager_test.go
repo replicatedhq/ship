@@ -30,36 +30,57 @@ func TestSerialize(t *testing.T) {
 
 func TestLoadConfig(t *testing.T) {
 	tests := []struct {
-		name      string
-		contents  string
-		expect    map[string]interface{}
-		expectErr error
+		name            string
+		contents        string
+		expectConfig    map[string]interface{}
+		expectKustomize *Kustomize
+		expectErr       error
 	}{
 		{
-			name:     "v0 empty",
-			contents: ``,
-			expect:   make(map[string]interface{}),
+			name:         "v0 empty",
+			contents:     ``,
+			expectConfig: make(map[string]interface{}),
 		},
 		{
-			name:     "v0 empty object",
-			contents: `{}`,
-			expect:   make(map[string]interface{}),
+			name:         "v0 empty object",
+			contents:     `{}`,
+			expectConfig: make(map[string]interface{}),
 		},
 		{
 			name:     "v0 single item",
 			contents: `{"foo": "bar"}`,
-			expect: map[string]interface{}{
+			expectConfig: map[string]interface{}{
 				"foo": "bar",
 			},
 		},
 		{
 			name:     "v1 single item",
 			contents: `{"v1": {"config": {"foo": "bar"}}}`,
-			expect: map[string]interface{}{
+			expectConfig: map[string]interface{}{
 				"foo": "bar",
 			},
 		},
+		{
+			name: "kustomize",
+			contents: `{"v1": {"kustomize": {"overlays": {
+"ship": {
+  "files": {
+	"deployment.yml": "some-fake-overlay"
+  }
+}
+}}}}`,
+			expectKustomize: &Kustomize{
+				Overlays: map[string]Overlay{
+					"ship": {
+						Files: map[string]string{
+							"deployment.yml": `some-fake-overlay`,
+						},
+					},
+				},
+			},
+		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
@@ -78,8 +99,15 @@ func TestLoadConfig(t *testing.T) {
 
 			state, err := manager.TryLoad()
 			req.NoError(err)
-			diff := deep.Equal(test.expect, state.CurrentConfig())
-			req.Empty(diff)
+			if test.expectConfig != nil {
+				diff := deep.Equal(test.expectConfig, state.CurrentConfig())
+				req.Empty(diff)
+			}
+
+			if test.expectKustomize != nil {
+				diff := deep.Equal(test.expectKustomize, state.CurrentKustomize())
+				req.Empty(diff)
+			}
 		})
 	}
 }
