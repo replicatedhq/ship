@@ -1,17 +1,37 @@
 package integration
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
-	"fmt"
 	"path/filepath"
-	"github.com/pmezard/go-difflib/difflib"
+	"strings"
+
 	. "github.com/onsi/gomega"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
+// files and directories with non-deterministic output
+var skipFiles = []string{
+	"terraform/.terraform/plugins",
+	"terraform/plan",
+	"terraform/terraform.tfstate",
+}
+
+func skipCheck(filepath string) bool {
+	for _, f := range skipFiles {
+		if strings.HasSuffix(filepath, f) {
+			return true
+		}
+	}
+	return false
+}
 
 // CompareDir returns false if the two directories have different contents
 func CompareDir(expected, actual string) (bool, error) {
+	if skipCheck(actual) {
+		return true, nil
+	}
 	expectedDir, err := ioutil.ReadDir(expected)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -48,6 +68,8 @@ func CompareDir(expected, actual string) (bool, error) {
 			if !result || err != nil {
 				return result, err
 			}
+		} else if skipCheck(expectedFilePath) {
+			continue
 		} else {
 			// compare expectedFile contents
 			expectedContents, err := ioutil.ReadFile(expectedFilePath)

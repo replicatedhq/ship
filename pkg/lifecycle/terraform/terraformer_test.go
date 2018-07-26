@@ -7,16 +7,16 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
+	uidaemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mocktf "github.com/replicatedhq/ship/pkg/test-mocks/tfplan"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,20 +32,30 @@ func TestTerraformer(t *testing.T) {
 		name              string
 		init              subproc
 		plan              subproc
+		apply             subproc
 		expectConfirmPlan bool
 		expectPlan        string
+		expectApply       bool
+		expectApplyOutput string
 		expectError       bool
 	}{
 		{
-			name: "init plan success",
+			name: "init plan apply success",
 			init: subproc{
 				ExpectArgv: []string{"init", "-input=false"},
 			},
 			plan: subproc{
-				Stdout: fmt.Sprintf("state%sCreating 1 cluster%show to apply", tfSep, tfSep),
+				ExpectArgv: []string{"plan", "-input=false", "-out=plan"},
+				Stdout:     fmt.Sprintf("state%sCreating 1 cluster%show to apply", tfSep, tfSep),
+			},
+			apply: subproc{
+				ExpectArgv: []string{"apply", "-input=false", "-auto-approve=true", "plan"},
+				Stdout:     "Applied",
 			},
 			expectConfirmPlan: true,
 			expectPlan:        `<div class="term-container">Creating 1 cluster</div>`,
+			expectApply:       true,
+			expectApplyOutput: `<div class="term-container">Applied</div>`,
 		},
 		{
 			name: "init fail",
@@ -56,25 +66,24 @@ func TestTerraformer(t *testing.T) {
 		},
 		{
 			name: "plan no changes",
-			init: subproc{
-				ExpectArgv: []string{"init", "-input=false"},
-			},
 			plan: subproc{
 				Stdout: fmt.Sprintf("\n\n%s\n\n", tfNoChanges),
+			},
+		},
+		{
+			name: "apply fail",
+			plan: subproc{
+				Stdout: fmt.Sprintf("state%sCreating 1 cluster%show to apply", tfSep, tfSep),
+			},
+			expectConfirmPlan: true,
+			expectPlan:        `<div class="term-container">Creating 1 cluster</div>`,
+			apply: subproc{
+				Fail: true,
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			d := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset")
-			if err := os.MkdirAll(d, 0755); err != nil {
-				t.Fatal(err)
-			}
-			f, err := os.Create(filepath.Join(d, "main.tf"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			f.Close()
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			mockDaemon := daemon.NewMockDaemon(mc)
@@ -96,10 +105,16 @@ func TestTerraformer(t *testing.T) {
 						log.Fatal(err)
 					}
 
+					apply, err := json.Marshal(test.apply)
+					if err != nil {
+						log.Fatal(err)
+					}
+
 					cmd.Env = append(os.Environ(),
 						"GOTEST_SUBPROCESS_MOCK=1",
 						"TERRAFORM_INIT="+string(init),
 						"TERRAFORM_PLAN="+string(plan),
+						"TERRAFORM_APPLY="+string(apply),
 					)
 					return cmd
 				},
@@ -109,10 +124,45 @@ func TestTerraformer(t *testing.T) {
 				mockPlanner.
 					EXPECT().
 					ConfirmPlan(gomock.Any(), test.expectPlan, gomock.Any()).
-					Return(false, nil)
+					Return(test.expectApply, nil)
 			}
 
-			err = tf.Execute(
+			if test.expectApply {
+				mockDaemon.
+					EXPECT().
+					PushStreamStep(gomock.Any(), gomock.Any())
+
+				msg := uidaemon.Message{
+					Contents:    test.expectApplyOutput,
+					TrustedHTML: true,
+				}
+				if test.apply.Fail {
+					msg.Level = "error"
+				}
+
+				mockDaemon.
+					EXPECT().
+					PushMessageStep(gomock.Any(), msg, gomock.Any()).
+					Return()
+
+				if test.apply.Fail {
+					ch := make(chan bool, 1)
+					ch <- false
+					mockDaemon.
+						EXPECT().
+						TerraformConfirmedChan().
+						Return(ch)
+				} else {
+					ch := make(chan string, 1)
+					ch <- ""
+					mockDaemon.
+						EXPECT().
+						MessageConfirmedChan().
+						Return(ch)
+				}
+			}
+
+			err := tf.Execute(
 				context.Background(),
 				api.Release{},
 				api.Terraform{},
@@ -140,6 +190,8 @@ func TestMockTerraform(t *testing.T) {
 		env = "TERRAFORM_INIT"
 	case "plan":
 		env = "TERRAFORM_PLAN"
+	case "apply":
+		env = "TERRAFORM_APPLY"
 	}
 
 	var config subproc
@@ -162,6 +214,62 @@ func TestMockTerraform(t *testing.T) {
 	if config.Fail {
 		os.Exit(1)
 	}
+
+	os.Exit(0)
+}
+
+func TestForkTerraformerApply(t *testing.T) {
+	req := require.New(t)
+	mc := gomock.NewController(t)
+	mockDaemon := daemon.NewMockDaemon(mc)
+	ft := ForkTerraformer{
+		Daemon: mockDaemon,
+		Logger: &logger.TestLogger{T: t},
+		Terraform: func() *exec.Cmd {
+			cmd := exec.Command(os.Args[0], "-test.run=TestMockTerraformApply")
+			cmd.Env = append(os.Environ(),
+				"GOTEST_SUBPROCESS_MOCK=1",
+			)
+			return cmd
+		},
+	}
+
+	msgs := make(chan uidaemon.Message, 10)
+	output, err := ft.apply(msgs)
+	req.NoError(err)
+	req.Equal(output, `<div class="term-container">stdout1stderr1stdout2</div>`)
+
+	req.EqualValues(uidaemon.Message{
+		Contents:    `<div class="term-container">terraform apply</div>`,
+		TrustedHTML: true,
+	}, <-msgs)
+
+	req.EqualValues(uidaemon.Message{
+		Contents:    `<div class="term-container">stdout1</div>`,
+		TrustedHTML: true,
+	}, <-msgs)
+
+	req.EqualValues(uidaemon.Message{
+		Contents:    `<div class="term-container">stdout1stderr1</div>`,
+		TrustedHTML: true,
+	}, <-msgs)
+
+	req.EqualValues(uidaemon.Message{
+		Contents:    `<div class="term-container">stdout1stderr1stdout2</div>`,
+		TrustedHTML: true,
+	}, <-msgs)
+}
+
+func TestMockTerraformApply(t *testing.T) {
+	if os.Getenv("GOTEST_SUBPROCESS_MOCK") == "" {
+		return
+	}
+
+	fmt.Fprintf(os.Stdout, "stdout1")
+	time.Sleep(time.Millisecond)
+	fmt.Fprintf(os.Stderr, "stderr1")
+	time.Sleep(time.Millisecond)
+	fmt.Fprintf(os.Stdout, "stdout2")
 
 	os.Exit(0)
 }

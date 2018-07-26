@@ -39,13 +39,14 @@ var (
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushMessageStep(context.Context, Message, []Action)
+	PushStreamStep(context.Context, <-chan Message)
 	PushRenderStep(context.Context, Render)
 	PushHelmIntroStep(context.Context, HelmIntro, []Action)
 	PushHelmValuesStep(context.Context, HelmValues, []Action)
 	PushKustomizeStep(context.Context, Kustomize)
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
-
+	CleanPreviousStep()
 	MessageConfirmedChan() chan string
 	ConfigSavedChan() chan interface{}
 	TerraformConfirmedChan() chan bool
@@ -125,6 +126,12 @@ func (d *ShipDaemon) cleanPreviousStep() {
 	d.currentStepActions = nil
 }
 
+func (d *ShipDaemon) CleanPreviousStep() {
+	d.Lock()
+	d.cleanPreviousStep()
+	d.Unlock()
+}
+
 func (d *ShipDaemon) PushMessageStep(
 	ctx context.Context,
 	step Message,
@@ -138,6 +145,24 @@ func (d *ShipDaemon) PushMessageStep(
 	d.currentStep = &Step{Message: &step}
 	d.currentStepActions = actions
 	d.NotifyStepChanged(StepNameConfig)
+}
+
+func (d *ShipDaemon) PushStreamStep(
+	ctx context.Context,
+	msgs <-chan Message,
+) {
+	d.Lock()
+	d.cleanPreviousStep()
+	d.currentStepName = StepNameStream
+	d.currentStep = &Step{Message: &Message{}}
+	d.NotifyStepChanged(StepNameConfig)
+	d.Unlock()
+
+	for msg := range msgs {
+		d.Lock()
+		d.currentStep = &Step{Message: &msg}
+		d.Unlock()
+	}
 }
 
 func (d *ShipDaemon) TerraformConfirmedChan() chan bool {
@@ -397,10 +422,6 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		CurrentStep: *d.currentStep,
 		Phase:       d.currentStepName,
 		Actions:     d.currentStepActions,
-	}
-
-	if d.currentStepName == StepNameMessage {
-		result.Actions = MessageActions()
 	}
 
 	result.Progress = d.stepProgress

@@ -36,6 +36,9 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 
 func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action)   {}
 func (d *HeadlessDaemon) PushHelmValuesStep(context.Context, HelmValues, []Action) {}
+func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message)           {}
+
+func (d *HeadlessDaemon) CleanPreviousStep() {}
 
 // todo I think if headless we should blow up here, but for now just skipping
 func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {

@@ -6,6 +6,7 @@ const StepNameMessage = "message"
 const StepNameConfig = "render.config"
 const StepNameHelmIntro = "helm.intro"
 const StepNameHelmValues = "helm.values"
+const StepNameStream = "stream"
 
 // StepNameConfirm means that config is confirmed and assets are being rendered
 const StepNameConfirm = "render.confirm"

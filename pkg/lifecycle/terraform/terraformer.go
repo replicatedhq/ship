@@ -3,11 +3,10 @@ package terraform
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
-	"os"
+	"io"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -15,7 +14,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
-	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
 
@@ -32,6 +30,7 @@ type ForkTerraformer struct {
 	PlanConfirmer tfplan.PlanConfirmer
 	Terraform     func() *exec.Cmd
 	Viper         *viper.Viper
+	dir           string
 }
 
 func NewTerraformer(
@@ -45,31 +44,20 @@ func NewTerraformer(
 		Daemon:        daemon,
 		PlanConfirmer: planner,
 		Terraform: func() *exec.Cmd {
-			return exec.Command("/usr/local/bin/terraform")
+			cmd := exec.Command("/usr/local/bin/terraform")
+			cmd.Dir = "terraform"
+			return cmd
 		},
 		Viper: viper,
 	}
 }
 
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
-	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
-
-	dir, err := ioutil.TempDir("", "ship-terraform")
-	if err != nil {
-		return errors.Wrap(err, "make terraform temp workspace directory")
-	}
-	debug.Log("workspace", dir)
-
-	assetPath := filepath.Join("/tmp", "ship-terraform", version.RunAtEpoch, "asset", "main.tf")
-	if err := os.Link(assetPath, filepath.Join(dir, "main.tf")); err != nil {
-		return errors.Wrap(err, "copy rendered terraform to workspace")
+	if err := t.init(); err != nil {
+		return errors.Wrap(err, "init")
 	}
 
-	if err := t.init(dir); err != nil {
-		return errors.Wrapf(err, "init %s", dir)
-	}
-
-	plan, hasChanges, err := t.plan(dir)
+	plan, hasChanges, err := t.plan()
 	if err != nil {
 		return err
 	}
@@ -80,7 +68,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	if !viper.GetBool("terraform-yes") {
 		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
 		if err != nil {
-			return errors.Wrapf(err, "confirm plan for %s", dir)
+			return errors.Wrap(err, "confirm plan")
 		}
 
 		if !shouldApply {
@@ -88,16 +76,53 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		}
 	}
 
-	// next: apply plan, set progress
+	// capacity is whatever's required for tests to proceed
+	applyMsgs := make(chan daemon.Message, 20)
+
+	// returns when the applyMsgs channel closes
+	go t.Daemon.PushStreamStep(ctx, applyMsgs)
+
+	// blocks until all of stdout/stderr has been sent on applyMsgs channel
+	html, err := t.apply(applyMsgs)
+	close(applyMsgs)
+	if err != nil {
+		t.Daemon.PushMessageStep(
+			ctx,
+			daemon.Message{
+				Contents:    html,
+				TrustedHTML: true,
+				Level:       "error",
+			},
+			failedApplyActions(),
+		)
+		retry := <-t.Daemon.TerraformConfirmedChan()
+		t.Daemon.CleanPreviousStep()
+		if retry {
+			return t.Execute(ctx, release, step)
+		}
+		return err
+	}
+
+	if !viper.GetBool("terraform-yes") {
+		t.Daemon.PushMessageStep(
+			ctx,
+			daemon.Message{
+				Contents:    html,
+				TrustedHTML: true,
+			},
+			daemon.MessageActions(),
+		)
+		<-t.Daemon.MessageConfirmedChan()
+	}
+
 	return nil
 }
 
-func (t *ForkTerraformer) init(assetsPath string) error {
+func (t *ForkTerraformer) init() error {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
 	cmd := t.Terraform()
 	cmd.Args = append(cmd.Args, "init", "-input=false")
-	cmd.Dir = assetsPath
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -113,15 +138,13 @@ func (t *ForkTerraformer) init(assetsPath string) error {
 }
 
 // plan returns a human readable plan and a changes-required flag
-func (t *ForkTerraformer) plan(assetsPath string) (string, bool, error) {
+func (t *ForkTerraformer) plan() (string, bool, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 
-	planPath := filepath.Join(filepath.Dir(assetsPath), "plan")
 	// we really shouldn't write plan to a file, but this will do for now
 	cmd := t.Terraform()
-	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out="+planPath)
-	cmd.Dir = assetsPath
+	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan")
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -149,4 +172,95 @@ func (t *ForkTerraformer) plan(assetsPath string) (string, bool, error) {
 	}
 
 	return sections[1], true, nil
+}
+
+// apply returns the full stdout and stderr rendered as HTML
+func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
+	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
+
+	cmd := t.Terraform()
+	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan")
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", errors.Wrap(err, "get stdout pipe")
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "", errors.Wrap(err, "get stderr pipe")
+	}
+
+	if err := cmd.Start(); err != nil {
+		return "", errors.Wrap(err, "command start")
+	}
+
+	// something to show while waiting for output
+	msgs <- daemon.Message{
+		Contents:    ansiToHTML("terraform apply"),
+		TrustedHTML: true,
+	}
+
+	var accm string
+	var readErr error
+	var mtx sync.Mutex
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	var pushAccmHTML = func(r io.Reader, name string) {
+		defer wg.Done()
+
+		b := make([]byte, 4096)
+		for {
+			n, err := r.Read(b)
+			if n > 0 {
+				latest := string(b[0:n])
+				debug.Log(name, latest)
+				mtx.Lock()
+				accm += latest
+				msg := daemon.Message{
+					Contents:    ansiToHTML(accm),
+					TrustedHTML: true,
+				}
+				msgs <- msg
+				mtx.Unlock()
+			}
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				mtx.Lock()
+				readErr = errors.Wrapf(err, "read %s", name)
+				mtx.Unlock()
+				return
+			}
+		}
+	}
+
+	go pushAccmHTML(stdout, "stdout")
+	go pushAccmHTML(stderr, "stderr")
+
+	wg.Wait()
+
+	if readErr != nil {
+		return "", readErr
+	}
+
+	err = cmd.Wait()
+
+	return ansiToHTML(accm), errors.Wrap(err, "command wait")
+}
+
+func failedApplyActions() []daemon.Action {
+	return []daemon.Action{
+		{
+			ButtonType:  "primary",
+			Text:        "Retry",
+			LoadingText: "Retrying",
+			OnClick: daemon.ActionRequest{
+				URI:    "/terraform/apply",
+				Method: "POST",
+			},
+		},
+	}
 }
