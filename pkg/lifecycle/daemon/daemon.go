@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/state"
 
 	"github.com/replicatedhq/libyaml"
 
@@ -739,7 +739,7 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	}
 	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		level.Error(d.Logger).Log("event", "load file failed", "err", err)
 		c.AbortWithError(500, err)
 		return
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 var _ Daemon = &HeadlessDaemon{}
