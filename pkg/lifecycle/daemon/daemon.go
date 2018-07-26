@@ -98,21 +98,6 @@ type ShipDaemon struct {
 	KustomizeSaved chan interface{}
 }
 
-func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
-	return d.KustomizeSaved
-}
-
-func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
-	d.Lock()
-	defer d.Unlock()
-	d.cleanPreviousStep()
-
-	d.currentStepName = StepNameKustomize
-	d.currentStep = &Step{Kustomize: &kustomize}
-	d.KustomizeSaved = make(chan interface{}, 1)
-	d.NotifyStepChanged(StepNameKustomize)
-}
-
 // resets previous step and prepares for new step.
 // caller is responsible for locking the daemon before
 // calling this
@@ -127,9 +112,8 @@ func (d *ShipDaemon) cleanPreviousStep() {
 }
 
 func (d *ShipDaemon) CleanPreviousStep() {
-	d.Lock()
+	defer d.locker()()
 	d.cleanPreviousStep()
-	d.Unlock()
 }
 
 func (d *ShipDaemon) PushMessageStep(
@@ -137,8 +121,7 @@ func (d *ShipDaemon) PushMessageStep(
 	step Message,
 	actions []Action,
 ) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameMessage
@@ -173,8 +156,7 @@ func (d *ShipDaemon) PushRenderStep(
 	ctx context.Context,
 	step Render,
 ) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameConfig
@@ -187,8 +169,7 @@ func (d *ShipDaemon) PushHelmIntroStep(
 	step HelmIntro,
 	actions []Action,
 ) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmIntro
@@ -202,8 +183,7 @@ func (d *ShipDaemon) PushHelmValuesStep(
 	step HelmValues,
 	actions []Action,
 ) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmValues
@@ -213,14 +193,12 @@ func (d *ShipDaemon) PushHelmValuesStep(
 }
 
 func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.currentStepName = stepName
 }
 
 func (d *ShipDaemon) AllStepsDone(ctx context.Context) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.allStepsDone = true
 }
 
@@ -283,6 +261,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	}
 }
 
+func (d *ShipDaemon) locker() func() {
+	d.Lock()
+	return func() { d.Unlock() }
+}
+
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
@@ -316,9 +299,9 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))
 	v1.POST("/helm-values", d.saveHelmValues)
 
-	v1.POST("/kustomize/file", d.kustomizeGetFile)
-	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
-	v1.POST("/kustomize/finalize", d.kustomizeFinalize)
+	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
+	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
+	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
 }
 
 // if not, we're hosting the UI separately
@@ -327,14 +310,12 @@ func serveUIFromAPIDaemon(d *ShipDaemon) bool {
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.stepProgress = &p
 }
 
 func (d *ShipDaemon) ClearProgress() {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 	d.stepProgress = nil
 }
 
@@ -349,6 +330,7 @@ func (d *ShipDaemon) getHelmMetadata(release *api.Release) gin.HandlerFunc {
 }
 
 func (d *ShipDaemon) saveHelmValues(c *gin.Context) {
+	defer d.locker()()
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "saveHelmValues"))
 	type Request struct {
 		Values string `json:"values"`
@@ -430,32 +412,23 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 }
 
 // todo load the tree and any overlays, but fake it for now
-func (d *ShipDaemon) loadKustomizeTree() (*filetree.Node, error) {
-	level.Debug(d.Logger).Log("event", "kustomize.loadTree")
-	tree, err := d.TreeLoader.LoadTree(d.currentStep.Kustomize.BasePath)
-	if err != nil {
-		return nil, errors.Wrap(err, "daemon.loadTree")
-	}
-	return tree, nil
-}
 
 func (d *ShipDaemon) terraformApply(c *gin.Context) {
+	defer d.locker()()
 	level.Debug(d.Logger).Log("event", "terraform.apply.send", "owner", "daemon")
-	d.Lock()
-	defer d.Unlock()
 	d.TerraformConfirmed <- true
 	level.Debug(d.Logger).Log("event", "terraform.apply.sent", "owner", "daemon")
 }
 
 func (d *ShipDaemon) terraformSkip(c *gin.Context) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
+	level.Debug(d.Logger).Log("event", "terraform.skip.send", "owner", "daemon")
 	d.TerraformConfirmed <- false
+	level.Debug(d.Logger).Log("event", "terraform.skip.sent", "owner", "daemon")
 }
 
 func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
-	d.Lock()
-	defer d.Unlock()
+	defer d.locker()()
 
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postConfirmMessage"))
 
@@ -499,8 +472,6 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 }
 
 func (d *ShipDaemon) getCurrentMessage(c *gin.Context) {
-	d.Lock()
-	defer d.Unlock()
 
 	if d.currentStep == nil {
 		c.JSON(400, map[string]interface{}{
@@ -600,6 +571,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 
 func (d *ShipDaemon) finalizeAppConfig(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		defer d.locker()()
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
 		d.putAppConfig(release)(c)
 		debug.Log("event", "configSaved.send.start")
@@ -610,9 +582,8 @@ func (d *ShipDaemon) finalizeAppConfig(release *api.Release) gin.HandlerFunc {
 
 func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		defer d.locker()()
 		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
-		d.Lock()
-		defer d.Unlock()
 
 		if d.currentStepName != StepNameConfig {
 			c.JSON(400, map[string]interface{}{
@@ -695,65 +666,4 @@ func (d *ShipDaemon) GetCurrentConfig() map[string]interface{} {
 
 func (d *ShipDaemon) NotifyStepChanged(stepType string) {
 	// todo something with event streams
-}
-
-func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
-	//todo bad request if wrong state
-
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "kustomizeSaveOverlay"))
-	d.Lock()
-	defer d.Unlock()
-	type Request struct {
-		Path     string `json:"path"`
-		Contents string `json:"contents"`
-	}
-
-	var request Request
-	if err := c.BindJSON(&request); err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		return
-	}
-
-	debug.Log("event", "request.bind")
-	debug.Log("event", "bail", "detail", "not implemented, bailing early")
-	c.JSON(200, map[string]interface{}{"status": "not-implemented (coming soon)"})
-}
-
-func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
-	//todo bad request if wrong state
-
-	type Request struct {
-		Path string `json:"path"`
-	}
-
-	var request Request
-	if err := c.BindJSON(&request); err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
-		return
-	}
-
-	type Response struct {
-		Base    string `json:"base"`
-		Overlay string `json:"overlay"`
-	}
-	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
-	if err != nil {
-		level.Error(d.Logger).Log("event", "load file failed", "err", err)
-		c.AbortWithError(500, err)
-		return
-	}
-
-	c.JSON(200, Response{Base: base})
-}
-
-func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
-
-	//todo bad request if wrong state
-
-	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
-	d.KustomizeSaved <- nil
-	// todo render stuff to the state or something?
-	// I think we might wanna do that outside daemon though
-	c.JSON(200, map[string]interface{}{"status": "success"})
 }
