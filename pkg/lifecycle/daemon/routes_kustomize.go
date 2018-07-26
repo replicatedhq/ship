@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/filetree"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func (d *ShipDaemon) requireKustomize() gin.HandlerFunc {
@@ -48,13 +49,47 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 	var request Request
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		c.AbortWithError(500, err)
 		return
 	}
 
 	debug.Log("event", "request.bind")
-	debug.Log("event", "bail", "detail", "not implemented, bailing early")
-	c.JSON(200, map[string]interface{}{"status": "not-implemented (coming soon)"})
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		c.AbortWithError(500, err)
+		return
+	}
+
+	debug.Log("event", "current.load")
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = make(map[string]state.Overlay)
+	}
+
+	if _, ok := kustomize.Overlays["ship"]; !ok {
+		kustomize.Overlays["ship"] = state.Overlay{
+			Files: make(map[string]string),
+		}
+	}
+
+	kustomize.Overlays["ship"].Files[request.Path] = request.Contents
+
+	debug.Log("event", "newstate.save")
+	err = d.StateManager.SaveKustomize(kustomize)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+		c.AbortWithError(500, err)
+		return
+	}
+
+	c.JSON(200, map[string]string{"status": "success"})
 }
+
 func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	defer d.locker()()
 

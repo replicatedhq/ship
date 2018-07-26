@@ -102,3 +102,22 @@ func (s *Manager) TryLoad() (State, error) {
 	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
+func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
+	state, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+
+	newState := VersionedState{
+		V1: &V1{
+			Config:    state.CurrentConfig(),
+			Kustomize: kustomize,
+		},
+	}
+
+	if err := m.serializeAndWriteState(newState); err != nil {
+		return errors.Wrap(err, "write state")
+	}
+
+	return nil
+}
