@@ -48,7 +48,7 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 		Name:     "/",
 		Children: []Node{},
 	}
-	populated, err := a.loadTree(rootNode, files)
+	populated, err := a.loadTree(fs, rootNode, files)
 
 	return &populated, errors.Wrap(err, "load tree")
 }
@@ -64,7 +64,7 @@ func (a *aferoLoader) LoadFile(root string, file string) (string, error) {
 	return string(contents), nil
 }
 
-func (a *aferoLoader) loadTree(current Node, files []os.FileInfo) (Node, error) {
+func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo) (Node, error) {
 	if len(files) == 0 {
 		return current, nil
 	}
@@ -75,17 +75,17 @@ func (a *aferoLoader) loadTree(current Node, files []os.FileInfo) (Node, error) 
 	// no thanks
 	if isSymlink(file) {
 		level.Debug(a.Logger).Log("event", "symlink.skip", "file", filePath)
-		return a.loadTree(current, rest)
+		return a.loadTree(fs, current, rest)
 	}
 
 	if !file.IsDir() {
-		return a.loadTree(current.withChild(Node{
+		return a.loadTree(fs, current.withChild(Node{
 			Name: file.Name(),
 			Path: filePath,
 		}), rest)
 	}
 
-	subFiles, err := a.FS.ReadDir(filePath)
+	subFiles, err := fs.ReadDir(filePath)
 	if err != nil {
 		return current, errors.Wrapf(err, "read dir %q", file.Name())
 	}
@@ -96,12 +96,12 @@ func (a *aferoLoader) loadTree(current Node, files []os.FileInfo) (Node, error) 
 		Children: []Node{},
 	}
 
-	subTreeLoaded, err := a.loadTree(subTree, subFiles)
+	subTreeLoaded, err := a.loadTree(fs, subTree, subFiles)
 	if err != nil {
 		return current, errors.Wrapf(err, "load tree %q", file.Name())
 	}
 
-	return a.loadTree(current.withChild(subTreeLoaded), rest)
+	return a.loadTree(fs, current.withChild(subTreeLoaded), rest)
 }
 
 func isSymlink(file os.FileInfo) bool {

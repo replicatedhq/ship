@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
+	"github.com/replicatedhq/ship/pkg/state"
 
 	"os"
 	"strings"

@@ -56,7 +56,6 @@ type Action struct {
 }
 
 type HelmIntro struct {
-	Readme string `json:"readme"`
 }
 
 type HelmValues struct {

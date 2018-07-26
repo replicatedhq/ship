@@ -5,7 +5,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/state"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
