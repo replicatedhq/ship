@@ -38,7 +38,7 @@ func HelmValuesActions() []Action {
 			Text:        "Save values",
 			LoadingText: "Saving",
 			OnClick: ActionRequest{
-				URI:    "/helmValues/save",
+				URI:    "/helm-values",
 				Method: "POST",
 				Body:   `{"step_name": "helm.values"}`,
 			},

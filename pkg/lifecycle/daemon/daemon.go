@@ -289,6 +289,7 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.GET("/channel", d.getChannel(release))
 
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))
+	v1.POST("/helm-values", d.saveHelmValues)
 
 	v1.POST("/kustomize/file", d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
@@ -313,11 +314,34 @@ func (d *ShipDaemon) ClearProgress() {
 }
 
 func (d *ShipDaemon) getHelmMetadata(release *api.Release) gin.HandlerFunc {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "getHelmMetadata"))
+	debug.Log("event", "response.metadata")
 	return func(c *gin.Context) {
 		c.JSON(200, map[string]interface{}{
 			"metadata": release.Metadata.HelmChartMetadata,
 		})
 	}
+}
+
+func (d *ShipDaemon) saveHelmValues(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "saveHelmValues"))
+	type Request struct {
+		Values string `json:"values"`
+	}
+	var request Request
+
+	debug.Log("event", "request.bind")
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+	}
+
+	debug.Log("event", "serialize.helmValues")
+	err := d.StateManager.SerializeHelmValues(request.Values)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "seralize.helmValues.fail", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+	c.String(200, "")
 }
 
 func (d *ShipDaemon) getChannel(release *api.Release) gin.HandlerFunc {
