@@ -29,15 +29,17 @@ type ImageManager interface {
 	ImagePull(ctx context.Context, refStr string, options types.ImagePullOptions) (io.ReadCloser, error)
 	ImageTag(ctx context.Context, source, target string) error
 	ImageSave(ctx context.Context, imageIDs []string) (io.ReadCloser, error)
+	ImagePush(ctx context.Context, image string, options types.ImagePushOptions) (io.ReadCloser, error)
 }
 
 type SaveOpts struct {
-	PullURL   string
-	SaveURL   string
-	IsPrivate bool
-	Filename  string
-	Username  string
-	Password  string
+	PullURL        string
+	SaveURL        string
+	IsPrivate      bool
+	Filename       string
+	DestinationURL string
+	Username       string
+	Password       string
 }
 
 var _ ImageSaver = &CLISaver{}
@@ -101,6 +103,16 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 		}
 	}
 
+	if saveOpts.Filename != "" {
+		return s.createFile(ctx, debug, progressCh, saveOpts)
+	} else if saveOpts.DestinationURL != "" {
+		return s.pushImage(ctx, debug, progressCh, saveOpts)
+	} else {
+		return errors.New("Destination improperly set")
+	}
+}
+
+func (s *CLISaver) createFile(ctx context.Context, debug log.Logger, progressCh chan interface{}, saveOpts SaveOpts) error {
 	debug.Log("stage", "file.create")
 
 	outFile, err := os.Create(saveOpts.Filename)
@@ -129,6 +141,11 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 
 	debug.Log("stage", "done")
 
+	return nil
+}
+
+func (s *CLISaver) pushImage(ctx context.Context, debug log.Logger, progressCh chan interface{}, saveOpts SaveOpts) error {
+	// TODO implement pushing an image
 	return nil
 }
 

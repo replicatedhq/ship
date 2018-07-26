@@ -2,12 +2,15 @@ package docker
 
 import (
 	"context"
+	"net/url"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -23,6 +26,8 @@ type Renderer interface {
 		// but we reuse this step in dockerlayer,
 		// so allow for overriding the save destination
 		saveDest string,
+		templateContext map[string]interface{},
+		configGroups []libyaml.ConfigGroup,
 	) func(ctx context.Context) error
 }
 
@@ -60,6 +65,8 @@ func (p *DefaultStep) Execute(
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, debug log.Logger) error,
 	dest string,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 
 	if dest == "" {
@@ -70,11 +77,16 @@ func (p *DefaultStep) Execute(
 		debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", dest, "description", asset.Description))
 		debug.Log("event", "execute")
 
-		basePath := filepath.Dir(dest)
-		debug.Log("event", "mkdirall.attempt", "dest", dest, "basePath", basePath)
-		if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-			debug.Log("event", "mkdirall.fail", "err", err, "dest", dest, "basePath", basePath)
-			return errors.Wrapf(err, "write directory to %s", dest)
+		parsedURL, _ := url.Parse(dest)
+		destIsDockerURL := parsedURL.Scheme == "docker"
+		if !destIsDockerURL {
+			dest = filepath.Join(constants.InstallerPrefix, dest)
+			basePath := filepath.Dir(dest)
+			debug.Log("event", "mkdirall.attempt", "dest", dest, "basePath", basePath)
+			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
+				debug.Log("event", "mkdirall.fail", "err", err, "dest", dest, "basePath", basePath)
+				return errors.Wrapf(err, "write directory to %s", dest)
+			}
 		}
 
 		pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)
@@ -88,10 +100,16 @@ func (p *DefaultStep) Execute(
 			PullURL:   pullURL,
 			SaveURL:   asset.Image,
 			IsPrivate: asset.Source != "public" && asset.Source != "",
-			Filename:  dest,
 			Username:  meta.CustomerID,
 			Password:  meta.RegistrySecret,
 		}
+
+		if destIsDockerURL {
+			registrySecretSaveOpts.DestinationURL = dest
+		} else {
+			registrySecretSaveOpts.Filename = dest
+		}
+
 		ch := p.ImageSaver.SaveImage(ctx, registrySecretSaveOpts)
 		saveError := doWithProgress(ch, debug)
 
@@ -111,6 +129,12 @@ func (p *DefaultStep) Execute(
 			Filename:  dest,
 			Username:  meta.CustomerID,
 			Password:  p.Viper.GetString("installation-id"),
+		}
+
+		if destIsDockerURL {
+			installationIDSaveOpts.DestinationURL = dest
+		} else {
+			installationIDSaveOpts.Filename = dest
 		}
 
 		ch = p.ImageSaver.SaveImage(ctx, installationIDSaveOpts)
