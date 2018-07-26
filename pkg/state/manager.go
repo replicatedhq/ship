@@ -33,42 +33,6 @@ func NewManager(
 	}
 }
 
-type State interface {
-	CurrentConfig() map[string]interface{}
-}
-
-type V0 map[string]interface{}
-type V1 struct {
-	Config     map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
-	Terraform  interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
-	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
-}
-
-var _ State = VersionedState{}
-var _ State = empty{}
-var _ State = V0{}
-
-type VersionedState struct {
-	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
-}
-
-func (u VersionedState) CurrentConfig() map[string]interface{} {
-	if u.V1 != nil && u.V1.Config != nil {
-		return u.V1.Config
-	}
-	return make(map[string]interface{})
-}
-
-type empty struct{}
-
-func (empty) CurrentConfig() map[string]interface{} {
-	return make(map[string]interface{})
-}
-
-func (v V0) CurrentConfig() map[string]interface{} {
-	return v
-}
-
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
 func (s *Manager) SerializeHelmValues(values string) error {
 	toSerialize := VersionedState{V1: &V1{HelmValues: values}}
@@ -125,7 +89,7 @@ func (s *Manager) TryLoad() (State, error) {
 
 	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", state)
 
-	if state.V1 != nil && state.V1.Config != nil {
+	if state.V1 != nil {
 		level.Debug(s.Logger).Log("event", "state.resolve", "type", "versioned")
 		return state, nil
 	}
