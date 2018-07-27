@@ -10,8 +10,8 @@ export default class Linter extends React.Component {
   constructor() {
     super();
     this.state = {
-      showHelp: true,
-      showPreview: false
+      showHelp: false,
+      showPreview: true
     };
     autoBind(this);
   }

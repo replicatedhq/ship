@@ -87,6 +87,12 @@ export default class HelmValuesEditor extends React.Component {
     this.setState(nextState)
   }
 
+  handleContinue() {
+    const { actions } = this.props;
+    const submitAction = find(actions, { sort: 1 }); // Find the continue action
+    this.props.handleAction(submitAction);
+  }
+
   onValuesSaved() {
     let nextState = {};
     nextState.toastDetails = {
@@ -96,18 +102,28 @@ export default class HelmValuesEditor extends React.Component {
       opts: {
         showCancelButton: true,
         confirmButtonText: "Continue to next step",
-        confirmAction: async () => {
-          const { actions } = this.props;
-          const submitAction = find(actions, { sort: 1 }); // Find the continue action
-          this.props.handleAction(submitAction);
-          return;
-        }
+        confirmAction: () => { this.handleContinue(); }
       }
     }
     this.setState(nextState);
   }
 
-  async handleSaveValues() {
+  handleSkip() {
+    const { initialSpecValue } = this.state;
+    const payload = {
+      values: initialSpecValue
+    }
+    this.props.saveValues(payload)
+      .then(() => {
+        this.handleContinue();
+      })
+      .catch((err) => {
+        // TODO: better handling
+        console.log(err);
+      })
+  }
+
+  handleSaveValues() {
     const { specValue, initialSpecValue } = this.state;
     const payload = {
       values: specValue
@@ -118,6 +134,10 @@ export default class HelmValuesEditor extends React.Component {
         .then(() => {
           this.setState({ saving: false, savedYaml: true });
           this.onValuesSaved();
+        })
+        .catch((err) => {
+          // TODO: better handling
+          console.log(err);
         })
     }
   }
@@ -171,7 +191,8 @@ export default class HelmValuesEditor extends React.Component {
               <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
             </div>
           </div>
-          <div className="action container u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+          <div className="action container u-width--full u-marginTop--30 flex flex1 alignItems--center justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+            <p className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-cursor--pointer" onClick={() => { this.handleSkip() }} >Skip this step</p>
             <button
               className="btn primary"
               onClick={() => this.handleSaveValues()}
