@@ -68,7 +68,7 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		}
 	}
 
-	return g.getAllFiles(ctx, owner, repo, path, "")
+	return g.getAllFiles(ctx, owner, repo, path, "/")
 }
 
 func (g *GithubClient) getAllFiles(ctx context.Context, owner string, repo string, basePath string, filePath string) error {
@@ -77,7 +77,7 @@ func (g *GithubClient) getAllFiles(ctx context.Context, owner string, repo strin
 	debug.Log("event", "getContents", "path", basePath)
 	_, dirContent, _, err := g.client.Repositories.GetContents(ctx, owner, repo, basePath, &github.RepositoryContentGetOptions{})
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "initial get contents of owner - %s repo - %s", owner, repo)
 	}
 
 	for _, gitContent := range dirContent {
@@ -143,7 +143,7 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	var md api.HelmChartMetadata
 	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {
-		return api.HelmChartMetadata{}, err
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
 	}
 
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")

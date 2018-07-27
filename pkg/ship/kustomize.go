@@ -25,7 +25,7 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 	helmChartPath := s.Viper.GetString("chart")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
-		errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
+		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
 	}
 
 	release := &api.Release{
