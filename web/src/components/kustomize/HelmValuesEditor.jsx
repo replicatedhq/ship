@@ -23,7 +23,6 @@ export default class HelmValuesEditor extends React.Component {
       specValue: "",
       initialSpecValue: "",
       saving: false,
-      unsavedChanges: false,
       toastDetails: {
         opts: {}
       }
@@ -67,11 +66,9 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   onSpecChange(value) {
-    const { initialSpecValue } = this.state;
     this.getLinterErrors(value);
     this.setState({
-      specValue: value,
-      unsavedChanges: !(initialSpecValue === value)
+      specValue: value
     });
   }
 
@@ -108,11 +105,11 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   async handleSaveValues() {
-    const { specValue, initialSpecValue } = this.state;
+    const { specValue } = this.state;
     const payload = {
       values: specValue
     }
-    if(payload.values !== "" && payload.values !== initialSpecValue) {
+    if(payload.values !== "") {
       this.setState({ saving: true });
       this.props.saveValues(payload)
         .then(() => {
@@ -127,8 +124,7 @@ export default class HelmValuesEditor extends React.Component {
       readOnly, 
       specValue,
       saving,
-      toastDetails,
-      unsavedChanges
+      toastDetails
     } = this.state;
     const { 
       values,
@@ -175,7 +171,7 @@ export default class HelmValuesEditor extends React.Component {
             <button
               className="btn primary"
               onClick={() => this.handleSaveValues()}
-              disabled={saving || !unsavedChanges}>{saving ? "Saving" : "Save values"}
+              disabled={saving}>{saving ? "Saving" : "Save values"}
             </button>
           </div> 
         </div>
