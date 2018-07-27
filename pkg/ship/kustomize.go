@@ -22,13 +22,21 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 		return s.execute(ctx, release, nil)
 	}
 
+	helmChartPath := s.Viper.GetString("chart")
+	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
+	if err != nil {
+		errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
+	}
+
 	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			HelmChartMetadata: helmChartMetadata,
+		},
 		Spec: api.Spec{
 			Assets: api.Assets{
 				V1: []api.Asset{
 					{
 						Helm: &api.HelmAsset{
-							Kustomize: true,
 							AssetShared: api.AssetShared{
 								Dest: ".",
 							},
@@ -56,7 +64,7 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 					},
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: "installer/cockroachdb",
+							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name, "templates"),
 							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
@@ -75,12 +83,6 @@ to deploy the overlaid assets to your cluster.
 		},
 	}
 
-	helmChartPath := s.Viper.GetString("chart")
-	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
-	release.Metadata.HelmChartMetadata = helmChartMetadata
-	if err != nil {
-		errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
-	}
 	return s.execute(ctx, release, nil)
 }
 

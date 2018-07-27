@@ -77,8 +77,6 @@ type HelmAsset struct {
 	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
-	// Kustomize is used to denote that this asset is being created as part of a kustomize workflow
-	Kustomize bool `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 }
 
 // LocalHelmOpts specifies a helm chart that should be templated

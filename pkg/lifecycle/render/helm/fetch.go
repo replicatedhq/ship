@@ -45,12 +45,8 @@ func (f *ClientFetcher) FetchChart(
 
 	if asset.Local != nil {
 		debug.Log("event", "chart.fetch", "source", "local", "root", asset.Local.ChartRoot)
-		if !asset.Kustomize {
-			// this is not great but it'll do -- prepend `installer` since this is off of inline assets
-			return path.Join(constants.InstallerPrefix, asset.Local.ChartRoot), nil
-		}
-
-		return asset.Local.ChartRoot, nil
+		// this is not great but it'll do -- prepend `installer` since this is off of inline assets
+		return path.Join(constants.InstallerPrefix, asset.Local.ChartRoot), nil
 	} else if asset.GitHub != nil {
 		checkoutDir, err := f.FS.TempDir("/tmp", "helmchart")
 		if err != nil {
