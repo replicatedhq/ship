@@ -42,7 +42,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   discardOverlay() {
-    const file = this.props.fileContents[this.state.selectedFile];
+    const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
     const initalOverlay = file.overlayContent;
     this.setState({ addOverlay: false, overlayContent: initalOverlay });
   }
