@@ -1,0 +1,46 @@
+##---
+# Source: spinnaker/templates/deployments/clouddriver.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-spinnaker-clouddriver
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: clouddriver
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8e9e12b8ef0fc1c93a6cb0b493d0d2f2935e05a7aaad364f45a98bdf9727612b
+      labels:
+        app: RELEASE-NAME-spinnaker
+        component: clouddriver
+    spec:
+      containers:
+        - image: gcr.io/spinnaker-marketplace/clouddriver:2.0.0-20180221152902
+          name: clouddriver
+          ports:
+            - containerPort: 7002
+              name: clouddriver
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: RELEASE-NAME-spinnaker-spinnaker-config
+            - mountPath: /tmp/registry
+              name: RELEASE-NAME-spinnaker-registry
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 7002
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: RELEASE-NAME-spinnaker-spinnaker-config
+          configMap:
+            name: RELEASE-NAME-spinnaker-spinnaker-config
+        - name: RELEASE-NAME-spinnaker-registry
+          secret:
+            secretName: RELEASE-NAME-spinnaker-registry

@@ -270,7 +270,7 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
 	if serveUIFromAPIDaemon(d) {
-		g.Use(static.Serve("/", d.WebUIFactory("ui")))
+		g.Use(static.Serve("/", d.WebUIFactory("dist")))
 	}
 
 	root.GET("/healthz", d.Healthz)

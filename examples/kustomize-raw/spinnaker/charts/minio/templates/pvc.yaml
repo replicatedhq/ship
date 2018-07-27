@@ -1,0 +1,18 @@
+##---
+# Source: spinnaker/charts/minio/templates/pvc.yaml
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: RELEASE-NAME-minio
+  labels:
+    app: minio
+    chart: minio-1.1.1
+    release: RELEASE-NAME
+    heritage: Tiller
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"

@@ -1,0 +1,80 @@
+##---
+# Source: spinnaker/charts/minio/templates/deployment.yaml
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-minio
+  labels:
+    app: minio
+    chart: minio-1.1.1
+    release: RELEASE-NAME
+    heritage: Tiller
+spec:
+  selector:
+    matchLabels:
+      app: minio
+      release: RELEASE-NAME
+  template:
+    metadata:
+      name: RELEASE-NAME-minio
+      labels:
+        app: minio
+        release: RELEASE-NAME
+    spec:
+      containers:
+        - name: minio
+          image: "minio/minio:RELEASE.2018-03-16T22-52-12Z"
+          imagePullPolicy: IfNotPresent
+          args: ["server", "/export"]
+          volumeMounts:
+            - name: export
+              mountPath: /export
+            - name: minio-server-config
+              mountPath: "/root/.minio/config.json"
+              subPath: config.json
+            - name: minio-server-config
+              mountPath: /root/.minio/initialize
+              subPath: initialize
+            - name: podinfo
+              mountPath: /podinfo
+              readOnly: false
+          ports:
+            - name: service
+              containerPort: 9000
+          env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: RELEASE-NAME-minio
+                  key: accesskey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: RELEASE-NAME-minio
+                  key: secretkey
+          livenessProbe:
+            tcpSocket:
+              port: 9000
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            
+      volumes:
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "labels"
+                fieldRef:
+                  fieldPath: metadata.labels
+        - name: export
+          persistentVolumeClaim:
+            claimName: RELEASE-NAME-minio
+        - name: minio-server-config
+          configMap:
+            name: RELEASE-NAME-minio
+        - name: minio-user
+          secret:
+            secretName: RELEASE-NAME-minio

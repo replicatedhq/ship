@@ -1,0 +1,42 @@
+##---
+# Source: spinnaker/templates/deployments/deck.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-spinnaker-deck
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: deck
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8e9e12b8ef0fc1c93a6cb0b493d0d2f2935e05a7aaad364f45a98bdf9727612b
+      labels:
+        app: RELEASE-NAME-spinnaker
+        component: deck
+    spec:
+      containers:
+        - image: gcr.io/spinnaker-marketplace/deck:2.1.0-20180221143146
+          name: deck
+          env:
+            - name: API_HOST
+              value: http://RELEASE-NAME-spinnaker-gate:8084/
+            - name: DECK_HOST
+              value: "0.0.0.0"
+            - name: DECK_PORT
+              value: "9000"
+          ports:
+            - containerPort: 9000
+              name: deck
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: RELEASE-NAME-spinnaker-spinnaker-config
+      volumes:
+        - name: RELEASE-NAME-spinnaker-spinnaker-config
+          configMap:
+            name: RELEASE-NAME-spinnaker-spinnaker-config

@@ -1,0 +1,15 @@
+##---
+# Source: spinnaker/templates/svc/front50.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-spinnaker-front50
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: front50
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: RELEASE-NAME-spinnaker
+    component: front50
