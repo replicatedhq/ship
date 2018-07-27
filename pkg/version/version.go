@@ -8,10 +8,10 @@ var (
 
 // Build holds details about this build of the Ship binary
 type Build struct {
-	Version      string
-	GitSHA       string
-	BuildTime    time.Time
-	TimeFallback string `json:"time_fallback,omitempty"`
+	Version      string    `json:"version,omitempty"`
+	GitSHA       string    `json:"git,omitempty"`
+	BuildTime    time.Time `json:"buildTime,omitempty"`
+	TimeFallback string    `json:"buildTimeFallback,omitempty"`
 }
 
 // Init sets up the version info from build args
