@@ -43,6 +43,13 @@ func (s *Manager) SerializeHelmValues(values string) error {
 		return errors.Wrap(err, "try load state")
 	}
 
+	debug.Log("event", "emptyState")
+	isEmpty := currentState == empty{}
+	if isEmpty {
+		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
+		return s.serializeAndWriteState(toSerialize)
+	}
+
 	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
 	toSerialize := currentState.(VersionedState)
 	toSerialize.V1.HelmValues = values

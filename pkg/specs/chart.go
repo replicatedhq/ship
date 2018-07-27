@@ -54,13 +54,18 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	repo := splitPath[2]
 	path := strings.Join(splitPath[3:], "/")
 
+	debug.Log("event", "checkExists", "path", constants.KustomizeHelmPath)
 	saveDirExists, err := g.fs.Exists(constants.KustomizeHelmPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "check kustomizeHelmPath exists")
 	}
 
 	if saveDirExists {
-		g.fs.RemoveAll(constants.KustomizeHelmPath)
+		debug.Log("event", "removeAll", "path", constants.KustomizeHelmPath)
+		err := g.fs.RemoveAll(constants.KustomizeHelmPath)
+		if err != nil {
+			return errors.Wrap(err, "remove kustomizeHelmPath")
+		}
 	}
 
 	return g.getAllFiles(ctx, owner, repo, path, "")
