@@ -62,6 +62,7 @@ application specs to be used in on-prem installations.
 	cmd.AddCommand(e2e.Cmd())
 	cmd.AddCommand(devtoolreleaser.Cmd())
 	cmd.AddCommand(Kustomize())
+	cmd.AddCommand(Version())
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
