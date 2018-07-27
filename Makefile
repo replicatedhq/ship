@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test embed-ui
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui
 
 
 SHELL := /bin/bash
@@ -33,8 +33,6 @@ githooks:
 	chmod +x .git/hooks/pre-push
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
-
-
 
 _mockgen:
 	rm -rf pkg/test-mocks
@@ -169,8 +167,7 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
-
-build: test embed-ui bin/ship
+build: test bin/ship
 
 _build: bin/ship
 
@@ -214,4 +211,10 @@ pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  ui/...
 
-embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: 
+	pkg/lifeycle/daemon/ui.bindatafs.go
+
+build-ui: 	
+	cd web; yarn install --force
+	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
+	mv web/dist/* ui
