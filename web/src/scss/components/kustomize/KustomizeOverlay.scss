@@ -1,0 +1,36 @@
+.overlay-toggle {
+  position: absolute;
+  padding: 6px;
+  background-color: #f8f8f8;
+  border-radius: 2px;
+  z-index: 2;
+  right: 12px;
+  top: 12px;
+}
+
+.overlays-editor-wrapper {
+  visibility: hidden;
+  position: absolute;
+  background-color: #F5F8FC;
+  padding-left: 15px;
+  box-shadow: inset 2px 0 4px -2px rgba(0, 0, 0, 0.1);
+
+  &.visible {
+    visibility: visible;
+    position: relative;
+  }
+}
+
+.u-discardOverlayIcon {
+  position: absolute;
+  z-index: 2;
+  left: -50px;
+  top: 50%;
+  margin-top: -14px;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.15));
+  transition: all .2s;
+
+  &:hover {
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.35));
+  }
+}

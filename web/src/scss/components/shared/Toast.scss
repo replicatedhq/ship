@@ -1,0 +1,56 @@
+@import "../../variables/variables.scss";
+
+.Toast-wrapper {
+  padding: 16px 30px 14px;
+  background-color: #F5F8FC;
+  z-index: 300;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.16);
+  transform: translateY(-150px);
+  transition: transform .2s ease-in-out;
+
+  &.visible {
+    transform: translateY(0);
+  }
+
+  .Toast-title {
+    color: $header-color;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  .Toast-sub {
+    color: $font-color;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    margin-top: 4px;
+  }
+
+  &.success {
+    background-color: #ECF4E4;
+
+    .Toast-title {
+      color: #65A61E;
+    }
+    .Toast-sub {
+      color: #717171;
+    }
+  }
+
+  &.error {
+    background-color: #FBECEA;
+
+    .Toast-title {
+      color: #BC4752;
+    }
+    .Toast-sub {
+      color: #717171;
+    }
+    
+  }
+
+}

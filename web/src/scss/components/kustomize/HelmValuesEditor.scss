@@ -1,0 +1,30 @@
+.AceEditor--wrapper {
+    border-radius: 4px;
+    border: 1px solid #DFDFDF;
+    overflow: auto;
+    position: relative;
+    box-sizing: border-box;
+    margin-bottom: 100px;
+    
+    .error-highlight {
+      background:#FBEDEB;
+      position: absolute;
+    }
+  
+    .disabled-ace-editor {
+      opacity: .5;
+    }
+  
+    .ace_search {
+      left: 0;
+      right: auto;
+    }
+  }
+
+.action {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: #fff;
+  z-index: 10;
+  border-top: solid 1px #DFDFDF;
+}
