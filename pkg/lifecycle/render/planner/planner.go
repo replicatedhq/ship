@@ -3,6 +3,8 @@ package planner
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/state"
+
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
@@ -52,6 +54,7 @@ type CLIPlanner struct {
 	Logger         log.Logger
 	Fs             afero.Afero
 	UI             cli.Ui
+	StateManager   *state.Manager
 	Viper          *viper.Viper
 	Daemon         daemon.Daemon
 	BuilderBuilder *templates.BuilderBuilder
@@ -70,6 +73,7 @@ func NewPlanner(
 	logger log.Logger,
 	fs afero.Afero,
 	ui cli.Ui,
+	stateManager *state.Manager,
 	builderBuilder *templates.BuilderBuilder,
 	inlineRenderer inline.Renderer,
 	dockerRenderer docker.Renderer,
@@ -83,6 +87,7 @@ func NewPlanner(
 		Logger:         logger,
 		Fs:             fs,
 		UI:             ui,
+		StateManager:   stateManager,
 		Viper:          v,
 		BuilderBuilder: builderBuilder,
 

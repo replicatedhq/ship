@@ -2,6 +2,7 @@ package planner
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 
 	"github.com/replicatedhq/libyaml"
@@ -68,6 +69,12 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.dockerStep(*asset.Docker, meta))
 			}
 		} else if asset.Helm != nil {
+			if asset.Helm.Kustomize {
+				err := p.resolveHelmValues()
+				if err != nil {
+					return nil, errors.Wrap(err, "resolve helm values from state.json")
+				}
+			}
 			asset.Helm.Dest = filepath.Join(constants.InstallerPrefix, asset.Helm.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
@@ -248,4 +255,24 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		}
 	}
 	return saveError
+}
+
+func (p *CLIPlanner) resolveHelmValues() error {
+	state, err := p.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	helmValues := state.CurrentHelmValues()
+
+	err = p.Fs.MkdirAll(constants.TempHelmValuesPath, 0700)
+	if err != nil {
+		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
+	}
+
+	err = p.Fs.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(helmValues), 0644)
+	if err != nil {
+		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
+	}
+
+	return nil
 }

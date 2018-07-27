@@ -23,8 +23,26 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 	}
 
 	release := &api.Release{
-
 		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{
+					{
+						Helm: &api.HelmAsset{
+							Kustomize: true,
+							AssetShared: api.AssetShared{
+								Dest: ".",
+							},
+							Local: &api.LocalHelmOpts{
+								ChartRoot: constants.KustomizeHelmPath,
+							},
+							HelmOpts: []string{
+								"--values",
+								path.Join(constants.TempHelmValuesPath, "values.yaml"),
+							},
+						},
+					},
+				},
+			},
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
 					{
@@ -33,10 +51,30 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 					{
 						HelmValues: &api.HelmValues{},
 					},
+					{
+						Render: &api.Render{},
+					},
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: "installer/cockroachdb",
+							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+						},
+					},
+					{
+						Message: &api.Message{
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/rendered
+
+to deploy the overlaid assets to your cluster.
+						`},
+					},
 				},
 			},
 		},
 	}
+
 	helmChartPath := s.Viper.GetString("chart")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	release.Metadata.HelmChartMetadata = helmChartMetadata
