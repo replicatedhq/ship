@@ -18,14 +18,31 @@ jobs:
       - checkout
       - run: make build-deps citest ci-upload-coverage
 
-  test_yoonit:
+  build_ui:
     docker:
-      - image: replicated/yoonit:latest
+      - image: circleci/node:9
+    working_directory: ~/repo
+    steps:
     steps:
       - checkout
-      - run: git remote -v; echo $CIRCLE_REPOSITORY_URL
-      # requires YOONIT_AUTH set to a valid token
-      - run: /usr/local/bin/yoonit wait
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "web/package.json" }}
+          - v1-dependencies-
+
+      - run:
+          name: build
+          command: make build-ui
+
+      - save_cache:
+          paths:
+            - web/node_modules
+          key: v1-dependencies-{{ checksum "web/package.json" }}
+
+      - persist_to_workspace:
+          root: ~/repo/web
+          paths:
+            - dist
 
   integration:
     docker:
@@ -66,6 +83,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - attach_workspace:
+          at: /go/src/github.com/replicatedhq/ship/web
+      - run: make build-deps embed-ui
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config .goreleaser.unstable.yml
@@ -92,7 +112,10 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - attach_workspace:
+          at: /go/src/github.com/replicatedhq/ship/web
       - run: docker pull alpine:latest # make sure it's fresh
+      - run: make build-deps embed-ui
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: curl -sL https://git.io/goreleaser | bash
@@ -102,6 +125,7 @@ workflows:
   version: 2
   build_accept_deploy:
     jobs:
+      - build_ui
       - integration
       - test:
           filters:
@@ -112,6 +136,7 @@ workflows:
           requires:
             - test
             - integration
+            - build_ui
           filters:
             branches:
               only: /master/
@@ -128,6 +153,7 @@ workflows:
           requires:
             - test
             - integration
+            - build_ui
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
