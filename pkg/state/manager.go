@@ -35,7 +35,17 @@ func NewManager(
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
 func (s *Manager) SerializeHelmValues(values string) error {
-	toSerialize := VersionedState{V1: &V1{HelmValues: values}}
+	debug := level.Debug(log.With(s.Logger, "method", "serializeHelmValues"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := s.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+
+	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
+	toSerialize := currentState.(VersionedState)
+	toSerialize.V1.HelmValues = values
 	return s.serializeAndWriteState(toSerialize)
 }
 
