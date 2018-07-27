@@ -1,0 +1,41 @@
+##---
+# Source: spinnaker/templates/deployments/igor.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-spinnaker-igor
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: igor
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8e9e12b8ef0fc1c93a6cb0b493d0d2f2935e05a7aaad364f45a98bdf9727612b
+      labels:
+        app: RELEASE-NAME-spinnaker
+        component: igor
+    spec:
+      containers:
+        - image: gcr.io/spinnaker-marketplace/igor:0.9.0-20180221133510
+          name: igor
+          ports:
+            - containerPort: 8088
+              name: igor
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: RELEASE-NAME-spinnaker-spinnaker-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8088
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+      - name: RELEASE-NAME-spinnaker-spinnaker-config
+        configMap:
+          name: RELEASE-NAME-spinnaker-spinnaker-config
