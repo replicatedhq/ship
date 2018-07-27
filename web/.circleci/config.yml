@@ -1,0 +1,144 @@
+defaults: &defaults
+  docker:
+    - image: circleci/node:8.7
+  working_directory: ~/repo
+
+version: 2
+jobs:
+
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "yarn.lock" }}
+          - v1-dependencies-
+
+      - run: make deps
+
+      - run: make build_ship
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
+
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist
+            - bin
+            - Makefile
+            - node_modules
+            - deploy
+
+  deploy_unstable:
+    <<: *defaults
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedcom" ]; then
+              echo "nope nope nope"
+              exit 1
+            fi
+      - deploy:
+          name: Deploy Ship Unstable
+          command: |
+            docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+            docker build -f ~/repo/deploy/Dockerfile --build-arg dist=./dist --build-arg version=${CIRCLE_SHA1:0:7} -t replicated/ship-console:${CIRCLE_SHA1:0:7} ~/repo
+            docker tag replicated/ship-console:${CIRCLE_SHA1:0:7} replicated/ship-console:unstable
+            docker push replicated/ship-console:unstable
+
+
+
+
+
+
+  deploy:
+    <<: *defaults
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: ~/repo
+      - run: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedcom" ]; then
+              echo "nope nope nope"
+              exit 1
+            fi
+      - deploy:
+          command: |
+            docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+            docker build -f ~/repo/deploy/Dockerfile --build-arg dist=./dist --build-arg version=${CIRCLE_TAG} -t replicated/ship-console:${CIRCLE_TAG} ~/repo
+
+            function semverParseInto() {
+                local RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)'
+                eval $2=`echo $1 | sed -e "s#$RE#\1#"`
+                eval $3=`echo $1 | sed -e "s#$RE#\2#"`
+                eval $4=`echo $1 | sed -e "s#$RE#\3#"`
+                eval $5=`echo $1 | sed -e "s#$RE#\4#"`
+            }
+
+            semverParseInto "$CIRCLE_TAG" MAJOR MINOR PATCH SPECIAL
+
+            if [ -n "$SPECIAL" ]; then
+               echo "pre-release != release, so just push the tag and exit"
+               docker push replicated/ship-console:${CIRCLE_TAG}
+               exit 0
+            fi
+
+
+
+
+
+            if [ -n $MAJOR ]; then
+              if [ -n $MINOR ]; then
+                if [ -n $PATCH ]; then
+                  docker tag replicated/ship-console:${CIRCLE_TAG} replicated/ship-console:${MAJOR}
+                  docker push replicated/ship-console:${MAJOR}
+              
+                  docker tag replicated/ship-console:${CIRCLE_TAG} replicated/ship-console:${MAJOR}.${MINOR}
+                  docker push replicated/ship-console:${MAJOR}.${MINOR}
+                
+                  docker tag replicated/ship-console:${CIRCLE_TAG} replicated/ship-console:${MAJOR}.${MINOR}.${PATCH}
+                  docker push replicated/ship-console:${MAJOR}.${MINOR}.${PATCH}
+                  
+                  docker tag replicated/ship-console:${CIRCLE_TAG} replicated/ship-console:alpha
+                  docker push replicated/ship-console:alpha
+                        
+                  docker tag replicated/ship-console:${CIRCLE_TAG} replicated/ship-console:latest
+                  docker push replicated/ship-console:latest
+                fi
+              fi
+            fi
+
+
+workflows:
+  version: 2
+  btd:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+               - master
+            tags:
+              only: /.*/
+      - deploy_unstable:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+               - master
+      - deploy:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/

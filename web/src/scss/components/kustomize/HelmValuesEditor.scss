@@ -1,0 +1,26 @@
+.AceEditor--wrapper.helm-values {
+    margin-bottom: 100px;
+    overflow: auto;
+    
+    .error-highlight {
+      background:#FBEDEB;
+      position: absolute;
+    }
+  
+    .disabled-ace-editor {
+      opacity: .5;
+    }
+  
+    .ace_search {
+      left: 0;
+      right: auto;
+    }
+  }
+
+.action {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: #fff;
+  z-index: 10;
+  border-top: solid 1px #DFDFDF;
+}

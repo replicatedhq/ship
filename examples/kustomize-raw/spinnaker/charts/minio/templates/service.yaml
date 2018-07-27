@@ -1,0 +1,23 @@
+##---
+# Source: spinnaker/charts/minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-minio
+  labels:
+    app: minio
+    chart: minio-1.1.1
+    release: RELEASE-NAME
+    heritage: Tiller
+spec:
+  type: ClusterIP
+  clusterIP: None
+  
+  ports:
+    - name: service
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: minio
+    release: RELEASE-NAME

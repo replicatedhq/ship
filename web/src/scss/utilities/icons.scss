@@ -1,0 +1,45 @@
+/* Icon classes */
+
+.icon.u-closeIcon {
+  background-position: 0 0;
+  width: 14px;
+  height: 14px;
+
+  &:hover {
+    background-position: -16px 0;
+  }
+}
+
+.icon.u-overlayCreateIcon {
+  background-position: 0 -60px;
+  width: 19px;
+  height: 19px;
+
+  &:hover {
+    background-position: 0 -82px;
+  }
+}
+
+.icon.u-discardOverlayIcon {
+  background-position: 0 -29px;
+  width: 28px;
+  height: 28px;
+}
+
+.icon.u-selectBaseIcon {
+  background-position: 0 -103px;
+  width: 120px;
+  height: 120px;
+}
+
+.icon.u-setOverlayIcon {
+  background-position: 0 -225px;
+  width: 120px;
+  height: 120px;
+}
+
+.icon.u-shipItIcon {
+  background-position: 0 -347px;
+  width: 120px;
+  height: 120px;
+}

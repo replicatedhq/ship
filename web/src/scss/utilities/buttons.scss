@@ -1,0 +1,74 @@
+@import "../variables/variables.scss";
+
+.button-wrapper {
+  margin-top: 20px;
+  .btn {
+    margin-right: 6px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.btn {
+  cursor: pointer;
+  padding: 7px 12px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+  border: 0;
+  border-radius: 3px;
+  line-height: 15px;
+  transition: all .2s;
+  outline: none;
+  position: relative;
+
+
+
+  &.primary {
+    background-color: $primary-background-color;
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    color: $primary-text-color;
+    box-shadow: inset 0px -2px 0px 0px rgba(0,0,0,0.16);
+
+    &:not(:disabled):hover {
+      background-color: darken($primary-background-color, 8%);
+    }
+  }
+
+  &.secondary {
+    background-color: $secondary-background-color;
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    color: $secondary-text-color;
+    box-shadow: inset 0px -2px 0px 0px rgba(0,0,0,0.16);
+
+    &:not(:disabled):hover {
+      background-color: darken($secondary-background-color, 6%);
+    }
+  }
+
+  &.primary.is-disabled,
+  &.primary.is-disabled:hover,
+  &.primary:disabled,
+  &.primary[disabled] {
+    cursor: not-allowed;
+    border-color: lighten($primary-background-color, 25%);
+    color: $primary-text-color;
+    background-color: lighten($primary-background-color, 25%);
+  }
+
+  &.secondary.is-disabled,
+  &.secondary.is-disabled:hover,
+  &.secondary:disabled,
+  &.secondary[disabled] {
+    cursor: not-allowed;
+    border-color: lighten($secondary-background-color, 8%);
+    color: $secondary-text-color;
+    background-color: lighten($secondary-background-color, 8%);
+  }
+}
