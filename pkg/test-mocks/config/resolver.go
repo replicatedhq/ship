@@ -6,12 +6,11 @@ package config
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	config "github.com/replicatedhq/ship/pkg/lifecycle/render/config"
+	reflect "reflect"
 )
 
 // MockResolver is a mock of Resolver interface

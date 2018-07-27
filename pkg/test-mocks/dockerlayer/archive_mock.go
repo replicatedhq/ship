@@ -5,9 +5,8 @@
 package dockerlayer
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockArchiver is a mock of Archiver interface

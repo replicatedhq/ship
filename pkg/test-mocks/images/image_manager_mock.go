@@ -6,11 +6,10 @@ package images
 
 import (
 	context "context"
-	io "io"
-	reflect "reflect"
-
 	types "github.com/docker/docker/api/types"
 	gomock "github.com/golang/mock/gomock"
+	io "io"
+	reflect "reflect"
 )
 
 // MockImageManager is a mock of ImageManager interface
@@ -47,6 +46,19 @@ func (m *MockImageManager) ImagePull(arg0 context.Context, arg1 string, arg2 typ
 // ImagePull indicates an expected call of ImagePull
 func (mr *MockImageManagerMockRecorder) ImagePull(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImagePull", reflect.TypeOf((*MockImageManager)(nil).ImagePull), arg0, arg1, arg2)
+}
+
+// ImagePush mocks base method
+func (m *MockImageManager) ImagePush(arg0 context.Context, arg1 string, arg2 types.ImagePushOptions) (io.ReadCloser, error) {
+	ret := m.ctrl.Call(m, "ImagePush", arg0, arg1, arg2)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ImagePush indicates an expected call of ImagePush
+func (mr *MockImageManagerMockRecorder) ImagePush(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImagePush", reflect.TypeOf((*MockImageManager)(nil).ImagePush), arg0, arg1, arg2)
 }
 
 // ImageSave mocks base method
