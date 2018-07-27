@@ -3,77 +3,79 @@ Ship
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/test_coverage)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/maintainability)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/maintainability)
+[![CircleCI](https://circleci.com/gh/replicatedhq/ship.svg?style=svg)](https://circleci.com/gh/replicatedhq/ship)
 [![Docker Image](https://images.microbadger.com/badges/image/replicated/ship.svg)](https://microbadger.com/images/replicated/ship)
 
-Deploy 3rd-party applications using modern pipelines.
 
-### ship
+![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/ship.png)
 
-"ship" is the container/binary that reads specs from https://console.replicated.com
-and uses them to render application assets for deployment. It has three main responsibilities:
+Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. GitOps). Ship is a command line and UI that prepares workflows to enable deploying and updating of Helm charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using Kustomize), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
 
-- Lifecycle -- read vendor specs, execute tasks. The `render` step will execute config and asset resolution
-- Config -- load config options for the installation, from env, files, and prompts
-- Assets -- Once configuration options are resolved, ship will template the specified assets and generate a state file tracking the work
+Ship is launching with first-class support for Helm charts designed at automating the "last-mile" of custom configuration via Kustomize.
 
+# Features
+- Web based "admin console" to provide initial configuration of Helm values and create Kustomize overlays
+- Ability to run with or without the admin console to support running in headless and automated pipelines
+- Merge Helm charts with override values and then with custom overlays using Kustomize
+- Deploy Helm charts without tiller to a Kubernetes cluster
+- Enables GitOps workflows to update third party applications
 
-### Get Started
+# Operating modes
 
-The following will build binaries and run a simple `ship apply` on the testing file `app.yml`
-in this directory, with the log level set to debug.
+## ship init
+Prepares a new application for deployment. Use for:
+- Generating initial config (state.json) for an application
+- Creating and managing Kustomize overlays to be applied before deployment
 
-```bash
-make build run
+## ship update
+Updates an existing application by merging the latest release with the local state and overlays. Use for:
+- Preparing an update to be deployed to a third party application
+- Automating the update process to start from a continuous integration (CI) service
+
+# Installation
+There are two ways you can get started with Ship:
+
+## Running in docker
+To run ship in docker:
+```shell
+docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
 
-To add recommended git hooks
-
-```bash
-make githooks
+## Installing locally
+Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
+- To download the latest Linux build, run:
+```shell
+curl -Lo ship https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.14.0_linux_amd64.tar.gz && chmod +x ship && sudo mv ship /usr/local/bin
 ```
 
-
-### Architecture & Foundations
-
-Entrypoint is a Cobra command, root commands runs the main workflow. Other commands are `e2e` for integration testing and `devtool-releaser` for interacting with g.replicated.com to manage releases.
-
-Both commands create an instances of `ship.Ship` which, in order:
-
-- Validates inputs
-- resolves the spec 
-    - default behavior is to load the spec from GQL using a customer ID
-	- `ship` can be run with `--studio-file` flag to skip GQL and just load a spec from the filesystem)
-- Execute each step of the lifecyle using the resolved specs
-
-
-#### Output/CLI
-
-Cobra for CLI, then use https://github.com/mitchellh/cli for its UI interface around Asking/Printing stuff.
-
-We use pflags + viper for resolving config. Ideally Viper can also be used to resolve customer config options.
-
-We use go-kit/log for logging, but the default log level is `off` -- For the most part, we want to suppress all output unless the Vendor has specified it as a message in `lifecycle`.
-
-We do lots of debug logging, and allow a `log-level` param to enable this.
-
-
-#### Spec
-
-The Specs should be written in YAML. There is experimental support for HCL, but its not quite all there yet. An example spec is in `app.yml`.
-
-The top level yaml document is an instance of `api.Spec`:
-
-```
-type Spec struct {
-	Assets    Assets   `json:"assets" yaml:"assets" hcl:"asset"`
-	Lifecycle Lifecyle `json:"lifecycle" yaml:"lifecycle" hcl:"lifecycle"`
-	Config    Config   `json:"config" yaml:"config" hcl:"config"`
-}
+- To download the latest MacOS build, run:
+```shell
+curl -Lo ship https://github.com/replocatedhq/ship/releases/download/v0.14.0/ship-0.14.0_darwin-amd64.tar.gz && chmod +x ship && sudo mv ship /usr/local/bin
 ```
 
-Each item has a `v1` nesting underneath the main key, which should let us mix-and-match versions
-for breaking changes going forward. See `app.yml` for examples.
+After ship is installed, run it with:
 
+```shell
+ship init <path-to-chart> # github.com/kubernetes/charts/mysql
+```
 
+# Demo
+insert cool animation here showing ship
+
+# CI/CD Integration
+Once you've prepared an application using `ship init`, the deployable application assets can be generated, using any version of the application, by running:
+
+```shell
+ship update <path-to-chart> # github.com/kubernetes/charts/mysql
+```
+
+## Jenkins
+An [example Jenkins job](https://github.com/replicatedhq/ship/blob/master/examples/jenkins.md) is available that illustrates how to run `ship update` to receive updates to a third party application in a CI/CD process.
+
+# Community
+
+For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum.
+
+For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
 
 
