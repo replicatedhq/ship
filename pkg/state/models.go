@@ -3,6 +3,7 @@ package state
 type State interface {
 	CurrentConfig() map[string]interface{}
 	CurrentKustomize() *Kustomize
+	CurrentHelmValues() string
 }
 
 var _ State = VersionedState{}
@@ -13,11 +14,13 @@ type empty struct{}
 
 func (empty) CurrentKustomize() *Kustomize          { return nil }
 func (empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
+func (empty) CurrentHelmValues() string             { return "" }
 
 type V0 map[string]interface{}
 
 func (v V0) CurrentConfig() map[string]interface{} { return v }
 func (v V0) CurrentKustomize() *Kustomize          { return nil }
+func (v V0) CurrentHelmValues() string             { return "" }
 
 type VersionedState struct {
 	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
@@ -48,4 +51,8 @@ func (u VersionedState) CurrentConfig() map[string]interface{} {
 		return u.V1.Config
 	}
 	return make(map[string]interface{})
+}
+
+func (u VersionedState) CurrentHelmValues() string {
+	return u.V1.HelmValues
 }

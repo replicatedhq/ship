@@ -41,8 +41,8 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.BasePath, "values.yaml"))
-	bytes, err := h.Fs.ReadFile(path.Join(constants.BasePath, "values.yaml"))
+	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	bytes, err := h.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
 	if err != nil {
 		return errors.Wrap(err, "read file values.yaml")
 	}

@@ -400,6 +400,17 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		d.currentStep.Kustomize.Tree = *tree
 	}
 
+	state, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "tryLoad,fail", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
+	}
+	helmValues := state.CurrentHelmValues()
+	if d.currentStep.HelmValues != nil && helmValues != "" {
+		d.currentStep.HelmValues.Values = helmValues
+	}
+
 	result := StepResponse{
 		CurrentStep: *d.currentStep,
 		Phase:       d.currentStepName,
