@@ -202,7 +202,7 @@ assets:
     - helm:
         dest: charts/rendered/
         local:
-          chart_root: charts/src/nginx
+          chart_root: installer/charts/src/nginx
 
 lifecycle:
   v1:
