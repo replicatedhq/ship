@@ -26,7 +26,8 @@ type TestMetadata struct {
 	DisableOnline     bool   `yaml:"disable_online"`
 
 	//debugging
-	SkipCleanup bool `yaml:"skip_cleanup"`
+	SkipCleanup bool  `yaml:"skip_cleanup"`
+	Focus       *bool `yaml:"focus"`
 }
 
 func TestCore(t *testing.T) {
@@ -79,6 +80,9 @@ var _ = Describe("basic", func() {
 				}, 20)
 
 				It("Should output files matching those expected when running in local mode", func() {
+					if testMetadata.Focus == nil || !*testMetadata.Focus {
+						Skip("Test ignored")
+					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
@@ -101,6 +105,9 @@ var _ = Describe("basic", func() {
 				}, 60)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
+					if testMetadata.Focus == nil || !*testMetadata.Focus {
+						Skip("Test ignored")
+					}
 					if testMetadata.DisableOnline {
 						Skip("Online test skipped")
 					}
