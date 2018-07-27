@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
@@ -107,8 +108,21 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 		return errors.Wrap(err, "execute plan")
 	}
 
+	stateTemplateContext := make(map[string]interface{})
+	for _, configGroup := range release.Spec.Config.V1 {
+		for _, configItem := range configGroup.Items {
+			if isCustomerProvided(configItem, templateContext, previousState.CurrentConfig()) {
+				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
+			}
+		}
+	}
+
+	if len(release.Spec.Config.V1) == 0 {
+		stateTemplateContext = templateContext
+	}
+
 	r.Daemon.SetProgress(ProgressCommit)
-	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
+	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
 
@@ -134,4 +148,15 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 	}
 
 	return nil
+}
+
+func isCustomerProvided(item *libyaml.ConfigItem, templateContext map[string]interface{}, savedState map[string]interface{}) bool {
+	_, inTemplateCtx := templateContext[item.Name]
+	_, inSavedState := savedState[item.Name]
+
+	if !inSavedState {
+		return item.Default == ""
+	} else {
+		return inTemplateCtx
+	}
 }
