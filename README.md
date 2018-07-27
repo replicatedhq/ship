@@ -7,7 +7,7 @@ Ship
 [![Docker Image](https://images.microbadger.com/badges/image/replicated/ship.svg)](https://microbadger.com/images/replicated/ship)
 
 
-![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/ship.png)
+![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
 Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. GitOps). Ship is a command line and UI that prepares workflows to enable deploying and updating of Helm charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using Kustomize), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
 
