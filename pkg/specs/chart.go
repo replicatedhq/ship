@@ -2,10 +2,13 @@ package specs
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -34,22 +37,22 @@ func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
 }
 
 func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
-	// debug := level.Debug(log.With(g.logger, "method", "getChartAndReadmeContents"))
+	debug := level.Debug(log.With(g.logger, "method", "getChartAndReadmeContents"))
 
-	// if !strings.HasPrefix(chartURLString, "http") {
-	// 	chartURLString = fmt.Sprintf("http://%s", chartURLString)
-	// }
+	if !strings.HasPrefix(chartURLString, "http") {
+		chartURLString = fmt.Sprintf("http://%s", chartURLString)
+	}
 
-	// debug.Log("event", "parseURL")
-	// chartURL, err := url.Parse(chartURLString)
-	// if err != nil {
-	// 	return err
-	// }
-	// chartPath := chartURL.Path
-	// splitPath := strings.Split(chartPath, "/")
-	// owner := splitPath[1]
-	// repo := splitPath[2]
-	// path := strings.Join(splitPath[3:], "/")
+	debug.Log("event", "parseURL")
+	chartURL, err := url.Parse(chartURLString)
+	if err != nil {
+		return err
+	}
+	chartPath := chartURL.Path
+	splitPath := strings.Split(chartPath, "/")
+	owner := splitPath[1]
+	repo := splitPath[2]
+	path := strings.Join(splitPath[3:], "/")
 
 	saveDirExists, err := g.fs.Exists(constants.KustomizeHelmPath)
 	if err != nil {
@@ -60,8 +63,7 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		g.fs.RemoveAll(constants.KustomizeHelmPath)
 	}
 
-	// return g.getAllFiles(ctx, owner, repo, path, "")
-	return nil
+	return g.getAllFiles(ctx, owner, repo, path, "")
 }
 
 func (g *GithubClient) getAllFiles(ctx context.Context, owner string, repo string, basePath string, filePath string) error {
@@ -87,7 +89,10 @@ func (g *GithubClient) getAllFiles(ctx context.Context, owner string, repo strin
 			debug.Log("event", "git.getAllFiles", "dir", gitContent.GetName())
 			newBase := path.Join(basePath, gitContent.GetName())
 			newFilePath := path.Join(filePath, gitContent.GetName())
-			return g.getAllFiles(ctx, owner, repo, newBase, newFilePath)
+			err := g.getAllFiles(ctx, owner, repo, newBase, newFilePath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
