@@ -6,6 +6,8 @@ release:
 builds:
 - goos:
   - linux
+  - windows
+  - darwin
   goarch:
   - amd64
   - "386"
