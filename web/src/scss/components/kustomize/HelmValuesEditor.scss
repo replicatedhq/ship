@@ -1,10 +1,6 @@
-.AceEditor--wrapper {
-    border-radius: 4px;
-    border: 1px solid #DFDFDF;
-    overflow: auto;
-    position: relative;
-    box-sizing: border-box;
+.AceEditor--wrapper.helm-values {
     margin-bottom: 100px;
+    overflow: auto;
     
     .error-highlight {
       background:#FBEDEB;

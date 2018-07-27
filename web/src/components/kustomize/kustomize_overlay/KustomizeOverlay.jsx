@@ -11,6 +11,8 @@ import pick from "lodash/pick";
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
 import Toast from "../../shared/Toast";
+import KustomizeEmpty from "./KustomizeEmpty";
+
 import "../../../scss/components/kustomize/KustomizeOverlay.scss";
 import "../../../../node_modules/brace/mode/yaml";
 import "../../../../node_modules/brace/theme/chrome";
@@ -81,6 +83,13 @@ export default class KustomizeOverlay extends React.Component {
     this.setState(nextState)
   }
 
+  async handlFinalize() {
+    await this.props.finalizeKustomizeOverlay()
+      .then(() => {
+        this.props.history.push("/");
+      }).catch();
+  }
+
   onKustomizeSaved() {
     let nextState = {};
     nextState.toastDetails = {
@@ -90,12 +99,7 @@ export default class KustomizeOverlay extends React.Component {
       opts: {
         showCancelButton: true,
         confirmButtonText: "Finalize overlays",
-        confirmAction: async () => {
-          await this.props.finalizeKustomizeOverlay()
-            .then(() => {
-              this.props.history.push("/");
-            }).catch();
-        }
+        confirmAction: () => this.handlFinalize()
       }
     }
     this.setState(nextState);
@@ -162,7 +166,7 @@ export default class KustomizeOverlay extends React.Component {
   render() {
     const { dataLoading } = this.props;
     const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, overlayContent, toastDetails } = this.state;
-    const fileToView = isEmpty(fileContents) ? [] : find(fileContents, ["key", selectedFile]);
+    const fileToView = find(fileContents, ["key", selectedFile]);
 
     return (
       <div className="flex flex1">
@@ -188,15 +192,9 @@ export default class KustomizeOverlay extends React.Component {
               <div className="flex flex1 u-position--relative">
 
                 <div className={`flex-column flex1 ${this.state.addOverlay && "u-paddingRight--15"}`}>
-                  <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
-                    <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
-                    <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
-                  </div>
-                  <div className="flex1 flex-column file-contents-wrapper u-position--relative">
-                    {selectedFile === "" || !fileToView ?
-                      <div className="flex-column flex1 alignItems--center justifyContent--center">
-                        <p className="u-color--dustyGray u-fontSize--normal u-fontWeight--medium">Select a file to view it here.</p>
-                      </div>
+                  <div className="flex1 flex-column u-position--relative">
+                    {selectedFile === "" ?
+                      <KustomizeEmpty skipKustomize={() => this.handlFinalize()} />
                       : fileLoadErr ?
                         <div className="flex-column flex1 alignItems--center justifyContent--center">
                           <p className="u-color--chestnut u-fontSize--normal u-fontWeight--medium">Oops, we ran into a probelm getting that file, <span className="u-fontWeight--bold">{fileLoadErrMessage}</span></p>
@@ -206,31 +204,37 @@ export default class KustomizeOverlay extends React.Component {
                             <Loader size="50" color="#337AB7" />
                           </div>
                           :
-                          <div className="flex1 AceEditor--wrapper">
-                            {!this.state.addOverlay &&
+                          <div className="flex1 flex-column">
+                            <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
+                              <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
+                              <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
+                            </div>
+                            <div className="flex1 file-contents-wrapper AceEditor--wrapper">
+                              {!this.state.addOverlay &&
                               <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
                                 <span className="icon clickable u-overlayCreateIcon"></span>
                               </div>
-                            }
-                            <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
-                            <AceEditor
-                              ref="aceEditorBase"
-                              mode="yaml"
-                              theme="chrome"
-                              className="flex1 flex disabled-ace-editor ace-chrome"
-                              readOnly={true}
-                              value={fileToView && fileToView.baseContent || ""}
-                              height="100%"
-                              width="100%"
-                              editorProps={{
-                                $blockScrolling: Infinity,
-                                useSoftTabs: true,
-                                tabSize: 2,
-                              }}
-                              setOptions={{
-                                scrollPastEnd: false
-                              }}
-                            />
+                              }
+                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
+                              <AceEditor
+                                ref="aceEditorBase"
+                                mode="yaml"
+                                theme="chrome"
+                                className="flex1 flex disabled-ace-editor ace-chrome"
+                                readOnly={true}
+                                value={fileToView && fileToView.baseContent || ""}
+                                height="100%"
+                                width="100%"
+                                editorProps={{
+                                  $blockScrolling: Infinity,
+                                  useSoftTabs: true,
+                                  tabSize: 2,
+                                }}
+                                setOptions={{
+                                  scrollPastEnd: false
+                                }}
+                              />
+                            </div>
                           </div>
                     }
                   </div>
@@ -242,34 +246,28 @@ export default class KustomizeOverlay extends React.Component {
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
-                    {selectedFile === "" ?
-                      <div className="flex-column flex1 alignItems--center justifyContent--center">
-                        <p className="u-color--dustyGray u-fontSize--normal u-fontWeight--medium">Select a file to view it here.</p>
-                      </div>
-                      : 
-                      <div className="flex1 AceEditor--wrapper">
-                        {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.toggleOverlay}></span>}
-                        <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
-                        <AceEditor
-                          ref="aceEditorOverlay"
-                          mode="yaml"
-                          theme="chrome"
-                          className="flex1 flex"
-                          readOnly={false}
-                          value={overlayContent || ""}
-                          height="100%"
-                          width="100%"
-                          editorProps={{
-                            $blockScrolling: Infinity,
-                            useSoftTabs: true,
-                            tabSize: 2,
-                          }}
-                          setOptions={{
-                            scrollPastEnd: false
-                          }}
-                        />
-                      </div>
-                    }
+                    <div className="flex1 AceEditor--wrapper">
+                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.toggleOverlay}></span>}
+                      <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
+                      <AceEditor
+                        ref="aceEditorOverlay"
+                        mode="yaml"
+                        theme="chrome"
+                        className="flex1 flex"
+                        readOnly={false}
+                        value={overlayContent || ""}
+                        height="100%"
+                        width="100%"
+                        editorProps={{
+                          $blockScrolling: Infinity,
+                          useSoftTabs: true,
+                          tabSize: 2,
+                        }}
+                        setOptions={{
+                          scrollPastEnd: false
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -23,7 +23,6 @@ export function setStepError(message) {
 }
 
 export function getCurrentStep(loaderType = "getCurrentStep") {
-  console.log("haha");
   return async (dispatch) => {
     let response;
     dispatch(loadingData(loaderType, true));

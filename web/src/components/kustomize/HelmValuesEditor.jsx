@@ -145,7 +145,7 @@ export default class HelmValuesEditor extends React.Component {
             <span className="u-color--tuna u-fontWeight--bold">values.yaml</span>
           </p>
           <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
-          <div className="AceEditor--wrapper flex1 flex u-height--full u-width--full u-overflow--hidden u-marginBottom--20">
+          <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full u-overflow--hidden u-marginBottom--20">
             <div className="flex1 flex-column u-width--half">
               <AceEditor
                 mode="yaml"
