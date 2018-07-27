@@ -36,8 +36,14 @@ export default class KustomizeOverlay extends React.Component {
     autoBind(this);
   }
 
-  toggleOverlay() {
-    this.setState({ addOverlay: !this.state.addOverlay });
+  openOverlay() {
+    this.setState({ addOverlay: true });
+  }
+
+  discardOverlay() {
+    let file = find(this.props.fileContents, ["key", this.state.selectedFile]);
+    const initalOverlay = file.overlayContent;
+    this.setState({ addOverlay: false, overlayContent: initalOverlay });
   }
 
   createOverlay() {
@@ -48,7 +54,7 @@ export default class KustomizeOverlay extends React.Component {
     const overlayFields = pick(file, "apiVersion", "kind", "metadata.name");
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ overlayContent: `--- \n${overlay}` });
-    this.toggleOverlay();
+    this.openOverlay();
   }
 
   hasContentAlready(path) {
@@ -65,9 +71,19 @@ export default class KustomizeOverlay extends React.Component {
     if (this.state.toastDetails.showToast) {
       this.cancelToast();
     }
-    if (this.hasContentAlready(path)) return;
+    if (this.hasContentAlready(path)) {
+      // if we've already fetched the file, set the overlayContent from existing content
+      let file = find(this.state.fileContents, ["key", path]);
+      this.setState({ overlayContent: file.overlayContent });
+      return;
+    }
     await this.props.getFileContent(path).then(() => {
-      this.setState({ fileContents: this.props.fileContents });
+      // set state with new file content and set the overlayContent from new file content on the file the user wants to view
+      let currentFile = find(this.props.fileContents, ["key", path]);
+      this.setState({
+        fileContents: this.props.fileContents,
+        overlayContent: currentFile.overlayContent
+      });
     });
   }
 
@@ -240,21 +256,20 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                 </div>
 
-                <div className={`flex-column flex1 overlays-editor-wrapper ${this.state.addOverlay ? "visible" : ""}`}>
+                <div className={`flex-column flex1 overlays-editor-wrapper ${this.state.addOverlay || (fileToView && fileToView.overlayContent.length) ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
                     <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Overlay</p>
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.toggleOverlay}></span>}
+                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.discardOverlay}></span>}
                       <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
                         ref="aceEditorOverlay"
                         mode="yaml"
                         theme="chrome"
                         className="flex1 flex"
-                        readOnly={false}
                         value={overlayContent || ""}
                         height="100%"
                         width="100%"
