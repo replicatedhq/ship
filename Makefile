@@ -209,7 +209,7 @@ build_ship_integration_test:
 pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
-	  ui/...
+	  web/dist/...
 
 embed-ui: 
 	pkg/lifeycle/daemon/ui.bindatafs.go
@@ -217,4 +217,3 @@ embed-ui:
 build-ui: 	
 	cd web; yarn install --force
 	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
-	mv web/dist/* ui
