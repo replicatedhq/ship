@@ -64,7 +64,7 @@ func (s *Ship) Kustomize(ctx context.Context) error {
 					},
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name, "templates"),
+							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
 							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
