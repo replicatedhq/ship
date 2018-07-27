@@ -35,13 +35,13 @@ func TestFetch(t *testing.T) {
 			expectError: "only 'local' and 'github' chart rendering is supported",
 		},
 		{
-			name: "local returns pre-configured location",
+			name: "local returns location",
 			asset: api.HelmAsset{
 				Local: &api.LocalHelmOpts{
 					ChartRoot: "charts/nginx",
 				},
 			},
-			expect:      "installer/charts/nginx",
+			expect:      "charts/nginx",
 			expectError: "",
 		},
 		{
