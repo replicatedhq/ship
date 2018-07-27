@@ -57,6 +57,9 @@ jobs:
             && sudo mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
             && sudo ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
       - run: go get github.com/onsi/ginkgo/ginkgo
+      - run: go get
+      - run: mkdir -p /var/lib/registry
+      - run: $GOPATH/bin/registry serve $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml > /dev/null 2>&1
       - run: make integration-test
 
   deploy_unstable:
