@@ -67,6 +67,13 @@
   }
 }
 
+.FileTree-wrapper li.edited input[type=checkbox]:checked + label
+.FileTree-wrapper li.edited label,
+.FileTree-wrapper li.edited,
+.FileTree-wrapper li.selected.edited {
+  color: #EBB55C;
+}
+
 .FileTree-wrapper label {
   &::before {
     margin-right: 8px;
