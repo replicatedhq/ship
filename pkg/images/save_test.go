@@ -2,6 +2,7 @@ package images
 
 import (
 	"context"
+	"net/url"
 	"reflect"
 	"testing"
 
@@ -14,8 +15,10 @@ import (
 )
 
 func Test_buildDestinationParams(t *testing.T) {
+	basicURL, _ := url.Parse("docker://registry.somebigbank.com:9800/myregistry/myapi:1")
+	urlWithAuth, _ := url.Parse("docker://username:password@registry.somebigbank.com:9800/myregistry/myapi:1")
 	type args struct {
-		destinationURL string
+		destinationURL *url.URL
 	}
 	tests := []struct {
 		name    string
@@ -24,9 +27,19 @@ func Test_buildDestinationParams(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Good URL",
+			name: "Basic URL",
 			args: args{
-				destinationURL: "docker://username:password@registry.somebigbank.com:9800/myregistry/myapi:1",
+				destinationURL: basicURL,
+			},
+			want: DestinationParams{
+				AuthConfig:           types.AuthConfig{},
+				DestinationImageName: "registry.somebigbank.com:9800/myregistry/myapi:1",
+			},
+		},
+		{
+			name: "URL with Auth",
+			args: args{
+				destinationURL: urlWithAuth,
 			},
 			want: DestinationParams{
 				AuthConfig: types.AuthConfig{
@@ -35,13 +48,6 @@ func Test_buildDestinationParams(t *testing.T) {
 				},
 				DestinationImageName: "registry.somebigbank.com:9800/myregistry/myapi:1",
 			},
-		},
-		{
-			name: "Bad URL",
-			args: args{
-				destinationURL: "docker://fdk432874*$&(#@&%*)sjlfkdsjflksdjf",
-			},
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -59,6 +65,7 @@ func Test_buildDestinationParams(t *testing.T) {
 }
 
 func TestCLISaver_pushImage(t *testing.T) {
+	goodURL, _ := url.Parse("docker://registry.fake/postgres:latest")
 	type fields struct {
 		Logger log.Logger
 		client ImageManager
@@ -75,22 +82,6 @@ func TestCLISaver_pushImage(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Fail",
-			fields: fields{
-				Logger: log.With(level.Debug(logger.FromViper(viper.GetViper()))),
-				client: MockImageManager{},
-			},
-			args: args{
-				ctx:        context.Background(),
-				progressCh: make(chan interface{}),
-				saveOpts: SaveOpts{
-					DestinationURL: "*docker://registry.fake/postgres:latest",
-					PullURL:        "postgres:latest",
-				},
-			},
-			wantErr: true,
-		},
-		{
 			name: "Success",
 			fields: fields{
 				Logger: log.With(level.Debug(logger.FromViper(viper.GetViper()))),
@@ -100,7 +91,7 @@ func TestCLISaver_pushImage(t *testing.T) {
 				ctx:        context.Background(),
 				progressCh: make(chan interface{}),
 				saveOpts: SaveOpts{
-					DestinationURL: "docker://registry.fake/postgres:latest",
+					DestinationURL: goodURL,
 					PullURL:        "postgres:latest",
 				},
 			},

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/replicatedhq/libyaml"
+
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -72,7 +74,7 @@ func TestUnpackLayer(t *testing.T) {
 				defer mc.Finish()
 
 				var calledDockerExec bool
-				renderer.EXPECT().Execute(asset.DockerAsset, meta, gomock.Any(), gomock.Any()).Return(func(ctx2 context.Context) error {
+				renderer.EXPECT().Execute(asset.DockerAsset, meta, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(func(ctx2 context.Context) error {
 					// todo make sure this thing got called
 					calledDockerExec = true
 					return test.dockerError
@@ -83,7 +85,7 @@ func TestUnpackLayer(t *testing.T) {
 					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, asset.Dest).Return(nil)
 				}
 
-				err := unpacker.Execute(asset, meta, watchProgress)(ctx)
+				err := unpacker.Execute(asset, meta, watchProgress, map[string]interface{}{}, []libyaml.ConfigGroup{})(ctx)
 
 				if test.dockerError != nil {
 					req.Error(err, "expected error "+test.dockerError.Error())

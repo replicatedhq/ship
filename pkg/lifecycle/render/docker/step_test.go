@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/replicatedhq/libyaml"
+
 	"context"
 
 	"fmt"
@@ -112,7 +114,7 @@ func TestDockerStep(t *testing.T) {
 			req := require.New(t)
 
 			// When
-			err := step.Execute(asset, metadata, mockProgress, asset.Dest)(ctx)
+			err := step.Execute(asset, metadata, mockProgress, asset.Dest, map[string]interface{}{}, []libyaml.ConfigGroup{})(ctx)
 
 			// Then
 			if test.Expect == nil {
