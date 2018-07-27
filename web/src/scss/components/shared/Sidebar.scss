@@ -1,0 +1,102 @@
+@import "../../variables/variables.scss";
+
+.Sidebar-wrapper {
+  max-width: 240px;
+}
+.SidebarContent-wrapper {
+  background-color: $sidebar-background;
+  border-right: 1px solid #DFDFDF;
+}
+.SidebarElements-wrapper {
+  padding-top: 30px;
+}
+
+/* Sidebar Items */
+.SidebarItem a {
+  padding: 15px 20px 15px 30px;
+  position: relative;
+  cursor: pointer
+}
+.SidebarItem-wrapper.is-active .SidebarItem {
+  background-color: rgba(255,255,255,0.3);
+}
+.SidebarItem-wrapper.is-active .SidebarItem::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 3px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: $highlight-color;
+}
+.SidebarItem-wrapper .SidebarItem a {
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: 500;
+  color: rgba($sidebar-label-color ,0.8);
+  transition: color .2s;
+  display: block;
+}
+.SidebarItem-wrapper .SidebarItem:hover a {
+  color: $sidebar-label-color;
+  text-decoration: none;
+}
+.SidebarItem-wrapper.is-active .SidebarItem a,
+.SidebarItem-wrapper.is-active .SidebarItem:hover a {
+  color: $sidebar-label-color;
+  font-weight: 600;
+}
+
+
+/* Sidebar SubItems */
+.SidebarItem-wrapper.SubItem .SidebarItem .SubItem-label {
+  padding: 15px 30px 15px 50px;
+  cursor: pointer;
+}
+.SidebarItem-wrapper.SubItem.is-active .SidebarItem {
+  background-color: transparent;
+}
+.SidebarItem-wrapper.SubItem.is-active .SidebarItem::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 3px;
+  height: 100%;
+  top: 0;
+  right: 0;
+  left: auto;
+  background-color: $highlight-color;
+}
+.SidebarItem-wrapper.SubItem .SidebarItem .SubItem-label {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: rgba($sidebar-label-color ,0.8);
+  transition: color .2s;
+  display: block;
+}
+.SidebarItem-wrapper.SubItem .SidebarItem:hover .SubItem-label {
+  color: $sidebar-label-color;
+  text-decoration: none;
+}
+.SidebarItem-wrapper.SubItem.is-active .SidebarItem .SubItem-label,
+.SidebarItem-wrapper.SubItem.is-active .SidebarItem:hover .SubItem-label {
+  color: $sidebar-label-color;
+  font-weight: 500;
+}
+
+/* Media Queries */
+@media screen and (min-width: 64em) {
+  .SidebarItem a {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+}
+
+/* ≥ 1280px */
+@media screen and (min-width: 80em) {
+  .Sidebar-wrapper {
+    max-width: 315px;
+  }  
+}

@@ -1,0 +1,565 @@
+[
+  {
+    "name": "all-settings",
+    "items": [
+      {
+        "name": "scheduler",
+        "type": "text",
+        "hidden": true,
+        "value": "{{repl ConsoleSetting \"scheduler\"}}"
+      },
+      {
+        "name": "airgap-install",
+        "type": "text",
+        "hidden": true,
+        "value": "{{repl ConsoleSetting \"airgap.install\"}}"
+      },
+      {
+        "name": "snapshots.enabled",
+        "type": "text",
+        "hidden": true,
+        "value": "{{repl AppSetting \"snapshots.enabled\"}}"
+      },
+      {
+        "name": "l10n.enabled",
+        "type": "text",
+        "hidden": true,
+        "value": "{{repl AppSetting \"l10n.enabled\"}}"
+      }
+    ]
+  },
+  {
+    "name": "console-security",
+    "title": "Security",
+    "description": "Settings for this management console",
+    "items": [
+      {
+        "name": "hostname",
+        "title": "Management Console Hostname",
+        "value": "{{repl ConsoleSetting \"hostname\"}}",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "name": "tls-key-cert",
+    "title": "TLS Key & Cert",
+    "description": "The management console uses TLS encryption.  Please select key type and location you wish to use.",
+    "items": [
+      {
+        "name": "tls.config.option",
+        "type": "select_one",
+        "description": "Certificate and key location.",
+        "value": "{{repl ConsoleSetting \"tls.config.option\"}}",
+        "items": [
+          {
+            "name": "self-signed",
+            "type": "text",
+            "title": "Self-signed (generated)"
+          },
+          {
+            "name": "server-path",
+            "type": "text",
+            "title": "Server path"
+          },
+          {
+            "name": "key-cert",
+            "type": "text",
+            "title": "Upload files"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "console_certs",
+    "when": "tls.config.option=key-cert",
+    "items": [
+      {
+        "name": "key.data",
+        "title": "SSL Private Key",
+        "value": "{{repl ConsoleSetting \"key.filename\"}}",
+        "type": "file",
+        "affix": "left"
+      },
+      {
+        "name": "cert.data",
+        "title": "SSL Certificate",
+        "value": "{{repl ConsoleSetting \"cert.filename\"}}",
+        "type": "file",
+        "affix": "right"
+      }
+    ]
+  },
+  {
+    "name": "console_certs",
+    "when": "tls.config.option=server-path",
+    "items": [
+      {
+        "name": "key.filepath",
+        "title": "SSL Private Key Filename",
+        "value": "{{repl ConsoleSetting \"key.filepath\"}}",
+        "type": "text",
+        "affix": "left"
+      },
+      {
+        "name": "cert.filepath",
+        "title": "SSL Certificate Filename",
+        "value": "{{repl ConsoleSetting \"cert.filepath\"}}",
+        "type": "text",
+        "affix": "right"
+      }
+    ]
+  },
+  {
+    "name": "airgap",
+    "title": "Airgapped Settings",
+    "when": "airgap-install=true",
+    "items": [
+      {
+        "name": "airgap.package.path",
+        "title": "Update Path",
+        "type": "text",
+        "value": "{{repl ConsoleSetting \"airgap.package.path\"}}",
+        "help_text": "The management console will check this directory for any `.airgap` update packages."
+      },
+      {
+        "name": "airgap.license.path",
+        "title": "License File",
+        "type": "text",
+        "value": "{{repl ConsoleSetting \"airgap.license.path\"}}",
+        "help_text": "Replace this license file to apply new settings."
+      }
+    ]
+  },
+  {
+    "name": "snapshots",
+    "title": "Snapshot & Restore",
+    "when": "snapshots.enabled=true",
+    "description": "Configure your backup strategy.",
+    "items": [
+      {
+        "name": "SnapshotsStore",
+        "type": "select_one",
+        "default": "local",
+        "description": "Snapshot Location.",
+        "value": "{{repl Param \"SnapshotsStore\"}}",
+        "items": [
+          {
+            "name": "local",
+            "type": "text",
+            "title": "Local"
+          },
+          {
+            "name": "s3",
+            "type": "text",
+            "title": "S3"
+          },
+          {
+            "name": "sftp",
+            "type": "text",
+            "title": "SFTP"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "snapshot_backend_options",
+    "when": "snapshots.enabled=true",
+    "items": [
+      {
+        "name": "snapshot_local_backend_options",
+        "type": "group",
+        "when": "SnapshotsStore=local",
+        "items": [
+          {
+            "name": "SnapshotsPath",
+            "type": "text",
+            "title": "Snapshot File Destination",
+            "value": "{{repl if ConsoleSettingNotEquals \"snapshot.destination\" \"/var/lib/replicated/snapshots/\"}}{{repl ConsoleSetting \"snapshot.destination\"}}{{repl end}}",
+            "default": "/var/lib/replicated/snapshots/",
+            "help_text": "The contents of this path should be stored off of this server."
+          }
+        ]
+      },
+      {
+        "name": "snapshot_s3_backend_options",
+        "type": "group",
+        "when": "SnapshotsStore=s3",
+        "items": [
+          {
+            "name": "SnapshotsS3Bucket",
+            "type": "text",
+            "title": "Bucket",
+            "value": "{{repl Param \"SnapshotsS3Bucket\"}}"
+          },
+          {
+            "name": "SnapshotsAWSRegion",
+            "type": "text",
+            "title": "Region",
+            "value": "{{repl Param \"SnapshotsAWSRegion\"}}"
+          },
+          {
+            "name": "SnapshotsAWSKeyID",
+            "type": "text",
+            "title": "AWS Access Key ID",
+            "value": "{{repl Param \"SnapshotsAWSKeyID\"}}"
+          },
+          {
+            "name": "SnapshotsAWSSecretKey",
+            "type": "text",
+            "title": "AWS Secret Key",
+            "value": "{{repl Param \"SnapshotsAWSSecretKey\"}}"
+          }
+        ]
+      },
+      {
+        "name": "snapshot_sftp_backend_options",
+        "type": "group",
+        "when": "SnapshotsStore=sftp",
+        "items": [
+          {
+            "name": "SnapshotsPath",
+            "type": "text",
+            "title": "Snapshot File Destination on SFTP Server",
+            "value": "{{repl Param \"SnapshotsPath\"}}"
+          },
+          {
+            "name": "SnapshotsSFTPHost",
+            "type": "text",
+            "title": "Server",
+            "value": "{{repl Param \"SnapshotsSFTPHost\"}}",
+            "help_text": "This value should be either an IP address or resolvable hostname."
+          },
+          {
+            "name": "SnapshotsSFTPUsername",
+            "type": "text",
+            "title": "Username",
+            "value": "{{repl Param \"SnapshotsSFTPUsername\"}}"
+          },
+          {
+            "name": "SnapshotsSFTPPrivateKeyPEM",
+            "type": "textarea",
+            "title": "Private Key PEM",
+            "value": "{{repl Param \"SnapshotsSFTPPrivateKeyPEM\"}}",
+            "help_text": "This value should a private key in PEM format that grants the above user access to the server."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "snapshot_strategy_options",
+    "type": "group",
+    "when": "snapshots.enabled=true",
+    "items": [
+      {
+        "name": "snapshot.retention",
+        "title": "Max Number of Snapshots Retained",
+        "type": "text",
+        "value": "{{repl if ConsoleSettingNotEquals \"snapshot.retention\" \"3\"}}{{repl ConsoleSetting \"snapshot.retention\"}}{{repl end}}",
+        "default": "3",
+        "help_text": "Only this number of recent snapshots will be retained.  Older snapshots will be automatically expunged."
+      },
+      {
+        "name": "snapshot.timeout.label",
+        "type": "label",
+        "title": "Snapshot Timeout"
+      },
+      {
+        "name": "snapshot.timeout",
+        "help_text": "Snapshots that take a long time to complete can be timed out.",
+        "type": "select_one",
+        "value": "{{repl ConsoleSetting \"snapshot.timeout\"}}",
+        "default": "never",
+        "items": [
+          {
+            "name": "10m0s",
+            "type": "text",
+            "title": "10 Minutes"
+          },
+          {
+            "name": "30m0s",
+            "type": "text",
+            "title": "30 Minutes"
+          },
+          {
+            "name": "60m0s",
+            "type": "text",
+            "title": "1 Hour"
+          },
+          {
+            "name": "0s",
+            "type": "text",
+            "title": "Never"
+          }
+        ]
+      },
+      {
+        "name": "snapshot.schedule.label",
+        "type": "label",
+        "title": "Automatic Snapshots"
+      },
+      {
+        "name": "snapshot.schedule.enabled",
+        "type": "bool",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule.enabled\"}}",
+        "default": "0",
+        "title": "Enable Automatic Scheduled Snapshots"
+      },
+      {
+        "name": "snapshot.schedule",
+        "type": "select_one",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule\"}}",
+        "when": "snapshot.schedule.enabled=1",
+        "items": [
+          {
+            "name": "snapshot.schedule.hourly",
+            "type": "text",
+            "title": "Hourly",
+            "value": "hourly"
+          },
+          {
+            "name": "snapshot.schedule.daily",
+            "type": "text",
+            "title": "Daily",
+            "value": "daily"
+          },
+          {
+            "name": "snapshot.schedule.weekly",
+            "type": "text",
+            "title": "Weekly",
+            "value": "weekly"
+          },
+          {
+            "name": "snapshot.schedule.custom",
+            "type": "text",
+            "title": "Custom",
+            "value": "custom"
+          }
+        ]
+      },
+      {
+        "name": "snapshot.schedule.time.daily",
+        "type": "text",
+        "title": "Time (24H GMT)",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule.time.daily\"}}",
+        "default": "12:00",
+        "when": "snapshot.schedule=snapshot.schedule.daily"
+      },
+      {
+        "name": "snapshot.schedule.day.weekly",
+        "type": "text",
+        "title": "Day (Sun-Sat)",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule.day.weekly\"}}",
+        "default": "Sun",
+        "when": "snapshot.schedule=snapshot.schedule.weekly"
+      },
+      {
+        "name": "snapshot.schedule.time.weekly",
+        "type": "text",
+        "title": "Time (24H GMT)",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule.time.weekly\"}}",
+        "default": "12:00",
+        "when": "snapshot.schedule=snapshot.schedule.weekly"
+      },
+      {
+        "name": "snapshot.schedule.custom.interval",
+        "type": "text",
+        "title": "Custom Snapshot Schedule Interval",
+        "help_text": "Expressed in `crontab` format",
+        "value": "{{repl ConsoleSetting \"snapshot.schedule.custom.interval\"}}",
+        "default": "0 0 * * *",
+        "when": "snapshot.schedule=snapshot.schedule.custom"
+      }
+    ]
+  },
+  {
+    "name": "statsd",
+    "title": "Statsd & Graphite",
+    "when": "scheduler=replicated",
+    "description": "Configure metrics data.",
+    "items": [
+      {
+        "name": "statsd.data.location",
+        "type": "text",
+        "title": "Statsd Data Location",
+        "value": "{{repl ConsoleSetting \"statsd.data.location\"}}",
+        "default": "/var/lib/replicated/statsd/",
+        "help_text": "This location will be mounted into the statsd container and it will be used to store statsd data."
+      }
+    ]
+  },
+  {
+    "name": "update-checking",
+    "title": "Update Checks",
+    "when": "airgap-install!=true",
+    "description": "The management console checks for application updates regularly.  You can disable this or set the frequency.",
+    "items": [
+      {
+        "name": "app.update.check.schedule",
+        "type": "select_one",
+        "description": "Time between update checks.",
+        "value": "{{repl ConsoleSetting \"app.update.check.schedule\"}}",
+        "items": [
+          {
+            "name": "@never",
+            "type": "text",
+            "title": "Never"
+          },
+          {
+            "name": "@every 1h",
+            "type": "text",
+            "title": "1h"
+          },
+          {
+            "name": "@every 3h",
+            "type": "text",
+            "title": "3h"
+          },
+          {
+            "name": "@every 5h",
+            "type": "text",
+            "title": "5h"
+          },
+          {
+            "name": "@every 10h",
+            "type": "text",
+            "title": "10h"
+          },
+          {
+            "name": "@custom",
+            "type": "text",
+            "title": "Custom"
+          }
+        ]
+      },
+      {
+        "name": "update.check.schedule.custom.interval",
+        "type": "text",
+        "title": "Custom Update Checking Schedule",
+        "help_text": "Expressed in `crontab` format",
+        "value": "{{repl ConsoleSetting \"update.check.schedule.custom.interval\"}}",
+        "default": "0 0 * * *",
+        "when": "app.update.check.schedule=@custom"
+      }
+    ]
+  },
+  {
+    "name": "license-syncing",
+    "title": "License Sync",
+    "when": "airgap-install!=true",
+    "description": "The management console syncs the application license regularly.  You can disable this or set the frequency.",
+    "items": [
+      {
+        "name": "license.sync.schedule",
+        "type": "select_one",
+        "description": "Time between update checks.",
+        "value": "{{repl ConsoleSetting \"license.sync.schedule\"}}",
+        "default": "@every 10h",
+        "items": [
+          {
+            "name": "@never",
+            "type": "text",
+            "title": "Never"
+          },
+          {
+            "name": "@every 1h",
+            "type": "text",
+            "title": "1h"
+          },
+          {
+            "name": "@every 3h",
+            "type": "text",
+            "title": "3h"
+          },
+          {
+            "name": "@every 5h",
+            "type": "text",
+            "title": "5h"
+          },
+          {
+            "name": "@every 10h",
+            "type": "text",
+            "title": "10h"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "http-proxy",
+    "title": "HTTP Proxy",
+    "when": "scheduler=replicated",
+    "description": "The management console can use a proxy server to connect to the Internet, if required.",
+    "items": [
+      {
+        "name": "http.proxy.enabled",
+        "type": "bool",
+        "title": "HTTP Proxy enabled",
+        "value": "{{repl ConsoleSetting \"http.proxy.enabled\"}}"
+      },
+      {
+        "name": "http.proxy",
+        "when": "http.proxy.enabled=1",
+        "type": "text",
+        "title": "HTTP Proxy server",
+        "value": "{{repl ConsoleSetting \"http.proxy\"}}",
+        "help_text": "If a proxy server is required to connect to the Internet, enter it here in `http://10.10.10.10:8888` format."
+      }
+    ]
+  },
+  {
+    "name": "general",
+    "title": "General Settings",
+    "description": "Miscellaneous Replicated settings.",
+    "items": [
+      {
+        "name": "clock.skew.threshold.milliseconds",
+        "type": "text",
+        "title": "Clock Skew Threshold in Milliseconds",
+        "value": "{{repl ConsoleSetting \"clock.skew.threshold.milliseconds\"}}",
+        "help_text": "Sets the maximum threshold in milliseconds of clock skew between cluster nodes. When the threshold is reached a warning will show in the admin console. Set to zero to disable.",
+        "when": "scheduler!=kubernetes"
+      }
+    ]
+  },
+  {
+    "name": "locale",
+    "title": "Language",
+    "when": "l10n.enabled=true",
+    "description": "Console internationalization settings",
+    "items": [
+      {
+        "name": "language.source",
+        "type": "select_one",
+        "description": "Language",
+        "value": "{{repl ConsoleSetting \"language.source\" | ToLower }}",
+        "default": "en-us",
+        "items": [
+          {
+            "name": "en-us",
+            "title": "English (United States)"
+          },
+          {
+            "name": "zh-cn",
+            "title": "Chinese (Simplified)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "open-source",
+    "title": "Open Source",
+    "description": "[A current list of software and licenses is included here.](/open-source-licenses)",
+    "items": [
+      {
+        "name": "open-source-link",
+        "type": "label",
+        "title": ""
+      }
+    ]
+  }
+]

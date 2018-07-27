@@ -1,0 +1,22 @@
+.Select {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #C4C8CA;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #323232;
+  line-height: normal;
+  outline: none;
+  height: 40px;
+  cursor: pointer;
+}
+.Select.no-selection {
+  color: #9B9B9B;
+}
+.Select.is-disabled {
+  cursor: not-allowed;
+  background-color: #F8F8F8;
+  border-color: #DFDFDF;
+  color: #717171;
+}
