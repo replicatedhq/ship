@@ -28,3 +28,27 @@ func copyDockerProgress(reader io.ReadCloser, ch chan interface{}) error {
 		ch <- m
 	}
 }
+
+// This is a hack, Docker progress does not throw an error if it fails
+// to connect to a Docker regustry. Watching for `Preparing` message to know if
+// push connection is successful, since EOF is sent in both success and failure
+// cases.
+func copyDockerProgressPush(reader io.ReadCloser, ch chan interface{}) error {
+	dec := json.NewDecoder(reader)
+	var preparingToPush bool
+	for {
+		var m Progress
+		if err := dec.Decode(&m); err == io.EOF {
+			if !preparingToPush {
+				return errors.New("Unable to push Docker image")
+			}
+			return nil
+		} else if err != nil {
+			return errors.Wrap(err, "copy docker progress")
+		}
+		if m.Status == "Preparing" {
+			preparingToPush = true
+		}
+		ch <- m
+	}
+}

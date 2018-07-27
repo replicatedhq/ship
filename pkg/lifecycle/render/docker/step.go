@@ -77,8 +77,11 @@ func (p *DefaultStep) Execute(
 		debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", dest, "description", asset.Description))
 		debug.Log("event", "execute")
 
-		parsedURL, _ := url.Parse(dest)
-		destIsDockerURL := parsedURL.Scheme == "docker"
+		destinationURL, err := url.Parse(dest)
+		if err != nil {
+			return errors.Wrapf(err, "parse destination URL %s", dest)
+		}
+		destIsDockerURL := destinationURL.Scheme == "docker"
 		if !destIsDockerURL {
 			dest = filepath.Join(constants.InstallerPrefix, dest)
 			basePath := filepath.Dir(dest)
@@ -105,7 +108,7 @@ func (p *DefaultStep) Execute(
 		}
 
 		if destIsDockerURL {
-			registrySecretSaveOpts.DestinationURL = dest
+			registrySecretSaveOpts.DestinationURL = destinationURL
 		} else {
 			registrySecretSaveOpts.Filename = dest
 		}
@@ -126,13 +129,12 @@ func (p *DefaultStep) Execute(
 			PullURL:   pullURL,
 			SaveURL:   asset.Image,
 			IsPrivate: asset.Source != "public" && asset.Source != "",
-			Filename:  dest,
 			Username:  meta.CustomerID,
 			Password:  p.Viper.GetString("installation-id"),
 		}
 
 		if destIsDockerURL {
-			installationIDSaveOpts.DestinationURL = dest
+			installationIDSaveOpts.DestinationURL = destinationURL
 		} else {
 			installationIDSaveOpts.Filename = dest
 		}
