@@ -4,9 +4,10 @@ import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
 import isEmpty from "lodash/isEmpty";
-import find from "lodash/find";
 import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
+import keyBy from "lodash/keyBy";
+import find from "lodash/find";
 
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
@@ -24,7 +25,7 @@ export default class KustomizeOverlay extends React.Component {
       fileTree: [],
       fileTreeBasePath: "",
       selectedFile: "",
-      fileContents: [],
+      fileContents: {},
       fileLoadErr: false,
       fileLoadErrMessage: "",
       addOverlay: false,
@@ -41,14 +42,14 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   discardOverlay() {
-    let file = find(this.props.fileContents, ["key", this.state.selectedFile]);
+    const file = this.props.fileContents[this.state.selectedFile];
     const initalOverlay = file.overlayContent;
     this.setState({ addOverlay: false, overlayContent: initalOverlay });
   }
 
   createOverlay() {
     const { fileContents, selectedFile } = this.state;
-    let file = find(fileContents, ["key", selectedFile]);
+    let file = fileContents[selectedFile];
     if (!file) return;
     file = yaml.safeLoad(file.baseContent)
     const overlayFields = pick(file, "apiVersion", "kind", "metadata.name");
@@ -59,10 +60,7 @@ export default class KustomizeOverlay extends React.Component {
 
   hasContentAlready(path) {
     const { fileContents } = this.state;
-    let i;
-    for (i = 0; i < fileContents.length; i++) {
-      if (fileContents[i].key === path) { return true; }
-    }
+    if (fileContents[path]) { return true; }
     return false;
   }
 
@@ -73,16 +71,16 @@ export default class KustomizeOverlay extends React.Component {
     }
     if (this.hasContentAlready(path)) {
       // if we've already fetched the file, set the overlayContent from existing content
-      let file = find(this.state.fileContents, ["key", path]);
+      const file = this.state.fileContents[path];
       this.setState({ overlayContent: file.overlayContent });
       return;
     }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content and set the overlayContent from new file content on the file the user wants to view
-      let currentFile = find(this.props.fileContents, ["key", path]);
+      const file = find(this.props.fileContents, ["key", path]);
       this.setState({
-        fileContents: this.props.fileContents,
-        overlayContent: currentFile.overlayContent
+        fileContents: keyBy(this.props.fileContents, "key"),
+        overlayContent: file.overlayContent
       });
     });
   }
@@ -158,7 +156,7 @@ export default class KustomizeOverlay extends React.Component {
       this.setFileTree();
     }
     if (this.props.fileContents !==lastProps.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: this.props.fileContents });
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
     if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
       if (this.refs.aceEditorOverlay) {
@@ -175,14 +173,14 @@ export default class KustomizeOverlay extends React.Component {
       this.setFileTree();
     }
     if (this.props.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: this.props.fileContents });
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
   }
 
   render() {
     const { dataLoading } = this.props;
     const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, overlayContent, toastDetails } = this.state;
-    const fileToView = find(fileContents, ["key", selectedFile]);
+    const fileToView = fileContents[selectedFile];
 
     return (
       <div className="flex flex1">
