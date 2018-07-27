@@ -70,7 +70,7 @@ ship update <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
 
 ## Jenkins
-An [example Jenkins job](https://github.com/replicatedhq/ship/blob/master/examples/jenkins.md) is available that illustrates how to run `ship update` to receive updates to a third party application in a CI/CD process.
+An [example Jenkins job](https://github.com/replicatedhq/ship/tree/master/examples/jenkins) is available that illustrates how to run `ship update` to receive updates to a third party application in a CI/CD process.
 
 # Community
 
