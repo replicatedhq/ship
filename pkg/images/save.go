@@ -183,7 +183,7 @@ func (s *CLISaver) pushImage(ctx context.Context, progressCh chan interface{}, s
 	if err != nil {
 		return errors.Wrapf(err, "push image %s", destinationParams.DestinationImageName)
 	}
-	return copyDockerProgressPush(progressReader, progressCh)
+	return copyDockerProgress(progressReader, progressCh)
 }
 
 func buildDestinationParams(destinationURL *url.URL) (DestinationParams, error) {

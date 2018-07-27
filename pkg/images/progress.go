@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/docker/docker/pkg/jsonmessage"
+
 	"github.com/pkg/errors"
 )
 
@@ -19,36 +21,19 @@ type Progress struct {
 func copyDockerProgress(reader io.ReadCloser, ch chan interface{}) error {
 	dec := json.NewDecoder(reader)
 	for {
-		var m Progress
-		if err := dec.Decode(&m); err == io.EOF {
+		var jm jsonmessage.JSONMessage
+		if err := dec.Decode(&jm); err == io.EOF {
 			return nil
 		} else if err != nil {
 			return errors.Wrap(err, "copy docker progress")
+		} else if jm.Error != nil {
+			return jm.Error
 		}
-		ch <- m
-	}
-}
 
-// This is a hack, Docker progress does not throw an error if it fails
-// to connect to a Docker regustry. Watching for `Preparing` message to know if
-// push connection is successful, since EOF is sent in both success and failure
-// cases.
-func copyDockerProgressPush(reader io.ReadCloser, ch chan interface{}) error {
-	dec := json.NewDecoder(reader)
-	var preparingToPush bool
-	for {
-		var m Progress
-		if err := dec.Decode(&m); err == io.EOF {
-			if !preparingToPush {
-				return errors.New("Unable to push Docker image")
-			}
-			return nil
-		} else if err != nil {
-			return errors.Wrap(err, "copy docker progress")
+		ch <- Progress{
+			ID:             jm.ID,
+			Status:         jm.Status,
+			ProgressDetail: jm.Progress,
 		}
-		if m.Status == "Preparing" {
-			preparingToPush = true
-		}
-		ch <- m
 	}
 }
