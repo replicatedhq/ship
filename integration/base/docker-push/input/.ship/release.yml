@@ -18,16 +18,19 @@ assets:
     - docker:
         image: postgres:latest
         source: public
-        dest: docker://localhost:5000/postgres:latest
+        dest: 'docker://{{repl ConfigOption "external_registry" }}/postgres:latest'
 config:
   v1:
     - name: test_options
       title: Test Options
       description: testing testing 123
       items:
-      - name: test_option
-        title: Test Option
-        type: text
+        - name: test_option
+          title: Test Option
+          type: text
+        - name: external_registry
+          title: External Registry
+          type: text
 lifecycle:
   v1:
     - render: {}
