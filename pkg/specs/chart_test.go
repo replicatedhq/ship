@@ -2,11 +2,13 @@ package specs
 
 import (
 	"context"
-	"fmt"
+	"encoding/base64"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -42,46 +44,15 @@ func TestGithubClient(t *testing.T) {
 
 var _ = Describe("GithubClient", func() {
 	client, mux, serverURL, teardown = setupGitClient()
-	mux.HandleFunc("/repos/o/r/contents/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `[{
-			"type": "file",
-			"name": "README.md",
-			"download_url": "`+serverURL+`/download/readme"
-			}, {
-			"type": "file",
-			"name": "Chart.yaml",
-			"download_url": "`+serverURL+`/download/chart"
-			}, {
-			"type": "dir",
-			"name": "templates",
-			"download_url": "`+serverURL+`/fail"
-			}]`)
+	mux.HandleFunc("/repos/o/r/tarball", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, serverURL+"/archive.tar.gz", http.StatusFound)
+		return
 	})
-	mux.HandleFunc("/repos/o/r/contents/templates", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `[{
-			"type": "file",
-			"name": "deployment.yml",
-			"download_url": "`+serverURL+`/download/deployment.yml"
-			}, {
-			"type": "file",
-			"name": "service.yml",
-			"download_url": "`+serverURL+`/download/service.yml"
-			}]`)
-	})
-	mux.HandleFunc("/download/readme", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "foo")
-	})
-	mux.HandleFunc("/download/chart", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "bar")
-	})
-	mux.HandleFunc("/download/deployment.yml", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "deployment")
-	})
-	mux.HandleFunc("/download/service.yml", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "service")
-	})
-	mux.HandleFunc("/fail", func(w http.ResponseWriter, r *http.Request) {
-		Fail("should not try to download dirs")
+	mux.HandleFunc("/archive.tar.gz", func(w http.ResponseWriter, r *http.Request) {
+		archiveData := `H4sIAJKjXFsAA+3WXW6CQBQFYJbCBmrv/D831ce+uIOpDtGEKQaoibt3qERbEmiNI6TxfC8TIwkXTg65lfW73D3ZcrXZ7t1zcg9EZJRKv059OonL09lKmRDcMM6k0SkxSYolqbrLNB2fVW3LMIoPr2DounBZlg383z7H+fwnqp/5v25sWc8O1ucR7xHeh5ZyKH9xzl+TDPkroylJKeIMvR48//fw8PC4Ov1fLl7mb4uZX8e8xzX9V4Y1/RdMof9jyIpi6hFgQp3+1y78tLWrYm6CV+1/oum/JqGx/42hN/+12+XFwbuPsA7euA3++v1n/LL/sZA/JyM4vv9juMQ89SQwhd7+V67cb1fu5vInf9n/zLf+y6b/nDP0fwxtzFOPAQAAAAAAAAAAAACRHQEZehxJACgAAA==`
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(archiveData))
+		w.Header().Set("Content-Type", "application/gzip")
+		io.Copy(w, dec)
 	})
 
 	Describe("GetChartAndReadmeContents", func() {
