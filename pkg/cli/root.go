@@ -36,7 +36,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("log-level", "off", "Log level")
 
 	// optional
-	cmd.PersistentFlags().IntP("api-port", "p", 8880, "port to start the API server on.")
+	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
