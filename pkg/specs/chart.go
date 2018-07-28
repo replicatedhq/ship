@@ -2,8 +2,10 @@ package specs
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,6 +45,21 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	if !strings.HasPrefix(chartURLString, "http") {
 		chartURLString = fmt.Sprintf("http://%s", chartURLString)
 	}
+
+	debug.Log("event", "usageReporting")
+	go func() {
+		url := "http://localhost:8009/v1/usage"
+		values := map[string]string{"chartPath": chartURLString}
+		jsonValues, err := json.Marshal(values)
+		if err != nil {
+			debug.Log("marshal usage report", err)
+			return
+		}
+		_, err = http.Post(url, "application/json", bytes.NewBuffer(jsonValues))
+		if err != nil {
+			debug.Log("send usage report", err)
+		}
+	}()
 
 	debug.Log("event", "parseURL")
 	chartURL, err := url.Parse(chartURLString)
