@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -35,11 +36,12 @@ var _ Renderer = &DefaultStep{}
 
 // DefaultStep is the default implementation of Renderer
 type DefaultStep struct {
-	Logger      log.Logger
-	Fs          afero.Afero
-	URLResolver images.PullURLResolver
-	ImageSaver  images.ImageSaver
-	Viper       *viper.Viper
+	Logger         log.Logger
+	Fs             afero.Afero
+	URLResolver    images.PullURLResolver
+	ImageSaver     images.ImageSaver
+	Viper          *viper.Viper
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 // NewStep gets a new Renderer with the default impl
@@ -49,13 +51,15 @@ func NewStep(
 	resolver images.PullURLResolver,
 	saver images.ImageSaver,
 	v *viper.Viper,
+	bb *templates.BuilderBuilder,
 ) Renderer {
 	return &DefaultStep{
-		Logger:      logger,
-		Fs:          fs,
-		URLResolver: resolver,
-		ImageSaver:  saver,
-		Viper:       v,
+		Logger:         logger,
+		Fs:             fs,
+		URLResolver:    resolver,
+		ImageSaver:     saver,
+		Viper:          v,
+		BuilderBuilder: bb,
 	}
 }
 
@@ -76,8 +80,25 @@ func (p *DefaultStep) Execute(
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", dest, "description", asset.Description))
 		debug.Log("event", "execute")
+		configCtx, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+		if err != nil {
+			return errors.Wrap(err, "create config context")
+		}
 
-		destinationURL, err := url.Parse(dest)
+		builder := p.BuilderBuilder.NewBuilder(
+			p.BuilderBuilder.NewStaticContext(),
+			configCtx,
+			&templates.InstallationContext{
+				Meta:  meta,
+				Viper: p.Viper,
+			},
+		)
+		builtDest, err := builder.String(dest)
+		if err != nil {
+			return errors.Wrap(err, "building dest")
+		}
+
+		destinationURL, err := url.Parse(builtDest)
 		if err != nil {
 			return errors.Wrapf(err, "parse destination URL %s", dest)
 		}
