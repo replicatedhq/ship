@@ -11,8 +11,9 @@ import (
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "e2e",
-		Short: "e2e testing for ship",
+		Use:    "e2e",
+		Short:  "e2e testing for ship",
+		Hidden: true,
 		Long: `
 
 `,

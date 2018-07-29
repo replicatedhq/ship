@@ -12,9 +12,9 @@ import (
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
 	"gopkg.in/yaml.v2"
-	"github.com/replicatedhq/ship/integration"
 )
 
 type TestMetadata struct {
@@ -28,7 +28,6 @@ func TestKustomize(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "integration")
 }
-
 
 var _ = Describe("basic", func() {
 	dockerClient, err := client.NewEnvClient()
@@ -74,8 +73,8 @@ var _ = Describe("basic", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when running in kustomize mode", func() {
-					cmd := cli.Kustomize()
+				It("Should output files matching those expected when running in init mode", func() {
+					cmd := cli.Init()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
