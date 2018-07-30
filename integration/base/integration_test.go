@@ -78,11 +78,12 @@ var _ = Describe("basic", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when running in local mode", func() {
+				It("Should output files matching those expected when running app command in local mode", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					cmd.SetArgs([]string{
+						"app",
 						"--headless",
 						fmt.Sprintf("--studio-file=%s", path.Join(testInputPath, ".ship/release.yml")),
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
@@ -108,6 +109,7 @@ var _ = Describe("basic", func() {
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					cmd.SetArgs(append([]string{
+						"app",
 						"--headless",
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
