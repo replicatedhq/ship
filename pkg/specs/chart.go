@@ -1,12 +1,13 @@
 package specs
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -48,11 +49,11 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	if err != nil {
 		return err
 	}
-	chartPath := chartURL.Path
-	splitPath := strings.Split(chartPath, "/")
-	owner := splitPath[1]
-	repo := splitPath[2]
-	path := strings.Join(splitPath[3:], "/")
+
+	owner, repo, path, err := decodeGitHubUrl(chartURL.Path)
+	if err != nil {
+		return err
+	}
 
 	debug.Log("event", "checkExists", "path", constants.KustomizeHelmPath)
 	saveDirExists, err := g.fs.Exists(constants.KustomizeHelmPath)
@@ -68,69 +69,68 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		}
 	}
 
-	return g.getAllFiles(ctx, owner, repo, path, "")
+	return g.downloadAndExtractFiles(ctx, owner, repo, path, "/")
 }
 
-func (g *GithubClient) getAllFiles(ctx context.Context, owner string, repo string, basePath string, filePath string) error {
-	debug := level.Debug(log.With(g.logger, "method", "getAllFiles"))
+func (g *GithubClient) downloadAndExtractFiles(ctx context.Context, owner string, repo string, basePath string, filePath string) error {
+	debug := level.Debug(log.With(g.logger, "method", "downloadAndExtractFiles"))
 
 	debug.Log("event", "getContents", "path", basePath)
-	_, dirContent, _, err := g.client.Repositories.GetContents(ctx, owner, repo, basePath, &github.RepositoryContentGetOptions{})
+
+	url, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, &github.RepositoryContentGetOptions{})
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "get archive link for owner - %s repo - %s", owner, repo)
 	}
 
-	for _, gitContent := range dirContent {
-		if gitContent.GetType() == "file" {
-			debug.Log("event", "git.download", "file", gitContent.GetName())
-			savePath := filepath.Join(constants.KustomizeHelmPath, filePath)
-			downloadURL := gitContent.GetDownloadURL()
-			err := g.downloadFile(savePath, gitContent.GetName(), downloadURL)
-			if err != nil {
-				return errors.Wrapf(err, "download file %q", gitContent.GetName())
-			}
-		}
-		if gitContent.GetType() == "dir" {
-			debug.Log("event", "git.getAllFiles", "dir", gitContent.GetName())
-			newBase := path.Join(basePath, gitContent.GetName())
-			newFilePath := path.Join(filePath, gitContent.GetName())
-			err := g.getAllFiles(ctx, owner, repo, newBase, newFilePath)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (g *GithubClient) downloadFile(path string, saveName string, url string) error {
-	debug := level.Debug(log.With(g.logger, "method", "downloadFile"))
-
-	debug.Log("event", "mkdir", "path", path)
-	err := g.fs.MkdirAll(path, 0700)
+	resp, err := http.Get(url.String())
 	if err != nil {
-		return err
-	}
-
-	debug.Log("event", "download", "url", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
+		return errors.Wrapf(err, "downloading archive")
 	}
 	defer resp.Body.Close()
 
-	debug.Log("event", "read.resp")
-	bytes, err := ioutil.ReadAll(resp.Body)
+	uncompressedStream, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "create uncompressed stream")
 	}
 
-	debug.Log("event", "write.file", "path", path)
-	fullPath := filepath.Join(path, saveName)
-	err = g.fs.WriteFile(fullPath, bytes, 0644)
-	if err != nil {
-		return err
+	tarReader := tar.NewReader(uncompressedStream)
+
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return errors.Wrapf(err, "extract tar gz, next()")
+		}
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			dirName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
+			if !strings.HasPrefix(dirName, basePath) {
+				continue
+			}
+
+			dirName = strings.TrimPrefix(dirName, basePath)
+			if err := g.fs.MkdirAll(filepath.Join(constants.KustomizeHelmPath, filePath, dirName), 0755); err != nil {
+				return errors.Wrapf(err, "extract tar gz, mkdir")
+			}
+		case tar.TypeReg:
+			fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
+			if !strings.HasPrefix(fileName, basePath) {
+				continue
+			}
+			fileName = strings.TrimPrefix(fileName, basePath)
+			outFile, err := g.fs.Create(filepath.Join(constants.KustomizeHelmPath, filePath, fileName))
+			if err != nil {
+				return errors.Wrapf(err, "extract tar gz, create")
+			}
+			defer outFile.Close()
+			if _, err := io.Copy(outFile, tarReader); err != nil {
+				return errors.Wrapf(err, "extract tar gz, copy")
+			}
+		}
 	}
 
 	return nil
@@ -143,7 +143,7 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	var md api.HelmChartMetadata
 	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 	if err != nil {
-		return api.HelmChartMetadata{}, err
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
 	}
 
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")
@@ -167,4 +167,21 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 
 	md.Readme = string(readme)
 	return md, nil
+}
+
+func decodeGitHubUrl(chartPath string) (string, string, string, error) {
+	splitPath := strings.Split(chartPath, "/")
+
+	if len(splitPath) < 3 {
+		return "", "", "", errors.Wrapf(errors.New("unable to decode github url"), chartPath)
+	}
+
+	owner := splitPath[1]
+	repo := splitPath[2]
+	path := ""
+	if len(splitPath) > 3 {
+		path = strings.Join(splitPath[3:], "/")
+	}
+
+	return owner, repo, path, nil
 }

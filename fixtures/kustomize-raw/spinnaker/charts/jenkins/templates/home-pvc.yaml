@@ -1,0 +1,17 @@
+##---
+# Source: spinnaker/charts/jenkins/templates/home-pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: RELEASE-NAME-jenkins
+  labels:
+    app: RELEASE-NAME-jenkins
+    chart: "jenkins-0.13.3"
+    release: "RELEASE-NAME"
+    heritage: "Tiller"
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"

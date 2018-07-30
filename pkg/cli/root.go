@@ -6,11 +6,7 @@ import (
 
 	"strings"
 
-	"context"
-
-	"github.com/replicatedhq/ship/pkg/cli/devtoolreleaser"
 	"github.com/replicatedhq/ship/pkg/e2e"
-	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,45 +19,32 @@ func RootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ship",
 		Short: "manage and serve on-prem ship data",
-		Long: `ship allows for managing and securely delivering
-application specs to be used in on-prem installations.
-`,
+		Long:  `ship allows for configuring and updating third party application in modern pipelines (gitops).`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			version.Init()
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return ship.RunE(context.Background())
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Help()
+			os.Exit(1)
 		},
 	}
 	cobra.OnInitialize(initConfig)
 
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/replicated/ship.yaml)")
 	cmd.PersistentFlags().String("log-level", "off", "Log level")
-	cmd.PersistentFlags().StringP("customer-endpoint", "e", "https://pg.replicated.com/graphql", "Upstream application spec server address")
-
-	// required
-	cmd.PersistentFlags().String("customer-id", "", "Customer ID for which to query app specs. Required for all ship operations.")
 
 	// optional
-	cmd.PersistentFlags().String("release-id", "", "specific Release ID to pin installation to.")
-	cmd.PersistentFlags().String("release-semver", "", "specific release version to pin installation to. Requires channel-id")
-	cmd.PersistentFlags().String("channel-id", "", "ship channel to install from")
-	cmd.PersistentFlags().StringP("installation-id", "i", "", "Installation ID for which to query app specs")
-	cmd.PersistentFlags().IntP("api-port", "p", 8880, "port to start the API server on.")
-	cmd.PersistentFlags().Bool("ship-compose-ui", false, "using UI in docker-compose")
+	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 
-	cmd.PersistentFlags().String("studio-file", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
-	cmd.PersistentFlags().String("studio-channel-name", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
-	cmd.PersistentFlags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
-	cmd.PersistentFlags().Bool("terraform-yes", false, "Automatically answer \"yes\" to all terraform prompts")
 
 	cmd.AddCommand(e2e.Cmd())
-	cmd.AddCommand(devtoolreleaser.Cmd())
-	cmd.AddCommand(Kustomize())
+	cmd.AddCommand(Init())
+	cmd.AddCommand(Update())
+	cmd.AddCommand(App())
 	cmd.AddCommand(Version())
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())

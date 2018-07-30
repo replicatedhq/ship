@@ -22,7 +22,7 @@ docker:
 
 shell:
 	docker run --rm -it \
-		-p 8880:8880 \
+		-p 8800:8800 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedhq/ship \

@@ -29,5 +29,5 @@ Picture of a Boat (not required but encouraged)
 
 
 
-<!-- (thanks https://github.com/linuxkit/linuxkit for this template) -->
+<!-- (thanks https://github.com/docker/docker for this template) -->
 

@@ -1,0 +1,34 @@
+##---
+# Source: spinnaker/templates/hooks/delete-jobs.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "RELEASE-NAME-delete-jobs"
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: spinnaker
+  annotations:
+    "helm.sh/hook": post-delete
+spec:
+  template:
+    metadata:
+      labels:
+        app: RELEASE-NAME-spinnaker
+        component: spinnaker
+    spec:
+      restartPolicy: OnFailure
+      volumes:
+      - name: kubectl
+        hostPath:
+          path: /usr/bin/kubectl
+
+      containers:
+      - name: post-install-job
+        image: "lachlanevenson/k8s-kubectl:v1.6.0"
+        volumeMounts:
+        - name: kubectl
+          mountPath: /kubectl
+        command:
+        - sh
+        - -c
+        - "kubectl delete job --namespace default -l app=RELEASE-NAME-spinnaker"
