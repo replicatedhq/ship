@@ -200,3 +200,18 @@ func (s *Ship) ExitWithError(err error) {
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
 	os.Exit(1)
 }
+
+func (s *Ship) ExitWithWarn(err error) {
+	if s.Viper.GetString("log-level") == "debug" {
+		s.UI.Warn(fmt.Sprintf("%+v", err))
+	} else {
+		s.UI.Warn(fmt.Sprintf("%v", err))
+	}
+	s.UI.Output("")
+
+	time.Sleep(100 * time.Millisecond)
+
+	// TODO this should probably be part of lifecycle
+	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
+	os.Exit(1)
+}
