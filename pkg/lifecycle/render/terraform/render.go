@@ -2,7 +2,6 @@ package terraform
 
 import (
 	"context"
-
 	"path"
 
 	"github.com/go-kit/kit/log"
@@ -18,8 +17,8 @@ type Renderer interface {
 	Execute(
 		asset api.TerraformAsset,
 		meta api.ReleaseMetadata,
-		configGroups []libyaml.ConfigGroup,
 		templateContext map[string]interface{},
+		configGroups []libyaml.ConfigGroup,
 	) func(ctx context.Context) error
 }
 
@@ -47,8 +46,8 @@ func NewRenderer(
 func (r *LocalRenderer) Execute(
 	asset api.TerraformAsset,
 	meta api.ReleaseMetadata,
-	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 

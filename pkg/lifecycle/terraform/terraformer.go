@@ -44,7 +44,7 @@ func NewTerraformer(
 		Daemon:        daemon,
 		PlanConfirmer: planner,
 		Terraform: func() *exec.Cmd {
-			cmd := exec.Command("/usr/local/bin/terraform")
+			cmd := exec.Command("terraform")
 			cmd.Dir = "terraform"
 			return cmd
 		},
