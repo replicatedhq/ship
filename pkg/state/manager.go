@@ -44,7 +44,7 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	}
 
 	debug.Log("event", "emptyState")
-	isEmpty := currentState == empty{}
+	isEmpty := currentState == Empty{}
 	if isEmpty {
 		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
 		return s.serializeAndWriteState(toSerialize)
@@ -90,7 +90,7 @@ func (s *Manager) TryLoad() (State, error) {
 
 	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", statePath)
-		return empty{}, nil
+		return Empty{}, nil
 	}
 
 	serialized, err := s.FS.ReadFile(statePath)
