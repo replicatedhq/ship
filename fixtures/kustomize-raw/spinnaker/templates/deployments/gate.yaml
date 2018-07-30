@@ -1,0 +1,41 @@
+##---
+# Source: spinnaker/templates/deployments/gate.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-spinnaker-gate
+  labels:
+    app: RELEASE-NAME-spinnaker
+    component: gate
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8e9e12b8ef0fc1c93a6cb0b493d0d2f2935e05a7aaad364f45a98bdf9727612b
+      labels:
+        app: RELEASE-NAME-spinnaker
+        component: gate
+    spec:
+      containers:
+        - image: gcr.io/spinnaker-marketplace/gate:0.10.0-20180221133510
+          name: gate
+          ports:
+            - containerPort: 8084
+              name: gate
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: RELEASE-NAME-spinnaker-spinnaker-config
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8084
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+      volumes:
+        - name: RELEASE-NAME-spinnaker-spinnaker-config
+          configMap:
+            name: RELEASE-NAME-spinnaker-spinnaker-config

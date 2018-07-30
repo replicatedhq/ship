@@ -1,0 +1,11 @@
+##---
+# Source: spinnaker/templates/configmap/test-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-spinnaker-tests
+data:
+  run.sh: |-
+    @test "Testing Spinnaker UI is accessible" {
+      curl --retry 12 --retry-delay 10 RELEASE-NAME-spinnaker-deck:9000
+    }

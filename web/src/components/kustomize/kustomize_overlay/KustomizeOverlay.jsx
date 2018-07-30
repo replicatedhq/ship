@@ -4,9 +4,10 @@ import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
 import isEmpty from "lodash/isEmpty";
-import find from "lodash/find";
 import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
+import keyBy from "lodash/keyBy";
+import find from "lodash/find";
 
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
@@ -24,7 +25,7 @@ export default class KustomizeOverlay extends React.Component {
       fileTree: [],
       fileTreeBasePath: "",
       selectedFile: "",
-      fileContents: [],
+      fileContents: {},
       fileLoadErr: false,
       fileLoadErrMessage: "",
       addOverlay: false,
@@ -36,27 +37,30 @@ export default class KustomizeOverlay extends React.Component {
     autoBind(this);
   }
 
-  toggleOverlay() {
-    this.setState({ addOverlay: !this.state.addOverlay });
+  openOverlay() {
+    this.setState({ addOverlay: true });
+  }
+
+  discardOverlay() {
+    const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
+    const initalOverlay = file.overlayContent;
+    this.setState({ addOverlay: false, overlayContent: initalOverlay });
   }
 
   createOverlay() {
     const { fileContents, selectedFile } = this.state;
-    let file = find(fileContents, ["key", selectedFile]);
+    let file = fileContents[selectedFile];
     if (!file) return;
     file = yaml.safeLoad(file.baseContent)
     const overlayFields = pick(file, "apiVersion", "kind", "metadata.name");
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ overlayContent: `--- \n${overlay}` });
-    this.toggleOverlay();
+    this.openOverlay();
   }
 
   hasContentAlready(path) {
     const { fileContents } = this.state;
-    let i;
-    for (i = 0; i < fileContents.length; i++) {
-      if (fileContents[i].key === path) { return true; }
-    }
+    if (fileContents[path]) { return true; }
     return false;
   }
 
@@ -65,9 +69,19 @@ export default class KustomizeOverlay extends React.Component {
     if (this.state.toastDetails.showToast) {
       this.cancelToast();
     }
-    if (this.hasContentAlready(path)) return;
+    if (this.hasContentAlready(path)) {
+      // if we've already fetched the file, set the overlayContent from existing content
+      const file = this.state.fileContents[path];
+      this.setState({ overlayContent: file.overlayContent });
+      return;
+    }
     await this.props.getFileContent(path).then(() => {
-      this.setState({ fileContents: this.props.fileContents });
+      // set state with new file content and set the overlayContent from new file content on the file the user wants to view
+      const file = find(this.props.fileContents, ["key", path]);
+      this.setState({
+        fileContents: keyBy(this.props.fileContents, "key"),
+        overlayContent: file.overlayContent
+      });
     });
   }
 
@@ -142,7 +156,7 @@ export default class KustomizeOverlay extends React.Component {
       this.setFileTree();
     }
     if (this.props.fileContents !==lastProps.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: this.props.fileContents });
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
     if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
       if (this.refs.aceEditorOverlay) {
@@ -159,14 +173,14 @@ export default class KustomizeOverlay extends React.Component {
       this.setFileTree();
     }
     if (this.props.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: this.props.fileContents });
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
   }
 
   render() {
     const { dataLoading } = this.props;
     const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, overlayContent, toastDetails } = this.state;
-    const fileToView = find(fileContents, ["key", selectedFile]);
+    const fileToView = fileContents[selectedFile];
 
     return (
       <div className="flex flex1">
@@ -240,21 +254,20 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                 </div>
 
-                <div className={`flex-column flex1 overlays-editor-wrapper ${this.state.addOverlay ? "visible" : ""}`}>
+                <div className={`flex-column flex1 overlays-editor-wrapper ${this.state.addOverlay || (fileToView && fileToView.overlayContent.length) ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
                     <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Overlay</p>
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.toggleOverlay}></span>}
+                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.discardOverlay}></span>}
                       <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
                         ref="aceEditorOverlay"
                         mode="yaml"
                         theme="chrome"
                         className="flex1 flex"
-                        readOnly={false}
                         value={overlayContent || ""}
                         height="100%"
                         width="100%"

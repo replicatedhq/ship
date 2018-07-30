@@ -1,7 +1,0 @@
-### Configs
-watch("**", "!.git/**")
-
-### Commands to execute
-sh("make _lint")
-sh("make _vet")
-sh("make _test")

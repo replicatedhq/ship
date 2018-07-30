@@ -236,9 +236,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	}()
 
 	uiPortToDisplay := 8800
-	if serveUIFromAPIDaemon(d) {
-		uiPortToDisplay = 8880
-	}
+
 	d.UI.Info(fmt.Sprintf(
 		"Please visit the following URL in your browser to continue the installation\n\n        http://localhost:%d\n\n ",
 		uiPortToDisplay, // todo param this
@@ -269,9 +267,7 @@ func (d *ShipDaemon) locker() func() {
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
-	if serveUIFromAPIDaemon(d) {
-		g.Use(static.Serve("/", d.WebUIFactory("ui")))
-	}
+	g.Use(static.Serve("/", d.WebUIFactory("dist")))
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
@@ -302,11 +298,6 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
-}
-
-// if not, we're hosting the UI separately
-func serveUIFromAPIDaemon(d *ShipDaemon) bool {
-	return !d.Viper.GetBool("ship-compose-ui")
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
@@ -559,7 +550,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues, true)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -629,7 +620,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues, false)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)

@@ -22,7 +22,7 @@ docker:
 
 shell:
 	docker run --rm -it \
-		-p 8880:8880 \
+		-p 8800:8800 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedhq/ship \
@@ -156,7 +156,7 @@ test: lint _test
 	@mkdir -p .state/
 	go test -coverprofile=.state/coverage.out -v ./pkg/...
 
-citest: lint .state/coverage.out
+citest: _vet _lint .state/coverage.out
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
@@ -207,12 +207,11 @@ build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
 
 pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
-	go-bindata-assetfs -pkg daemon \
-	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
-	  web/dist/...
+	cd web; go-bindata-assetfs -pkg daemon \
+	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
+	  dist/...
 
-embed-ui:
-	pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
 build-ui:
 	cd web; yarn install --force
