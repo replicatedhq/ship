@@ -197,7 +197,7 @@ goreleaser: .state/goreleaser
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
 
 run: bin/ship
-	./bin/ship --log-level=debug --studio-file=./app.yml
+	./bin/ship --log-level=debug --runbook=./app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:
@@ -213,6 +213,6 @@ pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
 
 embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
-build-ui: 	
+build-ui:
 	cd web; yarn install --force
 	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
