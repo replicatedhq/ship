@@ -86,7 +86,7 @@ var _ = Describe("GithubClient", func() {
 
 		Context("With a url not prefixed with http", func() {
 			It("should fetch and persist README.md and Chart.yaml", func() {
-				validGitURLWithoutPrefix := "github.com/o/r/"
+				validGitURLWithoutPrefix := "github.com/o/r"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := GithubClient{
 					client: client,
@@ -108,6 +108,46 @@ var _ = Describe("GithubClient", func() {
 				Expect(string(chart)).To(Equal("bar"))
 				Expect(string(deployment)).To(Equal("deployment"))
 				Expect(string(service)).To(Equal("service"))
+			})
+		})
+	})
+
+	Describe("decodeGitHubUrl", func() {
+		Context("With a valid github url", func() {
+			It("should decode a valid url without a path", func() {
+				chartPath := "github.com/o/r"
+				o, r, p, err := decodeGitHubUrl(chartPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(o).To(Equal("o"))
+				Expect(r).To(Equal("r"))
+				Expect(p).To(Equal(""))
+			})
+
+			It("should decode a valid url with a path", func() {
+				chartPath := "github.com/o/r/stable/chart"
+				o, r, p, err := decodeGitHubUrl(chartPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(o).To(Equal("o"))
+				Expect(r).To(Equal("r"))
+				Expect(p).To(Equal("stable/chart"))
+			})
+		})
+
+		Context("With an invalid github url", func() {
+			It("should failed to decode a url without a path", func() {
+				chartPath := "github.com"
+				_, _, _, err := decodeGitHubUrl(chartPath)
+				Expect(err).NotTo(BeNil())
+				Expect(err.Error()).To(Equal("github.com: unable to decode github url"))
+			})
+
+			It("should failed to decode a url with a path", func() {
+				chartPath := "github.com/o"
+				_, _, _, err := decodeGitHubUrl(chartPath)
+				Expect(err).NotTo(BeNil())
+				Expect(err.Error()).To(Equal("github.com/o: unable to decode github url"))
 			})
 		})
 	})
