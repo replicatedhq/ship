@@ -119,6 +119,7 @@ func (s *Manager) TryLoad() (State, error) {
 	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
+
 func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 	state, err := m.TryLoad()
 	if err != nil {
@@ -134,6 +135,21 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	if err := m.serializeAndWriteState(newState); err != nil {
 		return errors.Wrap(err, "write state")
+	}
+
+	return nil
+}
+
+// RemoveStateFile will attempt to remove the state file from disk
+func (m *Manager) RemoveStateFile() error {
+	statePath := m.V.GetString("state-file")
+	if statePath == "" {
+		statePath = constants.StatePath
+	}
+
+	err := m.FS.Remove(statePath)
+	if err != nil {
+		return errors.Wrap(err, "remove state file")
 	}
 
 	return nil
