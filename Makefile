@@ -178,9 +178,6 @@ bin/ship: $(SRC)
 		./cmd/ship
 	@echo built bin/ship
 
-e2e: bin/ship
-	./bin/ship e2e
-
 # tests base "ship" cli
 integration-test:
 	ginkgo -p -stream integration/base
@@ -197,7 +194,7 @@ goreleaser: .state/goreleaser
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
 
 run: bin/ship
-	./bin/ship --log-level=debug --studio-file=./app.yml
+	./bin/ship app --log-level=debug --studio-file=./app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:

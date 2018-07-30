@@ -69,6 +69,7 @@ type ShipDaemon struct {
 	ConfigRenderer *resolve.APIConfigRenderer
 	WebUIFactory   WebUIBuilder
 	TreeLoader     filetree.Loader
+	OpenWebConsole opener
 
 	sync.Mutex
 	currentStep          *Step
@@ -78,8 +79,7 @@ type ShipDaemon struct {
 	allStepsDone         bool
 	pastSteps            []Step
 
-	// errChan will receive an error when the daemon exits
-	errChan chan error
+	exitChan chan error
 
 	// this is kind of kludged in,
 	// it only makes sense for Message steps
@@ -112,7 +112,8 @@ func (d *ShipDaemon) cleanPreviousStep() {
 }
 
 func (d *ShipDaemon) CleanPreviousStep() {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "handler", "CleanPreviousStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 }
 
@@ -121,7 +122,8 @@ func (d *ShipDaemon) PushMessageStep(
 	step Message,
 	actions []Action,
 ) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "handler", "PushMessageStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameMessage
@@ -156,7 +158,8 @@ func (d *ShipDaemon) PushRenderStep(
 	ctx context.Context,
 	step Render,
 ) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "handler", "PushRender"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameConfig
@@ -169,7 +172,8 @@ func (d *ShipDaemon) PushHelmIntroStep(
 	step HelmIntro,
 	actions []Action,
 ) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmIntroStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmIntro
@@ -183,7 +187,8 @@ func (d *ShipDaemon) PushHelmValuesStep(
 	step HelmValues,
 	actions []Action,
 ) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmValuesStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmValues
@@ -193,12 +198,14 @@ func (d *ShipDaemon) PushHelmValuesStep(
 }
 
 func (d *ShipDaemon) SetStepName(ctx context.Context, stepName string) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "SetStepName"))
+	defer d.locker(debug)()
 	d.currentStepName = stepName
 }
 
 func (d *ShipDaemon) AllStepsDone(ctx context.Context) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "SetStepName"))
+	defer d.locker(debug)()
 	d.allStepsDone = true
 }
 
@@ -208,15 +215,15 @@ func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) ch
 	go d.startOnce.Do(func() {
 		err := d.Serve(ctx, release)
 		level.Info(d.Logger).Log("event", "daemon.startonce.exit", err, "err")
-		d.errChan <- err
+		d.exitChan <- err
 	})
 
-	return d.errChan
+	return d.exitChan
 }
 
 // Serve starts the server with the given context
 func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "method", "serve"))
+	debug := level.Debug(log.With(d.Logger, "method", "serve"))
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 
@@ -226,7 +233,8 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	debug.Log("event", "routes.configure")
 	d.configureRoutes(g, release)
 
-	addr := fmt.Sprintf(":%d", viper.GetInt("api-port"))
+	apiPort := viper.GetInt("api-port")
+	addr := fmt.Sprintf(":%d", apiPort)
 	server := http.Server{Addr: addr, Handler: g}
 	errChan := make(chan error)
 
@@ -235,12 +243,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		errChan <- server.ListenAndServe()
 	}()
 
-	uiPortToDisplay := 8800
-
-	d.UI.Info(fmt.Sprintf(
-		"Please visit the following URL in your browser to continue the installation\n\n        http://localhost:%d\n\n ",
-		uiPortToDisplay, // todo param this
-	))
+	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
+	if !d.Viper.GetBool("no-open") {
+		err := d.OpenWebConsole(d.UI, openUrl)
+		debug.Log("event", "console.open.fail.ignore", "err", err)
+	}
 
 	defer func() {
 		debug.Log("event", "server.shutdown")
@@ -251,7 +258,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 
 	select {
 	case err := <-errChan:
-		level.Error(d.Logger).Log("event", "shutdown", "reason", "errChan", "err", err)
+		level.Error(d.Logger).Log("event", "shutdown", "reason", "exitChan", "err", err)
 		return err
 	case <-ctx.Done():
 		level.Error(d.Logger).Log("event", "shutdown", "reason", "context", "err", ctx.Err())
@@ -259,15 +266,31 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	}
 }
 
-func (d *ShipDaemon) locker() func() {
+func (d *ShipDaemon) locker(debug log.Logger) func() {
+	debug.Log("event", "locker.try")
 	d.Lock()
-	return func() { d.Unlock() }
+	debug.Log("event", "locker.acquired")
+
+	return func() {
+		d.Unlock()
+		debug.Log("event", "locker.released")
+	}
 }
 
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
 	g.Use(static.Serve("/", d.WebUIFactory("dist")))
+	g.NoRoute(func(c *gin.Context) {
+		debug := level.Debug(log.With(d.Logger, "handler", "NoRoute"))
+		debug.Log("event", "not found")
+		if c.Request.URL != nil {
+			path := c.Request.URL.Path
+			static.Serve(path, d.WebUIFactory("dist"))(c)
+
+		}
+		static.Serve("/", d.WebUIFactory("dist"))(c)
+	})
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
@@ -301,17 +324,19 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
-	defer d.locker()()
+	debug := log.With(level.Debug(d.Logger), "method", "SetProgress")
+	defer d.locker(debug)()
 	d.stepProgress = &p
 }
 
 func (d *ShipDaemon) ClearProgress() {
-	defer d.locker()()
+	debug := log.With(level.Debug(d.Logger), "method", "ClearProgress")
+	defer d.locker(debug)()
 	d.stepProgress = nil
 }
 
 func (d *ShipDaemon) getHelmMetadata(release *api.Release) gin.HandlerFunc {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "getHelmMetadata"))
+	debug := level.Debug(log.With(d.Logger, "handler", "getHelmMetadata"))
 	debug.Log("event", "response.metadata")
 	return func(c *gin.Context) {
 		c.JSON(200, map[string]interface{}{
@@ -321,8 +346,8 @@ func (d *ShipDaemon) getHelmMetadata(release *api.Release) gin.HandlerFunc {
 }
 
 func (d *ShipDaemon) saveHelmValues(c *gin.Context) {
-	defer d.locker()()
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "saveHelmValues"))
+	debug := level.Debug(log.With(d.Logger, "handler", "saveHelmValues"))
+	defer d.locker(debug)()
 	type Request struct {
 		Values string `json:"values"`
 	}
@@ -416,23 +441,24 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 // todo load the tree and any overlays, but fake it for now
 
 func (d *ShipDaemon) terraformApply(c *gin.Context) {
-	defer d.locker()()
-	level.Debug(d.Logger).Log("event", "terraform.apply.send", "owner", "daemon")
+	debug := log.With(level.Debug(d.Logger), "handler", "terraformApply")
+	defer d.locker(debug)()
+	debug.Log("event", "terraform.apply.send")
 	d.TerraformConfirmed <- true
-	level.Debug(d.Logger).Log("event", "terraform.apply.sent", "owner", "daemon")
+	debug.Log("event", "terraform.apply.sent")
 }
 
 func (d *ShipDaemon) terraformSkip(c *gin.Context) {
-	defer d.locker()()
-	level.Debug(d.Logger).Log("event", "terraform.skip.send", "owner", "daemon")
+	debug := log.With(level.Debug(d.Logger), "handler", "terraformSkip")
+	defer d.locker(debug)()
+	debug.Log("event", "terraform.skip.send")
 	d.TerraformConfirmed <- false
-	level.Debug(d.Logger).Log("event", "terraform.skip.sent", "owner", "daemon")
+	debug.Log("event", "terraform.skip.sent")
 }
 
 func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
-	defer d.locker()()
-
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postConfirmMessage"))
+	debug := level.Debug(log.With(d.Logger, "handler", "postConfirmMessage"))
+	defer d.locker(debug)()
 
 	type Request struct {
 		StepName string `json:"step_name"`
@@ -516,7 +542,7 @@ type ConfigOption struct {
 
 func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "postAppConfigLive"))
+		debug := level.Debug(log.With(d.Logger, "handler", "postAppConfigLive"))
 
 		if d.currentStepName != StepNameConfig {
 			c.JSON(400, map[string]interface{}{
@@ -573,8 +599,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 
 func (d *ShipDaemon) finalizeAppConfig(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer d.locker()()
-		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "finalizeAppConfig"))
+		debug := level.Debug(log.With(d.Logger, "handler", "finalizeAppConfig"))
 		d.putAppConfig(release)(c)
 		debug.Log("event", "configSaved.send.start")
 		d.ConfigSaved <- nil
@@ -584,8 +609,8 @@ func (d *ShipDaemon) finalizeAppConfig(release *api.Release) gin.HandlerFunc {
 
 func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer d.locker()()
-		debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "putAppConfig"))
+		debug := level.Debug(log.With(d.Logger, "handler", "putAppConfig"))
+		defer d.locker(debug)()
 
 		if d.currentStepName != StepNameConfig {
 			c.JSON(400, map[string]interface{}{

@@ -30,12 +30,24 @@ func FromViper(v *viper.Viper) log.Logger {
 		return globalLogger
 	}
 
-	globalLogger = log.NewLogfmtLogger(os.Stdout)
+	globalLogger = withFormat(viper.GetString("log-format"))
 	globalLogger = log.With(globalLogger, "ts", log.DefaultTimestampUTC)
 	globalLogger = withLevel(globalLogger, v.GetString("log-level"))
 	globalLogger = log.With(globalLogger, "caller", fullPathCaller)
 	golog.SetOutput(log.NewStdlibAdapter(level.Debug(globalLogger)))
 	return globalLogger
+}
+
+func withFormat(format string) log.Logger {
+	switch format {
+	case "json":
+		return log.NewJSONLogger(os.Stdout)
+	case "logfmt":
+		return log.NewLogfmtLogger(os.Stdout)
+	default:
+		return log.NewLogfmtLogger(os.Stdout)
+	}
+
 }
 
 func withLevel(logger log.Logger, lvl string) log.Logger {
