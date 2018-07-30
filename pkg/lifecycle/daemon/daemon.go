@@ -550,7 +550,7 @@ func (d *ShipDaemon) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues, true)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -620,7 +620,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues)
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues, false)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
