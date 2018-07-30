@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
@@ -107,8 +108,23 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 		return errors.Wrap(err, "execute plan")
 	}
 
+	stateTemplateContext := make(map[string]interface{})
+	for _, configGroup := range release.Spec.Config.V1 {
+		for _, configItem := range configGroup.Items {
+			if valueNotOverridenByDefault(configItem, templateContext, previousState.CurrentConfig()) {
+				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
+			}
+		}
+	}
+
+	// edge case: empty config section of app yaml,
+	// persist data from previous state.json
+	if len(release.Spec.Config.V1) == 0 {
+		stateTemplateContext = templateContext
+	}
+
 	r.Daemon.SetProgress(ProgressCommit)
-	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, templateContext); err != nil {
+	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
 
@@ -134,4 +150,24 @@ func (r *Renderer) backupIfPresent(basePath string) error {
 	}
 
 	return nil
+}
+
+func valueNotOverridenByDefault(item *libyaml.ConfigItem, templateContext map[string]interface{}, savedState map[string]interface{}) bool {
+	_, inSavedState := savedState[item.Name] // all values in savedState are non-default values
+
+	if templateContext[item.Name] == "" {
+		if inSavedState && savedState[item.Name] == "" {
+			// manually set value: "" in state.json
+			return true
+		} else {
+			// value overriden by default == ""?
+			return item.Default != ""
+		}
+	} else if templateContext[item.Name] == item.Default {
+		// the provided value is manually set to the default value
+		return inSavedState
+	} else {
+		// non-empty value != default. cannot have been overriden by default
+		return true
+	}
 }
