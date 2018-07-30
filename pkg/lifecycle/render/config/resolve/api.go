@@ -68,6 +68,7 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 }
 
 func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigItem, savedState map[string]interface{}) bool {
+	// Vendor can't override a default with "" in interactive mode
 	if r.Viper.GetBool("headless") {
 		_, ok := savedState[item.Name]
 		return !ok && item.Value == "" && item.Default != ""

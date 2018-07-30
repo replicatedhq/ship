@@ -8,8 +8,9 @@ assets:
         echo namespace is {{repl ConfigOption "namespace"}}
         echo cluster is {{repl ConfigOption "cluster"}}
         echo ingress controller is {{repl ConfigOption "ingress"}}
-        echo scheduler is{{repl ConfigOption "scheduler"}}
+        echo scheduler is {{repl ConfigOption "scheduler"}}
         echo environment is {{repl ConfigOption "environment"}}
+        echo pod is {{repl ConfigOption "pod"}}
       dest: ./scripts/echo.sh
       mode: 0777
 
@@ -37,6 +38,9 @@ config:
       - name: environment
         type: text
         default: Epsilon
+        # No customer-value, no vendor-default: should use <> and write pod:<> to `state.json`
+      - name: pod
+        type: text
 
 lifecycle:
   v1:
