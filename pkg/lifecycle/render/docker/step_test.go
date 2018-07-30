@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
+	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -52,7 +53,7 @@ func TestDockerStep(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			mc := gomock.NewController(t)
 			v := viper.New()
-			saver := mockimages.NewMockImageSaver(mc)
+			saver := mocksaver.NewMockImageSaver(mc)
 			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
 			bb := templates.NewBuilderBuilder(testLogger)

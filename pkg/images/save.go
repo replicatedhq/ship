@@ -176,7 +176,6 @@ func (s *CLISaver) pushImage(ctx context.Context, progressCh chan interface{}, s
 
 	debug.Log("stage", "push")
 	pushOpts := types.ImagePushOptions{
-		All:          true,
 		RegistryAuth: registryAuth,
 	}
 	progressReader, err := s.client.ImagePush(ctx, destinationParams.DestinationImageName, pushOpts)

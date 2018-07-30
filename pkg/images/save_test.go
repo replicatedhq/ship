@@ -1,10 +1,16 @@
 package images
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
 	"net/url"
 	"reflect"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+
+	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/viper"
@@ -68,7 +74,6 @@ func TestCLISaver_pushImage(t *testing.T) {
 	goodURL, _ := url.Parse("docker://registry.fake/postgres:latest")
 	type fields struct {
 		Logger log.Logger
-		client ImageManager
 	}
 	type args struct {
 		ctx        context.Context
@@ -85,7 +90,6 @@ func TestCLISaver_pushImage(t *testing.T) {
 			name: "Success",
 			fields: fields{
 				Logger: log.With(level.Debug(logger.FromViper(viper.GetViper()))),
-				client: MockImageManager{},
 			},
 			args: args{
 				ctx:        context.Background(),
@@ -100,10 +104,18 @@ func TestCLISaver_pushImage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockClient := mockimages.NewMockImageManager(gomock.NewController(t))
 			s := &CLISaver{
 				Logger: tt.fields.Logger,
-				client: tt.fields.client,
+				client: mockClient,
 			}
+			destinationParams, _ := buildDestinationParams(tt.args.saveOpts.DestinationURL)
+			registryAuth, _ := makeAuthValue(destinationParams.AuthConfig)
+			pushOpts := types.ImagePushOptions{
+				RegistryAuth: registryAuth,
+			}
+			mockClient.EXPECT().ImageTag(tt.args.ctx, tt.args.saveOpts.PullURL, destinationParams.DestinationImageName).Return(nil)
+			mockClient.EXPECT().ImagePush(tt.args.ctx, destinationParams.DestinationImageName, pushOpts).Return(ioutil.NopCloser(bytes.NewReader([]byte{})), nil)
 			if err := s.pushImage(tt.args.ctx, tt.args.progressCh, tt.args.saveOpts); (err != nil) != tt.wantErr {
 				t.Errorf("CLISaver.pushImage() error = %v, wantErr %v", err, tt.wantErr)
 			}
