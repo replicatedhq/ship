@@ -66,7 +66,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (Y\n) `)
+		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y\n) `)
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func (s *Ship) Init(ctx context.Context) error {
 				return err
 			}
 		} else {
-			return errors.New("Invalid response. Please re-run and enter Y or n")
+			return errors.New(`Invalid response. Please re-run and enter "y" or "n"`)
 		}
 	}
 
