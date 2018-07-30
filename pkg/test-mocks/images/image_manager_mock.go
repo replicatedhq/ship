@@ -6,10 +6,11 @@ package images
 
 import (
 	context "context"
-	types "github.com/docker/docker/api/types"
-	gomock "github.com/golang/mock/gomock"
 	io "io"
 	reflect "reflect"
+
+	types "github.com/docker/docker/api/types"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockImageManager is a mock of ImageManager interface

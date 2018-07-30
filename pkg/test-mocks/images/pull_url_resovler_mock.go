@@ -5,9 +5,10 @@
 package images
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
-	reflect "reflect"
 )
 
 // MockPullURLResolver is a mock of PullURLResolver interface
