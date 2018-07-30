@@ -26,8 +26,7 @@ type TestMetadata struct {
 	DisableOnline     bool   `yaml:"disable_online"`
 
 	//debugging
-	SkipCleanup bool  `yaml:"skip_cleanup"`
-	Focus       *bool `yaml:"focus"`
+	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
 func TestCore(t *testing.T) {
@@ -52,7 +51,6 @@ var _ = Describe("basic", func() {
 		panic(err)
 	}
 
-	var testFocused bool
 	for _, file := range files {
 		if file.IsDir() {
 			Context(fmt.Sprintf("When the spec in %q is run", file.Name()), func() {
@@ -81,9 +79,6 @@ var _ = Describe("basic", func() {
 				}, 20)
 
 				It("Should output files matching those expected when running in local mode", func() {
-					if testFocused {
-						Skip("Test ignored")
-					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
@@ -106,9 +101,6 @@ var _ = Describe("basic", func() {
 				}, 60)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
-					if testFocused {
-						Skip("Test ignored")
-					}
 					if testMetadata.DisableOnline {
 						Skip("Online test skipped")
 					}
@@ -133,12 +125,6 @@ var _ = Describe("basic", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
-
-				if !testFocused {
-					if testMetadata.Focus != nil && *testMetadata.Focus {
-						testFocused = true
-					}
-				}
 			})
 		}
 	}
