@@ -43,6 +43,7 @@ func RootCmd() *cobra.Command {
 
 	cmd.AddCommand(e2e.Cmd())
 	cmd.AddCommand(Init())
+	cmd.AddCommand(Update())
 	cmd.AddCommand(App())
 	cmd.AddCommand(Version())
 	viper.BindPFlags(cmd.Flags())

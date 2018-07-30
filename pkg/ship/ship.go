@@ -17,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
@@ -42,8 +43,8 @@ type Ship struct {
 	StudioFile string
 	Client     *specs.GraphQLClient
 	UI         cli.Ui
+	State      *state.Manager
 
-	IsKustomize  bool
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
 }
@@ -57,6 +58,7 @@ func NewShip(
 	graphql *specs.GraphQLClient,
 	runner *lifecycle.Runner,
 	ui cli.Ui,
+	stateManager *state.Manager,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -78,6 +80,7 @@ func NewShip(
 		Daemon:   daemon,
 		UI:       ui,
 		Runner:   runner.WithDaemon(daemon),
+		State:    stateManager,
 	}, nil
 }
 
@@ -150,10 +153,10 @@ func (s *Ship) Execute(ctx context.Context) error {
 	}
 	release = cloudOrStudioRelease
 
-	return s.execute(ctx, release, selector)
+	return s.execute(ctx, release, selector, false)
 }
 
-func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector) error {
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector, isKustomize bool) error {
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
@@ -164,7 +167,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
 
-		if err == nil && !s.IsKustomize && selector != nil {
+		if err == nil && !isKustomize && selector != nil {
 			_ = s.Resolver.RegisterInstall(ctx, *selector, release)
 		}
 		runResultCh <- err

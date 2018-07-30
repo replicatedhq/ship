@@ -13,22 +13,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Init() *cobra.Command {
+func Update() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init [CHART]",
-		Short: "Build and deploy kustomize configured helm charts",
-		Long: `Build and deploy kustomize configured helm charts to be integrated
-with a gitops style workflow.`,
+		Use:   "update",
+		Short: "Updated a chart",
+		Long:  `Updated a chart`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 0 {
-				viper.Set("chart", args[0])
-			}
 			s, err := ship.Get()
 			if err != nil {
 				return err
 			}
 
-			s.InitAndMaybeExit(context.Background())
+			s.UpdateAndMaybeExit(context.Background())
 			return nil
 		},
 	}
