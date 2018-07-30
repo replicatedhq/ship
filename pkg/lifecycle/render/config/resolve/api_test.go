@@ -112,11 +112,11 @@ func TestAPIResolver(t *testing.T) {
 				var err error
 
 				if len(test.LiveValues) == 0 {
-					resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, make(map[string]interface{}))
+					resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, make(map[string]interface{}), true)
 				} else {
 					// simulate multiple inputs
 					for _, liveValues := range test.LiveValues {
-						resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, liveValues)
+						resolvedConfig, err = resolver.ResolveConfig(ctx, release, test.State, liveValues, false)
 					}
 				}
 

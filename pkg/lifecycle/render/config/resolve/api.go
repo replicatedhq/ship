@@ -67,14 +67,17 @@ func isReadOnly(item *libyaml.ConfigItem) bool {
 	return !editable
 }
 
-func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigItem, savedState map[string]interface{}) bool {
-	// Vendor can't override a default with "" in interactive mode
-	if r.Viper.GetBool("headless") {
+func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigItem, savedState map[string]interface{}, firstPass bool) bool {
+	// resolve config runs before values are saved in interactive mode.
+	// this first pass should override any hidden, empty values with
+	// non-empty defaults
+	if firstPass {
+		return item.Hidden && item.Value == "" && item.Default != ""
+	} else {
+		// vendor can't override a default with "" in interactive mode
 		_, ok := savedState[item.Name]
 		return !ok && item.Value == "" && item.Default != ""
 	}
-
-	return item.Hidden && item.Value == "" && item.Default != ""
 }
 
 func isRequired(item *libyaml.ConfigItem) bool {
@@ -201,6 +204,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 	release *api.Release,
 	savedState map[string]interface{},
 	liveValues map[string]interface{},
+	firstPass bool,
 ) ([]libyaml.ConfigGroup, error) {
 	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
 	configCopy, err := r.deepCopyConfig(release.Spec.Config.V1)
@@ -243,7 +247,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				return resolvedConfig, errors.Wrapf(err, "resolve item %s", configItem.Name)
 			}
 
-			if r.shouldOverrideValueWithDefault(configItem, savedState) {
+			if r.shouldOverrideValueWithDefault(configItem, savedState, firstPass) {
 				configItem.Value = configItem.Default
 			}
 

@@ -90,7 +90,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "HeadlessResolve"))
 	currentConfig := d.GetCurrentConfig()
 
-	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, make(map[string]interface{}))
+	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, make(map[string]interface{}), false)
 	if err != nil {
 		warn.Log("event", "resolveconfig failed", "err", err)
 		return err
