@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test embed-ui
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui
 
 
 SHELL := /bin/bash
@@ -22,7 +22,7 @@ docker:
 
 shell:
 	docker run --rm -it \
-		-p 8880:8880 \
+		-p 8800:8800 \
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedhq/ship \
@@ -33,8 +33,6 @@ githooks:
 	chmod +x .git/hooks/pre-push
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
-
-
 
 _mockgen:
 	rm -rf pkg/test-mocks
@@ -144,8 +142,8 @@ _vet:
 vet: fmt pkg/lifeycle/daemon/ui.bindatafs.go _vet
 
 _lint:
-	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" || :
-	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" || :
+	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
+	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
 
 lint: vet _lint
 
@@ -158,7 +156,7 @@ test: lint _test
 	@mkdir -p .state/
 	go test -coverprofile=.state/coverage.out -v ./pkg/...
 
-citest: lint .state/coverage.out
+citest: _vet _lint .state/coverage.out
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
@@ -169,8 +167,7 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
-
-build: test embed-ui bin/ship
+build: test bin/ship
 
 _build: bin/ship
 
@@ -210,8 +207,12 @@ build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
 
 pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
-	go-bindata-assetfs -pkg daemon \
-	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
-	  ui/...
+	cd web; go-bindata-assetfs -pkg daemon \
+	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
+	  dist/...
 
 embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
+
+build-ui:
+	cd web; yarn install --force
+	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
