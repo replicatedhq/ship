@@ -15,5 +15,5 @@ const KustomizeHelmPath = ".ship/kustomize/chart"
 const TempHelmValuesPath = ".ship/kustomize/tmp"
 
 // ShouldUseUpdate is the message printed to the user when they attempt
-// to use "ship init" with a non-empty state file
+// to use "ship init" with a present state file on disk
 const ShouldUseUpdate = `To build on your progress, run "ship update"`
