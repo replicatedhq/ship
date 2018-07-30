@@ -104,13 +104,14 @@ func (p *DefaultStep) Execute(
 		}
 		destIsDockerURL := destinationURL.Scheme == "docker"
 		if !destIsDockerURL {
-			dest = filepath.Join(constants.InstallerPrefix, dest)
 			basePath := filepath.Dir(dest)
 			debug.Log("event", "mkdirall.attempt", "dest", dest, "basePath", basePath)
 			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
 				debug.Log("event", "mkdirall.fail", "err", err, "dest", dest, "basePath", basePath)
 				return errors.Wrapf(err, "write directory to %s", dest)
 			}
+		} else {
+			dest = filepath.Join(constants.InstallerPrefix, dest)
 		}
 
 		pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)

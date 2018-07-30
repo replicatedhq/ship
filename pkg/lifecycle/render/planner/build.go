@@ -3,6 +3,7 @@ package planner
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -57,6 +58,10 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.inlineStep(*asset.Inline, configGroups, meta, templateContext))
 			}
 		} else if asset.Docker != nil {
+			// TODO: Improve handling of docker scheme, this is done because config not parsed yet
+			if !strings.HasPrefix(asset.Docker.Dest, "docker://") {
+				asset.Docker.Dest = filepath.Join(constants.InstallerPrefix, asset.Docker.Dest)
+			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Docker.AssetShared.When)
 			if err != nil {
 				return nil, err
