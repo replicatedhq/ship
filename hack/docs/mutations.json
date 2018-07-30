@@ -47,6 +47,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.inline.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.docker",
     "merge": {
       "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
@@ -99,6 +105,12 @@
     "path": "properties.assets.properties.v1.items.properties.docker.properties.mode",
     "merge": {
       "description": "The unix file permissions to be set on the image tar archive, e.g `600`."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.docker.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
     }
   },
   {
@@ -232,6 +244,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.dockerlayer",
     "merge": {
       "description": "A `dockerlayer` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
@@ -281,6 +299,12 @@
     "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.layer",
     "merge": {
       "description": "a SHA256 of the layer to extract. You can inspect the layer SHAs of a docker image by running something like `docker save myimage > myimage.tar && tar xvf myimage.tar -C /tmp`. Ship will unpack the archive at `<layer sha>/layer.tar` to the `dest` directory."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.dockerlayer.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
     }
   },
   {
@@ -343,6 +367,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.web",
     "replace": {
       "required": ["url", "dest"]
@@ -398,6 +428,222 @@
     "path": "properties.assets.properties.v1.items.properties.web.properties.mode",
     "merge": {
       "description": "Unix file permissions to set on the asset"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service",
+    "replace": {
+      "required": [
+        "cluster_name",
+        "region",
+        "autoscaling_groups"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "created_vpc"
+          ]
+        },
+        {
+          "required": [
+            "existing_vpc"
+          ]
+        }
+      ]
+    },
+    "merge": {
+      "description": "A `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+      "examples": [
+        {
+          "cluster_name": "existing-vpc-cluster",
+          "region": "us-east-1",
+          "existing_vpc": {
+            "vpc_id": "abc123",
+            "public_subnets": [
+              "abc123-1",
+              "abc123-2"
+            ],
+            "private_subnets": [
+              "xyz789-1",
+              "xyz789-2"
+            ]
+          },
+          "autoscaling_groups": [
+            {
+              "name": "group1",
+              "group_size": 2,
+              "machine_type": "m5.large"
+            },
+            {
+              "name": "group2",
+              "group_size": 1,
+              "machine_type": "t2.large"
+            }
+          ]
+        },
+        {
+          "cluster_name": "new-vpc-cluster",
+          "region": "us-west-1",
+          "created_vpc": {
+            "zones": [
+              "a",
+              "b"
+            ],
+            "vpc_cidr": "10.0.0.0/16",
+            "public_subnets": [
+              "10.0.1.0/24",
+              "10.0.2.0/24"
+            ],
+            "private_subnets": [
+              "10.0.129.0/24",
+              "10.0.130.0/24"
+            ]
+          },
+          "autoscaling_groups": [
+            {
+              "name": "firstgroup",
+              "group_size": 3,
+              "machine_type": "m5.large"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups",
+    "replace": {
+      "required": [
+        "name",
+        "group_size",
+        "machine_type"
+      ]
+    },
+    "merge": {
+      "description": "Autoscaling groups to include in your EKS cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.name",
+    "merge": {
+      "description": "The name to give the created autoscaling group"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.group_size",
+    "merge": {
+      "description": "The number of instances to be included in the group"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.machine_type",
+    "merge": {
+      "description": "The AWS instance type to use within the group"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.cluster_name",
+    "merge": {
+      "description": "The name of the created EKS cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.region",
+    "merge": {
+      "description": "The AWS region to build the cluster in. At time of writing, AWS supports EKS in us-east and us-west"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc",
+    "replace": {
+      "required": [
+        "zones",
+        "vpc_cidr",
+        "public_subnets",
+        "private_subnets"
+      ]
+    },
+    "merge": {
+      "description": "The VPC to create for the EKS cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.zones",
+    "merge": {
+      "description": "The availability zones to create subnets within"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.vpc_cidr",
+    "merge": {
+      "description": "The CIDR to use for this VPC"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.public_subnets",
+    "merge": {
+      "description": "The public subnets to create within the VPC"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.private_subnets",
+    "merge": {
+      "description": "The private subnets to create within the VPC. All workers will be placed on these subnets"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc",
+    "replace": {
+      "required": [
+        "vpc_id",
+        "public_subnets",
+        "private_subnets"
+      ]
+    },
+    "merge": {
+      "description": "The existing VPC to use for the EKS cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.vpc_id",
+    "merge": {
+      "description": "The ID of the existing VPC to use"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.public_subnets",
+    "merge": {
+      "description": "The public subnets to use within the VPC"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.private_subnets",
+    "merge": {
+      "description": "The private subnets to use within the VPC. All workers will be placed on these subnets"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.mode",
+    "merge": {
+      "description": "Ignored"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.dest",
+    "merge": {
+      "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_elastic_kubernetes_service.tf`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
     }
   },
   {

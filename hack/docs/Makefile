@@ -1,11 +1,15 @@
-.PHONY: build
+.PHONY: build deps prebuild build gen-schema merge-mutations validate done markdown-assets pipeline-strict pipeline copy-to-help-center copy-replicated-lint lint ship
 
 SCHEMA_JSON := ./schema.json
 MUTATIONS := ./mutations.json
 HACK_DOCS := ./bin/hack-docs
 
-deps:
+.state/deps: package.json yarn.lock
 	yarn
+	@mkdir -p .state
+	@touch .state/deps
+
+deps: .state/deps
 
 prebuild:
 	rm -rf assets
@@ -14,7 +18,6 @@ prebuild:
 	mkdir -p assets
 	mkdir -p lifecycle
 	mkdir -p config
-
 
 build:
 	mkdir -p bin
@@ -38,8 +41,8 @@ markdown-assets:
 	`yarn bin`/ts-node --inspect=0.0.0.0 src/index.ts markdown-assets -f $(SCHEMA_JSON) -o ./assets
 
 
-pipeline-strict: prebuild gen-schema merge-mutations validate markdown-assets
-pipeline: prebuild gen-schema merge-mutations markdown-assets
+pipeline-strict: deps prebuild build gen-schema merge-mutations validate markdown-assets
+pipeline: deps prebuild build gen-schema merge-mutations markdown-assets
 
 copy-to-help-center:
 	: To Copy to Help center, run the following command:
