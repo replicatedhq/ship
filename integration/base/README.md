@@ -4,9 +4,19 @@ These are tests for ship yaml, with the intention of testing functionality used 
 
 ## Running the integration tests (from the parent directory)
 
+### Quick Start
 ```shell
 make integration-test
 ```
+
+### Dependencies
+- Helm
+- Terraform
+- Test Docker Registry
+    * To run a local Docker registry for tests, run the following command:
+      ```sh
+      docker run -d -p 5000:5000 --restart=always --name registry registry:2
+      ```
 
 ## Running the integration tests (from a docker image)
 
