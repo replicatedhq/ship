@@ -17,7 +17,7 @@ import (
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 	if err := s.Init(ctx); err != nil {
-		if err.Error() == `To build on your progress, run "ship update"` {
+		if err.Error() == constants.ShouldUseUpdate {
 			s.ExitWithWarn(err)
 		}
 		s.ExitWithError(err)
@@ -74,7 +74,7 @@ func (s *Ship) Init(ctx context.Context) error {
 
 		if strings.Compare(useUpdate, "n") == 0 {
 			// exit and use 'ship update'
-			return errors.New(`To build on your progress, run "ship update"`)
+			return errors.New(constants.ShouldUseUpdate)
 		} else if strings.Compare(useUpdate, "y") == 0 {
 			// remove state.json and start from scratch
 			if err := s.State.RemoveStateFile(); err != nil {

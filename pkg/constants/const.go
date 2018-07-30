@@ -13,3 +13,7 @@ const KustomizeHelmPath = ".ship/kustomize/chart"
 
 // TempHelmValuesPath is the path used to store the updated values.yaml
 const TempHelmValuesPath = ".ship/kustomize/tmp"
+
+// ShouldUseUpdate is the message printed to the user when they attempt
+// to use "ship init" with a non-empty state file
+const ShouldUseUpdate = `To build on your progress, run "ship update"`
