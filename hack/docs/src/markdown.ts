@@ -17,19 +17,44 @@ export const builder = {
     default: "./assets",
   },
 };
-function maybeRenderParameters(required: any[], typeOf) {
+function maybeRenderParameters(paramType, param: any[], typeOf) {
   let doc = "";
-  if (required.length !== 0) {
+  if (param.length !== 0) {
     doc += `
     
 ### ${typeOf} Parameters
 
 `;
 
-    for (const fieldDescr of required) {
+    for (const fieldDescr of param) {
       doc += `
 - ${"`" + fieldDescr.field + "`"} - ${fieldDescr.description}
+`;
+      //get child props
+      const {requiredSubParam, optionalSubParam} = parseSubParameters(paramType, fieldDescr.field);
 
+      if (requiredSubParam.length >= 1) {
+        doc += `
+    required:
+`;
+        for (const childDescr of requiredSubParam) {
+          doc += `
+    - ${"`" + childDescr.field + "`"} - ${childDescr.description}
+`;
+        }
+      }
+      if (optionalSubParam.length >= 1) {
+        doc += `
+    optional:
+`;
+        for (const childDescr of optionalSubParam) {
+          doc += `
+    - ${"`" + childDescr.field + "`"} - ${childDescr.description}
+`;
+        }
+      }
+
+      doc += `
 `;
     }
     return doc;
@@ -60,6 +85,45 @@ function parseParameters(specTypes: any, specType) {
     }
   }
   return {required, optional};
+}
+
+function parseSubParameters(paramType: any, spec: string) {
+  const requiredSubParam = [] as any[];
+  const optionalSubParam = [] as any[];
+
+  if (paramType.properties[spec].hasOwnProperty("items") && paramType.properties[spec].items.hasOwnProperty("properties")) {
+    for (const field of Object.keys(paramType.properties[spec].items.properties)) {
+      let description = paramType.properties[spec].items.properties[field].description;
+      if (description) {
+        console.log(`${field}: required: ${paramType.properties[spec].required}`);
+        let isRequired = paramType.properties[spec].required.indexOf(field) !== -1;
+        if (isRequired) {
+          console.log(`\tREQUIRED ${field}`);
+          requiredSubParam.push({field, description});
+        } else {
+          console.log(`\tOPTIONAL ${field}`);
+          optionalSubParam.push({field, description})
+        }
+      }
+    }
+  } else if (paramType.properties[spec].hasOwnProperty("properties")) {
+    for (const field of Object.keys(paramType.properties[spec].properties)) {
+      let description = paramType.properties[spec].properties[field].description;
+      if (description) {
+        console.log(`${field}: required: ${paramType.properties[spec].required}`);
+        let isRequired = paramType.properties[spec].required.indexOf(field) !== -1;
+        if (isRequired) {
+          console.log(`\tREQUIRED ${field}`);
+          requiredSubParam.push({field, description});
+        } else {
+          console.log(`\tOPTIONAL ${field}`);
+          optionalSubParam.push({field, description})
+        }
+      }
+    }
+  }
+
+  return {requiredSubParam, optionalSubParam};
 }
 
 function maybeRenderExamples(specTypes: any, specType, subgroup: string) {
@@ -120,8 +184,11 @@ export const handler = (argv) => {
       doc += maybeRenderExamples(specTypes, specType, subgroup);
 
       const {required, optional} = parseParameters(specTypes, specType);
-      doc += maybeRenderParameters(required, `Required`);
-      doc += maybeRenderParameters(optional, `Optional`);
+
+      const subTypes = _.get(schema, `properties[${subgroup}].properties.v1.items.properties[${specType}]`);
+
+      doc += maybeRenderParameters(subTypes, required, `Required`);
+      doc += maybeRenderParameters(subTypes, optional, `Optional`);
 
       doc += `
     
