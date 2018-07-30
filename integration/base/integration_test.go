@@ -18,12 +18,12 @@ import (
 )
 
 type TestMetadata struct {
-	CustomerID        string `yaml:"customer_id"`
-	InstallationID    string `yaml:"installation_id"`
-	ReleaseVersion    string `yaml:"release_version"`
-	StudioChannelName string `yaml:"studio_channel_name"`
-	Flavor            string `yaml:"flavor"`
-	DisableOnline     bool   `yaml:"disable_online"`
+	CustomerID     string `yaml:"customer_id"`
+	InstallationID string `yaml:"installation_id"`
+	ReleaseVersion string `yaml:"release_version"`
+	SetChannelName string `yaml:"set_channel_name"`
+	Flavor         string `yaml:"flavor"`
+	DisableOnline  bool   `yaml:"disable_online"`
 
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -85,9 +85,9 @@ var _ = Describe("basic", func() {
 					cmd.SetArgs([]string{
 						"app",
 						"--headless",
-						fmt.Sprintf("--studio-file=%s", path.Join(testInputPath, ".ship/release.yml")),
+						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/release.yml")),
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
-						fmt.Sprintf("--studio-channel-name=%s", testMetadata.StudioChannelName),
+						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--log-level=off",
 						"--terraform-yes",
