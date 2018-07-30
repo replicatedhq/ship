@@ -66,22 +66,20 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y\n) `)
+		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y/N) `)
 		if err != nil {
 			return err
 		}
 		useUpdate = strings.ToLower(strings.Trim(useUpdate, " \r\n"))
 
-		if strings.Compare(useUpdate, "n") == 0 {
-			// exit and use 'ship update'
-			return errors.New(constants.ShouldUseUpdate)
-		} else if strings.Compare(useUpdate, "y") == 0 {
+		if strings.Compare(useUpdate, "y") == 0 {
 			// remove state.json and start from scratch
 			if err := s.State.RemoveStateFile(); err != nil {
 				return err
 			}
 		} else {
-			return errors.New(`Invalid response. Please re-run and enter "y" or "n"`)
+			// exit and use 'ship update'
+			return errors.New(constants.ShouldUseUpdate)
 		}
 	}
 
