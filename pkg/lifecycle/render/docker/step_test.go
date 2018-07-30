@@ -2,7 +2,6 @@ package docker
 
 import (
 	"errors"
-	"path/filepath"
 	"testing"
 
 	"github.com/replicatedhq/libyaml"
@@ -14,7 +13,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
@@ -104,7 +102,7 @@ func TestDockerStep(t *testing.T) {
 				PullURL:   "some-pull-url",
 				SaveURL:   asset.Image,
 				IsPrivate: asset.Source != "public" && asset.Source != "",
-				Filename:  filepath.Join(constants.InstallerPrefix, asset.Dest),
+				Filename:  asset.Dest,
 				Username:  "tanker",
 				Password:  "lutz",
 			}
@@ -127,7 +125,7 @@ func TestDockerStep(t *testing.T) {
 					PullURL:   "some-pull-url",
 					SaveURL:   asset.Image,
 					IsPrivate: asset.Source != "public" && asset.Source != "",
-					Filename:  filepath.Join(constants.InstallerPrefix, asset.Dest),
+					Filename:  asset.Dest,
 					Username:  "tanker",
 					Password:  "vernon",
 				}
