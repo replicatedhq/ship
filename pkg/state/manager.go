@@ -46,7 +46,8 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	debug.Log("event", "emptyState")
 	isEmpty := currentState == Empty{}
 	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
+		toSerialize := VersionedState{V1: &V1{HelmValues: values,
+			ChartURL: s.V.GetString("chart")}}
 		return s.serializeAndWriteState(toSerialize)
 	}
 
@@ -60,19 +61,11 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	return s.serializeAndWriteState(toSerialize)
 }
 
-// BlowAwayStateAndSetChartURL takes the URL of the helm chart and serializes a state file to disk
-func (s *Manager) BlowAwayStateAndSetChartURL(URL string) error {
-	debug := level.Debug(log.With(s.Logger, "method", "BlowAwayStateAndSetChartURL"))
-
-	debug.Log("event", "serializeAndWriteState", "serialize", "helmChartURL")
-	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
-
-	return s.serializeAndWriteState(toSerialize)
-}
-
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
+	toSerialize := VersionedState{V1: &V1{
+		Config:   templateContext,
+		ChartURL: s.V.GetString("chart")}}
 	return s.serializeAndWriteState(toSerialize)
 }
 
@@ -142,6 +135,7 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
+			ChartURL:  m.V.GetString("chart"),
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},

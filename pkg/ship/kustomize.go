@@ -47,7 +47,8 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	// does a state file exist on disk?
 	existingState, err := s.State.TryLoad()
-	if err != nil {
+
+	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
 		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
@@ -63,10 +64,11 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
-	// log to compile, will remove later
+	// log for compile. will adjust later
 	debug.Log("event", "build release", "release", release)
 
-	return errors.New(`Implement me`)
+	// TODO IMPLEMENT
+	return errors.New("Not implemented")
 }
 
 func (s *Ship) Init(ctx context.Context) error {
@@ -102,11 +104,6 @@ func (s *Ship) Init(ctx context.Context) error {
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
-	}
-
-	// persist after resolve as to not persist a bad chart URL
-	if err := s.State.BlowAwayStateAndSetChartURL(helmChartPath); err != nil {
-		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
 	}
 
 	release := s.buildRelease(helmChartMetadata)
