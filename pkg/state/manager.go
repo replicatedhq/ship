@@ -56,6 +56,29 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	return s.serializeAndWriteState(toSerialize)
 }
 
+// SerializeChartURL takes the URL of the helm chart and serializes a state file to disk
+func (s *Manager) SerializeChartURL(URL string) error {
+	debug := level.Debug(log.With(s.Logger, "method", "SerializeChartURL"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := s.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+
+	debug.Log("event", "emptyState")
+	isEmpty := currentState == Empty{}
+	if isEmpty {
+		toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
+		return s.serializeAndWriteState(toSerialize)
+	}
+
+	debug.Log("event", "serializeAndWriteState", "change", "helmChartURL")
+	toSerialize := currentState.(VersionedState)
+	toSerialize.V1.ChartURL = URL
+	return s.serializeAndWriteState(toSerialize)
+}
+
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
 	toSerialize := VersionedState{V1: &V1{Config: templateContext}}

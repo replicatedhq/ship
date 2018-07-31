@@ -51,6 +51,19 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
 
+	debug.Log("event", "read.chartURL")
+	existingState, _ := s.State.TryLoad()
+	helmChartPath := existingState.CurrentChartURL()
+
+	debug.Log("event", "fetch latest chart")
+	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+	if err != nil {
+		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
+	}
+
+	// log to compile. will remove eventually
+	debug.Log("event", "latest fetched", "latest", helmChartMetadata)
+
 	return errors.New(`Implement me`)
 }
 
@@ -87,6 +100,11 @@ func (s *Ship) Init(ctx context.Context) error {
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
+	}
+
+	// persist after resolve as to not persist a bad chart URL
+	if err := s.State.SerializeChartURL(helmChartPath); err != nil {
+		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
 	}
 
 	release := &api.Release{
