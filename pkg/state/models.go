@@ -3,6 +3,7 @@ package state
 type State interface {
 	CurrentConfig() map[string]interface{}
 	CurrentKustomize() *Kustomize
+	CurrentKustomizeOverlay(filename string) string
 	CurrentHelmValues() string
 	CurrentChartURL() string
 }
@@ -14,6 +15,7 @@ var _ State = V0{}
 type Empty struct{}
 
 func (Empty) CurrentKustomize() *Kustomize          { return nil }
+func (Empty) CurrentKustomizeOverlay(string) string { return "" }
 func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
 func (Empty) CurrentHelmValues() string             { return "" }
 func (Empty) CurrentChartURL() string               { return "" }
@@ -22,6 +24,7 @@ type V0 map[string]interface{}
 
 func (v V0) CurrentConfig() map[string]interface{} { return v }
 func (v V0) CurrentKustomize() *Kustomize          { return nil }
+func (v V0) CurrentKustomizeOverlay(string) string { return "" }
 func (v V0) CurrentHelmValues() string             { return "" }
 func (v V0) CurrentChartURL() string               { return "" }
 
@@ -48,6 +51,32 @@ type Kustomize struct {
 
 func (u VersionedState) CurrentKustomize() *Kustomize {
 	return u.V1.Kustomize
+}
+
+func (u VersionedState) CurrentKustomizeOverlay(filename string) string {
+	if u.V1.Kustomize == nil {
+		return ""
+	}
+
+	if u.V1.Kustomize.Overlays == nil {
+		return ""
+	}
+
+	overlay, ok := u.V1.Kustomize.Overlays["ship"]
+	if !ok {
+		return ""
+	}
+
+	if overlay.Files == nil {
+		return ""
+	}
+
+	file, ok := overlay.Files[filename]
+	if ok {
+		return file
+	}
+
+	return ""
 }
 
 func (u VersionedState) CurrentConfig() map[string]interface{} {
