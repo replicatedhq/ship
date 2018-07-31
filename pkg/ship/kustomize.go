@@ -61,8 +61,10 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	// log to compile. will remove eventually
-	debug.Log("event", "latest fetched", "latest", helmChartMetadata)
+	release := s.buildRelease(helmChartMetadata)
+
+	// log to compile, will remove later
+	debug.Log("event", "build release", "release", release)
 
 	return errors.New(`Implement me`)
 }
@@ -107,6 +109,48 @@ func (s *Ship) Init(ctx context.Context) error {
 		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
 	}
 
+	release := s.buildRelease(helmChartMetadata)
+
+	return s.execute(ctx, release, nil, true)
+}
+
+func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	release := &api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{},
+			},
+			Config: api.Config{
+				V1: []libyaml.ConfigGroup{},
+			},
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: s.KustomizeRaw,
+							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+						},
+					},
+					{
+						Message: &api.Message{
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/rendered
+
+to deploy the overlaid assets to your cluster.
+						`},
+					},
+				},
+			},
+		},
+	}
+
+	return release
+}
+
+func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
+
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			HelmChartMetadata: helmChartMetadata,
@@ -144,41 +188,6 @@ func (s *Ship) Init(ctx context.Context) error {
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
-						},
-					},
-					{
-						Message: &api.Message{
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
-
-	return s.execute(ctx, release, nil, true)
-}
-
-func (s *Ship) fakeKustomizeRawRelease() *api.Release {
-	release := &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{},
-			},
-			Config: api.Config{
-				V1: []libyaml.ConfigGroup{},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
 							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
