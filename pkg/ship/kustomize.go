@@ -128,7 +128,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: s.KustomizeRaw,
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+							Dest:     path.Join(constants.InstallerPrefixPath, "kustomized"),
 						},
 					},
 					{
@@ -187,8 +187,8 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 					},
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
+							Dest:     path.Join(constants.InstallerPrefixPath, "kustomized"),
 						},
 					},
 					{
