@@ -67,9 +67,8 @@ func (s *Ship) Update(ctx context.Context) error {
 	// log for compile. will adjust later
 	debug.Log("event", "build release", "release", release)
 
-	// TODO IMPLEMENT UPDATE VALUES BEHAVIOR
-
-	return nil
+	// TODO IMPLEMENT
+	return errors.New("Not implemented")
 }
 
 func (s *Ship) Init(ctx context.Context) error {
