@@ -112,13 +112,24 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	}
 	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "load file failed", "err", err)
+		level.Warn(d.Logger).Log("event", "load file failed", "err", err)
 		c.AbortWithError(500, err)
 		return
 	}
 
-	c.JSON(200, Response{Base: base})
+	savedState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "load state failed", "err", err)
+		c.AbortWithError(500, err)
+		return
+	}
+
+	c.JSON(200, Response{
+		Base:    base,
+		Overlay: savedState.CurrentKustomizeOverlay(request.Path),
+	})
 }
+
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeFinalize"))
 	defer d.locker(debug)()
