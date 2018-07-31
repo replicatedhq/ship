@@ -43,6 +43,5 @@ dockers:
       - "{{ .Major }}"
       - "{{ .Major }}.{{ .Minor }}"
       - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-      - "{{ .Commit }}"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}

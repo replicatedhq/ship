@@ -132,8 +132,9 @@ func TestDaemonResolver(t *testing.T) {
 				Fs:     fs,
 				Viper:  v,
 
-				UI:           cli.NewMockUi(),
-				WebUIFactory: daemon.WebUIFactoryFactory(log),
+				UI:             cli.NewMockUi(),
+				WebUIFactory:   daemon.WebUIFactoryFactory(log),
+				OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

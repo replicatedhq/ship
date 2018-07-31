@@ -36,19 +36,20 @@ func NewHeadedDaemon(
 	treeLoader filetree.Loader,
 ) *ShipDaemon {
 	return &ShipDaemon{
-		Logger:             logger,
+		Logger:             log.With(logger, "struct", "daemon"),
 		Fs:                 fs,
 		UI:                 ui,
 		StateManager:       stateManager,
 		Viper:              v,
 		WebUIFactory:       webUIFactory,
 		TreeLoader:         treeLoader,
-		ConfigSaved:        make(chan interface{}),
+		ConfigSaved:        make(chan interface{}, 1),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
 		KustomizeSaved:     make(chan interface{}, 1),
 		ConfigRenderer:     renderer,
-		errChan:            make(chan error, 1),
+		OpenWebConsole:     tryOpenWebConsole,
+		exitChan:           make(chan error),
 	}
 
 }

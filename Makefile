@@ -181,9 +181,6 @@ bin/ship: $(SRC)
 		./cmd/ship
 	@echo built bin/ship
 
-e2e: bin/ship
-	./bin/ship e2e
-
 # tests base "ship" cli
 integration-test:
 	ginkgo -p -stream integration/base
@@ -200,7 +197,7 @@ goreleaser: .state/goreleaser
 	@touch .state/goreleaser
 
 run: bin/ship
-	./bin/ship --log-level=debug --runbook=./app.yml
+	./bin/ship app --log-level=debug --runbook=./app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:

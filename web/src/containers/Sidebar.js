@@ -6,7 +6,6 @@ import { loadingData } from "../redux/ui/main/actions";
 const Sidebar = connect(
   state => ({
     appSettingsFieldsList: state.data.applicationSettings.settingsData.appSidebarSubItems,
-    consoleSettingsFieldsList: state.data.consoleSettings.settingsData.consoleSidebarSubItems,
   }),
   dispatch => ({
     loadingData(key, isLoading) { return dispatch(loadingData(key, isLoading)); },
