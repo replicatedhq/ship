@@ -77,8 +77,6 @@ type HelmAsset struct {
 	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
-	// ChartPath is the URL from which to pull the chart
-	ChartPath string `json:"chart_path" yaml:"chart_path" hcl:"chart_path"`
 }
 
 // LocalHelmOpts specifies a helm chart that should be templated

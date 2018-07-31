@@ -108,7 +108,6 @@ func (s *Ship) Init(ctx context.Context) error {
 								"--values",
 								path.Join(constants.TempHelmValuesPath, "values.yaml"),
 							},
-							ChartPath: helmChartPath,
 						},
 					},
 				},
