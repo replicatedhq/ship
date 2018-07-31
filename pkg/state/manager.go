@@ -53,6 +53,7 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
 	toSerialize, ok := currentState.(VersionedState)
 	if !ok {
+		debug.Log("event", "tryLoad.fail")
 		return errors.New("cast to VersionedState")
 	}
 	toSerialize.V1.HelmValues = values
@@ -79,6 +80,7 @@ func (s *Manager) SerializeChartURL(URL string) error {
 	debug.Log("event", "serializeAndWriteState", "change", "helmChartURL")
 	toSerialize, ok := currentState.(VersionedState)
 	if !ok {
+		debug.Log("event", "cast.fail")
 		return errors.New("cast to VersionedState")
 	}
 
