@@ -51,9 +51,9 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	}
 
 	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
-	toSerialize, err := currentState.(VersionedState)
-	if err != nil {
-		return errors.Wrap(err, "cast to VersionedState")
+	toSerialize, ok := currentState.(VersionedState)
+	if !ok {
+		return errors.New("cast to VersionedState")
 	}
 	toSerialize.V1.HelmValues = values
 	return s.serializeAndWriteState(toSerialize)
@@ -77,9 +77,9 @@ func (s *Manager) SerializeChartURL(URL string) error {
 	}
 
 	debug.Log("event", "serializeAndWriteState", "change", "helmChartURL")
-	toSerialize, err := currentState.(VersionedState)
-	if err != nil {
-		return errors.Wrap(err, "cast to VersionedState")
+	toSerialize, ok := currentState.(VersionedState)
+	if !ok {
+		return errors.New("cast to VersionedState")
 	}
 
 	toSerialize.V1.ChartURL = URL
