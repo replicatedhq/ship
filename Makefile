@@ -142,7 +142,7 @@ _vet:
 
 # we have to build bindata here, because for some reason goimports
 # hacks up that generated file in a way that makes vet fail
-vet: fmt pkg/lifeycle/daemon/ui.bindatafs.go _vet
+vet: fmt _vet
 
 _lint:
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
