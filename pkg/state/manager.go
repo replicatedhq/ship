@@ -60,31 +60,13 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	return s.serializeAndWriteState(toSerialize)
 }
 
-// SerializeChartURL takes the URL of the helm chart and serializes a state file to disk
-func (s *Manager) SerializeChartURL(URL string) error {
-	debug := level.Debug(log.With(s.Logger, "method", "SerializeChartURL"))
+// BlowAwayStateAndSetChartURL takes the URL of the helm chart and serializes a state file to disk
+func (s *Manager) BlowAwayStateAndSetChartURL(URL string) error {
+	debug := level.Debug(log.With(s.Logger, "method", "BlowAwayStateAndSetChartURL"))
 
-	debug.Log("event", "tryLoadState")
-	currentState, err := s.TryLoad()
-	if err != nil {
-		return errors.Wrap(err, "try load state")
-	}
+	debug.Log("event", "serializeAndWriteState", "serialize", "helmChartURL")
+	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
 
-	debug.Log("event", "emptyState")
-	isEmpty := currentState == Empty{}
-	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
-		return s.serializeAndWriteState(toSerialize)
-	}
-
-	debug.Log("event", "serializeAndWriteState", "change", "helmChartURL")
-	toSerialize, ok := currentState.(VersionedState)
-	if !ok {
-		debug.Log("event", "cast.fail")
-		return errors.New("cast to VersionedState")
-	}
-
-	toSerialize.V1.ChartURL = URL
 	return s.serializeAndWriteState(toSerialize)
 }
 

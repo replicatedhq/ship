@@ -103,7 +103,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// persist after resolve as to not persist a bad chart URL
-	if err := s.State.SerializeChartURL(helmChartPath); err != nil {
+	if err := s.State.BlowAwayStateAndSetChartURL(helmChartPath); err != nil {
 		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
 	}
 
