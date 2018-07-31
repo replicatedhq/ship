@@ -44,7 +44,7 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	}
 
 	debug.Log("event", "emptyState")
-	isEmpty := currentState == empty{}
+	isEmpty := currentState == Empty{}
 	if isEmpty {
 		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
 		return s.serializeAndWriteState(toSerialize)
@@ -90,7 +90,7 @@ func (s *Manager) TryLoad() (State, error) {
 
 	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", statePath)
-		return empty{}, nil
+		return Empty{}, nil
 	}
 
 	serialized, err := s.FS.ReadFile(statePath)
@@ -119,6 +119,7 @@ func (s *Manager) TryLoad() (State, error) {
 	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
+
 func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 	state, err := m.TryLoad()
 	if err != nil {
@@ -134,6 +135,21 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	if err := m.serializeAndWriteState(newState); err != nil {
 		return errors.Wrap(err, "write state")
+	}
+
+	return nil
+}
+
+// RemoveStateFile will attempt to remove the state file from disk
+func (m *Manager) RemoveStateFile() error {
+	statePath := m.V.GetString("state-file")
+	if statePath == "" {
+		statePath = constants.StatePath
+	}
+
+	err := m.FS.Remove(statePath)
+	if err != nil {
+		return errors.Wrap(err, "remove state file")
 	}
 
 	return nil

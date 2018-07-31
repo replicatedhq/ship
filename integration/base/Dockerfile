@@ -1,10 +1,8 @@
 # build the test
 FROM golang:1.10-alpine as build-step
-ENV GOPATH=/go/
-ADD . /go/src/github.com/replicatedhq/ship
-RUN cd /go/src/github.com/replicatedhq/ship && go test -c ./integration/base
+ENV GOPATH=/go
 
-RUN apk update && apk add ca-certificates && apk add curl
+RUN apk update && apk add ca-certificates curl git
 
 ENV HELM_VERSION=v2.9.1
 ENV HELM_URL=https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
@@ -29,16 +27,28 @@ RUN curl -fsSLO "$TERRAFORM_URL" \
 	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
 	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
 
+RUN go get github.com/docker/distribution/cmd/registry
+
+ADD . /go/src/github.com/replicatedhq/ship
+RUN cd /go/src/github.com/replicatedhq/ship && go test -c ./integration/base
+
 # package things up
 FROM alpine
+ENV GOPATH=/go
 WORKDIR /test
 
 COPY --from=build-step /usr/local/bin/helm /usr/local/bin/helm
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
+COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
+COPY --from=build-step $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml config.yml
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+
+RUN mkdir -p /var/lib/registry
+
 
 ADD ./integration/base /test
 RUN cd /test && rm *.go
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/
-ENTRYPOINT ./base.test
+ENTRYPOINT ./integration_docker_start.sh
+
 

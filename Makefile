@@ -42,7 +42,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/ui
 	mkdir -p pkg/test-mocks/config
 	mkdir -p pkg/test-mocks/planner
-	mkdir -p pkg/test-mocks/images
+	mkdir -p pkg/test-mocks/images/saver
 	mkdir -p pkg/test-mocks/docker
 	mkdir -p pkg/test-mocks/helm
 	mkdir -p pkg/test-mocks/dockerlayer
@@ -71,8 +71,8 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
 		Planner
 	mockgen \
-		-destination pkg/test-mocks/images/image_saver_mock.go \
-		-package images \
+		-destination pkg/test-mocks/images/saver/image_saver_mock.go \
+		-package saver \
 		github.com/replicatedhq/ship/pkg/images \
 		ImageSaver
 	mockgen \
@@ -200,7 +200,7 @@ goreleaser: .state/goreleaser
 	@touch .state/goreleaser
 
 run: bin/ship
-	./bin/ship --log-level=debug --studio-file=./app.yml
+	./bin/ship --log-level=debug --runbook=./app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:

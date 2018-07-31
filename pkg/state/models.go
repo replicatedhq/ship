@@ -7,14 +7,14 @@ type State interface {
 }
 
 var _ State = VersionedState{}
-var _ State = empty{}
+var _ State = Empty{}
 var _ State = V0{}
 
-type empty struct{}
+type Empty struct{}
 
-func (empty) CurrentKustomize() *Kustomize          { return nil }
-func (empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
-func (empty) CurrentHelmValues() string             { return "" }
+func (Empty) CurrentKustomize() *Kustomize          { return nil }
+func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
+func (Empty) CurrentHelmValues() string             { return "" }
 
 type V0 map[string]interface{}
 

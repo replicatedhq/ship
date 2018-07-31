@@ -2,12 +2,31 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:6da51e5ec493ad2b44cb04129e2d0a068c8fb9bd6cb5739d199573558696bb94"
+  name = "github.com/Azure/go-ansiterm"
+  packages = [
+    ".",
+    "winterm",
+  ]
+  pruneopts = "UT"
+  revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
+
+[[projects]]
   digest = "1:bf42be3cb1519bf8018dfd99720b1005ee028d947124cab3ccf965da59381df6"
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
   pruneopts = "UT"
   revision = "7da180ee92d8bd8bb8c37fc560e673e6557c392f"
   version = "v0.4.7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3721a10686511b80c052323423f0de17a8c06d417dbdd3b392b1578432a33aae"
+  name = "github.com/Nvveen/Gotty"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cd527374f1e5bff4938207604a14f2e38a9cf512"
 
 [[projects]]
   digest = "1:d1665c44bd5db19aaee18d1b6233c99b0b9a986e8bccb24ef54747547a48027f"
@@ -76,7 +95,7 @@
   revision = "edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c"
 
 [[projects]]
-  digest = "1:ecfd0b6f47292fb651441258f5f190cf1404747783a4f4b5c297858804917a8f"
+  digest = "1:2b573a384a23b8f27b4d16a5071d33f420b6f376f56d062af19379ebf3e19450"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -96,6 +115,9 @@
     "api/types/versions",
     "api/types/volume",
     "client",
+    "pkg/jsonmessage",
+    "pkg/term",
+    "pkg/term/windows",
   ]
   pruneopts = "UT"
   revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
@@ -643,6 +665,14 @@
   revision = "7a5c7548e512f06ae22b38f031d3ababac58bd3e"
 
 [[projects]]
+  digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
+
+[[projects]]
   digest = "1:46c66b2046474cf473b116e5344fa7cf6aadce82941bf5dd49cf63a90b8dc31d"
   name = "github.com/spf13/afero"
   packages = [
@@ -735,6 +765,14 @@
   pruneopts = "UT"
   revision = "d100de9c8cc8358591507951141bc107713ba671"
   version = "v1.3.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "UT"
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
   branch = "master"
@@ -933,6 +971,7 @@
     "github.com/docker/distribution/reference",
     "github.com/docker/docker/api/types",
     "github.com/docker/docker/client",
+    "github.com/docker/docker/pkg/jsonmessage",
     "github.com/docker/go-units",
     "github.com/elazarl/go-bindata-assetfs",
     "github.com/gin-contrib/cors",

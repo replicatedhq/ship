@@ -62,4 +62,4 @@ lint:
 	`yarn bin`/replicated-lint validate -f ../../e2e-retraced/ship-retraced.yml --excludeDefaults --schema $(SCHEMA_JSON)
 
 ship:
-	../../bin/ship --studio-file ../../e2e-retraced/ship-retraced.yml --log-level debug
+	../../bin/ship --runbook ../../e2e-retraced/ship-retraced.yml --log-level debug
