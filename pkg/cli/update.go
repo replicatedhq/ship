@@ -27,6 +27,7 @@ func Update() *cobra.Command {
 			s.UpdateAndMaybeExit(context.Background())
 			return nil
 		},
+		Hidden: true,
 	}
 
 	cmd.Flags().String("raw", "", "File path to already rendered kubernetes YAML. Intended for use with non-helm K8s YAML or with a helm chart that has already been templated.")
