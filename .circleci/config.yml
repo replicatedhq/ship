@@ -116,56 +116,56 @@ workflows:
   # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
   unstable:
     jobs:
-    - build_ui
-    - integration
-    - test
+      - build_ui
+      - integration
+      - test
 
-    - deploy_unstable:
-        requires:
-        - test
-        - integration
-        - build_ui
-        filters:
-          branches:
-            only: /master/
+      - deploy_unstable:
+          requires:
+          - test
+          - integration
+          - build_ui
+          filters:
+            branches:
+              only: /master/
 
-    - deploy_integration:
-        requires:
-        - integration
-        - deploy_unstable
-        filters:
-          branches:
-            only: /master/
+      - deploy_integration:
+          requires:
+          - integration
+          - deploy_unstable
+          filters:
+            branches:
+              only: /master/
 
   # Stable deploys the `alpha` and `latest` tags to dockerhub and github
   stable:
     jobs:
-    - build_ui:
-        filters:
-          tags:
-            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-          branches:
-            ignore: /.*/
-    - integration:
-        filters:
-          tags:
-            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-          branches:
-            ignore: /.*/
-    - test:
-        filters:
-          tags:
-            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-          branches:
-            ignore: /.*/
-    - deploy:
-        requires:
-        - test
-        - integration
-        - build_ui
-        filters:
-          tags:
-            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-          branches:
-            ignore: /.*/
+      - build_ui:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - integration:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - deploy:
+          requires:
+          - test
+          - integration
+          - build_ui
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
 
