@@ -23,12 +23,12 @@ assets:
     - amazon_elastic_kubernetes_service:
         dest: new/new_vpc.tf
         cluster_name: new-vpc-cluster
-        region: "us-west-1"
+        region: "us-west-2"
         created_vpc:
           vpc_cidr: "10.0.0.0/16"
           zones:
-            - a
-            - b
+            - us-west-2a
+            - us-west-2b
           public_subnets:
             - "10.0.1.0/24"
             - "10.0.2.0/24"
@@ -41,7 +41,7 @@ assets:
             machine_type: m5.2xlarge
           - name: bravo
             group_size: 1
-            machine_type: m5.8xlarge
+            machine_type: m5.4xlarge
 
 
 config: {}

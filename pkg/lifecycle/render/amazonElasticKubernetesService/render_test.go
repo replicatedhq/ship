@@ -351,7 +351,7 @@ locals {
 					VPCCIDR:        "10.0.0.0/16",
 					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
 					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
-					Zones:          []string{"a", "b", "c", "d"},
+					Zones:          []string{"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"},
 				},
 			},
 			expected: `
@@ -380,10 +380,10 @@ variable "vpc_private_subnets" {
 
 variable "vpc_azs" {
   default = [
-    "a",
-    "b",
-    "c",
-    "d",
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c",
+    "us-west-2d",
   ]
 }
 
@@ -647,7 +647,7 @@ module "eks" {
 					VPCCIDR:        "10.0.0.0/16",
 					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
 					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
-					Zones:          []string{"a", "b", "c", "d"},
+					Zones:          []string{"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"},
 				},
 				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
 					{
@@ -688,10 +688,10 @@ variable "vpc_private_subnets" {
 
 variable "vpc_azs" {
   default = [
-    "a",
-    "b",
-    "c",
-    "d",
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c",
+    "us-west-2d",
   ]
 }
 

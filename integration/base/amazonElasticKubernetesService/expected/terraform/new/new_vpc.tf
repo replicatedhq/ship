@@ -20,8 +20,8 @@ variable "vpc_private_subnets" {
 
 variable "vpc_azs" {
   default = [
-    "a",
-    "b",
+    "us-west-2a",
+    "us-west-2b",
   ]
 }
 
@@ -68,7 +68,7 @@ locals {
       asg_min_size         = "1"
       asg_max_size         = "1"
       asg_desired_capacity = "1"
-      instance_type        = "m5.8xlarge"
+      instance_type        = "m5.4xlarge"
 
       subnets = "${join(",", local.eks_vpc_private_subnets)}"
     },
@@ -77,7 +77,7 @@ locals {
 
 provider "aws" {
   version = "~> 1.27"
-  region  = "us-west-1"
+  region  = "us-west-2"
 }
 
 variable "eks-cluster-name" {

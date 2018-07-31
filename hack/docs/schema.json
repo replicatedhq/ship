@@ -43,11 +43,11 @@
                   },
                   {
                     "cluster_name": "new-vpc-cluster",
-                    "region": "us-west-1",
+                    "region": "us-west-2",
                     "created_vpc": {
                       "zones": [
-                        "a",
-                        "b"
+                        "us-west-2a",
+                        "us-west-2b"
                       ],
                       "vpc_cidr": "10.0.0.0/16",
                       "public_subnets": [
