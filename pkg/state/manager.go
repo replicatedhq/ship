@@ -51,8 +51,22 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	}
 
 	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
-	toSerialize := currentState.(VersionedState)
+	toSerialize, ok := currentState.(VersionedState)
+	if !ok {
+		debug.Log("event", "tryLoad.fail")
+		return errors.New("cast to VersionedState")
+	}
 	toSerialize.V1.HelmValues = values
+	return s.serializeAndWriteState(toSerialize)
+}
+
+// BlowAwayStateAndSetChartURL takes the URL of the helm chart and serializes a state file to disk
+func (s *Manager) BlowAwayStateAndSetChartURL(URL string) error {
+	debug := level.Debug(log.With(s.Logger, "method", "BlowAwayStateAndSetChartURL"))
+
+	debug.Log("event", "serializeAndWriteState", "serialize", "helmChartURL")
+	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
+
 	return s.serializeAndWriteState(toSerialize)
 }
 
