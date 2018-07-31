@@ -64,8 +64,8 @@ func TestRenderer(t *testing.T) {
 			err := renderer.Execute(
 				test.asset,
 				metadata,
-				groups,
 				templateContext,
+				groups,
 			)(context.Background())
 
 			req.NoError(err)

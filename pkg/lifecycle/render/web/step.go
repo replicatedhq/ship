@@ -24,8 +24,8 @@ type Renderer interface {
 	Execute(
 		asset api.WebAsset,
 		meta api.ReleaseMetadata,
-		configGroups []libyaml.ConfigGroup,
 		templateContext map[string]interface{},
+		configGroups []libyaml.ConfigGroup,
 	) func(ctx context.Context) error
 }
 
@@ -66,8 +66,8 @@ type Built struct {
 func (p *DefaultStep) Execute(
 	asset api.WebAsset,
 	meta api.ReleaseMetadata,
-	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute",

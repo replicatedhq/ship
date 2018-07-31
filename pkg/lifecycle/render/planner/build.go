@@ -126,11 +126,20 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			if evaluatedWhen {
 				plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
 			}
+		} else if asset.AmazonElasticKubernetesService != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.AmazonElasticKubernetesService.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
+			if evaluatedWhen {
+				plan = append(plan, p.amazonElasticKubernetesServiceStep(*asset.AmazonElasticKubernetesService, meta, templateContext, configGroups))
+			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform]",
+					"[inline docker helm dockerlayer github terraform amazonEKS]",
 			)
 		}
 	}
@@ -159,7 +168,7 @@ func (p *CLIPlanner) webStep(
 	return Step{
 		Dest:        web.Dest,
 		Description: web.Description,
-		Execute:     p.Web.Execute(web, meta, configGroups, templateContext),
+		Execute:     p.Web.Execute(web, meta, templateContext, configGroups),
 	}
 }
 
@@ -224,7 +233,20 @@ func (p *CLIPlanner) terraformStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.Terraform.Execute(asset, meta, configGroups, templateContext),
+		Execute:     p.Terraform.Execute(asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
+	asset api.EKSAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.AWSEKS.Execute(asset, meta, templateContext, configGroups),
 	}
 }
 

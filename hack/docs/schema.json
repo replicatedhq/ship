@@ -11,6 +11,199 @@
           "items": {
             "type": "object",
             "properties": {
+              "amazon_elastic_kubernetes_service": {
+                "description": "A `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+                "examples": [
+                  {
+                    "cluster_name": "existing-vpc-cluster",
+                    "region": "us-east-1",
+                    "existing_vpc": {
+                      "vpc_id": "abc123",
+                      "public_subnets": [
+                        "abc123-1",
+                        "abc123-2"
+                      ],
+                      "private_subnets": [
+                        "xyz789-1",
+                        "xyz789-2"
+                      ]
+                    },
+                    "autoscaling_groups": [
+                      {
+                        "name": "group1",
+                        "group_size": 2,
+                        "machine_type": "m5.large"
+                      },
+                      {
+                        "name": "group2",
+                        "group_size": 1,
+                        "machine_type": "t2.large"
+                      }
+                    ]
+                  },
+                  {
+                    "cluster_name": "new-vpc-cluster",
+                    "region": "us-west-2",
+                    "created_vpc": {
+                      "zones": [
+                        "us-west-2a",
+                        "us-west-2b"
+                      ],
+                      "vpc_cidr": "10.0.0.0/16",
+                      "public_subnets": [
+                        "10.0.1.0/24",
+                        "10.0.2.0/24"
+                      ],
+                      "private_subnets": [
+                        "10.0.129.0/24",
+                        "10.0.130.0/24"
+                      ]
+                    },
+                    "autoscaling_groups": [
+                      {
+                        "name": "firstgroup",
+                        "group_size": 3,
+                        "machine_type": "m5.large"
+                      }
+                    ]
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "autoscaling_groups": {
+                    "description": "Autoscaling groups to include in your EKS cluster",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "group_size": {
+                          "description": "The number of instances to be included in the group",
+                          "type": "integer"
+                        },
+                        "machine_type": {
+                          "description": "The AWS instance type to use within the group",
+                          "type": "string"
+                        },
+                        "name": {
+                          "description": "The name to give the created autoscaling group",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "group_size",
+                      "machine_type"
+                    ]
+                  },
+                  "cluster_name": {
+                    "description": "The name of the created EKS cluster",
+                    "type": "string"
+                  },
+                  "created_vpc": {
+                    "description": "The VPC to create for the EKS cluster",
+                    "type": "object",
+                    "properties": {
+                      "private_subnets": {
+                        "description": "The private subnets to create within the VPC. All workers will be placed on these subnets",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "public_subnets": {
+                        "description": "The public subnets to create within the VPC",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "vpc_cidr": {
+                        "description": "The CIDR to use for this VPC",
+                        "type": "string"
+                      },
+                      "zones": {
+                        "description": "The availability zones to create subnets within",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "zones",
+                      "vpc_cidr",
+                      "public_subnets",
+                      "private_subnets"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_elastic_kubernetes_service.tf`",
+                    "type": "string"
+                  },
+                  "existing_vpc": {
+                    "description": "The existing VPC to use for the EKS cluster",
+                    "type": "object",
+                    "properties": {
+                      "private_subnets": {
+                        "description": "The private subnets to use within the VPC. All workers will be placed on these subnets",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "public_subnets": {
+                        "description": "The public subnets to use within the VPC",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "vpc_id": {
+                        "description": "The ID of the existing VPC to use",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "vpc_id",
+                      "public_subnets",
+                      "private_subnets"
+                    ]
+                  },
+                  "mode": {
+                    "description": "Ignored",
+                    "type": "integer"
+                  },
+                  "region": {
+                    "description": "The AWS region to build the cluster in. At time of writing, AWS supports EKS in us-east and us-west",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cluster_name",
+                  "region",
+                  "autoscaling_groups"
+                ],
+                "oneOf": [
+                  {
+                    "required": [
+                      "created_vpc"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "existing_vpc"
+                    ]
+                  }
+                ]
+              },
               "docker": {
                 "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
                 "examples": [
@@ -51,6 +244,10 @@
                   "source": {
                     "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)",
                     "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -88,6 +285,10 @@
                   },
                   "source": {
                     "description": "The source for the image. Should be either `public`, `replicated`, or the name of a third-party private registry previously configured on [console.replicated.com](https://console.replicated.com)",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
                     "type": "string"
                   }
                 },
@@ -132,6 +333,10 @@
                   },
                   "source": {
                     "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
                     "type": "string"
                   }
                 },
@@ -200,6 +405,9 @@
                       "source": {
                         "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
                         "type": "string"
+                      },
+                      "when": {
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -242,6 +450,10 @@
                         ]
                       }
                     }
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -277,6 +489,10 @@
                   "mode": {
                     "description": "Specifies file mode of the created asset, defaults to `0644`",
                     "type": "integer"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -333,6 +549,10 @@
                   },
                   "url": {
                     "description": "A public or private URL to pull content from",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
                     "type": "string"
                   }
                 },
@@ -432,6 +652,23 @@
           "items": {
             "type": "object",
             "properties": {
+              "helmIntro": {
+                "type": "object"
+              },
+              "helmValues": {
+                "type": "object"
+              },
+              "kustomize": {
+                "type": "object",
+                "properties": {
+                  "base_path": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  }
+                }
+              },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
                 "examples": [

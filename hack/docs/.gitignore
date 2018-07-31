@@ -2,3 +2,4 @@ node_modules/
 assets/
 lifecycle/
 config/
+.state/
