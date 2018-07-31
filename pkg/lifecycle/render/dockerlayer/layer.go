@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/spf13/afero"
@@ -49,6 +50,8 @@ func (u *Unpacker) Execute(
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(context.Context) error {
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(u.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "dockerlayer", "dest", asset.Dest, "description", asset.Description))
@@ -67,7 +70,7 @@ func (u *Unpacker) Execute(
 		)
 
 		return errors.Wrap(u.chain(
-			u.save(ctx, asset, meta, doWithProgress, savePath),
+			u.save(ctx, asset, meta, doWithProgress, savePath, templateContext, configGroups),
 			u.mkdirall(basePath),
 			u.unpack(savePath, firstPassUnpackPath),
 			u.unpack(layerPath, asset.Dest),
@@ -102,6 +105,8 @@ func (u *Unpacker) save(
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
 	savePath string,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func() error {
 	return func() error {
 		return errors.Wrapf(
@@ -110,6 +115,8 @@ func (u *Unpacker) save(
 				meta,
 				doWithProgress,
 				savePath,
+				templateContext,
+				configGroups,
 			)(ctx),
 			"save image to %s ", savePath)
 	}

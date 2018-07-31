@@ -2,10 +2,25 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Azure/go-ansiterm"
+  packages = [
+    ".",
+    "winterm"
+  ]
+  revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
+
+[[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
   revision = "7da180ee92d8bd8bb8c37fc560e673e6557c392f"
   version = "v0.4.7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/Nvveen/Gotty"
+  packages = ["."]
+  revision = "cd527374f1e5bff4938207604a14f2e38a9cf512"
 
 [[projects]]
   name = "github.com/PuerkitoBio/purell"
@@ -76,7 +91,10 @@
     "api/types/time",
     "api/types/versions",
     "api/types/volume",
-    "client"
+    "client",
+    "pkg/jsonmessage",
+    "pkg/term",
+    "pkg/term/windows"
   ]
   revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
 
@@ -513,6 +531,12 @@
   revision = "7a5c7548e512f06ae22b38f031d3ababac58bd3e"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
+
+[[projects]]
   branch = "master"
   name = "github.com/skratchdot/open-golang"
   packages = ["open"]
@@ -591,6 +615,12 @@
   ]
   revision = "d100de9c8cc8358591507951141bc107713ba671"
   version = "v1.3.0"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
   branch = "master"
@@ -764,6 +794,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "758f909af165f6c514172f86baf8159332cb2393e587a908353c11a8e076d247"
+  inputs-digest = "b6224fd4c8a0ce16fbfd3e831256259b49e0c2fc1019e6852c94a3cc3aa43b04"
   solver-name = "gps-cdcl"
   solver-version = 1
