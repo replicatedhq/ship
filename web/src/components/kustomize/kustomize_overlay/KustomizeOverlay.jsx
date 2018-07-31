@@ -13,6 +13,7 @@ import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
 import Toast from "../../shared/Toast";
 import KustomizeEmpty from "./KustomizeEmpty";
+import AceEditorHOC from "./AceEditorHOC";
 
 import "../../../scss/components/kustomize/KustomizeOverlay.scss";
 import "../../../../node_modules/brace/mode/yaml";
@@ -32,7 +33,8 @@ export default class KustomizeOverlay extends React.Component {
       overlayContent: "",
       toastDetails: {
         opts: {}
-      }
+      },
+      markers: [],
     };
     autoBind(this);
   }
@@ -56,6 +58,35 @@ export default class KustomizeOverlay extends React.Component {
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ overlayContent: `--- \n${overlay}` });
     this.openOverlay();
+  }
+
+  addToOverlay(overlayKeyValue) {
+    const {
+      addOverlay,
+      fileContents,
+      selectedFile,
+      overlayContent,
+    } = this.state;
+
+    let file = fileContents[selectedFile];
+    if (!file) return;
+
+    const fileYaml = yaml.safeLoad(file.baseContent);
+    if (addOverlay) {
+      const overlayField = pick(fileYaml, overlayKeyValue);
+      const overlayToAdd = yaml.safeDump(overlayField);
+      this.setState({
+        addOverlay: true,
+        overlayContent: `${overlayContent}${overlayToAdd}`,
+      })
+    } else {
+      const overlayFields = pick(fileYaml, "apiVersion", "kind", "metadata.name", overlayKeyValue);
+      const overlayToAdd = yaml.safeDump(overlayFields);
+      this.setState({
+        addOverlay: true,
+        overlayContent: `--- \n${overlayToAdd}`,
+      });
+    }
   }
 
   hasContentAlready(path) {
@@ -230,23 +261,9 @@ export default class KustomizeOverlay extends React.Component {
                               </div>
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
-                              <AceEditor
-                                ref="aceEditorBase"
-                                mode="yaml"
-                                theme="chrome"
-                                className="flex1 flex disabled-ace-editor ace-chrome"
-                                readOnly={true}
-                                value={fileToView && fileToView.baseContent || ""}
-                                height="100%"
-                                width="100%"
-                                editorProps={{
-                                  $blockScrolling: Infinity,
-                                  useSoftTabs: true,
-                                  tabSize: 2,
-                                }}
-                                setOptions={{
-                                  scrollPastEnd: false
-                                }}
+                              <AceEditorHOC
+                                addToOverlay={this.addToOverlay}
+                                fileToView={fileToView}
                               />
                             </div>
                           </div>

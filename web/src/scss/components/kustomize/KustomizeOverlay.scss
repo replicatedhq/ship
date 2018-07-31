@@ -1,3 +1,16 @@
+.test {
+  background-color: yellow;
+  position: absolute;
+}
+
+.ace_layer * {
+  pointer-events:none !important;
+}
+
+.ace_constant {
+  pointer-events:auto !important;
+}
+
 .overlay-toggle {
   position: absolute;
   padding: 6px;
@@ -54,13 +67,13 @@
     border-radius: 4px;
     position: relative;
     text-align: center;
-    
+
     p {
       font-size: 14px;
       color: #9B9B9B;
       line-height: 22px;
       font-weight: 500;
-    
+
       &.title {
         font-size: 16px;
         font-weight: 600;
