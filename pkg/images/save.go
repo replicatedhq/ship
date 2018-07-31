@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"net/url"
 	"os"
+	"path"
 
 	"github.com/pkg/errors"
 
@@ -29,15 +31,22 @@ type ImageManager interface {
 	ImagePull(ctx context.Context, refStr string, options types.ImagePullOptions) (io.ReadCloser, error)
 	ImageTag(ctx context.Context, source, target string) error
 	ImageSave(ctx context.Context, imageIDs []string) (io.ReadCloser, error)
+	ImagePush(ctx context.Context, image string, options types.ImagePushOptions) (io.ReadCloser, error)
 }
 
 type SaveOpts struct {
-	PullURL   string
-	SaveURL   string
-	IsPrivate bool
-	Filename  string
-	Username  string
-	Password  string
+	PullURL        string
+	SaveURL        string
+	IsPrivate      bool
+	Filename       string
+	DestinationURL *url.URL
+	Username       string
+	Password       string
+}
+
+type DestinationParams struct {
+	AuthConfig           types.AuthConfig
+	DestinationImageName string
 }
 
 var _ ImageSaver = &CLISaver{}
@@ -54,7 +63,6 @@ func NewImageSaver(logger log.Logger, client *docker.Client) ImageSaver {
 		client: client,
 	}
 }
-
 func (s *CLISaver) SaveImage(ctx context.Context, saveOpts SaveOpts) chan interface{} {
 	ch := make(chan interface{})
 	go func() {
@@ -92,6 +100,17 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 		return errors.Wrapf(err, "pull image %s", saveOpts.PullURL)
 	}
 	copyDockerProgress(progressReader, progressCh)
+	if saveOpts.Filename != "" {
+		return s.createFile(ctx, progressCh, saveOpts)
+	} else if saveOpts.DestinationURL != nil {
+		return s.pushImage(ctx, progressCh, saveOpts)
+	} else {
+		return errors.New("Destination improperly set")
+	}
+}
+
+func (s *CLISaver) createFile(ctx context.Context, progressCh chan interface{}, saveOpts SaveOpts) error {
+	debug := level.Debug(log.With(s.Logger, "method", "createFile", "image", saveOpts.SaveURL))
 
 	if saveOpts.PullURL != saveOpts.SaveURL {
 		debug.Log("stage", "tag", "old.tag", saveOpts.PullURL, "new.tag", saveOpts.SaveURL)
@@ -130,6 +149,54 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 	debug.Log("stage", "done")
 
 	return nil
+}
+
+func (s *CLISaver) pushImage(ctx context.Context, progressCh chan interface{}, saveOpts SaveOpts) error {
+	debug := level.Debug(log.With(s.Logger, "method", "pushImage", "image", saveOpts.SaveURL))
+
+	debug.Log("stage", "make.push.auth")
+	destinationParams, err := buildDestinationParams(saveOpts.DestinationURL)
+	if err != nil {
+		return err
+	}
+
+	if saveOpts.PullURL != destinationParams.DestinationImageName {
+		debug.Log("stage", "tag", "old.tag", saveOpts.PullURL, "new.tag", destinationParams.DestinationImageName)
+		err := s.client.ImageTag(ctx, saveOpts.PullURL, destinationParams.DestinationImageName)
+		if err != nil {
+			return errors.Wrapf(err, "tag image %s -> %s", saveOpts.PullURL, destinationParams.DestinationImageName)
+		}
+	}
+
+	debug.Log("stage", "make.push.auth")
+	registryAuth, err := makeAuthValue(destinationParams.AuthConfig)
+	if err != nil {
+		return errors.Wrapf(err, "make destination auth string")
+	}
+
+	debug.Log("stage", "push")
+	pushOpts := types.ImagePushOptions{
+		RegistryAuth: registryAuth,
+	}
+	progressReader, err := s.client.ImagePush(ctx, destinationParams.DestinationImageName, pushOpts)
+	if err != nil {
+		return errors.Wrapf(err, "push image %s", destinationParams.DestinationImageName)
+	}
+	return copyDockerProgress(progressReader, progressCh)
+}
+
+func buildDestinationParams(destinationURL *url.URL) (DestinationParams, error) {
+	authOpts := types.AuthConfig{}
+	if destinationURL.User != nil {
+		authOpts.Username = destinationURL.User.Username()
+		authOpts.Password, _ = destinationURL.User.Password()
+	}
+
+	destinationParams := DestinationParams{
+		AuthConfig:           authOpts,
+		DestinationImageName: path.Join(destinationURL.Host, destinationURL.Path),
+	}
+	return destinationParams, nil
 }
 
 func makeAuthValue(authOpts types.AuthConfig) (string, error) {

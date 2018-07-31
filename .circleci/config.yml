@@ -16,6 +16,7 @@ jobs:
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
+      - run: mkdir -p web/dist
       - run: make build-deps citest ci-upload-coverage
 
   build_ui:
@@ -61,20 +62,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: |
-          curl -fsSLO "${HELM_URL}" \
-            && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
-            && tar xvf "$HELM_TGZ" \
-            && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
-            && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
-      - run: |
-          curl -fsSLO "${TERRAFORM_URL}" \
-            && echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
-            && unzip "$TERRAFORM_ZIP" \
-            && sudo mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
-            && sudo ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
-      - run: go get github.com/onsi/ginkgo/ginkgo
-      - run: make integration-test
+      - run: make build_ship_integration_test
+      - run: docker run --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
 
   deploy_unstable:
     docker:

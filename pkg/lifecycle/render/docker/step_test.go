@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/replicatedhq/libyaml"
+
 	"context"
 
 	"fmt"
@@ -12,7 +14,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
+	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -49,20 +53,25 @@ func TestDockerStep(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			mc := gomock.NewController(t)
 			v := viper.New()
-			saver := mockimages.NewMockImageSaver(mc)
+			saver := mocksaver.NewMockImageSaver(mc)
 			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
+			bb := templates.NewBuilderBuilder(testLogger)
 			ctx := context.Background()
 
 			step := &DefaultStep{
-				Logger:      testLogger,
-				Fs:          afero.Afero{Fs: afero.NewMemMapFs()},
-				URLResolver: urlResolver,
-				ImageSaver:  saver,
-				Viper:       v,
+				Logger:         testLogger,
+				Fs:             afero.Afero{Fs: afero.NewMemMapFs()},
+				URLResolver:    urlResolver,
+				ImageSaver:     saver,
+				Viper:          v,
+				BuilderBuilder: bb,
 			}
 
 			asset := api.DockerAsset{
+				AssetShared: api.AssetShared{
+					Dest: "{{repl ConfigOption \"docker_dir\" }}/image.tar",
+				},
 				Image:  "registry.replicated.com/retracedio/api:v2.0.0",
 				Source: "replicated",
 			}
@@ -74,6 +83,21 @@ func TestDockerStep(t *testing.T) {
 			v.Set("installation-id", "vernon")
 
 			urlResolver.EXPECT().ResolvePullURL(asset, metadata).Return("some-pull-url", nil)
+
+			templateContext := map[string]interface{}{
+				"docker_dir": "images",
+			}
+			configGroups := []libyaml.ConfigGroup{
+				{
+					Name: "Test",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name: "docker_dir",
+							Type: "text",
+						},
+					},
+				},
+			}
 
 			registrySecretSaveOpts := images.SaveOpts{
 				PullURL:   "some-pull-url",
@@ -112,7 +136,7 @@ func TestDockerStep(t *testing.T) {
 			req := require.New(t)
 
 			// When
-			err := step.Execute(asset, metadata, mockProgress, asset.Dest)(ctx)
+			err := step.Execute(asset, metadata, mockProgress, asset.Dest, templateContext, configGroups)(ctx)
 
 			// Then
 			if test.Expect == nil {

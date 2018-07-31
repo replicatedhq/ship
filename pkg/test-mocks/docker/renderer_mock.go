@@ -10,6 +10,7 @@ import (
 
 	log "github.com/go-kit/kit/log"
 	gomock "github.com/golang/mock/gomock"
+	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
 )
 
@@ -37,13 +38,13 @@ func (m *MockRenderer) EXPECT() *MockRendererMockRecorder {
 }
 
 // Execute mocks base method
-func (m *MockRenderer) Execute(arg0 api.DockerAsset, arg1 api.ReleaseMetadata, arg2 func(chan interface{}, log.Logger) error, arg3 string) func(context.Context) error {
-	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2, arg3)
+func (m *MockRenderer) Execute(arg0 api.DockerAsset, arg1 api.ReleaseMetadata, arg2 func(chan interface{}, log.Logger) error, arg3 string, arg4 map[string]interface{}, arg5 []libyaml.ConfigGroup) func(context.Context) error {
+	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(func(context.Context) error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2, arg3)
+func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2, arg3, arg4, arg5)
 }
