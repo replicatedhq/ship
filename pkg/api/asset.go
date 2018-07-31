@@ -1,6 +1,10 @@
 package api
 
-import "os"
+import (
+	"os"
+
+	"github.com/replicatedhq/ship/pkg/api/amazonElasticKubernetesService"
+)
 
 // Assets is the top level assets object
 type Assets struct {
@@ -95,25 +99,6 @@ type TerraformAsset struct {
 	Inline string `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
 }
 
-type EKSCreatedVPC struct {
-	Zones          []string `json:"zones,omitempty" yaml:"zones,omitempty" hcl:"zones,omitempty"`
-	VPCCIDR        string   `json:"vpc_cidr,omitempty" yaml:"vpc_cidr,omitempty" hcl:"vpc_cidr,omitempty"`
-	PublicSubnets  []string `json:"public_subnets,omitempty" yaml:"public_subnets,omitempty" hcl:"public_subnets,omitempty"`
-	PrivateSubnets []string `json:"private_subnets,omitempty" yaml:"private_subnets,omitempty" hcl:"private_subnets,omitempty"`
-}
-
-type EKSExistingVPC struct {
-	VPCID          string   `json:"vpc_id,omitempty" yaml:"vpc_id,omitempty" hcl:"vpc_id,omitempty"`
-	PublicSubnets  []string `json:"public_subnets,omitempty" yaml:"public_subnets,omitempty" hcl:"public_subnets,omitempty"`
-	PrivateSubnets []string `json:"private_subnets,omitempty" yaml:"private_subnets,omitempty" hcl:"private_subnets,omitempty"`
-}
-
-type EKSAutoscalingGroup struct {
-	Name        string `json:"name,omitempty" yaml:"name,omitempty" hcl:"name,omitempty"`
-	GroupSize   int    `json:"group_size,omitempty" yaml:"group_size,omitempty" hcl:"group_size,omitempty"`
-	MachineType string `json:"machine_type,omitempty" yaml:"machine_type,omitempty" hcl:"machine_type,omitempty"`
-}
-
 // EKSAsset
 type EKSAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
@@ -121,7 +106,7 @@ type EKSAsset struct {
 	ClusterName string `json:"cluster_name,omitempty" yaml:"cluster_name,omitempty" hcl:"cluster_name,omitempty"`
 	Region      string `json:"region,omitempty" yaml:"region,omitempty" hcl:"region,omitempty"`
 
-	CreatedVPC        *EKSCreatedVPC        `json:"created_vpc,omitempty" yaml:"created_vpc,omitempty" hcl:"created_vpc,omitempty"`
-	ExistingVPC       *EKSExistingVPC       `json:"existing_vpc,omitempty" yaml:"existing_vpc,omitempty" hcl:"existing_vpc,omitempty"`
-	AutoscalingGroups []EKSAutoscalingGroup `json:"autoscaling_groups,omitempty" yaml:"autoscaling_groups,omitempty" hcl:"autoscaling_groups,omitempty"`
+	CreatedVPC        *amazonElasticKubernetesService.EKSCreatedVPC        `json:"created_vpc,omitempty" yaml:"created_vpc,omitempty" hcl:"created_vpc,omitempty"`
+	ExistingVPC       *amazonElasticKubernetesService.EKSExistingVPC       `json:"existing_vpc,omitempty" yaml:"existing_vpc,omitempty" hcl:"existing_vpc,omitempty"`
+	AutoscalingGroups []amazonElasticKubernetesService.EKSAutoscalingGroup `json:"autoscaling_groups,omitempty" yaml:"autoscaling_groups,omitempty" hcl:"autoscaling_groups,omitempty"`
 }

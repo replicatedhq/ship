@@ -2,12 +2,14 @@ package amazonElasticKubernetesService
 
 import (
 	"context"
+	"html/template"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/api/amazonElasticKubernetesService"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
@@ -21,7 +23,7 @@ func TestRenderer(t *testing.T) {
 	}{
 		{
 			name:  "empty",
-			asset: api.EKSAsset{ExistingVPC: &api.EKSExistingVPC{}},
+			asset: api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
 		},
 	}
 	for _, test := range tests {
@@ -69,15 +71,24 @@ func TestRenderer(t *testing.T) {
 	}
 }
 
-func TestRenderASGs(t *testing.T) {
+// this function allows testing the worker template independently
+func testRenderEKS(asset api.EKSAsset) (string, error) {
+	t, err := template.New("asgsTemplate").Parse(workerTempl)
+	if err != nil {
+		return "", err
+	}
+	return executeTemplate(t, asset)
+}
+
+func TestRenderEKSs(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected string
-		groups   []api.EKSAutoscalingGroup
+		asset    api.EKSAsset
 	}{
 		{
-			name:   "empty",
-			groups: []api.EKSAutoscalingGroup{},
+			name:  "empty",
+			asset: api.EKSAsset{},
 			expected: `
 locals {
   "worker_group_count" = "0"
@@ -87,16 +98,45 @@ locals {
   "worker_groups" = [
   ]
 }
+
+provider "aws" {
+  version = "~> 1.27"
+  region  = ""
+}
+
+variable "eks-cluster-name" {
+  default = ""
+  type    = "string"
+}
+
+module "eks" {
+  #source = "terraform-aws-modules/eks/aws"
+  source  = "laverya/eks/aws"
+  version = "1.4.0"
+
+  cluster_name = "${var.eks-cluster-name}"
+
+  subnets = ["${local.eks_vpc_private_subnets}", "${local.eks_vpc_public_subnets}"]
+
+  vpc_id = "${local.eks_vpc}"
+
+  worker_group_count = "${local.worker_group_count}"
+  worker_groups      = "${local.worker_groups}"
+}
 `,
 		},
 		{
 			name: "one",
-			groups: []api.EKSAutoscalingGroup{
-				{
-					Name:        "onegroup",
-					GroupSize:   3,
-					MachineType: "m5.large",
+			asset: api.EKSAsset{
+				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+					{
+						Name:        "onegroup",
+						GroupSize:   3,
+						MachineType: "m5.large",
+					},
 				},
+				Region:      "test-region",
+				ClusterName: "a-test-cluster",
 			},
 			expected: `
 locals {
@@ -116,21 +156,50 @@ locals {
     },
   ]
 }
+
+provider "aws" {
+  version = "~> 1.27"
+  region  = "test-region"
+}
+
+variable "eks-cluster-name" {
+  default = "a-test-cluster"
+  type    = "string"
+}
+
+module "eks" {
+  #source = "terraform-aws-modules/eks/aws"
+  source  = "laverya/eks/aws"
+  version = "1.4.0"
+
+  cluster_name = "${var.eks-cluster-name}"
+
+  subnets = ["${local.eks_vpc_private_subnets}", "${local.eks_vpc_public_subnets}"]
+
+  vpc_id = "${local.eks_vpc}"
+
+  worker_group_count = "${local.worker_group_count}"
+  worker_groups      = "${local.worker_groups}"
+}
 `,
 		},
 		{
 			name: "two",
-			groups: []api.EKSAutoscalingGroup{
-				{
-					Name:        "onegroup",
-					GroupSize:   3,
-					MachineType: "m5.large",
+			asset: api.EKSAsset{
+				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+					{
+						Name:        "onegroup",
+						GroupSize:   3,
+						MachineType: "m5.large",
+					},
+					{
+						Name:        "twogroup",
+						GroupSize:   1,
+						MachineType: "m5.xlarge",
+					},
 				},
-				{
-					Name:        "twogroup",
-					GroupSize:   1,
-					MachineType: "m5.xlarge",
-				},
+				Region:      "double-test-region",
+				ClusterName: "double-test-cluster",
 			},
 			expected: `
 locals {
@@ -159,12 +228,39 @@ locals {
     },
   ]
 }
+
+provider "aws" {
+  version = "~> 1.27"
+  region  = "double-test-region"
+}
+
+variable "eks-cluster-name" {
+  default = "double-test-cluster"
+  type    = "string"
+}
+
+module "eks" {
+  #source = "terraform-aws-modules/eks/aws"
+  source  = "laverya/eks/aws"
+  version = "1.4.0"
+
+  cluster_name = "${var.eks-cluster-name}"
+
+  subnets = ["${local.eks_vpc_private_subnets}", "${local.eks_vpc_public_subnets}"]
+
+  vpc_id = "${local.eks_vpc}"
+
+  worker_group_count = "${local.worker_group_count}"
+  worker_groups      = "${local.worker_groups}"
+}
 `,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := renderASGs(test.groups)
+			req := require.New(t)
+			actual, err := testRenderEKS(test.asset)
+			req.NoError(err)
 			if actual != test.expected {
 				diff := difflib.UnifiedDiff{
 					A:        difflib.SplitLines(test.expected),
@@ -175,26 +271,34 @@ locals {
 				}
 
 				diffText, err := difflib.GetUnifiedDiffString(diff)
-				if err != nil {
-					t.Fatal(err)
-				}
+				req.NoError(err)
 
 				t.Errorf("Test %s did not match, diff:\n%s", test.name, diffText)
-				t.Fail()
 			}
 		})
 	}
+}
+
+// this function allows testing the new VPC template independently
+func testRenderNewVPC(vpc api.EKSAsset) (string, error) {
+	t, err := template.New("eksTemplate").Parse(newVPCTempl)
+	if err != nil {
+		return "", err
+	}
+	return executeTemplate(t, vpc)
 }
 
 func TestRenderVPC(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected string
-		vpc      api.EKSCreatedVPC
+		asset    api.EKSAsset
 	}{
 		{
 			name: "empty",
-			vpc:  api.EKSCreatedVPC{},
+			asset: api.EKSAsset{
+				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{},
+			},
 			expected: `
 variable "vpc_cidr" {
   type    = "string"
@@ -242,11 +346,13 @@ locals {
 		},
 		{
 			name: "basic vpc",
-			vpc: api.EKSCreatedVPC{
-				VPCCIDR:        "10.0.0.0/16",
-				PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
-				PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
-				Zones:          []string{"a", "b", "c", "d"},
+			asset: api.EKSAsset{
+				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{
+					VPCCIDR:        "10.0.0.0/16",
+					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
+					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
+					Zones:          []string{"a", "b", "c", "d"},
+				},
 			},
 			expected: `
 variable "vpc_cidr" {
@@ -308,7 +414,9 @@ locals {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := renderNewVPC(test.vpc)
+			req := require.New(t)
+			actual, err := testRenderNewVPC(test.asset)
+			req.NoError(err)
 			if actual != test.expected {
 				diff := difflib.UnifiedDiff{
 					A:        difflib.SplitLines(test.expected),
@@ -319,26 +427,32 @@ locals {
 				}
 
 				diffText, err := difflib.GetUnifiedDiffString(diff)
-				if err != nil {
-					t.Fatal(err)
-				}
+				req.NoError(err)
 
 				t.Errorf("Test %s did not match, diff:\n%s", test.name, diffText)
-				t.Fail()
 			}
 		})
 	}
+}
+
+// this function allows testing the existing VPC template independently
+func testRenderExistingVPC(vpc api.EKSAsset) (string, error) {
+	t, err := template.New("eksTemplate").Parse(existingVPCTempl)
+	if err != nil {
+		return "", err
+	}
+	return executeTemplate(t, vpc)
 }
 
 func TestRenderExistingVPC(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected string
-		vpc      api.EKSExistingVPC
+		asset    api.EKSAsset
 	}{
 		{
-			name: "empty",
-			vpc:  api.EKSExistingVPC{},
+			name:  "empty",
+			asset: api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
 			expected: `
 locals {
   "eks_vpc"                 = ""
@@ -351,10 +465,12 @@ locals {
 		},
 		{
 			name: "basic vpc",
-			vpc: api.EKSExistingVPC{
-				VPCID:          "vpcid",
-				PublicSubnets:  []string{"abc123-a", "abc123-b"},
-				PrivateSubnets: []string{"xyz789-a", "xyz789-b"},
+			asset: api.EKSAsset{
+				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{
+					VPCID:          "vpcid",
+					PublicSubnets:  []string{"abc123-a", "abc123-b"},
+					PrivateSubnets: []string{"xyz789-a", "xyz789-b"},
+				},
 			},
 			expected: `
 locals {
@@ -373,7 +489,9 @@ locals {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := renderExistingVPC(test.vpc)
+			req := require.New(t)
+			actual, err := testRenderExistingVPC(test.asset)
+			req.NoError(err)
 			if actual != test.expected {
 				diff := difflib.UnifiedDiff{
 					A:        difflib.SplitLines(test.expected),
@@ -384,12 +502,9 @@ locals {
 				}
 
 				diffText, err := difflib.GetUnifiedDiffString(diff)
-				if err != nil {
-					t.Fatal(err)
-				}
+				req.NoError(err)
 
 				t.Errorf("Test %s did not match, diff:\n%s", test.name, diffText)
-				t.Fail()
 			}
 		})
 	}
@@ -403,7 +518,7 @@ func TestRenderTerraform(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			vpc:  api.EKSAsset{ExistingVPC: &api.EKSExistingVPC{}},
+			vpc:  api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
 			expected: `
 locals {
   "eks_vpc"                 = ""
@@ -453,12 +568,12 @@ module "eks" {
 			vpc: api.EKSAsset{
 				ClusterName: "existing-vpc-cluster",
 				Region:      "us-east-1",
-				ExistingVPC: &api.EKSExistingVPC{
+				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{
 					VPCID:          "existing_vpcid",
 					PublicSubnets:  []string{"abc123-a", "abc123-b"},
 					PrivateSubnets: []string{"xyz789-a", "xyz789-b"},
 				},
-				AutoscalingGroups: []api.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,
@@ -528,13 +643,13 @@ module "eks" {
 			vpc: api.EKSAsset{
 				ClusterName: "new-vpc-cluster",
 				Region:      "us-east-1",
-				CreatedVPC: &api.EKSCreatedVPC{
+				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{
 					VPCCIDR:        "10.0.0.0/16",
 					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
 					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
 					Zones:          []string{"a", "b", "c", "d"},
 				},
-				AutoscalingGroups: []api.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,
@@ -659,10 +774,9 @@ module "eks" {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
 			actual, err := renderTerraformContents(test.vpc)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req.NoError(err)
 			if actual != test.expected {
 				diff := difflib.UnifiedDiff{
 					A:        difflib.SplitLines(test.expected),
@@ -673,12 +787,9 @@ module "eks" {
 				}
 
 				diffText, err := difflib.GetUnifiedDiffString(diff)
-				if err != nil {
-					t.Fatal(err)
-				}
+				req.NoError(err)
 
 				t.Errorf("Test %s did not match, diff:\n%s", test.name, diffText)
-				t.Fail()
 			}
 		})
 	}
