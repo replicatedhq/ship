@@ -146,6 +146,9 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
 	}
 
+	debug.Log("phase", "save-chart-url", "url", path)
+	md.URL = path
+
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")
 	debug.Log("phase", "read-chart", "from", localChartPath)
 	chart, err := r.FS.ReadFile(localChartPath)
