@@ -51,6 +51,13 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
 
+	// run in headed mode?
+	if s.Viper.GetString("headed") != "" {
+		debug.Log("event", "headed.mode")
+	} else {
+		debug.Log("event", "headless.mode")
+	}
+
 	return errors.New(`Implement me`)
 }
 
