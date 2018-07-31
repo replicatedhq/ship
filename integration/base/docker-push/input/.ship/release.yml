@@ -16,7 +16,7 @@ assets:
         dest: ./scripts/test.sh
         mode: 0777
     - docker:
-        image: postgres:latest
+        image: replicated/helloscratch:1.0.0
         source: public
         dest: 'docker://{{repl ConfigOption "external_registry" }}/postgres:latest'
 config:

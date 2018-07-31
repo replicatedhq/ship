@@ -29,7 +29,8 @@ func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
 }
 
 func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "PushKustomizeStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameKustomize
@@ -39,8 +40,8 @@ func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize)
 }
 
 func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
-	defer d.locker()()
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "kustomizeSaveOverlay"))
+	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
+	defer d.locker(debug)()
 	type Request struct {
 		Path     string `json:"path"`
 		Contents string `json:"contents"`
@@ -91,7 +92,8 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 }
 
 func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "kustomizeGetFile"))
+	defer d.locker(debug)()
 
 	type Request struct {
 		Path string `json:"path"`
@@ -118,7 +120,8 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	c.JSON(200, Response{Base: base})
 }
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "kustomizeFinalize"))
+	defer d.locker(debug)()
 
 	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
 	d.KustomizeSaved <- nil

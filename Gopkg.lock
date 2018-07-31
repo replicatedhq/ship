@@ -673,6 +673,14 @@
   version = "v1.0.6"
 
 [[projects]]
+  branch = "master"
+  digest = "1:39853e1ae46a02816e2419e1f590e00682b1a6b60bb988597cf2efb84314da45"
+  name = "github.com/skratchdot/open-golang"
+  packages = ["open"]
+  pruneopts = "UT"
+  revision = "75fb7ed4208cf72d323d7d02fd1a5964a7a9073c"
+
+[[projects]]
   digest = "1:46c66b2046474cf473b116e5344fa7cf6aadce82941bf5dd49cf63a90b8dc31d"
   name = "github.com/spf13/afero"
   packages = [
@@ -997,6 +1005,7 @@
     "github.com/pkg/errors",
     "github.com/pmezard/go-difflib/difflib",
     "github.com/replicatedhq/libyaml",
+    "github.com/skratchdot/open-golang/open",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",

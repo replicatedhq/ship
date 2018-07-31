@@ -68,8 +68,9 @@ func TestDaemonChannel(t *testing.T) {
 				Fs:     fs,
 				Viper:  v,
 
-				UI:           cli.NewMockUi(),
-				WebUIFactory: WebUIFactoryFactory(log),
+				UI:             cli.NewMockUi(),
+				WebUIFactory:   WebUIFactoryFactory(log),
+				OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

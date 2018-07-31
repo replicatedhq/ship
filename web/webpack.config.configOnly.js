@@ -1,6 +1,7 @@
 var webpack = require("webpack");
 var path = require("path");
 var srcPath = path.join(__dirname, "src");
+var WriteFilePlugin = require("write-file-webpack-plugin");
 
 module.exports = {
   entry: [
@@ -10,7 +11,12 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin(),
+    new WriteFilePlugin()
   ],
+  output: {
+    path: path.join(__dirname, 'dist')
+  },
+
 
   module: {
     rules: [
@@ -40,7 +46,7 @@ module.exports = {
   devtool: false,
 
   devServer: {
-    port: 8800,
+    port: 8880,
     hot: true,
     hotOnly: true,
     historyApiFallback: {

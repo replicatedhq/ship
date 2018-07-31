@@ -6,7 +6,6 @@ import (
 
 	"strings"
 
-	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,10 +37,10 @@ func RootCmd() *cobra.Command {
 	// optional
 	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
+	cmd.PersistentFlags().Bool("no-open", false, "skip opening the ship console in the default browser--does not disable the UI, has no effect if `headless` is set to true.")
 
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
 
-	cmd.AddCommand(e2e.Cmd())
 	cmd.AddCommand(Init())
 	cmd.AddCommand(Update())
 	cmd.AddCommand(App())

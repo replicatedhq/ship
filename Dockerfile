@@ -41,9 +41,9 @@ RUN curl -fsSLO "$TERRAFORM_URL" \
 	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
 	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
 
-ENV DEP_URL=https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
+ENV DEP_URL=https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64
 ENV DEP_BIN=dep-linux-amd64
-ENV DEP_SHA256SUM=31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
+ENV DEP_SHA256SUM=287b08291e14f1fae8ba44374b26a2b12eb941af3497ed0ca649253e21ba2f83
 
 RUN curl -fsSLO "${DEP_URL}" \
     && echo "${DEP_SHA256SUM}  ${DEP_BIN}" | sha256sum -c - \
