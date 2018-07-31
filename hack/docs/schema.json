@@ -522,6 +522,7 @@
                     "type": "string"
                   },
                   "dest": {
+                    "description": "A path to which the file should be written when generating assets",
                     "type": "string"
                   },
                   "headers": {

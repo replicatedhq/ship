@@ -400,6 +400,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.web.properties.dest",
+    "merge": {
+      "description": "A path to which the file should be written when generating assets"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.web.properties.url",
     "merge": {
       "description": "A public or private URL to pull content from"

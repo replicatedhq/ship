@@ -21,7 +21,7 @@ function maybeRenderParameters(paramType, param: any[], typeOf) {
   let doc = "";
   if (param.length !== 0) {
     doc += `
-    
+
 ### ${typeOf} Parameters
 
 `;
@@ -39,7 +39,7 @@ function maybeRenderParameters(paramType, param: any[], typeOf) {
 `;
         for (const childDescr of requiredSubParam) {
           doc += `
-    - ${"`" + childDescr.field + "`"} - ${childDescr.description}
+  - ${"`" + childDescr.field + "`"} - ${childDescr.description}
 `;
         }
       }
@@ -49,7 +49,7 @@ function maybeRenderParameters(paramType, param: any[], typeOf) {
 `;
         for (const childDescr of optionalSubParam) {
           doc += `
-    - ${"`" + childDescr.field + "`"} - ${childDescr.description}
+  - ${"`" + childDescr.field + "`"} - ${childDescr.description}
 `;
         }
       }
@@ -129,6 +129,9 @@ function parseSubParameters(paramType: any, spec: string) {
 function maybeRenderExamples(specTypes: any, specType, subgroup: string) {
   let doc = "";
   if (specTypes[specType].examples) {
+    doc += `
+### Examples
+`;
     for (const example of specTypes[specType].examples) {
       console.log("EXAMPLE", subgroup, specType);
       doc += `
@@ -181,7 +184,6 @@ export const handler = (argv) => {
 
       let doc = "";
       doc += writeHeader(specTypes, specType, subgroup);
-      doc += maybeRenderExamples(specTypes, specType, subgroup);
 
       const {required, optional} = parseParameters(specTypes, specType);
 
@@ -190,9 +192,7 @@ export const handler = (argv) => {
       doc += maybeRenderParameters(subTypes, required, `Required`);
       doc += maybeRenderParameters(subTypes, optional, `Optional`);
 
-      doc += `
-    
-    `;
+      doc += maybeRenderExamples(specTypes, specType, subgroup);
 
       fs.writeFileSync(`${subgroup}/${cleanProperty}.md`, doc);
     }
