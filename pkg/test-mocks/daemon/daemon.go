@@ -6,10 +6,11 @@ package daemon
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
-	reflect "reflect"
 )
 
 // MockDaemon is a mock of Daemon interface

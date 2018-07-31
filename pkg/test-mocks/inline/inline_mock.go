@@ -6,10 +6,11 @@ package inline
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
-	reflect "reflect"
 )
 
 // MockRenderer is a mock of Renderer interface
