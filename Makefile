@@ -206,10 +206,7 @@ build_yoonit_docker_image:
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
 
-web/.state/build_ship:
-	$(MAKE) -C web .state/build_ship
-
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI) web/.state/build_ship
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	cd web; go-bindata-assetfs -pkg daemon \
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
 	  dist/...
@@ -217,5 +214,4 @@ pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI) web/.state/build_sh
 embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
 build-ui:
-	cd web; yarn install --force
-	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
+	$(MAKE) -C web build_ship
