@@ -1,6 +1,8 @@
 package daemon
 
 import (
+	"fmt"
+
 	"github.com/mitchellh/cli"
 	"github.com/skratchdot/open-golang/open"
 )
@@ -8,12 +10,11 @@ import (
 type opener func(cli.Ui, string) error
 
 func tryOpenWebConsole(ui cli.Ui, url string) error {
-	//ui.Info("Opening console...")
-	// ignore error
+	ui.Info("Opening console...")
 	err := open.Start(url)
-	//ui.Info(fmt.Sprintf(
-	//	"Please visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
-	//	url,
-	//))
+	ui.Info(fmt.Sprintf(
+		"Please visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
+		url,
+	))
 	return err
 }
