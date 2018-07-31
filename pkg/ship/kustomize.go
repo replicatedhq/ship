@@ -4,6 +4,8 @@ import (
 	"context"
 	"path"
 
+	"strings"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -15,6 +17,9 @@ import (
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 	if err := s.Init(ctx); err != nil {
+		if err.Error() == constants.ShouldUseUpdate {
+			s.ExitWithWarn(err)
+		}
 		s.ExitWithError(err)
 	}
 }
@@ -24,27 +29,58 @@ func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
 	}
 }
 
-func (s *Ship) Update(ctx context.Context) error {
-	debug := level.Debug(log.With(s.Logger, "method", "update"))
-	// is there a state file?
+func (s *Ship) stateFileExists(ctx context.Context) bool {
+	debug := level.Debug(log.With(s.Logger, "method", "stateFileExists"))
+
 	existingState, err := s.State.TryLoad()
 	if err != nil {
-		return errors.Wrap(err, "load state")
+		debug.Log("event", "tryLoad.fail")
+		return false
 	}
 	_, noExistingState := existingState.(state.Empty)
 
-	if noExistingState {
+	return !noExistingState
+}
+
+func (s *Ship) Update(ctx context.Context) error {
+	debug := level.Debug(log.With(s.Logger, "method", "update"))
+
+	// does a state file exist on disk?
+	if !s.stateFileExists(ctx) {
 		debug.Log("event", "state.missing")
-		return errors.New(`no state file found at ` + constants.StatePath + `, please run "ship init"`)
+		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
 
-	return s.Init(ctx)
+	return errors.New(`Implement me`)
 }
 
 func (s *Ship) Init(ctx context.Context) error {
+	debug := level.Debug(log.With(s.Logger, "method", "init"))
+
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
 		return s.execute(ctx, release, nil, true)
+	}
+
+	// does a state file exist on disk?
+	if s.stateFileExists(ctx) {
+		debug.Log("event", "state.exists")
+
+		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y/N) `)
+		if err != nil {
+			return err
+		}
+		useUpdate = strings.ToLower(strings.Trim(useUpdate, " \r\n"))
+
+		if strings.Compare(useUpdate, "y") == 0 {
+			// remove state.json and start from scratch
+			if err := s.State.RemoveStateFile(); err != nil {
+				return err
+			}
+		} else {
+			// exit and use 'ship update'
+			return errors.New(constants.ShouldUseUpdate)
+		}
 	}
 
 	helmChartPath := s.Viper.GetString("chart")
