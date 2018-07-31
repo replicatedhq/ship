@@ -324,14 +324,12 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
-	debug := log.With(level.Debug(d.Logger), "method", "SetProgress")
-	defer d.locker(debug)()
+	defer d.locker(log.NewNopLogger())()
 	d.stepProgress = &p
 }
 
 func (d *ShipDaemon) ClearProgress() {
-	debug := log.With(level.Debug(d.Logger), "method", "ClearProgress")
-	defer d.locker(debug)()
+	defer d.locker(log.With(log.NewNopLogger()))()
 	d.stepProgress = nil
 }
 
