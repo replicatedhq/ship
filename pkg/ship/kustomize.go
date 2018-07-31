@@ -46,10 +46,25 @@ func (s *Ship) Update(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "update"))
 
 	// does a state file exist on disk?
-	if !s.stateFileExists(ctx) {
+	existingState, err := s.State.TryLoad()
+	if err != nil {
 		debug.Log("event", "state.missing")
 		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
+
+	debug.Log("event", "read.chartURL")
+	helmChartPath := existingState.CurrentChartURL()
+
+	debug.Log("event", "fetch latest chart")
+	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+	if err != nil {
+		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
+	}
+
+	release := s.buildRelease(helmChartMetadata)
+
+	// log to compile, will remove later
+	debug.Log("event", "build release", "release", release)
 
 	return errors.New(`Implement me`)
 }
@@ -89,6 +104,53 @@ func (s *Ship) Init(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
 	}
 
+	// persist after resolve as to not persist a bad chart URL
+	if err := s.State.BlowAwayStateAndSetChartURL(helmChartPath); err != nil {
+		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
+	}
+
+	release := s.buildRelease(helmChartMetadata)
+
+	return s.execute(ctx, release, nil, true)
+}
+
+func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	release := &api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{},
+			},
+			Config: api.Config{
+				V1: []libyaml.ConfigGroup{},
+			},
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: s.KustomizeRaw,
+							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+						},
+					},
+					{
+						Message: &api.Message{
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/rendered
+
+to deploy the overlaid assets to your cluster.
+						`},
+					},
+				},
+			},
+		},
+	}
+
+	return release
+}
+
+func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
+
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			HelmChartMetadata: helmChartMetadata,
@@ -126,41 +188,6 @@ func (s *Ship) Init(ctx context.Context) error {
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
-						},
-					},
-					{
-						Message: &api.Message{
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
-
-	return s.execute(ctx, release, nil, true)
-}
-
-func (s *Ship) fakeKustomizeRawRelease() *api.Release {
-	release := &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{},
-			},
-			Config: api.Config{
-				V1: []libyaml.ConfigGroup{},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
 							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
