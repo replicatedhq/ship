@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/spf13/afero"
 )
@@ -60,9 +61,9 @@ func (r *LocalRenderer) Execute(
 
 		var assetsPath string
 		if asset.Dest != "" {
-			assetsPath = path.Join("terraform", asset.Dest)
+			assetsPath = path.Join(constants.InstallerPrefix, asset.Dest)
 		} else {
-			assetsPath = path.Join("terraform", "amazon_elastic_kubernetes_service.tf")
+			assetsPath = path.Join(constants.InstallerPrefix, "amazon_elastic_kubernetes_service.tf")
 		}
 
 		// write the inline spec
@@ -71,6 +72,7 @@ func (r *LocalRenderer) Execute(
 				Contents: contents,
 				AssetShared: api.AssetShared{
 					Dest: assetsPath,
+					Mode: asset.Mode,
 				},
 			},
 			meta,

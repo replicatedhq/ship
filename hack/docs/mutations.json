@@ -464,7 +464,7 @@
       ]
     },
     "merge": {
-      "description": "A `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+      "description": "An `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
       "examples": [
         {
           "cluster_name": "existing-vpc-cluster",
@@ -653,6 +653,50 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.terraform",
+    "merge": {
+      "description": "A `terraform` asset is text specified directly in your Ship application's spec.",
+      "examples": [
+        {
+          "inline": "resource \"random_id\" \"server\" { byte_length = {{repl ConfigOption \"id_length\" | ParseInt}}}"
+        },
+        {
+          "dest": "terraform/random_id.tf",
+          "inline": "resource \"random_id\" \"server\" { byte_length = {{repl ConfigOption \"id_length\" | ParseInt}}}"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "inline"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.terraform.properties.inline",
+    "merge": {
+      "description": "The contents of the file"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.terraform.properties.dest",
+    "merge": {
+      "description": "A path to which the file should be written when generating assets. Defaults to `main.tf`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.terraform.properties.mode",
+    "merge": {
+      "description": "Specifies file mode of the created asset, defaults to `0644`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.terraform.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
     "path": "properties.config",
     "merge": {
       "description": "Config allows you to describe your application's environment-specific configuration options. This can be things like\n\n- External database configuration\n- Infrastructure topology details\n- internal container or artifact repositories\n- TCP Ports to listen on"
@@ -715,12 +759,29 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties",
-    "delete": ["terraform"]
+    "path": "properties.lifecycle.properties.v1.items.properties.terraform",
+    "merge": {
+      "description": "A `terraform` step will deploy terraform resources.",
+      "examples": [
+        {},
+        {
+          "path": "terraform/"
+        }
+      ]
+    },
+    "replace": {
+      "required": []
+    }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties",
-    "delete": ["terraform"]
+    "path": "properties.lifecycle.properties.v1.items.properties.terraform.properties.path",
+    "merge": {
+      "description": "the directory within `installer` to run terraform within."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.terraform.properties",
+    "delete": ["github"]
   },
   {}
 ]

@@ -92,7 +92,7 @@ func TestTerraformer(t *testing.T) {
 				Logger:        &logger.TestLogger{T: t},
 				Daemon:        mockDaemon,
 				PlanConfirmer: mockPlanner,
-				Terraform: func() *exec.Cmd {
+				Terraform: func(string) *exec.Cmd {
 					cmd := exec.Command(os.Args[0], "-test.run=TestMockTerraform")
 
 					init, err := json.Marshal(test.init)
@@ -225,7 +225,7 @@ func TestForkTerraformerApply(t *testing.T) {
 	ft := ForkTerraformer{
 		Daemon: mockDaemon,
 		Logger: &logger.TestLogger{T: t},
-		Terraform: func() *exec.Cmd {
+		Terraform: func(string) *exec.Cmd {
 			cmd := exec.Command(os.Args[0], "-test.run=TestMockTerraformApply")
 			cmd.Env = append(os.Environ(),
 				"GOTEST_SUBPROCESS_MOCK=1",
