@@ -7,6 +7,7 @@ import find from "lodash/find";
 const { addListener } = ace.acequire("ace/lib/event");
 
 export const PATCH_TOKEN = "TO_BE_MODIFIED";
+const YAML_LIST_PREFIX = "-";
 
 export class AceEditorHOC extends React.Component {
   constructor(props) {
@@ -41,16 +42,23 @@ export class AceEditorHOC extends React.Component {
   )
 
   addToOverlay = (e) => {
+    const getPrefix = (value) => {
+      if (value.mapping.parent.key) {
+        return `${value.mapping.parent.key.value}: `;
+      }
+      return `${YAML_LIST_PREFIX} `;
+    };
+
     const { markers } = this.state;
     const { row } = e.getDocumentPosition();
     const matchingMarker = this.findMarkerAtRow(row, markers);
 
     if (matchingMarker) {
       if (matchingMarker.mapping.value) {
-        const valueToEdit = matchingMarker.mapping.value;
-        const keyToEdit = matchingMarker.mapping.parent.key.value;
+        const valueToEdit = matchingMarker.mapping.rawValue;
+        const prefix = getPrefix(matchingMarker);
         const baseContent = this.aceEditorBase.editor.getValue();
-        const dirtybaseContent = baseContent.replace(`${keyToEdit}: ${valueToEdit}`, `${keyToEdit}: ${PATCH_TOKEN}`);
+        const dirtybaseContent = baseContent.replace(`${prefix}${valueToEdit}`, `${prefix}${PATCH_TOKEN}`);
         this.props.handleGeneratePatch(dirtybaseContent);
       }
     }
