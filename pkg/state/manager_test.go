@@ -16,7 +16,7 @@ func TestSerialize(t *testing.T) {
 	templateContext := make(map[string]interface{})
 	templateContext["key"] = "value"
 
-	state := Manager{
+	state := &MManager{
 		Logger: log.NewNopLogger(),
 		FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 		V:      viper.New(),
@@ -24,7 +24,7 @@ func TestSerialize(t *testing.T) {
 
 	req := require.New(t)
 
-	err := state.Serialize(nil, api.ReleaseMetadata{}, templateContext)
+	err := state.SerializeConfig(nil, api.ReleaseMetadata{}, templateContext)
 	req.NoError(err)
 }
 
@@ -64,7 +64,7 @@ func TestLoadConfig(t *testing.T) {
 			name: "kustomize",
 			contents: `{"v1": {"kustomize": {"overlays": {
 "ship": {
-  "files": {
+  "patches": {
 	"deployment.yml": "some-fake-overlay"
   }
 }
@@ -72,7 +72,7 @@ func TestLoadConfig(t *testing.T) {
 			expectKustomize: &Kustomize{
 				Overlays: map[string]Overlay{
 					"ship": {
-						Files: map[string]string{
+						Patches: map[string]string{
 							"deployment.yml": `some-fake-overlay`,
 						},
 					},
@@ -91,7 +91,7 @@ func TestLoadConfig(t *testing.T) {
 				req.NoError(err, "write existing state")
 			}
 
-			manager := &Manager{
+			manager := &MManager{
 				Logger: &logger.TestLogger{T: t},
 				FS:     fs,
 				V:      viper.New(),
