@@ -321,8 +321,7 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
-
-	v1.POST("/helm-patch", d.createMergePatch)
+	v1.POST("/kustomize/patch", d.requireKustomize(), d.createMergePatch)
 }
 
 func (d *ShipDaemon) createMergePatch(c *gin.Context) {

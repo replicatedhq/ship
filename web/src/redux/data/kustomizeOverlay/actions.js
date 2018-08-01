@@ -115,7 +115,7 @@ export function receivePatch(patch) {
 export function generatePatch(payload) {
   return async (dispatch) => {
     try {
-      const url = `${apiEndpoint}/helm-patch`;
+      const url = `${apiEndpoint}/kustomize/patch`;
       const response = await fetch(url, {
         method: "POST",
         headers: {

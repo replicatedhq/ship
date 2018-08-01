@@ -44,16 +44,15 @@ export class AceEditorHOC extends React.Component {
   addToOverlay = (e) => {
     const getPrefix = (value) => {
       if (value.mapping.parent.key) {
-        return `${value.mapping.parent.key.value}: `;
+        return `${value.mapping.parent.key.rawValue}: `;
       }
       return `${YAML_LIST_PREFIX} `;
     };
 
-    const { markers } = this.state;
-    const { row } = e.getDocumentPosition();
-    const matchingMarker = this.findMarkerAtRow(row, markers);
+    const { activeMarker } = this.state;
 
-    if (matchingMarker) {
+    if (activeMarker.length > 0) {
+      const matchingMarker = activeMarker[0];
       if (matchingMarker.mapping.value) {
         const valueToEdit = matchingMarker.mapping.rawValue;
         const prefix = getPrefix(matchingMarker);
@@ -71,10 +70,11 @@ export class AceEditorHOC extends React.Component {
     const renderer = this.aceEditorBase.editor.renderer;
     const canvasPos = renderer.scroller.getBoundingClientRect();
 
-    const row = Math.floor((clientY + renderer.scrollTop - canvasPos.top) / renderer.lineHeight);
+    const row = Math.ceil((clientY + renderer.scrollTop - canvasPos.top) / renderer.lineHeight);
     const matchingMarker = this.findMarkerAtRow(row, markers);
 
     if (matchingMarker) {
+      renderer.setCursorStyle("pointer");
       const [ activeMarker0 = {} ] = activeMarker;
       if (matchingMarker.startRow !== activeMarker0.startRow) {
         this.setState({ activeMarker: [ matchingMarker ] });

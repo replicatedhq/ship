@@ -3,7 +3,6 @@ package daemon
 import (
 	"bytes"
 	"context"
-	"fmt"
 
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
@@ -178,21 +177,18 @@ func (d *ShipDaemon) createTwoWayMergePatch(originalFilePath, modified string) (
 
 	debug.Log("event", "convert.originalFile")
 	originalJSON, err := yaml.YAMLToJSON([]byte(originalString))
-	fmt.Println("original json", string(originalJSON))
 	if err != nil {
 		return nil, errors.Wrap(err, "convert original file to json")
 	}
 
 	debug.Log("event", "convert.modifiedFile")
 	modifiedJSON, err := yaml.YAMLToJSON([]byte(modified))
-	fmt.Println("modified json", string(modifiedJSON))
 	if err != nil {
 		return nil, errors.Wrap(err, "convert modified file to json")
 	}
 
 	debug.Log("event", "createKubeResource.originalFile")
 	r, err := d.newKubernetesResource(originalJSON)
-	fmt.Println("GROUP VERSION KIND", r.GroupVersionKind())
 	if err != nil {
 		return nil, errors.Wrap(err, "create kube resource with original json")
 	}

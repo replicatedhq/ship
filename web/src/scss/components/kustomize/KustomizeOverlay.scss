@@ -8,14 +8,6 @@
   position: absolute;
 }
 
-.ace_layer * {
-  pointer-events:none !important;
-}
-
-.ace_constant {
-  pointer-events:auto !important;
-}
-
 .overlay-toggle {
   position: absolute;
   padding: 6px;
