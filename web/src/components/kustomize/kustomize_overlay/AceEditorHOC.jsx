@@ -6,7 +6,9 @@ import find from "lodash/find";
 
 const { addListener } = ace.acequire("ace/lib/event");
 
-export default class AceEditorHOC extends React.Component {
+export const PATCH_TOKEN = "TO_BE_MODIFIED";
+
+export class AceEditorHOC extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,10 +44,15 @@ export default class AceEditorHOC extends React.Component {
     const { markers } = this.state;
     const { row } = e.getDocumentPosition();
     const matchingMarker = this.findMarkerAtRow(row, markers);
-    console.log("matching", matchingMarker);
+
     if (matchingMarker) {
-      const overlayKeyValue = matchingMarker.mapping.key.value;
-      this.props.addToOverlay(overlayKeyValue);
+      if (matchingMarker.mapping.value) {
+        const valueToEdit = matchingMarker.mapping.value;
+        const keyToEdit = matchingMarker.mapping.parent.key.value;
+        const baseContent = this.aceEditorBase.editor.getValue();
+        const dirtybaseContent = baseContent.replace(`${keyToEdit}: ${valueToEdit}`, `${keyToEdit}: ${PATCH_TOKEN}`);
+        this.props.handleGeneratePatch(dirtybaseContent);
+      }
     }
   }
 
@@ -65,31 +72,58 @@ export default class AceEditorHOC extends React.Component {
 
   createMarkers = (fileToView) => {
     if (this.aceEditorBase) {
-      const aceDoc = this.aceEditorBase.editor.getSession().getDocument();
+      let markers = [];
       const loadedAst = ast.safeLoad(fileToView.baseContent, null);
-      console.log("loadedAst", loadedAst);
+      this.createMarkersRec(loadedAst, markers);
+      return markers;
+    }
+  }
 
-      return loadedAst.mappings.map((mapping) => {
-        const { value } = mapping;
-        const { startPosition, endPosition } = value;
+  createMarkersRec = (ast, markers) => {
+    const aceDoc = this.aceEditorBase.editor.getSession().getDocument();
+
+    if (!ast.mappings) {
+      if (ast.items && ast.items.length > 0) {
+        for (const item of ast.items) {
+          this.createMarkersRec(item, markers);
+        }
+      }
+      else {
+        const { startPosition, endPosition } = ast;
         const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
         const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
-
-        return {
+        const newMarker = {
           startRow,
           endRow: endRow + 1,
-          className: "test",
-          mapping,
+          className: "marker-highlight",
+          mapping: ast,
         };
-      });
+        markers.push(newMarker);
+      }
+      return;
     }
-    return [];
+
+    for (const mapping of ast.mappings) {
+      if (mapping.value === null) {
+        const { startPosition, endPosition } = ast;
+        const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
+        const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
+        const nullMarker = {
+          startRow,
+          endRow: endRow + 1,
+          className: "marker-highlight-null",
+          mapping,
+        }
+        return markers.push(nullMarker);
+      }
+
+      this.createMarkersRec(mapping.value, markers);
+    }
   }
 
   render() {
     const { fileToView } = this.props;
     const { activeMarker } = this.state;
-    console.log("HOWMANYTIMESAMIRENDERING");
 
     return (
       <AceEditor

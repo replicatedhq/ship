@@ -5,6 +5,7 @@ import { getCurrentStep } from "../determineSteps/actions";
 const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_FILE_CONTENT: "RECEIVE_FILE_CONTENT",
+  RECEIVE_PATCH: "RECEIVE_PATCH",
 };
 
 export function receiveFileContent(content, path) {
@@ -102,3 +103,32 @@ export function finalizeKustomizeOverlay() {
   };
 }
 
+export function receivePatch(patch) {
+  return {
+    type: constants.RECEIVE_PATCH,
+    payload: {
+      patch,
+    }
+  };
+}
+
+export function generatePatch(payload) {
+  return async (dispatch) => {
+    try {
+      const url = `${apiEndpoint}/helm-patch`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const { patch } = await response.json();
+      dispatch(receivePatch(patch));
+    } catch (error) {
+      console.log(error)
+      return;
+    }
+  };
+}

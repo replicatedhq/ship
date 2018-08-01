@@ -298,6 +298,32 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
+
+	v1.POST("/helm-patch", d.createMergePatch)
+}
+
+func (d *ShipDaemon) createMergePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createMergePatch"))
+	type Request struct {
+		Original string `json:"original"`
+		Modified string `json:"modified"`
+	}
+	var request Request
+
+	debug.Log("event", "request.bind")
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+	}
+
+	patch, err := d.createTwoWayMergePatch(request.Original, request.Modified)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
+	c.JSON(200, map[string]interface{}{
+		"patch": string(patch),
+	})
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {

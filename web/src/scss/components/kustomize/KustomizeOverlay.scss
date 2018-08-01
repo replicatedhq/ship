@@ -1,5 +1,10 @@
-.test {
+.marker-highlight {
   background-color: yellow;
+  position: absolute;
+}
+
+.marker-highlight-null {
+  background-color: red;
   position: absolute;
 }
 

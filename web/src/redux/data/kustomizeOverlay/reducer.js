@@ -1,7 +1,8 @@
 import { constants } from "./actions";
 
 const kustomizeState = {
-  fileContents: []
+  fileContents: [],
+  patch: "",
 };
 
 function updateFileContents(currState, data) {
@@ -21,6 +22,12 @@ export function kustomizeData(state = kustomizeState, action) {
     return Object.assign({}, state, {
       fileContents: updatedContents
     });
+  case constants.RECEIVE_PATCH:
+    const { patch } = action.payload;
+    return {
+      ...state,
+      patch,
+    }
   default:
     return state;
   }
