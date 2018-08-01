@@ -15,7 +15,7 @@ func NewHeadlessDaemon(
 	v *viper.Viper,
 	logger log.Logger,
 	renderer *resolve.APIConfigRenderer,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) *HeadlessDaemon {
 	return &HeadlessDaemon{
 		StateManager:   stateManager,
@@ -28,7 +28,7 @@ func NewHeadlessDaemon(
 func NewHeadedDaemon(
 	v *viper.Viper,
 	renderer *resolve.APIConfigRenderer,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 	logger log.Logger,
 	ui cli.Ui,
 	fs afero.Afero,

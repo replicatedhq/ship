@@ -45,7 +45,7 @@ type Ship struct {
 	Runbook  string
 	Client   *specs.GraphQLClient
 	UI       cli.Ui
-	State    *state.Manager
+	State    state.Manager
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
@@ -60,7 +60,7 @@ func NewShip(
 	graphql *specs.GraphQLClient,
 	runner *lifecycle.Runner,
 	ui cli.Ui,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) (*Ship, error) {
 
 	return &Ship{

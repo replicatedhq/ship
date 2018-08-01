@@ -62,7 +62,7 @@ func TestRender(t *testing.T) {
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
 			renderer.Planner = p
-			renderer.StateManager = &state.Manager{
+			renderer.StateManager = &state.MManager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
 				V:      viper.New(),
