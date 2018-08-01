@@ -2,13 +2,13 @@ package terraform
 
 import (
 	"context"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
@@ -46,7 +46,7 @@ func TestRenderer(t *testing.T) {
 						return false
 					}
 					return asset.Contents == test.asset.Inline &&
-						strings.HasPrefix(asset.Dest, "terraform")
+						strings.HasPrefix(asset.Dest, constants.InstallerPrefix)
 				},
 			}
 
