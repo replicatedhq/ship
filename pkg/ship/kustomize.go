@@ -65,12 +65,17 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
+	debug.Log("event", "build release")
 	release := s.buildRelease(helmChartMetadata)
 
-	// log for compile. will adjust later
 	debug.Log("event", "build release", "release", release)
 
+	debug.Log("headless.mode", s.Viper.GetString("headless"))
+	debug.Log("headed.mode", s.Viper.GetString("headed"))
+
 	// TODO IMPLEMENT
+	// return s.execute(ctx, release, nil, true)
+
 	return errors.New("Not implemented")
 }
 
