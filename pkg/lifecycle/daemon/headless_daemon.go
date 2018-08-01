@@ -23,13 +23,7 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
-func (d *HeadlessDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
-	debug := level.Debug(log.With(d.Logger, "step.type", "kustomize", "method", "PushKustomizeStep"))
-	if err := d.HeadlessSaveOverlays(ctx, kustomize); err != nil {
-		debug.Log("event", "headless save overlays failed")
-	}
-}
-
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize)       {}
 func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
 func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
 
@@ -38,35 +32,6 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	level.Debug(d.Logger).Log("event", "kustomize.skip", "detail", "running in automation, not waiting for kustomize")
 	ch <- nil
 	return ch
-}
-
-func (d *HeadlessDaemon) HeadlessSaveOverlays(ctx context.Context, kustomize Kustomize) error {
-	currentState, err := d.StateManager.TryLoad()
-	if err != nil {
-		return err
-	}
-
-	currentKustomize := currentState.CurrentKustomize()
-	if currentKustomize == nil {
-		currentKustomize = &state.Kustomize{}
-	}
-
-	if currentKustomize.Overlays == nil {
-		currentKustomize.Overlays = make(map[string]state.Overlay)
-	}
-
-	if _, ok := currentKustomize.Overlays["ship"]; !ok {
-		currentKustomize.Overlays["ship"] = state.Overlay{
-			Files: make(map[string]string),
-		}
-	}
-
-	err = d.StateManager.SaveKustomize(currentKustomize)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
