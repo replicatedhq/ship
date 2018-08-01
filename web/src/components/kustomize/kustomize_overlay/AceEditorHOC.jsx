@@ -65,9 +65,13 @@ export class AceEditorHOC extends React.Component {
   }
 
   setActiveMarker = (e) => {
+    const { clientY } = e;
     const { markers, activeMarker } = this.state;
-    const { clientX, clientY } = e;
-    const { row } = this.aceEditorBase.editor.renderer.screenToTextCoordinates(clientX, clientY);
+
+    const renderer = this.aceEditorBase.editor.renderer;
+    const canvasPos = renderer.scroller.getBoundingClientRect();
+
+    const row = Math.floor((clientY + renderer.scrollTop - canvasPos.top) / renderer.lineHeight);
     const matchingMarker = this.findMarkerAtRow(row, markers);
 
     if (matchingMarker) {
@@ -75,6 +79,8 @@ export class AceEditorHOC extends React.Component {
       if (matchingMarker.startRow !== activeMarker0.startRow) {
         this.setState({ activeMarker: [ matchingMarker ] });
       }
+    } else {
+      this.setState({ activeMarker: [] });
     }
   }
 
