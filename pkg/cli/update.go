@@ -37,10 +37,5 @@ func Update() *cobra.Command {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	// default to headless if user doesn't set --headed=true
-	if !viper.GetBool("headed") {
-		viper.Set("headless", true)
-	}
-
 	return cmd
 }

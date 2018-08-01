@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/viper"
 )
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
@@ -69,6 +70,13 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	// log for compile, will adjust later
 	debug.Log("event", "build release", "release", release)
+
+	// default to headless if user doesn't set --headed=true
+	if viper.GetBool("headed") {
+		viper.Set("headless", false)
+	} else {
+		viper.Set("headless", true)
+	}
 
 	// TODO IMPLEMENT
 	return errors.New("Not implemented")
