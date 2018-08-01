@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/spf13/afero"
 )
@@ -55,7 +56,12 @@ func (r *LocalRenderer) Execute(
 			return errors.New("online \"inline\" terraform assets are supported")
 		}
 
-		assetsPath := path.Join("terraform", "main.tf")
+		var assetsPath string
+		if asset.Dest != "" && path.Ext(asset.Dest) == ".tf" {
+			assetsPath = path.Join(constants.InstallerPrefix, asset.Dest)
+		} else {
+			assetsPath = path.Join(constants.InstallerPrefix, "main.tf")
+		}
 
 		// write the inline spec
 		err := r.Inline.Execute(
@@ -63,6 +69,7 @@ func (r *LocalRenderer) Execute(
 				Contents: asset.Inline,
 				AssetShared: api.AssetShared{
 					Dest: assetsPath,
+					Mode: asset.Mode,
 				},
 			},
 			meta,

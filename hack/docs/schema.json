@@ -12,7 +12,7 @@
             "type": "object",
             "properties": {
               "amazon_elastic_kubernetes_service": {
-                "description": "A `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+                "description": "An `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
                 "examples": [
                   {
                     "cluster_name": "existing-vpc-cluster",
@@ -500,6 +500,43 @@
                   "dest"
                 ]
               },
+              "terraform": {
+                "description": "A `terraform` asset is text specified directly in your Ship application's spec.",
+                "examples": [
+                  {
+                    "inline": "resource \"random_id\" \"server\" { byte_length = {{repl ConfigOption \"id_length\" | ParseInt}}}"
+                  },
+                  {
+                    "dest": "terraform/random_id.tf",
+                    "inline": "resource \"random_id\" \"server\" { byte_length = {{repl ConfigOption \"id_length\" | ParseInt}}}"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "A path to which the file should be written when generating assets. Defaults to `main.tf`",
+                    "type": "string"
+                  },
+                  "inline": {
+                    "description": "The contents of the file",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Specifies file mode of the created asset, defaults to `0644`",
+                    "type": "integer"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "inline"
+                ]
+              },
               "web": {
                 "description": "A `web` asset delivers web content from a private or public URL",
                 "examples": [
@@ -702,6 +739,23 @@
                   {}
                 ],
                 "type": "object",
+                "required": []
+              },
+              "terraform": {
+                "description": "A `terraform` step will deploy terraform resources.",
+                "examples": [
+                  {},
+                  {
+                    "path": "terraform/"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "description": "the directory within `installer` to run terraform within.",
+                    "type": "string"
+                  }
+                },
                 "required": []
               }
             }

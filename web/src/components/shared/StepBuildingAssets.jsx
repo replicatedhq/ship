@@ -34,7 +34,11 @@ export default class StepBuildingAssets extends React.Component {
     const { status } = this.props;
     const isJSON = status.type === "json";
     const progressDetail = isJSON ? JSON.parse(status.detail).progressDetail : null;
-    const percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
+    let percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
+    if (percent > 100) {
+      percent = 100;
+
+    }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
         <Loader size="60" />
