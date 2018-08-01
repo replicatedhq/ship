@@ -1,6 +1,6 @@
 
 locals {
-  "eks_vpc"                 = "abc123"
+  "eks_vpc"                 = ""
   "eks_vpc_public_subnets"  = [
   ]
   "eks_vpc_private_subnets" = [
