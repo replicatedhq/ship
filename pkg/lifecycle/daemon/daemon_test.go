@@ -40,6 +40,7 @@ func initTestDaemon(t *testing.T, release *api.Release) (*ShipDaemon, int, conte
 		UI:               cli.NewMockUi(),
 		MessageConfirmed: make(chan string, 1),
 		WebUIFactory:     WebUIFactoryFactory(log),
+		OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
 	}
 
 	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

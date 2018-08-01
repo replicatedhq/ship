@@ -13,9 +13,9 @@ import (
 
 // files and directories with non-deterministic output
 var skipFiles = []string{
-	"terraform/.terraform/plugins",
-	"terraform/plan",
-	"terraform/terraform.tfstate",
+	"installer/.terraform/plugins",
+	"installer/plan",
+	"installer/terraform.tfstate",
 }
 
 func skipCheck(filepath string) bool {

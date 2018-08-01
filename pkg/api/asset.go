@@ -1,6 +1,10 @@
 package api
 
-import "os"
+import (
+	"os"
+
+	"github.com/replicatedhq/ship/pkg/api/amazonElasticKubernetesService"
+)
 
 // Assets is the top level assets object
 type Assets struct {
@@ -21,13 +25,14 @@ type AssetShared struct {
 
 // Asset is a spec to generate one or more deployment assets
 type Asset struct {
-	Inline      *InlineAsset      `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
-	Docker      *DockerAsset      `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
-	DockerLayer *DockerLayerAsset `json:"dockerlayer,omitempty" yaml:"dockerlayer,omitempty" hcl:"dockerlayer,omitempty"`
-	GitHub      *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
-	Web         *WebAsset         `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
-	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
-	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	Inline                         *InlineAsset      `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
+	Docker                         *DockerAsset      `json:"docker,omitempty" yaml:"docker,omitempty" hcl:"docker,omitempty"`
+	DockerLayer                    *DockerLayerAsset `json:"dockerlayer,omitempty" yaml:"dockerlayer,omitempty" hcl:"dockerlayer,omitempty"`
+	GitHub                         *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	Web                            *WebAsset         `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
+	Helm                           *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
+	Terraform                      *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	AmazonElasticKubernetesService *EKSAsset         `json:"amazon_elastic_kubernetes_service,omitempty" yaml:"amazon_elastic_kubernetes_service,omitempty" hcl:"amazon_elastic_kubernetes_service,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -92,4 +97,16 @@ type TerraformAsset struct {
 	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
 	// Inline allows a vendor to specify a terraform module inline in ship
 	Inline string `json:"inline,omitempty" yaml:"inline,omitempty" hcl:"inline,omitempty"`
+}
+
+// EKSAsset
+type EKSAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+
+	ClusterName string `json:"cluster_name,omitempty" yaml:"cluster_name,omitempty" hcl:"cluster_name,omitempty"`
+	Region      string `json:"region,omitempty" yaml:"region,omitempty" hcl:"region,omitempty"`
+
+	CreatedVPC        *amazonElasticKubernetesService.EKSCreatedVPC        `json:"created_vpc,omitempty" yaml:"created_vpc,omitempty" hcl:"created_vpc,omitempty"`
+	ExistingVPC       *amazonElasticKubernetesService.EKSExistingVPC       `json:"existing_vpc,omitempty" yaml:"existing_vpc,omitempty" hcl:"existing_vpc,omitempty"`
+	AutoscalingGroups []amazonElasticKubernetesService.EKSAutoscalingGroup `json:"autoscaling_groups,omitempty" yaml:"autoscaling_groups,omitempty" hcl:"autoscaling_groups,omitempty"`
 }

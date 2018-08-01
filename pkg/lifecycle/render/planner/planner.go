@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -63,6 +64,7 @@ type CLIPlanner struct {
 	Web         web.Renderer
 	GitHub      github.Renderer
 	Terraform   terraform.Renderer
+	AWSEKS      amazonElasticKubernetesService.Renderer
 }
 
 func NewPlanner(
@@ -78,6 +80,7 @@ func NewPlanner(
 	gh github.Renderer,
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
+	awseks amazonElasticKubernetesService.Renderer,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -93,6 +96,7 @@ func NewPlanner(
 		GitHub:      gh,
 		Terraform:   tf,
 		Web:         webRenderer,
+		AWSEKS:      awseks,
 	}
 }
 

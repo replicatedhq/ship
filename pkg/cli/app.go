@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	developerFlagUsage = "Useful for debugging your specs on the command line, without having to make round trips to the server"
+)
+
 func App() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app",
@@ -30,10 +34,18 @@ func App() *cobra.Command {
 	cmd.Flags().String("release-semver", "", "specific release version to pin installation to. Requires channel-id")
 	cmd.Flags().Bool("terraform-yes", false, "Automatically answer \"yes\" to all terraform prompts")
 
-	// optional, devloper-tools
-	cmd.Flags().String("studio-file", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
-	cmd.Flags().String("studio-channel-name", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
-	cmd.Flags().String("studio-channel-icon", "", "Useful for debugging your specs on the command line, without having to make round trips to the server")
+	// optional developer flags
+	cmd.Flags().String("runbook", "", developerFlagUsage)
+	cmd.Flags().String("set-channel-name", "", developerFlagUsage)
+	cmd.Flags().String("set-channel-icon", "", developerFlagUsage)
+
+	// Deprecated developer flags
+	cmd.Flags().String("studio-file", "", developerFlagUsage)
+	cmd.Flags().MarkDeprecated("studio-file", "please upgrade to the --runbook flag")
+	cmd.Flags().String("studio-channel-name", "", developerFlagUsage)
+	cmd.Flags().MarkDeprecated("studio-channel-name", "please upgrade to the --set-channel-name flag")
+	cmd.Flags().String("studio-channel-icon", "", developerFlagUsage)
+	cmd.Flags().MarkDeprecated("studio-channel-icon", "please upgrade to the --set-channel-icon flag")
 
 	viper.BindPFlags(cmd.Flags())
 	viper.AutomaticEnv()

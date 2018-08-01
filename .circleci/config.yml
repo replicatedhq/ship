@@ -16,6 +16,7 @@ jobs:
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
+      - run: mkdir -p web/dist
       - run: make build-deps citest ci-upload-coverage
 
   build_ui:
@@ -61,20 +62,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: |
-          curl -fsSLO "${HELM_URL}" \
-            && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
-            && tar xvf "$HELM_TGZ" \
-            && sudo mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
-            && sudo ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
-      - run: |
-          curl -fsSLO "${TERRAFORM_URL}" \
-            && echo "${TERRAFORM_SHA256SUM} ${TERRAFORM_ZIP}" | sha256sum -c - \
-            && unzip "$TERRAFORM_ZIP" \
-            && sudo mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
-            && sudo ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
-      - run: go get github.com/onsi/ginkgo/ginkgo
-      - run: make integration-test
+      - run: make build_ship_integration_test
+      #the entrypoint is set explicitly here because that file is expected by other circle builds
+      - run: docker run --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /test/integration_docker_start.sh replicated/ship-e2e-test:latest
 
   deploy_unstable:
     docker:
@@ -114,8 +104,8 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
-      - run: docker pull alpine:latest # make sure it's fresh
       - run: make build-deps embed-ui
+      - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: curl -sL https://git.io/goreleaser | bash
@@ -123,39 +113,60 @@ jobs:
 
 workflows:
   version: 2
-  build_accept_deploy:
+
+  # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
+  unstable:
     jobs:
       - build_ui
       - integration
-      - test:
-          filters:
-            tags:
-              only: /.*/
+      - test
 
       - deploy_unstable:
           requires:
-            - test
-            - integration
-            - build_ui
+          - test
+          - integration
+          - build_ui
           filters:
             branches:
               only: /master/
 
       - deploy_integration:
           requires:
-            - integration
-            - deploy_unstable
+          - integration
+          - deploy_unstable
           filters:
             branches:
               only: /master/
 
-      - deploy:
-          requires:
-            - test
-            - integration
-            - build_ui
+  # Stable deploys the `alpha` and `latest` tags to dockerhub and github
+  stable:
+    jobs:
+      - build_ui:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
+      - integration:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - test:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - deploy:
+          requires:
+          - test
+          - integration
+          - build_ui
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+

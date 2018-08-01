@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/replicatedhq/ship/pkg/helpers/flags"
+
 	"os/signal"
 	"syscall"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
@@ -37,13 +40,13 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon     daemon.Daemon
-	Resolver   *specs.Resolver
-	StudioFile string
-	Client     *specs.GraphQLClient
-	UI         cli.Ui
+	Daemon   daemon.Daemon
+	Resolver *specs.Resolver
+	Runbook  string
+	Client   *specs.GraphQLClient
+	UI       cli.Ui
+	State    *state.Manager
 
-	IsKustomize  bool
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
 }
@@ -57,6 +60,7 @@ func NewShip(
 	graphql *specs.GraphQLClient,
 	runner *lifecycle.Runner,
 	ui cli.Ui,
+	stateManager *state.Manager,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -67,7 +71,7 @@ func NewShip(
 		ReleaseSemver:  v.GetString("release-semver"),
 		ChannelID:      v.GetString("channel-id"),
 		InstallationID: v.GetString("installation-id"),
-		StudioFile:     v.GetString("studio-file"),
+		Runbook:        flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 
 		KustomizeRaw: v.GetString("raw"),
 
@@ -78,6 +82,7 @@ func NewShip(
 		Daemon:   daemon,
 		UI:       ui,
 		Runner:   runner.WithDaemon(daemon),
+		State:    stateManager,
 	}, nil
 }
 
@@ -117,19 +122,19 @@ func (s *Ship) Execute(ctx context.Context) error {
 		"customer-id", s.CustomerID,
 		"installation-id", s.InstallationID,
 		"plan_only", s.PlanOnly,
-		"studio-file", s.StudioFile,
+		"runbook", s.Runbook,
 		"api-port", s.APIPort,
 		"headless", s.Headless,
 	)
 
 	debug.Log("phase", "validate-inputs")
 
-	if s.CustomerID == "" && s.StudioFile == "" && s.KustomizeRaw == "" {
+	if s.CustomerID == "" && s.Runbook == "" && s.KustomizeRaw == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing customer ID")
 		return errors.New("missing parameter customer-id, Please provide your license key or customer ID")
 	}
 
-	if s.InstallationID == "" && s.StudioFile == "" && s.KustomizeRaw == "" {
+	if s.InstallationID == "" && s.Runbook == "" && s.KustomizeRaw == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing installation ID")
 		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
 	}
@@ -144,16 +149,16 @@ func (s *Ship) Execute(ctx context.Context) error {
 		ChannelID:      s.ChannelID,
 		InstallationID: s.InstallationID,
 	}
-	cloudOrStudioRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
+	cloudOrRunbookRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
-	release = cloudOrStudioRelease
+	release = cloudOrRunbookRelease
 
-	return s.execute(ctx, release, selector)
+	return s.execute(ctx, release, selector, false)
 }
 
-func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector) error {
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector, isKustomize bool) error {
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
@@ -164,7 +169,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
 
-		if err == nil && !s.IsKustomize && selector != nil {
+		if err == nil && !isKustomize && selector != nil {
 			_ = s.Resolver.RegisterInstall(ctx, *selector, release)
 		}
 		runResultCh <- err
@@ -188,6 +193,21 @@ func (s *Ship) ExitWithError(err error) {
 		s.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
 	} else {
 		s.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
+	}
+	s.UI.Output("")
+
+	time.Sleep(100 * time.Millisecond)
+
+	// TODO this should probably be part of lifecycle
+	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
+	os.Exit(1)
+}
+
+func (s *Ship) ExitWithWarn(err error) {
+	if s.Viper.GetString("log-level") == "debug" {
+		s.UI.Warn(fmt.Sprintf("%+v", err))
+	} else {
+		s.UI.Warn(fmt.Sprintf("%v", err))
 	}
 	s.UI.Output("")
 

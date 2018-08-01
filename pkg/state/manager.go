@@ -44,21 +44,28 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	}
 
 	debug.Log("event", "emptyState")
-	isEmpty := currentState == empty{}
+	isEmpty := currentState == Empty{}
 	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
+		toSerialize := VersionedState{V1: &V1{HelmValues: values,
+			ChartURL: s.V.GetString("chart")}}
 		return s.serializeAndWriteState(toSerialize)
 	}
 
 	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
-	toSerialize := currentState.(VersionedState)
+	toSerialize, ok := currentState.(VersionedState)
+	if !ok {
+		debug.Log("event", "tryLoad.fail")
+		return errors.New("cast to VersionedState")
+	}
 	toSerialize.V1.HelmValues = values
 	return s.serializeAndWriteState(toSerialize)
 }
 
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
+	toSerialize := VersionedState{V1: &V1{
+		Config:   templateContext,
+		ChartURL: s.V.GetString("chart")}}
 	return s.serializeAndWriteState(toSerialize)
 }
 
@@ -90,7 +97,7 @@ func (s *Manager) TryLoad() (State, error) {
 
 	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {
 		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", statePath)
-		return empty{}, nil
+		return Empty{}, nil
 	}
 
 	serialized, err := s.FS.ReadFile(statePath)
@@ -119,6 +126,7 @@ func (s *Manager) TryLoad() (State, error) {
 	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
+
 func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 	state, err := m.TryLoad()
 	if err != nil {
@@ -127,6 +135,7 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
+			ChartURL:  m.V.GetString("chart"),
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},
@@ -134,6 +143,21 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	if err := m.serializeAndWriteState(newState); err != nil {
 		return errors.Wrap(err, "write state")
+	}
+
+	return nil
+}
+
+// RemoveStateFile will attempt to remove the state file from disk
+func (m *Manager) RemoveStateFile() error {
+	statePath := m.V.GetString("state-file")
+	if statePath == "" {
+		statePath = constants.StatePath
+	}
+
+	err := m.FS.Remove(statePath)
+	if err != nil {
+		return errors.Wrap(err, "remove state file")
 	}
 
 	return nil

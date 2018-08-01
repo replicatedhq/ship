@@ -28,8 +28,7 @@ with a gitops style workflow.`,
 				return err
 			}
 
-			s.IsKustomize = true
-			s.KustomizeAndMaybeExit(context.Background())
+			s.InitAndMaybeExit(context.Background())
 			return nil
 		},
 	}

@@ -14,6 +14,10 @@ assets:
       image: postgres:10.1
       dest: installer/docker/postgres.tar
       source: public
+  - docker:
+      image: postgres:10.1
+      dest: docker://localhost:5000/postgres:10.1
+      source: public
 
 config:
   v1:

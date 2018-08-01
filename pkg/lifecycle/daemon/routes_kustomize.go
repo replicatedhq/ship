@@ -37,7 +37,8 @@ func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
 }
 
 func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "PushKustomizeStep"))
+	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameKustomize
@@ -47,8 +48,8 @@ func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize)
 }
 
 func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
-	defer d.locker()()
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "kustomizeSaveOverlay"))
+	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
+	defer d.locker(debug)()
 	type Request struct {
 		Path     string `json:"path"`
 		Contents string `json:"contents"`
@@ -99,7 +100,8 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 }
 
 func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "kustomizeGetFile"))
+	defer d.locker(debug)()
 
 	type Request struct {
 		Path string `json:"path"`
@@ -118,15 +120,27 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	}
 	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "load file failed", "err", err)
+		level.Warn(d.Logger).Log("event", "load file failed", "err", err)
 		c.AbortWithError(500, err)
 		return
 	}
 
-	c.JSON(200, Response{Base: base})
+	savedState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "load state failed", "err", err)
+		c.AbortWithError(500, err)
+		return
+	}
+
+	c.JSON(200, Response{
+		Base:    base,
+		Overlay: savedState.CurrentKustomizeOverlay(request.Path),
+	})
 }
+
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
-	defer d.locker()()
+	debug := level.Debug(log.With(d.Logger, "method", "kustomizeFinalize"))
+	defer d.locker(debug)()
 
 	level.Debug(d.Logger).Log("event", "kustomize.finalize", "detail", "not implemented")
 	d.KustomizeSaved <- nil

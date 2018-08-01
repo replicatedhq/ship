@@ -49,11 +49,11 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	if err != nil {
 		return err
 	}
-	chartPath := chartURL.Path
-	splitPath := strings.Split(chartPath, "/")
-	owner := splitPath[1]
-	repo := splitPath[2]
-	path := strings.Join(splitPath[3:], "/")
+
+	owner, repo, path, err := decodeGitHubUrl(chartURL.Path)
+	if err != nil {
+		return err
+	}
 
 	debug.Log("event", "checkExists", "path", constants.KustomizeHelmPath)
 	saveDirExists, err := g.fs.Exists(constants.KustomizeHelmPath)
@@ -146,6 +146,9 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
 	}
 
+	debug.Log("phase", "save-chart-url", "url", path)
+	md.URL = path
+
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")
 	debug.Log("phase", "read-chart", "from", localChartPath)
 	chart, err := r.FS.ReadFile(localChartPath)
@@ -167,4 +170,21 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 
 	md.Readme = string(readme)
 	return md, nil
+}
+
+func decodeGitHubUrl(chartPath string) (string, string, string, error) {
+	splitPath := strings.Split(chartPath, "/")
+
+	if len(splitPath) < 3 {
+		return "", "", "", errors.Wrapf(errors.New("unable to decode github url"), chartPath)
+	}
+
+	owner := splitPath[1]
+	repo := splitPath[2]
+	path := ""
+	if len(splitPath) > 3 {
+		path = strings.Join(splitPath[3:], "/")
+	}
+
+	return owner, repo, path, nil
 }

@@ -37,12 +37,12 @@ func TestLoadConfig(t *testing.T) {
 		expectErr       error
 	}{
 		{
-			name:         "v0 empty",
+			name:         "v0 Empty",
 			contents:     ``,
 			expectConfig: make(map[string]interface{}),
 		},
 		{
-			name:         "v0 empty object",
+			name:         "v0 Empty object",
 			contents:     `{}`,
 			expectConfig: make(map[string]interface{}),
 		},

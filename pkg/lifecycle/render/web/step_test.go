@@ -232,8 +232,8 @@ func TestWebStep(t *testing.T) {
 			err := step.Execute(
 				test.Asset,
 				api.ReleaseMetadata{},
-				[]libyaml.ConfigGroup{},
 				map[string]interface{}{},
+				[]libyaml.ConfigGroup{},
 			)(context.Background())
 
 			if test.ExpectedErr == nil {
