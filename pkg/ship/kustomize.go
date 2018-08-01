@@ -67,7 +67,7 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
-	// log for compile. will adjust later
+	// log for compile, will adjust later
 	debug.Log("event", "build release", "release", release)
 
 	// TODO IMPLEMENT
