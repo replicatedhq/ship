@@ -9,7 +9,7 @@ func MessageActions(id string) []Action {
 			OnClick: ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
-				Body:   `{"step_id": "`+ id + `"}`,
+				Body:   `{"step_id": "` + id + `"}`,
 			},
 		},
 	}
@@ -24,7 +24,7 @@ func HelmIntroActions(id string) []Action {
 			OnClick: ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
-				Body:   `{"step_id": "`+ id + `"}`,
+				Body:   `{"step_id": "` + id + `"}`,
 			},
 		},
 	}
