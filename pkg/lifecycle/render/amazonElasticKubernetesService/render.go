@@ -61,9 +61,9 @@ func (r *LocalRenderer) Execute(
 
 		var assetsPath string
 		if asset.Dest != "" {
-			assetsPath = path.Join(constants.InstallerPrefix, asset.Dest)
+			assetsPath = path.Join(constants.InstallerPrefixPath, asset.Dest)
 		} else {
-			assetsPath = path.Join(constants.InstallerPrefix, "amazon_elastic_kubernetes_service.tf")
+			assetsPath = path.Join(constants.InstallerPrefixPath, "amazon_elastic_kubernetes_service.tf")
 		}
 
 		// write the inline spec

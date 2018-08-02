@@ -2,8 +2,13 @@ assets:
   v1:
     - amazon_elastic_kubernetes_service:
         dest: empty/empty.tf
+        cluster_name: ""
+        region: ""
+        autoscaling_groups: []
         existing_vpc:
-          vpc_id: abc123
+          vpc_id: ""
+          public_subnets: []
+          private_subnets: []
     - amazon_elastic_kubernetes_service:
         dest: existing/existing_vpc.tf
         cluster_name: "existing-vpc-cluster"

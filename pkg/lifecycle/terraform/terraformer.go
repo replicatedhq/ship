@@ -47,7 +47,7 @@ func NewTerraformer(
 		PlanConfirmer: planner,
 		Terraform: func(cmdPath string) *exec.Cmd {
 			cmd := exec.Command("terraform")
-			cmd.Dir = path.Join(constants.InstallerPrefix, cmdPath)
+			cmd.Dir = path.Join(constants.InstallerPrefixPath, cmdPath)
 			return cmd
 		},
 		Viper: viper,

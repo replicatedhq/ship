@@ -982,6 +982,7 @@
     "github.com/docker/docker/pkg/jsonmessage",
     "github.com/docker/go-units",
     "github.com/elazarl/go-bindata-assetfs",
+    "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/contrib/static",
     "github.com/gin-gonic/gin",
@@ -997,6 +998,7 @@
     "github.com/kubernetes-sigs/kustomize/pkg/fs",
     "github.com/kubernetes-sigs/kustomize/pkg/loader",
     "github.com/kubernetes-sigs/kustomize/pkg/resmap",
+    "github.com/kubernetes-sigs/kustomize/pkg/resource",
     "github.com/mcuadros/go-jsonschema-generator",
     "github.com/mholt/archiver",
     "github.com/mitchellh/cli",
@@ -1013,6 +1015,10 @@
     "github.com/stretchr/testify/require",
     "go.uber.org/dig",
     "gopkg.in/yaml.v2",
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+    "k8s.io/apimachinery/pkg/util/strategicpatch",
+    "k8s.io/apimachinery/pkg/util/yaml",
+    "k8s.io/client-go/kubernetes/scheme",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

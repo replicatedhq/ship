@@ -23,14 +23,14 @@ type helmValues struct {
 	Fs           afero.Afero
 	Logger       log.Logger
 	Daemon       daemon.Daemon
-	StateManager *state.Manager
+	StateManager state.Manager
 }
 
 func NewHelmValues(
 	fs afero.Afero,
 	logger log.Logger,
 	daemon daemon.Daemon,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) HelmValues {
 	return &helmValues{
 		Fs:           fs,
