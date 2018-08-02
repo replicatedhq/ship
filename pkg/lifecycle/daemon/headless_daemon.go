@@ -37,16 +37,18 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
 
 func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues HelmValues, actions []Action) {
-	debug := level.Debug(log.With(d.Logger, "step.type", "helmValues", "method", "PushHelmValuesStep"))
+	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "PushHelmValuesStep"))
 	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values); err != nil {
-		debug.Log("event", "headless helm values resolve failed")
+		warn.Log("event", "push helm values step fail", "err", err)
 	}
 }
 
 func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues string) error {
+	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "HeadlessSaveHelmValues"))
 	err := d.StateManager.SerializeHelmValues(helmValues)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "seralize.helmValues.fail", "err", err)
+		warn.Log("event", "headless save helm values fail", "err", err)
+		return err
 	}
 
 	return nil

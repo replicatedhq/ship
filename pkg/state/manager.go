@@ -135,13 +135,12 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
-			ChartURL:  m.V.GetString("chart"),
+			ChartURL:  m.V.GetString("chart"), // `ship init` persist chart URL
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},
 	}
 
-	newState.V1.ChartURL = m.V.GetString("chart")
 	if err := m.serializeAndWriteState(newState); err != nil {
 		return errors.Wrap(err, "write state")
 	}
