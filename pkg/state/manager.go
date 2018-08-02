@@ -147,7 +147,7 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (s *MManager) serializeAndWriteState(state VersionedState) error {
-	state.V1.ChartURL = s.V.GetString("chart") // chart URL persists throughout `init` lifecycle
+	state.V1.ChartURL = state.CurrentChartURL() // chart URL persists throughout `init` lifecycle
 
 	serialized, err := json.Marshal(state)
 	if err != nil {

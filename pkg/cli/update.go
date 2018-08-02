@@ -36,6 +36,8 @@ func Update() *cobra.Command {
 
 	cmd.PersistentFlags().StringP("customer-endpoint", "e", "https://pg.replicated.com/graphql", "Upstream application spec server address")
 
+	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
+
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
