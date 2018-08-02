@@ -210,7 +210,7 @@ build_yoonit_docker_image:
 	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
 
 build_ship_integration_test:
-	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
+	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
 pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	cd web; go-bindata-assetfs -pkg daemon \
