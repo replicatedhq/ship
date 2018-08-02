@@ -221,3 +221,6 @@ embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
 build-ui:
 	$(MAKE) -C web build_ship
+
+test_CI:
+	$(MAKE) -C web test_CI
