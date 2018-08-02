@@ -65,7 +65,7 @@ type ShipDaemon struct {
 	Fs             afero.Afero
 	Viper          *viper.Viper
 	UI             cli.Ui
-	StateManager   *state.Manager
+	StateManager   state.Manager
 	ConfigRenderer *resolve.APIConfigRenderer
 	WebUIFactory   WebUIBuilder
 	TreeLoader     filetree.Loader
@@ -689,7 +689,7 @@ func (d *ShipDaemon) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "state.serialize")
-		if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+		if err := d.StateManager.SerializeConfig(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 			level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
 			c.AbortWithStatus(500)
 		}

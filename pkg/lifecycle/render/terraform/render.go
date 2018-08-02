@@ -58,9 +58,9 @@ func (r *LocalRenderer) Execute(
 
 		var assetsPath string
 		if asset.Dest != "" && path.Ext(asset.Dest) == ".tf" {
-			assetsPath = path.Join(constants.InstallerPrefix, asset.Dest)
+			assetsPath = path.Join(constants.InstallerPrefixPath, asset.Dest)
 		} else {
-			assetsPath = path.Join(constants.InstallerPrefix, "main.tf")
+			assetsPath = path.Join(constants.InstallerPrefixPath, "main.tf")
 		}
 
 		// write the inline spec

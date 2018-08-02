@@ -572,7 +572,7 @@ func TestHeadlessDaemon(t *testing.T) {
 				Viper:  v,
 			}
 
-			manager := &state.Manager{
+			manager := &state.MManager{
 				Logger: testLogger,
 				FS:     fakeFS,
 				V:      viper.New(),

@@ -81,11 +81,11 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 
 	if _, ok := kustomize.Overlays["ship"]; !ok {
 		kustomize.Overlays["ship"] = state.Overlay{
-			Files: make(map[string]string),
+			Patches: make(map[string]string),
 		}
 	}
 
-	kustomize.Overlays["ship"].Files[request.Path] = request.Contents
+	kustomize.Overlays["ship"].Patches[request.Path] = request.Contents
 
 	debug.Log("event", "newstate.save")
 	err = d.StateManager.SaveKustomize(kustomize)

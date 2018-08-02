@@ -46,7 +46,7 @@ func TestRenderer(t *testing.T) {
 						return false
 					}
 					return asset.Contents == test.asset.Inline &&
-						strings.HasPrefix(asset.Dest, constants.InstallerPrefix)
+						strings.HasPrefix(asset.Dest, constants.InstallerPrefixPath)
 				},
 			}
 

@@ -14,8 +14,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Manager is the saved output of a plan run to load on future runs
-type Manager struct {
+type Manager interface {
+	SerializeHelmValues(values string) error
+	SerializeConfig(
+		assets []api.Asset,
+		meta api.ReleaseMetadata,
+		templateContext map[string]interface{},
+	) error
+	TryLoad() (State, error)
+	RemoveStateFile() error
+	SaveKustomize(kustomize *Kustomize) error
+}
+
+var _ Manager = &MManager{}
+
+// MManager is the saved output of a plan run to load on future runs
+type MManager struct {
 	Logger log.Logger
 	FS     afero.Afero
 	V      *viper.Viper
@@ -25,8 +39,8 @@ func NewManager(
 	logger log.Logger,
 	fs afero.Afero,
 	v *viper.Viper,
-) *Manager {
-	return &Manager{
+) Manager {
+	return &MManager{
 		Logger: logger,
 		FS:     fs,
 		V:      v,
@@ -34,7 +48,7 @@ func NewManager(
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
-func (s *Manager) SerializeHelmValues(values string) error {
+func (s *MManager) SerializeHelmValues(values string) error {
 	debug := level.Debug(log.With(s.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "tryLoadState")
@@ -46,8 +60,7 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	debug.Log("event", "emptyState")
 	isEmpty := currentState == Empty{}
 	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values,
-			ChartURL: s.V.GetString("chart")}}
+		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
 		return s.serializeAndWriteState(toSerialize)
 	}
 
@@ -61,35 +74,16 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	return s.serializeAndWriteState(toSerialize)
 }
 
-// Serialize takes the application data and input params and serializes a state file to disk
-func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
+// SerializeConfig takes the application data and input params and serializes a state file to disk
+func (s *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
 	toSerialize := VersionedState{V1: &V1{
 		Config:   templateContext,
 		ChartURL: s.V.GetString("chart")}}
 	return s.serializeAndWriteState(toSerialize)
 }
 
-func (s *Manager) serializeAndWriteState(state VersionedState) error {
-	serialized, err := json.Marshal(state)
-	if err != nil {
-		return errors.Wrap(err, "serialize state")
-	}
-
-	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
-	if err != nil {
-		return errors.Wrap(err, "mkdir state")
-	}
-
-	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
-	if err != nil {
-		return errors.Wrap(err, "write state file")
-	}
-
-	return nil
-}
-
 // TryLoad will attempt to load a state file from disk, if present
-func (s *Manager) TryLoad() (State, error) {
+func (s *MManager) TryLoad() (State, error) {
 	statePath := s.V.GetString("state-file")
 	if statePath == "" {
 		statePath = constants.StatePath
@@ -127,7 +121,7 @@ func (s *Manager) TryLoad() (State, error) {
 	return V0(mapState), nil
 }
 
-func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
+func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	state, err := m.TryLoad()
 	if err != nil {
 		return errors.Wrapf(err, "load state")
@@ -135,7 +129,6 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
-			ChartURL:  m.V.GetString("chart"),
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},
@@ -149,7 +142,7 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 }
 
 // RemoveStateFile will attempt to remove the state file from disk
-func (m *Manager) RemoveStateFile() error {
+func (m *MManager) RemoveStateFile() error {
 	statePath := m.V.GetString("state-file")
 	if statePath == "" {
 		statePath = constants.StatePath
@@ -158,6 +151,27 @@ func (m *Manager) RemoveStateFile() error {
 	err := m.FS.Remove(statePath)
 	if err != nil {
 		return errors.Wrap(err, "remove state file")
+	}
+
+	return nil
+}
+
+func (s *MManager) serializeAndWriteState(state VersionedState) error {
+  state.V1.ChartURL = s.V.GetString("chart") // chart URL persists throughout `init` lifecycle
+  
+	serialized, err := json.Marshal(state)
+	if err != nil {
+		return errors.Wrap(err, "serialize state")
+	}
+
+	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
+	if err != nil {
+		return errors.Wrap(err, "mkdir state")
+	}
+
+	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
+	if err != nil {
+		return errors.Wrap(err, "write state file")
 	}
 
 	return nil
