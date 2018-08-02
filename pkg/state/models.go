@@ -41,12 +41,23 @@ type V1 struct {
 }
 
 type Overlay struct {
-	Files             map[string]string `json:"files,omitempty" yaml:"files,omitempty" hcl:"files,omitempty"`
+	Patches           map[string]string `json:"patches,omitempty" yaml:"patches,omitempty" hcl:"patches,omitempty"`
 	KustomizationYAML string            `json:"kustomization_yaml,omitempty" yaml:"kustomization_yaml,omitempty" hcl:"kustomization_yaml,omitempty"`
 }
 
 type Kustomize struct {
 	Overlays map[string]Overlay `json:"overlays,omitempty" yaml:"overlays,omitempty" hcl:"overlays,omitempty"`
+}
+
+func (k *Kustomize) Ship() Overlay {
+	if k.Overlays == nil {
+		return Overlay{}
+	}
+	if ship, ok := k.Overlays["ship"]; ok {
+		return ship
+	}
+
+	return Overlay{}
 }
 
 func (u VersionedState) CurrentKustomize() *Kustomize {
@@ -67,11 +78,11 @@ func (u VersionedState) CurrentKustomizeOverlay(filename string) string {
 		return ""
 	}
 
-	if overlay.Files == nil {
+	if overlay.Patches == nil {
 		return ""
 	}
 
-	file, ok := overlay.Files[filename]
+	file, ok := overlay.Patches[filename]
 	if ok {
 		return file
 	}

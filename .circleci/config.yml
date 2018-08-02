@@ -63,7 +63,8 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: make build_ship_integration_test
-      - run: docker run --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
+      #the entrypoint is set explicitly here because that file is expected by other circle builds
+      - run: docker run --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /test/integration_docker_start.sh replicated/ship-e2e-test:latest
 
   deploy_unstable:
     docker:

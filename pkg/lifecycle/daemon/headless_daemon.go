@@ -16,7 +16,7 @@ import (
 var _ Daemon = &HeadlessDaemon{}
 
 type HeadlessDaemon struct {
-	StateManager   *state.Manager
+	StateManager   state.Manager
 	Logger         log.Logger
 	UI             cli.Ui
 	ConfigRenderer *resolve.APIConfigRenderer
@@ -144,7 +144,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	}
 
 	d.ResolvedConfig = templateContext
-	if err := d.StateManager.Serialize(nil, api.ReleaseMetadata{}, templateContext); err != nil {
+	if err := d.StateManager.SerializeConfig(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 		warn.Log("msg", "serialize state failed", "err", err)
 		return err
 	}

@@ -47,7 +47,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		p.Daemon.SetProgress(daemon.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
-			asset.Inline.Dest = filepath.Join(constants.InstallerPrefix, asset.Inline.Dest)
+			asset.Inline.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Inline.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Inline.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -60,7 +60,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 		} else if asset.Docker != nil {
 			// TODO: Improve handling of docker scheme, this is done because config not parsed yet
 			if !strings.HasPrefix(asset.Docker.Dest, "docker://") {
-				asset.Docker.Dest = filepath.Join(constants.InstallerPrefix, asset.Docker.Dest)
+				asset.Docker.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Docker.Dest)
 			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Docker.AssetShared.When)
 			if err != nil {
@@ -72,7 +72,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.dockerStep(*asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
-			asset.Helm.Dest = filepath.Join(constants.InstallerPrefix, asset.Helm.Dest)
+			asset.Helm.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Helm.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -83,7 +83,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
-			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefix, asset.DockerLayer.Dest)
+			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefixPath, asset.DockerLayer.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.DockerLayer.AssetShared.When)
 			if err != nil {
 				return nil, err
