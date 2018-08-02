@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/viper"
 )
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
@@ -47,13 +48,17 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	// does a state file exist on disk?
 	existingState, err := s.State.TryLoad()
-	if err != nil {
+
+	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
 		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
 	}
 
 	debug.Log("event", "read.chartURL")
 	helmChartPath := existingState.CurrentChartURL()
+	if helmChartPath == "" {
+		return errors.New(`No helm chart URL found at ` + constants.StatePath + `, please run "ship init"`)
+	}
 
 	debug.Log("event", "fetch latest chart")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
@@ -63,10 +68,18 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
-	// log to compile, will remove later
+	// log for compile, will adjust later
 	debug.Log("event", "build release", "release", release)
 
-	return errors.New(`Implement me`)
+	// default to headless if user doesn't set --headed=true
+	if viper.GetBool("headed") {
+		viper.Set("headless", false)
+	} else {
+		viper.Set("headless", true)
+	}
+
+	// TODO IMPLEMENT
+	return errors.New("Not implemented")
 }
 
 func (s *Ship) Init(ctx context.Context) error {
@@ -104,11 +117,6 @@ func (s *Ship) Init(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
 	}
 
-	// persist after resolve as to not persist a bad chart URL
-	if err := s.State.BlowAwayStateAndSetChartURL(helmChartPath); err != nil {
-		return errors.Wrapf(err, "persist helm chart URL to %s", constants.StatePath)
-	}
-
 	release := s.buildRelease(helmChartMetadata)
 
 	return s.execute(ctx, release, nil, true)
@@ -128,7 +136,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: s.KustomizeRaw,
-							Dest:     path.Join(constants.InstallerPrefixPath, "kustomized"),
+							Dest:     path.Join("overlays", "ship"),
 						},
 					},
 					{
@@ -188,7 +196,7 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefixPath, "kustomized"),
+							Dest:     path.Join("overlays", "ship"),
 						},
 					},
 					{

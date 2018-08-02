@@ -7,12 +7,15 @@ UI = $(shell find ui/ -name "*.js")
 
 DOCKER_REPO ?= replicated
 
-build-deps:
+.state/build-deps: Makefile
 	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/elazarl/go-bindata-assetfs/...
 	go get -u github.com/jteeuwen/go-bindata/...
+	@mkdir -p .state/
+	@touch .state/build-deps
 
+build-deps: .state/build-deps
 
 dep-deps:
 	go get -u github.com/golang/dep/cmd/dep
@@ -47,6 +50,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/inline
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
+	mkdir -p pkg/test-mocks/state
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -122,6 +126,11 @@ _mockgen:
 		-package tfplan \
 		github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan \
 		PlanConfirmer
+	mockgen \
+		-destination pkg/test-mocks/state/manager_mock.go \
+		-package state \
+		github.com/replicatedhq/ship/pkg/state \
+		Manager
 
 mockgen: _mockgen fmt
 
@@ -129,7 +138,7 @@ deps:
 	dep ensure -v
 
 
-fmt:
+fmt: .state/build-deps
 	goimports -w pkg
 	goimports -w cmd
 
@@ -139,7 +148,7 @@ _vet:
 
 # we have to build bindata here, because for some reason goimports
 # hacks up that generated file in a way that makes vet fail
-vet: fmt pkg/lifeycle/daemon/ui.bindatafs.go _vet
+vet: fmt _vet
 
 _lint:
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
@@ -190,8 +199,8 @@ goreleaser: .state/goreleaser
 
 .state/goreleaser: .goreleaser.unstable.yml deploy/Dockerfile $(SRC)
 	@mkdir -p .state
-	@touch .state/goreleaser
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
+	@touch .state/goreleaser
 
 run: bin/ship
 	./bin/ship app --log-level=debug --runbook=./app.yml
@@ -203,7 +212,7 @@ build_yoonit_docker_image:
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	cd web; go-bindata-assetfs -pkg daemon \
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
 	  dist/...
@@ -211,5 +220,4 @@ pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
 embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
 build-ui:
-	cd web; yarn install --force
-	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
+	$(MAKE) -C web build_ship

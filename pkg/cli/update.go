@@ -27,12 +27,15 @@ func Update() *cobra.Command {
 			s.UpdateAndMaybeExit(context.Background())
 			return nil
 		},
+		Hidden: true,
 	}
 
-	cmd.Flags().String("raw", "", "File path to already rendered kubernetes YAML. Intended for use with non-helm K8s YAML or with a helm chart that has already been templated.")
+	cmd.Flags().String("headed", "", "Run ship update in a graphical user interface.")
+
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
 	return cmd
 }

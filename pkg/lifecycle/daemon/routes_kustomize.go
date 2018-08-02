@@ -74,11 +74,11 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 
 	if _, ok := kustomize.Overlays["ship"]; !ok {
 		kustomize.Overlays["ship"] = state.Overlay{
-			Files: make(map[string]string),
+			Patches: make(map[string]string),
 		}
 	}
 
-	kustomize.Overlays["ship"].Files[request.Path] = request.Contents
+	kustomize.Overlays["ship"].Patches[request.Path] = request.Contents
 
 	debug.Log("event", "newstate.save")
 	err = d.StateManager.SaveKustomize(kustomize)
@@ -112,13 +112,24 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	}
 	base, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Path)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "load file failed", "err", err)
+		level.Warn(d.Logger).Log("event", "load file failed", "err", err)
 		c.AbortWithError(500, err)
 		return
 	}
 
-	c.JSON(200, Response{Base: base})
+	savedState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "load state failed", "err", err)
+		c.AbortWithError(500, err)
+		return
+	}
+
+	c.JSON(200, Response{
+		Base:    base,
+		Overlay: savedState.CurrentKustomizeOverlay(request.Path),
+	})
 }
+
 func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeFinalize"))
 	defer d.locker(debug)()

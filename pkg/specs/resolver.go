@@ -36,7 +36,7 @@ type Resolver struct {
 	Logger               log.Logger
 	Client               *GraphQLClient
 	GithubClient         *GithubClient
-	StateManager         *state.Manager
+	StateManager         state.Manager
 	FS                   afero.Afero
 	Runbook              string
 	SetChannelName       string
@@ -52,7 +52,7 @@ func NewResolver(
 	fs afero.Afero,
 	graphql *GraphQLClient,
 	githubClient *GithubClient,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) *Resolver {
 	return &Resolver{
 		Logger:               logger,
@@ -110,7 +110,7 @@ func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
 	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
-	specYAML, err := r.StateManager.FS.ReadFile(r.Runbook)
+	specYAML, err := r.FS.ReadFile(r.Runbook)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read specs from %s", r.Runbook)
 	}
@@ -149,11 +149,11 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID, semver string
 
 // persistSpec persists last-used YAML to disk at .ship/release.yml
 func (r *Resolver) persistSpec(specYAML []byte) error {
-	if err := r.StateManager.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
+	if err := r.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
 	}
 
-	if err := r.StateManager.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
+	if err := r.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
 		return errors.Wrap(err, "write yaml file")
 	}
 	return nil

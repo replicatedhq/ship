@@ -27,6 +27,7 @@ type Render struct {
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {
+	Path string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
 
 // CurrentKustomize is a lifeycle step to generate overlays for generated assets.

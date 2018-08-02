@@ -34,7 +34,7 @@ type Renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
 	Planner        planner.Planner
-	StateManager   *state.Manager
+	StateManager   state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
 	Daemon         daemon.Daemon
@@ -45,7 +45,7 @@ func NewRenderer(
 	logger log.Logger,
 	fs afero.Afero,
 	ui cli.Ui,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 	planner planner.Planner,
 	resolver config.Resolver,
 ) *Renderer {
@@ -124,7 +124,7 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	}
 
 	r.Daemon.SetProgress(ProgressCommit)
-	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
+	if err := r.StateManager.SerializeConfig(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
 

@@ -14,7 +14,8 @@ import (
 func TestPersistSpec(t *testing.T) {
 
 	r := &Resolver{
-		StateManager: &state.Manager{
+		FS: afero.Afero{Fs: afero.NewMemMapFs()},
+		StateManager: &state.MManager{
 			Logger: log.NewNopLogger(),
 			FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 			V:      viper.New(),
@@ -27,6 +28,6 @@ func TestPersistSpec(t *testing.T) {
 	err := r.persistSpec(desiredSpec)
 	req.NoError(err)
 
-	persistedSpec, err := r.StateManager.FS.ReadFile(".ship/release.yml")
+	persistedSpec, err := r.FS.ReadFile(".ship/release.yml")
 	req.True(reflect.DeepEqual(desiredSpec, persistedSpec))
 }
