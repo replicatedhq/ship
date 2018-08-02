@@ -56,30 +56,25 @@ func (s *MManager) SerializeHelmValues(values string) error {
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.HelmValues = values
 
-	debug.Log("event", "emptyState")
-	isEmpty := currentState == Empty{}
-	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
-		return s.serializeAndWriteState(toSerialize)
-	}
-
-	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
-	toSerialize, ok := currentState.(VersionedState)
-	if !ok {
-		debug.Log("event", "tryLoad.fail")
-		return errors.New("cast to VersionedState")
-	}
-	toSerialize.V1.HelmValues = values
-	return s.serializeAndWriteState(toSerialize)
+	return s.serializeAndWriteState(versionedState)
 }
 
 // SerializeConfig takes the application data and input params and serializes a state file to disk
 func (s *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	toSerialize := VersionedState{V1: &V1{
-		Config:   templateContext,
-		ChartURL: s.V.GetString("chart")}}
-	return s.serializeAndWriteState(toSerialize)
+	debug := level.Debug(log.With(s.Logger, "method", "serializeConfig"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := s.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Config = templateContext
+
+	return s.serializeAndWriteState(versionedState)
 }
 
 // TryLoad will attempt to load a state file from disk, if present
@@ -122,19 +117,14 @@ func (s *MManager) TryLoad() (State, error) {
 }
 
 func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
-	state, err := m.TryLoad()
+	currentState, err := m.TryLoad()
 	if err != nil {
 		return errors.Wrapf(err, "load state")
 	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Kustomize = kustomize
 
-	newState := VersionedState{
-		V1: &V1{
-			Config:    state.CurrentConfig(),
-			Kustomize: kustomize,
-		},
-	}
-
-	if err := m.serializeAndWriteState(newState); err != nil {
+	if err := m.serializeAndWriteState(versionedState); err != nil {
 		return errors.Wrap(err, "write state")
 	}
 
@@ -157,8 +147,8 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (s *MManager) serializeAndWriteState(state VersionedState) error {
-  state.V1.ChartURL = s.V.GetString("chart") // chart URL persists throughout `init` lifecycle
-  
+	state.V1.ChartURL = state.CurrentChartURL() // chart URL persists throughout `init` lifecycle
+
 	serialized, err := json.Marshal(state)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
