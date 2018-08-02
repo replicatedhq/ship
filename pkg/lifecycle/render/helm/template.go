@@ -202,7 +202,7 @@ func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
 		chartRoot,
 	)
 
-	debug.Log("event", "helm.update", "args", cmd.Args)
+	debug.Log("event", "helm.update", "args", fmt.Sprintf("%v", cmd.Args))
 
 	stdout, stderr, err := f.fork(cmd)
 
@@ -225,7 +225,7 @@ func (f *ForkTemplater) helmInitClient(chartRoot string) error {
 		"--client-only",
 	)
 
-	debug.Log("event", "helm.initClient", "args", cmd.Args)
+	debug.Log("event", "helm.initClient", "args", fmt.Sprintf("%v", cmd.Args))
 
 	stdout, stderr, err := f.fork(cmd)
 
