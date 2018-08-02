@@ -96,9 +96,9 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	debug.Log("event", "backup.start")
 	r.Daemon.SetProgress(ProgressBackup)
-	err = r.backupIfPresent(constants.InstallerPrefix)
+	err = r.backupIfPresent(constants.InstallerPrefixPath)
 	if err != nil {
-		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefix)
+		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
 	}
 
 	r.Daemon.SetProgress(ProgressExecute)

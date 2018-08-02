@@ -195,7 +195,7 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 					},
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
+							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
 							Dest:     path.Join("overlays", "ship"),
 						},
 					},
