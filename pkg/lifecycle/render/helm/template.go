@@ -3,7 +3,10 @@ package helm
 import (
 	"fmt"
 	"os/exec"
+	"path"
 	"strings"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 
 	"io/ioutil"
 
@@ -48,13 +51,20 @@ func (f *ForkTemplater) Template(
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) error {
-	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "dest", asset.Dest, "description", asset.Description))
+	debug := level.Debug(
+		log.With(
+			f.Logger,
+			"step.type", "render",
+			"render.phase", "execute",
+			"asset.type", "helm",
+			"chartRoot", chartRoot,
+			"dest", asset.Dest,
+			"description", asset.Description,
+		),
+	)
 
-	debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", asset.Dest)
-	if err := f.FS.MkdirAll(asset.Dest, 0755); err != nil {
-		debug.Log("event", "mkdirall.fail", "err", err, "basePath", asset.Dest)
-		return errors.Wrapf(err, "write directory to %s", asset.Dest)
-	}
+	renderedChartTempDir, err := f.FS.TempDir(constants.ShipPath, "tmp-rendered")
+	defer f.FS.RemoveAll(renderedChartTempDir)
 
 	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ChannelName))
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
@@ -65,7 +75,7 @@ func (f *ForkTemplater) Template(
 	cmd.Args = append(
 		cmd.Args,
 		"template", chartRoot,
-		"--output-dir", asset.Dest,
+		"--output-dir", renderedChartTempDir,
 		"--name", releaseName,
 	)
 
@@ -96,6 +106,25 @@ func (f *ForkTemplater) Template(
 			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
 		}
 		return errors.Wrap(err, "execute helm")
+	}
+
+	subChartsDirName := "charts"
+	tempRenderedChartDir := path.Join(renderedChartTempDir, meta.HelmChartMetadata.Name)
+	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
+	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
+
+	debug.Log("event", "rename")
+	if err := f.FS.Rename(tempRenderedChartTemplatesDir, asset.Dest); err != nil {
+		return errors.Wrap(err, "failed to rename templates dir")
+	}
+
+	if err := f.FS.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
+		return errors.Wrap(err, "failed to rename subcharts dir")
+	}
+
+	debug.Log("event", "temphelmvalues.remove", "path", constants.TempHelmValuesPath)
+	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
+		return errors.Wrap(err, "failed to remove Helm values tmp dir")
 	}
 
 	// todo link up stdout/stderr debug logs

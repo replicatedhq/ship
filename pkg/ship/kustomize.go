@@ -157,7 +157,7 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 					{
 						Helm: &api.HelmAsset{
 							AssetShared: api.AssetShared{
-								Dest: ".",
+								Dest: constants.RenderedHelmPath,
 							},
 							Local: &api.LocalHelmOpts{
 								ChartRoot: constants.KustomizeHelmPath,
@@ -183,7 +183,7 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 					},
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
+							BasePath: constants.RenderedHelmPath,
 							Dest:     path.Join("overlays", "ship"),
 						},
 					},
