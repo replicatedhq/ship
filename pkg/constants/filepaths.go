@@ -13,7 +13,7 @@ const OverlaysPrefixPath = "overlays/ship"
 const StatePath = ".ship/state.json"
 
 // KustomizeHelmPath is the path used to store helm chart contents
-const KustomizeHelmPath = ".ship/kustomize/chart"
+const KustomizeHelmPath = "chart"
 
 // TempHelmValuesPath is the folder path used to store the updated values.yaml
-const TempHelmValuesPath = ".ship/kustomize/tmp"
+const TempHelmValuesPath = "tmp"
