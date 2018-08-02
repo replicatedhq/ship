@@ -30,7 +30,7 @@ RUN curl -fsSLO "$TERRAFORM_URL" \
 RUN go get github.com/docker/distribution/cmd/registry
 
 ADD . /go/src/github.com/replicatedhq/ship
-RUN cd /go/src/github.com/replicatedhq/ship && go test -c ./integration/base
+RUN cd /go/src/github.com/replicatedhq/ship && go test -c ./integration/base && go test -c ./integration/update
 
 # package things up
 FROM alpine
@@ -46,9 +46,12 @@ RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN mkdir -p /var/lib/registry
 
 
-ADD ./integration/base /test
+ADD ./integration /test
 RUN cd /test && rm *.go
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
 ENTRYPOINT ./integration_docker_start.sh
+
+
 
 

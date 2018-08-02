@@ -50,6 +50,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/inline
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
+	mkdir -p pkg/test-mocks/state
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -125,6 +126,11 @@ _mockgen:
 		-package tfplan \
 		github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan \
 		PlanConfirmer
+	mockgen \
+		-destination pkg/test-mocks/state/manager_mock.go \
+		-package state \
+		github.com/replicatedhq/ship/pkg/state \
+		Manager
 
 mockgen: _mockgen fmt
 
@@ -204,7 +210,7 @@ build_yoonit_docker_image:
 	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
 
 build_ship_integration_test:
-	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
+	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
 pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	cd web; go-bindata-assetfs -pkg daemon \

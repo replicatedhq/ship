@@ -111,7 +111,7 @@ func (p *DefaultStep) Execute(
 				return errors.Wrapf(err, "write directory to %s", dest)
 			}
 		} else {
-			dest = filepath.Join(constants.InstallerPrefix, dest)
+			dest = filepath.Join(constants.InstallerPrefixPath, dest)
 		}
 
 		pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)

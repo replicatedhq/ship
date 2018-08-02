@@ -13,7 +13,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/state"
-	"github.com/spf13/viper"
 )
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
@@ -68,18 +67,7 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
-	// log for compile, will adjust later
-	debug.Log("event", "build release", "release", release)
-
-	// default to headless if user doesn't set --headed=true
-	if viper.GetBool("headed") {
-		viper.Set("headless", false)
-	} else {
-		viper.Set("headless", true)
-	}
-
-	// TODO IMPLEMENT
-	return errors.New("Not implemented")
+	return s.execute(ctx, release, nil, true)
 }
 
 func (s *Ship) Init(ctx context.Context) error {
@@ -139,7 +127,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 						Kustomize: &api.Kustomize{
 							StepShared: api.StepShared{Description: "Customize your yaml"},
 							BasePath:   s.KustomizeRaw,
-							Dest:       path.Join(constants.InstallerPrefix, "kustomized"),
+							Dest:       path.Join("overlays", "ship"),
 						},
 					},
 					{
@@ -224,8 +212,8 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 								Description: "Build Kustomize Patches",
 								ID:          "kustomize",
 							},
-							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
+							Dest:     path.Join("overlays", "ship"),
 						},
 					},
 					{
@@ -234,8 +222,8 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 								Description: "Review Kustomize Patches",
 								ID:          "kustomize-diff",
 							},
-							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
+							Dest:     path.Join("overlays", "ship"),
 						},
 					},
 					{
