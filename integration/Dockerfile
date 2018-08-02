@@ -46,11 +46,10 @@ RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN mkdir -p /var/lib/registry
 
 
-ADD ./integration/base /test
-ADD ./integration/update /test
+ADD ./integration /test
 RUN cd /test && rm *.go
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
 ENTRYPOINT ./integration_docker_start.sh
 
 
