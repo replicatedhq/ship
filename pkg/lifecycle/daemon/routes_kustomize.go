@@ -47,7 +47,7 @@ func (d *ShipDaemon) PushKustomizeStep(
 
 	d.currentStepName = StepNameKustomize
 	d.currentStep = &Step{
-		Source: apiStep,
+		Source:    apiStep,
 		Kustomize: &kustomize,
 	}
 	d.KustomizeSaved = make(chan interface{}, 1)
