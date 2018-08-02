@@ -60,8 +60,7 @@ func (s *MManager) SerializeHelmValues(values string) error {
 	debug.Log("event", "emptyState")
 	isEmpty := currentState == Empty{}
 	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values,
-			ChartURL: s.V.GetString("chart")}}
+		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
 		return s.serializeAndWriteState(toSerialize)
 	}
 
@@ -130,7 +129,6 @@ func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
-			ChartURL:  m.V.GetString("chart"),
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},
@@ -159,6 +157,8 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (s *MManager) serializeAndWriteState(state VersionedState) error {
+  state.V1.ChartURL = s.V.GetString("chart") // chart URL persists throughout `init` lifecycle
+  
 	serialized, err := json.Marshal(state)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")

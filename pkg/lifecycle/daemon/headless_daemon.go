@@ -34,9 +34,27 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
-func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action)   {}
-func (d *HeadlessDaemon) PushHelmValuesStep(context.Context, HelmValues, []Action) {}
-func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message)           {}
+func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
+
+func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues HelmValues, actions []Action) {
+	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "PushHelmValuesStep"))
+	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values); err != nil {
+		warn.Log("event", "push helm values step fail", "err", err)
+	}
+}
+
+func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues string) error {
+	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "HeadlessSaveHelmValues"))
+	err := d.StateManager.SerializeHelmValues(helmValues)
+	if err != nil {
+		warn.Log("event", "headless save helm values fail", "err", err)
+		return err
+	}
+
+	return nil
+}
+
+func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message) {}
 
 func (d *HeadlessDaemon) CleanPreviousStep() {}
 
@@ -69,7 +87,9 @@ func (d *HeadlessDaemon) SetStepName(context.Context, string) {}
 func (d *HeadlessDaemon) AllStepsDone(context.Context) {}
 
 func (d *HeadlessDaemon) MessageConfirmedChan() chan string {
-	return make(chan string)
+	ch := make(chan string)
+	close(ch)
+	return ch
 }
 
 func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
