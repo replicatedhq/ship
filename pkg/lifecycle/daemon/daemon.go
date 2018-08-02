@@ -492,7 +492,7 @@ func (d *ShipDaemon) hydrateStep(step Step, isCurrent bool) (*StepResponse, erro
 
 	result := &StepResponse{
 		CurrentStep: step,
-		Phase:       d.currentStepName,
+		Phase:       step.Phase(isCurrent),
 		Actions:     d.currentStepActions,
 	}
 

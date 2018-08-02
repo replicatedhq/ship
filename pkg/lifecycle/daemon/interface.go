@@ -30,8 +30,8 @@ type Step struct {
 	Kustomize  *Kustomize  `json:"kustomize"`
 }
 
-type Identified interface {
-	ID() string
+func (s Step) Phase(isCurrent bool) string {
+	return s.Source.ShortName()
 }
 
 type Message struct {
