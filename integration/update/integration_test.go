@@ -73,12 +73,11 @@ var _ = Describe("basic", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when running in init mode", func() {
-					cmd := cli.Init()
+				It("Should output files matching those expected when running in update mode", func() {
+					cmd := cli.Update()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
-						"update",
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 					}
 					args = append(args, testMetadata.Args...)

@@ -119,7 +119,7 @@ func Get() (*Ship, error) {
 	debug.Log("event", "injector.build")
 	injector, err := buildInjector()
 	if err != nil {
-		debug.Log("event", "injector.build.fail")
+		debug.Log("event", "injector.build.fail", "error", err)
 		return nil, errors.Wrap(err, "build injector")
 	}
 
@@ -133,8 +133,8 @@ func Get() (*Ship, error) {
 	})
 
 	if errorWhenConstructingShip != nil {
-		debug.Log("event", "injector.invoke.fail")
-		return nil, errors.Wrap(err, "resolve dependencies")
+		debug.Log("event", "injector.invoke.fail", "err", errorWhenConstructingShip)
+		return nil, errors.Wrap(errorWhenConstructingShip, "resolve dependencies")
 	}
 	return ship, nil
 }
