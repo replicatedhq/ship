@@ -6,8 +6,6 @@ import (
 
 	"strings"
 
-	"fmt"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -32,8 +30,6 @@ func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
 }
 
 func (s *Ship) stateFileExists(ctx context.Context) bool {
-	fmt.Println(s.Logger)
-	fmt.Println("ship", s)
 	debug := level.Debug(log.With(s.Logger, "method", "stateFileExists"))
 
 	existingState, err := s.State.TryLoad()
