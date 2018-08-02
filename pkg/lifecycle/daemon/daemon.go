@@ -475,7 +475,7 @@ func (d *ShipDaemon) getStep(c *gin.Context) {
 
 	for _, step := range d.pastSteps {
 		if step.Source.Shared().ID == requestedStepID {
-			d.hydrateAndSend(*d.currentStep, c)
+			d.hydrateAndSend(step, c)
 			return
 		}
 	}
@@ -599,6 +599,7 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 		debug.Log("event", "message.confirm.skip", "currentStep", d.currentStep.Source.Shared().ID, "requested", request.StepID)
 		c.JSON(200, map[string]interface{}{
 			"status": "skipped",
+			"wanted": d.currentStep.Source.Shared().ID,
 		})
 		return
 	}

@@ -157,7 +157,7 @@ _lint:
 lint: vet _lint
 
 _test:
-	go test ./pkg/... | grep -v '?'
+	go test ./pkg/... 
 
 test: lint _test
 
