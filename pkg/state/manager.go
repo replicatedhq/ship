@@ -46,8 +46,7 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	debug.Log("event", "emptyState")
 	isEmpty := currentState == Empty{}
 	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values,
-			ChartURL: s.V.GetString("chart")}}
+		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
 		return s.serializeAndWriteState(toSerialize)
 	}
 
@@ -63,13 +62,13 @@ func (s *Manager) SerializeHelmValues(values string) error {
 
 // Serialize takes the application data and input params and serializes a state file to disk
 func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	toSerialize := VersionedState{V1: &V1{
-		Config:   templateContext,
-		ChartURL: s.V.GetString("chart")}}
+	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
 	return s.serializeAndWriteState(toSerialize)
 }
 
 func (s *Manager) serializeAndWriteState(state VersionedState) error {
+	state.V1.ChartURL = s.V.GetString("chart") // chart URL persists throughout `init` lifecycle
+
 	serialized, err := json.Marshal(state)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
@@ -135,7 +134,6 @@ func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
 
 	newState := VersionedState{
 		V1: &V1{
-			ChartURL:  m.V.GetString("chart"), // `ship init` persist chart URL
 			Config:    state.CurrentConfig(),
 			Kustomize: kustomize,
 		},
