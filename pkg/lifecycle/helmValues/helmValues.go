@@ -65,7 +65,7 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 }
 
 func (h *helmValues) awaitContinue(ctx context.Context, daemonExitedChan chan error) error {
-	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "awaitContinue"))
+	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "method", "awaitContinue"))
 	for {
 		select {
 		case <-ctx.Done():

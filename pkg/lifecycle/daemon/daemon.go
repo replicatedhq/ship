@@ -333,7 +333,6 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	mesg := v1.Group("/message")
 	mesg.POST("confirm", d.postConfirmMessage)
-	mesg.GET("get", d.getCurrentMessage)
 
 	tf := v1.Group("/terraform")
 	tf.POST("apply", d.terraformApply)
@@ -438,19 +437,19 @@ func (d *ShipDaemon) hydrateAndSend(step Step, c *gin.Context) {
 }
 
 func (d *ShipDaemon) getStep(c *gin.Context) {
-	requestedStepIP := c.Param("step")
+	requestedStepID := c.Param("step")
 	if d.currentStep == nil {
 		d.getLoadingStep(c)
 		return
 	}
 
-	if d.currentStep.Source.Shared().ID == requestedStepIP {
+	if d.currentStep.Source.Shared().ID == requestedStepID {
 		d.hydrateAndSend(*d.currentStep, c)
 		return
 	}
 
 	for _, step := range d.pastSteps {
-		if step.Source.Shared().ID == requestedStepIP {
+		if step.Source.Shared().ID == requestedStepID {
 			d.hydrateAndSend(*d.currentStep, c)
 			return
 		}
@@ -460,10 +459,19 @@ func (d *ShipDaemon) getStep(c *gin.Context) {
 }
 
 func (d *ShipDaemon) getLifecycle(release *api.Release) gin.HandlerFunc {
+	type DaemonStep struct {
+		ID          string `json:"id"`
+		Description string `json:"description"`
+		Phase       string `json:"phase"`
+	}
 	return func(c *gin.Context) {
-		var lifecycleIDs []*api.StepShared
+		var lifecycleIDs []DaemonStep
 		for _, step := range release.Spec.Lifecycle.V1 {
-			lifecycleIDs = append(lifecycleIDs, step.Shared())
+			lifecycleIDs = append(lifecycleIDs, DaemonStep{
+				ID:          step.Shared().ID,
+				Description: step.Shared().Description,
+				Phase:       step.ShortName(),
+			})
 		}
 		c.JSON(200, lifecycleIDs)
 	}
@@ -548,8 +556,9 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "postConfirmMessage"))
 	defer d.locker(debug)()
 
+	// todo test filter by id in body
 	type Request struct {
-		StepName string `json:"step_name"`
+		StepID string `json:"step_id"`
 	}
 
 	debug.Log("event", "request.bind")
@@ -559,9 +568,12 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 		return
 	}
 
-	if d.currentStepName != request.StepName {
-		c.JSON(400, map[string]interface{}{
-			"error": "not current step",
+	// user may click confirm on step they had navigated back to
+	// using browser navigation. If so, just log and skip it.
+	if d.currentStep.Source.Shared().ID != request.StepID {
+		debug.Log("event", "message.confirm.skip", "currentStep", d.currentStep.Source.Shared().ID, "requested", request.StepID)
+		c.JSON(200, map[string]interface{}{
+			"status": "skipped",
 		})
 		return
 	}
@@ -582,24 +594,9 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 	}
 
 	d.currentStepConfirmed = true
-	d.MessageConfirmed <- request.StepName
+	d.MessageConfirmed <- request.StepID
 
 	c.String(200, "")
-}
-
-func (d *ShipDaemon) getCurrentMessage(c *gin.Context) {
-
-	if d.currentStep == nil {
-		c.JSON(400, map[string]interface{}{
-			"error": "no steps taken",
-		})
-		return
-	}
-
-	c.JSON(200, map[string]interface{}{
-		"message": d.currentStep.Message,
-	})
-	return
 }
 
 // Healthz returns a 200 with the version if provided

@@ -23,11 +23,11 @@ const StepNameKustomize = "kustomize"
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
 	Source     api.Step    `json:"-"`
-	Message    *Message    `json:"message"`
-	Render     *Render     `json:"render"`
-	HelmIntro  *HelmIntro  `json:"helmIntro"`
-	HelmValues *HelmValues `json:"helmValues"`
-	Kustomize  *Kustomize  `json:"kustomize"`
+	Message    *Message    `json:"message,omitempty"`
+	Render     *Render     `json:"render,omitempty"`
+	HelmIntro  *HelmIntro  `json:"helmIntro,omitempty"`
+	HelmValues *HelmValues `json:"helmValues,omitempty"`
+	Kustomize  *Kustomize  `json:"kustomize,omitempty"`
 }
 
 func (s Step) Phase(isCurrent bool) string {

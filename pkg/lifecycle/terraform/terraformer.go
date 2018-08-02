@@ -115,7 +115,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 				Contents:    html,
 				TrustedHTML: true,
 			},
-			daemon.MessageActions(),
+			daemon.MessageActions(step.StepShared.ID),
 			api.Step{Terraform: &step},
 		)
 		<-t.Daemon.MessageConfirmedChan()

@@ -126,7 +126,7 @@ func TestDaemonAPI(t *testing.T) {
 						Contents: step1.Message.Contents,
 						Level:    step1.Message.Level,
 					},
-					MessageActions(),
+					MessageActions("message"),
 					api.Step{},
 				)
 
@@ -153,7 +153,7 @@ func TestDaemonAPI(t *testing.T) {
 						Contents: step2.Message.Contents,
 						Level:    step2.Message.Level,
 					},
-					MessageActions(),
+					MessageActions("message-2"),
 					api.Step{},
 				)
 

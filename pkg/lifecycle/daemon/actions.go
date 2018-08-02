@@ -1,6 +1,6 @@
 package daemon
 
-func MessageActions() []Action {
+func MessageActions(id string) []Action {
 	return []Action{
 		{
 			ButtonType:  "primary",
@@ -9,13 +9,13 @@ func MessageActions() []Action {
 			OnClick: ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
-				Body:   `{"step_name": "message"}`,
+				Body:   `{"step_id": "`+ id + `"}`,
 			},
 		},
 	}
 }
 
-func HelmIntroActions() []Action {
+func HelmIntroActions(id string) []Action {
 	return []Action{
 		{
 			ButtonType:  "primary",
@@ -24,7 +24,7 @@ func HelmIntroActions() []Action {
 			OnClick: ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
-				Body:   `{"step_name": "helm.intro"}`,
+				Body:   `{"step_id": "`+ id + `"}`,
 			},
 		},
 	}
