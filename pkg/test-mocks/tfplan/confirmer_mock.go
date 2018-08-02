@@ -36,14 +36,14 @@ func (m *MockPlanConfirmer) EXPECT() *MockPlanConfirmerMockRecorder {
 }
 
 // ConfirmPlan mocks base method
-func (m *MockPlanConfirmer) ConfirmPlan(arg0 context.Context, arg1 string, arg2 api.Release) (bool, error) {
-	ret := m.ctrl.Call(m, "ConfirmPlan", arg0, arg1, arg2)
+func (m *MockPlanConfirmer) ConfirmPlan(arg0 context.Context, arg1 string, arg2 api.Terraform, arg3 api.Release) (bool, error) {
+	ret := m.ctrl.Call(m, "ConfirmPlan", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ConfirmPlan indicates an expected call of ConfirmPlan
-func (mr *MockPlanConfirmerMockRecorder) ConfirmPlan(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfirmPlan", reflect.TypeOf((*MockPlanConfirmer)(nil).ConfirmPlan), arg0, arg1, arg2)
+func (mr *MockPlanConfirmerMockRecorder) ConfirmPlan(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfirmPlan", reflect.TypeOf((*MockPlanConfirmer)(nil).ConfirmPlan), arg0, arg1, arg2, arg3)
 }

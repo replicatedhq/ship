@@ -17,54 +17,33 @@ type Step struct {
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 }
 
-func (s Step) Shared() *StepShared {
-	if s.Message != nil {
-		return &s.Message.StepShared
-	} else if s.Render != nil {
-		return &s.Render.StepShared
-	} else if s.Terraform != nil {
-		return &s.Terraform.StepShared
-	} else if s.KustomizeIntro != nil {
-		return &s.KustomizeIntro.StepShared
-	} else if s.KustomizeDiff != nil {
-		return &s.KustomizeDiff.StepShared
-	} else if s.Kustomize != nil {
-		return &s.Kustomize.StepShared
-	} else if s.HelmIntro != nil {
-		return &s.HelmIntro.StepShared
-	} else if s.HelmValues != nil {
-		return &s.HelmValues.StepShared
-	}
+type StepDetails interface {
+	Shared() *StepShared
+	ShortName() string
+}
 
+func (s Step) GetStep() StepDetails {
+	if s.Message != nil {
+		return s.Message
+	} else if s.Render != nil {
+		return s.Render
+	} else if s.Terraform != nil {
+		return s.Terraform
+	} else if s.KustomizeIntro != nil {
+		return s.KustomizeIntro
+	} else if s.KustomizeDiff != nil {
+		return s.KustomizeDiff
+	} else if s.Kustomize != nil {
+		return s.Kustomize
+	} else if s.HelmIntro != nil {
+		return s.HelmIntro
+	} else if s.HelmValues != nil {
+		return s.HelmValues
+	}
 	return nil
 }
-
-func (s Step) SetID(id string) {
-	if s.Shared() != nil {
-		s.Shared().ID = id
-	}
-}
-
-func (s Step) ShortName() string {
-	if s.Message != nil {
-		return "message"
-	} else if s.Render != nil {
-		return "render"
-	} else if s.Terraform != nil {
-		return "terraform"
-	} else if s.KustomizeIntro != nil {
-		return "kustomizeIntro"
-	} else if s.KustomizeDiff != nil {
-		return "kustomizeDiff"
-	} else if s.Kustomize != nil {
-		return "kustomize"
-	} else if s.HelmIntro != nil {
-		return "helmIntro"
-	} else if s.HelmValues != nil {
-		return "helmValues"
-	}
-	return "step"
-}
+func (s Step) Shared() *StepShared { return s.GetStep().Shared() }
+func (s Step) ShortName() string   { return s.GetStep().ShortName() }
 
 type StepShared struct {
 	ID          string `json:"id,omitempty" yaml:"id,omitempty" hcl:",key"`
@@ -78,16 +57,25 @@ type Message struct {
 	Level      string     `json:"level,omitempty" yaml:"level,omitempty" hcl:"level,omitempty"`
 }
 
+func (m *Message) Shared() *StepShared { return &m.StepShared }
+func (m *Message) ShortName() string   { return "message" }
+
 // Render is a lifeycle step to collect config and render assets
 type Render struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
+
+func (r *Render) Shared() *StepShared { return &r.StepShared }
+func (r *Render) ShortName() string   { return "render" }
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Path       string     `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
+
+func (t *Terraform) Shared() *StepShared { return &t.StepShared }
+func (t *Terraform) ShortName() string   { return "terraform" }
 
 // Kustomize is a lifeycle step to generate overlays for generated assets.
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
@@ -97,10 +85,16 @@ type Kustomize struct {
 	Dest       string     `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 }
 
+func (k *Kustomize) Shared() *StepShared { return &k.StepShared }
+func (k *Kustomize) ShortName() string   { return "kustomize" }
+
 // KustomizeIntro is a lifeycle step to display an informative intro page for kustomize
 type KustomizeIntro struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
+
+func (k *KustomizeIntro) Shared() *StepShared { return &k.StepShared }
+func (k *KustomizeIntro) ShortName() string   { return "kustomize-intro" }
 
 // KustomizeDiff is a lifecycle step to display the diff of kustomized assets
 type KustomizeDiff struct {
@@ -109,13 +103,22 @@ type KustomizeDiff struct {
 	Dest       string     `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 }
 
+func (k *KustomizeDiff) Shared() *StepShared { return &k.StepShared }
+func (k *KustomizeDiff) ShortName() string   { return "kustomize-diff" }
+
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
+
+func (h *HelmIntro) Shared() *StepShared { return &h.StepShared }
+func (h *HelmIntro) ShortName() string   { return "helm-intro" }
 
 // HelmValues is a lifecycle step to render persisted values.yaml in the .ship folder
 // and save user input changes to values.yaml
 type HelmValues struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
+
+func (h *HelmValues) Shared() *StepShared { return &h.StepShared }
+func (h *HelmValues) ShortName() string   { return "helm-values" }

@@ -120,10 +120,15 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "read message after 1st step",
 			test: func(t *testing.T) {
-				daemon.PushMessageStep(context.Background(), Message{
-					Contents: step1.Message.Contents,
-					Level:    step1.Message.Level,
-				}, MessageActions())
+				daemon.PushMessageStep(
+					context.Background(),
+					Message{
+						Contents: step1.Message.Contents,
+						Level:    step1.Message.Level,
+					},
+					MessageActions(),
+					api.Step{},
+				)
 
 				resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/message/get", port))
 				require.New(t).NoError(err)
@@ -142,10 +147,15 @@ func TestDaemonAPI(t *testing.T) {
 			name: "confirm message that is not current",
 			test: func(t *testing.T) {
 				log := &logger.TestLogger{T: t}
-				daemon.PushMessageStep(context.Background(), Message{
-					Contents: step2.Message.Contents,
-					Level:    step2.Message.Level,
-				}, MessageActions())
+				daemon.PushMessageStep(
+					context.Background(),
+					Message{
+						Contents: step2.Message.Contents,
+						Level:    step2.Message.Level,
+					},
+					MessageActions(),
+					api.Step{},
+				)
 
 				reqBody := bytes.NewReader([]byte(`{"step_name": "wrong-name"}`))
 				log.Log("daemon.current", daemon.currentStepName)

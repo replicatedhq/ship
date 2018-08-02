@@ -23,9 +23,9 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
-func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize)       {}
-func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
-func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize, api.Step)       {}
+func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action, api.Step) {}
+func (d *HeadlessDaemon) PushRenderStep(context.Context, Render, api.Step)             {}
 
 func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	ch := make(chan interface{}, 1)
@@ -34,9 +34,9 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
-func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action)   {}
-func (d *HeadlessDaemon) PushHelmValuesStep(context.Context, HelmValues, []Action) {}
-func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message)           {}
+func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action, api.Step)   {}
+func (d *HeadlessDaemon) PushHelmValuesStep(context.Context, HelmValues, []Action, api.Step) {}
+func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message, api.Step)           {}
 
 func (d *HeadlessDaemon) CleanPreviousStep() {}
 

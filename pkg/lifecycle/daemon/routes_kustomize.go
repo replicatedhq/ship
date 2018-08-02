@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/state"
 )
@@ -28,7 +29,11 @@ func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
 	return d.KustomizeSaved
 }
 
-func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
+func (d *ShipDaemon) PushKustomizeStep(
+	ctx context.Context,
+	kustomize Kustomize,
+	apiStep api.Step,
+) {
 	debug := level.Debug(log.With(d.Logger, "method", "PushKustomizeStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()

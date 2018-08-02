@@ -70,7 +70,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	}
 
 	if !viper.GetBool("terraform-yes") {
-		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
+		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), step, release)
 		if err != nil {
 			return errors.Wrap(err, "confirm plan")
 		}
@@ -84,7 +84,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	applyMsgs := make(chan daemon.Message, 20)
 
 	// returns when the applyMsgs channel closes
-	go t.Daemon.PushStreamStep(ctx, applyMsgs)
+	go t.Daemon.PushStreamStep(ctx, applyMsgs, api.Step{Terraform: &step})
 
 	// blocks until all of stdout/stderr has been sent on applyMsgs channel
 	html, err := t.apply(applyMsgs)
@@ -98,6 +98,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 				Level:       "error",
 			},
 			failedApplyActions(),
+			api.Step{Terraform: &step},
 		)
 		retry := <-t.Daemon.TerraformConfirmedChan()
 		t.Daemon.CleanPreviousStep()
@@ -115,6 +116,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 				TrustedHTML: true,
 			},
 			daemon.MessageActions(),
+			api.Step{Terraform: &step},
 		)
 		<-t.Daemon.MessageConfirmedChan()
 	}

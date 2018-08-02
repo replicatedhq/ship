@@ -41,7 +41,7 @@ func (h *helmIntro) Execute(ctx context.Context, release *api.Release, step *api
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{}, daemon.HelmIntroActions(), api.Step{HelmIntro: step})
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)

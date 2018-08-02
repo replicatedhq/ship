@@ -16,6 +16,7 @@ type PlanConfirmer interface {
 	ConfirmPlan(
 		ctx context.Context,
 		formmatedTerraformPlan string,
+		step api.Terraform,
 		release api.Release,
 	) (bool, error)
 }
@@ -42,6 +43,7 @@ type DaemonPlanner struct {
 func (d *DaemonPlanner) ConfirmPlan(
 	ctx context.Context,
 	formmatedTerraformPlan string,
+	step api.Terraform,
 	release api.Release,
 ) (bool, error) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemonplanner", "method", "plan"))
@@ -52,6 +54,7 @@ func (d *DaemonPlanner) ConfirmPlan(
 		ctx,
 		daemon.Message{Contents: formmatedTerraformPlan, TrustedHTML: true},
 		planActions(),
+		api.Step{Terraform: &step},
 	)
 
 	shouldApply, err := d.awaitPlanResult(ctx, daemonExitedChan)

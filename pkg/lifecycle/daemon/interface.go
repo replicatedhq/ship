@@ -1,6 +1,9 @@
 package daemon
 
-import "github.com/replicatedhq/ship/pkg/filetree"
+import (
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/filetree"
+)
 
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
@@ -19,11 +22,16 @@ const StepNameKustomize = "kustomize"
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
+	Source     api.Step    `json:"-"`
 	Message    *Message    `json:"message"`
 	Render     *Render     `json:"render"`
 	HelmIntro  *HelmIntro  `json:"helmIntro"`
 	HelmValues *HelmValues `json:"helmValues"`
 	Kustomize  *Kustomize  `json:"kustomize"`
+}
+
+type Identified interface {
+	ID() string
 }
 
 type Message struct {
@@ -32,7 +40,8 @@ type Message struct {
 	Level       string `json:"level"`
 }
 
-type Render struct{}
+type Render struct {
+}
 
 type StepResponse struct {
 	CurrentStep Step      `json:"currentStep"`
@@ -59,10 +68,12 @@ type HelmIntro struct {
 }
 
 type HelmValues struct {
+	ID     string `json:"id"`
 	Values string `json:"values"`
 }
 
 type Kustomize struct {
+	ID       string        `json:"id"`
 	BasePath string        `json:"basePath"`
 	Tree     filetree.Node `json:"tree"`
 }
