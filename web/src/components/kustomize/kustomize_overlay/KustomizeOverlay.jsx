@@ -13,6 +13,7 @@ import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
 import Toast from "../../shared/Toast";
 import KustomizeEmpty from "./KustomizeEmpty";
+import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 
 import "../../../scss/components/kustomize/KustomizeOverlay.scss";
 import "../../../../node_modules/brace/mode/yaml";
@@ -32,7 +33,8 @@ export default class KustomizeOverlay extends React.Component {
       overlayContent: "",
       toastDetails: {
         opts: {}
-      }
+      },
+      markers: [],
     };
     autoBind(this);
   }
@@ -56,6 +58,35 @@ export default class KustomizeOverlay extends React.Component {
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ overlayContent: `--- \n${overlay}` });
     this.openOverlay();
+  }
+
+  addToOverlay(overlayKeyValue) {
+    const {
+      addOverlay,
+      fileContents,
+      selectedFile,
+      overlayContent,
+    } = this.state;
+
+    let file = fileContents[selectedFile];
+    if (!file) return;
+
+    const fileYaml = yaml.safeLoad(file.baseContent);
+    if (addOverlay) {
+      const overlayField = pick(fileYaml, overlayKeyValue);
+      const overlayToAdd = yaml.safeDump(overlayField);
+      this.setState({
+        addOverlay: true,
+        overlayContent: `${overlayContent}${overlayToAdd}`,
+      })
+    } else {
+      const overlayFields = pick(fileYaml, "apiVersion", "kind", "metadata.name", overlayKeyValue);
+      const overlayToAdd = yaml.safeDump(overlayFields);
+      this.setState({
+        addOverlay: true,
+        overlayContent: `--- \n${overlayToAdd}`,
+      });
+    }
   }
 
   hasContentAlready(path) {
@@ -130,6 +161,17 @@ export default class KustomizeOverlay extends React.Component {
     }).catch();
   }
 
+  async handleGeneratePatch(dirtyContent) {
+    const { selectedFile } = this.state;
+    const payload = {
+      original: selectedFile,
+      modified: dirtyContent,
+    };
+    await this.props.generatePatch(payload);
+    this.openOverlay();
+    this.aceEditorOverlay.editor.find(PATCH_TOKEN);
+  }
+
   rebuildTooltip() {
     // We need to rebuild these because...well I dunno why but if you don't the tooltips will not be visible after toggling the overlay editor.
     ReactTooltip.rebuild();
@@ -155,12 +197,12 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.currentStep !== lastProps.currentStep && !isEmpty(this.props.currentStep)) {
       this.setFileTree();
     }
-    if (this.props.fileContents !==lastProps.fileContents && !isEmpty(this.props.fileContents)) {
+    if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
       this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
     if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
-      if (this.refs.aceEditorOverlay) {
-        this.refs.aceEditorOverlay.editor.resize();
+      if (this.aceEditorOverlay) {
+        this.aceEditorOverlay.editor.resize();
       }
     }
   }
@@ -178,8 +220,8 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   render() {
-    const { dataLoading } = this.props;
-    const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, overlayContent, toastDetails } = this.state;
+    const { dataLoading, patch } = this.props;
+    const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, toastDetails } = this.state;
     const fileToView = fileContents[selectedFile];
 
     return (
@@ -230,23 +272,9 @@ export default class KustomizeOverlay extends React.Component {
                               </div>
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
-                              <AceEditor
-                                ref="aceEditorBase"
-                                mode="yaml"
-                                theme="chrome"
-                                className="flex1 flex disabled-ace-editor ace-chrome"
-                                readOnly={true}
-                                value={fileToView && fileToView.baseContent || ""}
-                                height="100%"
-                                width="100%"
-                                editorProps={{
-                                  $blockScrolling: Infinity,
-                                  useSoftTabs: true,
-                                  tabSize: 2,
-                                }}
-                                setOptions={{
-                                  scrollPastEnd: false
-                                }}
+                              <AceEditorHOC
+                                handleGeneratePatch={this.handleGeneratePatch}
+                                fileToView={fileToView}
                               />
                             </div>
                           </div>
@@ -264,11 +292,11 @@ export default class KustomizeOverlay extends React.Component {
                       {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.discardOverlay}></span>}
                       <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
-                        ref="aceEditorOverlay"
+                        ref={(editor) => { this.aceEditorOverlay = editor }}
                         mode="yaml"
                         theme="chrome"
                         className="flex1 flex"
-                        value={overlayContent || ""}
+                        value={patch || ""}
                         height="100%"
                         width="100%"
                         editorProps={{
