@@ -302,6 +302,8 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	conf.PUT("finalize", d.finalizeAppConfig(release))
 
 	life := v1.Group("/lifecycle")
+	life.GET("/", d.getLifecycle(release))
+	life.GET("/step/:step", d.getStep(release))
 	life.GET("current", d.getCurrentStep)
 	life.GET("loading", d.getLoadingStep)
 
@@ -391,6 +393,30 @@ func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 		},
 		"phase": "done",
 	})
+}
+
+func (d *ShipDaemon) getStep(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		stepID := c.Param("step")
+
+		for _, step := range release.Spec.Lifecycle.V1 {
+			if step.Shared().ID == stepID {
+				c.JSON(200, map[string]interface{}{
+					"step": step,
+				})
+				return
+			}
+		}
+		c.JSON(404, map[string]interface{}{
+			"error": "not_found",
+		})
+	}
+}
+
+func (d *ShipDaemon) getLifecycle(release *api.Release) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, release.Spec.Lifecycle)
+	}
 }
 
 func (d *ShipDaemon) getCurrentStep(c *gin.Context) {

@@ -118,6 +118,8 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	release := s.buildRelease(helmChartMetadata)
+	patchedLifecycle := s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
+	release.Spec.Lifecycle = patchedLifecycle
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -135,18 +137,21 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 				V1: []api.Step{
 					{
 						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
-							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+							StepShared: api.StepShared{Description: "Customize your yaml"},
+							BasePath:   s.KustomizeRaw,
+							Dest:       path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
 					{
 						Message: &api.Message{
+							StepShared: api.StepShared{Description: "Finalize"},
 							Contents: `
-Assets are ready to deploy. You can run
+Assets are ready to deploy. If you have [kustomize](https://github.com/kubernetes-sigs/kustomize) installed,
+You can run
 
-    kubectl apply -f installer/rendered
+    kustomize build overlays/ship | kubectl apply -f -
 
-to deploy the overlaid assets to your cluster.
+to deploy the assets to your cluster.
 						`},
 					},
 				},
@@ -185,28 +190,67 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
 					{
-						HelmIntro: &api.HelmIntro{},
+						HelmIntro: &api.HelmIntro{
+							StepShared: api.StepShared{
+								ID:          "intro",
+								Description: "Introduction to Chart",
+							},
+						},
 					},
 					{
-						HelmValues: &api.HelmValues{},
+						HelmValues: &api.HelmValues{
+							StepShared: api.StepShared{
+								ID:          "values",
+								Description: "Customize Helm Values",
+							},
+						},
 					},
 					{
-						Render: &api.Render{},
+						Render: &api.Render{
+							StepShared: api.StepShared{Description: "Render Helm Chart"},
+						},
+					},
+					{
+						KustomizeIntro: &api.KustomizeIntro{
+							StepShared: api.StepShared{
+								Description: "Kustomize Intro",
+								ID:          "kustomize-intro",
+							},
+						},
 					},
 					{
 						Kustomize: &api.Kustomize{
+							StepShared: api.StepShared{
+								Description: "Build Kustomize Patches",
+								ID:          "kustomize",
+							},
+							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
+							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
+						},
+					},
+					{
+						KustomizeDiff: &api.KustomizeDiff{
+							StepShared: api.StepShared{
+								Description: "Review Kustomize Patches",
+								ID:          "kustomize-diff",
+							},
 							BasePath: path.Join(constants.InstallerPrefix, helmChartMetadata.Name),
 							Dest:     path.Join(constants.InstallerPrefix, "kustomized"),
 						},
 					},
 					{
 						Message: &api.Message{
+							StepShared: api.StepShared{
+								Description: "Next Steps",
+								ID:          "kustomize-diff",
+							},
 							Contents: `
-Assets are ready to deploy. You can run
+Assets are ready to deploy. If you have [kustomize](https://github.com/kubernetes-sigs/kustomize) installed,
+You can run
 
-    kubectl apply -f installer/rendered
+    kustomize build overlays/ship | kubectl apply -f -
 
-to deploy the overlaid assets to your cluster.
+to deploy the assets to your cluster.
 						`},
 					},
 				},

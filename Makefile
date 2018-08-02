@@ -7,7 +7,7 @@ UI = $(shell find ui/ -name "*.js")
 
 DOCKER_REPO ?= replicated
 
-.state/build-deps: Makefile
+.state/build-deps:
 	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/elazarl/go-bindata-assetfs/...

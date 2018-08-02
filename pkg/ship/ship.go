@@ -49,6 +49,7 @@ type Ship struct {
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
+	IDPatcher    *specs.IDPatcher
 }
 
 // NewShip gets an instance using viper to pull config
@@ -61,6 +62,7 @@ func NewShip(
 	runner *lifecycle.Runner,
 	ui cli.Ui,
 	stateManager *state.Manager,
+	patcher *specs.IDPatcher,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -75,14 +77,15 @@ func NewShip(
 
 		KustomizeRaw: v.GetString("raw"),
 
-		Viper:    v,
-		Logger:   logger,
-		Resolver: resolver,
-		Client:   graphql,
-		Daemon:   daemon,
-		UI:       ui,
-		Runner:   runner.WithDaemon(daemon),
-		State:    stateManager,
+		Viper:     v,
+		Logger:    logger,
+		Resolver:  resolver,
+		Client:    graphql,
+		Daemon:    daemon,
+		UI:        ui,
+		Runner:    runner.WithDaemon(daemon),
+		State:     stateManager,
+		IDPatcher: patcher,
 	}, nil
 }
 
@@ -141,7 +144,6 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	var release *api.Release
 	selector := &specs.Selector{
 		CustomerID:     s.CustomerID,
 		ReleaseSemver:  s.ReleaseSemver,
@@ -149,11 +151,13 @@ func (s *Ship) Execute(ctx context.Context) error {
 		ChannelID:      s.ChannelID,
 		InstallationID: s.InstallationID,
 	}
-	cloudOrRunbookRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
+	release, err := s.Resolver.ResolveRelease(ctx, *selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
-	release = cloudOrRunbookRelease
+	patchedLifecycle := s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
+
+	release.Spec.Lifecycle = patchedLifecycle
 
 	return s.execute(ctx, release, selector, false)
 }
