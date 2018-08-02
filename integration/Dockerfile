@@ -47,12 +47,9 @@ RUN mkdir -p /var/lib/registry
 
 
 ADD ./integration/base /test
-RUN cd /test && rm *.go
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/
-ENTRYPOINT ./integration_docker_start.sh
-
 ADD ./integration/update /test
 RUN cd /test && rm *.go
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/
 ENTRYPOINT ./integration_docker_start.sh
 
