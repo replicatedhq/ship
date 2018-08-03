@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/spf13/viper"
+
 	"reflect"
 	"strings"
 
@@ -149,6 +151,7 @@ func TestForkTemplater(t *testing.T) {
 				Logger:         testLogger,
 				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
+				Viper:          viper.New(),
 			}
 
 			channelName := "Frobnitz"
