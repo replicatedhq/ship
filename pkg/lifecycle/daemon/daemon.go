@@ -323,11 +323,11 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
-	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMegePatch)
+	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
 }
 
-func (d *ShipDaemon) createOrMegePatch(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMegePatch"))
+func (d *ShipDaemon) createOrMergePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMergePatch"))
 	type Request struct {
 		Original string `json:"original"`
 		Modified string `json:"modified"`
