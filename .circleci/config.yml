@@ -45,6 +45,24 @@ jobs:
           paths:
             - dist
 
+  test_ui:
+    docker:
+      - image: circleci/node:9
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "web/package.json" }}
+          - v1-dependencies-
+      - run:
+          name: test
+          command: make test_CI
+      - save_cache:
+          paths:
+            - web/node_modules
+          key: v1-dependencies-{{ checksum "web/package.json" }}
+
   integration:
     docker:
       - image: circleci/golang:1.10
@@ -118,6 +136,7 @@ workflows:
   unstable:
     jobs:
       - build_ui
+      - test_ui
       - integration
       - test
 
@@ -126,6 +145,7 @@ workflows:
           - test
           - integration
           - build_ui
+          - test_ui
           filters:
             branches:
               only: /master/
@@ -142,6 +162,12 @@ workflows:
   stable:
     jobs:
       - build_ui:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - test_ui:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
@@ -164,6 +190,7 @@ workflows:
           - test
           - integration
           - build_ui
+          - test_ui
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
