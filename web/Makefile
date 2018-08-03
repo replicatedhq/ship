@@ -36,3 +36,6 @@ embed_ship:
 
 test:
 	yarn test
+
+test_CI:
+	CI=1 yarn test

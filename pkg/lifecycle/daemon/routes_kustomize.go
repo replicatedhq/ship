@@ -54,6 +54,17 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 		return
 	}
 
+	if request.Path == "" {
+		c.JSON(
+			400,
+			map[string]string{
+				"error":  "bad_request",
+				"detail": "path cannot be empty",
+			},
+		)
+		return
+	}
+
 	debug.Log("event", "request.bind")
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {

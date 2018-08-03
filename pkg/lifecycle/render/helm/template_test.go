@@ -11,6 +11,7 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
@@ -46,7 +47,10 @@ func TestForkTemplater(t *testing.T) {
 				// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
 				"EXPECT_HELM_ARGV=--foo|bar|--output-dir|fake",
 			},
-			expectError: "execute helm: exit status 2: stdout: \"\"; stderr: \"expected args [--foo bar --output-dir fake], got args [template /tmp/chartroot --output-dir k8s/ --name frobnitz]; FAIL\";",
+			expectError: fmt.Sprintf(
+				"execute helm: exit status 2: stdout: \"\"; stderr: \"expected args [--foo bar --output-dir fake], got args [template /tmp/chartroot --output-dir %s --name frobnitz]; FAIL\";",
+				constants.RenderedHelmTempPath,
+			),
 		},
 		{
 			name:     "helm test proper args",
@@ -56,7 +60,7 @@ func TestForkTemplater(t *testing.T) {
 				"EXPECT_HELM_ARGV=" +
 					"template|" +
 					"/tmp/chartroot|" +
-					"--output-dir|k8s/|" +
+					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
 					"--name|frobnitz",
 			},
 			expectError: "",
@@ -69,7 +73,7 @@ func TestForkTemplater(t *testing.T) {
 				"EXPECT_HELM_ARGV=" +
 					"template|" +
 					"/tmp/chartroot|" +
-					"--output-dir|k8s/|" +
+					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
 					"--name|frobnitz|" +
 					"--set|service.clusterIP=10.3.9.2",
 			},
@@ -84,7 +88,7 @@ func TestForkTemplater(t *testing.T) {
 				"EXPECT_HELM_ARGV=" +
 					"template|" +
 					"/tmp/chartroot|" +
-					"--output-dir|k8s/|" +
+					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
 					"--name|frobnitz|" +
 					"--set|service.clusterIP=10.3.9.2",
 			},
@@ -100,7 +104,7 @@ func TestForkTemplater(t *testing.T) {
 				"EXPECT_HELM_ARGV=" +
 					"template|" +
 					"/tmp/chartroot|" +
-					"--output-dir|k8s/|" +
+					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
 					"--name|1-2-3---------frobnitz|" +
 					"--set|service.clusterIP=10.3.9.2",
 			},
@@ -117,7 +121,7 @@ func TestForkTemplater(t *testing.T) {
 				"EXPECT_HELM_ARGV=" +
 					"template|" +
 					"/tmp/chartroot|" +
-					"--output-dir|k8s/|" +
+					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
 					"--name|1-2-3---------frobnitz|" +
 					"--set|service.clusterIP=10.3.9.2",
 			},
