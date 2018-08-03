@@ -50,28 +50,30 @@ var _ = Describe("basic", func() {
 		if file.IsDir() {
 			Context(fmt.Sprintf("When the spec in %q is run", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
-				testInputPath := path.Join(testPath, "input")
-				var testOutputPath string
+				testInputPath := path.Join(testPath, "lifecycle")
+				testOutputPath := path.Join(testPath, "lifecycle")
+				// var testOutputPath string
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
 					// create a temporary directory within this directory to compare files with
-					testOutputPath, err = ioutil.TempDir(testPath, "test")
-					Expect(err).NotTo(HaveOccurred())
+					// testOutputPath, err = ioutil.TempDir(testPath, "test")
+					// Expect(err).NotTo(HaveOccurred())
+
 					os.Chdir(testOutputPath)
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
 				}, 20)
 
-				AfterEach(func() {
-					if !testMetadata.SkipCleanup {
-						// remove the temporary directory
-						err := os.RemoveAll(testOutputPath)
-						Expect(err).NotTo(HaveOccurred())
-					}
-					os.Chdir(integrationDir)
-				}, 20)
+				// AfterEach(func() {
+				// 	if !testMetadata.SkipCleanup {
+				// 		// remove the temporary directory
+				// 		err := os.RemoveAll(testOutputPath)
+				// 		Expect(err).NotTo(HaveOccurred())
+				// 	}
+				// 	os.Chdir(integrationDir)
+				// }, 20)
 
 				It("Should output files matching those expected when running in update mode", func() {
 					cmd := cli.RootCmd()

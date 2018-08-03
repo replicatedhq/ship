@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: modify-chart
-          image: "nginx:latest"
+          image: "nginx:stable"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
