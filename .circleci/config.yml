@@ -99,7 +99,7 @@ jobs:
       - run: make build-deps embed-ui
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
-          command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config .goreleaser.unstable.yml
+          command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: docker push replicated/ship:unstable
@@ -129,7 +129,7 @@ jobs:
       - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
-          command: curl -sL https://git.io/goreleaser | bash
+          command: curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
       # todo drop a release-api message to bump a version in the DB
 
 workflows:

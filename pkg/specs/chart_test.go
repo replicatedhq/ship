@@ -114,40 +114,53 @@ var _ = Describe("GithubClient", func() {
 		})
 	})
 
-	Describe("decodeGitHubUrl", func() {
+	Describe("decodeGitHubURL", func() {
 		Context("With a valid github url", func() {
 			It("should decode a valid url without a path", func() {
 				chartPath := "github.com/o/r"
-				o, r, p, err := decodeGitHubUrl(chartPath)
+				o, r, b, p, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(o).To(Equal("o"))
 				Expect(r).To(Equal("r"))
 				Expect(p).To(Equal(""))
+				Expect(b).To(Equal(""))
 			})
 
 			It("should decode a valid url with a path", func() {
 				chartPath := "github.com/o/r/stable/chart"
-				o, r, p, err := decodeGitHubUrl(chartPath)
+				o, r, b, p, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(o).To(Equal("o"))
 				Expect(r).To(Equal("r"))
 				Expect(p).To(Equal("stable/chart"))
+				Expect(b).To(Equal(""))
+			})
+
+			It("should decode a valid url with a /tree/<branch>/ path", func() {
+				chartPath := "github.com/o/r/tree/master/stable/chart"
+				o, r, b, p, err := decodeGitHubURL(chartPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(o).To(Equal("o"))
+				Expect(r).To(Equal("r"))
+				Expect(p).To(Equal("stable/chart"))
+				Expect(b).To(Equal("master"))
 			})
 		})
 
 		Context("With an invalid github url", func() {
 			It("should failed to decode a url without a path", func() {
 				chartPath := "github.com"
-				_, _, _, err := decodeGitHubUrl(chartPath)
+				_, _, _, _, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("github.com: unable to decode github url"))
 			})
 
 			It("should failed to decode a url with a path", func() {
 				chartPath := "github.com/o"
-				_, _, _, err := decodeGitHubUrl(chartPath)
+				_, _, _, _, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("github.com/o: unable to decode github url"))
 			})

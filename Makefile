@@ -200,13 +200,13 @@ integration-test-kustomize:
 
 goreleaser: .state/goreleaser
 
-.state/goreleaser: .goreleaser.unstable.yml deploy/Dockerfile $(SRC)
+.state/goreleaser: deploy/.goreleaser.unstable.yml deploy/Dockerfile $(SRC)
 	@mkdir -p .state
-	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
+	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config deploy/.goreleaser.unstable.yml
 	@touch .state/goreleaser
 
 run: bin/ship
-	./bin/ship app --log-level=debug --runbook=./app.yml
+	./bin/ship app --log-level=debug --runbook=./fixtures/app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:
