@@ -58,7 +58,7 @@ func (r *LocalRenderer) Execute(
 
 		var assetsPath string
 		if asset.Dest != "" && path.Ext(asset.Dest) == ".tf" {
-			assetsPath = path.Join(constants.InstallerPrefixPath, asset.Dest)
+			assetsPath = asset.Dest
 		} else {
 			assetsPath = path.Join(constants.InstallerPrefixPath, "main.tf")
 		}
