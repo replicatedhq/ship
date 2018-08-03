@@ -11,12 +11,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 )
-
-type HelmIntro interface {
-	Execute(context.Context, *api.Release, *api.HelmIntro) error
-}
 
 type helmIntro struct {
 	Fs     afero.Afero
@@ -28,7 +25,7 @@ func NewHelmIntro(
 	fs afero.Afero,
 	logger log.Logger,
 	daemon daemon.Daemon,
-) HelmIntro {
+) lifecycle.HelmIntro {
 	return &helmIntro{
 		Fs:     fs,
 		Logger: logger,
