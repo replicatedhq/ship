@@ -5,6 +5,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/afero"
@@ -34,6 +35,7 @@ func NewHeadedDaemon(
 	fs afero.Afero,
 	webUIFactory WebUIBuilder,
 	treeLoader filetree.Loader,
+	patcher patch.Patcher,
 ) *ShipDaemon {
 	return &ShipDaemon{
 		Logger:             log.With(logger, "struct", "daemon"),
@@ -43,6 +45,7 @@ func NewHeadedDaemon(
 		Viper:              v,
 		WebUIFactory:       webUIFactory,
 		TreeLoader:         treeLoader,
+		Patcher:            patcher,
 		ConfigSaved:        make(chan interface{}, 1),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
@@ -51,5 +54,4 @@ func NewHeadedDaemon(
 		OpenWebConsole:     tryOpenWebConsole,
 		exitChan:           make(chan error),
 	}
-
 }

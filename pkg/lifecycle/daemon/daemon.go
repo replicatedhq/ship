@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 
 	"github.com/replicatedhq/libyaml"
@@ -70,6 +71,7 @@ type ShipDaemon struct {
 	WebUIFactory   WebUIBuilder
 	TreeLoader     filetree.Loader
 	OpenWebConsole opener
+	Patcher        patch.Patcher
 
 	sync.Mutex
 	currentStep          *Step
@@ -321,31 +323,39 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
-	v1.POST("/kustomize/patch", d.requireKustomize(), d.createMergePatch)
+	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMegePatch)
 }
 
-func (d *ShipDaemon) createMergePatch(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createMergePatch"))
+func (d *ShipDaemon) createOrMegePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMegePatch"))
 	type Request struct {
 		Original string `json:"original"`
 		Modified string `json:"modified"`
-		Current string `json:"current"`
+		Current  string `json:"current"`
 	}
 	var request Request
 
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
-	patch, err := d.createTwoWayMergePatch(request.Original, request.Modified)
+	debug.Log("event", "load.originalFile")
+	original, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, request.Original)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "failed to read original file", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
+	patch, err := d.Patcher.CreateTwoWayMergePatch(original, request.Modified)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
 	if request.Current != "" {
-		out, err := d.mergePatches(request.Original, []byte(request.Current), patch)
+		out, err := d.Patcher.MergePatches([]byte(request.Current), patch)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
 			c.AbortWithError(500, errors.New("internal_server_error"))
