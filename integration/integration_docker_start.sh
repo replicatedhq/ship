@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 # Suppress logs from Docker Registry
 $GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
 sleep 2

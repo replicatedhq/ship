@@ -142,6 +142,7 @@ func Get() (*Ship, error) {
 }
 
 func RunE(ctx context.Context) error {
+	viper.Set("is-app", true)
 	s, err := Get()
 	if err != nil {
 		return err
