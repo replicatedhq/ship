@@ -51,35 +51,8 @@ func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues 
 		return err
 	}
 
-	// d.resolveHelmValues()
-
 	return nil
 }
-
-// func (d *HeadlessDaemon) resolveHelmValues() error {
-// 	debug := level.Debug(log.With(d.Logger, "method", "resolveHelmValues"))
-//
-// 	currentState, err := d.StateManager.TryLoad()
-// 	if err != nil {
-// 		return errors.Wrapf(err, "load state")
-// 	}
-//
-// 	values := currentState.CurrentHelmValues()
-//
-// 	debug.Log("event", "MkdirTempHelmValuesPath")
-// 	err = d.FS.MkdirAll(constants.TempHelmValuesPath, 0700)
-// 	if err != nil {
-// 		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
-// 	}
-//
-// 	debug.Log("event", "writeTempValuesYaml")
-// 	err = d.FS.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(values), 0644)
-// 	if err != nil {
-// 		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
-// 	}
-//
-// 	return nil
-// }
 
 func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message) {}
 

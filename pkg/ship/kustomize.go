@@ -67,60 +67,7 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	release := &api.Release{
-		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
-		},
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{
-					{
-						Helm: &api.HelmAsset{
-							AssetShared: api.AssetShared{
-								Dest: ".",
-							},
-							Local: &api.LocalHelmOpts{
-								ChartRoot: constants.KustomizeHelmPath,
-							},
-							HelmOpts: []string{
-								"--values",
-								path.Join(constants.KustomizeHelmPath, "values.yaml"),
-							},
-						},
-					},
-				},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						HelmIntro: &api.HelmIntro{},
-					},
-					{
-						HelmValues: &api.HelmValues{},
-					},
-					{
-						Render: &api.Render{},
-					},
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
-							Dest:     path.Join("overlays", "ship"),
-						},
-					},
-					{
-						Message: &api.Message{
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
+	release := s.buildRelease(helmChartMetadata)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -159,6 +106,48 @@ func (s *Ship) Init(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
 	}
+
+	release := s.buildRelease(helmChartMetadata)
+
+	return s.execute(ctx, release, nil, true)
+}
+
+func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	release := &api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{},
+			},
+			Config: api.Config{
+				V1: []libyaml.ConfigGroup{},
+			},
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: s.KustomizeRaw,
+							Dest:     path.Join("overlays", "ship"),
+						},
+					},
+					{
+						Message: &api.Message{
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/rendered
+
+to deploy the overlaid assets to your cluster.
+						`},
+					},
+				},
+			},
+		},
+	}
+
+	return release
+}
+
+func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
 
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
@@ -215,100 +204,5 @@ to deploy the overlaid assets to your cluster.
 		},
 	}
 
-	return s.execute(ctx, release, nil, true)
-}
-
-func (s *Ship) fakeKustomizeRawRelease() *api.Release {
-	release := &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{},
-			},
-			Config: api.Config{
-				V1: []libyaml.ConfigGroup{},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
-							Dest:     path.Join("overlays", "ship"),
-						},
-					},
-					{
-						Message: &api.Message{
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
-
 	return release
 }
-
-// func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
-//
-// 	release := &api.Release{
-// 		Metadata: api.ReleaseMetadata{
-// 			HelmChartMetadata: helmChartMetadata,
-// 		},
-// 		Spec: api.Spec{
-// 			Assets: api.Assets{
-// 				V1: []api.Asset{
-// 					{
-// 						Helm: &api.HelmAsset{
-// 							AssetShared: api.AssetShared{
-// 								Dest: ".",
-// 							},
-// 							Local: &api.LocalHelmOpts{
-// 								ChartRoot: constants.KustomizeHelmPath,
-// 							},
-// 							HelmOpts: []string{
-// 								"--values",
-// 								path.Join(constants.TempHelmValuesPath, "values.yaml"),
-// 							},
-// 						},
-// 					},
-// 				},
-// 			},
-// 			Lifecycle: api.Lifecycle{
-// 				V1: []api.Step{
-// 					{
-// 						HelmIntro: &api.HelmIntro{},
-// 					},
-// 					{
-// 						HelmValues: &api.HelmValues{},
-// 					},
-// 					{
-// 						Render: &api.Render{},
-// 					},
-// 					{
-// 						Kustomize: &api.Kustomize{
-// 							BasePath: path.Join(constants.InstallerPrefixPath, helmChartMetadata.Name),
-// 							Dest:     path.Join("overlays", "ship"),
-// 						},
-// 					},
-// 					{
-// 						Message: &api.Message{
-// 							Contents: `
-// Assets are ready to deploy. You can run
-//
-//     kubectl apply -f installer/rendered
-//
-// to deploy the overlaid assets to your cluster.
-// 						`},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-//
-// 	return release
-// }

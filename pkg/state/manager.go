@@ -5,10 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"fmt"
-
-	"path"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -28,7 +24,6 @@ type Manager interface {
 	TryLoad() (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
-	WriteResolvedHelmValues() error
 }
 
 var _ Manager = &MManager{}
@@ -63,8 +58,6 @@ func (s *MManager) SerializeHelmValues(values string) error {
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.HelmValues = values
-
-	fmt.Println(versionedState.V1.HelmValues)
 
 	return s.serializeAndWriteState(versionedState)
 }
@@ -169,33 +162,6 @@ func (s *MManager) serializeAndWriteState(state VersionedState) error {
 	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
-	}
-
-	return nil
-}
-
-func (s *MManager) WriteResolvedHelmValues() error {
-	debug := level.Debug(log.With(s.Logger, "method", "WriteResolvedHelmValues"))
-
-	currentState, err := s.TryLoad()
-	if err != nil {
-		return errors.Wrapf(err, "load state")
-	}
-
-	values := currentState.CurrentChartURL()
-
-	fmt.Println(values)
-
-	debug.Log("event", "MkdirTempHelmValuesPath")
-	err = s.FS.MkdirAll(constants.TempHelmValuesPath, 0700)
-	if err != nil {
-		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
-	}
-
-	debug.Log("event", "writeTempValuesYaml")
-	err = s.FS.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(values), 0644)
-	if err != nil {
-		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
 	}
 
 	return nil
