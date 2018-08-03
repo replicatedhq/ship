@@ -15,6 +15,9 @@ const StatePath = ".ship/state.json"
 // KustomizeHelmPath is the path used to store Helm chart contents
 const KustomizeHelmPath = "chart"
 
+// RenderedHelmTempPath is the path where the `helm template` command writes to
+const RenderedHelmTempPath = ".ship/tmp-rendered"
+
 // RenderedHelmPath is the path where rendered Helm charts are written to
 const RenderedHelmPath = "base"
 
