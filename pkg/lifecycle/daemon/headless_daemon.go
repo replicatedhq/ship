@@ -23,9 +23,9 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
-func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize)       {}
-func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
-func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize, api.Step)       {}
+func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action, api.Step) {}
+func (d *HeadlessDaemon) PushRenderStep(context.Context, Render, api.Step)             {}
 
 func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	ch := make(chan interface{}, 1)
@@ -34,9 +34,10 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
-func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
+func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action, api.Step) {}
+func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message, api.Step)         {}
 
-func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues HelmValues, actions []Action) {
+func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues HelmValues, actions []Action, apiStep api.Step) {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "PushHelmValuesStep"))
 	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values); err != nil {
 		warn.Log("event", "push helm values step fail", "err", err)
@@ -53,8 +54,6 @@ func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues 
 
 	return nil
 }
-
-func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message) {}
 
 func (d *HeadlessDaemon) CleanPreviousStep() {}
 

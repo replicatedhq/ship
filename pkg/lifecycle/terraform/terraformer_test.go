@@ -123,14 +123,14 @@ func TestTerraformer(t *testing.T) {
 			if test.expectConfirmPlan {
 				mockPlanner.
 					EXPECT().
-					ConfirmPlan(gomock.Any(), test.expectPlan, gomock.Any()).
+					ConfirmPlan(gomock.Any(), test.expectPlan, gomock.Any(), gomock.Any()).
 					Return(test.expectApply, nil)
 			}
 
 			if test.expectApply {
 				mockDaemon.
 					EXPECT().
-					PushStreamStep(gomock.Any(), gomock.Any())
+					PushStreamStep(gomock.Any(), gomock.Any(), gomock.Any())
 
 				msg := uidaemon.Message{
 					Contents:    test.expectApplyOutput,
@@ -142,7 +142,7 @@ func TestTerraformer(t *testing.T) {
 
 				mockDaemon.
 					EXPECT().
-					PushMessageStep(gomock.Any(), msg, gomock.Any()).
+					PushMessageStep(gomock.Any(), msg, gomock.Any(), gomock.Any()).
 					Return()
 
 				if test.apply.Fail {

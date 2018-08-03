@@ -38,12 +38,13 @@ var (
 // correct UI to the user and collect necessary information
 type Daemon interface {
 	EnsureStarted(context.Context, *api.Release) chan error
-	PushMessageStep(context.Context, Message, []Action)
-	PushStreamStep(context.Context, <-chan Message)
-	PushRenderStep(context.Context, Render)
-	PushHelmIntroStep(context.Context, HelmIntro, []Action)
-	PushHelmValuesStep(context.Context, HelmValues, []Action)
-	PushKustomizeStep(context.Context, Kustomize)
+	PushMessageStep(context.Context, Message, []Action, api.Step)
+	PushStreamStep(context.Context, <-chan Message, api.Step)
+	PushRenderStep(context.Context, Render, api.Step)
+	PushHelmIntroStep(context.Context, HelmIntro, []Action, api.Step)
+	PushHelmValuesStep(context.Context, HelmValues, []Action, api.Step)
+	PushKustomizeStep(context.Context, Kustomize, api.Step)
+
 	SetStepName(context.Context, string)
 	AllStepsDone(context.Context)
 	CleanPreviousStep()
@@ -121,13 +122,17 @@ func (d *ShipDaemon) PushMessageStep(
 	ctx context.Context,
 	step Message,
 	actions []Action,
+	apiStep api.Step,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushMessageStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameMessage
-	d.currentStep = &Step{Message: &step}
+	d.currentStep = &Step{
+		Message: &step,
+		Source:  apiStep,
+	}
 	d.currentStepActions = actions
 	d.NotifyStepChanged(StepNameConfig)
 }
@@ -135,17 +140,24 @@ func (d *ShipDaemon) PushMessageStep(
 func (d *ShipDaemon) PushStreamStep(
 	ctx context.Context,
 	msgs <-chan Message,
+	apiStep api.Step,
 ) {
 	d.Lock()
 	d.cleanPreviousStep()
 	d.currentStepName = StepNameStream
-	d.currentStep = &Step{Message: &Message{}}
+	d.currentStep = &Step{
+		Message: &Message{},
+		Source:  apiStep,
+	}
 	d.NotifyStepChanged(StepNameConfig)
 	d.Unlock()
 
 	for msg := range msgs {
 		d.Lock()
-		d.currentStep = &Step{Message: &msg}
+		d.currentStep = &Step{
+			Message: &msg,
+			Source:  apiStep,
+		}
 		d.Unlock()
 	}
 }
@@ -157,13 +169,17 @@ func (d *ShipDaemon) TerraformConfirmedChan() chan bool {
 func (d *ShipDaemon) PushRenderStep(
 	ctx context.Context,
 	step Render,
+	apiStep api.Step,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushRender"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameConfig
-	d.currentStep = &Step{Render: &step}
+	d.currentStep = &Step{
+		Render: &step,
+		Source: apiStep,
+	}
 	d.NotifyStepChanged(StepNameConfig)
 }
 
@@ -171,13 +187,17 @@ func (d *ShipDaemon) PushHelmIntroStep(
 	ctx context.Context,
 	step HelmIntro,
 	actions []Action,
+	apiStep api.Step,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmIntroStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmIntro
-	d.currentStep = &Step{HelmIntro: &step}
+	d.currentStep = &Step{
+		HelmIntro: &step,
+		Source:    apiStep,
+	}
 	d.currentStepActions = actions
 	d.NotifyStepChanged(StepNameHelmIntro)
 }
@@ -186,13 +206,17 @@ func (d *ShipDaemon) PushHelmValuesStep(
 	ctx context.Context,
 	step HelmValues,
 	actions []Action,
+	apiStep api.Step,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmValuesStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
 	d.currentStepName = StepNameHelmValues
-	d.currentStep = &Step{HelmValues: &step}
+	d.currentStep = &Step{
+		HelmValues: &step,
+		Source:     apiStep,
+	}
 	d.currentStepActions = actions
 	d.NotifyStepChanged(StepNameHelmValues)
 }
@@ -302,12 +326,13 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 	conf.PUT("finalize", d.finalizeAppConfig(release))
 
 	life := v1.Group("/lifecycle")
+	life.GET("/", d.getLifecycle(release))
+	life.GET("/step/:step", d.getStep)
 	life.GET("current", d.getCurrentStep)
 	life.GET("loading", d.getLoadingStep)
 
 	mesg := v1.Group("/message")
 	mesg.POST("confirm", d.postConfirmMessage)
-	mesg.GET("get", d.getCurrentMessage)
 
 	tf := v1.Group("/terraform")
 	tf.POST("apply", d.terraformApply)
@@ -409,6 +434,15 @@ func (d *ShipDaemon) getLoadingStep(c *gin.Context) {
 	})
 }
 
+func (d *ShipDaemon) getNotFoundStep(c *gin.Context) {
+	c.JSON(404, map[string]interface{}{
+		"currentStep": map[string]interface{}{
+			"notFound": map[string]interface{}{},
+		},
+		"phase": "notFound",
+	})
+}
+
 func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 	c.JSON(200, map[string]interface{}{
 		"currentStep": map[string]interface{}{
@@ -416,6 +450,94 @@ func (d *ShipDaemon) getDoneStep(c *gin.Context) {
 		},
 		"phase": "done",
 	})
+}
+
+func (d *ShipDaemon) hydrateAndSend(step Step, c *gin.Context) {
+	result, err := d.hydrateStep(step, true)
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+	c.JSON(200, result)
+}
+
+func (d *ShipDaemon) getStep(c *gin.Context) {
+	requestedStepID := c.Param("step")
+	if d.currentStep == nil {
+		d.getLoadingStep(c)
+		return
+	}
+
+	if d.currentStep.Source.Shared().ID == requestedStepID {
+		d.hydrateAndSend(*d.currentStep, c)
+		return
+	}
+
+	for _, step := range d.pastSteps {
+		if step.Source.Shared().ID == requestedStepID {
+			d.hydrateAndSend(*d.currentStep, c)
+			return
+		}
+	}
+
+	d.getNotFoundStep(c)
+}
+
+func (d *ShipDaemon) getLifecycle(release *api.Release) gin.HandlerFunc {
+	type DaemonStep struct {
+		ID          string `json:"id"`
+		Description string `json:"description"`
+		Phase       string `json:"phase"`
+	}
+	return func(c *gin.Context) {
+		var lifecycleIDs []DaemonStep
+		for _, step := range release.Spec.Lifecycle.V1 {
+			lifecycleIDs = append(lifecycleIDs, DaemonStep{
+				ID:          step.Shared().ID,
+				Description: step.Shared().Description,
+				Phase:       step.ShortName(),
+			})
+		}
+		c.JSON(200, lifecycleIDs)
+	}
+}
+
+func (d *ShipDaemon) hydrateStep(step Step, isCurrent bool) (*StepResponse, error) {
+	if step.Kustomize != nil {
+		tree, err := d.loadKustomizeTree()
+		if err != nil {
+			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
+			return nil, errors.Wrap(err, "load kustomize tree")
+		}
+		d.currentStep.Kustomize.Tree = *tree
+	}
+
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "tryLoad,fail", "err", err)
+		return nil, errors.Wrap(err, "load state")
+	}
+
+	helmValues := currentState.CurrentHelmValues()
+	if step.HelmValues != nil && helmValues != "" {
+		step.HelmValues.Values = helmValues
+	}
+
+	result := &StepResponse{
+		CurrentStep: step,
+		Phase:       step.Phase(isCurrent),
+		Actions:     d.currentStepActions,
+	}
+
+	// todo keep progress per individual step, probably stored in state
+	if isCurrent {
+		result.Progress = d.stepProgress
+	} else {
+		finishedProgress := StringProgress("internal", "finished")
+		result.Progress = &finishedProgress
+	}
+
+	return result, nil
 }
 
 func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
@@ -428,35 +550,11 @@ func (d *ShipDaemon) getCurrentStep(c *gin.Context) {
 		return
 	}
 
-	// checking non-nil instead of step name
-	if d.currentStep.Kustomize != nil {
-		tree, err := d.loadKustomizeTree()
-		if err != nil {
-			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
-			c.AbortWithError(500, errors.New("internal_server_error"))
-			return
-		}
-		d.currentStep.Kustomize.Tree = *tree
-	}
-
-	state, err := d.StateManager.TryLoad()
+	result, err := d.hydrateStep(*d.currentStep, true)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "tryLoad,fail", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
+		c.AbortWithError(500, err)
 		return
 	}
-	helmValues := state.CurrentHelmValues()
-	if d.currentStep.HelmValues != nil && helmValues != "" {
-		d.currentStep.HelmValues.Values = helmValues
-	}
-
-	result := StepResponse{
-		CurrentStep: *d.currentStep,
-		Phase:       d.currentStepName,
-		Actions:     d.currentStepActions,
-	}
-
-	result.Progress = d.stepProgress
 
 	c.JSON(200, result)
 }
@@ -483,8 +581,9 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "postConfirmMessage"))
 	defer d.locker(debug)()
 
+	// todo test filter by id in body
 	type Request struct {
-		StepName string `json:"step_name"`
+		StepID string `json:"step_id"`
 	}
 
 	debug.Log("event", "request.bind")
@@ -494,9 +593,12 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 		return
 	}
 
-	if d.currentStepName != request.StepName {
-		c.JSON(400, map[string]interface{}{
-			"error": "not current step",
+	// user may click confirm on step they had navigated back to
+	// using browser navigation. If so, just log and skip it.
+	if d.currentStep.Source.Shared().ID != request.StepID {
+		debug.Log("event", "message.confirm.skip", "currentStep", d.currentStep.Source.Shared().ID, "requested", request.StepID)
+		c.JSON(200, map[string]interface{}{
+			"status": "skipped",
 		})
 		return
 	}
@@ -517,24 +619,9 @@ func (d *ShipDaemon) postConfirmMessage(c *gin.Context) {
 	}
 
 	d.currentStepConfirmed = true
-	d.MessageConfirmed <- request.StepName
+	d.MessageConfirmed <- request.StepID
 
 	c.String(200, "")
-}
-
-func (d *ShipDaemon) getCurrentMessage(c *gin.Context) {
-
-	if d.currentStep == nil {
-		c.JSON(400, map[string]interface{}{
-			"error": "no steps taken",
-		})
-		return
-	}
-
-	c.JSON(200, map[string]interface{}{
-		"message": d.currentStep.Message,
-	})
-	return
 }
 
 // Healthz returns a 200 with the version if provided

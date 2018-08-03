@@ -78,11 +78,15 @@ spec:
 
 			ctx := context.Background()
 			release := api.Release{}
+			kustomizeStep := api.Kustomize{
+				BasePath: "someBasePath",
+				Dest:     "overlays/ship",
+			}
 
 			mockDaemon.EXPECT().EnsureStarted(ctx, &release)
 			mockDaemon.EXPECT().PushKustomizeStep(ctx, daemon.Kustomize{
 				BasePath: "someBasePath",
-			})
+			}, api.Step{Kustomize: &kustomizeStep})
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
 				Kustomize: &test.kustomize,
@@ -98,10 +102,7 @@ spec:
 			err := k.Execute(
 				ctx,
 				release,
-				api.Kustomize{
-					BasePath: "someBasePath",
-					Dest:     "overlays/ship",
-				},
+				kustomizeStep,
 			)
 
 			for name, contents := range test.expectFiles {

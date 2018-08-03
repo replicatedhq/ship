@@ -36,7 +36,7 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 	m.Daemon.PushMessageStep(ctx, daemon.Message{
 		Contents: built,
 		Level:    step.Level,
-	}, daemon.MessageActions())
+	}, daemon.MessageActions(step.StepShared.ID), api.Step{Message: step})
 
 	debug.Log("event", "step.pushed")
 	return m.awaitMessageConfirmed(ctx, daemonExitedChan)

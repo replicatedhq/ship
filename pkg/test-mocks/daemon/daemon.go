@@ -127,63 +127,63 @@ func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
 }
 
 // PushHelmIntroStep mocks base method
-func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemon.HelmIntro, arg2 []daemon.Action) {
-	m.ctrl.Call(m, "PushHelmIntroStep", arg0, arg1, arg2)
+func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemon.HelmIntro, arg2 []daemon.Action, arg3 api.Step) {
+	m.ctrl.Call(m, "PushHelmIntroStep", arg0, arg1, arg2, arg3)
 }
 
 // PushHelmIntroStep indicates an expected call of PushHelmIntroStep
-func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmIntroStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmIntroStep), arg0, arg1, arg2)
+func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmIntroStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmIntroStep), arg0, arg1, arg2, arg3)
 }
 
 // PushHelmValuesStep mocks base method
-func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemon.HelmValues, arg2 []daemon.Action) {
-	m.ctrl.Call(m, "PushHelmValuesStep", arg0, arg1, arg2)
+func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemon.HelmValues, arg2 []daemon.Action, arg3 api.Step) {
+	m.ctrl.Call(m, "PushHelmValuesStep", arg0, arg1, arg2, arg3)
 }
 
 // PushHelmValuesStep indicates an expected call of PushHelmValuesStep
-func (mr *MockDaemonMockRecorder) PushHelmValuesStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmValuesStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmValuesStep), arg0, arg1, arg2)
+func (mr *MockDaemonMockRecorder) PushHelmValuesStep(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmValuesStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmValuesStep), arg0, arg1, arg2, arg3)
 }
 
 // PushKustomizeStep mocks base method
-func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemon.Kustomize) {
-	m.ctrl.Call(m, "PushKustomizeStep", arg0, arg1)
+func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemon.Kustomize, arg2 api.Step) {
+	m.ctrl.Call(m, "PushKustomizeStep", arg0, arg1, arg2)
 }
 
 // PushKustomizeStep indicates an expected call of PushKustomizeStep
-func (mr *MockDaemonMockRecorder) PushKustomizeStep(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushKustomizeStep", reflect.TypeOf((*MockDaemon)(nil).PushKustomizeStep), arg0, arg1)
+func (mr *MockDaemonMockRecorder) PushKustomizeStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushKustomizeStep", reflect.TypeOf((*MockDaemon)(nil).PushKustomizeStep), arg0, arg1, arg2)
 }
 
 // PushMessageStep mocks base method
-func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemon.Message, arg2 []daemon.Action) {
-	m.ctrl.Call(m, "PushMessageStep", arg0, arg1, arg2)
+func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemon.Message, arg2 []daemon.Action, arg3 api.Step) {
+	m.ctrl.Call(m, "PushMessageStep", arg0, arg1, arg2, arg3)
 }
 
 // PushMessageStep indicates an expected call of PushMessageStep
-func (mr *MockDaemonMockRecorder) PushMessageStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushMessageStep", reflect.TypeOf((*MockDaemon)(nil).PushMessageStep), arg0, arg1, arg2)
+func (mr *MockDaemonMockRecorder) PushMessageStep(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushMessageStep", reflect.TypeOf((*MockDaemon)(nil).PushMessageStep), arg0, arg1, arg2, arg3)
 }
 
 // PushRenderStep mocks base method
-func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemon.Render) {
-	m.ctrl.Call(m, "PushRenderStep", arg0, arg1)
+func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemon.Render, arg2 api.Step) {
+	m.ctrl.Call(m, "PushRenderStep", arg0, arg1, arg2)
 }
 
 // PushRenderStep indicates an expected call of PushRenderStep
-func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1)
+func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1, arg2)
 }
 
 // PushStreamStep mocks base method
-func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemon.Message) {
-	m.ctrl.Call(m, "PushStreamStep", arg0, arg1)
+func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemon.Message, arg2 api.Step) {
+	m.ctrl.Call(m, "PushStreamStep", arg0, arg1, arg2)
 }
 
 // PushStreamStep indicates an expected call of PushStreamStep
-func (mr *MockDaemonMockRecorder) PushStreamStep(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStreamStep", reflect.TypeOf((*MockDaemon)(nil).PushStreamStep), arg0, arg1)
+func (mr *MockDaemonMockRecorder) PushStreamStep(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStreamStep", reflect.TypeOf((*MockDaemon)(nil).PushStreamStep), arg0, arg1, arg2)
 }
 
 // SetProgress mocks base method

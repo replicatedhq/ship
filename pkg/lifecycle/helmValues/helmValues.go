@@ -51,16 +51,21 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 		return errors.Wrap(err, "read file values.yaml")
 	}
 
-	h.Daemon.PushHelmValuesStep(ctx, daemon.HelmValues{
-		Values: string(bytes),
-	}, daemon.HelmValuesActions())
+	h.Daemon.PushHelmValuesStep(
+		ctx,
+		daemon.HelmValues{
+			Values: string(bytes),
+		},
+		daemon.HelmValuesActions(),
+		api.Step{HelmValues: step},
+	)
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)
 }
 
 func (h *helmValues) awaitContinue(ctx context.Context, daemonExitedChan chan error) error {
-	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "awaitContinue"))
+	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "method", "awaitContinue"))
 	for {
 		select {
 		case <-ctx.Done():
