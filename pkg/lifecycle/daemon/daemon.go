@@ -7,20 +7,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/contrib/static"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/state"
-
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -50,6 +48,7 @@ type Daemon interface {
 	MessageConfirmedChan() chan string
 	ConfigSavedChan() chan interface{}
 	TerraformConfirmedChan() chan bool
+	KubectlConfirmedChan() chan bool
 	KustomizeSavedChan() chan interface{}
 
 	GetCurrentConfig() map[string]interface{}
@@ -94,6 +93,8 @@ type ShipDaemon struct {
 	MessageConfirmed chan string
 
 	TerraformConfirmed chan bool
+
+	KubectlConfirmed chan bool
 
 	KustomizeSaved chan interface{}
 }
@@ -152,6 +153,10 @@ func (d *ShipDaemon) PushStreamStep(
 
 func (d *ShipDaemon) TerraformConfirmedChan() chan bool {
 	return d.TerraformConfirmed
+}
+
+func (d *ShipDaemon) KubectlConfirmedChan() chan bool {
+	return d.KubectlConfirmed
 }
 
 func (d *ShipDaemon) PushRenderStep(

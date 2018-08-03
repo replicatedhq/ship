@@ -13,6 +13,7 @@ type Step struct {
 	Kustomize  *Kustomize  `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	HelmIntro  *HelmIntro  `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues *HelmValues `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
+	Kubectl    *Kubectl    `json:"kubectl,omitempty" yaml:"kubectl,omitempty" hcl:"kubectl,omitempty"`
 }
 
 // Message is a lifeycle step to print a message
@@ -44,4 +45,10 @@ type HelmIntro struct {
 // HelmValues is a lifecycle step to render persisted values.yaml in the .ship folder
 // and save user input changes to values.yaml
 type HelmValues struct {
+}
+
+// Kubectl is a lifeycle step to execute `apply` for a kubeconfig asset
+type Kubectl struct {
+	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
 }

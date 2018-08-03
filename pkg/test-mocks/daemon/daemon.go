@@ -102,6 +102,18 @@ func (mr *MockDaemonMockRecorder) GetCurrentConfig() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentConfig", reflect.TypeOf((*MockDaemon)(nil).GetCurrentConfig))
 }
 
+// KubectlConfirmedChan mocks base method
+func (m *MockDaemon) KubectlConfirmedChan() chan bool {
+	ret := m.ctrl.Call(m, "KubectlConfirmedChan")
+	ret0, _ := ret[0].(chan bool)
+	return ret0
+}
+
+// KubectlConfirmedChan indicates an expected call of KubectlConfirmedChan
+func (mr *MockDaemonMockRecorder) KubectlConfirmedChan() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KubectlConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).KubectlConfirmedChan))
+}
+
 // KustomizeSavedChan mocks base method
 func (m *MockDaemon) KustomizeSavedChan() chan interface{} {
 	ret := m.ctrl.Call(m, "KustomizeSavedChan")

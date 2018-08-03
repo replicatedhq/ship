@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"go.uber.org/dig"
 )
 
@@ -19,6 +20,7 @@ type StepExecutor struct {
 	Terraformer Terraformer
 	HelmIntro   HelmIntro
 	HelmValues  HelmValues
+	Kubectl     kubectl.Kubectl
 	Kustomizer  Kustomizer
 }
 
@@ -53,6 +55,10 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.helmValues", "type", "helmValues")
 		err := s.HelmValues.Execute(ctx, release, step.HelmValues)
 		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
+	} else if step.Kubectl != nil {
+		debug.Log("event", "step.resolve", "type", "kubectl")
+		err := s.Kubectl.Execute(ctx, *release, *step.Kubectl)
+		debug.Log("event", "step.complete", "type", "kubectl", "err", err)
 	}
 
 	debug.Log("event", "step.unknown")

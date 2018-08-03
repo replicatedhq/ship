@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
@@ -96,6 +97,8 @@ func buildInjector() (*dig.Container, error) {
 		terraform.NewRenderer,
 
 		amazonElasticKubernetesService.NewRenderer,
+
+		kubectl.NewKubectl,
 
 		NewShip,
 	}

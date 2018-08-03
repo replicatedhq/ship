@@ -47,6 +47,7 @@ func NewHeadedDaemon(
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
 		KustomizeSaved:     make(chan interface{}, 1),
+		KubectlConfirmed:   make(chan bool, 1),
 		ConfigRenderer:     renderer,
 		OpenWebConsole:     tryOpenWebConsole,
 		exitChan:           make(chan error),
