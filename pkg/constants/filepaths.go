@@ -15,5 +15,5 @@ const StatePath = ".ship/state.json"
 // KustomizeHelmPath is the path used to store helm chart contents
 const KustomizeHelmPath = ".ship/kustomize/chart"
 
-// TempHelmValuesPath is the folder path used to store the updated values.yaml
+// TempHelmValuesPath is the folder path used to store the edited (UI) values.yaml
 const TempHelmValuesPath = ".ship/kustomize/tmp"
