@@ -103,7 +103,7 @@ func (l *kustomizer) writeOutOverlays(
 	}
 	debug.Log("event", "mkdir", "dir", destDir)
 
-	// write the overlay patches, updating kustomizeation.yaml's patch list
+	// write the overlay patches, updating kustomization.yaml's patch list
 	for file, contents := range shipOverlay.Patches {
 		name := path.Join(destDir, file)
 		err = l.writePatch(name, destDir, contents)

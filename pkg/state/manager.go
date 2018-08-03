@@ -2,6 +2,7 @@ package state
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -100,7 +101,7 @@ func (s *MManager) TryLoad() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", state)
+	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", fmt.Sprintf("%+v", state))
 
 	if state.V1 != nil {
 		level.Debug(s.Logger).Log("event", "state.resolve", "type", "versioned")
