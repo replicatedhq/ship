@@ -56,7 +56,7 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 		daemon.HelmValues{
 			Values: string(bytes),
 		},
-		daemon.HelmValuesActions(),
+		daemon.HelmValuesActions(step.Shared().ID),
 		api.Step{HelmValues: step},
 	)
 	debug.Log("event", "step.pushed")

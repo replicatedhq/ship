@@ -68,12 +68,10 @@ type HelmIntro struct {
 }
 
 type HelmValues struct {
-	ID     string `json:"id"`
 	Values string `json:"values"`
 }
 
 type Kustomize struct {
-	ID       string        `json:"id"`
 	BasePath string        `json:"basePath"`
 	Tree     filetree.Node `json:"tree"`
 }

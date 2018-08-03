@@ -30,7 +30,7 @@ func HelmIntroActions(id string) []Action {
 	}
 }
 
-func HelmValuesActions() []Action {
+func HelmValuesActions(id string) []Action {
 	return []Action{
 		{
 			Sort:        0,
@@ -40,7 +40,7 @@ func HelmValuesActions() []Action {
 			OnClick: ActionRequest{
 				URI:    "/helm-values",
 				Method: "POST",
-				Body:   `{"step_name": "helm.values"}`,
+				Body:   `{"step_id": "` + id + `"}`,
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func HelmValuesActions() []Action {
 			OnClick: ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
-				Body:   `{"step_name": "helm.values"}`,
+				Body:   `{"step_id": "` + id + `"}`,
 			},
 		},
 	}
