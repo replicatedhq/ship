@@ -3,7 +3,10 @@ package helm
 import (
 	"fmt"
 	"os/exec"
+	"path"
 	"strings"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 
 	"io/ioutil"
 
@@ -48,13 +51,23 @@ func (f *ForkTemplater) Template(
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) error {
-	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "dest", asset.Dest, "description", asset.Description))
-
-	debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", asset.Dest)
-	if err := f.FS.MkdirAll(asset.Dest, 0755); err != nil {
-		debug.Log("event", "mkdirall.fail", "err", err, "basePath", asset.Dest)
-		return errors.Wrapf(err, "write directory to %s", asset.Dest)
+	debug := level.Debug(
+		log.With(
+			f.Logger,
+			"step.type", "render",
+			"render.phase", "execute",
+			"asset.type", "helm",
+			"chartRoot", chartRoot,
+			"dest", asset.Dest,
+			"description", asset.Description,
+		),
+	)
+	debug.Log("event", "mkdirall.attempt", "helmtempdir", constants.RenderedHelmTempPath, "dest", asset.Dest)
+	if err := f.FS.MkdirAll(constants.RenderedHelmTempPath, 0755); err != nil {
+		debug.Log("event", "mkdirall.fail", "err", err, "helmtempdir", constants.RenderedHelmTempPath)
+		return errors.Wrapf(err, "write tmp directory to %s", constants.RenderedHelmTempPath)
 	}
+	defer f.FS.RemoveAll(constants.RenderedHelmTempPath)
 
 	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ChannelName))
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
@@ -65,7 +78,7 @@ func (f *ForkTemplater) Template(
 	cmd.Args = append(
 		cmd.Args,
 		"template", chartRoot,
-		"--output-dir", asset.Dest,
+		"--output-dir", constants.RenderedHelmTempPath,
 		"--name", releaseName,
 	)
 
@@ -96,6 +109,33 @@ func (f *ForkTemplater) Template(
 			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
 		}
 		return errors.Wrap(err, "execute helm")
+	}
+
+	subChartsDirName := "charts"
+	tempRenderedChartDir := path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name)
+	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
+	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
+
+	debug.Log("event", "rename")
+	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
+		if err := f.FS.Rename(tempRenderedChartTemplatesDir, asset.Dest); err != nil {
+			return errors.Wrap(err, "failed to rename templates dir")
+		}
+	} else {
+		debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir, "message", "Folder does not exist")
+	}
+
+	if subChartsExist, err := f.FS.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
+		if err := f.FS.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
+			return errors.Wrap(err, "failed to rename subcharts dir")
+		}
+	} else {
+		debug.Log("event", "rename", "folder", tempRenderedSubChartsDir, "message", "Folder does not exist")
+	}
+
+	debug.Log("event", "temphelmvalues.remove", "path", constants.TempHelmValuesPath)
+	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
+		return errors.Wrap(err, "failed to remove Helm values tmp dir")
 	}
 
 	// todo link up stdout/stderr debug logs
@@ -202,7 +242,7 @@ func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
 		chartRoot,
 	)
 
-	debug.Log("event", "helm.update", "args", cmd.Args)
+	debug.Log("event", "helm.update", "args", fmt.Sprintf("%v", cmd.Args))
 
 	stdout, stderr, err := f.fork(cmd)
 
@@ -225,7 +265,7 @@ func (f *ForkTemplater) helmInitClient(chartRoot string) error {
 		"--client-only",
 	)
 
-	debug.Log("event", "helm.initClient", "args", cmd.Args)
+	debug.Log("event", "helm.initClient", "args", fmt.Sprintf("%v", cmd.Args))
 
 	stdout, stderr, err := f.fork(cmd)
 
