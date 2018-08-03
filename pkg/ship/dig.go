@@ -57,6 +57,8 @@ func buildInjector() (*dig.Container, error) {
 		config.NewDaemon,
 		daemon.NewHeadedDaemon,
 		daemon.NewHeadlessDaemon,
+		daemon.NewV1Router,
+		daemon.NewV2Router,
 		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,

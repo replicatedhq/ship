@@ -18,7 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-func (d *ShipDaemon) requireKustomize() gin.HandlerFunc {
+func (d *V1Routes) requireKustomize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if d.currentStep == nil || d.currentStep.Kustomize == nil {
 			c.AbortWithError(
@@ -31,11 +31,11 @@ func (d *ShipDaemon) requireKustomize() gin.HandlerFunc {
 	}
 }
 
-func (d *ShipDaemon) KustomizeSavedChan() chan interface{} {
+func (d *V1Routes) KustomizeSavedChan() chan interface{} {
 	return d.KustomizeSaved
 }
 
-func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
+func (d *V1Routes) PushKustomizeStep(ctx context.Context, kustomize Kustomize) {
 	debug := level.Debug(log.With(d.Logger, "method", "PushKustomizeStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
@@ -43,10 +43,9 @@ func (d *ShipDaemon) PushKustomizeStep(ctx context.Context, kustomize Kustomize)
 	d.currentStepName = StepNameKustomize
 	d.currentStep = &Step{Kustomize: &kustomize}
 	d.KustomizeSaved = make(chan interface{}, 1)
-	d.NotifyStepChanged(StepNameKustomize)
 }
 
-func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
+func (d *V1Routes) kustomizeSaveOverlay(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
 	defer d.locker(debug)()
 	type Request struct {
@@ -109,7 +108,7 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 	c.JSON(200, map[string]string{"status": "success"})
 }
 
-func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
+func (d *V1Routes) kustomizeGetFile(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeGetFile"))
 	defer d.locker(debug)()
 
@@ -148,7 +147,7 @@ func (d *ShipDaemon) kustomizeGetFile(c *gin.Context) {
 	})
 }
 
-func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
+func (d *V1Routes) kustomizeFinalize(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeFinalize"))
 	defer d.locker(debug)()
 
@@ -156,7 +155,7 @@ func (d *ShipDaemon) kustomizeFinalize(c *gin.Context) {
 	d.KustomizeSaved <- nil
 	c.JSON(200, map[string]interface{}{"status": "success"})
 }
-func (d *ShipDaemon) loadKustomizeTree() (*filetree.Node, error) {
+func (d *V1Routes) loadKustomizeTree() (*filetree.Node, error) {
 	level.Debug(d.Logger).Log("event", "kustomize.loadTree")
 	tree, err := d.TreeLoader.LoadTree(d.currentStep.Kustomize.BasePath)
 	if err != nil {
@@ -165,7 +164,7 @@ func (d *ShipDaemon) loadKustomizeTree() (*filetree.Node, error) {
 	return tree, nil
 }
 
-func (d *ShipDaemon) newKubernetesResource(in []byte) (*resource.Resource, error) {
+func (d *V1Routes) newKubernetesResource(in []byte) (*resource.Resource, error) {
 	var out unstructured.Unstructured
 
 	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(in), 1024)
@@ -177,7 +176,7 @@ func (d *ShipDaemon) newKubernetesResource(in []byte) (*resource.Resource, error
 	return resource.NewResourceFromUnstruct(out), nil
 }
 
-func (d *ShipDaemon) createTwoWayMergePatch(originalFilePath, modified string) ([]byte, error) {
+func (d *V1Routes) createTwoWayMergePatch(originalFilePath, modified string) ([]byte, error) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createTwoWayMergePatch"))
 
 	debug.Log("event", "load.originalFile")
