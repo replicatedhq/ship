@@ -1,6 +1,12 @@
 assets:
   v1:
     - terraform:
+        dest: ./terraform/random.tf
+        inline: |
+          resource "random_id" "server" {
+            byte_length = {{repl ConfigOption "id_length" | ParseInt}}
+          }
+    - terraform:
         inline: |
           resource "random_id" "server" {
             byte_length = {{repl ConfigOption "id_length" | ParseInt}}
@@ -20,8 +26,9 @@ config:
 lifecycle:
   v1:
     - message:
-       contents: "hi"
+        contents: "hi"
     - render: {}
-    - terraform: {}
+    - terraform:
+        path: terraform/
     - message:
-       contents: "bye"
+        contents: "bye"
