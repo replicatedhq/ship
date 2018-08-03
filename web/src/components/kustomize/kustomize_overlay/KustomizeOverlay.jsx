@@ -182,10 +182,10 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async handleKustomizeSave() {
-    const { selectedFile, overlayContent } = this.state;
+    const { selectedFile } = this.state;
     const payload = {
       path: selectedFile,
-      contents: overlayContent
+      contents: this.aceEditorOverlay.editor.getValue(),
     }
     await this.props.saveKustomizeOverlay(payload).then(() => {
       this.onKustomizeSaved();
