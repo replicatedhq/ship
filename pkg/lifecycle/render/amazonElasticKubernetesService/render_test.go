@@ -110,8 +110,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
@@ -168,8 +167,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
@@ -240,8 +238,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
@@ -548,8 +545,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
@@ -623,8 +619,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
@@ -756,8 +751,7 @@ variable "eks-cluster-name" {
 }
 
 module "eks" {
-  #source = "terraform-aws-modules/eks/aws"
-  source  = "laverya/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
   version = "1.4.0"
 
   cluster_name = "${var.eks-cluster-name}"
