@@ -41,7 +41,7 @@ export class AceEditorHOC extends React.Component {
     find(markers, ({ startRow, endRow }) => ( row >= startRow && row <= endRow ))
   )
 
-  addToOverlay = (e) => {
+  addToOverlay = () => {
     const getPrefix = (value) => {
       if (value.mapping.parent.key) {
         return `${value.mapping.parent.key.rawValue}: `;

@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/util/json"
 )
 
 func (d *ShipDaemon) requireKustomize() gin.HandlerFunc {
@@ -166,6 +167,47 @@ func (d *ShipDaemon) newKubernetesResource(in []byte) (*resource.Resource, error
 	return resource.NewResourceFromUnstruct(out), nil
 }
 
+func (d *ShipDaemon) writeHeaderToPatch(originalJSON, patchJSON []byte) ([]byte, error) {
+	original := map[string]interface{}{}
+	patch := map[string]interface{}{}
+
+	err := json.Unmarshal(originalJSON, &original)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal original json")
+	}
+
+	err = json.Unmarshal(patchJSON, &patch)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal patch json")
+	}
+
+	originalAPIVersion, ok := original["apiVersion"]
+	if !ok {
+		return nil, errors.New("no apiVersion key present in original")
+	}
+
+	originalKind, ok := original["kind"]
+	if !ok {
+		return nil, errors.New("no kind key present in original")
+	}
+
+	originalMetadata, ok := original["metadata"]
+	if !ok {
+		return nil, errors.New("no metadata key present in original")
+	}
+
+	patch["apiVersion"] = originalAPIVersion
+	patch["kind"] = originalKind
+	patch["metadata"] = originalMetadata
+
+	modifiedPatch, err := json.Marshal(patch)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal modified patch json")
+	}
+
+	return modifiedPatch, nil
+}
+
 func (d *ShipDaemon) createTwoWayMergePatch(originalFilePath, modified string) ([]byte, error) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createTwoWayMergePatch"))
 
@@ -200,9 +242,59 @@ func (d *ShipDaemon) createTwoWayMergePatch(originalFilePath, modified string) (
 		return nil, errors.Wrap(err, "create two way merge patch")
 	}
 
-	patch, err := yaml.JSONToYAML(patchBytes)
+	modifiedPatchJSON, err := d.writeHeaderToPatch(originalJSON, patchBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "write original header to patch")
+	}
+
+	patch, err := yaml.JSONToYAML(modifiedPatchJSON)
 	if err != nil {
 		return nil, errors.Wrap(err, "convert merge patch json to yaml")
+	}
+
+	return patch, nil
+}
+
+func (d* ShipDaemon) mergePatches(originalFilePath string, currentPatch, newPatch []byte) ([]byte, error) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "mergePatches"))
+
+	debug.Log("event", "createKubeResource.originalFile")
+	currentResource, err := d.newKubernetesResource(currentPatch)
+	if err != nil {
+		return nil, errors.Wrap(err, "create kube resource with original json")
+	}
+
+	debug.Log("event", "createKubeResource.originalFile")
+	newResource, err := d.newKubernetesResource(newPatch)
+	if err != nil {
+		return nil, errors.Wrap(err, "create kube resource with original json")
+	}
+
+	debug.Log("event", "createNewScheme.originalFile")
+	versionedObj, err := scheme.Scheme.New(currentResource.Id().Gvk())
+	if err != nil {
+		return nil, errors.Wrap(err, "create new scheme based on kube resource")
+	}
+
+	lookupPatchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObj)
+	if err != nil {
+		return nil, errors.Wrap(err, "create new patch meta")
+	}
+
+	debug.Log("event", "mergeStrategicMergeMapPatch")
+	outJSON, err := strategicpatch.MergeStrategicMergeMapPatchUsingLookupPatchMeta(lookupPatchMeta, currentResource.Object, newResource.Object)
+	if err != nil {
+		return nil, errors.Wrap(err, "merging patches")
+	}
+
+	out, err := json.Marshal(outJSON)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal merged patch")
+	}
+
+	patch, err := yaml.JSONToYAML(out)
+	if err != nil {
+		return nil, errors.Wrap(err, "convert json to yaml")
 	}
 
 	return patch, nil

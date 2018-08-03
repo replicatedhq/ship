@@ -35,8 +35,39 @@ export default class KustomizeOverlay extends React.Component {
         opts: {}
       },
       markers: [],
+      patch: "",
     };
     autoBind(this);
+  }
+
+  componentDidUpdate(lastProps, lastState) {
+    this.rebuildTooltip();
+    if (this.props.currentStep !== lastProps.currentStep && !isEmpty(this.props.currentStep)) {
+      this.setFileTree();
+    }
+    if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
+    }
+    if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
+      if (this.aceEditorOverlay) {
+        this.aceEditorOverlay.editor.resize();
+      }
+    }
+    if (this.props.patch !== this.state.patch && this.props.patch !== "") {
+      this.setState({ patch: this.props.patch });
+    }
+  }
+
+  componentDidMount() {
+    if (isEmpty(this.props.currentStep)) {
+      this.props.getCurrentStep()
+    }
+    if (this.props.currentStep && !isEmpty(this.props.currentStep)) {
+      this.setFileTree();
+    }
+    if (this.props.fileContents && !isEmpty(this.props.fileContents)) {
+      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
+    }
   }
 
   openOverlay() {
@@ -162,10 +193,12 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async handleGeneratePatch(dirtyContent) {
+    const current = this.aceEditorOverlay.editor.getValue();
     const { selectedFile } = this.state;
     const payload = {
       original: selectedFile,
       modified: dirtyContent,
+      current,
     };
     await this.props.generatePatch(payload);
     this.openOverlay();
@@ -192,36 +225,18 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  componentDidUpdate(lastProps, lastState) {
-    this.rebuildTooltip();
-    if (this.props.currentStep !== lastProps.currentStep && !isEmpty(this.props.currentStep)) {
-      this.setFileTree();
-    }
-    if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
-    }
-    if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
-      if (this.aceEditorOverlay) {
-        this.aceEditorOverlay.editor.resize();
-      }
-    }
-  }
-
-  componentDidMount() {
-    if (isEmpty(this.props.currentStep)) {
-      this.props.getCurrentStep()
-    }
-    if (this.props.currentStep && !isEmpty(this.props.currentStep)) {
-      this.setFileTree();
-    }
-    if (this.props.fileContents && !isEmpty(this.props.fileContents)) {
-      this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
-    }
-  }
-
   render() {
-    const { dataLoading, patch } = this.props;
-    const { fileTree, fileTreeBasePath, selectedFile, fileContents, fileLoadErr, fileLoadErrMessage, toastDetails } = this.state;
+    const { dataLoading } = this.props;
+    const {
+      fileTree,
+      fileTreeBasePath,
+      selectedFile,
+      fileContents,
+      fileLoadErr,
+      fileLoadErrMessage,
+      toastDetails,
+      patch,
+    } = this.state;
     const fileToView = fileContents[selectedFile];
 
     return (

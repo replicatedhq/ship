@@ -329,6 +329,7 @@ func (d *ShipDaemon) createMergePatch(c *gin.Context) {
 	type Request struct {
 		Original string `json:"original"`
 		Modified string `json:"modified"`
+		Current string `json:"current"`
 	}
 	var request Request
 
@@ -343,9 +344,20 @@ func (d *ShipDaemon) createMergePatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
-	c.JSON(200, map[string]interface{}{
-		"patch": string(patch),
-	})
+	if request.Current != "" {
+		out, err := d.mergePatches(request.Original, []byte(request.Current), patch)
+		if err != nil {
+			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
+			c.AbortWithError(500, errors.New("internal_server_error"))
+		}
+		c.JSON(200, map[string]interface{}{
+			"patch": string(out),
+		})
+	} else {
+		c.JSON(200, map[string]interface{}{
+			"patch": string(patch),
+		})
+	}
 }
 
 func (d *ShipDaemon) SetProgress(p Progress) {
