@@ -65,7 +65,7 @@ func (d *ShipDaemon) kustomizeSaveOverlay(c *gin.Context) {
 		c.JSON(
 			400,
 			map[string]string{
-				"error": "bad_request",
+				"error":  "bad_request",
 				"detail": "path cannot be empty",
 			},
 		)
