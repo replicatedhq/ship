@@ -3,7 +3,7 @@
 
 SHELL := /bin/bash
 SRC = $(shell find . -name "*.go")
-UI = $(shell find ui/ -name "*.js")
+UI = $(shell find web/dist -name "*.js")
 
 DOCKER_REPO ?= replicated
 

@@ -23,6 +23,7 @@ func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
 	v2 := group.Group("/api/v2")
 	v2.GET("/lifecycle", d.getLifecycle)
 	v2.GET("/lifecycle/step/:step", d.getStep)
+	v2.POST("/lifecycle/step/:step", d.completeStep)
 }
 
 // returns false if aborted
