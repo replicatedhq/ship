@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 )
 
 // A Runner runs a lifecycle using the passed Spec
@@ -18,23 +17,14 @@ type Runner struct {
 	Executor *StepExecutor
 }
 
-func NewRunner(logger log.Logger, executor StepExecutor) *Runner {
+func NewRunner(
+	logger log.Logger,
+	executor StepExecutor,
+) *Runner {
 	return &Runner{
 		Logger:   logger,
 		Executor: &executor,
 	}
-}
-
-func (r *Runner) WithDaemon(d daemon.Daemon) *Runner {
-	r.Executor = r.Executor.WithDaemon(d)
-	return r
-}
-
-func (e *StepExecutor) WithDaemon(d daemon.Daemon) *StepExecutor {
-	e.Daemon = d
-	e.Renderer = e.Renderer.WithDaemon(d)
-	e.Messenger = e.Messenger.WithDaemon(d)
-	return e
 }
 
 // Run runs a lifecycle using the passed Spec
@@ -48,6 +38,5 @@ func (r *Runner) Run(ctx context.Context, release *api.Release) error {
 			return errors.Wrapf(err, "execute lifecycle step %d", idx)
 		}
 	}
-
-	return r.Executor.End(ctx)
+	return nil
 }

@@ -9,13 +9,14 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
-var _ Messenger = &CLIMessenger{}
+var _ lifecycle.Messenger = &CLIMessenger{}
 
 type CLIMessenger struct {
 	dig.In
@@ -26,7 +27,7 @@ type CLIMessenger struct {
 	BuilderBuilder *templates.BuilderBuilder
 }
 
-func (m *CLIMessenger) WithDaemon(_ daemon.Daemon) Messenger {
+func (m *CLIMessenger) WithDaemon(_ daemon.Daemon) lifecycle.Messenger {
 	return m
 }
 

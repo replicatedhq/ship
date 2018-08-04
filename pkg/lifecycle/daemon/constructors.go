@@ -27,23 +27,47 @@ func NewHeadlessDaemon(
 }
 
 func NewHeadedDaemon(
+	logger log.Logger,
+	v *viper.Viper,
+	webUIFactory WebUIBuilder,
+	v1Router *V1Routes,
+	v2Router *V2Routes,
+) *ShipDaemon {
+	return &ShipDaemon{
+		Logger:       log.With(logger, "struct", "daemon"),
+		WebUIFactory: webUIFactory,
+		Viper:        v,
+		exitChan:     make(chan error),
+		V1Routes:     v1Router,
+		V2Routes:     v2Router,
+	}
+
+}
+
+func NewV2Router(
+	logger log.Logger,
+) *V2Routes {
+	return &V2Routes{
+		Logger: logger,
+	}
+}
+
+func NewV1Router(
 	v *viper.Viper,
 	renderer *resolve.APIConfigRenderer,
 	stateManager state.Manager,
 	logger log.Logger,
 	ui cli.Ui,
 	fs afero.Afero,
-	webUIFactory WebUIBuilder,
 	treeLoader filetree.Loader,
 	patcher patch.Patcher,
-) *ShipDaemon {
-	return &ShipDaemon{
-		Logger:             log.With(logger, "struct", "daemon"),
+) *V1Routes {
+	return &V1Routes{
+		Logger:             log.With(logger, "routes", "v1"),
 		Fs:                 fs,
 		UI:                 ui,
 		StateManager:       stateManager,
 		Viper:              v,
-		WebUIFactory:       webUIFactory,
 		TreeLoader:         treeLoader,
 		Patcher:            patcher,
 		ConfigSaved:        make(chan interface{}, 1),
@@ -52,6 +76,5 @@ func NewHeadedDaemon(
 		KustomizeSaved:     make(chan interface{}, 1),
 		ConfigRenderer:     renderer,
 		OpenWebConsole:     tryOpenWebConsole,
-		exitChan:           make(chan error),
 	}
 }

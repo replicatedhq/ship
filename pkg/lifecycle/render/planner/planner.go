@@ -81,6 +81,7 @@ func NewPlanner(
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
 	awseks amazonElasticKubernetesService.Renderer,
+	daemon daemon.Daemon,
 ) Planner {
 	return &CLIPlanner{
 		Logger:         logger,
@@ -97,6 +98,7 @@ func NewPlanner(
 		Terraform:   tf,
 		Web:         webRenderer,
 		AWSEKS:      awseks,
+		Daemon:      daemon,
 	}
 }
 
