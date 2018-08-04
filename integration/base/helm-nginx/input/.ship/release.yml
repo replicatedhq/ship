@@ -206,7 +206,7 @@ assets:
 
          nodeSelector: {}
     - helm:
-        dest: installer/charts/rendered/
+        dest: charts/rendered/
         local:
           chart_root: installer/charts/src/nginx
 config: {}

@@ -5,6 +5,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/afero"
@@ -59,6 +60,7 @@ func NewV1Router(
 	ui cli.Ui,
 	fs afero.Afero,
 	treeLoader filetree.Loader,
+	patcher patch.Patcher,
 ) *V1Routes {
 	return &V1Routes{
 		Logger:             log.With(logger, "routes", "v1"),
@@ -67,6 +69,7 @@ func NewV1Router(
 		StateManager:       stateManager,
 		Viper:              v,
 		TreeLoader:         treeLoader,
+		Patcher:            patcher,
 		ConfigSaved:        make(chan interface{}, 1),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
@@ -74,5 +77,4 @@ func NewV1Router(
 		ConfigRenderer:     renderer,
 		OpenWebConsole:     tryOpenWebConsole,
 	}
-
 }

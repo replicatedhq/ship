@@ -3,6 +3,8 @@ package ship
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/patch"
+
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 
 	dockercli "github.com/docker/docker/client"
@@ -52,6 +54,7 @@ func buildInjector() (*dig.Container, error) {
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
+		patch.NewShipPatcher,
 
 		message.NewMessenger,
 		config.NewDaemon,

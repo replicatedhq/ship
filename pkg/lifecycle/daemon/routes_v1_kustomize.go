@@ -1,21 +1,14 @@
 package daemon
 
 import (
-	"bytes"
 	"context"
 
-	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/state"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
-	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func (d *V1Routes) requireKustomize() gin.HandlerFunc {
@@ -162,58 +155,4 @@ func (d *V1Routes) loadKustomizeTree() (*filetree.Node, error) {
 		return nil, errors.Wrap(err, "daemon.loadTree")
 	}
 	return tree, nil
-}
-
-func (d *V1Routes) newKubernetesResource(in []byte) (*resource.Resource, error) {
-	var out unstructured.Unstructured
-
-	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(in), 1024)
-	err := decoder.Decode(&out)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode json")
-	}
-
-	return resource.NewResourceFromUnstruct(out), nil
-}
-
-func (d *V1Routes) createTwoWayMergePatch(originalFilePath, modified string) ([]byte, error) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createTwoWayMergePatch"))
-
-	debug.Log("event", "load.originalFile")
-	originalString, err := d.TreeLoader.LoadFile(d.currentStep.Kustomize.BasePath, originalFilePath)
-	if err != nil {
-		level.Error(d.Logger).Log("event", "failed to read original file", "err", err)
-	}
-
-	debug.Log("event", "convert.originalFile")
-	originalJSON, err := yaml.YAMLToJSON([]byte(originalString))
-	if err != nil {
-		return nil, errors.Wrap(err, "convert original file to json")
-	}
-
-	debug.Log("event", "convert.modifiedFile")
-	modifiedJSON, err := yaml.YAMLToJSON([]byte(modified))
-	if err != nil {
-		return nil, errors.Wrap(err, "convert modified file to json")
-	}
-
-	debug.Log("event", "createKubeResource.originalFile")
-	r, err := d.newKubernetesResource(originalJSON)
-	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
-	}
-
-	versionedObj, _ := scheme.Scheme.New(r.Id().Gvk())
-
-	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(originalJSON, modifiedJSON, versionedObj)
-	if err != nil {
-		return nil, errors.Wrap(err, "create two way merge patch")
-	}
-
-	patch, err := yaml.JSONToYAML(patchBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "convert merge patch json to yaml")
-	}
-
-	return patch, nil
 }
