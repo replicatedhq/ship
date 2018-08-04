@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"github.com/replicatedhq/ship/pkg/patch"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,7 @@ type V1Routes struct {
 	StateManager   state.Manager
 	ConfigRenderer *resolve.APIConfigRenderer
 	TreeLoader     filetree.Loader
+	Patcher	patch.Patcher
 	OpenWebConsole opener
 
 	sync.Mutex
@@ -79,7 +81,7 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
 }
 
-func (d *ShipDaemon) createOrMergePatch(c *gin.Context) {
+func (d *V1Routes) createOrMergePatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMergePatch"))
 	type Request struct {
 		Original string `json:"original"`
