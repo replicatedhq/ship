@@ -7,13 +7,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
-	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
-	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
-	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
-	"github.com/replicatedhq/ship/pkg/lifecycle/message"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render"
-	"github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"go.uber.org/dig"
 )
 
@@ -21,13 +14,12 @@ type StepExecutor struct {
 	dig.In
 
 	Logger      log.Logger
-	Renderer    *render.Renderer
-	Messenger   message.Messenger
-	Terraformer terraform.Terraformer
-	Daemon      daemon.Daemon
-	Kustomizer  kustomize.Kustomizer
-	HelmIntro   helmIntro.HelmIntro
-	HelmValues  helmValues.HelmValues
+	Messenger   Messenger
+	Renderer    Renderer
+	Terraformer Terraformer
+	HelmIntro   HelmIntro
+	HelmValues  HelmValues
+	Kustomizer  Kustomizer
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -64,10 +56,5 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 	}
 
 	debug.Log("event", "step.unknown")
-	return nil
-}
-
-func (s *StepExecutor) End(ctx context.Context) error {
-	s.Daemon.AllStepsDone(ctx)
 	return nil
 }

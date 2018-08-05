@@ -12,18 +12,17 @@ import (
 // Resolver is a thing that can resolve configuration options
 type Resolver interface {
 	ResolveConfig(context.Context, *api.Release, map[string]interface{}) (map[string]interface{}, error)
-	WithDaemon(d daemon.Daemon) Resolver
 }
 
-func NewResolver(logger log.Logger) Resolver {
+func NewResolver(
+	logger log.Logger,
+	daemon daemon.Daemon,
+) Resolver {
 	return &DaemonResolver{
 		Logger: logger,
+		Daemon: daemon,
 	}
 
-}
-func (r *DaemonResolver) WithDaemon(d daemon.Daemon) Resolver {
-	r.Daemon = d
-	return r
 }
 
 func NewDaemon(

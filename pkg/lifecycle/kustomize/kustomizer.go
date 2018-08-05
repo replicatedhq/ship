@@ -14,22 +14,19 @@ import (
 	ktypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
 
-type Kustomizer interface {
-	Execute(ctx context.Context, release api.Release, step api.Kustomize) error
-}
-
 func NewKustomizer(
 	logger log.Logger,
 	daemon daemon.Daemon,
 	fs afero.Afero,
 	stateManager state.Manager,
-) Kustomizer {
+) lifecycle.Kustomizer {
 	return &kustomizer{
 		Logger: logger,
 		Daemon: daemon,
@@ -103,8 +100,9 @@ func (l *kustomizer) writeOutOverlays(
 	}
 	debug.Log("event", "mkdir", "dir", destDir)
 
-	// write the overlay patches, updating kustomizeation.yaml's patch list
+	// write the overlay patches, updating kustomization.yaml's patch list
 	for file, contents := range shipOverlay.Patches {
+
 		name := path.Join(destDir, file)
 		err = l.writePatch(name, destDir, contents)
 		if err != nil {

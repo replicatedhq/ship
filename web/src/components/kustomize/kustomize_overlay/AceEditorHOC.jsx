@@ -1,13 +1,14 @@
 import React from "react";
 import ace from "brace";
 import AceEditor from "react-ace";
+import * as yaml from "js-yaml";
 import * as ast from "yaml-ast-parser";
 import find from "lodash/find";
+import set from "lodash/set";
 
 const { addListener } = ace.acequire("ace/lib/event");
 
 export const PATCH_TOKEN = "TO_BE_MODIFIED";
-const YAML_LIST_PREFIX = "-";
 
 export class AceEditorHOC extends React.Component {
   constructor(props) {
@@ -41,23 +42,16 @@ export class AceEditorHOC extends React.Component {
     find(markers, ({ startRow, endRow }) => ( row >= startRow && row <= endRow ))
   )
 
-  addToOverlay = (e) => {
-    const getPrefix = (value) => {
-      if (value.mapping.parent.key) {
-        return `${value.mapping.parent.key.rawValue}: `;
-      }
-      return `${YAML_LIST_PREFIX} `;
-    };
-
+  addToOverlay = () => {
+    const { fileToView } = this.props;
     const { activeMarker } = this.state;
 
     if (activeMarker.length > 0) {
       const matchingMarker = activeMarker[0];
       if (matchingMarker.mapping.value) {
-        const valueToEdit = matchingMarker.mapping.rawValue;
-        const prefix = getPrefix(matchingMarker);
-        const baseContent = this.aceEditorBase.editor.getValue();
-        const dirtybaseContent = baseContent.replace(`${prefix}${valueToEdit}`, `${prefix}${PATCH_TOKEN}`);
+        let tree = yaml.safeLoad(fileToView.baseContent);
+        const modifiedTree = set(tree, matchingMarker.path, PATCH_TOKEN);
+        const dirtybaseContent = yaml.safeDump(modifiedTree);
         this.props.handleGeneratePatch(dirtybaseContent);
       }
     }
@@ -88,51 +82,62 @@ export class AceEditorHOC extends React.Component {
     if (this.aceEditorBase) {
       let markers = [];
       const loadedAst = ast.safeLoad(fileToView.baseContent, null);
-      this.createMarkersRec(loadedAst, markers);
+      this.createMarkersRec(loadedAst, [], markers);
       return markers;
     }
   }
 
-  createMarkersRec = (ast, markers) => {
+  createMarkersRec = (ast, path, markers) => {
     const aceDoc = this.aceEditorBase.editor.getSession().getDocument();
 
-    if (!ast.mappings) {
-      if (ast.items && ast.items.length > 0) {
-        for (const item of ast.items) {
-          this.createMarkersRec(item, markers);
+    const createMarkersSlice = ({ items }) => {
+      if (items && items.length > 0) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          this.createMarkersRec(item, [...path, i], markers);
         }
       }
-      else {
-        const { startPosition, endPosition } = ast;
-        const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
-        const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
-        const newMarker = {
-          startRow,
-          endRow: endRow + 1,
-          className: "marker-highlight",
-          mapping: ast,
-        };
-        markers.push(newMarker);
-      }
-      return;
-    }
+    };
 
-    for (const mapping of ast.mappings) {
-      if (mapping.value === null) {
-        const { startPosition, endPosition } = ast;
-        const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
-        const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
-        const nullMarker = {
-          startRow,
-          endRow: endRow + 1,
-          className: "marker-highlight-null",
-          mapping,
+    const createMarkersMap = ({ mappings }) => {
+      for (const mapping of mappings) {
+        const { value, key } = mapping;
+        if (value === null) {
+          const { startPosition, endPosition } = ast;
+          const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
+          const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
+          const nullMarker = {
+            startRow,
+            endRow: endRow + 1,
+            className: "marker-highlight-null",
+            mapping,
+            path,
+          }
+          return markers.push(nullMarker);
         }
-        return markers.push(nullMarker);
+        const newPathKey = key.value;
+        this.createMarkersRec(value, [...path, newPathKey], markers);
       }
+    };
 
-      this.createMarkersRec(mapping.value, markers);
+    if (ast.mappings) {
+      createMarkersMap(ast);
     }
+    if (ast.items) {
+      createMarkersSlice(ast);
+    }
+
+    const { startPosition, endPosition } = ast;
+    const { row: startRow } = aceDoc.indexToPosition(startPosition, 0);
+    const { row: endRow } = aceDoc.indexToPosition(endPosition, 0);
+    const newMarker = {
+      startRow,
+      endRow: endRow + 1,
+      className: "marker-highlight",
+      mapping: ast,
+      path,
+    };
+    markers.push(newMarker);
   }
 
   render() {

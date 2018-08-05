@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/spf13/viper"
@@ -21,10 +22,6 @@ import (
 
 const tfSep = "------------------------------------------------------------------------"
 const tfNoChanges = "No changes. Infrastructure is up-to-date."
-
-type Terraformer interface {
-	Execute(ctx context.Context, release api.Release, step api.Terraform) error
-}
 
 type ForkTerraformer struct {
 	Logger        log.Logger
@@ -40,7 +37,7 @@ func NewTerraformer(
 	daemon daemon.Daemon,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
-) Terraformer {
+) lifecycle.Terraformer {
 	return &ForkTerraformer{
 		Logger:        logger,
 		Daemon:        daemon,

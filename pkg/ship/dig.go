@@ -3,6 +3,8 @@ package ship
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/patch"
+
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 
 	dockercli "github.com/docker/docker/client"
@@ -52,11 +54,14 @@ func buildInjector() (*dig.Container, error) {
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
+		patch.NewShipPatcher,
 
 		message.NewMessenger,
 		config.NewDaemon,
 		daemon.NewHeadedDaemon,
 		daemon.NewHeadlessDaemon,
+		daemon.NewV1Router,
+		daemon.NewV2Router,
 		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
@@ -140,6 +145,7 @@ func Get() (*Ship, error) {
 }
 
 func RunE(ctx context.Context) error {
+	viper.Set("is-app", true)
 	s, err := Get()
 	if err != nil {
 		return err

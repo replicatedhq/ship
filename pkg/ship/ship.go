@@ -81,7 +81,7 @@ func NewShip(
 		Client:   graphql,
 		Daemon:   daemon,
 		UI:       ui,
-		Runner:   runner.WithDaemon(daemon),
+		Runner:   runner,
 		State:    stateManager,
 	}, nil
 }
@@ -163,6 +163,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	go func() {
 		defer close(runResultCh)
 		err := s.Runner.Run(ctx, release)
+		s.Daemon.AllStepsDone(ctx)
 		if err != nil {
 			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
 		} else {

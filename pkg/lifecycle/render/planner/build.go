@@ -72,7 +72,10 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.dockerStep(*asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
-			asset.Helm.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Helm.Dest)
+			// For now, ignore destination reassign if `app` command
+			if p.Viper.GetBool("is-app") {
+				asset.Helm.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Helm.Dest)
+			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
 				return nil, err

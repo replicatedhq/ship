@@ -10,3 +10,5 @@ e2e-retraced/retraced-post.sh
 integration/*/test*
 
 /.state/
+
+chart/

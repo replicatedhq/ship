@@ -1,15 +1,17 @@
 package logger
 
 import (
-	"testing"
-
 	"github.com/go-kit/kit/log"
 )
 
 var _ log.Logger = &TestLogger{}
 
+type TestingT interface {
+	Log(...interface{})
+}
+
 type TestLogger struct {
-	T *testing.T
+	T TestingT
 }
 
 func (t *TestLogger) Log(keyvals ...interface{}) error {
