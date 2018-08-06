@@ -1,4 +1,5 @@
 import React from "react";
+
 import ErrorBoundary from "../../ErrorBoundary";
 import autoBind from "react-autobind";
 

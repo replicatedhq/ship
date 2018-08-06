@@ -3,6 +3,8 @@ package ship
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/patch"
+
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 
 	dockercli "github.com/docker/docker/client"
@@ -18,6 +20,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
@@ -45,15 +48,20 @@ func buildInjector() (*dig.Container, error) {
 		viper.GetViper,
 		logger.FromViper,
 		ui.FromViper,
-		fs.FromViper,
+		fs.NewBaseFilesystem,
+		fs.NewFilesystemParams,
+		fs.NewFilesystems,
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
+		patch.NewShipPatcher,
 
 		message.NewMessenger,
 		config.NewDaemon,
 		daemon.NewHeadedDaemon,
 		daemon.NewHeadlessDaemon,
+		daemon.NewV1Router,
+		daemon.NewV2Router,
 		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
@@ -92,6 +100,8 @@ func buildInjector() (*dig.Container, error) {
 
 		terraform.NewRenderer,
 
+		amazonElasticKubernetesService.NewRenderer,
+
 		NewShip,
 	}
 
@@ -114,7 +124,7 @@ func Get() (*Ship, error) {
 	debug.Log("event", "injector.build")
 	injector, err := buildInjector()
 	if err != nil {
-		debug.Log("event", "injector.build.fail")
+		debug.Log("event", "injector.build.fail", "error", err)
 		return nil, errors.Wrap(err, "build injector")
 	}
 
@@ -128,13 +138,14 @@ func Get() (*Ship, error) {
 	})
 
 	if errorWhenConstructingShip != nil {
-		debug.Log("event", "injector.invoke.fail")
-		return nil, errors.Wrap(err, "resolve dependencies")
+		debug.Log("event", "injector.invoke.fail", "err", errorWhenConstructingShip)
+		return nil, errors.Wrap(errorWhenConstructingShip, "resolve dependencies")
 	}
 	return ship, nil
 }
 
 func RunE(ctx context.Context) error {
+	viper.Set("is-app", true)
 	s, err := Get()
 	if err != nil {
 		return err

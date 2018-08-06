@@ -128,12 +128,17 @@ func TestDaemonResolver(t *testing.T) {
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			log := &logger.TestLogger{T: t}
 			daemon := &daemon.ShipDaemon{
-				Logger: log,
-				Fs:     fs,
-				Viper:  v,
-
-				UI:           cli.NewMockUi(),
+				Logger:       log,
 				WebUIFactory: daemon.WebUIFactoryFactory(log),
+				Viper:        v,
+				V1Routes: &daemon.V1Routes{
+					Logger: log,
+					Fs:     fs,
+					Viper:  v,
+
+					UI:             cli.NewMockUi(),
+					OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
+				},
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

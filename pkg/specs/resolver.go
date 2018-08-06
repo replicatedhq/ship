@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/helpers/flags"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -32,16 +33,16 @@ type Selector struct {
 
 // A Resolver resolves specs
 type Resolver struct {
-	Logger              log.Logger
-	Client              *GraphQLClient
-	GithubClient        *GithubClient
-	StateManager        *state.Manager
-	FS                  afero.Afero
-	StudioFile          string
-	StudioChannelName   string
-	StudioReleaseSemver string
-	StudioChannelIcon   string
-	HelmChartGitPath    string
+	Logger               log.Logger
+	Client               *GraphQLClient
+	GithubClient         *GithubClient
+	StateManager         state.Manager
+	FS                   afero.Afero
+	Runbook              string
+	SetChannelName       string
+	RunbookReleaseSemver string
+	SetChannelIcon       string
+	HelmChartGitPath     string
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -51,24 +52,24 @@ func NewResolver(
 	fs afero.Afero,
 	graphql *GraphQLClient,
 	githubClient *GithubClient,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) *Resolver {
 	return &Resolver{
-		Logger:              logger,
-		Client:              graphql,
-		GithubClient:        githubClient,
-		StateManager:        stateManager,
-		FS:                  fs,
-		StudioFile:          v.GetString("studio-file"),
-		StudioChannelName:   v.GetString("studio-channel-name"),
-		StudioChannelIcon:   v.GetString("studio-channel-icon"),
-		StudioReleaseSemver: v.GetString("release-semver"),
-		HelmChartGitPath:    v.GetString("chart"),
+		Logger:               logger,
+		Client:               graphql,
+		GithubClient:         githubClient,
+		StateManager:         stateManager,
+		FS:                   fs,
+		Runbook:              flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
+		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
+		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
+		RunbookReleaseSemver: v.GetString("release-semver"),
+		HelmChartGitPath:     v.GetString("chart"),
 	}
 }
 
 // ResolveRelease uses the passed config options to get specs from pg.replicated.com or
-// from a local studio-file if so configured
+// from a local runbook if so configured
 func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.Release, error) {
 	var specYAML []byte
 	var err error
@@ -76,10 +77,10 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveRelease"))
 
-	if r.StudioFile != "" {
-		release, err = r.resolveStudioRelease()
+	if r.Runbook != "" {
+		release, err = r.resolveRunbookRelease()
 		if err != nil {
-			return nil, errors.Wrapf(err, "resolve studio spec from %s", r.StudioFile)
+			return nil, errors.Wrapf(err, "resolve runbook from %s", r.Runbook)
 		}
 	} else {
 		release, err = r.resolveCloudRelease(selector.CustomerID, selector.InstallationID, selector.ReleaseSemver)
@@ -105,26 +106,26 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 	return result, nil
 }
 
-func (r *Resolver) resolveStudioRelease() (*ShipRelease, error) {
-	debug := level.Debug(log.With(r.Logger, "method", "resolveStudioSpec"))
-	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile)
+func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
+	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
-	specYAML, err := r.StateManager.FS.ReadFile(r.StudioFile)
+	specYAML, err := r.FS.ReadFile(r.Runbook)
 	if err != nil {
-		return nil, errors.Wrapf(err, "read specs from %s", r.StudioFile)
+		return nil, errors.Wrapf(err, "read specs from %s", r.Runbook)
 	}
-	debug.Log("phase", "load-specs", "from", "studio-file", "file", r.StudioFile, "spec", specYAML)
+	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook, "spec", specYAML)
 
 	if err := r.persistSpec(specYAML); err != nil {
 		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
 	}
-	debug.Log("phase", "write-yaml", "from", r.StudioFile, "write-location", ReleasePath)
+	debug.Log("phase", "write-yaml", "from", r.Runbook, "write-location", ReleasePath)
 
 	return &ShipRelease{
 		Spec:        string(specYAML),
-		ChannelName: r.StudioChannelName,
-		ChannelIcon: r.StudioChannelIcon,
-		Semver:      r.StudioReleaseSemver,
+		ChannelName: r.SetChannelName,
+		ChannelIcon: r.SetChannelIcon,
+		Semver:      r.RunbookReleaseSemver,
 	}, nil
 }
 
@@ -148,18 +149,18 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID, semver string
 
 // persistSpec persists last-used YAML to disk at .ship/release.yml
 func (r *Resolver) persistSpec(specYAML []byte) error {
-	if err := r.StateManager.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
+	if err := r.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
 	}
 
-	if err := r.StateManager.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
+	if err := r.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
 		return errors.Wrap(err, "write yaml file")
 	}
 	return nil
 }
 
 func (r *Resolver) RegisterInstall(ctx context.Context, selector Selector, release *api.Release) error {
-	if r.StudioFile != "" {
+	if r.Runbook != "" {
 		return nil
 	}
 

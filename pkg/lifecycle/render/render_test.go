@@ -54,7 +54,7 @@ func TestRender(t *testing.T) {
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			mockDaemon := mockdaemon.NewMockDaemon(mc)
 
-			renderer := &Renderer{
+			renderer := &renderer{
 				Logger: log.NewNopLogger(),
 				Now:    time.Now,
 			}
@@ -62,7 +62,7 @@ func TestRender(t *testing.T) {
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
 			renderer.Planner = p
-			renderer.StateManager = &state.Manager{
+			renderer.StateManager = &state.MManager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
 				V:      viper.New(),
@@ -77,10 +77,7 @@ func TestRender(t *testing.T) {
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 
-			p.EXPECT().WithDaemon(mockDaemon).Return(p)
-			configResolver.EXPECT().WithDaemon(mockDaemon).Return(configResolver)
-
-			renderer = renderer.WithDaemon(mockDaemon)
+			renderer.Daemon = mockDaemon
 
 			release := &api.Release{Spec: test.Spec}
 
@@ -135,7 +132,7 @@ func TestBacksUpExisting(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			r := Renderer{
+			r := renderer{
 				Logger: &logger.TestLogger{T: t},
 				Fs:     mockFS,
 				Now: func() time.Time {

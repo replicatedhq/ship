@@ -2,13 +2,13 @@ package terraform
 
 import (
 	"context"
-
 	"path"
 
 	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/spf13/afero"
 )
@@ -18,8 +18,8 @@ type Renderer interface {
 	Execute(
 		asset api.TerraformAsset,
 		meta api.ReleaseMetadata,
-		configGroups []libyaml.ConfigGroup,
 		templateContext map[string]interface{},
+		configGroups []libyaml.ConfigGroup,
 	) func(ctx context.Context) error
 }
 
@@ -47,8 +47,8 @@ func NewRenderer(
 func (r *LocalRenderer) Execute(
 	asset api.TerraformAsset,
 	meta api.ReleaseMetadata,
-	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 
@@ -56,7 +56,12 @@ func (r *LocalRenderer) Execute(
 			return errors.New("online \"inline\" terraform assets are supported")
 		}
 
-		assetsPath := path.Join("terraform", "main.tf")
+		var assetsPath string
+		if asset.Dest != "" && path.Ext(asset.Dest) == ".tf" {
+			assetsPath = asset.Dest
+		} else {
+			assetsPath = path.Join(constants.InstallerPrefixPath, "main.tf")
+		}
 
 		// write the inline spec
 		err := r.Inline.Execute(
@@ -64,6 +69,7 @@ func (r *LocalRenderer) Execute(
 				Contents: asset.Inline,
 				AssetShared: api.AssetShared{
 					Dest: assetsPath,
+					Mode: asset.Mode,
 				},
 			},
 			meta,

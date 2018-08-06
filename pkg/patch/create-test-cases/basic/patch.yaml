@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: the-deployment
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: the-container
+      containers:
+      - image: monopole/NEWIMAGE:1
+        name: the-container

@@ -7,12 +7,12 @@ UI = $(shell find ui/ -name "*.js")
 
 DOCKER_REPO ?= replicated
 
-build-deps:
-	go get -u github.com/golang/lint/golint
-	go get golang.org/x/tools/cmd/goimports
-	go get github.com/elazarl/go-bindata-assetfs/...
-	go get -u github.com/jteeuwen/go-bindata/...
+.state/build-deps: hack/get_build_deps.sh
+	./hack/get_build_deps.sh
+	@mkdir -p .state/
+	@touch .state/build-deps
 
+build-deps: .state/build-deps
 
 dep-deps:
 	go get -u github.com/golang/dep/cmd/dep
@@ -39,7 +39,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/ui
 	mkdir -p pkg/test-mocks/config
 	mkdir -p pkg/test-mocks/planner
-	mkdir -p pkg/test-mocks/images
+	mkdir -p pkg/test-mocks/images/saver
 	mkdir -p pkg/test-mocks/docker
 	mkdir -p pkg/test-mocks/helm
 	mkdir -p pkg/test-mocks/dockerlayer
@@ -47,6 +47,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/inline
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
+	mkdir -p pkg/test-mocks/state
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -68,8 +69,8 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
 		Planner
 	mockgen \
-		-destination pkg/test-mocks/images/image_saver_mock.go \
-		-package images \
+		-destination pkg/test-mocks/images/saver/image_saver_mock.go \
+		-package saver \
 		github.com/replicatedhq/ship/pkg/images \
 		ImageSaver
 	mockgen \
@@ -122,6 +123,11 @@ _mockgen:
 		-package tfplan \
 		github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan \
 		PlanConfirmer
+	mockgen \
+		-destination pkg/test-mocks/state/manager_mock.go \
+		-package state \
+		github.com/replicatedhq/ship/pkg/state \
+		Manager
 
 mockgen: _mockgen fmt
 
@@ -129,7 +135,7 @@ deps:
 	dep ensure -v
 
 
-fmt:
+fmt: .state/build-deps
 	goimports -w pkg
 	goimports -w cmd
 
@@ -139,7 +145,7 @@ _vet:
 
 # we have to build bindata here, because for some reason goimports
 # hacks up that generated file in a way that makes vet fail
-vet: fmt pkg/lifeycle/daemon/ui.bindatafs.go _vet
+vet: fmt _vet
 
 _lint:
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
@@ -178,9 +184,6 @@ bin/ship: $(SRC)
 		./cmd/ship
 	@echo built bin/ship
 
-e2e: bin/ship
-	./bin/ship e2e
-
 # tests base "ship" cli
 integration-test:
 	ginkgo -p -stream integration/base
@@ -193,26 +196,28 @@ goreleaser: .state/goreleaser
 
 .state/goreleaser: .goreleaser.unstable.yml deploy/Dockerfile $(SRC)
 	@mkdir -p .state
-	@touch .state/goreleaser
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config .goreleaser.unstable.yml
+	@touch .state/goreleaser
 
 run: bin/ship
-	./bin/ship --log-level=debug --studio-file=./app.yml
+	./bin/ship app --log-level=debug --runbook=./app.yml
 
 # this should really be in a different repo
 build_yoonit_docker_image:
 	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
 
 build_ship_integration_test:
-	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/base/Dockerfile .
+	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: $(UI)
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	cd web; go-bindata-assetfs -pkg daemon \
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
 	  dist/...
 
 embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
 
-build-ui: 	
-	cd web; yarn install --force
-	cd web; `yarn bin`/webpack --config webpack.config.js --env ship --mode production
+build-ui:
+	$(MAKE) -C web build_ship
+
+test_CI:
+	$(MAKE) -C web test_CI

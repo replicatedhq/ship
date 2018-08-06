@@ -2,6 +2,7 @@ package state
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -14,8 +15,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Manager is the saved output of a plan run to load on future runs
-type Manager struct {
+type Manager interface {
+	SerializeHelmValues(values string) error
+	SerializeConfig(
+		assets []api.Asset,
+		meta api.ReleaseMetadata,
+		templateContext map[string]interface{},
+	) error
+	TryLoad() (State, error)
+	RemoveStateFile() error
+	SaveKustomize(kustomize *Kustomize) error
+}
+
+var _ Manager = &MManager{}
+
+// MManager is the saved output of a plan run to load on future runs
+type MManager struct {
 	Logger log.Logger
 	FS     afero.Afero
 	V      *viper.Viper
@@ -25,8 +40,8 @@ func NewManager(
 	logger log.Logger,
 	fs afero.Afero,
 	v *viper.Viper,
-) *Manager {
-	return &Manager{
+) Manager {
+	return &MManager{
 		Logger: logger,
 		FS:     fs,
 		V:      v,
@@ -34,7 +49,7 @@ func NewManager(
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
-func (s *Manager) SerializeHelmValues(values string) error {
+func (s *MManager) SerializeHelmValues(values string) error {
 	debug := level.Debug(log.With(s.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "tryLoadState")
@@ -42,47 +57,29 @@ func (s *Manager) SerializeHelmValues(values string) error {
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.HelmValues = values
 
-	debug.Log("event", "emptyState")
-	isEmpty := currentState == Empty{}
-	if isEmpty {
-		toSerialize := VersionedState{V1: &V1{HelmValues: values}}
-		return s.serializeAndWriteState(toSerialize)
-	}
-
-	debug.Log("event", "serializeAndWriteState", "change", "helmValues")
-	toSerialize := currentState.(VersionedState)
-	toSerialize.V1.HelmValues = values
-	return s.serializeAndWriteState(toSerialize)
+	return s.serializeAndWriteState(versionedState)
 }
 
-// Serialize takes the application data and input params and serializes a state file to disk
-func (s *Manager) Serialize(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	toSerialize := VersionedState{V1: &V1{Config: templateContext}}
-	return s.serializeAndWriteState(toSerialize)
-}
+// SerializeConfig takes the application data and input params and serializes a state file to disk
+func (s *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
+	debug := level.Debug(log.With(s.Logger, "method", "serializeConfig"))
 
-func (s *Manager) serializeAndWriteState(state VersionedState) error {
-	serialized, err := json.Marshal(state)
+	debug.Log("event", "tryLoadState")
+	currentState, err := s.TryLoad()
 	if err != nil {
-		return errors.Wrap(err, "serialize state")
+		return errors.Wrap(err, "try load state")
 	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Config = templateContext
 
-	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
-	if err != nil {
-		return errors.Wrap(err, "mkdir state")
-	}
-
-	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
-	if err != nil {
-		return errors.Wrap(err, "write state file")
-	}
-
-	return nil
+	return s.serializeAndWriteState(versionedState)
 }
 
 // TryLoad will attempt to load a state file from disk, if present
-func (s *Manager) TryLoad() (State, error) {
+func (s *MManager) TryLoad() (State, error) {
 	statePath := s.V.GetString("state-file")
 	if statePath == "" {
 		statePath = constants.StatePath
@@ -104,7 +101,7 @@ func (s *Manager) TryLoad() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", state)
+	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", fmt.Sprintf("%+v", state))
 
 	if state.V1 != nil {
 		level.Debug(s.Logger).Log("event", "state.resolve", "type", "versioned")
@@ -119,21 +116,53 @@ func (s *Manager) TryLoad() (State, error) {
 	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
-func (m *Manager) SaveKustomize(kustomize *Kustomize) error {
-	state, err := m.TryLoad()
+
+func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
+	currentState, err := m.TryLoad()
 	if err != nil {
 		return errors.Wrapf(err, "load state")
 	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Kustomize = kustomize
 
-	newState := VersionedState{
-		V1: &V1{
-			Config:    state.CurrentConfig(),
-			Kustomize: kustomize,
-		},
+	if err := m.serializeAndWriteState(versionedState); err != nil {
+		return errors.Wrap(err, "write state")
 	}
 
-	if err := m.serializeAndWriteState(newState); err != nil {
-		return errors.Wrap(err, "write state")
+	return nil
+}
+
+// RemoveStateFile will attempt to remove the state file from disk
+func (m *MManager) RemoveStateFile() error {
+	statePath := m.V.GetString("state-file")
+	if statePath == "" {
+		statePath = constants.StatePath
+	}
+
+	err := m.FS.Remove(statePath)
+	if err != nil {
+		return errors.Wrap(err, "remove state file")
+	}
+
+	return nil
+}
+
+func (s *MManager) serializeAndWriteState(state VersionedState) error {
+	state.V1.ChartURL = state.CurrentChartURL() // chart URL persists throughout `init` lifecycle
+
+	serialized, err := json.Marshal(state)
+	if err != nil {
+		return errors.Wrap(err, "serialize state")
+	}
+
+	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
+	if err != nil {
+		return errors.Wrap(err, "mkdir state")
+	}
+
+	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
+	if err != nil {
+		return errors.Wrap(err, "write state file")
 	}
 
 	return nil

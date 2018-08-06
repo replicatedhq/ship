@@ -1,6 +1,6 @@
 customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 installation_id: "WAtB86RsD8koFOgnAEX63TU0mafWsqAj"
-release_version: "0.0.2"
-studio_channel_name: "integration-test-helm"
+release_version: "0.0.4"
+set_channel_name: "integration-test-helm"
 
 skip_cleanup: false

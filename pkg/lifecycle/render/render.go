@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
@@ -29,12 +30,12 @@ var (
 	ProgressCommit  = daemon.StringProgress("render", "commit")
 )
 
-// A Renderer takes a resolved spec, collects config values, and renders assets
-type Renderer struct {
+// A renderer takes a resolved spec, collects config values, and renders assets
+type renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
 	Planner        planner.Planner
-	StateManager   *state.Manager
+	StateManager   state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
 	Daemon         daemon.Daemon
@@ -45,11 +46,12 @@ func NewRenderer(
 	logger log.Logger,
 	fs afero.Afero,
 	ui cli.Ui,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 	planner planner.Planner,
 	resolver config.Resolver,
-) *Renderer {
-	return &Renderer{
+	daemon daemon.Daemon,
+) lifecycle.Renderer {
+	return &renderer{
 		Logger:         logger,
 		ConfigResolver: resolver,
 		Planner:        planner,
@@ -57,18 +59,12 @@ func NewRenderer(
 		Fs:             fs,
 		UI:             ui,
 		Now:            time.Now,
+		Daemon:         daemon,
 	}
 }
 
-func (r *Renderer) WithDaemon(d daemon.Daemon) *Renderer {
-	r.Daemon = d
-	r.ConfigResolver = r.ConfigResolver.WithDaemon(d)
-	r.Planner = r.Planner.WithDaemon(d)
-	return r
-}
-
 // Execute renders the assets and config
-func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
+func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
 	defer r.Daemon.ClearProgress()
 
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
@@ -96,9 +92,9 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	debug.Log("event", "backup.start")
 	r.Daemon.SetProgress(ProgressBackup)
-	err = r.backupIfPresent(constants.InstallerPrefix)
+	err = r.backupIfPresent(constants.InstallerPrefixPath)
 	if err != nil {
-		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefix)
+		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
 	}
 
 	r.Daemon.SetProgress(ProgressExecute)
@@ -124,14 +120,14 @@ func (r *Renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	}
 
 	r.Daemon.SetProgress(ProgressCommit)
-	if err := r.StateManager.Serialize(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
+	if err := r.StateManager.SerializeConfig(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
 
 	return nil
 }
 
-func (r *Renderer) backupIfPresent(basePath string) error {
+func (r *renderer) backupIfPresent(basePath string) error {
 	exists, err := r.Fs.Exists(basePath)
 	if err != nil {
 		return errors.Wrapf(err, "check file exists")

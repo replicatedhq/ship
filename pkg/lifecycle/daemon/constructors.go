@@ -5,6 +5,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/afero"
@@ -15,7 +16,7 @@ func NewHeadlessDaemon(
 	v *viper.Viper,
 	logger log.Logger,
 	renderer *resolve.APIConfigRenderer,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 ) *HeadlessDaemon {
 	return &HeadlessDaemon{
 		StateManager:   stateManager,
@@ -26,29 +27,54 @@ func NewHeadlessDaemon(
 }
 
 func NewHeadedDaemon(
+	logger log.Logger,
+	v *viper.Viper,
+	webUIFactory WebUIBuilder,
+	v1Router *V1Routes,
+	v2Router *V2Routes,
+) *ShipDaemon {
+	return &ShipDaemon{
+		Logger:       log.With(logger, "struct", "daemon"),
+		WebUIFactory: webUIFactory,
+		Viper:        v,
+		exitChan:     make(chan error),
+		V1Routes:     v1Router,
+		V2Routes:     v2Router,
+	}
+
+}
+
+func NewV2Router(
+	logger log.Logger,
+) *V2Routes {
+	return &V2Routes{
+		Logger: logger,
+	}
+}
+
+func NewV1Router(
 	v *viper.Viper,
 	renderer *resolve.APIConfigRenderer,
-	stateManager *state.Manager,
+	stateManager state.Manager,
 	logger log.Logger,
 	ui cli.Ui,
 	fs afero.Afero,
-	webUIFactory WebUIBuilder,
 	treeLoader filetree.Loader,
-) *ShipDaemon {
-	return &ShipDaemon{
-		Logger:             logger,
+	patcher patch.Patcher,
+) *V1Routes {
+	return &V1Routes{
+		Logger:             log.With(logger, "routes", "v1"),
 		Fs:                 fs,
 		UI:                 ui,
 		StateManager:       stateManager,
 		Viper:              v,
-		WebUIFactory:       webUIFactory,
 		TreeLoader:         treeLoader,
-		ConfigSaved:        make(chan interface{}),
+		Patcher:            patcher,
+		ConfigSaved:        make(chan interface{}, 1),
 		MessageConfirmed:   make(chan string, 1),
 		TerraformConfirmed: make(chan bool, 1),
 		KustomizeSaved:     make(chan interface{}, 1),
 		ConfigRenderer:     renderer,
-		errChan:            make(chan error, 1),
+		OpenWebConsole:     tryOpenWebConsole,
 	}
-
 }

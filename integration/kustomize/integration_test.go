@@ -78,7 +78,8 @@ var _ = Describe("basic", func() {
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
-						"kustomize",
+						"init",
+						"--no-open",
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 					}
 					args = append(args, testMetadata.Args...)

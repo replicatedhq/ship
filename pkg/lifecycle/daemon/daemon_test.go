@@ -34,12 +34,17 @@ func initTestDaemon(t *testing.T, release *api.Release) (*ShipDaemon, int, conte
 	fs := afero.Afero{Fs: afero.NewMemMapFs()}
 	log := &logger.TestLogger{T: t}
 	daemon := &ShipDaemon{
-		Logger:           log,
-		Fs:               fs,
-		Viper:            v,
-		UI:               cli.NewMockUi(),
-		MessageConfirmed: make(chan string, 1),
-		WebUIFactory:     WebUIFactoryFactory(log),
+		Logger:       log,
+		WebUIFactory: WebUIFactoryFactory(log),
+		Viper:        v,
+		V1Routes: &V1Routes{
+			Logger:           log,
+			Fs:               fs,
+			Viper:            v,
+			UI:               cli.NewMockUi(),
+			MessageConfirmed: make(chan string, 1),
+			OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
+		},
 	}
 
 	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

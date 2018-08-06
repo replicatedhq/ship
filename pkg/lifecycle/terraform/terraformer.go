@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/spf13/viper"
@@ -20,15 +23,11 @@ import (
 const tfSep = "------------------------------------------------------------------------"
 const tfNoChanges = "No changes. Infrastructure is up-to-date."
 
-type Terraformer interface {
-	Execute(ctx context.Context, release api.Release, step api.Terraform) error
-}
-
 type ForkTerraformer struct {
 	Logger        log.Logger
 	Daemon        daemon.Daemon
 	PlanConfirmer tfplan.PlanConfirmer
-	Terraform     func() *exec.Cmd
+	Terraform     func(string) *exec.Cmd
 	Viper         *viper.Viper
 	dir           string
 }
@@ -38,14 +37,14 @@ func NewTerraformer(
 	daemon daemon.Daemon,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
-) Terraformer {
+) lifecycle.Terraformer {
 	return &ForkTerraformer{
 		Logger:        logger,
 		Daemon:        daemon,
 		PlanConfirmer: planner,
-		Terraform: func() *exec.Cmd {
-			cmd := exec.Command("/usr/local/bin/terraform")
-			cmd.Dir = "terraform"
+		Terraform: func(cmdPath string) *exec.Cmd {
+			cmd := exec.Command("terraform")
+			cmd.Dir = path.Join(constants.InstallerPrefixPath, cmdPath)
 			return cmd
 		},
 		Viper: viper,
@@ -53,13 +52,15 @@ func NewTerraformer(
 }
 
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+	t.dir = step.Path
+
 	if err := t.init(); err != nil {
 		return errors.Wrap(err, "init")
 	}
 
 	plan, hasChanges, err := t.plan()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "plan")
 	}
 	if !hasChanges {
 		return nil
@@ -100,7 +101,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		if retry {
 			return t.Execute(ctx, release, step)
 		}
-		return err
+		return errors.Wrap(err, "apply")
 	}
 
 	if !viper.GetBool("terraform-yes") {
@@ -121,7 +122,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 func (t *ForkTerraformer) init() error {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
-	cmd := t.Terraform()
+	cmd := t.Terraform(t.dir)
 	cmd.Args = append(cmd.Args, "init", "-input=false")
 
 	var stderr bytes.Buffer
@@ -143,7 +144,7 @@ func (t *ForkTerraformer) plan() (string, bool, error) {
 	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 
 	// we really shouldn't write plan to a file, but this will do for now
-	cmd := t.Terraform()
+	cmd := t.Terraform(t.dir)
 	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan")
 
 	var stderr bytes.Buffer
@@ -178,7 +179,7 @@ func (t *ForkTerraformer) plan() (string, bool, error) {
 func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
-	cmd := t.Terraform()
+	cmd := t.Terraform(t.dir)
 	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan")
 
 	stdout, err := cmd.StdoutPipe()

@@ -10,28 +10,25 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 )
 
-type HelmValues interface {
-	Execute(context.Context, *api.Release, *api.HelmValues) error
-}
-
 type helmValues struct {
 	Fs           afero.Afero
 	Logger       log.Logger
 	Daemon       daemon.Daemon
-	StateManager *state.Manager
+	StateManager state.Manager
 }
 
 func NewHelmValues(
 	fs afero.Afero,
 	logger log.Logger,
 	daemon daemon.Daemon,
-	stateManager *state.Manager,
-) HelmValues {
+	stateManager state.Manager,
+) lifecycle.HelmValues {
 	return &helmValues{
 		Fs:           fs,
 		Logger:       logger,
