@@ -107,6 +107,13 @@ func (s *Ship) Init(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
+	if s.Viper.GetBool("message") {
+		s.UI.Output("\n           Downloading from " + helmChartPath + " ... \n")
+		s.UI.Output("           Looking for ship.yaml ...\n")                                                   // TODO
+		s.UI.Output("           ship.yaml not found ... determining application type [application-type] ...\n") // TODO
+		s.UI.Output("           Generating default ship.yaml for [application-type] application ...\n")         // TODO
+	}
+
 	return s.execute(ctx, release, nil, true)
 }
 

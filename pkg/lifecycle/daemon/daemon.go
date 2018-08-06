@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"strings"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -96,6 +98,18 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		debug.Log("event", "server.listen", "server.addr", addr)
 		errChan <- server.ListenAndServe()
 	}()
+
+	if d.Viper.GetBool("message") {
+		openBrowser, err := d.UI.Ask(`Open browser to continue? (Y/n)`) // TODO
+		if err != nil {
+			return err
+		}
+
+		openBrowser = strings.ToLower(strings.Trim(openBrowser, " \r\n"))
+		if strings.Compare(openBrowser, "n") == 0 {
+			d.UI.Warn("TODO: print url and don't open the browser")
+		}
+	}
 
 	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
 	if !d.Viper.GetBool("no-open") {
