@@ -145,6 +145,10 @@ func (c ConfigStep) ShortName() string {
 
 // Kubectl is a lifeycle step to execute `apply` for a kubeconfig asset
 type Kubectl struct {
-	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
-	Kubeconfig string `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
+	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path       string     `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	Kubeconfig string     `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
 }
+
+func (k *Kubectl) Shared() *StepShared { return &k.StepShared }
+func (k *Kubectl) ShortName() string   { return "kubectl" }

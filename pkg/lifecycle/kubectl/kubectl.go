@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"text/template"
 	"time"
 
 	"github.com/buildkite/terminal"
@@ -134,7 +133,7 @@ func ansiToHTML(output, errors string) string {
 }
 
 func (k *ForkKubectl) awaitMessageConfirmed(ctx context.Context, daemonExitedChan chan error) error {
-	debug := level.Debug(log.With(k.Logger, "struct", "daemonmessenger", "method", "message.confirm.await"))
+	debug := level.Debug(log.With(k.Logger, "struct", "daemonmessenger", "method", "kubectl.confirm.await"))
 	for {
 		select {
 		case <-ctx.Done():
@@ -147,47 +146,11 @@ func (k *ForkKubectl) awaitMessageConfirmed(ctx context.Context, daemonExitedCha
 			}
 			return errors.New("daemon exited")
 		case <-k.Daemon.MessageConfirmedChan():
-			debug.Log("event", "message.confirmed")
+			debug.Log("event", "kubectl.message.confirmed")
 			return nil
 		case <-time.After(10 * time.Second):
-			debug.Log("waitingFor", "message.confirmed")
+			debug.Log("waitingFor", "kubectl.message.confirmed")
 		}
-	}
-}
-
-type builderContext struct {
-	logger log.Logger
-	viper  *viper.Viper
-	daemon daemon.Daemon
-}
-
-func (ctx builderContext) FuncMap() template.FuncMap {
-	debug := level.Debug(log.With(ctx.logger, "step.type", "render", "render.phase", "template"))
-
-	configFunc := func(name string) interface{} {
-		configItemValue := ctx.viper.Get(name)
-		if configItemValue == "" {
-			debug.Log("event", "template.missing", "func", "config", "requested", name)
-			return ""
-		}
-		return configItemValue
-	}
-
-	configItemFunc := func(name string) interface{} {
-		if ctx.daemon == nil {
-			debug.Log("event", "daemon.missing", "func", "ConfigOption", "requested", name)
-			return ""
-		}
-		configItemValue, ok := ctx.daemon.GetCurrentConfig()[name]
-		if !ok {
-			debug.Log("event", "daemon.missing", "func", "ConfigOption", "requested", name)
-		}
-		return configItemValue
-	}
-
-	return map[string]interface{}{
-		"config":       configFunc,
-		"ConfigOption": configItemFunc,
 	}
 }
 
@@ -196,14 +159,13 @@ func (k *ForkKubectl) getBuilder(meta api.ReleaseMetadata) templates.Builder {
 
 	builder := builderBuilder.NewBuilder(
 		builderBuilder.NewStaticContext(),
-		builderContext{
-			logger: k.Logger,
-			viper:  k.Viper,
-			daemon: k.Daemon,
-		},
 		&templates.InstallationContext{
 			Meta:  meta,
 			Viper: k.Viper,
+		},
+		templates.ConfigCtx{
+			ItemValues: k.Daemon.GetCurrentConfig(),
+			Logger:     k.Logger,
 		},
 	)
 	return builder
