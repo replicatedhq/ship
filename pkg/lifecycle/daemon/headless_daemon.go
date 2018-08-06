@@ -66,14 +66,6 @@ func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
 	return ch
 }
 
-// TODO see above comment for TerraformConfirmedChan
-func (d *HeadlessDaemon) KubectlConfirmedChan() chan bool {
-	ch := make(chan bool, 1)
-	level.Debug(d.Logger).Log("event", "kubectl.skip", "detail", "running in automation, auto-skipping kubectl plan")
-	ch <- false
-	return ch
-}
-
 func (d *HeadlessDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "EnsureStarted"))
 

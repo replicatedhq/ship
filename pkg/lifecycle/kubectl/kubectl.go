@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/buildkite/terminal"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -65,25 +66,74 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
 
-	out, err := cmd.Output()
-	debug.Log("stdout", string(out))
-	debug.Log("stderr", stderr.String())
+	k.Daemon.SetProgress(daemon.StringProgress("kubectl", "applying kubernetes yaml with kubectl"))
+	doneCh := make(chan struct{})
+	messageCh := make(chan daemon.Message)
+	go k.Daemon.PushStreamStep(ctx, messageCh)
 
-	contents := ""
+	stderrString := ""
+	stdoutString := ""
+	go func() {
+		for true {
+			select {
+			case <-time.After(time.Second):
+				newStderr := stderr.String()
+				newStdout := stdout.String()
+
+				if newStderr != stderrString || newStdout != stdoutString {
+					stderrString = newStderr
+					stdoutString = newStdout
+					messageCh <- daemon.Message{
+						Contents:    ansiToHTML(stdoutString, stderrString),
+						TrustedHTML: true,
+					}
+				}
+			case <-doneCh:
+				stderrString = stderr.String()
+				stdoutString = stdout.String()
+				close(messageCh)
+				doneCh <- struct{}{}
+				return
+			}
+		}
+	}()
+
+	err := cmd.Run()
+
+	doneCh <- struct{}{}
+	<-doneCh
+	debug.Log("stdout", stdoutString)
+	debug.Log("stderr", stderrString)
+
 	if err != nil {
-		contents = fmt.Sprintf("When running 'kubectl apply':\nerror: %s\nstdout: %s\nstderr: %s", err.Error(), string(out), stderr.String())
-		err = errors.Wrap(err, string(out)+"\n"+stderr.String())
-	} else {
-		contents = fmt.Sprintf("Successfully ran 'kubectl apply':\nstdout: %s", string(out))
+		stderrString = fmt.Sprintf(`Error: %s
+stderr: %s`, err.Error(), stderrString)
 	}
 
+	k.Daemon.PushMessageStep(
+		ctx,
+		daemon.Message{
+			Contents:    ansiToHTML(stdoutString, stderrString),
+			TrustedHTML: true,
+		},
+		daemon.MessageActions(),
+	)
+
 	daemonExitedChan := k.Daemon.EnsureStarted(ctx, &release)
-	k.Daemon.PushMessageStep(ctx, daemon.Message{
-		Contents: contents,
-	}, daemon.MessageActions())
 
 	return k.awaitMessageConfirmed(ctx, daemonExitedChan)
+}
+
+func ansiToHTML(output, errors string) string {
+	outputHTML := terminal.Render([]byte(output))
+	errorsHTML := terminal.Render([]byte(errors))
+	return fmt.Sprintf(`<header>Output:</header>
+<div class="term-container">%s</div>
+<header>Errors:</header>
+<div class="term-container">%s</div>`, outputHTML, errorsHTML)
 }
 
 func (k *ForkKubectl) awaitMessageConfirmed(ctx context.Context, daemonExitedChan chan error) error {
