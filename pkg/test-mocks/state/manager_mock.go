@@ -59,6 +59,18 @@ func (mr *MockManagerMockRecorder) SaveKustomize(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveKustomize", reflect.TypeOf((*MockManager)(nil).SaveKustomize), arg0)
 }
 
+// SerializeChartURL mocks base method
+func (m *MockManager) SerializeChartURL(arg0 string) error {
+	ret := m.ctrl.Call(m, "SerializeChartURL", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeChartURL indicates an expected call of SerializeChartURL
+func (mr *MockManagerMockRecorder) SerializeChartURL(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeChartURL", reflect.TypeOf((*MockManager)(nil).SerializeChartURL), arg0)
+}
+
 // SerializeConfig mocks base method
 func (m *MockManager) SerializeConfig(arg0 []api.Asset, arg1 api.ReleaseMetadata, arg2 map[string]interface{}) error {
 	ret := m.ctrl.Call(m, "SerializeConfig", arg0, arg1, arg2)
