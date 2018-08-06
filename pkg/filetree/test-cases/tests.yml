@@ -18,7 +18,7 @@
   touch:
     - foo.txt
   read: foo.txt
-  expectErr: 'read dir "foo.txt": readdirent: not a directory'
+  expectErr: 'read dir "foo.txt": readdirent: invalid argument'
 
 
 - name: read single file
@@ -115,3 +115,19 @@
           path: /k/f/foo.txt
       - name: foo.txt
         path: /k/foo.txt
+
+- name: has an overlay
+  touch:
+    - foo.txt
+  overlays:
+    ship:
+      patches:
+        /foo.txt: bar
+  expect:
+    name: /
+    path: /
+    children:
+      - name: foo.txt
+        path: /foo.txt
+        hasOverlay: true
+        isSupported: false

@@ -150,7 +150,28 @@ func (d *V1Routes) kustomizeFinalize(c *gin.Context) {
 }
 func (d *V1Routes) loadKustomizeTree() (*filetree.Node, error) {
 	level.Debug(d.Logger).Log("event", "kustomize.loadTree")
-	tree, err := d.TreeLoader.LoadTree(d.currentStep.Kustomize.BasePath)
+
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load state")
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = make(map[string]state.Overlay)
+	}
+
+	if _, ok := kustomize.Overlays["ship"]; !ok {
+		kustomize.Overlays["ship"] = state.Overlay{
+			Patches: make(map[string]string),
+		}
+	}
+
+	tree, err := d.TreeLoader.LoadTree(d.currentStep.Kustomize.BasePath, kustomize)
 	if err != nil {
 		return nil, errors.Wrap(err, "daemon.loadTree")
 	}
