@@ -999,6 +999,7 @@
     "github.com/kubernetes-sigs/kustomize/pkg/loader",
     "github.com/kubernetes-sigs/kustomize/pkg/resmap",
     "github.com/kubernetes-sigs/kustomize/pkg/resource",
+    "github.com/kubernetes-sigs/kustomize/pkg/types",
     "github.com/mcuadros/go-jsonschema-generator",
     "github.com/mholt/archiver",
     "github.com/mitchellh/cli",

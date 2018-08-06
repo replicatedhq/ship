@@ -14,14 +14,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 )
-
-type Kubectl interface {
-	Execute(ctx context.Context, release api.Release, step api.Kubectl) error
-}
 
 type ForkKubectl struct {
 	Logger  log.Logger
@@ -34,7 +31,7 @@ func NewKubectl(
 	logger log.Logger,
 	daemon daemon.Daemon,
 	viper *viper.Viper,
-) Kubectl {
+) lifecycle.Kubectl {
 	return &ForkKubectl{
 		Logger: logger,
 		Daemon: daemon,

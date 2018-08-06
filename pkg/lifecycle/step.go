@@ -7,7 +7,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"go.uber.org/dig"
 )
 
@@ -20,7 +19,7 @@ type StepExecutor struct {
 	Terraformer Terraformer
 	HelmIntro   HelmIntro
 	HelmValues  HelmValues
-	Kubectl     kubectl.Kubectl
+	Kubectl     Kubectl
 	Kustomizer  Kustomizer
 }
 

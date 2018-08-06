@@ -26,25 +26,33 @@ type daemonAPITestCase struct {
 	test func(t *testing.T)
 }
 
-func initTestDaemon(t *testing.T, release *api.Release) (*ShipDaemon, int, context.CancelFunc, error) {
+func initTestDaemon(
+	t *testing.T,
+	release *api.Release,
+	v2 *V2Routes,
+) (*ShipDaemon, int, context.CancelFunc, error) {
 	v := viper.New()
 
 	port := rand.Intn(2000) + 33000
 	viper.Set("api-port", port)
 	fs := afero.Afero{Fs: afero.NewMemMapFs()}
 	log := &logger.TestLogger{T: t}
+
+	v1 := &V1Routes{
+		Logger:           log,
+		Fs:               fs,
+		Viper:            v,
+		UI:               cli.NewMockUi(),
+		MessageConfirmed: make(chan string, 1),
+		OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
+	}
+
 	daemon := &ShipDaemon{
 		Logger:       log,
 		WebUIFactory: WebUIFactoryFactory(log),
 		Viper:        v,
-		V1Routes: &V1Routes{
-			Logger:           log,
-			Fs:               fs,
-			Viper:            v,
-			UI:               cli.NewMockUi(),
-			MessageConfirmed: make(chan string, 1),
-			OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
-		},
+		V1Routes:     v1,
+		V2Routes:     v2,
 	}
 
 	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())
@@ -100,7 +108,7 @@ func TestDaemonAPI(t *testing.T) {
 		},
 	}
 
-	daemon, port, daemonCancelFunc, err := initTestDaemon(t, release)
+	daemon, port, daemonCancelFunc, err := initTestDaemon(t, release, nil)
 	defer daemonCancelFunc()
 	require.New(t).NoError(err)
 

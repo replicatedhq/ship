@@ -84,11 +84,11 @@ func (h *helmValues) resolveStateHelmValues() error {
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "resolveHelmValues"))
 
 	debug.Log("event", "tryLoadState")
-	state, err := h.StateManager.TryLoad()
+	editState, err := h.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
-	helmValues := state.CurrentHelmValues()
+	helmValues := editState.CurrentHelmValues()
 
 	debug.Log("event", "tryLoadState")
 	err = h.Fs.MkdirAll(constants.TempHelmValuesPath, 0700)

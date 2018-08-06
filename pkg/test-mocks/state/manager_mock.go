@@ -47,6 +47,18 @@ func (mr *MockManagerMockRecorder) RemoveStateFile() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveStateFile", reflect.TypeOf((*MockManager)(nil).RemoveStateFile))
 }
 
+// Save mocks base method
+func (m *MockManager) Save(arg0 state.VersionedState) error {
+	ret := m.ctrl.Call(m, "Save", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save
+func (mr *MockManagerMockRecorder) Save(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockManager)(nil).Save), arg0)
+}
+
 // SaveKustomize mocks base method
 func (m *MockManager) SaveKustomize(arg0 *state.Kustomize) error {
 	ret := m.ctrl.Call(m, "SaveKustomize", arg0)
@@ -57,6 +69,18 @@ func (m *MockManager) SaveKustomize(arg0 *state.Kustomize) error {
 // SaveKustomize indicates an expected call of SaveKustomize
 func (mr *MockManagerMockRecorder) SaveKustomize(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveKustomize", reflect.TypeOf((*MockManager)(nil).SaveKustomize), arg0)
+}
+
+// SerializeChartURL mocks base method
+func (m *MockManager) SerializeChartURL(arg0 string) error {
+	ret := m.ctrl.Call(m, "SerializeChartURL", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeChartURL indicates an expected call of SerializeChartURL
+func (mr *MockManagerMockRecorder) SerializeChartURL(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeChartURL", reflect.TypeOf((*MockManager)(nil).SerializeChartURL), arg0)
 }
 
 // SerializeConfig mocks base method
