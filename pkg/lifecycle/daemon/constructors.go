@@ -17,7 +17,7 @@ func NewHeadlessDaemon(
 	logger log.Logger,
 	renderer *resolve.APIConfigRenderer,
 	stateManager state.Manager,
-) *HeadlessDaemon {
+) Daemon {
 	return &HeadlessDaemon{
 		StateManager:   stateManager,
 		Logger:         logger,
@@ -32,7 +32,7 @@ func NewHeadedDaemon(
 	webUIFactory WebUIBuilder,
 	v1Router *V1Routes,
 	v2Router *V2Routes,
-) *ShipDaemon {
+) Daemon {
 	return &ShipDaemon{
 		Logger:       log.With(logger, "struct", "daemon"),
 		WebUIFactory: webUIFactory,
@@ -41,14 +41,15 @@ func NewHeadedDaemon(
 		V1Routes:     v1Router,
 		V2Routes:     v2Router,
 	}
-
 }
 
 func NewV2Router(
 	logger log.Logger,
+	stateManager state.Manager,
 ) *V2Routes {
 	return &V2Routes{
-		Logger: logger,
+		Logger:       logger,
+		StateManager: stateManager,
 	}
 }
 

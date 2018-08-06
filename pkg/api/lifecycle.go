@@ -72,7 +72,8 @@ type Render struct {
 }
 
 func (r *Render) Shared() *StepShared { return &r.StepShared }
-func (r *Render) ShortName() string   { return "render" }
+
+func (r *Render) ShortName() string { return "render" }
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {
