@@ -47,6 +47,18 @@ func (mr *MockManagerMockRecorder) RemoveStateFile() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveStateFile", reflect.TypeOf((*MockManager)(nil).RemoveStateFile))
 }
 
+// Save mocks base method
+func (m *MockManager) Save(arg0 state.VersionedState) error {
+	ret := m.ctrl.Call(m, "Save", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save
+func (mr *MockManagerMockRecorder) Save(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockManager)(nil).Save), arg0)
+}
+
 // SaveKustomize mocks base method
 func (m *MockManager) SaveKustomize(arg0 *state.Kustomize) error {
 	ret := m.ctrl.Call(m, "SaveKustomize", arg0)

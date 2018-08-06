@@ -137,8 +137,14 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
-	d.V1Routes.Register(root, release)
-	d.V2Routes.Register(root, release)
+
+	if d.V1Routes != nil {
+		d.V1Routes.Register(root, release)
+	}
+
+	if d.V2Routes != nil {
+		d.V2Routes.Register(root, release)
+	}
 }
 
 // Healthz returns a 200 with the version if provided

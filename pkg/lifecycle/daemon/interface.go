@@ -1,6 +1,9 @@
 package daemon
 
-import "github.com/replicatedhq/ship/pkg/filetree"
+import (
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/filetree"
+)
 
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"
@@ -19,17 +22,44 @@ const StepNameKustomize = "kustomize"
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
-	Message    *Message    `json:"message"`
-	Render     *Render     `json:"render"`
-	HelmIntro  *HelmIntro  `json:"helmIntro"`
-	HelmValues *HelmValues `json:"helmValues"`
-	Kustomize  *Kustomize  `json:"kustomize"`
+	Source     api.Step    `json:"-"`
+	Message    *Message    `json:"message,omitempty"`
+	Render     *Render     `json:"render,omitempty"`
+	HelmIntro  *HelmIntro  `json:"helmIntro,omitempty"`
+	HelmValues *HelmValues `json:"helmValues,omitempty"`
+	Kustomize  *Kustomize  `json:"kustomize,omitempty"`
+}
+
+// hack hack hack, I don't even know what to call this one
+func NewStep(apiStep api.Step) Step {
+	step := Step{Source: apiStep}
+	if apiStep.Message != nil {
+		step.Message = &Message{
+			Contents:    apiStep.Message.Contents,
+			Level:       apiStep.Message.Level,
+			TrustedHTML: true, // todo figure out trustedhtml
+		}
+	} else if apiStep.Render != nil {
+		step.Render = &Render{}
+	} else if apiStep.HelmIntro != nil {
+		step.HelmIntro = &HelmIntro{}
+	} else if apiStep.HelmValues != nil {
+		step.HelmValues = &HelmValues{
+			Values: "", // todo
+		}
+	} else if apiStep.Kustomize != nil {
+		step.Kustomize = &Kustomize{
+			BasePath: apiStep.Kustomize.BasePath,
+		}
+	}
+	return step
+
 }
 
 type Message struct {
 	Contents    string `json:"contents"`
 	TrustedHTML bool   `json:"trusted_html"`
-	Level       string `json:"level"`
+	Level       string `json:"level,omitempty"`
 }
 
 type Render struct{}
@@ -48,11 +78,11 @@ type ActionRequest struct {
 }
 
 type Action struct {
-	Sort        int32         `json:"sort"`
-	ButtonType  string        `json:"buttonType"`
-	Text        string        `json:"text"`
-	LoadingText string        `json:"loadingText"`
-	OnClick     ActionRequest `json:"onclick"`
+	Sort        int32         `json:"sort,omitempty"`
+	ButtonType  string        `json:"buttonType,omitempty"`
+	Text        string        `json:"text,omitempty"`
+	LoadingText string        `json:"loadingText,omitempty"`
+	OnClick     ActionRequest `json:"onclick,omitempty"`
 }
 
 type HelmIntro struct {
@@ -63,6 +93,6 @@ type HelmValues struct {
 }
 
 type Kustomize struct {
-	BasePath string        `json:"basePath"`
-	Tree     filetree.Node `json:"tree"`
+	BasePath string        `json:"basePath,omitempty"`
+	Tree     filetree.Node `json:"tree,omitempty"`
 }

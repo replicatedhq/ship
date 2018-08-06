@@ -2,7 +2,6 @@ package state
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -25,6 +24,7 @@ type Manager interface {
 	TryLoad() (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
+	Save(v VersionedState) error
 }
 
 var _ Manager = &MManager{}
@@ -34,6 +34,10 @@ type MManager struct {
 	Logger log.Logger
 	FS     afero.Afero
 	V      *viper.Viper
+}
+
+func (m *MManager) Save(v VersionedState) error {
+	return m.serializeAndWriteState(v)
 }
 
 func NewManager(
@@ -49,48 +53,48 @@ func NewManager(
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
-func (s *MManager) SerializeHelmValues(values string) error {
-	debug := level.Debug(log.With(s.Logger, "method", "serializeHelmValues"))
+func (m *MManager) SerializeHelmValues(values string) error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "tryLoadState")
-	currentState, err := s.TryLoad()
+	currentState, err := m.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.HelmValues = values
 
-	return s.serializeAndWriteState(versionedState)
+	return m.serializeAndWriteState(versionedState)
 }
 
 // SerializeConfig takes the application data and input params and serializes a state file to disk
-func (s *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
-	debug := level.Debug(log.With(s.Logger, "method", "serializeConfig"))
+func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata, templateContext map[string]interface{}) error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeConfig"))
 
 	debug.Log("event", "tryLoadState")
-	currentState, err := s.TryLoad()
+	currentState, err := m.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.Config = templateContext
 
-	return s.serializeAndWriteState(versionedState)
+	return m.serializeAndWriteState(versionedState)
 }
 
 // TryLoad will attempt to load a state file from disk, if present
-func (s *MManager) TryLoad() (State, error) {
-	statePath := s.V.GetString("state-file")
+func (m *MManager) TryLoad() (State, error) {
+	statePath := m.V.GetString("state-file")
 	if statePath == "" {
 		statePath = constants.StatePath
 	}
 
-	if _, err := s.FS.Stat(statePath); os.IsNotExist(err) {
-		level.Debug(s.Logger).Log("msg", "no saved state exists", "path", statePath)
+	if _, err := m.FS.Stat(statePath); os.IsNotExist(err) {
+		level.Debug(m.Logger).Log("msg", "no saved state exists", "path", statePath)
 		return Empty{}, nil
 	}
 
-	serialized, err := s.FS.ReadFile(statePath)
+	serialized, err := m.FS.ReadFile(statePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "read state file")
 	}
@@ -101,10 +105,10 @@ func (s *MManager) TryLoad() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(s.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", fmt.Sprintf("%+v", state))
+	level.Debug(m.Logger).Log("event", "state.unmarshal", "type", "versioned", "value", state)
 
 	if state.V1 != nil {
-		level.Debug(s.Logger).Log("event", "state.resolve", "type", "versioned")
+		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
 		return state, nil
 	}
 
@@ -113,7 +117,7 @@ func (s *MManager) TryLoad() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(s.Logger).Log("event", "state.resolve", "type", "raw")
+	level.Debug(m.Logger).Log("event", "state.resolve", "type", "raw")
 	return V0(mapState), nil
 }
 
@@ -147,7 +151,7 @@ func (m *MManager) RemoveStateFile() error {
 	return nil
 }
 
-func (s *MManager) serializeAndWriteState(state VersionedState) error {
+func (m *MManager) serializeAndWriteState(state VersionedState) error {
 	state.V1.ChartURL = state.CurrentChartURL() // chart URL persists throughout `init` lifecycle
 
 	serialized, err := json.Marshal(state)
@@ -155,12 +159,12 @@ func (s *MManager) serializeAndWriteState(state VersionedState) error {
 		return errors.Wrap(err, "serialize state")
 	}
 
-	err = s.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
+	err = m.FS.MkdirAll(filepath.Dir(constants.StatePath), 0700)
 	if err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
 
-	err = s.FS.WriteFile(constants.StatePath, serialized, 0644)
+	err = m.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
 	}

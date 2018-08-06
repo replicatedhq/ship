@@ -1,8 +1,9 @@
 package daemon
 
 import (
-	"github.com/replicatedhq/ship/pkg/patch"
 	"sync"
+
+	"github.com/replicatedhq/ship/pkg/patch"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -25,7 +26,7 @@ type V1Routes struct {
 	StateManager   state.Manager
 	ConfigRenderer *resolve.APIConfigRenderer
 	TreeLoader     filetree.Loader
-	Patcher	patch.Patcher
+	Patcher        patch.Patcher
 	OpenWebConsole opener
 
 	sync.Mutex
