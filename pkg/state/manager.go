@@ -25,7 +25,9 @@ type Manager interface {
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeChartURL(URL string) error
+	Save(v VersionedState) error
 }
+
 var _ Manager = &MManager{}
 
 // MManager is the saved output of a plan run to load on future runs
