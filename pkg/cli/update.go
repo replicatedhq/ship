@@ -16,8 +16,8 @@ import (
 func Update() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "Updated a chart",
-		Long:  `Updated a chart`,
+		Short: "Pull an updated helm chart",
+		Long:  `Pull an updated helm chart to be integrated into current application configuration`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// update should run in headless mode by default
 			if !viper.GetBool("headed") {
@@ -32,7 +32,6 @@ func Update() *cobra.Command {
 			s.UpdateAndMaybeExit(context.Background())
 			return nil
 		},
-		Hidden: true,
 	}
 
 	cmd.Flags().BoolP("headed", "", false, "run ship update in headed mode")

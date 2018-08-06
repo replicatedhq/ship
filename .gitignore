@@ -12,3 +12,5 @@ integration/*/test*
 /.state/
 
 /chart/
+
+/overlays/

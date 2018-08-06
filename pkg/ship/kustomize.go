@@ -54,8 +54,6 @@ func (s *Ship) Update(ctx context.Context) error {
 	}
 
 	debug.Log("event", "read.chartURL")
-
-	// todo error handling
 	helmChartPath := existingState.CurrentChartURL()
 	if helmChartPath == "" {
 		return errors.New(`No helm chart URL found at ` + constants.StatePath + `, please run "ship init"`)
