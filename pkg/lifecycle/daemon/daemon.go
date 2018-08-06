@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"strings"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -100,27 +98,14 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	}()
 
 	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
-	if d.Viper.GetBool("no-open") {
+	if !d.Viper.GetBool("no-open") {
+		err := d.OpenWebConsole(d.UI, openUrl)
+		debug.Log("event", "console.open.fail.ignore", "err", err)
+	} else {
 		d.UI.Info(fmt.Sprintf(
 			"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
 			openUrl,
 		))
-	} else {
-		openBrowser, err := d.UI.Ask("Open browser to continue? (Y/n)")
-		if err != nil {
-			return err
-		}
-
-		openBrowser = strings.ToLower(strings.Trim(openBrowser, " \r\n"))
-		if strings.Compare(openBrowser, "n") == 0 {
-			d.UI.Info(fmt.Sprintf(
-				"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
-				openUrl,
-			))
-		} else {
-			err = d.OpenWebConsole(d.UI, openUrl)
-			debug.Log("event", "console.open.fail.ignore", "err", err)
-		}
 	}
 
 	defer func() {
