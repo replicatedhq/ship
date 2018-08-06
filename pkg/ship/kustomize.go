@@ -107,11 +107,19 @@ func (s *Ship) Init(ctx context.Context) error {
 
 	release := s.buildRelease(helmChartMetadata)
 
-	if s.Viper.GetBool("message") {
-		s.UI.Output("\n           Downloading from " + helmChartPath + " ... \n")
-		s.UI.Output("           Looking for ship.yaml ...\n")                                                   // TODO
-		s.UI.Output("           ship.yaml not found ... determining application type [application-type] ...\n") // TODO
-		s.UI.Output("           Generating default ship.yaml for [application-type] application ...\n")         // TODO
+	s.UI.Info("Downloading from " + helmChartPath + " ...")
+	s.UI.Info("Looking for ship.yaml ...")                                                   // TODO
+	s.UI.Info("ship.yaml not found ... determining application type [application-type] ...") // TODO
+	s.UI.Info("Generating default ship.yaml for [application-type] application ...")         // TODO
+
+	openBrowser, err := s.UI.Ask("Open browser to continue? (Y/n)")
+	if err != nil {
+		return err
+	}
+
+	openBrowser = strings.ToLower(strings.Trim(openBrowser, " \r\n"))
+	if strings.Compare(openBrowser, "n") == 0 {
+		s.Viper.Set("no-open", true)
 	}
 
 	return s.execute(ctx, release, nil, true)

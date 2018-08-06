@@ -36,9 +36,6 @@ with a gitops style workflow.`,
 	cmd.Flags().String("file", "", "File path to helm chart")
 
 	cmd.Flags().String("raw", "", "File path to already rendered kubernetes YAML. Intended for use with non-helm K8s YAML or with a helm chart that has already been templated.")
-
-	cmd.Flags().BoolP("message", "", false, "") // TODO remove flag when logic is implemented
-
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
