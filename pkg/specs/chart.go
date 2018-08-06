@@ -4,10 +4,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -149,6 +151,13 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	debug.Log("phase", "save-chart-url", "url", path)
 	md.URL = path
 
+	debug.Log("phase", "calculate-sha", "for", constants.KustomizeHelmPath)
+	contentSHA, err := r.calculateContentSHA(constants.KustomizeHelmPath)
+	if err != nil {
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "calculate chart sha")
+	}
+	md.ContentSHA = contentSHA
+
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")
 	debug.Log("phase", "read-chart", "from", localChartPath)
 	chart, err := r.FS.ReadFile(localChartPath)
@@ -169,7 +178,35 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	}
 
 	md.Readme = string(readme)
+
 	return md, nil
+}
+
+func (r *Resolver) calculateContentSHA(root string) (string, error) {
+	contents := []byte{}
+	err := r.FS.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "fs walk")
+		}
+
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		fileContents, err := r.FS.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "read file")
+		}
+
+		contents = append(contents, fileContents...)
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
 }
 
 func decodeGitHubUrl(chartPath string) (string, string, string, error) {

@@ -25,6 +25,7 @@ type Manager interface {
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeChartURL(URL string) error
+	SerializeContentSHA(contentSHA string) error
 	Save(v VersionedState) error
 }
 
@@ -61,6 +62,21 @@ func (s *MManager) SerializeChartURL(URL string) error {
 	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
 
 	return s.serializeAndWriteState(toSerialize)
+}
+
+// SerializeContentSHA writes the contentSHA to the state file
+func (m *MManager) SerializeContentSHA(contentSHA string) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeContentSHA"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.ContentSHA = contentSHA
+
+	return m.serializeAndWriteState(versionedState)
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk

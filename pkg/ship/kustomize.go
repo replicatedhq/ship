@@ -3,6 +3,7 @@ package ship
 import (
 	"context"
 	"path"
+	"time"
 
 	"strings"
 
@@ -23,6 +24,13 @@ func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 		s.ExitWithError(err)
 	}
 }
+
+func (s *Ship) WatchAndExit(ctx context.Context) {
+	if err := s.Watch(ctx); err != nil {
+		s.ExitWithError(err)
+	}
+}
+
 func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
 	if err := s.Update(ctx); err != nil {
 		s.ExitWithError(err)
@@ -70,6 +78,44 @@ func (s *Ship) Update(ctx context.Context) error {
 	return s.execute(ctx, release, nil, true)
 }
 
+func (s *Ship) Watch(ctx context.Context) error {
+	debug := level.Debug(log.With(s.Logger, "method", "watch"))
+
+	for {
+		existingState, err := s.State.TryLoad()
+
+		if _, noExistingState := existingState.(state.Empty); noExistingState {
+			debug.Log("event", "state.missing")
+			return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "read.chartURL")
+		helmChartPath := existingState.CurrentChartURL()
+		if helmChartPath == "" {
+			return errors.New(`No current SHA found at ` + constants.StatePath + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "read.lastSHA")
+		lastSHA := existingState.CurrentSHA()
+		if lastSHA == "" {
+			return errors.New(`No current SHA found at ` + constants.StatePath + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "fetch latest chart")
+		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+		if err != nil {
+			return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
+		}
+
+		if helmChartMetadata.ContentSHA != existingState.CurrentSHA() {
+			debug.Log("event", "new sha")
+			return nil
+		}
+
+		time.Sleep(time.Second * 10) // todo flag
+	}
+}
+
 func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
 
@@ -109,6 +155,8 @@ func (s *Ship) Init(ctx context.Context) error {
 	s.State.SerializeChartURL(helmChartPath)
 
 	release := s.buildRelease(helmChartMetadata)
+
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
