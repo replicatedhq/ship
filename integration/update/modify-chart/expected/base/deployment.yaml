@@ -1,28 +1,28 @@
 ##---
-# Source: basic/templates/deployment.yaml
+# Source: modify-chart/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: -basic
+  name: -modify-chart
   labels:
-    app: basic
-    chart: basic-0.1.0
+    app: modify-chart
+    chart: modify-chart-0.1.0
     release: 
     heritage: Tiller
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: basic
+      app: modify-chart
       release: 
   template:
     metadata:
       labels:
-        app: basic
+        app: modify-chart
         release: 
     spec:
       containers:
-        - name: basic
+        - name: modify-chart
           image: "nginx:stable"
           imagePullPolicy: IfNotPresent
           ports:
