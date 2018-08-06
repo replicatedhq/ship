@@ -1,5 +1,13 @@
 package state
 
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/replicatedhq/ship/pkg/api"
+)
+
+// now that we have Versioned(), we probably don't need nearly so broad an interface here
 type State interface {
 	CurrentConfig() map[string]interface{}
 	CurrentKustomize() *Kustomize
@@ -41,6 +49,35 @@ type V1 struct {
 	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	Kustomize  *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	ChartURL   string                 `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+	Lifecycle  *Lifeycle              `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+}
+
+type StepsCompleted map[string]interface{}
+
+func (s StepsCompleted) String() string {
+	acc := new(bytes.Buffer)
+	for key := range s {
+		fmt.Fprintf(acc, "%s;", key)
+	}
+	return acc.String()
+
+}
+
+type Lifeycle struct {
+	StepsCompleted StepsCompleted `json:"stepsCompleted,omitempty" yaml:"stepsCompleted,omitempty" hcl:"stepsCompleted,omitempty"`
+}
+
+func (l *Lifeycle) WithCompletedStep(step api.Step) *Lifeycle {
+	updated := &Lifeycle{StepsCompleted: map[string]interface{}{}}
+	if l != nil && l.StepsCompleted != nil {
+		updated.StepsCompleted = l.StepsCompleted
+	}
+
+	updated.StepsCompleted[step.Shared().ID] = true
+	for _, nowInvalid := range step.Shared().Invalidates {
+		delete(updated.StepsCompleted, nowInvalid)
+	}
+	return updated
 }
 
 type Overlay struct {
@@ -109,5 +146,10 @@ func (u VersionedState) CurrentChartURL() string {
 }
 
 func (v VersionedState) Versioned() VersionedState {
+	return v
+}
+
+func (v VersionedState) WithCompletedStep(step api.Step) VersionedState {
+	v.V1.Lifecycle = v.V1.Lifecycle.WithCompletedStep(step)
 	return v
 }
