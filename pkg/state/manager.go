@@ -25,6 +25,7 @@ type Manager interface {
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeChartURL(URL string) error
+}
   
 var _ Manager = &MManager{}
 
