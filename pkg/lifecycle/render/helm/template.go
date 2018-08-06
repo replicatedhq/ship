@@ -19,6 +19,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // Templater is something that can consume and render a helm chart pulled by ship.
@@ -42,6 +43,7 @@ type ForkTemplater struct {
 	Logger         log.Logger
 	FS             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
+	Viper          *viper.Viper
 }
 
 func (f *ForkTemplater) Template(
@@ -109,6 +111,26 @@ func (f *ForkTemplater) Template(
 			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
 		}
 		return errors.Wrap(err, "execute helm")
+	}
+
+	// In app mode, copy the first found directory in RenderedHelmTempPath to dest
+	if f.Viper.GetBool("is-app") {
+		files, err := f.FS.ReadDir(constants.RenderedHelmTempPath)
+		if err != nil {
+			return errors.Wrap(err, "failed to read templates dir")
+		}
+
+		firstFoundFile := files[0]
+		if !firstFoundFile.IsDir() {
+			return errors.New(fmt.Sprintf("unable to find rendered chart, found file %s instead", firstFoundFile.Name()))
+		}
+
+		renderedChartDir := path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name())
+		if err := f.FS.Rename(renderedChartDir, asset.Dest); err != nil {
+			return errors.Wrap(err, "failed to move rendered chart dir")
+		}
+
+		return nil
 	}
 
 	subChartsDirName := "charts"
@@ -285,6 +307,7 @@ func NewTemplater(
 	logger log.Logger,
 	fs afero.Afero,
 	builderBuilder *templates.BuilderBuilder,
+	viper *viper.Viper,
 ) Templater {
 	return &ForkTemplater{
 		Helm: func() *exec.Cmd {
@@ -293,5 +316,6 @@ func NewTemplater(
 		Logger:         logger,
 		FS:             fs,
 		BuilderBuilder: builderBuilder,
+		Viper:          viper,
 	}
 }

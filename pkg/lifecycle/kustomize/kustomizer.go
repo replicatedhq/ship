@@ -102,6 +102,7 @@ func (l *kustomizer) writeOutOverlays(
 
 	// write the overlay patches, updating kustomization.yaml's patch list
 	for file, contents := range shipOverlay.Patches {
+
 		name := path.Join(destDir, file)
 		err = l.writePatch(name, destDir, contents)
 		if err != nil {

@@ -72,9 +72,8 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 				plan = append(plan, p.dockerStep(*asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
-			// For now, ignore destination reassign if Helm has LocalOpts
-			// This is the codepath for `ship init`
-			if asset.Helm.Local == nil {
+			// For now, ignore destination reassign if `app` command
+			if p.Viper.GetBool("is-app") {
 				asset.Helm.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Helm.Dest)
 			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
