@@ -58,7 +58,7 @@ func NewStep(apiStep api.Step) Step {
 
 type Message struct {
 	Contents    string `json:"contents"`
-	TrustedHTML bool   `json:"trusted_html,omitempty"`
+	TrustedHTML bool   `json:"trusted_html"`
 	Level       string `json:"level,omitempty"`
 }
 
