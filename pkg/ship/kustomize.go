@@ -115,16 +115,6 @@ func (s *Ship) Init(ctx context.Context) error {
 	s.UI.Info("ship.yaml not found ... determining application type [application-type] ...") // TODO
 	s.UI.Info("Generating default ship.yaml for [application-type] application ...")         // TODO
 
-	openBrowser, err := s.UI.Ask("Open browser to continue? (Y/n)")
-	if err != nil {
-		return err
-	}
-
-	openBrowser = strings.ToLower(strings.Trim(openBrowser, " \r\n"))
-	if strings.Compare(openBrowser, "n") == 0 {
-		s.Viper.Set("no-open", true)
-	}
-
 	return s.execute(ctx, release, nil, true)
 }
 
