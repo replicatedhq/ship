@@ -11,4 +11,4 @@ integration/*/test*
 
 /.state/
 
-chart/
+/chart/
