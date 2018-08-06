@@ -105,6 +105,9 @@ func (s *Ship) Init(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
 	}
 
+	// serialize the ChartURL to disk. First step in creating a state file
+	s.State.SerializeChartURL(helmChartPath)
+
 	release := s.buildRelease(helmChartMetadata)
 
 	s.UI.Info("Downloading from " + helmChartPath + " ...")

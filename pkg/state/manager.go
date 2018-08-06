@@ -24,9 +24,8 @@ type Manager interface {
 	TryLoad() (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
-	Save(v VersionedState) error
+	SerializeChartURL(URL string) error
 }
-
 var _ Manager = &MManager{}
 
 // MManager is the saved output of a plan run to load on future runs
@@ -50,6 +49,16 @@ func NewManager(
 		FS:     fs,
 		V:      v,
 	}
+}
+
+// SerializeChartURL is used by `ship init` to serialize a state file with ChartURL to disk
+func (s *MManager) SerializeChartURL(URL string) error {
+	debug := level.Debug(log.With(s.Logger, "method", "SerializeChartURL"))
+
+	debug.Log("event", "generateChartURLState")
+	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
+
+	return s.serializeAndWriteState(toSerialize)
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk

@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -15,7 +16,9 @@ type V2Routes struct {
 	TreeLoader   filetree.Loader
 	StateManager state.Manager
 	// This isn't known at injection time, so we have to set in Register
-	Release *api.Release
+	Release   *api.Release
+	Messenger lifecycle.Messenger
+	HelmIntro lifecycle.HelmIntro
 }
 
 func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
@@ -23,6 +26,7 @@ func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
 	v2 := group.Group("/api/v2")
 	v2.GET("/lifecycle", d.getLifecycle)
 	v2.GET("/lifecycle/step/:step", d.getStep)
+	v2.POST("/lifecycle/step/:step", d.completeStep)
 }
 
 // returns false if aborted
