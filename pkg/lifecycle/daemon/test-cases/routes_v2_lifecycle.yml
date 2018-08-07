@@ -1,0 +1,19 @@
+---
+- name: empty
+  lifecycle: []
+  expectStatus: 200
+  expectBody: []
+
+
+- name: single step
+  lifecycle:
+    - message:
+        id: lol
+        description: hi there
+
+  expectStatus: 200
+  expectBody:
+    - id: lol
+      description: hi there
+      phase: message
+

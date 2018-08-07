@@ -92,6 +92,32 @@ lifecycle:
 				HelmValues: &HelmValues{},
 			},
 		},
+		{
+			name: "requires",
+			yaml: `
+---
+lifecycle:
+  v1:
+    - helmValues:
+        id: values
+        requires: 
+          - intro
+        invalidates: 
+          - render `,
+			expect: Step{
+				HelmValues: &HelmValues{
+					StepShared: StepShared{
+						ID: "values",
+						Requires: []string{
+							"intro",
+						},
+						Invalidates: []string{
+							"render",
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

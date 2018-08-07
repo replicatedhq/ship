@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
@@ -21,7 +22,7 @@ type DaemonMessenger struct {
 	Logger         log.Logger
 	UI             cli.Ui
 	Viper          *viper.Viper
-	Daemon         daemon.Daemon
+	Daemon         daemontypes.Daemon
 	BuilderBuilder *templates.BuilderBuilder
 }
 
@@ -33,7 +34,7 @@ func (m *DaemonMessenger) Execute(ctx context.Context, release *api.Release, ste
 	builder := m.getBuilder(release.Metadata)
 	built, _ := builder.String(step.Contents)
 
-	m.Daemon.PushMessageStep(ctx, daemon.Message{
+	m.Daemon.PushMessageStep(ctx, daemontypes.Message{
 		Contents: built,
 		Level:    step.Level,
 	}, daemon.MessageActions())

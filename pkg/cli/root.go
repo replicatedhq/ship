@@ -42,6 +42,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
 
 	cmd.AddCommand(Init())
+	cmd.AddCommand(Watch())
 	cmd.AddCommand(Update())
 	cmd.AddCommand(App())
 	cmd.AddCommand(Version())

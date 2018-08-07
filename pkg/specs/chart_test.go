@@ -14,11 +14,13 @@ import (
 	"github.com/go-kit/kit/log"
 
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 
 	"github.com/google/go-github/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 var client *github.Client
@@ -112,42 +114,82 @@ var _ = Describe("GithubClient", func() {
 		})
 	})
 
-	Describe("decodeGitHubUrl", func() {
+	Describe("decodeGitHubURL", func() {
 		Context("With a valid github url", func() {
 			It("should decode a valid url without a path", func() {
 				chartPath := "github.com/o/r"
-				o, r, p, err := decodeGitHubUrl(chartPath)
+				o, r, b, p, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(o).To(Equal("o"))
 				Expect(r).To(Equal("r"))
 				Expect(p).To(Equal(""))
+				Expect(b).To(Equal(""))
 			})
 
 			It("should decode a valid url with a path", func() {
 				chartPath := "github.com/o/r/stable/chart"
-				o, r, p, err := decodeGitHubUrl(chartPath)
+				o, r, b, p, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(o).To(Equal("o"))
 				Expect(r).To(Equal("r"))
 				Expect(p).To(Equal("stable/chart"))
+				Expect(b).To(Equal(""))
+			})
+
+			It("should decode a valid url with a /tree/<branch>/ path", func() {
+				chartPath := "github.com/o/r/tree/master/stable/chart"
+				o, r, b, p, err := decodeGitHubURL(chartPath)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(o).To(Equal("o"))
+				Expect(r).To(Equal("r"))
+				Expect(p).To(Equal("stable/chart"))
+				Expect(b).To(Equal("master"))
 			})
 		})
 
 		Context("With an invalid github url", func() {
 			It("should failed to decode a url without a path", func() {
 				chartPath := "github.com"
-				_, _, _, err := decodeGitHubUrl(chartPath)
+				_, _, _, _, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("github.com: unable to decode github url"))
 			})
 
 			It("should failed to decode a url with a path", func() {
 				chartPath := "github.com/o"
-				_, _, _, err := decodeGitHubUrl(chartPath)
+				_, _, _, _, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("github.com/o: unable to decode github url"))
+			})
+		})
+	})
+
+	Describe("calculateContentSHA", func() {
+		Context("With multiple files", func() {
+			It("should calculate the same sha, mulitple times", func() {
+				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+				mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+				mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+
+				r := Resolver{
+					FS: mockFs,
+					StateManager: &state.MManager{
+						Logger: log.NewNopLogger(),
+						FS:     mockFs,
+						V:      viper.New(),
+					},
+				}
+
+				firstPass, err := r.calculateContentSHA("")
+				Expect(err).NotTo(HaveOccurred())
+
+				secondPass, err := r.calculateContentSHA("")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(firstPass).To(Equal(secondPass))
 			})
 		})
 	})

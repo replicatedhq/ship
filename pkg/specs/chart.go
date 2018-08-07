@@ -4,10 +4,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -50,7 +52,7 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		return err
 	}
 
-	owner, repo, path, err := decodeGitHubUrl(chartURL.Path)
+	owner, repo, branch, path, err := decodeGitHubURL(chartURL.Path)
 	if err != nil {
 		return err
 	}
@@ -69,15 +71,18 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 		}
 	}
 
-	return g.downloadAndExtractFiles(ctx, owner, repo, path, "/")
+	return g.downloadAndExtractFiles(ctx, owner, repo, branch, path, "/")
 }
 
-func (g *GithubClient) downloadAndExtractFiles(ctx context.Context, owner string, repo string, basePath string, filePath string) error {
+func (g *GithubClient) downloadAndExtractFiles(ctx context.Context, owner string, repo string, branch string, basePath string, filePath string) error {
 	debug := level.Debug(log.With(g.logger, "method", "downloadAndExtractFiles"))
 
 	debug.Log("event", "getContents", "path", basePath)
 
-	url, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, &github.RepositoryContentGetOptions{})
+	archiveOpts := &github.RepositoryContentGetOptions{
+		Ref: branch,
+	}
+	url, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
 	if err != nil {
 		return errors.Wrapf(err, "get archive link for owner - %s repo - %s", owner, repo)
 	}
@@ -149,10 +154,20 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	debug.Log("phase", "save-chart-url", "url", path)
 	md.URL = path
 
+	debug.Log("phase", "calculate-sha", "for", constants.KustomizeHelmPath)
+	contentSHA, err := r.calculateContentSHA(constants.KustomizeHelmPath)
+	if err != nil {
+		return api.HelmChartMetadata{}, errors.Wrapf(err, "calculate chart sha")
+	}
+	md.ContentSHA = contentSHA
+
 	localChartPath := filepath.Join(constants.KustomizeHelmPath, "Chart.yaml")
 	debug.Log("phase", "read-chart", "from", localChartPath)
 	chart, err := r.FS.ReadFile(localChartPath)
 	if err != nil {
+		r.ui.Error(
+			"The input was not recognized as a supported asset type. Ship currently supports Helm, Knative, and Kubernetes applications. Check the URL and try again.\n",
+		)
 		return api.HelmChartMetadata{}, errors.Wrapf(err, "read file from %s", localChartPath)
 	}
 
@@ -169,22 +184,56 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	}
 
 	md.Readme = string(readme)
+
 	return md, nil
 }
 
-func decodeGitHubUrl(chartPath string) (string, string, string, error) {
+func (r *Resolver) calculateContentSHA(root string) (string, error) {
+	contents := []byte{}
+	err := r.FS.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "fs walk")
+		}
+
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		fileContents, err := r.FS.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "read file")
+		}
+
+		contents = append(contents, fileContents...)
+		return nil
+	})
+
+	if err != nil {
+		return "", errors.Wrapf(err, "calculate content sha")
+	}
+
+	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
+}
+
+func decodeGitHubURL(chartPath string) (owner string, repo string, branch string, path string, err error) {
 	splitPath := strings.Split(chartPath, "/")
 
 	if len(splitPath) < 3 {
-		return "", "", "", errors.Wrapf(errors.New("unable to decode github url"), chartPath)
+		return owner, repo, path, branch, errors.Wrapf(errors.New("unable to decode github url"), chartPath)
 	}
 
-	owner := splitPath[1]
-	repo := splitPath[2]
-	path := ""
+	owner = splitPath[1]
+	repo = splitPath[2]
+	branch = ""
+	path = ""
 	if len(splitPath) > 3 {
-		path = strings.Join(splitPath[3:], "/")
+		if splitPath[3] == "tree" {
+			branch = splitPath[4]
+			path = strings.Join(splitPath[5:], "/")
+		} else {
+			path = strings.Join(splitPath[3:], "/")
+		}
 	}
 
-	return owner, repo, path, nil
+	return owner, repo, branch, path, nil
 }

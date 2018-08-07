@@ -14,6 +14,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/viper"
 )
@@ -22,42 +23,16 @@ var (
 	errInternal = errors.New("internal_error")
 )
 
-// Daemon is a sort of UI interface. Some implementations start an API to
-// power the on-prem web console. A headless implementation logs progress
-// to stdout.
-//
-// A daemon is manipulated by lifecycle step handlers to present the
-// correct UI to the user and collect necessary information
-type Daemon interface {
-	EnsureStarted(context.Context, *api.Release) chan error
-	PushMessageStep(context.Context, Message, []Action)
-	PushStreamStep(context.Context, <-chan Message)
-	PushRenderStep(context.Context, Render)
-	PushHelmIntroStep(context.Context, HelmIntro, []Action)
-	PushHelmValuesStep(context.Context, HelmValues, []Action)
-	PushKustomizeStep(context.Context, Kustomize)
-	SetStepName(context.Context, string)
-	AllStepsDone(context.Context)
-	CleanPreviousStep()
-	MessageConfirmedChan() chan string
-	ConfigSavedChan() chan interface{}
-	TerraformConfirmedChan() chan bool
-	KustomizeSavedChan() chan interface{}
-
-	GetCurrentConfig() map[string]interface{}
-	SetProgress(Progress)
-	ClearProgress()
-}
-
-var _ Daemon = &ShipDaemon{}
+var _ daemontypes.Daemon = &ShipDaemon{}
 
 // Daemon runs the ship api server.
 type ShipDaemon struct {
 	Logger       log.Logger
 	WebUIFactory WebUIBuilder
 	Viper        *viper.Viper
-	exitChan     chan error
-	startOnce    sync.Once
+	// todo private this
+	ExitChan  chan error
+	StartOnce sync.Once
 
 	*V1Routes
 	*V2Routes
@@ -66,13 +41,13 @@ type ShipDaemon struct {
 // "this is fine"
 func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 
-	go d.startOnce.Do(func() {
+	go d.StartOnce.Do(func() {
 		err := d.Serve(ctx, release)
 		level.Info(d.Logger).Log("event", "daemon.startonce.exit", err, "err")
-		d.exitChan <- err
+		d.ExitChan <- err
 	})
 
-	return d.exitChan
+	return d.ExitChan
 }
 
 // Serve starts the server with the given context
@@ -112,7 +87,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 
 	select {
 	case err := <-errChan:
-		level.Error(d.Logger).Log("event", "shutdown", "reason", "exitChan", "err", err)
+		level.Error(d.Logger).Log("event", "shutdown", "reason", "ExitChan", "err", err)
 		return err
 	case <-ctx.Done():
 		level.Error(d.Logger).Log("event", "shutdown", "reason", "context", "err", ctx.Err())
@@ -137,8 +112,14 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root.GET("/healthz", d.Healthz)
 	root.GET("/metricz", d.Metricz)
-	d.V1Routes.Register(root, release)
-	d.V2Routes.Register(root, release)
+
+	if d.V1Routes != nil {
+		d.V1Routes.Register(root, release)
+	}
+
+	if d.V2Routes != nil {
+		d.V2Routes.Register(root, release)
+	}
 }
 
 // Healthz returns a 200 with the version if provided
