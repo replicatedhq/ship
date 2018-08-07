@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,7 +49,7 @@ func TestForkKubectl_getBuilder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 
-			demon := daemon.HeadlessDaemon{
+			demon := headless.HeadlessDaemon{
 				ResolvedConfig: tt.state,
 			}
 
