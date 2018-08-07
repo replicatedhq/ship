@@ -112,7 +112,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return nil
 		}
 
-		time.Sleep(time.Second * 10) // todo flag
+		time.Sleep(time.Minute * 5) // todo flag
 	}
 }
 
