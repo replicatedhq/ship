@@ -83,7 +83,10 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				return
 			}
 
-			req.Equal(got, tt.want)
+			for _, filename := range tt.want {
+				req.Contains(got, filename)
+			}
+
 			for file, contents := range tt.expectFiles {
 				fileBytes, err := l.FS.ReadFile(path.Join(destDir, file))
 				if err != nil {
