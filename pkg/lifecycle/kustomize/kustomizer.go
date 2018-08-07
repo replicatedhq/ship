@@ -3,7 +3,6 @@ package kustomize
 import (
 	"context"
 	"os"
-	"strings"
 
 	"time"
 
@@ -189,15 +188,17 @@ func (l *kustomizer) writeBase(step api.Kustomize) error {
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(
 		step.BasePath,
-		func(basePath string, info os.FileInfo, err error) error {
+		func(targetPath string, info os.FileInfo, err error) error {
 			if err != nil {
-				debug.Log("event", "walk.fail", "path", basePath)
+				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			if filepath.Ext(basePath) == ".yaml" {
-				absolutePathComponents := strings.Split(basePath, "/")
-				relativePathComponents := absolutePathComponents[1:]
-				relativePath := strings.Join(relativePathComponents, "/")
+			if filepath.Ext(targetPath) == ".yaml" {
+				relativePath, err := filepath.Rel(step.BasePath, targetPath)
+				if err != nil {
+					debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
+					return errors.Wrap(err, "failed to get relative path")
+				}
 				baseKustomization.Resources = append(baseKustomization.Resources, relativePath)
 			}
 			return nil
