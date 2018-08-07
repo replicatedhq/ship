@@ -95,6 +95,18 @@ func (mr *MockManagerMockRecorder) SerializeConfig(arg0, arg1, arg2 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeConfig", reflect.TypeOf((*MockManager)(nil).SerializeConfig), arg0, arg1, arg2)
 }
 
+// SerializeContentSHA mocks base method
+func (m *MockManager) SerializeContentSHA(arg0 string) error {
+	ret := m.ctrl.Call(m, "SerializeContentSHA", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeContentSHA indicates an expected call of SerializeContentSHA
+func (mr *MockManagerMockRecorder) SerializeContentSHA(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeContentSHA", reflect.TypeOf((*MockManager)(nil).SerializeContentSHA), arg0)
+}
+
 // SerializeHelmValues mocks base method
 func (m *MockManager) SerializeHelmValues(arg0 string) error {
 	ret := m.ctrl.Call(m, "SerializeHelmValues", arg0)

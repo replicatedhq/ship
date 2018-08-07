@@ -14,6 +14,7 @@ type State interface {
 	CurrentKustomizeOverlay(filename string) string
 	CurrentHelmValues() string
 	CurrentChartURL() string
+	CurrentSHA() string
 	Versioned() VersionedState
 }
 
@@ -28,6 +29,7 @@ func (Empty) CurrentKustomizeOverlay(string) string { return "" }
 func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
 func (Empty) CurrentHelmValues() string             { return "" }
 func (Empty) CurrentChartURL() string               { return "" }
+func (Empty) CurrentSHA() string                    { return "" }
 func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
 
 type V0 map[string]interface{}
@@ -37,6 +39,7 @@ func (v V0) CurrentKustomize() *Kustomize          { return nil }
 func (v V0) CurrentKustomizeOverlay(string) string { return "" }
 func (v V0) CurrentHelmValues() string             { return "" }
 func (v V0) CurrentChartURL() string               { return "" }
+func (v V0) CurrentSHA() string                    { return "" }
 func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
 
 type VersionedState struct {
@@ -49,6 +52,7 @@ type V1 struct {
 	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	Kustomize  *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	ChartURL   string                 `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+	ContentSHA string                 `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
 	Lifecycle  *Lifeycle              `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
 }
 
@@ -143,6 +147,10 @@ func (u VersionedState) CurrentHelmValues() string {
 
 func (u VersionedState) CurrentChartURL() string {
 	return u.V1.ChartURL
+}
+
+func (u VersionedState) CurrentSHA() string {
+	return u.V1.ContentSHA
 }
 
 func (v VersionedState) Versioned() VersionedState {
