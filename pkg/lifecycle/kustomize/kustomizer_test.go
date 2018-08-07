@@ -263,10 +263,8 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			mockState := state2.NewMockManager(mc)
 
 			fs, err := tt.fields.GetFS()
-			if err != nil {
-				t.Error(err)
-				return
-			}
+			req.NoError(err)
+
 			l := &kustomizer{
 				Logger: testLogger,
 				Daemon: mockDaemon,
