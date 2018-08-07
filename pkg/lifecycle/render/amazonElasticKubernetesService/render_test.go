@@ -2,14 +2,17 @@ package amazonElasticKubernetesService
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"testing"
 
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/api/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
@@ -18,12 +21,44 @@ import (
 
 func TestRenderer(t *testing.T) {
 	tests := []struct {
-		name  string
-		asset api.EKSAsset
+		name       string
+		asset      api.EKSAsset
+		kubeconfig string
 	}{
 		{
-			name:  "empty",
-			asset: api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
+			name:       "empty",
+			asset:      api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
+			kubeconfig: "kubeconfig_",
+		},
+		{
+			name: "named",
+			asset: api.EKSAsset{
+				ClusterName: "aClusterName",
+				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+			},
+			kubeconfig: "kubeconfig_aClusterName",
+		},
+		{
+			name: "named, custom path",
+			asset: api.EKSAsset{
+				ClusterName: "aClusterName",
+				AssetShared: api.AssetShared{
+					Dest: "eks.tf",
+				},
+				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+			},
+			kubeconfig: "kubeconfig_aClusterName",
+		},
+		{
+			name: "named, in a directory",
+			asset: api.EKSAsset{
+				ClusterName: "aClusterName",
+				AssetShared: api.AssetShared{
+					Dest: "k8s/eks.tf",
+				},
+				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+			},
+			kubeconfig: "k8s/kubeconfig_aClusterName",
 		},
 	}
 	for _, test := range tests {
@@ -67,8 +102,30 @@ func TestRenderer(t *testing.T) {
 			)(context.Background())
 
 			req.NoError(err)
+
+			// test that the template function returns the correct kubeconfig path
+			builder := getBuilder()
+
+			eksTemplateFunc := `{{repl AmazonElasticKubernetesService "%s" }}`
+			kubeconfig, err := builder.String(fmt.Sprintf(eksTemplateFunc, test.asset.ClusterName))
+			req.NoError(err)
+
+			req.Equal(test.kubeconfig, kubeconfig, "Did not get expected kubeconfig path")
+
+			otherKubeconfig, err := builder.String(fmt.Sprintf(eksTemplateFunc, "doesnotexist"))
+			req.NoError(err)
+			req.Empty(otherKubeconfig, "Expected path to nonexistent kubeconfig to be empty")
 		})
 	}
+}
+
+func getBuilder() templates.Builder {
+	builderBuilder := templates.NewBuilderBuilder(log.NewNopLogger())
+
+	builder := builderBuilder.NewBuilder(
+		&templates.ShipContext{},
+	)
+	return builder
 }
 
 // this function allows testing the worker template independently

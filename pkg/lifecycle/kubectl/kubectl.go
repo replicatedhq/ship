@@ -167,6 +167,9 @@ func (k *ForkKubectl) getBuilder(meta api.ReleaseMetadata) templates.Builder {
 			ItemValues: k.Daemon.GetCurrentConfig(),
 			Logger:     k.Logger,
 		},
+		templates.ShipContext{
+			Logger: k.Logger,
+		},
 	)
 	return builder
 }

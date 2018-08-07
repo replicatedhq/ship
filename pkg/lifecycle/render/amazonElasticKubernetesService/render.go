@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
 
@@ -61,10 +62,16 @@ func (r *LocalRenderer) Execute(
 
 		var assetsPath string
 		if asset.Dest != "" {
-			assetsPath = path.Join(constants.InstallerPrefixPath, asset.Dest)
+			assetsPath = asset.Dest
 		} else {
-			assetsPath = path.Join(constants.InstallerPrefixPath, "amazon_elastic_kubernetes_service.tf")
+			assetsPath = "amazon_elastic_kubernetes_service.tf"
 		}
+
+		// save the path to the kubeconfig that running the generated terraform will produce
+		templates.AddAmazonElasticKubernetesServicePath(asset.ClusterName,
+			path.Join(path.Dir(assetsPath), "kubeconfig_"+asset.ClusterName))
+
+		assetsPath = path.Join(constants.InstallerPrefixPath, assetsPath)
 
 		// write the inline spec
 		err = r.Inline.Execute(

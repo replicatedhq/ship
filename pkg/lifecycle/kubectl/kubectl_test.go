@@ -32,17 +32,24 @@ func TestForkKubectl_getBuilder(t *testing.T) {
 		},
 		{
 			name:  "metadata",
-			state: map[string]interface{}{"abc": "123"},
+			state: map[string]interface{}{},
 			meta:  api.ReleaseMetadata{Semver: "abc123"},
 			init:  `{{repl Installation "semver"}}`,
 			want:  "abc123",
 		},
 		{
 			name:  "static",
-			state: map[string]interface{}{"abc": "123"},
-			meta:  api.ReleaseMetadata{Semver: "abc123"},
+			state: map[string]interface{}{},
+			meta:  api.ReleaseMetadata{},
 			init:  `{{repl Add 1 2}}`,
 			want:  "3",
+		},
+		{
+			name:  "ship",
+			state: map[string]interface{}{},
+			meta:  api.ReleaseMetadata{},
+			init:  `{{repl AmazonElasticKubernetesService ""}}`,
+			want:  "",
 		},
 	}
 	for _, tt := range tests {
