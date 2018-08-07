@@ -4,7 +4,11 @@ import (
 	"context"
 
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
+
+type DoWithProgress func(progress daemontypes.Progress)
+type DoWithMessage func(progress daemontypes.Message)
 
 type Messenger interface {
 	Execute(ctx context.Context, release *api.Release, step *api.Message) error

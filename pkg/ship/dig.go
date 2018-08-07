@@ -69,7 +69,7 @@ func buildInjector() (*dig.Container, error) {
 		helmValues.NewHelmValues,
 
 		state.NewManager,
-		planner.NewPlanner,
+		planner.NewFactory,
 		specs.NewResolver,
 		specs.NewGraphqlClient,
 		specs.NewGithubClient,
