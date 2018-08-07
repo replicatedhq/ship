@@ -35,6 +35,18 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
+// RemoveBase mocks base method
+func (m *MockManager) RemoveBase() error {
+	ret := m.ctrl.Call(m, "RemoveBase")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveBase indicates an expected call of RemoveBase
+func (mr *MockManagerMockRecorder) RemoveBase() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveBase", reflect.TypeOf((*MockManager)(nil).RemoveBase))
+}
+
 // RemoveStateFile mocks base method
 func (m *MockManager) RemoveStateFile() error {
 	ret := m.ctrl.Call(m, "RemoveStateFile")

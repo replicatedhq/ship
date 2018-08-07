@@ -59,6 +59,11 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.New(`No helm chart URL found at ` + constants.StatePath + `, please run "ship init"`)
 	}
 
+	if err := s.State.RemoveBase(); err != nil {
+		debug.Log("event", "base.missing")
+		return errors.New(`No Base directory found at ` + constants.RenderedHelmPath + `, please run "ship init"`)
+	}
+
 	debug.Log("event", "fetch latest chart")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
 	if err != nil {
