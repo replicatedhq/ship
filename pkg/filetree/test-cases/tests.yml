@@ -136,10 +136,8 @@
 - name: has an overlay
   touch:
     - foo.txt
-  overlays:
-    ship:
-      patches:
-        /foo.txt: bar
+  patches:
+    /foo.txt: bar
   expect:
     name: /
     path: /
@@ -156,15 +154,49 @@
           - name: foo.txt
             path: /foo.txt
 
+- name: has multiple overlays
+  mkdir:
+    - foo
+  touch:
+    - foo/bar.txt
+    - foo/baz.txt
+  patches:
+    /foo/bar.txt: foobar
+    /foo/baz.txt: foobaz
+  expect:
+    name: /
+    path: /
+    children:
+      - name: /
+        path: /
+        children:
+          - name: foo
+            path: /foo
+            children:
+              - name: bar.txt
+                path: /foo/bar.txt
+                hasOverlay: true
+              - name: baz.txt
+                path: /foo/baz.txt
+                hasOverlay: true
+      - name: overlays
+        path: /
+        children:
+          - name: foo
+            path: /foo
+            children:
+              - name: bar.txt
+                path: /foo/bar.txt
+              - name: baz.txt
+                path: /foo/baz.txt
+
 - name: has a nested overlay
   mkdir:
     - bar
   touch:
     - bar/foo.txt
-  overlays:
-    ship:
-      patches:
-        /bar/foo.txt: baz
+  patches:
+    /bar/foo.txt: baz
   expect:
     name: /
     path: /
