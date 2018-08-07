@@ -18,11 +18,6 @@ import (
 )
 
 func Test_kustomizer_writePatches(t *testing.T) {
-	mc := gomock.NewController(t)
-	testLogger := &logger.TestLogger{T: t}
-	mockDaemon := daemon2.NewMockDaemon(mc)
-	mockState := state2.NewMockManager(mc)
-
 	destDir := path.Join("overlays", "ship")
 	var nilSlice []string
 
@@ -69,6 +64,10 @@ func Test_kustomizer_writePatches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
+			mc := gomock.NewController(t)
+			testLogger := &logger.TestLogger{T: t}
+			mockDaemon := daemon2.NewMockDaemon(mc)
+			mockState := state2.NewMockManager(mc)
 
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			l := &kustomizer{
@@ -97,12 +96,6 @@ func Test_kustomizer_writePatches(t *testing.T) {
 }
 
 func Test_kustomizer_writeOverlay(t *testing.T) {
-	mc := gomock.NewController(t)
-	testLogger := &logger.TestLogger{T: t}
-	mockDaemon := daemon2.NewMockDaemon(mc)
-	mockState := state2.NewMockManager(mc)
-	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-
 	mockStep := api.Kustomize{
 		BasePath: constants.RenderedHelmPath,
 		Dest:     path.Join("overlays", "ship"),
@@ -139,6 +132,11 @@ patches:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
+			mc := gomock.NewController(t)
+			testLogger := &logger.TestLogger{T: t}
+			mockDaemon := daemon2.NewMockDaemon(mc)
+			mockState := state2.NewMockManager(mc)
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			l := &kustomizer{
 				Logger: testLogger,
@@ -161,11 +159,6 @@ patches:
 }
 
 func Test_kustomizer_writeBase(t *testing.T) {
-	mc := gomock.NewController(t)
-	testLogger := &logger.TestLogger{T: t}
-	mockDaemon := daemon2.NewMockDaemon(mc)
-	mockState := state2.NewMockManager(mc)
-
 	mockStep := api.Kustomize{
 		BasePath: constants.RenderedHelmPath,
 		Dest:     path.Join("overlays", "ship"),
@@ -264,6 +257,11 @@ func Test_kustomizer_writeBase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
+			mc := gomock.NewController(t)
+			testLogger := &logger.TestLogger{T: t}
+			mockDaemon := daemon2.NewMockDaemon(mc)
+			mockState := state2.NewMockManager(mc)
+
 			fs, err := tt.fields.GetFS()
 			if err != nil {
 				t.Error(err)
