@@ -27,6 +27,16 @@ RUN curl -fsSLO "$TERRAFORM_URL" \
 	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
 	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform
 
+ENV KUBECTL_VERSION=v1.11.1
+ENV KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+ENV KUBECTL_SHA256SUM=d16a4e7bfe0033ea5f56f8d11e74f7a2dec5ff8832a046a643c8355b79b4ba5c
+
+RUN curl -fsSLO "${KUBECTL_URL}" \
+	&& echo "${KUBECTL_SHA256SUM}  kubectl" | sha256sum -c - \
+	&& chmod +x kubectl \
+	&& mv kubectl "/usr/local/bin/kubectl-${KUBECTL_VERSION}" \
+	&& ln -s "/usr/local/bin/kubectl-${KUBECTL_VERSION}" /usr/local/bin/kubectl
+
 RUN go get github.com/docker/distribution/cmd/registry
 
 ADD . /go/src/github.com/replicatedhq/ship
@@ -39,6 +49,7 @@ WORKDIR /test
 
 COPY --from=build-step /usr/local/bin/helm /usr/local/bin/helm
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
+COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
 COPY --from=build-step $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml config.yml
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*

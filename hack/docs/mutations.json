@@ -731,7 +731,9 @@
           "level": "warn"
         }
       ]
-
+    },
+    "replace": {
+      "required": []
     }
   },
   {
@@ -782,6 +784,36 @@
   {
     "path": "properties.assets.properties.v1.items.properties.terraform.properties",
     "delete": ["github"]
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl",
+    "merge": {
+      "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
+      "examples": [
+        { "path": "config.yml" },
+        {
+          "path": "k8s/another.yml",
+          "kubeconfig": "k8s/generated_kubeconfig"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl.properties.path",
+    "merge": {
+      "description": "the file to apply"
+    }
+  },
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl.properties.kubeconfig",
+    "merge": {
+      "description": "the kubeconfig file to use, overriding the system default"
+    }
   },
   {}
 ]
