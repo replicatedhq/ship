@@ -18,7 +18,7 @@ export default class ConfigGroup extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state= {}
+    this.state = {}
     autoBind(this);
   }
 
@@ -146,9 +146,13 @@ export default class ConfigGroup extends React.Component {
           <div id={item.name} className={`flex-auto config-item-wrapper ${this.isAtLeastOneItemVisible() ? "u-marginBottom--40" : ""}`}>
             <h3 className="header-color field-section-header">{item.title}</h3>
             {item.description !== "" ?
-              <div ref="markdown" className="u-marginTop--small u-lineHeight--normal">
-                <Markdown>{item.description}</Markdown>
-              </div>
+              <Markdown
+                options={{
+                  linkTarget: "_blank",
+                  linkify: true,
+                }}>
+                {item.description}
+              </Markdown>
               : null}
             <div className="config-item">
               {this.renderConfigItems(item.items)}

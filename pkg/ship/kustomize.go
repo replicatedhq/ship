@@ -128,7 +128,10 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`State file found at ` + s.Viper.GetString("state-file") + `, do you want to start from scratch? (y/N) `)
+		useUpdate, err := s.UI.Ask(`
+An existing .ship directory was found. If you are trying to update this application, run "ship update".
+Continuing will delete this state, would you like to continue? There is no undo. (y/N)
+`)
 		if err != nil {
 			return err
 		}

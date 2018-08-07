@@ -182,6 +182,9 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	case sig := <-signalChan:
 		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
 		s.UI.Warn(fmt.Sprintf("%s received...", sig))
+		if sig == syscall.SIGINT {
+			return nil
+		}
 		return errors.Errorf("received signal %q", sig)
 	case result := <-runResultCh:
 		return result

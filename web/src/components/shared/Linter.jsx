@@ -70,10 +70,16 @@ export default class Linter extends React.Component {
               </div>
             </div>
           }
-          { showPreview ? 
+          { showPreview ?
             <div className="HelmChartReadme--wrapper markdown-wrapper readme flex flex1 flex-column u-overflow--auto">
-              <Markdown>{ readme }</Markdown>
-            </div> : 
+              <Markdown
+                options={{
+                  linkTarget: "_blank",
+                  linkify: true,
+                }}>
+                {readme}
+              </Markdown>
+            </div> :
             <div className="flex flex1 flex-column alignContent--center">
               {errors.length ?
                 errors.map((error, i) => (

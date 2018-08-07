@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
@@ -43,6 +44,7 @@ type Resolver struct {
 	RunbookReleaseSemver string
 	SetChannelIcon       string
 	HelmChartGitPath     string
+	ui                   cli.Ui
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -53,6 +55,7 @@ func NewResolver(
 	graphql *GraphQLClient,
 	githubClient *GithubClient,
 	stateManager state.Manager,
+	ui cli.Ui,
 ) *Resolver {
 	return &Resolver{
 		Logger:               logger,
@@ -65,6 +68,7 @@ func NewResolver(
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
 		HelmChartGitPath:     v.GetString("chart"),
+		ui:                   ui,
 	}
 }
 
