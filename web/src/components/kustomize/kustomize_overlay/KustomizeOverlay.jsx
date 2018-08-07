@@ -133,12 +133,6 @@ export default class KustomizeOverlay extends React.Component {
     if (this.state.toastDetails.showToast) {
       this.cancelToast();
     }
-    // if (this.hasContentAlready(path)) {
-    //   // if we've already fetched the file, set the overlayContent from existing content
-    //   const file = this.state.fileContents[path];
-    //   this.setState({ overlayContent: file.overlayContent, patch: "" });
-    //   return;
-    // }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content and set the overlayContent from new file content on the file the user wants to view
       const file = find(this.props.fileContents, ["key", path]);
