@@ -1,12 +1,14 @@
 package daemon
 
-func MessageActions() []Action {
-	return []Action{
+import "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+
+func MessageActions() []daemontypes.Action {
+	return []daemontypes.Action{
 		{
 			ButtonType:  "primary",
 			Text:        "Confirm",
 			LoadingText: "Confirming",
-			OnClick: ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
 				Body:   `{"step_name": "message"}`,
@@ -15,13 +17,13 @@ func MessageActions() []Action {
 	}
 }
 
-func HelmIntroActions() []Action {
-	return []Action{
+func HelmIntroActions() []daemontypes.Action {
+	return []daemontypes.Action{
 		{
 			ButtonType:  "primary",
 			Text:        "Get started",
 			LoadingText: "Confirming",
-			OnClick: ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
 				Body:   `{"step_name": "helm.intro"}`,
@@ -30,14 +32,14 @@ func HelmIntroActions() []Action {
 	}
 }
 
-func HelmValuesActions() []Action {
-	return []Action{
+func HelmValuesActions() []daemontypes.Action {
+	return []daemontypes.Action{
 		{
 			Sort:        0,
 			ButtonType:  "primary",
 			Text:        "Save values",
 			LoadingText: "Saving",
-			OnClick: ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/helm-values",
 				Method: "POST",
 				Body:   `{"step_name": "helm.values"}`,
@@ -48,7 +50,7 @@ func HelmValuesActions() []Action {
 			ButtonType:  "primary",
 			Text:        "Continue",
 			LoadingText: "Continuing",
-			OnClick: ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/message/confirm",
 				Method: "POST",
 				Body:   `{"step_name": "helm.values"}`,

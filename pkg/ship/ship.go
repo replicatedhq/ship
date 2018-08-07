@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
@@ -40,7 +40,7 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon   daemon.Daemon
+	Daemon   daemontypes.Daemon
 	Resolver *specs.Resolver
 	Runbook  string
 	Client   *specs.GraphQLClient
@@ -55,7 +55,7 @@ type Ship struct {
 func NewShip(
 	logger log.Logger,
 	v *viper.Viper,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 	resolver *specs.Resolver,
 	graphql *specs.GraphQLClient,
 	runner *lifecycle.Runner,

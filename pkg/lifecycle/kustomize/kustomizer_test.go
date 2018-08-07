@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 	daemon2 "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
@@ -80,7 +80,7 @@ spec:
 			release := api.Release{}
 
 			mockDaemon.EXPECT().EnsureStarted(ctx, &release)
-			mockDaemon.EXPECT().PushKustomizeStep(ctx, daemon.Kustomize{
+			mockDaemon.EXPECT().PushKustomizeStep(ctx, daemontypes.Kustomize{
 				BasePath: "someBasePath",
 			})
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)

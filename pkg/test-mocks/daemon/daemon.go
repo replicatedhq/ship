@@ -5,12 +5,12 @@
 package daemon
 
 import (
-	context "context"
-	reflect "reflect"
+	"context"
+	"reflect"
 
-	gomock "github.com/golang/mock/gomock"
-	api "github.com/replicatedhq/ship/pkg/api"
-	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/golang/mock/gomock"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 // MockDaemon is a mock of Daemon interface
@@ -127,7 +127,7 @@ func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
 }
 
 // PushHelmIntroStep mocks base method
-func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemon.HelmIntro, arg2 []daemon.Action) {
+func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemontypes.HelmIntro, arg2 []daemontypes.Action) {
 	m.ctrl.Call(m, "PushHelmIntroStep", arg0, arg1, arg2)
 }
 
@@ -137,7 +137,7 @@ func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2 interface{}
 }
 
 // PushHelmValuesStep mocks base method
-func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemon.HelmValues, arg2 []daemon.Action) {
+func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemontypes.HelmValues, arg2 []daemontypes.Action) {
 	m.ctrl.Call(m, "PushHelmValuesStep", arg0, arg1, arg2)
 }
 
@@ -147,7 +147,7 @@ func (mr *MockDaemonMockRecorder) PushHelmValuesStep(arg0, arg1, arg2 interface{
 }
 
 // PushKustomizeStep mocks base method
-func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemon.Kustomize) {
+func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemontypes.Kustomize) {
 	m.ctrl.Call(m, "PushKustomizeStep", arg0, arg1)
 }
 
@@ -157,7 +157,7 @@ func (mr *MockDaemonMockRecorder) PushKustomizeStep(arg0, arg1 interface{}) *gom
 }
 
 // PushMessageStep mocks base method
-func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemon.Message, arg2 []daemon.Action) {
+func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemontypes.Message, arg2 []daemontypes.Action) {
 	m.ctrl.Call(m, "PushMessageStep", arg0, arg1, arg2)
 }
 
@@ -167,7 +167,7 @@ func (mr *MockDaemonMockRecorder) PushMessageStep(arg0, arg1, arg2 interface{}) 
 }
 
 // PushRenderStep mocks base method
-func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemon.Render) {
+func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemontypes.Render) {
 	m.ctrl.Call(m, "PushRenderStep", arg0, arg1)
 }
 
@@ -177,7 +177,7 @@ func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock
 }
 
 // PushStreamStep mocks base method
-func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemon.Message) {
+func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemontypes.Message) {
 	m.ctrl.Call(m, "PushStreamStep", arg0, arg1)
 }
 
@@ -187,7 +187,7 @@ func (mr *MockDaemonMockRecorder) PushStreamStep(arg0, arg1 interface{}) *gomock
 }
 
 // SetProgress mocks base method
-func (m *MockDaemon) SetProgress(arg0 daemon.Progress) {
+func (m *MockDaemon) SetProgress(arg0 daemontypes.Progress) {
 	m.ctrl.Call(m, "SetProgress", arg0)
 }
 
