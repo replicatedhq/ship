@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 type PlanConfirmer interface {
@@ -22,7 +22,7 @@ type PlanConfirmer interface {
 
 func NewPlanner(
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 ) PlanConfirmer {
 	return &DaemonPlanner{
 		Logger: logger,
@@ -34,7 +34,7 @@ func NewPlanner(
 // to perform interactions with the end user
 type DaemonPlanner struct {
 	Logger log.Logger
-	Daemon daemon.Daemon
+	Daemon daemontypes.Daemon
 }
 
 // ConfirmPlan presents the plan to the user.
@@ -50,7 +50,7 @@ func (d *DaemonPlanner) ConfirmPlan(
 	daemonExitedChan := d.Daemon.EnsureStarted(ctx, &release)
 	d.Daemon.PushMessageStep(
 		ctx,
-		daemon.Message{Contents: formmatedTerraformPlan, TrustedHTML: true},
+		daemontypes.Message{Contents: formmatedTerraformPlan, TrustedHTML: true},
 		planActions(),
 	)
 
@@ -81,13 +81,13 @@ func (d *DaemonPlanner) awaitPlanResult(ctx context.Context, daemonExitedChan ch
 	}
 }
 
-func planActions() []daemon.Action {
-	return []daemon.Action{
+func planActions() []daemontypes.Action {
+	return []daemontypes.Action{
 		{
 			ButtonType:  "primary",
 			Text:        "Apply",
 			LoadingText: "Applying",
-			OnClick: daemon.ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/terraform/apply",
 				Method: "POST",
 			},
@@ -96,7 +96,7 @@ func planActions() []daemon.Action {
 			ButtonType:  "secondary-gray",
 			Text:        "Skip",
 			LoadingText: "Skipping",
-			OnClick: daemon.ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/terraform/skip",
 				Method: "POST",
 			},

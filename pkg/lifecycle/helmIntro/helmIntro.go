@@ -13,13 +13,14 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
 type HelmIntro struct {
 	Logger log.Logger
-	Daemon daemon.Daemon
+	Daemon daemontypes.Daemon
 }
 
 type DaemonlessHelmIntro struct {
@@ -36,7 +37,7 @@ func NewHelmIntro(
 	v *viper.Viper,
 	fs afero.Afero,
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 ) lifecycle.HelmIntro {
 
 	return &HelmIntro{
@@ -50,7 +51,7 @@ func (h *HelmIntro) Execute(ctx context.Context, release *api.Release, step *api
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(ctx, daemontypes.HelmIntro{}, daemon.HelmIntroActions())
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)

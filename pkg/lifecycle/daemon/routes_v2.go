@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -19,6 +20,7 @@ type V2Routes struct {
 	Release   *api.Release
 	Messenger lifecycle.Messenger
 	HelmIntro lifecycle.HelmIntro
+	Renderer  lifecycle.Renderer
 }
 
 func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
@@ -68,7 +70,7 @@ func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, e
 	return "", nil
 }
 
-func (d *V2Routes) hydrateAndSend(step Step, c *gin.Context) {
+func (d *V2Routes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
 	result, err := d.hydrateStep(step, true)
 	if err != nil {
 		c.AbortWithError(500, err)
