@@ -345,16 +345,14 @@ patches:
 
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			err := mockFS.Mkdir(constants.RenderedHelmPath, 0777)
-			if err != nil {
-				t.Error(err)
-			}
-			if err := mockFS.WriteFile(
+			req.NoError(err)
+
+			err = mockFS.WriteFile(
 				path.Join(constants.RenderedHelmPath, "deployment.yaml"),
 				[]byte{},
 				0666,
-			); err != nil {
-				t.Error(err)
-			}
+			)
+			req.NoError(err)
 
 			saveChan := make(chan interface{})
 			close(saveChan)
