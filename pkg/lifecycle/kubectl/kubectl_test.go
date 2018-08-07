@@ -54,10 +54,7 @@ func TestForkKubectl_getBuilder(t *testing.T) {
 			}
 
 			k := &ForkKubectl{
-				Logger:  nil,
-				Daemon:  &demon,
-				Kubectl: nil,
-				Viper:   nil,
+				Daemon: &demon,
 			}
 			gotBuilder := k.getBuilder(tt.meta)
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/buildkite/terminal"
@@ -20,10 +21,9 @@ import (
 )
 
 type ForkKubectl struct {
-	Logger  log.Logger
-	Daemon  daemon.Daemon
-	Kubectl func() *exec.Cmd
-	Viper   *viper.Viper
+	Logger log.Logger
+	Daemon daemon.Daemon
+	Viper  *viper.Viper
 }
 
 func NewKubectl(
@@ -34,12 +34,7 @@ func NewKubectl(
 	return &ForkKubectl{
 		Logger: logger,
 		Daemon: daemon,
-		Kubectl: func() *exec.Cmd {
-			cmd := exec.Command("kubectl")
-			cmd.Dir = constants.InstallerPrefixPath
-			return cmd
-		},
-		Viper: viper,
+		Viper:  viper,
 	}
 }
 
@@ -54,7 +49,8 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 		return errors.New("A path to apply is required")
 	}
 
-	cmd := k.Kubectl()
+	cmd := exec.Command("kubectl")
+	cmd.Dir = constants.InstallerPrefixPath
 	cmd.Args = append(cmd.Args, "apply", "-f", step.Path)
 	if step.Kubeconfig != "" {
 		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)
@@ -72,6 +68,10 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 
 	stderrString := ""
 	stdoutString := ""
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
 	go func() {
 		for true {
 			select {
@@ -91,7 +91,7 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 				stderrString = stderr.String()
 				stdoutString = stdout.String()
 				close(messageCh)
-				doneCh <- struct{}{}
+				wg.Done()
 				return
 			}
 		}
@@ -100,7 +100,8 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 	err := cmd.Run()
 
 	doneCh <- struct{}{}
-	<-doneCh
+	wg.Wait()
+
 	debug.Log("stdout", stdoutString)
 	debug.Log("stderr", stderrString)
 
