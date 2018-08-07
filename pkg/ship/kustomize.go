@@ -96,7 +96,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 		}
 
 		debug.Log("event", "read.lastSHA")
-		lastSHA := existingState.CurrentSHA()
+		lastSHA := existingState.Versioned().V1.ContentSHA
 		if lastSHA == "" {
 			return errors.New(`No current SHA found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
@@ -107,7 +107,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 		}
 
-		if helmChartMetadata.ContentSHA != existingState.CurrentSHA() {
+		if helmChartMetadata.ContentSHA != existingState.Versioned().V1.ContentSHA {
 			debug.Log("event", "new sha")
 			return nil
 		}

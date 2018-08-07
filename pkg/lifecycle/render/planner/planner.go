@@ -43,10 +43,10 @@ type Planner interface {
 		map[string]interface{},
 	) (Plan, error)
 
-	Confirm(Plan) (bool, error)
 	Execute(context.Context, Plan) error
-	WithDaemon(d daemontypes.Daemon) Planner
 }
+
+type Factory func() Planner
 
 // CLIPlanner is the default Planner
 type CLIPlanner struct {
@@ -54,7 +54,7 @@ type CLIPlanner struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	Viper          *viper.Viper
-	Daemon         daemontypes.Daemon
+	Status         daemontypes.StatusReceiver
 	BuilderBuilder *templates.BuilderBuilder
 
 	Inline      inline.Renderer
@@ -67,7 +67,8 @@ type CLIPlanner struct {
 	AWSEKS      amazonElasticKubernetesService.Renderer
 }
 
-func NewPlanner(
+// Use a factory so we can create instances and override the StatusReceiver on those instances.
+func NewFactory(
 	v *viper.Viper,
 	logger log.Logger,
 	fs afero.Afero,
@@ -82,27 +83,25 @@ func NewPlanner(
 	webRenderer web.Renderer,
 	awseks amazonElasticKubernetesService.Renderer,
 	daemon daemontypes.Daemon,
-) Planner {
-	return &CLIPlanner{
-		Logger:         logger,
-		Fs:             fs,
-		UI:             ui,
-		Viper:          v,
-		BuilderBuilder: builderBuilder,
+) Factory {
+	return func() Planner {
+		return &CLIPlanner{
+			Logger:         logger,
+			Fs:             fs,
+			UI:             ui,
+			Viper:          v,
+			BuilderBuilder: builderBuilder,
 
-		Inline:      inlineRenderer,
-		Helm:        helmRenderer,
-		Docker:      dockerRenderer,
-		DockerLayer: dockerlayers,
-		GitHub:      gh,
-		Terraform:   tf,
-		Web:         webRenderer,
-		AWSEKS:      awseks,
-		Daemon:      daemon,
+			Inline:      inlineRenderer,
+			Helm:        helmRenderer,
+			Docker:      dockerRenderer,
+			DockerLayer: dockerlayers,
+			GitHub:      gh,
+			Terraform:   tf,
+			Web:         webRenderer,
+			AWSEKS:      awseks,
+			Status:      daemon,
+		}
 	}
-}
 
-func (p *CLIPlanner) WithDaemon(d daemontypes.Daemon) Planner {
-	p.Daemon = d
-	return p
 }

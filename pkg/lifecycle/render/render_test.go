@@ -61,7 +61,7 @@ func TestRender(t *testing.T) {
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
-			renderer.Planner = p
+			renderer.PlannerFactory = func() planner.Planner { return p }
 			renderer.StateManager = &state.MManager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
