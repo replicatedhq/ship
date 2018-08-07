@@ -53,8 +53,10 @@ export default class KustomizeOverlay extends React.Component {
         this.aceEditorOverlay.editor.resize();
       }
     }
-    if (this.props.patch !== this.state.patch && this.props.patch !== "") {
-      this.setState({ patch: this.props.patch });
+    if (this.props.patch !== this.state.patch) {
+      if (this.state.patch == "") {
+        this.setState({ patch: this.props.patch });
+      }
     }
   }
 
@@ -131,18 +133,20 @@ export default class KustomizeOverlay extends React.Component {
     if (this.state.toastDetails.showToast) {
       this.cancelToast();
     }
-    if (this.hasContentAlready(path)) {
-      // if we've already fetched the file, set the overlayContent from existing content
-      const file = this.state.fileContents[path];
-      this.setState({ overlayContent: file.overlayContent });
-      return;
-    }
+    // if (this.hasContentAlready(path)) {
+    //   // if we've already fetched the file, set the overlayContent from existing content
+    //   const file = this.state.fileContents[path];
+    //   this.setState({ overlayContent: file.overlayContent, patch: "" });
+    //   return;
+    // }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content and set the overlayContent from new file content on the file the user wants to view
       const file = find(this.props.fileContents, ["key", path]);
+      const addOverlay = file.overlayContent !== "";
       this.setState({
         fileContents: keyBy(this.props.fileContents, "key"),
-        overlayContent: file.overlayContent
+        patch: file.overlayContent,
+        addOverlay,
       });
     });
   }
@@ -167,8 +171,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   onKustomizeSaved() {
-    let nextState = {};
-    nextState.toastDetails = {
+    const toastDetails = {
       showToast: true,
       title: "Overlay has been saved.",
       type: "success",
@@ -178,18 +181,19 @@ export default class KustomizeOverlay extends React.Component {
         confirmAction: () => this.handlFinalize()
       }
     }
-    this.setState(nextState);
+    this.setState({ toastDetails });
   }
 
   async handleKustomizeSave() {
     const { selectedFile } = this.state;
+    const contents = this.aceEditorOverlay.editor.getValue();
     const payload = {
       path: selectedFile,
-      contents: this.aceEditorOverlay.editor.getValue(),
-    }
-    await this.props.saveKustomizeOverlay(payload).then(() => {
-      this.onKustomizeSaved();
-    }).catch();
+      contents,
+    };
+    this.setState({ patch: contents });
+    await this.props.saveKustomizeOverlay(payload).catch();
+    this.onKustomizeSaved();
   }
 
   async handleGeneratePatch(dirtyContent) {
@@ -214,10 +218,9 @@ export default class KustomizeOverlay extends React.Component {
   setFileTree() {
     const { kustomize } = this.props.currentStep;
     if (!kustomize.tree) return;
-    let sortedTree = sortBy([kustomize.tree], (dir) => {
-      dir.children ? dir.children.length : []
+    const sortedTree = sortBy(kustomize.tree.children, (dir) => {
+      dir.children ? dir.children.length : 0
     });
-    sortedTree.reverse();
     const basePath = kustomize.basePath.substr(kustomize.basePath.lastIndexOf("/") + 1);
     this.setState({
       fileTree: sortedTree,

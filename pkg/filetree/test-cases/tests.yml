@@ -5,7 +5,10 @@
   expect:
     name: /
     path: /
-    children: []
+    children:
+      - name: /
+        path: /
+        children: []
 
 - name: open non existent directory
   mkdir: []
@@ -28,9 +31,11 @@
     name: /
     path: /
     children:
-      - name: foo.txt
-        path: /foo.txt
-    hasOverlay: false
+      - name: /
+        path: /
+        children:
+          - name: foo.txt
+            path: /foo.txt
 
 - name: read single nested file
   mkdir:
@@ -41,11 +46,14 @@
     name: /
     path: /
     children:
-      - name: bar
-        path: /bar
+      - name: /
+        path: /
         children:
-          - name: foo.txt
-            path: /bar/foo.txt
+          - name: bar
+            path: /bar
+            children:
+              - name: foo.txt
+                path: /bar/foo.txt
 
 - name: read empty dir
   mkdir:
@@ -54,9 +62,12 @@
     name: /
     path: /
     children:
-      - name: bar
-        path: /bar
-        children: []
+      - name: /
+        path: /
+        children:
+          - name: bar
+            path: /bar
+            children: []
 
 - name: read subdirectory
   mkdir:
@@ -68,8 +79,11 @@
     name: /
     path: /
     children:
-      - name: foo.txt
-        path: /foo.txt
+      - name: /
+        path: /
+        children:
+          - name: foo.txt
+            path: /foo.txt
 
 - name: big nested thing
   mkdir:
@@ -86,35 +100,38 @@
     name: /
     path: /
     children:
-    - name: bar
-      path: /bar
-      children: []
-    - name: baz
-      path: /baz
-      children: []
-    - name: k
-      path: /k
-      children:
-      - name: f
-        path: /k/f
+      - name: /
+        path: /
         children:
-        - name: b
-          path: /k/f/b
-          children:
-            - name: foo.txt
-              path: /k/f/b/foo.txt
-            - name: r
-              path: /k/f/b/r
+          - name: bar
+            path: /bar
+            children: []
+          - name: baz
+            path: /baz
+            children: []
+          - name: k
+            path: /k
+            children:
+            - name: f
+              path: /k/f
               children:
+              - name: b
+                path: /k/f/b
+                children:
+                  - name: foo.txt
+                    path: /k/f/b/foo.txt
+                  - name: r
+                    path: /k/f/b/r
+                    children:
+                    - name: foo.txt
+                      path: /k/f/b/r/foo.txt
+                    - name: 3
+                      path: /k/f/b/r/3
+                      children: []
               - name: foo.txt
-                path: /k/f/b/r/foo.txt
-              - name: 3
-                path: /k/f/b/r/3
-                children: []
-        - name: foo.txt
-          path: /k/f/foo.txt
-      - name: foo.txt
-        path: /k/foo.txt
+                path: /k/f/foo.txt
+            - name: foo.txt
+              path: /k/foo.txt
 
 - name: has an overlay
   touch:
@@ -127,7 +144,48 @@
     name: /
     path: /
     children:
-      - name: foo.txt
-        path: /foo.txt
-        hasOverlay: true
-        isSupported: false
+      - name: /
+        path: /
+        children:
+          - name: foo.txt
+            path: /foo.txt
+            hasOverlay: true
+      - name: kustomization
+        path: /
+        children:
+          - name: foo.txt
+            path: /foo.txt
+            hasOverlay: true
+
+- name: has a nested overlay
+  mkdir:
+    - bar
+  touch:
+    - bar/foo.txt
+  overlays:
+    ship:
+      patches:
+        /bar/foo.txt: baz
+  expect:
+    name: /
+    path: /
+    children:
+      - name: /
+        path: /
+        children:
+          - name: bar
+            path: /bar
+            children:
+              - name: foo.txt
+                path: /bar/foo.txt
+                hasOverlay: true
+      - name: kustomization
+        path: /
+        children:
+        - name: bar
+          path: /bar
+          hasOverlay: true
+          children:
+              - name: foo.txt
+                path: /bar/foo.txt
+                hasOverlay: true
