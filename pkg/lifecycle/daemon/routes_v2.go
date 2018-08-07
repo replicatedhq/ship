@@ -45,6 +45,9 @@ func (d *V2Routes) maybeAbortDueToMissingRequirement(requires []string, c *gin.C
 	return true
 }
 
+// this will return an incomplete step that is present in the list of required steps.
+// if there are multiple required but incomplete steps, this will return the first one,
+// although from a UI perspective the order is probably not strictly defined
 func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "getRequiredButIncompleteStepFor"))
 

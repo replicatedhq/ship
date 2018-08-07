@@ -44,6 +44,10 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 
 		newState := state.Versioned().WithCompletedStep(step)
 		d.StateManager.Save(newState)
+		c.JSON(200, map[string]interface{}{
+			"status": "success",
+		})
+		return
 	}
 
 	d.errNotFond(c)

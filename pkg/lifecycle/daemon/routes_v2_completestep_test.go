@@ -9,22 +9,31 @@ import (
 
 	"strings"
 
+	"context"
+
 	"github.com/go-test/deep"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	state2 "github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/test-mocks/lifecycle"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/stretchr/testify/require"
 )
 
 type completestepTestCase struct {
-	Name         string
-	Lifecycle    []api.Step
-	POST         string
-	ExpectStatus int
-	ExpectBody   map[string]interface{}
-	State        *state2.Lifeycle
+	Name                 string
+	Lifecycle            []api.Step
+	POST                 string
+	ExpectStatus         int
+	ExpectBody           map[string]interface{}
+	State                *state2.Lifeycle
+	ExpectState          *matchers.Is
+	ExpectLifecycleCalls func(
+		release *api.Release,
+		m *lifecycle.MockMessenger,
+	)
 }
 
 func TestV2CompleteStep(t *testing.T) {
@@ -41,7 +50,97 @@ func TestV2CompleteStep(t *testing.T) {
 				"phase": "notFound",
 			},
 		},
+		{
+			Name: "complete missing message",
+			Lifecycle: []api.Step{
+				{
+					Message: &api.Message{
+						Contents: "lol",
+						StepShared: api.StepShared{
+							ID: "foo",
+						},
+					},
+				},
+			},
+			POST:         "/api/v2/lifecycle/step/bar",
+			ExpectStatus: 404,
+			ExpectBody: map[string]interface{}{
+				"currentStep": map[string]interface{}{
+					"notFound": map[string]interface{}{},
+				},
+				"phase": "notFound",
+			},
+		},
+		{
+			Name: "complete message",
+			Lifecycle: []api.Step{
+				{
+					Message: &api.Message{
+						Contents: "lol",
+						StepShared: api.StepShared{
+							ID: "foo",
+						},
+					},
+				},
+			},
+			POST:         "/api/v2/lifecycle/step/foo",
+			ExpectStatus: 200,
+			ExpectBody: map[string]interface{}{
+				"status": "success",
+			},
+			ExpectLifecycleCalls: func(release *api.Release, m *lifecycle.MockMessenger) {
+				m.EXPECT().Execute(context.Background(), release, &api.Message{
+					Contents: "lol",
+					StepShared: api.StepShared{
+						ID: "foo",
+					},
+				})
+			},
+			ExpectState: &matchers.Is{
+				Describe: "saved stated has step foo completed",
+				Test: func(v interface{}) bool {
+					if versioned, ok := v.(state2.VersionedState); ok {
+						_, ok := versioned.V1.Lifecycle.StepsCompleted["foo"]
+						return ok
+					}
+					return false
+				},
+			},
+		},
+		{
+			Name: "can't complete step with unsatisfied requirement",
+			Lifecycle: []api.Step{
+				{
+					Message: &api.Message{
+						Contents: "spam step",
+						StepShared: api.StepShared{
+							ID: "spam",
+						},
+					},
+				},
+				{
+					Message: &api.Message{
+						Contents: "lol",
+						StepShared: api.StepShared{
+							ID:       "foo",
+							Requires: []string{"spam"},
+						},
+					},
+				},
+			},
+			POST:         "/api/v2/lifecycle/step/foo",
+			ExpectStatus: 400,
+			ExpectBody: map[string]interface{}{
+				"currentStep": map[string]interface{}{
+					"requirementNotMet": map[string]interface{}{
+						"required": "spam",
+					},
+				},
+				"phase": "requirementNotMet",
+			},
+		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
@@ -55,9 +154,11 @@ func TestV2CompleteStep(t *testing.T) {
 			mc := gomock.NewController(t)
 			fakeState := state.NewMockManager(mc)
 			testLogger := &logger.TestLogger{T: t}
+			messenger := lifecycle.NewMockMessenger(mc)
 			v2 := &V2Routes{
 				Logger:       testLogger,
 				StateManager: fakeState,
+				Messenger:    messenger,
 			}
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
@@ -65,6 +166,14 @@ func TestV2CompleteStep(t *testing.T) {
 					Lifecycle: test.State,
 				},
 			}, nil).AnyTimes()
+
+			if test.ExpectLifecycleCalls != nil {
+				test.ExpectLifecycleCalls(release, messenger)
+			}
+
+			if test.ExpectState != nil && test.ExpectState.Test != nil {
+				fakeState.EXPECT().Save(test.ExpectState).Return(nil)
+			}
 
 			func() {
 				defer mc.Finish()

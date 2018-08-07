@@ -39,6 +39,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/ui
 	mkdir -p pkg/test-mocks/config
 	mkdir -p pkg/test-mocks/planner
+	mkdir -p pkg/test-mocks/lifecycle
 	mkdir -p pkg/test-mocks/images/saver
 	mkdir -p pkg/test-mocks/docker
 	mkdir -p pkg/test-mocks/helm
@@ -61,7 +62,7 @@ _mockgen:
 	mockgen \
 		-destination pkg/test-mocks/daemon/daemon.go \
 		-package daemon \
-		github.com/replicatedhq/ship/pkg/lifecycle/daemon \
+		github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes \
 		Daemon
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
@@ -128,6 +129,11 @@ _mockgen:
 		-package state \
 		github.com/replicatedhq/ship/pkg/state \
 		Manager
+	mockgen \
+		-destination pkg/test-mocks/lifecycle/messenger_mock.go \
+		-package lifecycle \
+		github.com/replicatedhq/ship/pkg/lifecycle \
+		Messenger
 
 mockgen: _mockgen fmt
 

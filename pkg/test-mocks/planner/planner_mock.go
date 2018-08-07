@@ -5,14 +5,14 @@
 package planner
 
 import (
-	"context"
-	"reflect"
+	context "context"
+	reflect "reflect"
 
-	"github.com/golang/mock/gomock"
-	"github.com/replicatedhq/libyaml"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	gomock "github.com/golang/mock/gomock"
+	libyaml "github.com/replicatedhq/libyaml"
+	api "github.com/replicatedhq/ship/pkg/api"
+	daemontypes "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	planner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 )
 
 // MockPlanner is a mock of Planner interface
