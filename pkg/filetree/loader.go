@@ -60,13 +60,13 @@ func (a *aferoLoader) LoadTree(root string, kustomize *state.Kustomize) (*Node, 
 		Name:     "/",
 		Children: []Node{},
 	}
-	kustomizationRootNode := Node{
+	overlayRootNode := Node{
 		Path:     "/",
-		Name:     "kustomization",
+		Name:     "overlays",
 		Children: []Node{},
 	}
 
-	populatedKustomization := a.loadOverlayTree(kustomizationRootNode)
+	populatedKustomization := a.loadOverlayTree(overlayRootNode)
 	populated, err := a.loadTree(fs, rootNode, files)
 	children := []Node{populated}
 
@@ -201,9 +201,8 @@ func (a *aferoLoader) createOverlayNode(kustomizationNode Node, pathToOverlay []
 	}
 
 	newNode := Node{
-		Name:       pathToMatch,
-		Path:       filePath,
-		HasOverlay: true,
+		Name: pathToMatch,
+		Path: filePath,
 	}
 	loadedChild := a.createOverlayNode(newNode, restOfPath)
 	kustomizationNode.Children = append(kustomizationNode.Children, loadedChild)
