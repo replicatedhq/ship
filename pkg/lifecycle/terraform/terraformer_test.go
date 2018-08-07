@@ -13,7 +13,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	uidaemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mocktf "github.com/replicatedhq/ship/pkg/test-mocks/tfplan"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -132,7 +132,7 @@ func TestTerraformer(t *testing.T) {
 					EXPECT().
 					PushStreamStep(gomock.Any(), gomock.Any())
 
-				msg := uidaemon.Message{
+				msg := daemontypes.Message{
 					Contents:    test.expectApplyOutput,
 					TrustedHTML: true,
 				}
@@ -234,27 +234,27 @@ func TestForkTerraformerApply(t *testing.T) {
 		},
 	}
 
-	msgs := make(chan uidaemon.Message, 10)
+	msgs := make(chan daemontypes.Message, 10)
 	output, err := ft.apply(msgs)
 	req.NoError(err)
 	req.Equal(output, `<div class="term-container">stdout1stderr1stdout2</div>`)
 
-	req.EqualValues(uidaemon.Message{
+	req.EqualValues(daemontypes.Message{
 		Contents:    `<div class="term-container">terraform apply</div>`,
 		TrustedHTML: true,
 	}, <-msgs)
 
-	req.EqualValues(uidaemon.Message{
+	req.EqualValues(daemontypes.Message{
 		Contents:    `<div class="term-container">stdout1</div>`,
 		TrustedHTML: true,
 	}, <-msgs)
 
-	req.EqualValues(uidaemon.Message{
+	req.EqualValues(daemontypes.Message{
 		Contents:    `<div class="term-container">stdout1stderr1</div>`,
 		TrustedHTML: true,
 	}, <-msgs)
 
-	req.EqualValues(uidaemon.Message{
+	req.EqualValues(daemontypes.Message{
 		Contents:    `<div class="term-container">stdout1stderr1stdout2</div>`,
 		TrustedHTML: true,
 	}, <-msgs)

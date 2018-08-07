@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/spf13/viper"
 )
@@ -25,7 +26,7 @@ const tfNoChanges = "No changes. Infrastructure is up-to-date."
 
 type ForkTerraformer struct {
 	Logger        log.Logger
-	Daemon        daemon.Daemon
+	Daemon        daemontypes.Daemon
 	PlanConfirmer tfplan.PlanConfirmer
 	Terraform     func(string) *exec.Cmd
 	Viper         *viper.Viper
@@ -34,7 +35,7 @@ type ForkTerraformer struct {
 
 func NewTerraformer(
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
 ) lifecycle.Terraformer {
@@ -78,7 +79,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	}
 
 	// capacity is whatever's required for tests to proceed
-	applyMsgs := make(chan daemon.Message, 20)
+	applyMsgs := make(chan daemontypes.Message, 20)
 
 	// returns when the applyMsgs channel closes
 	go t.Daemon.PushStreamStep(ctx, applyMsgs)
@@ -89,7 +90,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	if err != nil {
 		t.Daemon.PushMessageStep(
 			ctx,
-			daemon.Message{
+			daemontypes.Message{
 				Contents:    html,
 				TrustedHTML: true,
 				Level:       "error",
@@ -107,7 +108,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	if !viper.GetBool("terraform-yes") {
 		t.Daemon.PushMessageStep(
 			ctx,
-			daemon.Message{
+			daemontypes.Message{
 				Contents:    html,
 				TrustedHTML: true,
 			},
@@ -176,7 +177,7 @@ func (t *ForkTerraformer) plan() (string, bool, error) {
 }
 
 // apply returns the full stdout and stderr rendered as HTML
-func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
+func (t *ForkTerraformer) apply(msgs chan<- daemontypes.Message) (string, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
 	cmd := t.Terraform(t.dir)
@@ -196,7 +197,7 @@ func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
 	}
 
 	// something to show while waiting for output
-	msgs <- daemon.Message{
+	msgs <- daemontypes.Message{
 		Contents:    ansiToHTML("terraform apply"),
 		TrustedHTML: true,
 	}
@@ -219,7 +220,7 @@ func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
 				debug.Log(name, latest)
 				mtx.Lock()
 				accm += latest
-				msg := daemon.Message{
+				msg := daemontypes.Message{
 					Contents:    ansiToHTML(accm),
 					TrustedHTML: true,
 				}
@@ -252,13 +253,13 @@ func (t *ForkTerraformer) apply(msgs chan<- daemon.Message) (string, error) {
 	return ansiToHTML(accm), errors.Wrap(err, "command wait")
 }
 
-func failedApplyActions() []daemon.Action {
-	return []daemon.Action{
+func failedApplyActions() []daemontypes.Action {
+	return []daemontypes.Action{
 		{
 			ButtonType:  "primary",
 			Text:        "Retry",
 			LoadingText: "Retrying",
-			OnClick: daemon.ActionRequest{
+			OnClick: daemontypes.ActionRequest{
 				URI:    "/terraform/apply",
 				Method: "POST",
 			},

@@ -21,7 +21,7 @@ export default class FileTree extends React.Component {
           file.children && file.children.length ?
             <li key={`${file.path}-Directory-${i}`} className={`u-position--relative u-userSelect--none ${file.hasOverlay && "edited"}`}>
               <input type="checkbox" name={`sub-dir-${file.name}-${file.children.length}-${file.path}-${i}`} id={`sub-dir-${file.name}-${file.children.length}-${file.path}-${i}`} defaultChecked={true} />
-              <label htmlFor={`sub-dir-${file.name}-${file.children.length}-${file.path}-${i}`}>{isRoot ? basePath : file.name}</label>
+              <label htmlFor={`sub-dir-${file.name}-${file.children.length}-${file.path}-${i}`}>{file.name === "/" ? basePath : file.name}</label>
               <FileTree
                 files={file.children}
                 handleFileSelect={(path) => handleFileSelect(path)}

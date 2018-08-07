@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 // Resolver is a thing that can resolve configuration options
@@ -15,7 +15,7 @@ type Resolver interface {
 
 func NewResolver(
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 ) Resolver {
 	return &DaemonResolver{
 		Logger: logger,

@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
@@ -68,8 +69,7 @@ func buildInjector() (*dig.Container, error) {
 		helmValues.NewHelmValues,
 
 		state.NewManager,
-		planner.NewPlanner,
-		render.NewRenderer,
+		planner.NewFactory,
 		specs.NewResolver,
 		specs.NewGraphqlClient,
 		specs.NewGithubClient,
@@ -146,35 +146,34 @@ func buildInjector() (*dig.Container, error) {
 // "headedless mode" is the standard execute-the-lifecycle-in-order mode of ship, that runs without UI or api server
 // and is generally intended for CI/automation
 func headlessProviders() []interface{} {
-	headlessProviders := []interface{}{
+	return []interface{}{
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
-		daemon.NewHeadlessDaemon,
+		headless.NewHeadlessDaemon,
 		helmIntro.NewHelmIntro,
+		render.NewRenderer,
 	}
-	return headlessProviders
 }
 
 // "headed mode" is the standard execute-the-lifecycle-in-order mode of ship, where steps manipulate
 // the UI/API via a ShipDaemon implementing the daemon.Daemon interface
 func headedProviders() []interface{} {
-	headedProviders := []interface{}{
+	return []interface{}{
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		daemon.NewHeadedDaemon,
 		helmIntro.NewHelmIntro,
+		render.NewRenderer,
 	}
-	return headedProviders
 }
 
 // "navigable mode" provides a new, v2-ish version of ship that provides browser navigation back
 // and forth through the lifecycle, and uses runbook declarations of lifecycle dependencies to
 // control execution ordering and workflows
 func navigableProviders() []interface{} {
-	navigableProviders := []interface{}{
+	return []interface{}{
 		daemon.NewHeadedDaemon,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 	}
-	return navigableProviders
 }
 
 func Get() (*Ship, error) {

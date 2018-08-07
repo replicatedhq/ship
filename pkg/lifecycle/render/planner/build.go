@@ -14,7 +14,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/images"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 type buildProgress struct {
@@ -25,7 +25,7 @@ type buildProgress struct {
 // Build builds a plan in memory from assets+resolved config
 func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
 
-	defer p.Daemon.ClearProgress()
+	defer p.Status.ClearProgress()
 
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 
@@ -44,7 +44,7 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			StepNumber: i,
 			TotalSteps: len(assets),
 		}
-		p.Daemon.SetProgress(daemon.JSONProgress("build", progress))
+		p.Status.SetProgress(daemontypes.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
 			asset.Inline.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Inline.Dest)
@@ -289,9 +289,9 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 			// continue reading on error to ensure channel is not blocked
 			saveError = v
 		case images.Progress:
-			p.Daemon.SetProgress(daemon.JSONProgress("docker", v))
+			p.Status.SetProgress(daemontypes.JSONProgress("docker", v))
 		case string:
-			p.Daemon.SetProgress(daemon.StringProgress("docker", v))
+			p.Status.SetProgress(daemontypes.StringProgress("docker", v))
 		default:
 			debug.Log("event", "progress", "message", fmt.Sprintf("%#v", v))
 		}

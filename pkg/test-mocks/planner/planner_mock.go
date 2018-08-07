@@ -11,7 +11,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
-	daemon "github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	planner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 )
 
@@ -74,16 +73,4 @@ func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
 // Execute indicates an expected call of Execute
 func (mr *MockPlannerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPlanner)(nil).Execute), arg0, arg1)
-}
-
-// WithDaemon mocks base method
-func (m *MockPlanner) WithDaemon(arg0 daemon.Daemon) planner.Planner {
-	ret := m.ctrl.Call(m, "WithDaemon", arg0)
-	ret0, _ := ret[0].(planner.Planner)
-	return ret0
-}
-
-// WithDaemon indicates an expected call of WithDaemon
-func (mr *MockPlannerMockRecorder) WithDaemon(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDaemon", reflect.TypeOf((*MockPlanner)(nil).WithDaemon), arg0)
 }

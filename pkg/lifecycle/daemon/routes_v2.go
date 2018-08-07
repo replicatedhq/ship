@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -19,6 +20,7 @@ type V2Routes struct {
 	Release   *api.Release
 	Messenger lifecycle.Messenger
 	HelmIntro lifecycle.HelmIntro
+	Renderer  lifecycle.Renderer
 }
 
 func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
@@ -43,6 +45,9 @@ func (d *V2Routes) maybeAbortDueToMissingRequirement(requires []string, c *gin.C
 	return true
 }
 
+// this will return an incomplete step that is present in the list of required steps.
+// if there are multiple required but incomplete steps, this will return the first one,
+// although from a UI perspective the order is probably not strictly defined
 func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "getRequiredButIncompleteStepFor"))
 
@@ -68,7 +73,7 @@ func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, e
 	return "", nil
 }
 
-func (d *V2Routes) hydrateAndSend(step Step, c *gin.Context) {
+func (d *V2Routes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
 	result, err := d.hydrateStep(step, true)
 	if err != nil {
 		c.AbortWithError(500, err)

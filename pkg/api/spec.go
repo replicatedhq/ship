@@ -38,6 +38,7 @@ type HelmChartMetadata struct {
 	Name        string `json:"name" yaml:"name" hcl:"name" meta:"name"`
 	Readme      string `json:"readme" yaml:"readme" hcl:"readme" meta:"readme"`
 	URL         string `json:"url" yaml:"url" hcl:"url" meta:"url"`
+	ContentSHA  string `json:"contentSHA" yaml:"contentSHA" hcl:"contentSHA" meta:"contentSHA"`
 }
 
 // ReleaseMetadata

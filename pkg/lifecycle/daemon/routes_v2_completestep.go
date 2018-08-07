@@ -44,6 +44,10 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 
 		newState := state.Versioned().WithCompletedStep(step)
 		d.StateManager.Save(newState)
+		c.JSON(200, map[string]interface{}{
+			"status": "success",
+		})
+		return
 	}
 
 	d.errNotFond(c)
@@ -62,6 +66,11 @@ func (d *V2Routes) execute(step api.Step) error {
 	} else if step.HelmIntro != nil {
 		debug.Log("event", "step.resolve", "type", "helmIntro")
 		err := d.HelmIntro.Execute(context.Background(), d.Release, step.HelmIntro)
+		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
+		return errors.Wrap(err, "execute helmIntro step")
+	} else if step.Render != nil {
+		debug.Log("event", "step.resolve", "type", "helmIntro")
+		err := d.Renderer.Execute(context.Background(), d.Release, step.Render)
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
 	}

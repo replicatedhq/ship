@@ -3,6 +3,7 @@ package ship
 import (
 	"context"
 	"path"
+	"time"
 
 	"strings"
 
@@ -23,6 +24,13 @@ func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 		s.ExitWithError(err)
 	}
 }
+
+func (s *Ship) WatchAndExit(ctx context.Context) {
+	if err := s.Watch(ctx); err != nil {
+		s.ExitWithError(err)
+	}
+}
+
 func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
 	if err := s.Update(ctx); err != nil {
 		s.ExitWithError(err)
@@ -50,13 +58,13 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
-		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
+		return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 	}
 
 	debug.Log("event", "read.chartURL")
 	helmChartPath := existingState.CurrentChartURL()
 	if helmChartPath == "" {
-		return errors.New(`No helm chart URL found at ` + constants.StatePath + `, please run "ship init"`)
+		return errors.New(`No helm chart URL found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 	}
 
 	debug.Log("event", "fetch latest chart")
@@ -68,6 +76,44 @@ func (s *Ship) Update(ctx context.Context) error {
 	release := s.buildRelease(helmChartMetadata)
 
 	return s.execute(ctx, release, nil, true)
+}
+
+func (s *Ship) Watch(ctx context.Context) error {
+	debug := level.Debug(log.With(s.Logger, "method", "watch"))
+
+	for {
+		existingState, err := s.State.TryLoad()
+
+		if _, noExistingState := existingState.(state.Empty); noExistingState {
+			debug.Log("event", "state.missing")
+			return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "read.chartURL")
+		helmChartPath := existingState.CurrentChartURL()
+		if helmChartPath == "" {
+			return errors.New(`No current chart url found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "read.lastSHA")
+		lastSHA := existingState.Versioned().V1.ContentSHA
+		if lastSHA == "" {
+			return errors.New(`No current SHA found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+		}
+
+		debug.Log("event", "fetch latest chart")
+		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+		if err != nil {
+			return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
+		}
+
+		if helmChartMetadata.ContentSHA != existingState.Versioned().V1.ContentSHA {
+			debug.Log("event", "new sha")
+			return nil
+		}
+
+		time.Sleep(time.Minute * 5) // todo flag
+	}
 }
 
 func (s *Ship) Init(ctx context.Context) error {
@@ -82,7 +128,10 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y/N) `)
+		useUpdate, err := s.UI.Ask(`
+An existing .ship directory was found. If you are trying to update this application, run "ship update".
+Continuing will delete this state, would you like to continue? There is no undo. (y/N)
+`)
 		if err != nil {
 			return err
 		}
@@ -109,6 +158,8 @@ func (s *Ship) Init(ctx context.Context) error {
 	s.State.SerializeChartURL(helmChartPath)
 
 	release := s.buildRelease(helmChartMetadata)
+
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }

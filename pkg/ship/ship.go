@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
@@ -40,7 +40,7 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon   daemon.Daemon
+	Daemon   daemontypes.Daemon
 	Resolver *specs.Resolver
 	Runbook  string
 	Client   *specs.GraphQLClient
@@ -55,7 +55,7 @@ type Ship struct {
 func NewShip(
 	logger log.Logger,
 	v *viper.Viper,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 	resolver *specs.Resolver,
 	graphql *specs.GraphQLClient,
 	runner *lifecycle.Runner,
@@ -182,6 +182,9 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	case sig := <-signalChan:
 		level.Info(s.Logger).Log("event", "shutdown", "reason", "signal", "signal", sig)
 		s.UI.Warn(fmt.Sprintf("%s received...", sig))
+		if sig == syscall.SIGINT {
+			return nil
+		}
 		return errors.Errorf("received signal %q", sig)
 	case result := <-runResultCh:
 		return result
