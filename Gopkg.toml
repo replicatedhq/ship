@@ -43,6 +43,10 @@
   version = "1.0.0"
 
 [[constraint]]
+  name = "github.com/mholt/archiver"
+  revision = "e4ef56d48eb029648b0e895bb0b6a393ef0829c3"
+
+[[constraint]]
   name = "github.com/docker/docker"
   revision = "4047cede65862aa0ea5616297d7c0f3b12526ad4"
 
