@@ -2,7 +2,6 @@ package kustomize
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -165,7 +164,7 @@ func (l *kustomizer) writeOverlay(step api.Kustomize, patches []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
-			fmt.Sprintf("../../%s", step.BasePath),
+			filepath.Join("../../", step.BasePath),
 		},
 		Patches: patches,
 	}
