@@ -5,6 +5,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 func (d *V2Routes) getStep(c *gin.Context) {
@@ -20,7 +21,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 			if ok := d.maybeAbortDueToMissingRequirement(stepShared.Requires, c, requestedStep); !ok {
 				return
 			}
-			d.hydrateAndSend(NewStep(step), c)
+			d.hydrateAndSend(daemontypes.NewStep(step), c)
 			return
 		}
 	}
@@ -28,7 +29,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 	d.errNotFond(c)
 }
 
-func (d *V2Routes) hydrateStep(step Step, isCurrent bool) (*StepResponse, error) {
+func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
 	if step.Kustomize != nil {
 		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath)
 		if err != nil {
@@ -52,10 +53,10 @@ func (d *V2Routes) hydrateStep(step Step, isCurrent bool) (*StepResponse, error)
 		step.HelmValues.Values = helmValues
 	}
 
-	result := &StepResponse{
+	result := &daemontypes.StepResponse{
 		CurrentStep: step,
 		Phase:       step.Source.ShortName(),
-		Actions:     []Action{}, //todo actions
+		Actions:     []daemontypes.Action{}, //todo actions
 	}
 
 	return result, nil

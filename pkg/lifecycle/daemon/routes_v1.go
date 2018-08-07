@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
@@ -30,16 +31,16 @@ type V1Routes struct {
 	OpenWebConsole opener
 
 	sync.Mutex
-	currentStep          *Step
+	currentStep          *daemontypes.Step
 	currentStepName      string
 	currentStepConfirmed bool
-	stepProgress         *Progress
+	stepProgress         *daemontypes.Progress
 	allStepsDone         bool
-	pastSteps            []Step
+	pastSteps            []daemontypes.Step
 
 	// this is kind of kludged in,
 	// it only makes sense for Message steps
-	currentStepActions []Action
+	currentStepActions []daemontypes.Action
 
 	initConfig    sync.Once
 	ConfigSaved   chan interface{}
@@ -126,7 +127,7 @@ func (d *V1Routes) createOrMergePatch(c *gin.Context) {
 	}
 }
 
-func (d *V1Routes) SetProgress(p Progress) {
+func (d *V1Routes) SetProgress(p daemontypes.Progress) {
 	defer d.locker(log.NewNopLogger())()
 	d.stepProgress = &p
 }
@@ -228,7 +229,7 @@ func (d *V1Routes) getCurrentStep(c *gin.Context) {
 		d.currentStep.HelmValues.Values = helmValues
 	}
 
-	result := StepResponse{
+	result := daemontypes.StepResponse{
 		CurrentStep: *d.currentStep,
 		Phase:       d.currentStepName,
 		Actions:     d.currentStepActions,

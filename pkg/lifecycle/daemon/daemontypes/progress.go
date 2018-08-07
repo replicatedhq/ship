@@ -1,4 +1,4 @@
-package daemon
+package daemontypes
 
 import "encoding/json"
 

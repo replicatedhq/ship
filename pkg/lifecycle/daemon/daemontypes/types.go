@@ -1,9 +1,38 @@
-package daemon
+package daemontypes
 
 import (
+	"context"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 )
+
+// Daemon is a sort of UI interface. Some implementations start an API to
+// power the on-prem web console. A headless implementation logs progress
+// to stdout.
+//
+// A daemon is manipulated by lifecycle step handlers to present the
+// correct UI to the user and collect necessary information
+type Daemon interface {
+	EnsureStarted(context.Context, *api.Release) chan error
+	PushMessageStep(context.Context, Message, []Action)
+	PushStreamStep(context.Context, <-chan Message)
+	PushRenderStep(context.Context, Render)
+	PushHelmIntroStep(context.Context, HelmIntro, []Action)
+	PushHelmValuesStep(context.Context, HelmValues, []Action)
+	PushKustomizeStep(context.Context, Kustomize)
+	SetStepName(context.Context, string)
+	AllStepsDone(context.Context)
+	CleanPreviousStep()
+	MessageConfirmedChan() chan string
+	ConfigSavedChan() chan interface{}
+	TerraformConfirmedChan() chan bool
+	KustomizeSavedChan() chan interface{}
+
+	GetCurrentConfig() map[string]interface{}
+	SetProgress(Progress)
+	ClearProgress()
+}
 
 const StepNameMessage = "message"
 const StepNameConfig = "render.config"

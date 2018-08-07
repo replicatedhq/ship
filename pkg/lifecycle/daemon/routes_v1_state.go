@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
 func (d *V1Routes) locker(debug log.Logger) func() {
@@ -39,31 +40,31 @@ func (d *V1Routes) CleanPreviousStep() {
 
 func (d *V1Routes) PushMessageStep(
 	ctx context.Context,
-	step Message,
-	actions []Action,
+	step daemontypes.Message,
+	actions []daemontypes.Action,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushMessageStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
-	d.currentStepName = StepNameMessage
-	d.currentStep = &Step{Message: &step}
+	d.currentStepName = daemontypes.StepNameMessage
+	d.currentStep = &daemontypes.Step{Message: &step}
 	d.currentStepActions = actions
 }
 
 func (d *V1Routes) PushStreamStep(
 	ctx context.Context,
-	msgs <-chan Message,
+	msgs <-chan daemontypes.Message,
 ) {
 	d.Lock()
 	d.cleanPreviousStep()
-	d.currentStepName = StepNameStream
-	d.currentStep = &Step{Message: &Message{}}
+	d.currentStepName = daemontypes.StepNameStream
+	d.currentStep = &daemontypes.Step{Message: &daemontypes.Message{}}
 	d.Unlock()
 
 	for msg := range msgs {
 		d.Lock()
-		d.currentStep = &Step{Message: &msg}
+		d.currentStep = &daemontypes.Step{Message: &msg}
 		d.Unlock()
 	}
 }
@@ -74,41 +75,41 @@ func (d *V1Routes) TerraformConfirmedChan() chan bool {
 
 func (d *V1Routes) PushRenderStep(
 	ctx context.Context,
-	step Render,
+	step daemontypes.Render,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushRender"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
-	d.currentStepName = StepNameConfig
-	d.currentStep = &Step{Render: &step}
+	d.currentStepName = daemontypes.StepNameConfig
+	d.currentStep = &daemontypes.Step{Render: &step}
 }
 
 func (d *V1Routes) PushHelmIntroStep(
 	ctx context.Context,
-	step HelmIntro,
-	actions []Action,
+	step daemontypes.HelmIntro,
+	actions []daemontypes.Action,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmIntroStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
-	d.currentStepName = StepNameHelmIntro
-	d.currentStep = &Step{HelmIntro: &step}
+	d.currentStepName = daemontypes.StepNameHelmIntro
+	d.currentStep = &daemontypes.Step{HelmIntro: &step}
 	d.currentStepActions = actions
 }
 
 func (d *V1Routes) PushHelmValuesStep(
 	ctx context.Context,
-	step HelmValues,
-	actions []Action,
+	step daemontypes.HelmValues,
+	actions []daemontypes.Action,
 ) {
 	debug := level.Debug(log.With(d.Logger, "handler", "PushHelmValuesStep"))
 	defer d.locker(debug)()
 	d.cleanPreviousStep()
 
-	d.currentStepName = StepNameHelmValues
-	d.currentStep = &Step{HelmValues: &step}
+	d.currentStepName = daemontypes.StepNameHelmValues
+	d.currentStep = &daemontypes.Step{HelmValues: &step}
 	d.currentStepActions = actions
 }
 

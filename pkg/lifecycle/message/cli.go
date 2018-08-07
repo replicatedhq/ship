@@ -10,7 +10,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
@@ -27,7 +27,7 @@ type CLIMessenger struct {
 	BuilderBuilder *templates.BuilderBuilder
 }
 
-func (m *CLIMessenger) WithDaemon(_ daemon.Daemon) lifecycle.Messenger {
+func (m *CLIMessenger) WithDaemon(_ daemontypes.Daemon) lifecycle.Messenger {
 	return m
 }
 

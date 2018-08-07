@@ -14,7 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -22,12 +22,12 @@ import (
 )
 
 var (
-	ProgressLoad    = daemon.StringProgress("render", "load")
-	ProgressResolve = daemon.StringProgress("render", "resolve")
-	ProgressBuild   = daemon.StringProgress("render", "build")
-	ProgressBackup  = daemon.StringProgress("render", "backup")
-	ProgressExecute = daemon.StringProgress("render", "execute")
-	ProgressCommit  = daemon.StringProgress("render", "commit")
+	ProgressLoad    = daemontypes.StringProgress("render", "load")
+	ProgressResolve = daemontypes.StringProgress("render", "resolve")
+	ProgressBuild   = daemontypes.StringProgress("render", "build")
+	ProgressBackup  = daemontypes.StringProgress("render", "backup")
+	ProgressExecute = daemontypes.StringProgress("render", "execute")
+	ProgressCommit  = daemontypes.StringProgress("render", "commit")
 )
 
 // A renderer takes a resolved spec, collects config values, and renders assets
@@ -38,7 +38,7 @@ type renderer struct {
 	StateManager   state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
-	Daemon         daemon.Daemon
+	Daemon         daemontypes.Daemon
 	Now            func() time.Time
 }
 
@@ -49,7 +49,7 @@ func NewRenderer(
 	stateManager state.Manager,
 	planner planner.Planner,
 	resolver config.Resolver,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 ) lifecycle.Renderer {
 	return &renderer{
 		Logger:         logger,
@@ -98,7 +98,7 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	}
 
 	r.Daemon.SetProgress(ProgressExecute)
-	r.Daemon.SetStepName(ctx, daemon.StepNameConfirm)
+	r.Daemon.SetStepName(ctx, daemontypes.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")

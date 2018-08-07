@@ -15,6 +15,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -132,7 +133,7 @@ func TestDaemonAPI(t *testing.T) {
 		{
 			name: "read message after 1st step",
 			test: func(t *testing.T) {
-				daemon.PushMessageStep(context.Background(), Message{
+				daemon.PushMessageStep(context.Background(), daemontypes.Message{
 					Contents: step1.Message.Contents,
 					Level:    step1.Message.Level,
 				}, MessageActions())
@@ -154,7 +155,7 @@ func TestDaemonAPI(t *testing.T) {
 			name: "confirm message that is not current",
 			test: func(t *testing.T) {
 				log := &logger.TestLogger{T: t}
-				daemon.PushMessageStep(context.Background(), Message{
+				daemon.PushMessageStep(context.Background(), daemontypes.Message{
 					Contents: step2.Message.Contents,
 					Level:    step2.Message.Level,
 				}, MessageActions())

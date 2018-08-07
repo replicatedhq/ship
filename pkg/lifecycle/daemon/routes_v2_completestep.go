@@ -64,6 +64,11 @@ func (d *V2Routes) execute(step api.Step) error {
 		err := d.HelmIntro.Execute(context.Background(), d.Release, step.HelmIntro)
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
+	} else if step.Render != nil {
+		debug.Log("event", "step.resolve", "type", "helmIntro")
+		err := d.Renderer.Execute(context.Background(), d.Release, step.Render)
+		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
+		return errors.Wrap(err, "execute helmIntro step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

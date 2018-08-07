@@ -16,7 +16,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	mockconfig "github.com/replicatedhq/ship/pkg/test-mocks/config"
 	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
@@ -73,7 +73,7 @@ func TestRender(t *testing.T) {
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressBackup).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
-			prog = mockDaemon.EXPECT().SetStepName(ctx, daemon.StepNameConfirm).After(prog)
+			prog = mockDaemon.EXPECT().SetStepName(ctx, daemontypes.StepNameConfirm).After(prog)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 
