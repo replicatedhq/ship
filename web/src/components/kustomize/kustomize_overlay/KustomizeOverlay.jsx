@@ -14,6 +14,7 @@ import Loader from "../../shared/Loader";
 import Toast from "../../shared/Toast";
 import KustomizeEmpty from "./KustomizeEmpty";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
+import DiffEditor from "../../shared/DiffEditor";
 
 import "../../../scss/components/kustomize/KustomizeOverlay.scss";
 import "../../../../node_modules/brace/mode/yaml";
@@ -30,7 +31,7 @@ export default class KustomizeOverlay extends React.Component {
       fileLoadErr: false,
       fileLoadErrMessage: "",
       addOverlay: false,
-      overlayContent: "",
+      viewDiff: false,
       toastDetails: {
         opts: {}
       },
@@ -48,13 +49,23 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
       this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
-    if (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) {
+
+    if (
+      (this.state.addOverlay !== lastState.addOverlay && this.state.addOverlay) ||
+      (this.state.viewDiff !== lastState.viewDiff) ||
+      (this.state.patch !== lastState.patch && this.state.patch.length)
+    ) {
       if (this.aceEditorOverlay) {
         this.aceEditorOverlay.editor.resize();
       }
     }
-    if (this.props.patch !== this.state.patch && this.props.patch !== "") {
-      this.setState({ patch: this.props.patch });
+    if (this.state.selectedFile !== lastState.selectedFile) {
+      this.aceEditorOverlay.editor.resize();
+      const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
+      if (file) {
+        const initalOverlay = file.overlayContent;
+        this.setState({ addOverlay: initalOverlay.length, patch: initalOverlay });
+      }
     }
   }
 
@@ -70,60 +81,26 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  openOverlay() {
-    this.setState({ addOverlay: true });
+  toggleDiff() {
+    this.setState({ viewDiff: !this.state.viewDiff });
   }
 
-  discardOverlay() {
-    const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
-    const initalOverlay = file.overlayContent;
-    this.setState({ addOverlay: false, overlayContent: initalOverlay });
+  toggleOverlay() {
+    this.setState({
+      addOverlay: !this.state.addOverlay,
+      patch: this.state.addOverlay ? "" : this.state.patch
+    });
   }
 
   createOverlay() {
-    const { fileContents, selectedFile } = this.state;
-    let file = fileContents[selectedFile];
+    const { selectedFile } = this.state;
+    let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
     file = yaml.safeLoad(file.baseContent)
     const overlayFields = pick(file, "apiVersion", "kind", "metadata.name");
     const overlay = yaml.safeDump(overlayFields);
-    this.setState({ overlayContent: `--- \n${overlay}` });
-    this.openOverlay();
-  }
-
-  addToOverlay(overlayKeyValue) {
-    const {
-      addOverlay,
-      fileContents,
-      selectedFile,
-      overlayContent,
-    } = this.state;
-
-    let file = fileContents[selectedFile];
-    if (!file) return;
-
-    const fileYaml = yaml.safeLoad(file.baseContent);
-    if (addOverlay) {
-      const overlayField = pick(fileYaml, overlayKeyValue);
-      const overlayToAdd = yaml.safeDump(overlayField);
-      this.setState({
-        addOverlay: true,
-        overlayContent: `${overlayContent}${overlayToAdd}`,
-      })
-    } else {
-      const overlayFields = pick(fileYaml, "apiVersion", "kind", "metadata.name", overlayKeyValue);
-      const overlayToAdd = yaml.safeDump(overlayFields);
-      this.setState({
-        addOverlay: true,
-        overlayContent: `--- \n${overlayToAdd}`,
-      });
-    }
-  }
-
-  hasContentAlready(path) {
-    const { fileContents } = this.state;
-    if (fileContents[path]) { return true; }
-    return false;
+    this.setState({ patch: `--- \n${overlay}` });
+    this.toggleOverlay();
   }
 
   async setSelectedFile(path) {
@@ -131,18 +108,12 @@ export default class KustomizeOverlay extends React.Component {
     if (this.state.toastDetails.showToast) {
       this.cancelToast();
     }
-    if (this.hasContentAlready(path)) {
-      // if we've already fetched the file, set the overlayContent from existing content
-      const file = this.state.fileContents[path];
-      this.setState({ overlayContent: file.overlayContent });
-      return;
-    }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content and set the overlayContent from new file content on the file the user wants to view
       const file = find(this.props.fileContents, ["key", path]);
       this.setState({
         fileContents: keyBy(this.props.fileContents, "key"),
-        overlayContent: file.overlayContent
+        patch: file.overlayContent
       });
     });
   }
@@ -181,13 +152,14 @@ export default class KustomizeOverlay extends React.Component {
     this.setState(nextState);
   }
 
-  async handleKustomizeSave() {
+  async handleKustomizeSave(closeOverlay = false) {
     const { selectedFile } = this.state;
     const payload = {
       path: selectedFile,
       contents: this.aceEditorOverlay.editor.getValue(),
     }
     await this.props.saveKustomizeOverlay(payload).then(() => {
+      if (closeOverlay) { this.toggleOverlay(); }
       this.onKustomizeSaved();
     }).catch();
   }
@@ -201,7 +173,7 @@ export default class KustomizeOverlay extends React.Component {
       current,
     };
     await this.props.generatePatch(payload);
-    this.openOverlay();
+    this.toggleOverlay();
     this.aceEditorOverlay.editor.find(PATCH_TOKEN);
   }
 
@@ -226,18 +198,18 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   render() {
-    const { dataLoading } = this.props;
+    const { dataLoading, fileContents } = this.props;
     const {
       fileTree,
       fileTreeBasePath,
       selectedFile,
-      fileContents,
       fileLoadErr,
       fileLoadErrMessage,
       toastDetails,
       patch,
     } = this.state;
-    const fileToView = fileContents[selectedFile];
+    const fileToView = find(fileContents, ["key", selectedFile]);
+    const showOverlay = this.state.addOverlay || (patch && patch.length);
 
     return (
       <div className="flex flex1">
@@ -262,7 +234,7 @@ export default class KustomizeOverlay extends React.Component {
               <Toast toast={toastDetails} onCancel={this.cancelToast} />
               <div className="flex flex1 u-position--relative">
 
-                <div className={`flex-column flex1 ${this.state.addOverlay && "u-paddingRight--15"}`}>
+                <div className={`flex-column flex1 ${showOverlay && "u-paddingRight--15"}`}>
                   <div className="flex1 flex-column u-position--relative">
                     {selectedFile === "" ?
                       <KustomizeEmpty skipKustomize={() => this.handlFinalize()} />
@@ -281,7 +253,7 @@ export default class KustomizeOverlay extends React.Component {
                               <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
                             </div>
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
-                              {!this.state.addOverlay &&
+                              {!showOverlay &&
                               <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
                                 <span className="icon clickable u-overlayCreateIcon"></span>
                               </div>
@@ -290,6 +262,8 @@ export default class KustomizeOverlay extends React.Component {
                               <AceEditorHOC
                                 handleGeneratePatch={this.handleGeneratePatch}
                                 fileToView={fileToView}
+                                diffOpen={this.state.viewDiff}
+                                overlayOpen={showOverlay}
                               />
                             </div>
                           </div>
@@ -297,15 +271,15 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                 </div>
 
-                <div className={`flex-column flex1 overlays-editor-wrapper ${this.state.addOverlay || (fileToView && fileToView.overlayContent.length) ? "visible" : ""}`}>
+                <div className={`flex-column flex1 overlays-editor-wrapper ${showOverlay ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
                     <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Overlay</p>
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {this.state.addOverlay && <span data-tip="discard-overlay-tooltip" data-for="discard-overlay-tooltip" className="icon clickable u-discardOverlayIcon" onClick={this.discardOverlay}></span>}
-                      <ReactTooltip id="discard-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
+                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.handleKustomizeSave(true)}></span>}
+                      <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Save &amp; close</ReactTooltip>
                       <AceEditor
                         ref={(editor) => { this.aceEditorOverlay = editor }}
                         mode="yaml"
@@ -328,12 +302,28 @@ export default class KustomizeOverlay extends React.Component {
                 </div>
               </div>
 
+              {showOverlay &&
+              <div className={`${this.state.viewDiff ? "flex1" : "flex-auto"} flex-column`}>
+                <div className="diff-viewer-wrapper flex-column flex1">
+                  <span className="diff-toggle" onClick={this.toggleDiff}>{this.state.viewDiff ? "Hide diff" : "Show diff"}</span>
+                  {this.state.viewDiff &&
+                    <DiffEditor
+                      diffTitle="Diff YAML"
+                      diffSubCopy="Here you can see the diff of the base YAML, and the finalized version with the overlay applied."
+                      original={fileToView.baseContent}
+                      updated={patch}
+                    />
+                  }
+                </div>
+              </div>
+              }
+
               <div className="flex-auto flex layout-footer-actions less-padding">
                 <div className="flex1 flex-column flex-verticalCenter">
                   <p className="u-margin--none u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
                 </div>
                 <div className="flex1 flex justifyContent--flexEnd">
-                  <button type="button" disabled={dataLoading.saveKustomizeLoading} onClick={this.handleKustomizeSave} className="btn primary">{dataLoading.saveKustomizeLoading ? "Saving overlays"  : "Save overlays"}</button>
+                  <button type="button" disabled={dataLoading.saveKustomizeLoading} onClick={this.handleKustomizeSave} className={`btn primary ${selectedFile === "" ? "u-visibility--hidden" : ""}`}>{dataLoading.saveKustomizeLoading ? "Saving overlay"  : "Save overlay"}</button>
                 </div>
               </div>
 

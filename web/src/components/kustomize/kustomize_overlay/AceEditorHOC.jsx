@@ -30,6 +30,14 @@ export class AceEditorHOC extends React.Component {
         this.setState({ markers });
       }
     }
+    if (
+      (this.props.overlayOpen !== prevProps.overlayOpen) ||
+      (this.props.diffOpen !== prevProps.diffOpen)
+    ) {
+      if (this.aceEditorBase) {
+        this.aceEditorBase.editor.resize();
+      }
+    }
   }
 
   componentDidMount() {

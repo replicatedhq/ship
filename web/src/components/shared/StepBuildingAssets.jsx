@@ -44,13 +44,9 @@ export default class StepBuildingAssets extends React.Component {
         <Loader size="60" />
         {status.source === "render" ?
           <div>
-            <div>
-              <p>
-                <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">
-                  { status.detail === "resolve" ? "Resolving Plan" : "Rendering Assets" }
-                </p>
-              </p>
-            </div>
+            <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">
+              { status.detail === "resolve" ? "Resolving Plan" : "Rendering Assets" }
+            </p>
           </div>
           :
           <div>
