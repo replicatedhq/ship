@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
@@ -24,7 +24,7 @@ import (
 
 func NewKustomizer(
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 	fs afero.Afero,
 	stateManager state.Manager,
 ) lifecycle.Kustomizer {
@@ -40,7 +40,7 @@ func NewKustomizer(
 // if not we'll have to fork. for now it just explodes
 type kustomizer struct {
 	Logger log.Logger
-	Daemon daemon.Daemon
+	Daemon daemontypes.Daemon
 	FS     afero.Afero
 	State  state.Manager
 }
@@ -52,7 +52,7 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	debug.Log("event", "daemon.started")
 
-	l.Daemon.PushKustomizeStep(ctx, daemon.Kustomize{
+	l.Daemon.PushKustomizeStep(ctx, daemontypes.Kustomize{
 		BasePath: step.BasePath,
 	})
 	debug.Log("event", "step.pushed")

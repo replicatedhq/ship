@@ -58,6 +58,23 @@ var _ = Describe("basic", func() {
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "test")
 					Expect(err).NotTo(HaveOccurred())
+
+					// create `/test/.ship/state.json` and copy in the input state file before the test runs
+					err := os.Mkdir(path.Join(testOutputPath, ".ship"), 0777)
+					Expect(err).NotTo(HaveOccurred())
+					outputStateFile := path.Join(testOutputPath, ".ship/state.json")
+
+					// read .ship/state.json from input state file
+					stateFile, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/state.json"))
+					Expect(err).NotTo(HaveOccurred())
+
+					// the test needs to execute in the same directory throughout the lifecycle of `ship update`
+					testInputPath = testOutputPath
+
+					// copy .ship/state.json from testInputPath to testOutputPath
+					err = ioutil.WriteFile(outputStateFile, stateFile, 0777)
+					Expect(err).NotTo(HaveOccurred())
+
 					os.Chdir(testOutputPath)
 
 					// read the test metadata
