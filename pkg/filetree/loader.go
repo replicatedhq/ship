@@ -114,13 +114,12 @@ func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo
 		if err != nil {
 			return current, errors.Wrapf(err, "read file %s", file.Name())
 		}
-		isSupported := isSupported(fileB)
 
 		return a.loadTree(fs, current.withChild(Node{
 			Name:        file.Name(),
 			Path:        filePath,
 			HasOverlay:  hasOverlay,
-			IsSupported: isSupported,
+			IsSupported: isSupported(fileB),
 		}), rest)
 	}
 
