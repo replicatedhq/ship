@@ -149,6 +149,7 @@ func (d *V1Routes) kustomizeFinalize(c *gin.Context) {
 	d.KustomizeSaved <- nil
 	c.JSON(200, map[string]interface{}{"status": "success"})
 }
+
 func (d *V1Routes) loadKustomizeTree() (*filetree.Node, error) {
 	level.Debug(d.Logger).Log("event", "kustomize.loadTree")
 
