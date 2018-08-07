@@ -138,6 +138,14 @@ func (f *ForkTemplater) Template(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
+	if baseDirExists, err := f.FS.DirExists(constants.RenderedHelmPath); err == nil && baseDirExists {
+		// remove base dir iff it is a dir and it exists
+		if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+			return errors.Wrap(err, "failed to remove base dir")
+		}
+		debug.Log("event", "remove base directory")
+	}
+
 	debug.Log("event", "rename")
 	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
 		if err := f.FS.Rename(tempRenderedChartTemplatesDir, asset.Dest); err != nil {

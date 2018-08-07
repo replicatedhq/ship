@@ -26,7 +26,6 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeChartURL(URL string) error
 	Save(v VersionedState) error
-	RemoveBase() error
 }
 
 var _ Manager = &MManager{}
@@ -179,16 +178,6 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 	err = m.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
-	}
-
-	return nil
-}
-
-// RemoveBase will attempt to remove the Base directory from disk
-func (m *MManager) RemoveBase() error {
-	err := m.FS.RemoveAll(constants.RenderedHelmPath)
-	if err != nil {
-		return errors.Wrap(err, "remove Base")
 	}
 
 	return nil
