@@ -9,6 +9,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -16,11 +17,16 @@ type V2Routes struct {
 	Logger       log.Logger
 	TreeLoader   filetree.Loader
 	StateManager state.Manager
+	Messenger    lifecycle.Messenger
+	HelmIntro    lifecycle.HelmIntro
+	Renderer     lifecycle.Renderer
+	Planner      planner.Planner
+	StepExecutor V2Exectuor
+
+	StepProgress map[string]daemontypes.Progress
+
 	// This isn't known at injection time, so we have to set in Register
-	Release   *api.Release
-	Messenger lifecycle.Messenger
-	HelmIntro lifecycle.HelmIntro
-	Renderer  lifecycle.Renderer
+	Release *api.Release
 }
 
 func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {

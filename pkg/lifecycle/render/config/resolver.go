@@ -13,6 +13,17 @@ type Resolver interface {
 	ResolveConfig(context.Context, *api.Release, map[string]interface{}) (map[string]interface{}, error)
 }
 
+type NoOpResolver struct {
+}
+
+func (NoOpResolver) ResolveConfig(context.Context, *api.Release, map[string]interface{}) (map[string]interface{}, error) {
+	// todo load from state or something
+	return map[string]interface{}{}, nil
+}
+
+func NewNoOpResolver() Resolver {
+	return &NoOpResolver{}
+}
 func NewResolver(
 	logger log.Logger,
 	daemon daemontypes.Daemon,

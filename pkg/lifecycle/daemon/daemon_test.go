@@ -34,7 +34,7 @@ func initTestDaemon(
 ) (*ShipDaemon, int, context.CancelFunc, error) {
 	v := viper.New()
 
-	port := rand.Intn(2000) + 33000
+	port := rand.Intn(10000) + 33000
 	viper.Set("api-port", port)
 	fs := afero.Afero{Fs: afero.NewMemMapFs()}
 	log := &logger.TestLogger{T: t}
