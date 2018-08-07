@@ -19,6 +19,7 @@ import (
 
 const (
 	CustomResourceDefinition = "CustomResourceDefinition"
+	OverlaysFolder           = "overlays"
 )
 
 // A Loader returns a struct representation
@@ -62,7 +63,7 @@ func (a *aferoLoader) LoadTree(root string, kustomize *state.Kustomize) (*Node, 
 	}
 	overlayRootNode := Node{
 		Path:     "/",
-		Name:     "overlays",
+		Name:     OverlaysFolder,
 		Children: []Node{},
 	}
 

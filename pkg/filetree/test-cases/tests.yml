@@ -150,12 +150,11 @@
           - name: foo.txt
             path: /foo.txt
             hasOverlay: true
-      - name: kustomization
+      - name: overlays
         path: /
         children:
           - name: foo.txt
             path: /foo.txt
-            hasOverlay: true
 
 - name: has a nested overlay
   mkdir:
@@ -179,13 +178,11 @@
               - name: foo.txt
                 path: /bar/foo.txt
                 hasOverlay: true
-      - name: kustomization
+      - name: overlays
         path: /
         children:
         - name: bar
           path: /bar
-          hasOverlay: true
           children:
               - name: foo.txt
                 path: /bar/foo.txt
-                hasOverlay: true
