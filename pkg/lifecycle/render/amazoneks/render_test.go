@@ -1,4 +1,4 @@
-package amazonElasticKubernetesService
+package amazoneks
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/api/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/api/amazoneks"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -27,14 +27,14 @@ func TestRenderer(t *testing.T) {
 	}{
 		{
 			name:       "empty",
-			asset:      api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
+			asset:      api.EKSAsset{ExistingVPC: &amazoneks.EKSExistingVPC{}},
 			kubeconfig: "kubeconfig_",
 		},
 		{
 			name: "named",
 			asset: api.EKSAsset{
 				ClusterName: "aClusterName",
-				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+				ExistingVPC: &amazoneks.EKSExistingVPC{},
 			},
 			kubeconfig: "kubeconfig_aClusterName",
 		},
@@ -45,7 +45,7 @@ func TestRenderer(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "eks.tf",
 				},
-				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+				ExistingVPC: &amazoneks.EKSExistingVPC{},
 			},
 			kubeconfig: "kubeconfig_aClusterName",
 		},
@@ -56,7 +56,7 @@ func TestRenderer(t *testing.T) {
 				AssetShared: api.AssetShared{
 					Dest: "k8s/eks.tf",
 				},
-				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{},
+				ExistingVPC: &amazoneks.EKSExistingVPC{},
 			},
 			kubeconfig: "k8s/kubeconfig_aClusterName",
 		},
@@ -106,7 +106,7 @@ func TestRenderer(t *testing.T) {
 			// test that the template function returns the correct kubeconfig path
 			builder := getBuilder()
 
-			eksTemplateFunc := `{{repl AmazonElasticKubernetesService "%s" }}`
+			eksTemplateFunc := `{{repl AmazonEKS "%s" }}`
 			kubeconfig, err := builder.String(fmt.Sprintf(eksTemplateFunc, test.asset.ClusterName))
 			req.NoError(err)
 
@@ -184,7 +184,7 @@ module "eks" {
 		{
 			name: "one",
 			asset: api.EKSAsset{
-				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,
@@ -241,7 +241,7 @@ module "eks" {
 		{
 			name: "two",
 			asset: api.EKSAsset{
-				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,
@@ -351,7 +351,7 @@ func TestRenderVPC(t *testing.T) {
 		{
 			name: "empty",
 			asset: api.EKSAsset{
-				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{},
+				CreatedVPC: &amazoneks.EKSCreatedVPC{},
 			},
 			expected: `
 variable "vpc_cidr" {
@@ -401,7 +401,7 @@ locals {
 		{
 			name: "basic vpc",
 			asset: api.EKSAsset{
-				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{
+				CreatedVPC: &amazoneks.EKSCreatedVPC{
 					VPCCIDR:        "10.0.0.0/16",
 					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
 					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
@@ -506,7 +506,7 @@ func TestRenderExistingVPC(t *testing.T) {
 	}{
 		{
 			name:  "empty",
-			asset: api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
+			asset: api.EKSAsset{ExistingVPC: &amazoneks.EKSExistingVPC{}},
 			expected: `
 locals {
   "eks_vpc"                 = ""
@@ -520,7 +520,7 @@ locals {
 		{
 			name: "basic vpc",
 			asset: api.EKSAsset{
-				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{
+				ExistingVPC: &amazoneks.EKSExistingVPC{
 					VPCID:          "vpcid",
 					PublicSubnets:  []string{"abc123-a", "abc123-b"},
 					PrivateSubnets: []string{"xyz789-a", "xyz789-b"},
@@ -572,7 +572,7 @@ func TestRenderTerraform(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			vpc:  api.EKSAsset{ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{}},
+			vpc:  api.EKSAsset{ExistingVPC: &amazoneks.EKSExistingVPC{}},
 			expected: `
 locals {
   "eks_vpc"                 = ""
@@ -621,12 +621,12 @@ module "eks" {
 			vpc: api.EKSAsset{
 				ClusterName: "existing-vpc-cluster",
 				Region:      "us-east-1",
-				ExistingVPC: &amazonElasticKubernetesService.EKSExistingVPC{
+				ExistingVPC: &amazoneks.EKSExistingVPC{
 					VPCID:          "existing_vpcid",
 					PublicSubnets:  []string{"abc123-a", "abc123-b"},
 					PrivateSubnets: []string{"xyz789-a", "xyz789-b"},
 				},
-				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,
@@ -695,13 +695,13 @@ module "eks" {
 			vpc: api.EKSAsset{
 				ClusterName: "new-vpc-cluster",
 				Region:      "us-east-1",
-				CreatedVPC: &amazonElasticKubernetesService.EKSCreatedVPC{
+				CreatedVPC: &amazoneks.EKSCreatedVPC{
 					VPCCIDR:        "10.0.0.0/16",
 					PublicSubnets:  []string{"10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"},
 					PrivateSubnets: []string{"10.128.1.0/24", "10.128.2.0/24", "10.128.3.0/24", "10.128.4.0/24"},
 					Zones:          []string{"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"},
 				},
-				AutoscalingGroups: []amazonElasticKubernetesService.EKSAutoscalingGroup{
+				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
 						GroupSize:   3,

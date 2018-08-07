@@ -22,7 +22,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
@@ -97,7 +97,7 @@ func buildInjector() (*dig.Container, error) {
 
 		terraform.NewRenderer,
 
-		amazonElasticKubernetesService.NewRenderer,
+		amazoneks.NewRenderer,
 
 		kubectl.NewKubectl,
 

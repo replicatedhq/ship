@@ -1,4 +1,4 @@
-package amazonElasticKubernetesService
+package amazoneks
 
 type EKSCreatedVPC struct {
 	Zones          []string `json:"zones,omitempty" yaml:"zones,omitempty" hcl:"zones,omitempty"`

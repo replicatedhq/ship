@@ -1,4 +1,4 @@
-package amazonElasticKubernetesService
+package amazoneks
 
 import (
 	"bytes"
@@ -64,11 +64,11 @@ func (r *LocalRenderer) Execute(
 		if asset.Dest != "" {
 			assetsPath = asset.Dest
 		} else {
-			assetsPath = "amazon_elastic_kubernetes_service.tf"
+			assetsPath = "amazon_eks.tf"
 		}
 
 		// save the path to the kubeconfig that running the generated terraform will produce
-		templates.AddAmazonElasticKubernetesServicePath(asset.ClusterName,
+		templates.AddAmazonEKSPath(asset.ClusterName,
 			path.Join(path.Dir(assetsPath), "kubeconfig_"+asset.ClusterName))
 
 		assetsPath = path.Join(constants.InstallerPrefixPath, assetsPath)

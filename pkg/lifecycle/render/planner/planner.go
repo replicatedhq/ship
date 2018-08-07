@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -64,7 +64,7 @@ type CLIPlanner struct {
 	Web         web.Renderer
 	GitHub      github.Renderer
 	Terraform   terraform.Renderer
-	AWSEKS      amazonElasticKubernetesService.Renderer
+	AWSEKS      amazoneks.Renderer
 }
 
 // Use a factory so we can create instances and override the StatusReceiver on those instances.
@@ -81,7 +81,7 @@ func NewFactory(
 	gh github.Renderer,
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
-	awseks amazonElasticKubernetesService.Renderer,
+	awseks amazoneks.Renderer,
 	daemon daemontypes.Daemon,
 ) Factory {
 	return func() Planner {

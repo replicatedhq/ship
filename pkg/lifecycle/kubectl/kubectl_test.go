@@ -48,7 +48,7 @@ func TestForkKubectl_getBuilder(t *testing.T) {
 			name:  "ship",
 			state: map[string]interface{}{},
 			meta:  api.ReleaseMetadata{},
-			init:  `{{repl AmazonElasticKubernetesService ""}}`,
+			init:  `{{repl AmazonEKS ""}}`,
 			want:  "",
 		},
 	}
