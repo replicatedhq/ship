@@ -58,13 +58,13 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
-		return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
+		return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 	}
 
 	debug.Log("event", "read.chartURL")
 	helmChartPath := existingState.CurrentChartURL()
 	if helmChartPath == "" {
-		return errors.New(`No helm chart URL found at ` + constants.StatePath + `, please run "ship init"`)
+		return errors.New(`No helm chart URL found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 	}
 
 	debug.Log("event", "fetch latest chart")
@@ -86,19 +86,19 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 		if _, noExistingState := existingState.(state.Empty); noExistingState {
 			debug.Log("event", "state.missing")
-			return errors.New(`No state file found at ` + constants.StatePath + `, please run "ship init"`)
+			return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
 		debug.Log("event", "read.chartURL")
 		helmChartPath := existingState.CurrentChartURL()
 		if helmChartPath == "" {
-			return errors.New(`No current SHA found at ` + constants.StatePath + `, please run "ship init"`)
+			return errors.New(`No current chart url found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
 		debug.Log("event", "read.lastSHA")
 		lastSHA := existingState.CurrentSHA()
 		if lastSHA == "" {
-			return errors.New(`No current SHA found at ` + constants.StatePath + `, please run "ship init"`)
+			return errors.New(`No current SHA found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
 		debug.Log("event", "fetch latest chart")
@@ -128,7 +128,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`State file found at ` + constants.StatePath + `, do you want to start from scratch? (y/N) `)
+		useUpdate, err := s.UI.Ask(`State file found at ` + s.Viper.GetString("state-file") + `, do you want to start from scratch? (y/N) `)
 		if err != nil {
 			return err
 		}

@@ -203,7 +203,7 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "calculate content sha")
 	}
 
 	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
