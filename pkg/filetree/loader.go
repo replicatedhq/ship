@@ -1,19 +1,31 @@
 package filetree
 
 import (
+	"bytes"
 	"os"
 	"path"
+	"strings"
 
+	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+)
+
+const (
+	CustomResourceDefinition = "CustomResourceDefinition"
+	OverlaysFolder           = "overlays"
 )
 
 // A Loader returns a struct representation
 // of a filesystem directory tree
 type Loader interface {
-	LoadTree(root string) (*Node, error)
+	LoadTree(root string, kustomize *state.Kustomize) (*Node, error)
 	// someday this should return an overlay too
 	LoadFile(root string, path string) (string, error)
 }
@@ -30,13 +42,14 @@ func NewLoader(
 }
 
 type aferoLoader struct {
-	Logger log.Logger
-	FS     afero.Afero
+	Logger  log.Logger
+	FS      afero.Afero
+	patches map[string]string
 }
 
-func (a *aferoLoader) LoadTree(root string) (*Node, error) {
-
+func (a *aferoLoader) LoadTree(root string, kustomize *state.Kustomize) (*Node, error) {
 	fs := afero.Afero{Fs: afero.NewBasePathFs(a.FS, root)}
+	a.patches = kustomize.Overlays["ship"].Patches
 
 	files, err := fs.ReadDir("/")
 	if err != nil {
@@ -48,9 +61,25 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 		Name:     "/",
 		Children: []Node{},
 	}
-	populated, err := a.loadTree(fs, rootNode, files)
+	overlayRootNode := Node{
+		Path:     "/",
+		Name:     OverlaysFolder,
+		Children: []Node{},
+	}
 
-	return &populated, errors.Wrap(err, "load tree")
+	populatedKustomization := a.loadOverlayTree(overlayRootNode)
+	populated, err := a.loadTree(fs, rootNode, files)
+	children := []Node{populated}
+
+	if len(populatedKustomization.Children) != 0 {
+		children = append(children, populatedKustomization)
+	}
+
+	return &Node{
+		Path:     "/",
+		Name:     "/",
+		Children: children,
+	}, errors.Wrap(err, "load tree")
 }
 
 // todo move this to a new struct or something
@@ -79,9 +108,18 @@ func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo
 	}
 
 	if !file.IsDir() {
+		_, hasOverlay := a.patches[filePath]
+
+		fileB, err := fs.ReadFile(filePath)
+		if err != nil {
+			return current, errors.Wrapf(err, "read file %s", file.Name())
+		}
+
 		return a.loadTree(fs, current.withChild(Node{
-			Name: file.Name(),
-			Path: filePath,
+			Name:        file.Name(),
+			Path:        filePath,
+			HasOverlay:  hasOverlay,
+			IsSupported: isSupported(fileB),
 		}), rest)
 	}
 
@@ -108,10 +146,65 @@ func isSymlink(file os.FileInfo) bool {
 	return file.Mode()&os.ModeSymlink != 0
 }
 
+func isSupported(file []byte) bool {
+	var out unstructured.Unstructured
+
+	fileJSON, err := yaml.YAMLToJSON(file)
+	if err != nil {
+		return false
+	}
+
+	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(fileJSON), 1024)
+	if err := decoder.Decode(&out); err != nil {
+		return false
+	}
+
+	r := resource.NewResourceFromUnstruct(out)
+	if r.GetKind() == CustomResourceDefinition {
+		return false
+	}
+
+	return true
+}
+
 func (n Node) withChild(child Node) Node {
 	return Node{
-		Name:     n.Name,
-		Path:     n.Path,
-		Children: append(n.Children, child),
+		Name:        n.Name,
+		Path:        n.Path,
+		Children:    append(n.Children, child),
+		IsSupported: n.IsSupported,
+		HasOverlay:  n.HasOverlay,
 	}
+}
+
+func (a *aferoLoader) loadOverlayTree(kustomizationNode Node) Node {
+	filledTree := kustomizationNode
+	for patchPath := range a.patches {
+		splitPatchPath := strings.Split(patchPath, "/")[1:]
+		filledTree = a.createOverlayNode(kustomizationNode, splitPatchPath)
+	}
+	return filledTree
+}
+
+func (a *aferoLoader) createOverlayNode(kustomizationNode Node, pathToOverlay []string) Node {
+	if len(pathToOverlay) == 0 {
+		return kustomizationNode
+	}
+
+	pathToMatch, restOfPath := pathToOverlay[0], pathToOverlay[1:]
+	filePath := path.Join(kustomizationNode.Path, pathToMatch)
+
+	for _, child := range kustomizationNode.Children {
+		if child.Path == pathToMatch {
+			return a.createOverlayNode(child, restOfPath)
+		}
+	}
+
+	newNode := Node{
+		Name: pathToMatch,
+		Path: filePath,
+	}
+	loadedChild := a.createOverlayNode(newNode, restOfPath)
+	kustomizationNode.Children = append(kustomizationNode.Children, loadedChild)
+	return kustomizationNode
 }
