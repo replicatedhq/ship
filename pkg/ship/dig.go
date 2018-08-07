@@ -16,7 +16,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
@@ -43,6 +45,7 @@ import (
 )
 
 func buildInjector() (*dig.Container, error) {
+
 	providers := []interface{}{
 
 		viper.GetViper,
@@ -56,10 +59,6 @@ func buildInjector() (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		patch.NewShipPatcher,
 
-		message.NewMessenger,
-		config.NewDaemon,
-		daemon.NewHeadedDaemon,
-		daemon.NewHeadlessDaemon,
 		daemon.NewV1Router,
 		daemon.NewV2Router,
 		config.NewResolver,
@@ -67,12 +66,10 @@ func buildInjector() (*dig.Container, error) {
 		terraform2.NewTerraformer,
 		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
-		helmIntro.NewHelmIntro,
 		helmValues.NewHelmValues,
 
 		state.NewManager,
 		planner.NewPlanner,
-		render.NewRenderer,
 		specs.NewResolver,
 		specs.NewGraphqlClient,
 		specs.NewGithubClient,
@@ -102,7 +99,36 @@ func buildInjector() (*dig.Container, error) {
 
 		amazonElasticKubernetesService.NewRenderer,
 
+		kubectl.NewKubectl,
+
 		NewShip,
+	}
+
+	// we used to do
+	//
+	//     if viper.GetBool(...) { /* decide which interface implementation to return */ }
+	//
+	// in constructor methods that were passed to dig.New(), but now
+	// need to switch on mode here to avoid circular dependencies *in the object graph*
+	// (as opposed to in the source graph). Even though lifecycle doesn't depend
+	// on source code that depends on daemon, the StepExecutor constructor still depends
+	// on objects that depend on daemon, so in order to be able to use packages like
+	//
+	//  - lifeycle/message
+	//  - lifeycle/kustomize
+	//  - lifeycle/helmIntro
+	//
+	// in navigable mode,
+	// we need to keep the *implementations that need an instance of daemon* out of the DI container
+	//
+	// Hopefully once everything is moved over to v2 this gets a lot simpler again.
+	if viper.GetBool("headless") {
+		providers = append(providers, headlessProviders()...)
+	} else if viper.GetBool("navigate-lifecycle") {
+		providers = append(providers, navigableProviders()...)
+	} else {
+		providers = append(providers, headedProviders()...)
+
 	}
 
 	container := dig.New()
@@ -115,6 +141,39 @@ func buildInjector() (*dig.Container, error) {
 	}
 
 	return container, nil
+}
+
+// "headedless mode" is the standard execute-the-lifecycle-in-order mode of ship, that runs without UI or api server
+// and is generally intended for CI/automation
+func headlessProviders() []interface{} {
+	return []interface{}{
+		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
+		headless.NewHeadlessDaemon,
+		helmIntro.NewHelmIntro,
+		render.NewRenderer,
+	}
+}
+
+// "headed mode" is the standard execute-the-lifecycle-in-order mode of ship, where steps manipulate
+// the UI/API via a ShipDaemon implementing the daemon.Daemon interface
+func headedProviders() []interface{} {
+	return []interface{}{
+		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
+		daemon.NewHeadedDaemon,
+		helmIntro.NewHelmIntro,
+		render.NewRenderer,
+	}
+}
+
+// "navigable mode" provides a new, v2-ish version of ship that provides browser navigation back
+// and forth through the lifecycle, and uses runbook declarations of lifecycle dependencies to
+// control execution ordering and workflows
+func navigableProviders() []interface{} {
+	return []interface{}{
+		daemon.NewHeadedDaemon,
+		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
+		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
+	}
 }
 
 func Get() (*Ship, error) {

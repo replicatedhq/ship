@@ -29,3 +29,7 @@ type HelmValues interface {
 type Kustomizer interface {
 	Execute(ctx context.Context, release api.Release, step api.Kustomize) error
 }
+
+type Kubectl interface {
+	Execute(ctx context.Context, release api.Release, step api.Kubectl) error
+}

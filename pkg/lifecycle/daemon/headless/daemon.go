@@ -1,4 +1,4 @@
-package daemon
+package headless
 
 import (
 	"context"
@@ -9,11 +9,12 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-var _ Daemon = &HeadlessDaemon{}
+var _ daemontypes.Daemon = &HeadlessDaemon{}
 
 type HeadlessDaemon struct {
 	StateManager   state.Manager
@@ -23,9 +24,23 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
-func (d *HeadlessDaemon) PushKustomizeStep(context.Context, Kustomize)       {}
-func (d *HeadlessDaemon) PushMessageStep(context.Context, Message, []Action) {}
-func (d *HeadlessDaemon) PushRenderStep(context.Context, Render)             {}
+func NewHeadlessDaemon(
+	ui cli.Ui,
+	logger log.Logger,
+	renderer *resolve.APIConfigRenderer,
+	stateManager state.Manager,
+) daemontypes.Daemon {
+	return &HeadlessDaemon{
+		StateManager:   stateManager,
+		Logger:         logger,
+		UI:             ui,
+		ConfigRenderer: renderer,
+	}
+}
+
+func (d *HeadlessDaemon) PushKustomizeStep(context.Context, daemontypes.Kustomize)                   {}
+func (d *HeadlessDaemon) PushMessageStep(context.Context, daemontypes.Message, []daemontypes.Action) {}
+func (d *HeadlessDaemon) PushRenderStep(context.Context, daemontypes.Render)                         {}
 
 func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	ch := make(chan interface{}, 1)
@@ -34,9 +49,10 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
-func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, HelmIntro, []Action) {}
+func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, daemontypes.HelmIntro, []daemontypes.Action) {
+}
 
-func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues HelmValues, actions []Action) {
+func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues daemontypes.HelmValues, actions []daemontypes.Action) {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "PushHelmValuesStep"))
 	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values); err != nil {
 		warn.Log("event", "push helm values step fail", "err", err)
@@ -54,7 +70,7 @@ func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues 
 	return nil
 }
 
-func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan Message) {}
+func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan daemontypes.Message) {}
 
 func (d *HeadlessDaemon) CleanPreviousStep() {}
 
@@ -152,7 +168,7 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	return nil
 }
 
-func (d *HeadlessDaemon) SetProgress(progress Progress) {
+func (d *HeadlessDaemon) SetProgress(progress daemontypes.Progress) {
 	d.UI.Output(progress.Detail)
 }
 

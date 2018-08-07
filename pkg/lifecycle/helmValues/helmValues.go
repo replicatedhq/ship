@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 )
@@ -19,14 +20,14 @@ import (
 type helmValues struct {
 	Fs           afero.Afero
 	Logger       log.Logger
-	Daemon       daemon.Daemon
+	Daemon       daemontypes.Daemon
 	StateManager state.Manager
 }
 
 func NewHelmValues(
 	fs afero.Afero,
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 	stateManager state.Manager,
 ) lifecycle.HelmValues {
 	return &helmValues{
@@ -48,7 +49,7 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 		return errors.Wrap(err, "read file values.yaml")
 	}
 
-	h.Daemon.PushHelmValuesStep(ctx, daemon.HelmValues{
+	h.Daemon.PushHelmValuesStep(ctx, daemontypes.HelmValues{
 		Values: string(bytes),
 	}, daemon.HelmValuesActions())
 	debug.Log("event", "step.pushed")
@@ -84,11 +85,11 @@ func (h *helmValues) resolveStateHelmValues() error {
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "resolveHelmValues"))
 
 	debug.Log("event", "tryLoadState")
-	state, err := h.StateManager.TryLoad()
+	editState, err := h.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
-	helmValues := state.CurrentHelmValues()
+	helmValues := editState.CurrentHelmValues()
 
 	debug.Log("event", "tryLoadState")
 	err = h.Fs.MkdirAll(constants.TempHelmValuesPath, 0700)

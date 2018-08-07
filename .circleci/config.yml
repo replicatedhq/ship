@@ -17,8 +17,11 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p web/dist
-      - run: make build-deps citest ci-upload-coverage
-
+      - run: |
+          make build-deps citest
+          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+            make ci-upload-coverage
+          fi
   build_ui:
     docker:
       - image: circleci/node:9

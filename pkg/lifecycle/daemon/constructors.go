@@ -4,27 +4,13 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/filetree"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
-	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
-
-func NewHeadlessDaemon(
-	v *viper.Viper,
-	logger log.Logger,
-	renderer *resolve.APIConfigRenderer,
-	stateManager state.Manager,
-) *HeadlessDaemon {
-	return &HeadlessDaemon{
-		StateManager:   stateManager,
-		Logger:         logger,
-		UI:             ui.FromViper(v),
-		ConfigRenderer: renderer,
-	}
-}
 
 func NewHeadedDaemon(
 	logger log.Logger,
@@ -32,23 +18,24 @@ func NewHeadedDaemon(
 	webUIFactory WebUIBuilder,
 	v1Router *V1Routes,
 	v2Router *V2Routes,
-) *ShipDaemon {
+) daemontypes.Daemon {
 	return &ShipDaemon{
 		Logger:       log.With(logger, "struct", "daemon"),
 		WebUIFactory: webUIFactory,
 		Viper:        v,
-		exitChan:     make(chan error),
+		ExitChan:     make(chan error),
 		V1Routes:     v1Router,
 		V2Routes:     v2Router,
 	}
-
 }
 
 func NewV2Router(
 	logger log.Logger,
+	stateManager state.Manager,
 ) *V2Routes {
 	return &V2Routes{
-		Logger: logger,
+		Logger:       logger,
+		StateManager: stateManager,
 	}
 }
 

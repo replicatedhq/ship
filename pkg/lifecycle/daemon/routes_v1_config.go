@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 )
 
@@ -21,7 +22,7 @@ func (d *V1Routes) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "handler", "postAppConfigLive"))
 
-		if d.currentStepName != StepNameConfig {
+		if d.currentStepName != daemontypes.StepNameConfig {
 			c.JSON(400, map[string]interface{}{
 				"error": "no config step active",
 			})
@@ -89,7 +90,7 @@ func (d *V1Routes) putAppConfig(release *api.Release) gin.HandlerFunc {
 		debug := level.Debug(log.With(d.Logger, "handler", "putAppConfig"))
 		defer d.locker(debug)()
 
-		if d.currentStepName != StepNameConfig {
+		if d.currentStepName != daemontypes.StepNameConfig {
 			c.JSON(400, map[string]interface{}{
 				"error": "no config step active",
 			})

@@ -13,38 +13,51 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/spf13/viper"
+	"go.uber.org/dig"
 )
 
-type helmIntro struct {
-	Fs     afero.Afero
+type HelmIntro struct {
 	Logger log.Logger
-	Daemon daemon.Daemon
+	Daemon daemontypes.Daemon
+}
+
+type DaemonlessHelmIntro struct {
+	dig.In
+	Logger log.Logger
+}
+
+func (d *DaemonlessHelmIntro) Execute(context.Context, *api.Release, *api.HelmIntro) error {
+	level.Debug(d.Logger).Log("event", "DaemonlessHelmIntro.nothingToDo")
+	return nil
 }
 
 func NewHelmIntro(
+	v *viper.Viper,
 	fs afero.Afero,
 	logger log.Logger,
-	daemon daemon.Daemon,
+	daemon daemontypes.Daemon,
 ) lifecycle.HelmIntro {
-	return &helmIntro{
-		Fs:     fs,
+
+	return &HelmIntro{
 		Logger: logger,
 		Daemon: daemon,
 	}
 }
 
-func (h *helmIntro) Execute(ctx context.Context, release *api.Release, step *api.HelmIntro) error {
+func (h *HelmIntro) Execute(ctx context.Context, release *api.Release, step *api.HelmIntro) error {
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmIntro"))
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	h.Daemon.PushHelmIntroStep(ctx, daemon.HelmIntro{}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(ctx, daemontypes.HelmIntro{}, daemon.HelmIntroActions())
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)
 }
 
-func (h *helmIntro) awaitContinue(ctx context.Context, daemonExitedChan chan error) error {
+func (h *HelmIntro) awaitContinue(ctx context.Context, daemonExitedChan chan error) error {
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmIntro", "awaitContinue"))
 	for {
 		select {

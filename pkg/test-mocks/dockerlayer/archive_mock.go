@@ -5,6 +5,7 @@
 package dockerlayer
 
 import (
+	io "io"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -67,4 +68,28 @@ func (m *MockArchiver) Open(arg0, arg1 string) error {
 // Open indicates an expected call of Open
 func (mr *MockArchiverMockRecorder) Open(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockArchiver)(nil).Open), arg0, arg1)
+}
+
+// Read mocks base method
+func (m *MockArchiver) Read(arg0 io.Reader, arg1 string) error {
+	ret := m.ctrl.Call(m, "Read", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Read indicates an expected call of Read
+func (mr *MockArchiverMockRecorder) Read(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockArchiver)(nil).Read), arg0, arg1)
+}
+
+// Write mocks base method
+func (m *MockArchiver) Write(arg0 io.Writer, arg1 []string) error {
+	ret := m.ctrl.Call(m, "Write", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Write indicates an expected call of Write
+func (mr *MockArchiverMockRecorder) Write(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockArchiver)(nil).Write), arg0, arg1)
 }

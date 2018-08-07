@@ -11,5 +11,6 @@ integration/*/test*
 /base/
 
 /.state/
-
-chart/
+/chart/
+/overlays/
+/base/
