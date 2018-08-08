@@ -690,37 +690,6 @@
           "items": {
             "type": "object",
             "properties": {
-              "config": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
               "kubectl": {
                 "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [

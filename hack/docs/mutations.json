@@ -841,6 +841,7 @@
       "kustomizeDiff",
       "helmIntro",
       "helmValues",
+      "config",
       "kubectl.properties.StepShared"
     ]
   }
