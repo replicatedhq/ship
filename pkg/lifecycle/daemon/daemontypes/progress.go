@@ -3,6 +3,7 @@ package daemontypes
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 type Progress struct {
@@ -47,4 +48,28 @@ func MessageProgress(source string, msg Message) Progress {
 		Level:  "info",
 		Detail: string(d),
 	}
+}
+
+// the empty value is initialized and ready to use
+type ProgressMap struct {
+	syncmap sync.Map
+}
+
+func (p *ProgressMap) Load(stepID string) (Progress, bool) {
+	empty := Progress{}
+	value, ok := p.syncmap.Load(stepID)
+	if !ok {
+		return empty, false
+	}
+
+	progress, ok := value.(Progress)
+	if !ok {
+		return empty, false
+	}
+
+	return progress, true
+}
+
+func (p *ProgressMap) Store(stepID string, progress Progress) {
+	p.syncmap.Store(stepID, progress)
 }

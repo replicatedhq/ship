@@ -81,7 +81,7 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 		Actions:     []daemontypes.Action{}, //todo actions
 	}
 
-	if progress, ok := d.StepProgress[step.Source.Shared().ID]; ok {
+	if progress, ok := d.StepProgress.Load(step.Source.Shared().ID); ok {
 		result.Progress = &progress
 	}
 

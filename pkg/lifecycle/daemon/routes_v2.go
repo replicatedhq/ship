@@ -23,7 +23,7 @@ type V2Routes struct {
 	Planner      planner.Planner
 	StepExecutor V2Exectuor
 
-	StepProgress map[string]daemontypes.Progress
+	StepProgress *daemontypes.ProgressMap
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release

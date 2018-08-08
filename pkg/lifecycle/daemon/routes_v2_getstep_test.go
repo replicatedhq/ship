@@ -186,10 +186,14 @@ func TestV2GetStep(t *testing.T) {
 			mc := gomock.NewController(t)
 			fakeState := state.NewMockManager(mc)
 			testLogger := &logger.TestLogger{T: t}
+			progressmap := &daemontypes.ProgressMap{}
+			for key, val := range test.StepProgress {
+				progressmap.Store(key, val)
+			}
 			v2 := &V2Routes{
 				Logger:       testLogger,
 				StateManager: fakeState,
-				StepProgress: test.StepProgress,
+				StepProgress: progressmap,
 			}
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
