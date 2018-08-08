@@ -178,15 +178,15 @@ func (n Node) withChild(child Node) Node {
 }
 
 func (a *aferoLoader) loadOverlayTree(kustomizationNode Node) Node {
-	filledTree := kustomizationNode
+	filledTree := &kustomizationNode
 	for patchPath := range a.patches {
 		splitPatchPath := strings.Split(patchPath, "/")[1:]
-		filledTree = a.createOverlayNode(kustomizationNode, splitPatchPath)
+		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
 	}
-	return filledTree
+	return *filledTree
 }
 
-func (a *aferoLoader) createOverlayNode(kustomizationNode Node, pathToOverlay []string) Node {
+func (a *aferoLoader) createOverlayNode(kustomizationNode *Node, pathToOverlay []string) *Node {
 	if len(pathToOverlay) == 0 {
 		return kustomizationNode
 	}
@@ -194,17 +194,18 @@ func (a *aferoLoader) createOverlayNode(kustomizationNode Node, pathToOverlay []
 	pathToMatch, restOfPath := pathToOverlay[0], pathToOverlay[1:]
 	filePath := path.Join(kustomizationNode.Path, pathToMatch)
 
-	for _, child := range kustomizationNode.Children {
-		if child.Path == pathToMatch {
-			return a.createOverlayNode(child, restOfPath)
+	for i := range kustomizationNode.Children {
+		if kustomizationNode.Children[i].Path == pathToMatch || kustomizationNode.Children[i].Name == pathToMatch {
+			a.createOverlayNode(&kustomizationNode.Children[i], restOfPath)
+			return kustomizationNode
 		}
 	}
 
-	newNode := Node{
+	nextNode := Node{
 		Name: pathToMatch,
 		Path: filePath,
 	}
-	loadedChild := a.createOverlayNode(newNode, restOfPath)
-	kustomizationNode.Children = append(kustomizationNode.Children, loadedChild)
+	loadedChild := a.createOverlayNode(&nextNode, restOfPath)
+	kustomizationNode.Children = append(kustomizationNode.Children, *loadedChild)
 	return kustomizationNode
 }

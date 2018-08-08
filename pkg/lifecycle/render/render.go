@@ -13,7 +13,6 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	pkgplanner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
@@ -34,73 +33,51 @@ var (
 type renderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
-	PlannerFactory pkgplanner.Factory
+	Planner        pkgplanner.Planner
 	StateManager   state.Manager
 	Fs             afero.Afero
 	UI             cli.Ui
-	Daemon         daemontypes.StatusReceiver
+	StatusReceiver daemontypes.StatusReceiver
 	Now            func() time.Time
-}
-
-func NewRenderer(
-	logger log.Logger,
-	fs afero.Afero,
-	ui cli.Ui,
-	stateManager state.Manager,
-	planner pkgplanner.Factory,
-	resolver config.Resolver,
-	daemon daemontypes.Daemon,
-) lifecycle.Renderer {
-	return &renderer{
-		Logger:         logger,
-		ConfigResolver: resolver,
-		PlannerFactory: planner,
-		StateManager:   stateManager,
-		Fs:             fs,
-		UI:             ui,
-		Now:            time.Now,
-		Daemon:         daemon,
-	}
 }
 
 // Execute renders the assets and config
 func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
-	defer r.Daemon.ClearProgress()
+	defer r.StatusReceiver.ClearProgress()
 
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute")
-	planner := r.PlannerFactory()
 
-	r.Daemon.SetProgress(ProgressLoad)
+	r.StatusReceiver.SetProgress(ProgressLoad)
 	previousState, err := r.StateManager.TryLoad()
 	if err != nil {
 		return err
 	}
 
-	r.Daemon.SetProgress(ProgressResolve)
+	r.StatusReceiver.SetProgress(ProgressResolve)
 	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousState.CurrentConfig())
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
 	debug.Log("event", "render.plan")
-	r.Daemon.SetProgress(ProgressBuild)
-	pln, err := planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
+	r.StatusReceiver.SetProgress(ProgressBuild)
+	pln, err := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
 
 	}
 
 	debug.Log("event", "backup.start")
-	r.Daemon.SetProgress(ProgressBackup)
+	r.StatusReceiver.SetProgress(ProgressBackup)
 	err = r.backupIfPresent(constants.InstallerPrefixPath)
 	if err != nil {
 		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
 	}
 
-	r.Daemon.SetProgress(ProgressExecute)
-	r.Daemon.SetStepName(ctx, daemontypes.StepNameConfirm)
-	err = planner.Execute(ctx, pln)
+	r.StatusReceiver.SetProgress(ProgressExecute)
+	r.StatusReceiver.SetStepName(ctx, daemontypes.StepNameConfirm)
+	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")
 	}
@@ -120,7 +97,7 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 		stateTemplateContext = templateContext
 	}
 
-	r.Daemon.SetProgress(ProgressCommit)
+	r.StatusReceiver.SetProgress(ProgressCommit)
 	if err := r.StateManager.SerializeConfig(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
