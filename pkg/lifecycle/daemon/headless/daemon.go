@@ -47,6 +47,9 @@ func (d *HeadlessDaemon) PushMessageStep(context.Context, daemontypes.Message, [
 func (d *HeadlessDaemon) PushRenderStep(context.Context, daemontypes.Render)                         {}
 
 func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
+	// TODO: Utilize daemon.SetProgress?
+	d.UI.Info("Generating installable application manifests")
+
 	ch := make(chan interface{}, 1)
 	level.Debug(d.Logger).Log("event", "kustomize.skip", "detail", "running in automation, not waiting for kustomize")
 	ch <- nil

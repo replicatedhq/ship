@@ -56,6 +56,9 @@ func (s *Ship) Update(ctx context.Context) error {
 	// does a state file exist on disk?
 	existingState, err := s.State.TryLoad()
 
+	// TODO: Utilize daemon.SetProgress?
+	s.UI.Info("Loading state from " + constants.StatePath)
+
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
 		return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
@@ -68,6 +71,8 @@ func (s *Ship) Update(ctx context.Context) error {
 	}
 
 	debug.Log("event", "fetch latest chart")
+	// TODO: Utilize daemon.SetProgress?
+	s.UI.Info("Downloading latest from upstream " + helmChartPath)
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
