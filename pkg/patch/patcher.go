@@ -3,7 +3,6 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -12,8 +11,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/kubernetes-sigs/kustomize/pkg/resource"
+	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/process"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
@@ -28,14 +29,18 @@ type Patcher interface {
 }
 
 type ShipPatcher struct {
-	Logger log.Logger
-	FS     afero.Afero
+	Logger  log.Logger
+	FS      afero.Afero
+	process process.Process
 }
 
 func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
+	process := process.Process{Logger: logger}
+
 	return &ShipPatcher{
-		Logger: logger,
-		FS:     fs,
+		Logger:  logger,
+		FS:      fs,
+		process: process,
 	}
 }
 
@@ -186,7 +191,7 @@ func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error
 
 func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
-	defer p.patchCleanup()
+	defer p.applyPatchCleanup()
 
 	kustomizeCmd := exec.Command("/usr/local/bin/kustomize")
 
@@ -206,9 +211,9 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 		return nil, errors.Wrap(err, "failed to find relative path")
 	}
 
-	kustomizationYaml := map[string]interface{}{
-		"bases":   []string{relativePathToBases},
-		"patches": []string{"temp.yaml"},
+	kustomizationYaml := k8stypes.Kustomization{
+		Bases:   []string{relativePathToBases},
+		Patches: []string{"temp.yaml"},
 	}
 
 	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)
@@ -227,7 +232,7 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	)
 
 	debug.Log("event", "fork")
-	stdout, stderr, err := p.fork(kustomizeCmd)
+	stdout, stderr, err := p.process.Fork(kustomizeCmd)
 	if err != nil {
 		debug.Log("event", "cmd.err")
 		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
@@ -238,50 +243,7 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	return stdout, nil
 }
 
-func (p *ShipPatcher) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
-	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "fork"))
-
-	var stdout, stderr []byte
-	stdoutReader, err := cmd.StdoutPipe()
-	if err != nil {
-		return stdout, stderr, errors.Wrapf(err, "pipe stdout")
-	}
-	stderrReader, err := cmd.StderrPipe()
-	if err != nil {
-		return stdout, stderr, errors.Wrapf(err, "pipe stderr")
-	}
-
-	debug.Log("event", "cmd.start")
-	err = cmd.Start()
-	if err != nil {
-		return stdout, stderr, errors.Wrap(err, "start cmd")
-	}
-	debug.Log("event", "cmd.started")
-
-	stdout, err = ioutil.ReadAll(stdoutReader)
-	if err != nil {
-		debug.Log("event", "stdout.read.fail", "err", err)
-		return stdout, stderr, errors.Wrap(err, "read stdout")
-	}
-	debug.Log("event", "stdout.read", "value", string(stdout))
-
-	stderr, err = ioutil.ReadAll(stderrReader)
-	if err != nil {
-		debug.Log("event", "stderr.read.fail", "err", err)
-		return stdout, stderr, errors.Wrap(err, "read stderr")
-	}
-	debug.Log("event", "stderr.read", "value", string(stderr))
-
-	debug.Log("event", "cmd.wait")
-	err = cmd.Wait()
-	debug.Log("event", "cmd.waited")
-
-	debug.Log("event", "cmd.streams.read.done")
-
-	return stdout, stderr, err
-}
-
-func (p *ShipPatcher) patchCleanup() {
+func (p *ShipPatcher) applyPatchCleanup() {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "patchCleanup"))
 
 	debug.Log("event", "remove temp directory")

@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/constants"
-
-	"io/ioutil"
+	"github.com/replicatedhq/ship/pkg/process"
 
 	"regexp"
 
@@ -44,6 +43,7 @@ type ForkTemplater struct {
 	FS             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
 	Viper          *viper.Viper
+	process        process.Process
 }
 
 func (f *ForkTemplater) Template(
@@ -104,7 +104,7 @@ func (f *ForkTemplater) Template(
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
-	stdout, stderr, err := f.fork(cmd)
+	stdout, stderr, err := f.process.Fork(cmd)
 	if err != nil {
 		debug.Log("event", "cmd.err")
 		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
@@ -212,49 +212,6 @@ func appendHelmValue(
 	return args, nil
 }
 
-func (f *ForkTemplater) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
-	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm"))
-	debug.Log("event", "cmd.run", "base", cmd.Path, "args", strings.Join(cmd.Args, " "))
-
-	var stdout, stderr []byte
-	stdoutReader, err := cmd.StdoutPipe()
-	if err != nil {
-		return stdout, stderr, errors.Wrapf(err, "pipe stdout")
-	}
-	stderrReader, err := cmd.StderrPipe()
-	if err != nil {
-		return stdout, stderr, errors.Wrapf(err, "pipe stderr")
-	}
-
-	debug.Log("event", "cmd.start")
-	err = cmd.Start()
-	if err != nil {
-		return stdout, stderr, errors.Wrap(err, "start cmd")
-	}
-	debug.Log("event", "cmd.started")
-
-	stdout, err = ioutil.ReadAll(stdoutReader)
-	if err != nil {
-		debug.Log("event", "stdout.read.fail", "err", err)
-		return stdout, stderr, errors.Wrap(err, "read stdout")
-	}
-	debug.Log("event", "stdout.read", "value", string(stdout))
-
-	stderr, err = ioutil.ReadAll(stderrReader)
-	if err != nil {
-		debug.Log("event", "stderr.read.fail", "err", err)
-		return stdout, stderr, errors.Wrap(err, "read stderr")
-	}
-	debug.Log("event", "stderr.read", "value", string(stderr))
-
-	debug.Log("event", "cmd.wait")
-	err = cmd.Wait()
-	debug.Log("event", "cmd.waited")
-
-	debug.Log("event", "cmd.streams.read.done")
-
-	return stdout, stderr, err
-}
 func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
 	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "render.step", "helm.dependencyUpdate"))
 	cmd := f.Helm()
@@ -266,7 +223,7 @@ func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
 
 	debug.Log("event", "helm.update", "args", fmt.Sprintf("%v", cmd.Args))
 
-	stdout, stderr, err := f.fork(cmd)
+	stdout, stderr, err := f.process.Fork(cmd)
 
 	if err != nil {
 		debug.Log("event", "cmd.err")
@@ -289,7 +246,7 @@ func (f *ForkTemplater) helmInitClient(chartRoot string) error {
 
 	debug.Log("event", "helm.initClient", "args", fmt.Sprintf("%v", cmd.Args))
 
-	stdout, stderr, err := f.fork(cmd)
+	stdout, stderr, err := f.process.Fork(cmd)
 
 	if err != nil {
 		debug.Log("event", "cmd.err")
@@ -317,5 +274,6 @@ func NewTemplater(
 		FS:             fs,
 		BuilderBuilder: builderBuilder,
 		Viper:          viper,
+		process:        process.Process{Logger: logger},
 	}
 }
