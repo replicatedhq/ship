@@ -121,10 +121,10 @@ export class AceEditorHOC extends React.Component {
     };
 
     if (ast.mappings) {
-      createMarkersMap(ast);
+      return createMarkersMap(ast);
     }
     if (ast.items) {
-      createMarkersSlice(ast);
+      return createMarkersSlice(ast);
     }
 
     const { startPosition, endPosition } = ast;
