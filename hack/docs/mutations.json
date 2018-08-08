@@ -733,7 +733,9 @@
       ]
     },
     "replace": {
-      "required": []
+      "required": [
+        "contents"
+      ]
     }
   },
   {
@@ -815,5 +817,32 @@
       "description": "the kubeconfig file to use, overriding the system default"
     }
   },
-  {}
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.kustomize",
+    "merge": {
+      "description": "",
+      "examples": [
+      ]
+    },
+    "replace": {
+      "required": []
+    }
+  },
+
+  { "comment": "last step -- delete internal spec types"},
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties",
+    "delete": [
+      "message.properties.StepShared",
+      "render.properties.StepShared",
+      "terraform.properties.StepShared",
+      "kustomize.properties.StepShared",
+      "kustomizeIntro",
+      "kustomizeDiff",
+      "helmIntro",
+      "helmValues",
+      "config",
+      "kubectl.properties.StepShared"
+    ]
+  }
 ]
