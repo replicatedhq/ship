@@ -75,7 +75,7 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 				err := d.awaitAsyncStep(errChan, debug, step)
 				if err != nil {
 					debug.Log("event", "execute.fail", "err", err)
-					d.StepProgress[stepID] = daemontypes.StringProgress("v2router", "failed")
+					d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "failed"))
 					return
 				}
 				newState := state.Versioned().WithCompletedStep(step)
@@ -89,7 +89,7 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 			return
 		}
 		level.Info(logger).Log("event", "task.complete", "progess", d.progress(step))
-		d.StepProgress[stepID] = daemontypes.StringProgress("v2router", "complete")
+		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "failed"))
 		newState := state.Versioned().WithCompletedStep(step)
 
 		err = d.StateManager.Save(newState)
@@ -137,7 +137,7 @@ func (d *V2Routes) execute(step api.Step) error {
 
 	statusReceiver := &statusonly.StatusReceiver{
 		OnProgress: func(progress daemontypes.Progress) {
-			d.StepProgress[step.Shared().ID] = progress
+			d.StepProgress.Store(step.Shared().ID, progress)
 		},
 	}
 	planner := d.Planner.WithStatusReceiver(statusReceiver)
@@ -165,7 +165,7 @@ func (d *V2Routes) execute(step api.Step) error {
 }
 
 func (d *V2Routes) progress(step api.Step) daemontypes.Progress {
-	progress, ok := d.StepProgress[step.Shared().ID]
+	progress, ok := d.StepProgress.Load(step.Shared().ID)
 	if !ok {
 		progress = daemontypes.StringProgress("v2router", "unknown")
 	}

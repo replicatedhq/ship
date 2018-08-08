@@ -57,8 +57,7 @@ func NewV2Router(
 		StepExecutor: func(d *V2Routes, step api.Step) error {
 			return d.execute(step)
 		},
-
-		StepProgress: make(map[string]daemontypes.Progress),
+		StepProgress: &daemontypes.ProgressMap{},
 	}
 }
 

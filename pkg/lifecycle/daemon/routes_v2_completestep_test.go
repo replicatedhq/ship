@@ -242,7 +242,7 @@ func TestV2CompleteStep(t *testing.T) {
 				StepExecutor: func(d *V2Routes, step api.Step) error {
 					return nil
 				},
-				StepProgress: make(map[string]daemontypes.Progress),
+				StepProgress: &daemontypes.ProgressMap{},
 			}
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
