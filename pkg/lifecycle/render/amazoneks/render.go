@@ -60,11 +60,9 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "render tf config")
 		}
 
-		var assetsPath string
+		assetsPath := "amazon_eks.tf"
 		if asset.Dest != "" {
 			assetsPath = asset.Dest
-		} else {
-			assetsPath = "amazon_eks.tf"
 		}
 
 		// save the path to the kubeconfig that running the generated terraform will produce

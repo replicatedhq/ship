@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
-var AmazonEKSPaths map[string]string
+var amazonEKSPaths map[string]string
 
 // ShipContext is the context for builder functions that depend on what assets have been created.
 type ShipContext struct {
@@ -30,13 +30,13 @@ func (ctx ShipContext) FuncMap() template.FuncMap {
 
 // amazonEKS returns the path within the InstallerPrefixPath that the kubeconfig for the named cluster can be found at
 func (ctx ShipContext) amazonEKS(name string) string {
-	return AmazonEKSPaths[name]
+	return amazonEKSPaths[name]
 }
 
 // AddAmazonEKSPath adds a kubeconfig path to the cache
 func AddAmazonEKSPath(name string, path string) {
-	if AmazonEKSPaths == nil {
-		AmazonEKSPaths = make(map[string]string)
+	if amazonEKSPaths == nil {
+		amazonEKSPaths = make(map[string]string)
 	}
-	AmazonEKSPaths[name] = path
+	amazonEKSPaths[name] = path
 }
