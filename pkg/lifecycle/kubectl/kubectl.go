@@ -31,7 +31,7 @@ func NewKubectl(
 	logger log.Logger,
 	daemon daemontypes.Daemon,
 	viper *viper.Viper,
-) lifecycle.Kubectl {
+) lifecycle.KubectlApply {
 	return &ForkKubectl{
 		Logger: logger,
 		Daemon: daemon,
@@ -39,7 +39,7 @@ func NewKubectl(
 	}
 }
 
-func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api.Kubectl) error {
+func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply) error {
 	builder := k.getBuilder(release.Metadata)
 	builtPath, _ := builder.String(step.Path)
 	builtKubePath, _ := builder.String(step.Kubeconfig)
