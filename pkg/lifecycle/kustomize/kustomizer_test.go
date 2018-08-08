@@ -58,7 +58,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				"a.yaml":        "---",
 				"folder/b.yaml": "---",
 			},
-			want: []string{"overlays/ship/a.yaml", "overlays/ship/folder/b.yaml"},
+			want: []string{"a.yaml", "folder/b.yaml"},
 		},
 	}
 	for _, tt := range tests {

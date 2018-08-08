@@ -134,7 +134,12 @@ func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (re
 			debug.Log("event", "write", "name", name)
 			return []string{}, errors.Wrapf(err, "write %s", name)
 		}
-		relativePatchPaths = append(relativePatchPaths, name)
+
+		relativePatchPath, err := filepath.Rel(destDir, name)
+		if err != nil {
+			return []string{}, errors.Wrap(err, "unable to determine relative path")
+		}
+		relativePatchPaths = append(relativePatchPaths, relativePatchPath)
 	}
 	return relativePatchPaths, nil
 }
