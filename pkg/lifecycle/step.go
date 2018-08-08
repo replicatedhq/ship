@@ -13,14 +13,14 @@ import (
 type StepExecutor struct {
 	dig.In
 
-	Logger      log.Logger
-	Messenger   Messenger
-	Renderer    Renderer
-	Terraformer Terraformer
-	HelmIntro   HelmIntro
-	HelmValues  HelmValues
-	Kubectl     Kubectl
-	Kustomizer  Kustomizer
+	Logger       log.Logger
+	Messenger    Messenger
+	Renderer     Renderer
+	Terraformer  Terraformer
+	HelmIntro    HelmIntro
+	HelmValues   HelmValues
+	KubectlApply KubectlApply
+	Kustomizer   Kustomizer
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -54,9 +54,9 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.helmValues", "type", "helmValues")
 		err := s.HelmValues.Execute(ctx, release, step.HelmValues)
 		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
-	} else if step.Kubectl != nil {
+	} else if step.KubectlApply != nil {
 		debug.Log("event", "step.resolve", "type", "kubectl")
-		err := s.Kubectl.Execute(ctx, *release, *step.Kubectl)
+		err := s.KubectlApply.Execute(ctx, *release, *step.KubectlApply)
 		debug.Log("event", "step.complete", "type", "kubectl", "err", err)
 	}
 
