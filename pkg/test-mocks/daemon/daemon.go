@@ -46,6 +46,18 @@ func (mr *MockDaemonMockRecorder) AllStepsDone(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllStepsDone", reflect.TypeOf((*MockDaemon)(nil).AllStepsDone), arg0)
 }
 
+// AwaitShutdown mocks base method
+func (m *MockDaemon) AwaitShutdown() error {
+	ret := m.ctrl.Call(m, "AwaitShutdown")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AwaitShutdown indicates an expected call of AwaitShutdown
+func (mr *MockDaemonMockRecorder) AwaitShutdown() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AwaitShutdown", reflect.TypeOf((*MockDaemon)(nil).AwaitShutdown))
+}
+
 // CleanPreviousStep mocks base method
 func (m *MockDaemon) CleanPreviousStep() {
 	m.ctrl.Call(m, "CleanPreviousStep")
