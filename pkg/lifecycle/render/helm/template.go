@@ -138,12 +138,9 @@ func (f *ForkTemplater) Template(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
-	if baseDirExists, err := f.FS.DirExists(constants.RenderedHelmPath); err == nil && baseDirExists {
-		// remove base dir iff it is a dir and it exists
-		if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
-			return errors.Wrap(err, "failed to remove base dir")
-		}
-		debug.Log("event", "remove base directory")
+	debug.Log("event", "renderedHelmValues.remove", "path", constants.RenderedHelmPath)
+	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+		return errors.Wrap(err, "removeAll failed while trying to remove rendered Helm values base dir")
 	}
 
 	debug.Log("event", "rename")
@@ -165,7 +162,7 @@ func (f *ForkTemplater) Template(
 
 	debug.Log("event", "temphelmvalues.remove", "path", constants.TempHelmValuesPath)
 	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
-		return errors.Wrap(err, "failed to remove Helm values tmp dir")
+		return errors.Wrap(err, "removeAll failed while trying to remove Helm values tmp dir")
 	}
 
 	// todo link up stdout/stderr debug logs
