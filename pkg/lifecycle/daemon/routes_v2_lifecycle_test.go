@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -36,7 +37,8 @@ func TestV2Lifecycle(t *testing.T) {
 			}
 			testLogger := &logger.TestLogger{T: t}
 			v2 := &V2Routes{
-				Logger: testLogger,
+				Logger:       testLogger,
+				StepProgress: &daemontypes.ProgressMap{},
 			}
 
 			func() {
