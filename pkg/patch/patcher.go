@@ -3,12 +3,18 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"os/exec"
+	"path"
+	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -18,16 +24,18 @@ import (
 type Patcher interface {
 	CreateTwoWayMergePatch(string, string) ([]byte, error)
 	MergePatches([]byte, []byte) ([]byte, error)
-	ApplyPatch(string, string) ([]byte, error)
+	ApplyPatch(string) ([]byte, error)
 }
 
 type ShipPatcher struct {
 	Logger log.Logger
+	FS     afero.Afero
 }
 
-func NewShipPatcher(logger log.Logger) Patcher {
+func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
 	return &ShipPatcher{
 		Logger: logger,
+		FS:     fs,
 	}
 }
 
@@ -176,44 +184,109 @@ func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error
 	return patch, nil
 }
 
-func (p *ShipPatcher) ApplyPatch(original, patch string) ([]byte, error) {
+func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
+	defer p.patchCleanup()
 
-	debug.Log("event", "convert.original")
-	originalJSON, err := yaml.YAMLToJSON([]byte(original))
-	if err != nil {
-		return nil, errors.Wrap(err, "convert original file to json")
+	kustomizeCmd := exec.Command("/usr/local/bin/kustomize")
+
+	debug.Log("event", "mkdir.tempApplyOverlayPath")
+	if err := p.FS.MkdirAll(constants.TempApplyOverlayPath, 0755); err != nil {
+		return nil, errors.Wrap(err, "create temp apply overlay path")
 	}
 
-	debug.Log("event", "convert.patch")
-	patchJSON, err := yaml.YAMLToJSON([]byte(patch))
-	if err != nil {
-		return nil, errors.Wrap(err, "convert patch file to json")
+	debug.Log("event", "writeFile.tempPatch")
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), []byte(patch), 0755); err != nil {
+		return nil, errors.Wrap(err, "write temp patch overlay")
 	}
 
-	debug.Log("event", "createKubeResource.originalFile")
-	originalResource, err := p.newKubernetesResource(originalJSON)
+	debug.Log("event", "relPath")
+	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.RenderedHelmPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
+		return nil, errors.Wrap(err, "failed to find relative path")
 	}
 
-	debug.Log("event", "createNewScheme.originalFile")
-	versionedObj, err := scheme.Scheme.New(originalResource.Id().Gvk())
-	if err != nil {
-		return nil, errors.Wrap(err, "create new scheme based on kube resource")
+	kustomizationYaml := map[string]interface{}{
+		"bases":   []string{relativePathToBases},
+		"patches": []string{"temp.yaml"},
 	}
 
-	debug.Log("event", "strategicPatch.strategicMergePatch")
-	modified, err := strategicpatch.StrategicMergePatch(originalJSON, patchJSON, versionedObj)
+	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)
 	if err != nil {
-		return nil, errors.Wrap(err, "merge patch with original")
+		return nil, errors.Wrap(err, "marshal kustomization yaml")
 	}
 
-	debug.Log("event", "modified.jsonToYaml")
-	out, err := yaml.JSONToYAML(modified)
-	if err != nil {
-		return nil, errors.Wrap(err, "convert json to yaml")
+	debug.Log("event", "writeFile.tempKustomizationYaml")
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "kustomization.yaml"), kustomizationYamlBytes, 0755); err != nil {
+		return nil, errors.Wrap(err, "write temp kustomization yaml")
 	}
 
-	return out, nil
+	kustomizeCmd.Args = append(
+		kustomizeCmd.Args,
+		"build", constants.TempApplyOverlayPath,
+	)
+
+	debug.Log("event", "fork")
+	stdout, stderr, err := p.fork(kustomizeCmd)
+	if err != nil {
+		debug.Log("event", "cmd.err")
+		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
+			return nil, errors.Errorf(`execute kustomize: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
+		}
+		return nil, errors.Wrap(err, "execute kustomize")
+	}
+	return stdout, nil
+}
+
+func (p *ShipPatcher) fork(cmd *exec.Cmd) ([]byte, []byte, error) {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "fork"))
+
+	var stdout, stderr []byte
+	stdoutReader, err := cmd.StdoutPipe()
+	if err != nil {
+		return stdout, stderr, errors.Wrapf(err, "pipe stdout")
+	}
+	stderrReader, err := cmd.StderrPipe()
+	if err != nil {
+		return stdout, stderr, errors.Wrapf(err, "pipe stderr")
+	}
+
+	debug.Log("event", "cmd.start")
+	err = cmd.Start()
+	if err != nil {
+		return stdout, stderr, errors.Wrap(err, "start cmd")
+	}
+	debug.Log("event", "cmd.started")
+
+	stdout, err = ioutil.ReadAll(stdoutReader)
+	if err != nil {
+		debug.Log("event", "stdout.read.fail", "err", err)
+		return stdout, stderr, errors.Wrap(err, "read stdout")
+	}
+	debug.Log("event", "stdout.read", "value", string(stdout))
+
+	stderr, err = ioutil.ReadAll(stderrReader)
+	if err != nil {
+		debug.Log("event", "stderr.read.fail", "err", err)
+		return stdout, stderr, errors.Wrap(err, "read stderr")
+	}
+	debug.Log("event", "stderr.read", "value", string(stderr))
+
+	debug.Log("event", "cmd.wait")
+	err = cmd.Wait()
+	debug.Log("event", "cmd.waited")
+
+	debug.Log("event", "cmd.streams.read.done")
+
+	return stdout, stderr, err
+}
+
+func (p *ShipPatcher) patchCleanup() {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "patchCleanup"))
+
+	debug.Log("event", "remove temp directory")
+	err := p.FS.RemoveAll(constants.TempApplyOverlayPath)
+	if err != nil {
+		level.Error(log.With(p.Logger, "clean up"))
+	}
 }

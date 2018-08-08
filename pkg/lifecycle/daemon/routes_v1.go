@@ -97,7 +97,7 @@ func (d *V1Routes) applyPatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
-	modified, err := d.Patcher.ApplyPatch(request.Original, request.Patch)
+	modified, err := d.Patcher.ApplyPatch(request.Patch)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))

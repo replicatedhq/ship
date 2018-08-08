@@ -2,8 +2,11 @@ package patch
 
 import (
 	"io/ioutil"
+	"os"
 	"path"
 	"testing"
+
+	"github.com/spf13/afero"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,8 +19,9 @@ func TestShipPatcher(t *testing.T) {
 }
 
 const (
-	createApplyTestCasesFolder = "create-apply-test-cases"
-	mergeTestCasesFolder       = "merge-test-cases"
+	createTestCasesFolder = "create-test-cases"
+	mergeTestCasesFolder  = "merge-test-cases"
+	applyTestCasesFolder  = "apply-test-cases"
 )
 
 var shipPatcher *ShipPatcher
@@ -25,26 +29,27 @@ var shipPatcher *ShipPatcher
 var _ = BeforeSuite(func() {
 	shipPatcher = &ShipPatcher{
 		Logger: &logger.TestLogger{T: GinkgoT()},
+		FS:     afero.Afero{Fs: afero.NewOsFs()},
 	}
 })
 
 var _ = Describe("ShipPatcher", func() {
 	Describe("CreateTwoWayMergePatch", func() {
 		It("Creates a merge patch given valid original and modified k8s yaml", func() {
-			createTestDirs, err := ioutil.ReadDir(path.Join(createApplyTestCasesFolder))
+			createTestDirs, err := ioutil.ReadDir(path.Join(createTestCasesFolder))
 			Expect(err).NotTo(HaveOccurred())
 
 			for _, createTestDir := range createTestDirs {
-				original, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, createTestDir.Name(), "original.yaml"))
+				original, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "original.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, createTestDir.Name(), "modified.yaml"))
+				modified, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				patch, err := shipPatcher.CreateTwoWayMergePatch(string(original), string(modified))
 				Expect(err).NotTo(HaveOccurred())
 
-				expectPatch, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, createTestDir.Name(), "patch.yaml"))
+				expectPatch, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "patch.yaml"))
 				Expect(string(patch)).To(Equal(string(expectPatch)))
 			}
 		})
@@ -71,20 +76,20 @@ var _ = Describe("ShipPatcher", func() {
 	})
 	Describe("ApplyPatch", func() {
 		It("Applies a single patch to a file, producing a modified yaml", func() {
-			applyTestDirs, err := ioutil.ReadDir(path.Join(createApplyTestCasesFolder))
+			applyTestDirs, err := ioutil.ReadDir(path.Join(applyTestCasesFolder))
 			Expect(err).NotTo(HaveOccurred())
 
 			for _, applyTestDir := range applyTestDirs {
-				original, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, applyTestDir.Name(), "original.yaml"))
+				err := os.Chdir(path.Join(applyTestCasesFolder, applyTestDir.Name()))
 				Expect(err).NotTo(HaveOccurred())
 
-				patch, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, applyTestDir.Name(), "patch.yaml"))
+				patch, err := ioutil.ReadFile(path.Join("patch.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(string(original), string(patch))
+				modified, err := shipPatcher.ApplyPatch(string(patch))
 				Expect(err).NotTo(HaveOccurred())
 
-				expectModified, err := ioutil.ReadFile(path.Join(createApplyTestCasesFolder, applyTestDir.Name(), "modified.yaml"))
+				expectModified, err := ioutil.ReadFile("modified.yaml")
 				Expect(string(modified)).To(Equal(string(expectModified)))
 			}
 		})
