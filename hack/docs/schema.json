@@ -11,8 +11,8 @@
           "items": {
             "type": "object",
             "properties": {
-              "amazon_elastic_kubernetes_service": {
-                "description": "An `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+              "amazon_eks": {
+                "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster",
                 "examples": [
                   {
                     "cluster_name": "existing-vpc-cluster",
@@ -141,7 +141,7 @@
                     "type": "string"
                   },
                   "dest": {
-                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_elastic_kubernetes_service.tf`",
+                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_eks.tf`",
                     "type": "string"
                   },
                   "existing_vpc": {

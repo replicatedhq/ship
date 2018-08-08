@@ -1,4 +1,4 @@
-package amazonElasticKubernetesService
+package amazoneks
 
 const newVPCTempl = `
 variable "vpc_cidr" {

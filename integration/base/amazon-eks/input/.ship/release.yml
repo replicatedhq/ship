@@ -1,6 +1,6 @@
 assets:
   v1:
-    - amazon_elastic_kubernetes_service:
+    - amazon_eks:
         dest: empty/empty.tf
         cluster_name: ""
         region: ""
@@ -9,7 +9,7 @@ assets:
           vpc_id: ""
           public_subnets: []
           private_subnets: []
-    - amazon_elastic_kubernetes_service:
+    - amazon_eks:
         dest: existing/existing_vpc.tf
         cluster_name: "existing-vpc-cluster"
         region: "us-east-1"
@@ -25,7 +25,7 @@ assets:
           - name: onegroup
             group_size: 3
             machine_type: m5.large
-    - amazon_elastic_kubernetes_service:
+    - amazon_eks:
         dest: new/new_vpc.tf
         cluster_name: new-vpc-cluster
         region: "us-west-2"
