@@ -6,7 +6,7 @@ import * as ast from "yaml-ast-parser";
 import find from "lodash/find";
 import set from "lodash/set";
 
-const { addListener } = ace.acequire("ace/lib/event");
+const { addListener, removeListener } = ace.acequire("ace/lib/event");
 
 export const PATCH_TOKEN = "TO_BE_MODIFIED";
 
@@ -21,11 +21,8 @@ export class AceEditorHOC extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { fileToView } = this.props;
-    if (fileToView) {
-      const { fileToView: oldFileToView = {} } = prevProps;
-      const { baseContent: oldBaseContent } = oldFileToView;
-      const { baseContent } = fileToView;
-      if (baseContent !== oldBaseContent) {
+    if (fileToView !== prevProps.fileToView) {
+      if (fileToView.baseContent) {
         const markers = this.createMarkers(fileToView);
         this.setState({ markers });
       }
@@ -44,6 +41,12 @@ export class AceEditorHOC extends React.Component {
     addListener(this.aceEditorBase.editor, "click", this.addToOverlay)
     addListener(this.aceEditorBase.editor.renderer.scroller, "mousemove", this.setActiveMarker);
     addListener(this.aceEditorBase.editor.renderer.scroller, "mouseout", this.setActiveMarker);
+  }
+
+  componentWillUnmount() {
+    removeListener(this.aceEditorBase.editor, "click", this.addToOverlay);
+    removeListener(this.aceEditorBase.editor.renderer.scroller, "mousemove", this.setActiveMarker);
+    removeListener(this.aceEditorBase.editor.renderer.scroller, "mouseout", this.setActiveMarker)
   }
 
   findMarkerAtRow = (row, markers) => (

@@ -168,7 +168,7 @@ export default class KustomizeOverlay extends React.Component {
   setFileTree() {
     const { kustomize } = this.props.currentStep;
     if (!kustomize.tree) return;
-    const sortedTree = sortBy([kustomize.tree], (dir) => {
+    const sortedTree = sortBy(kustomize.tree.children, (dir) => {
       dir.children ? dir.children.length : 0
     });
     const basePath = kustomize.basePath.substr(kustomize.basePath.lastIndexOf("/") + 1);
