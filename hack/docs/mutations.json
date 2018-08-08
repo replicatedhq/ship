@@ -733,7 +733,9 @@
       ]
     },
     "replace": {
-      "required": []
+      "required": [
+        "contents"
+      ]
     }
   },
   {
