@@ -71,7 +71,7 @@
     "uglify-js": "^3.3.13",
     "uglifyjs-webpack-plugin": "^1.2.2",
     "url-loader": "^1.0.1",
-    "webpack": "^4.1.1",
+    "webpack": "^4.16.5",
     "webpack-cli": "^2.0.10",
     "webpack-dev-server": "^3.1.1",
     "webpack-merge": "^4.1.2",
