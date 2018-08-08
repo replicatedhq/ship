@@ -60,6 +60,6 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.complete", "type", "kubectl", "err", err)
 	}
 
-	debug.Log("event", "step.unknown")
+	debug.Log("event", "step.unknown", "name", step.ShortName(), "id", step.Shared().ID)
 	return nil
 }

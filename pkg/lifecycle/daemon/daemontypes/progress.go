@@ -52,12 +52,12 @@ func MessageProgress(source string, msg Message) Progress {
 
 // the empty value is initialized and ready to use
 type ProgressMap struct {
-	syncmap sync.Map
+	Map sync.Map
 }
 
 func (p *ProgressMap) Load(stepID string) (Progress, bool) {
 	empty := Progress{}
-	value, ok := p.syncmap.Load(stepID)
+	value, ok := p.Map.Load(stepID)
 	if !ok {
 		return empty, false
 	}
@@ -71,5 +71,5 @@ func (p *ProgressMap) Load(stepID string) (Progress, bool) {
 }
 
 func (p *ProgressMap) Store(stepID string, progress Progress) {
-	p.syncmap.Store(stepID, progress)
+	p.Map.Store(stepID, progress)
 }

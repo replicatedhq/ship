@@ -60,6 +60,7 @@ func buildInjector() (*dig.Container, error) {
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
 		patch.NewShipPatcher,
+		specs.NewIDPatcher,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
