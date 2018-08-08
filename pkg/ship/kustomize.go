@@ -80,6 +80,8 @@ func (s *Ship) Update(ctx context.Context) error {
 
 func (s *Ship) Watch(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "watch"))
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer s.Shutdown(cancelFunc)
 
 	for {
 		existingState, err := s.State.TryLoad()
@@ -118,6 +120,8 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer s.Shutdown(cancelFunc)
 
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()

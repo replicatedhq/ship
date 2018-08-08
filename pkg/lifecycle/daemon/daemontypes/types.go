@@ -36,6 +36,7 @@ type Daemon interface {
 	TerraformConfirmedChan() chan bool
 	KustomizeSavedChan() chan interface{}
 	GetCurrentConfig() map[string]interface{}
+	AwaitShutdown() error
 }
 
 const StepNameMessage = "message"
