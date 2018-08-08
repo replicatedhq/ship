@@ -23,10 +23,19 @@ serve_ship:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipDev --mode development
 
 .state/build_ship_dev: .state/package webpack* postcss* $(shell find src -type f)
-	rm -rf dist
-	`yarn bin`/webpack --config webpack.config.js $(PROGRESS) --debug --env shipDev --mode development
-	@mkdir -p .state
-	@touch .state/build_ship_dev
+    rm -rf dist
+    `yarn bin`/webpack --config webpack.config.js $(PROGRESS) --debug --env shipDev --mode development
+    @mkdir -p .state
+    @touch .state/build_ship_dev
+
+serve_ship_v2:
+    `yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipV2Dev --mode development
+
+.state/build_ship:  .state/package webpack* postcss* $(shell find src -type f)
+    rm -rf dist
+    `yarn bin`/webpack --config webpack.config.js --env production --mode production
+    @mkdir -p .state
+    @touch .state/build_ship
 
 build_ship_dev: .state/build_ship_dev
 
