@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui pkg/lifecycle/ui.bindatafs.go
 
 
 SHELL := /bin/bash
@@ -220,12 +220,13 @@ build_yoonit_docker_image:
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps 
 	cd web; go-bindata-assetfs -pkg daemon \
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
+	  -nometadata \
 	  dist/...
 
-embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go fmt
 
 build-ui:
 	$(MAKE) -C web build_ship
