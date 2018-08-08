@@ -27,7 +27,6 @@ jobs:
       - image: circleci/node:9
     working_directory: ~/repo
     steps:
-    steps:
       - checkout
       - restore_cache:
           keys:
@@ -126,6 +125,7 @@ jobs:
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
       - run: make build-deps embed-ui
+      - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go
       - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
