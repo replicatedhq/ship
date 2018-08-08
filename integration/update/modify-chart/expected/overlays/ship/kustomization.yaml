@@ -1,4 +1,4 @@
 bases:
 - ../../base
 patches:
-- /templates/deployment.yaml
+- templates/deployment.yaml
