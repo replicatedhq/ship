@@ -16,7 +16,7 @@ type Step struct {
 	KustomizeDiff  *KustomizeDiff  `json:"kustomizeDiff,omitempty" yaml:"kustomizeDiff,omitempty" hcl:"kustomizeDiff,omitempty"`
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
-	Kubectl        *Kubectl        `json:"kubectl,omitempty" yaml:"kubectl,omitempty" hcl:"kubectl,omitempty"`
+	KubectlApply   *KubectlApply   `json:"kubectl_apply,omitempty" yaml:"kubectl_apply,omitempty" hcl:"kubectl_apply,omitempty"`
 }
 
 type StepDetails interface {
@@ -143,12 +143,12 @@ func (c ConfigStep) ShortName() string {
 	return "config"
 }
 
-// Kubectl is a lifeycle step to execute `apply` for a kubeconfig asset
-type Kubectl struct {
+// KubectlApply is a lifeycle step to execute `apply` for a kubeconfig asset
+type KubectlApply struct {
 	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Path       string     `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 	Kubeconfig string     `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
 }
 
-func (k *Kubectl) Shared() *StepShared { return &k.StepShared }
-func (k *Kubectl) ShortName() string   { return "kubectl" }
+func (k *KubectlApply) Shared() *StepShared { return &k.StepShared }
+func (k *KubectlApply) ShortName() string   { return "kubectl" }

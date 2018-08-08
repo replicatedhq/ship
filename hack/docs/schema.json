@@ -690,8 +690,8 @@
           "items": {
             "type": "object",
             "properties": {
-              "kubectl": {
-                "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
+              "kubectl_apply": {
+                "description": "A `kubectl_apply` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [
                   {
                     "path": "config.yml"

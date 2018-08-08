@@ -788,9 +788,9 @@
     "delete": ["github"]
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply",
     "merge": {
-      "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
+      "description": "A `kubectl_apply` step will run `kubectl apply` with the provided file path and kubeconfig.",
       "examples": [
         { "path": "config.yml" },
         {
@@ -806,13 +806,13 @@
     }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl.properties.path",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply.properties.path",
     "merge": {
       "description": "the file to apply"
     }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl.properties.kubeconfig",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply.properties.kubeconfig",
     "merge": {
       "description": "the kubeconfig file to use, overriding the system default"
     }
@@ -842,7 +842,7 @@
       "helmIntro",
       "helmValues",
       "config",
-      "kubectl.properties.StepShared"
+      "kubectl_apply.properties.StepShared"
     ]
   }
 ]
