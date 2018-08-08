@@ -48,24 +48,15 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
       this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
     }
-
-    if ((this.state.viewDiff !== lastState.viewDiff) ||
-      (this.state.patch !== lastState.patch)
+    if (
+      (this.state.viewDiff !== lastState.viewDiff) ||
+      (this.state.patch !== lastState.patch) ||
+      (this.state.selectedFile !== lastState.selectedFile)
     ) {
-      if (this.aceEditorOverlay) {
-        this.aceEditorOverlay.editor.resize();
-      }
+      this.aceEditorOverlay.editor.resize();
     }
     if (this.props.patch !== lastProps.patch) {
       this.setState({ patch: this.props.patch });
-    }
-    if (this.state.selectedFile !== lastState.selectedFile) {
-      this.aceEditorOverlay.editor.resize();
-      const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
-      if (file) {
-        const initalOverlay = file.overlayContent;
-        this.setState({ patch: initalOverlay });
-      }
     }
   }
 
@@ -103,10 +94,8 @@ export default class KustomizeOverlay extends React.Component {
     }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content and set the overlayContent from new file content on the file the user wants to view
-      const file = find(this.props.fileContents, ["key", path]);
       this.setState({
         fileContents: keyBy(this.props.fileContents, "key"),
-        patch: file.overlayContent
       });
     });
   }
@@ -153,7 +142,6 @@ export default class KustomizeOverlay extends React.Component {
     }
     await this.props.saveKustomizeOverlay(payload).catch();
     if (closeOverlay) {
-      console.log("closing")
       this.setState({ patch: ""});
     }
     this.onKustomizeSaved();
@@ -180,7 +168,7 @@ export default class KustomizeOverlay extends React.Component {
   setFileTree() {
     const { kustomize } = this.props.currentStep;
     if (!kustomize.tree) return;
-    const sortedTree = sortBy(kustomize.tree.children, (dir) => {
+    const sortedTree = sortBy([kustomize.tree], (dir) => {
       dir.children ? dir.children.length : 0
     });
     const basePath = kustomize.basePath.substr(kustomize.basePath.lastIndexOf("/") + 1);
@@ -191,7 +179,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   render() {
-    const { dataLoading, fileContents } = this.props;
+    const { dataLoading } = this.props;
     const {
       fileTree,
       fileTreeBasePath,
@@ -201,7 +189,7 @@ export default class KustomizeOverlay extends React.Component {
       toastDetails,
       patch,
     } = this.state;
-    const fileToView = find(fileContents, ["key", selectedFile]);
+    const fileToView = find(this.state.fileContents, ["key", selectedFile]);
     const showOverlay = patch.length;
 
     return (
