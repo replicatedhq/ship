@@ -164,8 +164,16 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
-		err := s.Runner.Run(ctx, release)
-		s.Daemon.AllStepsDone(ctx)
+		var err error
+		// *wince* dex do this better
+		if viper.GetBool("navigate-lifecycle") {
+			s.Daemon.EnsureStarted(ctx, release)
+			err = s.Daemon.AwaitShutdown()
+		} else {
+			err = s.Runner.Run(ctx, release)
+			s.Daemon.AllStepsDone(ctx)
+		}
+
 		if err != nil {
 			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
 		} else {
