@@ -48,8 +48,8 @@ func Test_kustomizer_writePatches(t *testing.T) {
 			args: args{
 				shipOverlay: state.Overlay{
 					Patches: map[string]string{
-						"a.yaml":        "---",
-						"folder/b.yaml": "---",
+						"a.yaml":         "---",
+						"/folder/b.yaml": "---",
 					},
 				},
 				destDir: destDir,

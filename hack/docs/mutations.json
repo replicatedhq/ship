@@ -443,7 +443,7 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks",
     "replace": {
       "required": [
         "cluster_name",
@@ -464,7 +464,7 @@
       ]
     },
     "merge": {
-      "description": "An `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+      "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster",
       "examples": [
         {
           "cluster_name": "existing-vpc-cluster",
@@ -523,7 +523,7 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.autoscaling_groups",
     "replace": {
       "required": [
         "name",
@@ -536,37 +536,37 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.name",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.autoscaling_groups.items.properties.name",
     "merge": {
       "description": "The name to give the created autoscaling group"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.group_size",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.autoscaling_groups.items.properties.group_size",
     "merge": {
       "description": "The number of instances to be included in the group"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.autoscaling_groups.items.properties.machine_type",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.autoscaling_groups.items.properties.machine_type",
     "merge": {
       "description": "The AWS instance type to use within the group"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.cluster_name",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.cluster_name",
     "merge": {
       "description": "The name of the created EKS cluster"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.region",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.region",
     "merge": {
       "description": "The AWS region to build the cluster in. At time of writing, AWS supports EKS in us-east and us-west"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.created_vpc",
     "replace": {
       "required": [
         "zones",
@@ -580,31 +580,31 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.zones",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.created_vpc.properties.zones",
     "merge": {
       "description": "The availability zones to create subnets within"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.vpc_cidr",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.created_vpc.properties.vpc_cidr",
     "merge": {
       "description": "The CIDR to use for this VPC"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.public_subnets",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.created_vpc.properties.public_subnets",
     "merge": {
       "description": "The public subnets to create within the VPC"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.created_vpc.properties.private_subnets",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.created_vpc.properties.private_subnets",
     "merge": {
       "description": "The private subnets to create within the VPC. All workers will be placed on these subnets"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.existing_vpc",
     "replace": {
       "required": [
         "vpc_id",
@@ -617,37 +617,37 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.vpc_id",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.existing_vpc.properties.vpc_id",
     "merge": {
       "description": "The ID of the existing VPC to use"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.public_subnets",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.existing_vpc.properties.public_subnets",
     "merge": {
       "description": "The public subnets to use within the VPC"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.existing_vpc.properties.private_subnets",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.existing_vpc.properties.private_subnets",
     "merge": {
       "description": "The private subnets to use within the VPC. All workers will be placed on these subnets"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.mode",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.mode",
     "merge": {
       "description": "Ignored"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.dest",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.dest",
     "merge": {
-      "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_elastic_kubernetes_service.tf`"
+      "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_eks.tf`"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.amazon_elastic_kubernetes_service.properties.when",
+    "path": "properties.assets.properties.v1.items.properties.amazon_eks.properties.when",
     "merge": {
       "description": "This asset will be included when 'when' is omitted or true"
     }
@@ -733,7 +733,9 @@
       ]
     },
     "replace": {
-      "required": []
+      "required": [
+        "contents"
+      ]
     }
   },
   {
@@ -815,5 +817,32 @@
       "description": "the kubeconfig file to use, overriding the system default"
     }
   },
-  {}
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.kustomize",
+    "merge": {
+      "description": "",
+      "examples": [
+      ]
+    },
+    "replace": {
+      "required": []
+    }
+  },
+
+  { "comment": "last step -- delete internal spec types"},
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties",
+    "delete": [
+      "message.properties.StepShared",
+      "render.properties.StepShared",
+      "terraform.properties.StepShared",
+      "kustomize.properties.StepShared",
+      "kustomizeIntro",
+      "kustomizeDiff",
+      "helmIntro",
+      "helmValues",
+      "config",
+      "kubectl.properties.StepShared"
+    ]
+  }
 ]

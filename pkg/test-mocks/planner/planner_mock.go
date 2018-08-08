@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
+	daemontypes "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	planner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 )
 
@@ -50,19 +51,6 @@ func (mr *MockPlannerMockRecorder) Build(arg0, arg1, arg2, arg3 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockPlanner)(nil).Build), arg0, arg1, arg2, arg3)
 }
 
-// Confirm mocks base method
-func (m *MockPlanner) Confirm(arg0 planner.Plan) (bool, error) {
-	ret := m.ctrl.Call(m, "Confirm", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Confirm indicates an expected call of Confirm
-func (mr *MockPlannerMockRecorder) Confirm(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Confirm", reflect.TypeOf((*MockPlanner)(nil).Confirm), arg0)
-}
-
 // Execute mocks base method
 func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
 	ret := m.ctrl.Call(m, "Execute", arg0, arg1)
@@ -73,4 +61,16 @@ func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
 // Execute indicates an expected call of Execute
 func (mr *MockPlannerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPlanner)(nil).Execute), arg0, arg1)
+}
+
+// WithStatusReceiver mocks base method
+func (m *MockPlanner) WithStatusReceiver(arg0 daemontypes.StatusReceiver) planner.Planner {
+	ret := m.ctrl.Call(m, "WithStatusReceiver", arg0)
+	ret0, _ := ret[0].(planner.Planner)
+	return ret0
+}
+
+// WithStatusReceiver indicates an expected call of WithStatusReceiver
+func (mr *MockPlannerMockRecorder) WithStatusReceiver(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithStatusReceiver", reflect.TypeOf((*MockPlanner)(nil).WithStatusReceiver), arg0)
 }

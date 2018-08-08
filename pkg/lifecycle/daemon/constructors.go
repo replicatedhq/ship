@@ -3,39 +3,61 @@ package daemon
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
+	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
 )
+
+type OptionalRoutes struct {
+	dig.In
+	V2Router *V2Routes `optional:"true"`
+	V1Router *V1Routes `optional:"true"`
+}
 
 func NewHeadedDaemon(
 	logger log.Logger,
 	v *viper.Viper,
 	webUIFactory WebUIBuilder,
-	v1Router *V1Routes,
-	v2Router *V2Routes,
+	routes OptionalRoutes,
 ) daemontypes.Daemon {
 	return &ShipDaemon{
 		Logger:       log.With(logger, "struct", "daemon"),
 		WebUIFactory: webUIFactory,
 		Viper:        v,
 		ExitChan:     make(chan error),
-		V1Routes:     v1Router,
-		V2Routes:     v2Router,
+		V1Routes:     routes.V1Router,
+		V2Routes:     routes.V2Router,
 	}
 }
 
 func NewV2Router(
 	logger log.Logger,
 	stateManager state.Manager,
+	messenger lifecycle.Messenger,
+	helmIntro lifecycle.HelmIntro,
+	planners planner.Planner,
+	renderer lifecycle.Renderer,
 ) *V2Routes {
 	return &V2Routes{
 		Logger:       logger,
 		StateManager: stateManager,
+		Planner:      planners,
+
+		Messenger: messenger,
+		HelmIntro: helmIntro,
+		Renderer:  renderer,
+		StepExecutor: func(d *V2Routes, step api.Step) error {
+			return d.execute(step)
+		},
+		StepProgress: &daemontypes.ProgressMap{},
 	}
 }
 

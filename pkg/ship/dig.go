@@ -16,13 +16,15 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
@@ -60,8 +62,6 @@ func buildInjector() (*dig.Container, error) {
 		patch.NewShipPatcher,
 
 		daemon.NewV1Router,
-		daemon.NewV2Router,
-		config.NewResolver,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
 		kustomize.NewKustomizer,
@@ -97,7 +97,7 @@ func buildInjector() (*dig.Container, error) {
 
 		terraform.NewRenderer,
 
-		amazonElasticKubernetesService.NewRenderer,
+		amazoneks.NewRenderer,
 
 		kubectl.NewKubectl,
 
@@ -147,10 +147,12 @@ func buildInjector() (*dig.Container, error) {
 // and is generally intended for CI/automation
 func headlessProviders() []interface{} {
 	return []interface{}{
-		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		headless.NewHeadlessDaemon,
 		helmIntro.NewHelmIntro,
-		render.NewRenderer,
+		config.NewResolver,
+		render.NewFactory,
+		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
+		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
 }
 
@@ -158,10 +160,12 @@ func headlessProviders() []interface{} {
 // the UI/API via a ShipDaemon implementing the daemon.Daemon interface
 func headedProviders() []interface{} {
 	return []interface{}{
-		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		daemon.NewHeadedDaemon,
 		helmIntro.NewHelmIntro,
-		render.NewRenderer,
+		config.NewResolver,
+		render.NewFactory,
+		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
+		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
 }
 
@@ -171,8 +175,13 @@ func headedProviders() []interface{} {
 func navigableProviders() []interface{} {
 	return []interface{}{
 		daemon.NewHeadedDaemon,
+		render.NewFactory,
+		config.NewNoOpResolver,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
+		// fake, we override it, this is janky, use a factory dex
+		func() daemontypes.StatusReceiver { return &statusonly.StatusReceiver{} },
+		daemon.NewV2Router,
 	}
 }
 

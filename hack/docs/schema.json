@@ -11,8 +11,8 @@
           "items": {
             "type": "object",
             "properties": {
-              "amazon_elastic_kubernetes_service": {
-                "description": "An `amazon_elastic_kubernetes_service` asset generates a terraform file that will create an Amazon EKS Cluster",
+              "amazon_eks": {
+                "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster",
                 "examples": [
                   {
                     "cluster_name": "existing-vpc-cluster",
@@ -141,7 +141,7 @@
                     "type": "string"
                   },
                   "dest": {
-                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_elastic_kubernetes_service.tf`",
+                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_eks.tf`",
                     "type": "string"
                   },
                   "existing_vpc": {
@@ -690,99 +690,6 @@
           "items": {
             "type": "object",
             "properties": {
-              "config": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "helmIntro": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "helmValues": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
               "kubectl": {
                 "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [
@@ -796,29 +703,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "kubeconfig": {
                     "description": "the kubeconfig file to use, overriding the system default",
                     "type": "string"
@@ -833,31 +717,10 @@
                 ]
               },
               "kustomize": {
+                "description": "",
+                "examples": [],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "base_path": {
                     "type": "string"
                   },
@@ -865,77 +728,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "kustomizeDiff": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
-                  "base_path": {
-                    "type": "string"
-                  },
-                  "dest": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "kustomizeIntro": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
+                "required": []
               },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
@@ -950,29 +743,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "contents": {
                     "description": "the message to display",
                     "type": "string"
@@ -982,7 +752,9 @@
                     "type": "string"
                   }
                 },
-                "required": []
+                "required": [
+                  "contents"
+                ]
               },
               "render": {
                 "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
@@ -990,31 +762,7 @@
                   {}
                 ],
                 "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
+                "properties": {},
                 "required": []
               },
               "terraform": {
@@ -1027,29 +775,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "path": {
                     "description": "the directory within `installer` to run terraform within.",
                     "type": "string"

@@ -134,6 +134,11 @@ _mockgen:
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
 		Messenger
+	mockgen \
+		-destination pkg/test-mocks/lifecycle/renderer_mock.go \
+		-package lifecycle \
+		github.com/replicatedhq/ship/pkg/lifecycle \
+		Renderer
 
 mockgen: _mockgen fmt
 
