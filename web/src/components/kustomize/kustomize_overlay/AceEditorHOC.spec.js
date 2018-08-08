@@ -27,7 +27,7 @@ describe("AceEditorHOC", () => {
                 fileToView: { baseContent: validYaml },
             });
             const markers = wrapper.state().markers;
-            expect(markers).toHaveLength(16);
+            expect(markers).toHaveLength(9);
         });
     });
 });
