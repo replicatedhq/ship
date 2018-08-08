@@ -721,68 +721,6 @@
                   "StepShared"
                 ]
               },
-              "helmIntro": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "helmValues": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
               "kubectl": {
                 "description": "A `kubectl` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [
@@ -796,29 +734,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "kubeconfig": {
                     "description": "the kubeconfig file to use, overriding the system default",
                     "type": "string"
@@ -833,31 +748,10 @@
                 ]
               },
               "kustomize": {
+                "description": "",
+                "examples": [],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "base_path": {
                     "type": "string"
                   },
@@ -865,77 +759,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "kustomizeDiff": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
-                  "base_path": {
-                    "type": "string"
-                  },
-                  "dest": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
-              },
-              "kustomizeIntro": {
-                "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "StepShared"
-                ]
+                "required": []
               },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
@@ -950,29 +774,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "contents": {
                     "description": "the message to display",
                     "type": "string"
@@ -992,31 +793,7 @@
                   {}
                 ],
                 "type": "object",
-                "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
+                "properties": {},
                 "required": []
               },
               "terraform": {
@@ -1029,29 +806,6 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "StepShared": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "invalidates": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "requires": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  },
                   "path": {
                     "description": "the directory within `installer` to run terraform within.",
                     "type": "string"
