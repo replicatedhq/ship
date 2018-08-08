@@ -235,11 +235,17 @@ export default class KustomizeOverlay extends React.Component {
                             </div>
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
-                              <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
-                                <span className="icon clickable u-overlayCreateIcon"></span>
-                              </div>
+                              (fileToView && fileToView.overlayContent.length ?
+                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
+                                  <span className="icon clickable u-overlayViewIcon"></span>
+                                </div>
+                                :
+                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
+                                  <span className="icon clickable u-overlayCreateIcon"></span>
+                                </div>
+                              )
                               }
-                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
+                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>
                               <AceEditorHOC
                                 handleGeneratePatch={this.handleGeneratePatch}
                                 fileToView={fileToView}
