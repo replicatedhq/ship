@@ -14,13 +14,14 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func (d *V2Routes) completeStep(c *gin.Context) {
 	requestedStep := c.Param("step")
 	logger := log.With(d.Logger, "handler", "completeStep", "step", requestedStep)
 	debug := level.Debug(logger)
-	debug.Log()
+	debug.Log("event", "call")
 
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
 		stepShared := step.Shared()
@@ -54,6 +55,8 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 		case err = <-errChan:
 			if err != nil {
 				debug.Log("event", "step.fail", "err", err)
+				// todo need some kind of errprogress
+				d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", fmt.Sprintf("failed - %v", err)))
 				c.AbortWithError(500, err)
 				return
 			}
@@ -71,25 +74,11 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 				"phase":  step.ShortName(),
 				"poll":   fmt.Sprintf("/lifecycle/step/%s", stepID),
 			})
-			go func() {
-				err := d.awaitAsyncStep(errChan, debug, step)
-				if err != nil {
-					debug.Log("event", "execute.fail", "err", err)
-					d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "failed"))
-					return
-				}
-				newState := state.Versioned().WithCompletedStep(step)
-
-				err = d.StateManager.Save(newState)
-				if err != nil {
-					debug.Log("event", "state.save.fail", "err", err)
-					return
-				}
-			}()
+			go d.handleAsync(errChan, debug, step, stepID, state)
 			return
 		}
 		level.Info(logger).Log("event", "task.complete", "progess", d.progress(step))
-		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "failed"))
+		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
 		newState := state.Versioned().WithCompletedStep(step)
 
 		err = d.StateManager.Save(newState)
@@ -107,6 +96,22 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 	}
 
 	d.errNotFond(c)
+}
+
+func (d *V2Routes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
+	err := d.awaitAsyncStep(errChan, debug, step)
+	if err != nil {
+		debug.Log("event", "execute.fail", "err", err)
+		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", fmt.Sprintf("failed - %v", err)))
+		return
+	}
+	d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
+	newState := state.Versioned().WithCompletedStep(step)
+	err = d.StateManager.Save(newState)
+	if err != nil {
+		debug.Log("event", "state.save.fail", "err", err)
+		return
+	}
 }
 
 func (d *V2Routes) awaitAsyncStep(errChan chan error, debug log.Logger, step api.Step) error {
@@ -140,9 +145,6 @@ func (d *V2Routes) execute(step api.Step) error {
 			d.StepProgress.Store(step.Shared().ID, progress)
 		},
 	}
-	planner := d.Planner.WithStatusReceiver(statusReceiver)
-	renderer := d.Renderer.WithPlanner(planner)
-	renderer = renderer.WithStatusReceiver(statusReceiver)
 
 	if step.Message != nil {
 		debug.Log("event", "step.resolve", "type", "message")
@@ -156,9 +158,12 @@ func (d *V2Routes) execute(step api.Step) error {
 		return errors.Wrap(err, "execute helmIntro step")
 	} else if step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "helmIntro")
-		err := d.Renderer.Execute(context.Background(), d.Release, step.Render)
-		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
-		return errors.Wrap(err, "execute helmIntro step")
+		planner := d.Planner.WithStatusReceiver(statusReceiver)
+		renderer := d.Renderer.WithPlanner(planner)
+		renderer = renderer.WithStatusReceiver(statusReceiver)
+		err := renderer.Execute(context.Background(), d.Release, step.Render)
+		debug.Log("event", "step.complete", "type", "render", "err", err)
+		return errors.Wrap(err, "execute render step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

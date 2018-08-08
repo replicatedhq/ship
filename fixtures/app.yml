@@ -45,8 +45,11 @@ lifecycle:
       contents: |
         This tool will prepare assets so you can deploy Cooltool-Enterpise
         to your existing Kubernetes cluster
-  - render: {}
+  - render:
+      id: render
   - message:
+     requires:
+        - render
      contents: |
         SuperBigTool is ready to deploy to your kubernetes cluster.
 
