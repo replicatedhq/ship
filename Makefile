@@ -225,7 +225,7 @@ pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
 	  dist/...
 
-embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go fmt
 
 build-ui:
 	$(MAKE) -C web build_ship
