@@ -80,6 +80,32 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
 	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
+	v1.POST("/kustomize/apply", d.requireKustomize(), d.applyPatch)
+}
+
+func (d *V1Routes) applyPatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "applyPatch"))
+	type Request struct {
+		Original string `json:"original"`
+		Patch    string `json:"patch"`
+	}
+	var request Request
+
+	debug.Log("event", "request.bind")
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
+	modified, err := d.Patcher.ApplyPatch(request.Original, request.Patch)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
+	c.JSON(200, map[string]interface{}{
+		"modified": string(modified),
+	})
 }
 
 func (d *V1Routes) createOrMergePatch(c *gin.Context) {

@@ -18,6 +18,7 @@ import (
 type Patcher interface {
 	CreateTwoWayMergePatch(string, string) ([]byte, error)
 	MergePatches([]byte, []byte) ([]byte, error)
+	ApplyPatch(string, string) ([]byte, error)
 }
 
 type ShipPatcher struct {
@@ -173,4 +174,46 @@ func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error
 	}
 
 	return patch, nil
+}
+
+func (p *ShipPatcher) ApplyPatch(original, patch string) ([]byte, error) {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
+
+	debug.Log("event", "convert.original")
+	originalJSON, err := yaml.YAMLToJSON([]byte(original))
+	if err != nil {
+		return nil, errors.Wrap(err, "convert original file to json")
+	}
+
+	debug.Log("event", "convert.patch")
+	patchJSON, err := yaml.YAMLToJSON([]byte(patch))
+	if err != nil {
+		return nil, errors.Wrap(err, "convert patch file to json")
+	}
+
+	debug.Log("event", "createKubeResource.originalFile")
+	originalResource, err := p.newKubernetesResource(originalJSON)
+	if err != nil {
+		return nil, errors.Wrap(err, "create kube resource with original json")
+	}
+
+	debug.Log("event", "createNewScheme.originalFile")
+	versionedObj, err := scheme.Scheme.New(originalResource.Id().Gvk())
+	if err != nil {
+		return nil, errors.Wrap(err, "create new scheme based on kube resource")
+	}
+
+	debug.Log("event", "strategicPatch.strategicMergePatch")
+	modified, err := strategicpatch.StrategicMergePatch(originalJSON, patchJSON, versionedObj)
+	if err != nil {
+		return nil, errors.Wrap(err, "merge patch with original")
+	}
+
+	debug.Log("event", "modified.jsonToYaml")
+	out, err := yaml.JSONToYAML(modified)
+	if err != nil {
+		return nil, errors.Wrap(err, "convert json to yaml")
+	}
+
+	return out, nil
 }
