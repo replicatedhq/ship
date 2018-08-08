@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/replicatedhq/ship/pkg/api"
+	"go.uber.org/dig"
 )
 
 func NewDaemonlessMessenger(
@@ -17,6 +18,7 @@ func NewDaemonlessMessenger(
 }
 
 type DaemonlessMessenger struct {
+	dig.In
 	Logger log.Logger
 }
 

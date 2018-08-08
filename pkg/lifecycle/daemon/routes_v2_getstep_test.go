@@ -10,6 +10,7 @@ import (
 	"github.com/go-test/deep"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -22,6 +23,7 @@ type getstepTestCase struct {
 	GET          string
 	ExpectStatus int
 	ExpectBody   map[string]interface{}
+	StepProgress map[string]daemontypes.Progress
 	State        *state2.Lifeycle
 }
 
@@ -39,7 +41,6 @@ func TestV2GetStep(t *testing.T) {
 				"phase": "notFound",
 			},
 		},
-
 		{
 			Name: "matching step",
 			Lifecycle: []api.Step{
@@ -138,6 +139,39 @@ func TestV2GetStep(t *testing.T) {
 				"phase": "message",
 			},
 		},
+		{
+			Name: "get step returns progress",
+			Lifecycle: []api.Step{
+				{
+					Message: &api.Message{
+						StepShared: api.StepShared{
+							ID: "foo",
+						},
+						Contents: "hi",
+					},
+				},
+			},
+			StepProgress: map[string]daemontypes.Progress{
+				"foo": daemontypes.StringProgress("v2router", "working"),
+			},
+			GET:          "/api/v2/lifecycle/step/foo",
+			ExpectStatus: 200,
+			ExpectBody: map[string]interface{}{
+				"currentStep": map[string]interface{}{
+					"message": map[string]interface{}{
+						"contents":     "hi",
+						"trusted_html": true,
+					},
+				},
+				"phase": "message",
+				"progress": map[string]interface{}{
+					"source": "v2router",
+					"type":   "string",
+					"level":  "info",
+					"detail": "working",
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -155,6 +189,7 @@ func TestV2GetStep(t *testing.T) {
 			v2 := &V2Routes{
 				Logger:       testLogger,
 				StateManager: fakeState,
+				StepProgress: test.StepProgress,
 			}
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{

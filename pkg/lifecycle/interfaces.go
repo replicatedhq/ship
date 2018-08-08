@@ -5,6 +5,7 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 )
 
 type DoWithProgress func(progress daemontypes.Progress)
@@ -16,6 +17,8 @@ type Messenger interface {
 
 type Renderer interface {
 	Execute(ctx context.Context, release *api.Release, step *api.Render) error
+	WithStatusReceiver(receiver daemontypes.StatusReceiver) Renderer
+	WithPlanner(planner planner.Planner) Renderer
 }
 
 type Terraformer interface {
