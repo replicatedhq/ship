@@ -138,6 +138,10 @@ func (f *ForkTemplater) Template(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
+	if err := f.tryRemoveRenderedHelmPath(); err != nil {
+		return errors.Wrap(err, "removeAll failed while trying to remove rendered Helm values base dir")
+	}
+
 	debug.Log("event", "rename")
 	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
 		if err := f.FS.Rename(tempRenderedChartTemplatesDir, asset.Dest); err != nil {
@@ -157,10 +161,21 @@ func (f *ForkTemplater) Template(
 
 	debug.Log("event", "temphelmvalues.remove", "path", constants.TempHelmValuesPath)
 	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
-		return errors.Wrap(err, "failed to remove Helm values tmp dir")
+		return errors.Wrap(err, "removeAll failed while trying to remove Helm values tmp dir")
 	}
 
 	// todo link up stdout/stderr debug logs
+	return nil
+}
+
+func (f *ForkTemplater) tryRemoveRenderedHelmPath() error {
+	debug := level.Debug(log.With(f.Logger, "method", "tryRemoveRenderedHelmPath"))
+
+	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+		return err
+	}
+	debug.Log("event", "renderedHelmPath.remove", "path", constants.RenderedHelmPath)
+
 	return nil
 }
 
