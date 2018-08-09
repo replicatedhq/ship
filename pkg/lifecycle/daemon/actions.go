@@ -1,6 +1,8 @@
 package daemon
 
-import "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+import (
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+)
 
 func MessageActions() []daemontypes.Action {
 	return []daemontypes.Action{

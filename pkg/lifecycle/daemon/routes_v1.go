@@ -1,8 +1,14 @@
 package daemon
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
+
+	"k8s.io/helm/pkg/lint/rules"
+	"k8s.io/helm/pkg/lint/support"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -234,13 +240,33 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
 	}
 
-	debug.Log("event", "serialize.helmValues")
+	debug.Log("event", "validate")
+	linter := support.Linter{ChartDir: constants.KustomizeHelmPath}
+	rules.Templates(&linter, []byte(request.Values), "", false)
+
+	if len(linter.Messages) > 0 {
+		var formattedErrors []string
+		for _, message := range linter.Messages {
+			formattedErrors = append(formattedErrors, message.Error())
+		}
+
+		debug.Log(
+			"event", "validate.fail",
+			"errors", fmt.Sprintf("%+v", formattedErrors),
+		)
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"errors": formattedErrors,
+		})
+		return
+	}
+
+	debug.Log("event", "serialize")
 	err := d.StateManager.SerializeHelmValues(request.Values)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "seralize.helmValues.fail", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
+		debug.Log("event", "seralize.fail", "err", err)
+		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 	}
-	c.String(200, "")
+	c.String(http.StatusOK, "")
 }
 
 func (d *V1Routes) getChannel(release *api.Release) gin.HandlerFunc {
