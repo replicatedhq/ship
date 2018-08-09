@@ -57,31 +57,24 @@ export function saveHelmChartValues(payload, loaderType = "saveHelmChartValues")
   return async (dispatch) => {
     let response;
     dispatch(loadingData(loaderType, true));
-    try {
-      const url = `${apiEndpoint}/helm-values`;
-      response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        }
-      });
-      if (!response.ok) {
-        dispatch(loadingData(loaderType, false));
-        return;
+    const url = `${apiEndpoint}/helm-values`;
+    response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
       }
-      const body = await response.blob();
+    });
+    if (!response.ok) {
       dispatch(loadingData(loaderType, false));
-      return body;
-    } catch (error) {
-      console.log(error);
-      //   if (Utilities.isFailedToFetchErr(error.message)) {
-      //     dispatch(receiveHelmChartMetadata({ currentStep: {}, phase: "loading"}));
-      //   } else {
-      //     dispatch(setHelmChartError(error.message));
-      //   }
-      return;
+      if (response.status === 400) {
+        return response.json();
+      }
+      throw new Error("Internal server error");
     }
+    const body = await response.blob();
+    dispatch(loadingData(loaderType, false));
+    return body;
   };
 }
