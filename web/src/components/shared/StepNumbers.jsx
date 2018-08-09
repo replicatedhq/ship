@@ -43,18 +43,15 @@ class StepNumbers extends React.Component {
     const currIdx = find(stateSteps, ["isActive", true]);
     const currStep = indexOf(stateSteps, currIdx);
     this.setState({ steps: stateSteps, currentStep: currStep });
-    this.setCompleteSteps();
+    this.setCompleteSteps(currStep, stateSteps);
   }
 
-  setCompleteSteps() {
-    const { currentStep } = this.state;
-    const stateSteps = this.state.steps;
+  setCompleteSteps(currentStep, steps) {
     for (let i = 0; i < currentStep; i++) {
-      let currStep = stateSteps[i];
+      let currStep = steps[i];
       currStep.isComplete = true;
     }
-    console.log(stateSteps)
-    // this.setState({ steps: stateSteps });
+    this.setState({ steps });
   }
 
   determineCurrentStep(id) {
@@ -64,18 +61,17 @@ class StepNumbers extends React.Component {
     stateStep.isActive = currentStep === stateStepIndex ? true : false;
   }
 
-  goToStep(currentStep) {
-    // this needs to go to the url for whatever step you clicked on
-    // and set everything in the tracker appropriately...easy right.
-    const stateSteps = this.state.steps;
-    let currentStepObj = stateSteps[currentStep];
-    currentStepObj.isComplete = true;
-    this.setState({ steps: stateSteps, currentStep: currentStep + 1 });
+  goToStep(idx) {
+    const step = this.state.steps[idx];
+    this.props.history.push(`/${step.id}`);
   }
 
   componentDidUpdate(lastProps, lastState) {
-    if (this.props.steps !== lastProps.steps && !isEmpty(this.props.steps)) {
-      this.setStepsToState()
+    if (
+      (this.props.location.pathname !== lastProps.location.pathname) ||
+      (this.props.steps !== lastProps.steps && !isEmpty(this.props.steps))
+    ) {
+      this.setStepsToState();
     }
     if (this.state.currentStep !== lastState.currentStep) {
       const elOne = find(this.state.steps, ["isComplete", true]);
@@ -99,7 +95,7 @@ class StepNumbers extends React.Component {
     const renderedSteps = this.state.steps.map((step, i) => {
       this.determineCurrentStep(step.id); // Is this the current step, if so set to active
       return (
-        <div key={`${step.id}-${i}`} id={step.id} className={`flex-auto flex step-number ${step.isActive ? "is-active" : ""} ${step.isComplete ? "is-complete" : ""}`} onClick={() => this.goToStep(this.state.currentStep)}>
+        <div key={`${step.id}-${i}`} id={step.id} className={`flex-auto u-cursor--pointer flex step-number ${step.isActive ? "is-active" : ""} ${step.isComplete ? "is-complete" : ""}`} onClick={() => this.goToStep(i)}>
           <span className="number flex-column flex-verticalCenter alignItems--center">{step.isComplete ? <span className="icon u-smallCheckWhite"></span> : i + 1}</span>
         </div>
       )
@@ -111,13 +107,14 @@ class StepNumbers extends React.Component {
     const { currentStep, progressLength } = this.state;
     return (
       <div className="flex-column flex-auto">
-        <div className="steps-numbers-wrapper">
+        {!isEmpty(this.state.steps) ? <div className="steps-numbers-wrapper">
           <div className="numbers-wrapper flex flex1 justifyContent--spaceBetween">
-            {!isEmpty(this.state.steps) && this.renderSteps()}
+            {this.renderSteps()}
             {currentStep > 0 && <span className="completed-progress-bar" style={{ width: `${progressLength}px` }}></span>}
             <span className="progress-base"></span>
           </div>
         </div>
+          : null}
       </div>
     );
   }

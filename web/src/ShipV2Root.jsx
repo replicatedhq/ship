@@ -2,20 +2,20 @@ import React from "react";
 import { Provider } from "react-redux";
 import { hot } from "react-hot-loader";
 import { getStore } from "./redux";
-import RoutesContainer from "./containers/RoutesContainer";
+import RouteDecider from "./containers/RouteDecider";
 import AppWrapper from "./containers/AppWrapper";
 import "./scss/index.scss";
 
-class ConfigRoot extends React.Component {
+class ShipRoot extends React.Component {
   render() {
     return (
       <Provider store={getStore()}>
         <AppWrapper>
-          <RoutesContainer />
+          <RouteDecider />
         </AppWrapper>
       </Provider>
     );
   }
 }
 
-export default hot(module)(ConfigRoot)
+export default hot(module)(ShipRoot)

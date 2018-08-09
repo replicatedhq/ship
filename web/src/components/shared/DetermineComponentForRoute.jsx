@@ -14,7 +14,7 @@ import StepHelmValues from "../kustomize/HelmValuesEditor";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
-class DetermineStep extends React.Component {
+class DetermineComponentForRoute extends React.Component {
 
   constructor(props) {
     super(props);
@@ -35,8 +35,15 @@ class DetermineStep extends React.Component {
 
   renderStep(phase) {
     const { currentStep, progress, actions } = this.props;
-    if (!phase.length || !phase) return null;
+    if (!phase || !phase.length) return null;
     switch (phase) {
+    case "requirementNotMet":
+      return (
+        <div className="flex1 flex-column justifyContent--center alignItems--center">
+          <p className="u-fontSize--large u-fontWeight--medium u-color--tundora u-marginBottom--20">Whoa there, you're getting a little ahead of yourself. There are steps that need to be completed before you can be here.</p>
+          <button className="btn primary" onClick={() => { this.props.history.push(`/${this.props.routes[0].id}`)}}>Take me back</button>
+        </div>
+      )
     case "message":
       return (
         <StepMessage 
@@ -111,16 +118,15 @@ class DetermineStep extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getHelmChartMetadata();
     this.startPoll();
     this.startMaxTimeout();
     this.pollIfStream();
   }
 
   componentWillUnmount() {
-    clearTimeout(this.timeout);
-    clearTimeout(this.maxTimout);
-    clearInterval(this.streamer);
+    // clearTimeout(this.timeout);
+    // clearTimeout(this.maxTimout);
+    // clearInterval(this.streamer);
   }
 
   componentDidUpdate(lastProps) {
@@ -135,19 +141,19 @@ class DetermineStep extends React.Component {
       }
     }
 
-    if (this.props.phase !== lastProps.phase) {
-      if (this.props.phase === "render.config") {
-        this.props.history.push("/application-settings");
-      }
-      if (this.props.phase === "kustomize") {
-        this.props.history.push("/kustomize");
-      }
-    }
+    // if (this.props.phase !== lastProps.phase) {
+    //   if (this.props.phase === "render.config") {
+    //     this.props.history.push("/application-settings");
+    //   }
+    //   if (this.props.phase === "kustomize") {
+    //     this.props.history.push("/kustomize");
+    //   }
+    // }
     this.pollIfStream();
   }
 
   startPoll() {
-    this.timeout = setTimeout(() => this.props.getCurrentStep("getCurrentStep" , this.props.routeId), 1000);
+    this.timeout = setTimeout(() => this.props.getContentForStep(this.props.routeId), 1000);
   }
 
   pollIfStream() {
@@ -157,13 +163,13 @@ class DetermineStep extends React.Component {
       return;
     }
     if (!this.streamer) {
-      this.streamer = setInterval(() => this.props.getCurrentStep("getCurrentStep" , this.props.routeId), 1000);
+      this.streamer = setInterval(() => this.props.getContentForStep(this.props.routeId), 1000);
     }
   }
 
   render() {
-    const { phase, currentStep, dataLoading } = this.props;
-    const isLoadingStep = phase === "loading" || isEmpty(currentStep);
+    const { phase, dataLoading } = this.props;
+    const isLoadingStep = phase === "loading";
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
@@ -186,4 +192,4 @@ class DetermineStep extends React.Component {
   }
 }
 
-export default withRouter(DetermineStep)
+export default withRouter(DetermineComponentForRoute)

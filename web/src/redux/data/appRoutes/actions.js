@@ -28,7 +28,7 @@ export function getRoutes() {
     let response;
     dispatch(loadingData("routes", true));
     try {
-      const url = `${apiEndpoint}/lifecycle/`;
+      const url = `${apiEndpoint}/lifecycle`;
       response = await fetch(url, {
         method: "GET",
         headers: {
@@ -63,6 +63,12 @@ export function getContentForStep(stepId) {
       });
       if (!response.ok) {
         dispatch(loadingData("getCurrentStep", false));
+        if (response.status === 400) {
+          const body = await response.json();
+          if (body) {
+            dispatch(receiveCurrentStep(body));
+          }
+        }
         return;
       }
       const body = await response.json();

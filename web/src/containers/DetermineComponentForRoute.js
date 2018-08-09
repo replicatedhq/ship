@@ -2,7 +2,7 @@ import { connect } from "react-redux";
 import realDetermineComponentForRoute from "../components/shared/DetermineComponentForRoute";
 
 import { getChannel } from "../redux/data/channelSettings/actions";
-import { getCurrentStep, submitAction } from "../redux/data/determineSteps/actions";
+import { getContentForStep, finalizeStep } from "../redux/data/appRoutes/actions";
 import { getHelmChartMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
 
 const DetermineComponentForRoute = connect(
@@ -10,16 +10,16 @@ const DetermineComponentForRoute = connect(
     dataLoading: state.ui.main.loading,
     currentStep: state.data.determineSteps.stepsData.step,
     helmChartMetadata: state.data.kustomizeSettings.helmChartMetadata,
-    phase: state.data.determineSteps.stepsData.phase,
     actions: state.data.determineSteps.stepsData.actions,
+    phase: state.data.determineSteps.stepsData.phase,
     progress: state.data.determineSteps.stepsData.progress,
   }),
   dispatch => ({
     getChannel() { return dispatch(getChannel()); },
-    getCurrentStep(loaderType, stepId) { return dispatch(getCurrentStep(loaderType, stepId)); },
+    getContentForStep(stepId) { return dispatch(getContentForStep(stepId)); },
     getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
     saveHelmChartValues(payload) { return dispatch(saveHelmChartValues(payload)) },
-    submitAction(action) { return dispatch(submitAction(action)); }
+    finalizeStep(action) { return dispatch(finalizeStep(action)); }
   }),
 )(realDetermineComponentForRoute);
 

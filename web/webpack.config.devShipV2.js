@@ -13,10 +13,12 @@ module.exports = {
     new webpack.NamedModulesPlugin(),
     new WriteFilePlugin()
   ],
-  output: {
-    path: path.join(__dirname, 'dist')
-  },
 
+  output: {
+    path: path.join(__dirname, 'dist'),
+    publicPath: "/",
+    filename: "[name].[hash].js"
+  },
 
   module: {
     rules: [
