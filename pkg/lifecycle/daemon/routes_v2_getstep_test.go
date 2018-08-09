@@ -63,15 +63,15 @@ func TestV2GetStep(t *testing.T) {
 					},
 				},
 				"phase": "message",
-				"actions": []daemontypes.Action{
-					{
-						ButtonType:  "primary",
-						Text:        "Confirm",
-						LoadingText: "Confirming",
-						OnClick: daemontypes.ActionRequest{
-							URI:    "/api/v2/lifecycle/step/foo",
-							Method: "POST",
-							Body:   "",
+				"actions": []interface{}{
+					map[string]interface{}{
+						"buttonType":  "primary",
+						"text":        "Confirm",
+						"loadingText": "Confirming",
+						"onclick": map[string]interface{}{
+							"uri":    "/api/v2/lifecycle/step/foo",
+							"method": "POST",
+							"body":   "",
 						},
 					},
 				},
@@ -149,6 +149,18 @@ func TestV2GetStep(t *testing.T) {
 					},
 				},
 				"phase": "message",
+				"actions": []interface{}{
+					map[string]interface{}{
+						"buttonType":  "primary",
+						"text":        "Confirm",
+						"loadingText": "Confirming",
+						"onclick": map[string]interface{}{
+							"uri":    "/api/v2/lifecycle/step/bar",
+							"method": "POST",
+							"body":   "",
+						},
+					},
+				},
 			},
 		},
 		{
@@ -181,6 +193,18 @@ func TestV2GetStep(t *testing.T) {
 					"type":   "string",
 					"level":  "info",
 					"detail": "working",
+				},
+				"actions": []interface{}{
+					map[string]interface{}{
+						"buttonType":  "primary",
+						"text":        "Confirm",
+						"loadingText": "Confirming",
+						"onclick": map[string]interface{}{
+							"uri":    "/api/v2/lifecycle/step/foo",
+							"method": "POST",
+							"body":   "",
+						},
+					},
 				},
 			},
 		},

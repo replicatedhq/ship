@@ -96,6 +96,8 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 func (d *V2Routes) hydrateActions(response *daemontypes.StepResponse) {
 	step := response.CurrentStep
 	if step.Message != nil {
+		progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
+		if progress.Detail == progress.
 		response.Actions = []daemontypes.Action{
 			{
 				ButtonType:  "primary",
