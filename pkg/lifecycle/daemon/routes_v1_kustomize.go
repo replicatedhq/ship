@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -50,13 +51,13 @@ func (d *V1Routes) kustomizeSaveOverlay(c *gin.Context) {
 	var request Request
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	if request.Path == "" || request.Contents == "" {
 		c.JSON(
-			400,
+			http.StatusBadRequest,
 			map[string]string{
 				"error":  "bad_request",
 				"detail": "path and contents cannot be empty",
@@ -69,7 +70,7 @@ func (d *V1Routes) kustomizeSaveOverlay(c *gin.Context) {
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

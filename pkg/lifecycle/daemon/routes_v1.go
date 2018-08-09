@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -82,7 +81,7 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
 	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
-	v1.DELETE("/kustomize/patch/:path", d.requireKustomize(), d.deletePatch)
+	v1.DELETE("/kustomize/patch", d.requireKustomize(), d.deletePatch)
 }
 
 func (d *V1Routes) createOrMergePatch(c *gin.Context) {
@@ -131,8 +130,8 @@ func (d *V1Routes) createOrMergePatch(c *gin.Context) {
 
 func (d *V1Routes) deletePatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deletePatch"))
-	pathParam := c.Param("path")
-	if pathParam == "" {
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
 		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
 	}
 
@@ -158,17 +157,15 @@ func (d *V1Routes) deletePatch(c *gin.Context) {
 		return
 	}
 
-	pathWithLeadingSlash := fmt.Sprintf("/%s", pathParam)
-
-	_, ok := shipOverlay.Patches[pathWithLeadingSlash]
+	_, ok := shipOverlay.Patches[pathQueryParam]
 	if !ok {
 		level.Error(d.Logger).Log("event", "patch does not exist")
 		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
 		return
 	}
 
-	debug.Log("event", "deletePatch", "path", pathWithLeadingSlash)
-	delete(shipOverlay.Patches, pathWithLeadingSlash)
+	debug.Log("event", "deletePatch", "path", pathQueryParam)
+	delete(shipOverlay.Patches, pathQueryParam)
 
 	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
 		level.Error(d.Logger).Log("event", "patch does not exist")
