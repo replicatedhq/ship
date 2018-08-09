@@ -1,15 +1,21 @@
 package patch
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/process"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 )
 
@@ -27,9 +33,12 @@ const (
 var shipPatcher *ShipPatcher
 
 var _ = BeforeSuite(func() {
+	logger := &logger.TestLogger{T: GinkgoT()}
 	shipPatcher = &ShipPatcher{
-		Logger: &logger.TestLogger{T: GinkgoT()},
-		FS:     afero.Afero{Fs: afero.NewOsFs()},
+		Logger:  logger,
+		FS:      afero.Afero{Fs: afero.NewOsFs()},
+		process: process.Process{Logger: logger},
+		cmd:     exec.Command(os.Args[0], "-test.run=TestMockKustomize"),
 	}
 })
 
@@ -86,12 +95,43 @@ var _ = Describe("ShipPatcher", func() {
 				patch, err := ioutil.ReadFile(path.Join("patch.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(string(patch))
+				_, err = shipPatcher.ApplyPatch(string(patch))
 				Expect(err).NotTo(HaveOccurred())
-
-				expectModified, err := ioutil.ReadFile("modified.yaml")
-				Expect(string(modified)).To(Equal(string(expectModified)))
 			}
 		})
 	})
 })
+
+func TestMockKustomize(t *testing.T) {
+	// this test does nothing when run normally, only when
+	// invoked by other tests. Those tests should set this
+	// env var in order to get the behavior
+	if os.Getenv("GOTEST_SUBPROCESS_MOCK") == "" {
+		return
+	}
+
+	receivedArgs := os.Args[2:]
+	expectTemplate := []string{"template", constants.TempApplyOverlayPath}
+	if reflect.DeepEqual(receivedArgs, expectTemplate) {
+		// we good, these are exepcted calls, and we just need to test one type of forking
+		os.Exit(0)
+	}
+
+	if os.Getenv("CRASHING_KUSTOMIZE_ERROR") != "" {
+		fmt.Fprintf(os.Stdout, os.Getenv("CRASHING_KUSTOMIZE_ERROR"))
+		os.Exit(1)
+	}
+
+	if os.Getenv("EXPECT_KUSTOMIZE_ARGV") != "" {
+		// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
+		expectedArgs := strings.Split(os.Getenv("EXPECT_KUSTOMIZE_ARGV"), "|")
+
+		fmt.Fprintf(os.Stderr, "expected args %v, got args %v", expectedArgs, receivedArgs)
+		if !reflect.DeepEqual(receivedArgs, expectedArgs) {
+			fmt.Fprint(os.Stderr, "; FAIL")
+			os.Exit(2)
+		}
+
+		os.Exit(0)
+	}
+}

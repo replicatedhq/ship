@@ -86,8 +86,7 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 func (d *V1Routes) applyPatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "applyPatch"))
 	type Request struct {
-		Original string `json:"original"`
-		Patch    string `json:"patch"`
+		Patch string `json:"patch"`
 	}
 	var request Request
 

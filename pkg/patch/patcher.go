@@ -32,15 +32,17 @@ type ShipPatcher struct {
 	Logger  log.Logger
 	FS      afero.Afero
 	process process.Process
+	cmd     *exec.Cmd
 }
 
 func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
 	process := process.Process{Logger: logger}
-
+	cmd := exec.Command("/usr/local/bin/kustomize")
 	return &ShipPatcher{
 		Logger:  logger,
 		FS:      fs,
 		process: process,
+		cmd:     cmd,
 	}
 }
 
@@ -193,8 +195,6 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
 	defer p.applyPatchCleanup()
 
-	kustomizeCmd := exec.Command("/usr/local/bin/kustomize")
-
 	debug.Log("event", "mkdir.tempApplyOverlayPath")
 	if err := p.FS.MkdirAll(constants.TempApplyOverlayPath, 0755); err != nil {
 		return nil, errors.Wrap(err, "create temp apply overlay path")
@@ -226,13 +226,13 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 		return nil, errors.Wrap(err, "write temp kustomization yaml")
 	}
 
-	kustomizeCmd.Args = append(
-		kustomizeCmd.Args,
+	p.cmd.Args = append(
+		p.cmd.Args,
 		"build", constants.TempApplyOverlayPath,
 	)
 
 	debug.Log("event", "fork")
-	stdout, stderr, err := p.process.Fork(kustomizeCmd)
+	stdout, stderr, err := p.process.Fork(p.cmd)
 	if err != nil {
 		debug.Log("event", "cmd.err")
 		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
