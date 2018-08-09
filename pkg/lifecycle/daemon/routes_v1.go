@@ -264,7 +264,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	err := d.StateManager.SerializeHelmValues(request.Values)
 	if err != nil {
 		debug.Log("event", "seralize.fail", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
+		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 	}
 	c.String(http.StatusOK, "")
 }
