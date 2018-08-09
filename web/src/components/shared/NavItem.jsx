@@ -53,7 +53,7 @@ export default class NavItem extends React.Component {
       return linkTo
         ? <Link className={linkClassName} to={linkTo} tabIndex="-1">{linkContent}</Link>
         : href ?
-          <a href={href} target="_blank" tabIndex="-1">{linkContent}</a>
+          <a href={href} target="_blank" tabIndex="-1" rel="noopener noreferrer">{linkContent}</a>
           : options.isButton ?
             <button className={`Button ${options.buttonClassName || ""}`} tabIndex="-1">{linkContent}</button>
             : <a tabIndex="-1">{linkContent}</a>;

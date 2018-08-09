@@ -30,7 +30,7 @@ export default class PopoverItem extends React.Component {
               {label}
             </Link>
             :
-            <a className="PopoverLabel u-noSelect" href={href} target="_blank">
+            <a className="PopoverLabel u-noSelect" href={href} target="_blank" rel="noopener noreferrer">
               {label}
             </a>
         }

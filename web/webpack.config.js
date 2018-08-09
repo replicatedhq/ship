@@ -127,7 +127,7 @@ module.exports = function (env) {
   } else if (env === "shipDev" || env === "configOnly") {
     var configEnv = require("./webpack.config.configOnly");
     return webpackMerge(common, configEnv);
-  } else if (env === "ship") {
+  } else if (env === "production") {
     var configEnv = require("./webpack.config.distConfigOnly");
     return webpackMerge(common, configEnv);
   } else {

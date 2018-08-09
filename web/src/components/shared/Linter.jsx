@@ -32,7 +32,7 @@ export default class Linter extends React.Component {
 
   linkFor(error) {
     return error.links && error.links.length > 0 ? (
-      <a target="_blank" href={error.links[0]}>
+      <a target="_blank" href={error.links[0]} rel="noopener noreferrer">
         <span className={`icon u-linkIcon--blue flex-auto u-marginLeft--small clickable`}></span>
       </a>
     ) : null;
