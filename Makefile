@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui pkg/lifecycle/ui.bindatafs.go embed-ui
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui pkg/lifecycle/ui.bindatafs.go embed-ui mark-ui-gitignored
 
 
 SHELL := /bin/bash
@@ -240,11 +240,8 @@ pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
 	  -prefix web/ \
 	  web/dist/...
 
-.state/ui-gitignored: 
+mark-ui-gitignored: 
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
-	@touch .state/ui-gitignored
-
-mark-ui-gitignored: .state/ui-gitignored
 
 
 embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go fmt
