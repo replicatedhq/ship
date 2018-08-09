@@ -3,12 +3,10 @@ package filetree
 import (
 	"io/ioutil"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/replicatedhq/ship/pkg/state"
 
-	"github.com/go-test/deep"
 	"github.com/replicatedhq/ship/pkg/testing/tmpfs"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -70,10 +68,47 @@ func TestAferoLoader(t *testing.T) {
 				return
 			}
 
-			diff := deep.Equal(tree, test.Expect)
-
-			req.True(len(diff) == 0, "%v", strings.Join(diff, "\n"))
-
+			req.True(EqualTrees(*tree, *test.Expect))
 		})
 	}
+}
+
+func EqualTrees(node Node, expectNode Node) bool {
+	treesAreEqual := true
+
+	if len(node.Children) == 0 && len(expectNode.Children) == 0 {
+		if node.Name == expectNode.Name {
+			return true
+		}
+		return false
+	}
+	if len(node.Children) != len(expectNode.Children) {
+		return false
+	}
+
+	if len(node.Children) > 0 && len(expectNode.Children) > 0 && len(node.Children) == len(expectNode.Children) {
+		doChildrenMatch := EqualChildren(node.Children, expectNode.Children)
+		treesAreEqual = treesAreEqual && doChildrenMatch
+	}
+
+	return treesAreEqual
+}
+
+func EqualChildren(nodes []Node, expectNodes []Node) bool {
+	expectNodeMap := make(map[string]Node)
+	for _, expectNode := range expectNodes {
+		expectNodeMap[expectNode.Name] = expectNode
+	}
+
+	allChildrenMatch := true
+	for _, node := range nodes {
+		matchingExpectNode, ok := expectNodeMap[node.Name]
+		if !ok {
+			return false
+		}
+
+		doChildrenMatch := EqualTrees(node, matchingExpectNode)
+		allChildrenMatch = allChildrenMatch && doChildrenMatch
+	}
+	return allChildrenMatch
 }
