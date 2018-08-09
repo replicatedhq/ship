@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -80,6 +81,7 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
 	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
 	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
+	v1.DELETE("/kustomize/patch", d.requireKustomize(), d.deletePatch)
 	v1.POST("/kustomize/apply", d.requireKustomize(), d.applyPatch)
 }
 
@@ -149,6 +151,54 @@ func (d *V1Routes) createOrMergePatch(c *gin.Context) {
 			"patch": string(patch),
 		})
 	}
+}
+
+func (d *V1Routes) deletePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deletePatch"))
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+	}
+
+	debug.Log("event")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "try load state failed", "err", err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		level.Error(d.Logger).Log("event", "empty kustomize")
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	shipOverlay := kustomize.Ship()
+	if len(shipOverlay.Patches) == 0 {
+		level.Error(d.Logger).Log("event", "empty ship overlay")
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	_, ok := shipOverlay.Patches[pathQueryParam]
+	if !ok {
+		level.Error(d.Logger).Log("event", "patch does not exist")
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	debug.Log("event", "deletePatch", "path", pathQueryParam)
+	delete(shipOverlay.Patches, pathQueryParam)
+
+	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
+		level.Error(d.Logger).Log("event", "patch does not exist")
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	c.JSON(200, map[string]string{"status": "success"})
 }
 
 func (d *V1Routes) SetProgress(p daemontypes.Progress) {
