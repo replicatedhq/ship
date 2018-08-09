@@ -54,12 +54,12 @@ func (d *V1Routes) kustomizeSaveOverlay(c *gin.Context) {
 		return
 	}
 
-	if request.Path == "" {
+	if request.Path == "" || request.Contents == "" {
 		c.JSON(
 			400,
 			map[string]string{
 				"error":  "bad_request",
-				"detail": "path cannot be empty",
+				"detail": "path and contents cannot be empty",
 			},
 		)
 		return
