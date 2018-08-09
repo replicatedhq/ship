@@ -23,7 +23,7 @@ serve_ship:
 
 .state/build_ship: .state/package webpack* postcss* $(shell find src -type f)
 	rm -rf dist
-	`yarn bin`/webpack --config webpack.config.js --env ship --mode production
+	`yarn bin`/webpack --config webpack.config.js --env production --mode production
 	@mkdir -p .state
 	@touch .state/build_ship
 

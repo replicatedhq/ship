@@ -43,7 +43,6 @@ class NavBar extends React.Component {
 
   getNavItems() {
     const token = true;
-
     return[ !token ? null :
       {
         id: 0,
