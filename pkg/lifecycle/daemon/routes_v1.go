@@ -254,7 +254,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 			"event", "validate.fail",
 			"errors", fmt.Sprintf("%+v", formattedErrors),
 		)
-		c.JSON(400, map[string]interface{}{
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"errors": formattedErrors,
 		})
 		return
@@ -266,7 +266,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		debug.Log("event", "seralize.fail", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
-	c.String(200, "")
+	c.String(http.StatusOK, "")
 }
 
 func (d *V1Routes) getChannel(release *api.Release) gin.HandlerFunc {
