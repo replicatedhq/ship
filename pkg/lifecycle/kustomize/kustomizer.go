@@ -70,12 +70,13 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	debug.Log("event", "state.loaded")
 	kustomizeState := current.CurrentKustomize()
+
+	var shipOverlay state.Overlay
 	if kustomizeState == nil {
 		debug.Log("event", "state.kustomize.empty")
-		return nil
+	} else {
+		shipOverlay = kustomizeState.Ship()
 	}
-
-	shipOverlay := kustomizeState.Ship()
 
 	debug.Log("event", "mkdir", "dir", step.Dest)
 	err = l.FS.MkdirAll(step.Dest, 0777)
@@ -96,7 +97,7 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	err = l.writeBase(step)
 	if err != nil {
-		return errors.Wrap(err, "write overlay")
+		return errors.Wrap(err, "write base")
 	}
 
 	return nil
