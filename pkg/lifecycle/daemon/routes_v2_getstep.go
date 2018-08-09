@@ -1,6 +1,8 @@
 package daemon
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -31,6 +33,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 }
 
 func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
+
 	if step.Kustomize != nil {
 		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
 		currentState, err := d.StateManager.TryLoad()
@@ -78,12 +81,40 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 	result := &daemontypes.StepResponse{
 		CurrentStep: step,
 		Phase:       step.Source.ShortName(),
-		Actions:     []daemontypes.Action{}, //todo actions
 	}
 
 	if progress, ok := d.StepProgress.Load(step.Source.Shared().ID); ok {
 		result.Progress = &progress
 	}
 
+	actions := d.getActions(result.CurrentStep)
+	result.Actions = actions
+
 	return result, nil
+}
+
+func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
+	if step.Message != nil {
+		progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
+
+		shouldAddActions := ok && progress.Detail != "success"
+
+		if shouldAddActions {
+			return nil
+		}
+
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Confirm",
+				LoadingText: "Confirming",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	}
+	return nil
 }
