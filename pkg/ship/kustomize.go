@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -56,8 +57,7 @@ func (s *Ship) Update(ctx context.Context) error {
 	// does a state file exist on disk?
 	existingState, err := s.State.TryLoad()
 
-	// TODO: Utilize daemon.SetProgress?
-	s.UI.Info("Loading state from " + constants.StatePath)
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state from `+constants.StatePath))
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
@@ -71,8 +71,7 @@ func (s *Ship) Update(ctx context.Context) error {
 	}
 
 	debug.Log("event", "fetch latest chart")
-	// TODO: Utilize daemon.SetProgress?
-	s.UI.Info("Downloading latest from upstream " + helmChartPath)
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `downloading latest from upstream `+helmChartPath))
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)

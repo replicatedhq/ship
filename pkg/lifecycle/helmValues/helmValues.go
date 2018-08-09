@@ -49,6 +49,8 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 		return errors.Wrap(err, "read file values.yaml")
 	}
 
+	h.Daemon.SetProgress(daemontypes.StringProgress("helmValues", "generating installable application manifests"))
+
 	h.Daemon.PushHelmValuesStep(ctx, daemontypes.HelmValues{
 		Values: string(bytes),
 	}, daemon.HelmValuesActions())
