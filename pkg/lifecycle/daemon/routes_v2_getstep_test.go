@@ -258,27 +258,49 @@ func TestV2GetStep(t *testing.T) {
 
 func TestHydrateActions(t *testing.T) {
 	tests := []struct {
-		name string
-		step daemontypes.Step
+		name     string
+		step     daemontypes.Step
 		progress map[string]interface{}
-		want []daemontypes.Action
+		want     []daemontypes.Action
 	}{
 		{
 			name: "message",
 			step: daemontypes.NewStep(api.Step{
 				Message: &api.Message{
 					Contents: "hey there",
+					StepShared: api.StepShared{
+						ID: "foo",
+					},
 				},
 			}),
 			want: []daemontypes.Action{
-
+				{
+					ButtonType:  "primary",
+					Text:        "Confirm",
+					LoadingText: "Confirming",
+					OnClick: daemontypes.ActionRequest{
+						URI:    "/api/v2/lifecycle/step/foo",
+						Method: "POST",
+						Body:   "",
+					},
+				},
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
 
+			testLogger := &logger.TestLogger{T: t}
+			progressmap := &daemontypes.ProgressMap{}
+
+			v2 := &V2Routes{
+				Logger:       testLogger,
+				StepProgress: progressmap,
+			}
+
+			actions := v2.getActions(test.step)
+			req.Equal(test.want, actions)
 		})
 	}
 }
-

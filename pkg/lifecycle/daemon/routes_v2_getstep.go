@@ -116,5 +116,5 @@ func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
 			},
 		}
 	}
-
+	return nil
 }
