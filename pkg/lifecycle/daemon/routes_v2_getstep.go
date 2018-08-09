@@ -81,24 +81,29 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 	result := &daemontypes.StepResponse{
 		CurrentStep: step,
 		Phase:       step.Source.ShortName(),
-		Actions:     []daemontypes.Action{}, //todo actions
 	}
 
 	if progress, ok := d.StepProgress.Load(step.Source.Shared().ID); ok {
 		result.Progress = &progress
 	}
 
-	d.hydrateActions(result)
+	actions := d.getActions(result.CurrentStep)
+	result.Actions = actions
 
 	return result, nil
 }
 
-func (d *V2Routes) hydrateActions(response *daemontypes.StepResponse) {
-	step := response.CurrentStep
+func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
 	if step.Message != nil {
 		progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
-		if progress.Detail == progress.
-		response.Actions = []daemontypes.Action{
+
+		shouldAddActions := ok && progress.Detail != "success"
+
+		if shouldAddActions {
+			return nil
+		}
+
+		return []daemontypes.Action{
 			{
 				ButtonType:  "primary",
 				Text:        "Confirm",

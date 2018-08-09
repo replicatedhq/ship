@@ -194,18 +194,6 @@ func TestV2GetStep(t *testing.T) {
 					"level":  "info",
 					"detail": "working",
 				},
-				"actions": []interface{}{
-					map[string]interface{}{
-						"buttonType":  "primary",
-						"text":        "Confirm",
-						"loadingText": "Confirming",
-						"onclick": map[string]interface{}{
-							"uri":    "/api/v2/lifecycle/step/foo",
-							"method": "POST",
-							"body":   "",
-						},
-					},
-				},
 			},
 		},
 	}
@@ -267,3 +255,30 @@ func TestV2GetStep(t *testing.T) {
 		})
 	}
 }
+
+func TestHydrateActions(t *testing.T) {
+	tests := []struct {
+		name string
+		step daemontypes.Step
+		progress map[string]interface{}
+		want []daemontypes.Action
+	}{
+		{
+			name: "message",
+			step: daemontypes.NewStep(api.Step{
+				Message: &api.Message{
+					Contents: "hey there",
+				},
+			}),
+			want: []daemontypes.Action{
+
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+		})
+	}
+}
+
