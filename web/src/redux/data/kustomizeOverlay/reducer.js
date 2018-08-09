@@ -1,4 +1,5 @@
 import { constants } from "./actions";
+import uniqBy from "lodash/uniqBy";
 
 const kustomizeState = {
   fileContents: [],
@@ -11,8 +12,8 @@ function updateFileContents(currState, data) {
   newObj.baseContent = data.content.base;
   newObj.overlayContent = data.content.overlay;
   newObj.key = data.path;
-  nextFiles.push(newObj);
-  return nextFiles;
+  nextFiles.unshift(newObj); // add to front of array so uniqBy will keep newest version
+  return uniqBy(nextFiles, "key");
 }
 
 export function kustomizeData(state = kustomizeState, action) {
@@ -24,10 +25,9 @@ export function kustomizeData(state = kustomizeState, action) {
     });
   case constants.RECEIVE_PATCH:
     const { patch } = action.payload;
-    return {
-      ...state,
-      patch,
-    }
+    return Object.assign({}, state, {
+      patch
+    })
   default:
     return state;
   }

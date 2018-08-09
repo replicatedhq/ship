@@ -39,6 +39,7 @@ export function getFileContent(payload) {
       const body = await response.json();
       dispatch(loadingData("fileContent", false));
       dispatch(receiveFileContent(body, payload));
+      dispatch(receivePatch(body.overlay));
     } catch (error) {
       dispatch(loadingData("fileContent", false));
       console.log(error)

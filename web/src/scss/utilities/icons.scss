@@ -20,7 +20,17 @@
   }
 }
 
-.icon.u-discardOverlayIcon {
+.icon.u-overlayViewIcon {
+  background-position: -22px -59px;
+  width: 16px;
+  height: 20px;
+
+  &:hover {
+    background-position: -22px -81px;
+  }
+}
+
+.icon.u-closeOverlayIcon {
   background-position: 0 -29px;
   width: 28px;
   height: 28px;

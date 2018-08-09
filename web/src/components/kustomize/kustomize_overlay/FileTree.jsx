@@ -8,7 +8,6 @@ export default class FileTree extends React.Component {
     autoBind(this);
   }
 
-
   handleFileSelect(path) {
     this.props.handleFileSelect(path);
   }
@@ -29,7 +28,7 @@ export default class FileTree extends React.Component {
               />
             </li>
             :
-            <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path && "is-selected"} ${file.hasOverlay && "edited"}`} onClick={() => this.handleFileSelect(file.path)}>{file.name}</li>
+            <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""}`} onClick={() => this.handleFileSelect(file.path)}>{file.name}</li>
         ))
         }
       </ul>

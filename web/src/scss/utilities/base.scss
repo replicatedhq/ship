@@ -66,6 +66,11 @@ a {
   width: 100%;
 }
 
+/* don't let that chrome autofill yellow ruin the aesthetic of your site */
+input:-webkit-autofill {
+  background-color: #ffffff;
+}
+
 .layout-footer-actions {
   box-shadow: 0 -1px 3px rgba(0,0,0,0.16);
   padding: 12px 30px 11px;

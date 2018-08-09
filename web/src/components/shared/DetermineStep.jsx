@@ -154,6 +154,7 @@ export default class DetermineStep extends React.Component {
   render() {
     const { phase, currentStep, dataLoading } = this.props;
     const isLoadingStep = phase === "loading" || isEmpty(currentStep);
+
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">

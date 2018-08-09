@@ -3,6 +3,7 @@ var webpackMerge = require("webpack-merge");
 var webpack = require("webpack");
 var HtmlWebpackPlugin = require("html-webpack-plugin");
 var HtmlWebpackTemplate = require("html-webpack-template");
+var MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = function (env) {
   var distPath = path.join(__dirname, "dist");
@@ -115,7 +116,8 @@ module.exports = function (env) {
             require("autoprefixer")
           ]
         },
-      })
+      }),
+      new MonacoWebpackPlugin()
     ],
   };
 

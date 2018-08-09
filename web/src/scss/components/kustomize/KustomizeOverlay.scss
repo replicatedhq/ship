@@ -1,10 +1,10 @@
 .marker-highlight {
-  background-color: yellow;
+  background-color: #FFF6B2;
   position: absolute;
 }
 
 .marker-highlight-null {
-  background-color: red;
+  background-color: #FAE6E3;
   position: absolute;
 }
 
@@ -31,7 +31,7 @@
   }
 }
 
-.u-discardOverlayIcon {
+.u-closeOverlayIcon {
   position: absolute;
   z-index: 2;
   left: -50px;
@@ -97,6 +97,65 @@
       top: 0;
       left: 50%;
       margin-left: -37%;
+    }
+  }
+}
+
+.diff-viewer-wrapper {
+  padding: 20px;
+  background-color: #f8f8f8;
+  position: relative;
+
+  .diff-toggle {
+    border-radius: 30px;
+    padding: 4px 20px 3px;
+    background-color: #ffffff;
+    border: 1px solid #337AB7;
+    color: #337AB7;
+    transition: all .2s;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 12px;
+    position: absolute;
+    left: 50%;
+    margin-left: -47px;
+    top: -9px;
+
+    &:hover {
+      cursor: pointer;
+      border-color: #193B5B;
+      color: #193B5B;
+    }
+  }
+
+  .diff-type-toggle {  
+    span {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 12px;
+      padding: 5px 12px 4px;
+      border: solid 1px #C4C8CA;
+      cursor: pointer;
+      text-align: center;
+    }
+  
+    span:first-of-type {
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+    }
+    span:last-of-type {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+    }
+  
+    .is-active {
+      background: #337AB7;
+      color: #ffffff;
+      border-color: #337AB7
+    }
+    .not-active {
+      background: #ffffff;
+      color: #C4C8CA;
     }
   }
 }

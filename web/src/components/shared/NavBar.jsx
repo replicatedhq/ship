@@ -3,7 +3,6 @@ import assign from "object-assign";
 import autoBind from "react-autobind";
 import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
-
 import NavItem from "./NavItem";
 import "../../scss/components/shared/NavBar.scss";
 import shipLogo from "../../assets/images/ship-logo.png";
@@ -90,8 +89,8 @@ class NavBar extends React.Component {
   }
 
   componentDidUpdate(lastProps) {
-    if(this.props.phase !== lastProps.phase && this.props.phase !== "loading") {
-      if(this.props.phase.includes("helm")) {
+    if (this.props.phase !== lastProps.phase && this.props.phase !== "loading") {
+      if (this.props.isKustomizeFlow) {
         this.setState({ 
           navDetails: {
             name: this.props.helmChartMetadata.name,
