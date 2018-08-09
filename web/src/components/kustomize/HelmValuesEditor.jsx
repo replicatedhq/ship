@@ -22,6 +22,7 @@ export default class HelmValuesEditor extends React.Component {
       specErrors: [],
       specValue: "",
       initialSpecValue: "",
+      helmLintErrors: [],
       saving: false,
       unsavedChanges: false,
       toastDetails: {
@@ -42,7 +43,7 @@ export default class HelmValuesEditor extends React.Component {
 
   getLinterErrors(specContents) {
     if (specContents === "") return;
-    
+
     const errors = new linter.Linter(specContents).lint();
     let markers = [];
     for (let error of errors) {
@@ -113,8 +114,14 @@ export default class HelmValuesEditor extends React.Component {
     const payload = {
       values: initialSpecValue
     }
+    this.setState({ helmLintErrors: [] });
     this.props.saveValues(payload)
-      .then(() => {
+      .then(({ errors }) => {
+        if (errors) {
+          return this.setState({
+            saving: false, helmLintErrors: errors
+          });
+        }
         this.handleContinue();
       })
       .catch((err) => {
@@ -129,9 +136,15 @@ export default class HelmValuesEditor extends React.Component {
       values: specValue
     }
     if(payload.values !== "" && payload.values !== initialSpecValue) {
-      this.setState({ saving: true });
+      this.setState({ saving: true, helmLintErrors: [] });
       this.props.saveValues(payload)
-        .then(() => {
+        .then(({ errors }) => {
+          if (errors) {
+            return this.setState({
+              saving: false,
+              helmLintErrors: errors
+            });
+          }
           this.setState({ saving: false, savedYaml: true });
           this.onValuesSaved();
         })
@@ -143,16 +156,17 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   render() {
-    const { 
-      readOnly, 
+    const {
+      readOnly,
       specValue,
       saving,
       toastDetails,
-      unsavedChanges
+      unsavedChanges,
+      helmLintErrors,
     } = this.state;
-    const { 
+    const {
       values,
-      readme, 
+      readme,
       name
     } = this.props.helmChartMetadata;
 
@@ -192,13 +206,21 @@ export default class HelmValuesEditor extends React.Component {
             </div>
           </div>
           <div className="action container u-width--full u-marginTop--30 flex flex1 alignItems--center justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
-            <p className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-cursor--pointer" onClick={() => { this.handleSkip() }} >Skip this step</p>
-            <button
-              className="btn primary"
-              onClick={() => this.handleSaveValues()}
-              disabled={saving || !unsavedChanges}>{saving ? "Saving" : "Save values"}
-            </button>
-          </div> 
+            <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--30 u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
+            <div className="flex flex-auto alignItems--center">
+              <p
+                className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-cursor--pointer"
+                onClick={() => { this.handleSkip() }}>
+                Skip this step
+              </p>
+              <button
+                className="btn primary"
+                onClick={() => this.handleSaveValues()}
+                disabled={saving || !unsavedChanges}>
+                {saving ? "Saving" : "Save values"}
+              </button>
+            </div>
+          </div>
         </div>
       </ErrorBoundary>
     );
