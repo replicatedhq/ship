@@ -1,4 +1,4 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui
+.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui embed-ui pkg/lifecycle/ui.bindatafs.go
 
 
 SHELL := /bin/bash
@@ -6,6 +6,19 @@ SRC = $(shell find . -name "*.go")
 UI = $(shell find web/dist -name "*.js")
 
 DOCKER_REPO ?= replicated
+
+VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
+VERSION=`git describe --tags`
+GIT_SHA=`git rev-parse HEAD`
+DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+
+define LDFLAGS
+-ldflags "\
+	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
+	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+"
+endef
 
 .state/build-deps: hack/get_build_deps.sh
 	./hack/get_build_deps.sh
@@ -134,6 +147,11 @@ _mockgen:
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
 		Messenger
+	mockgen \
+		-destination pkg/test-mocks/lifecycle/renderer_mock.go \
+		-package lifecycle \
+		github.com/replicatedhq/ship/pkg/lifecycle \
+		Renderer
 
 mockgen: _mockgen fmt
 
@@ -185,6 +203,7 @@ _build: bin/ship
 
 bin/ship: $(SRC)
 	go build \
+		${LDFLAGS} \
 		-i \
 		-o bin/ship \
 		./cmd/ship
@@ -215,12 +234,13 @@ build_yoonit_docker_image:
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(UI)
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps 
 	cd web; go-bindata-assetfs -pkg daemon \
 	  -o ../pkg/lifecycle/daemon/ui.bindatafs.go \
+	  -nometadata \
 	  dist/...
 
-embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: pkg/lifeycle/daemon/ui.bindatafs.go fmt
 
 build-ui:
 	$(MAKE) -C web build_ship

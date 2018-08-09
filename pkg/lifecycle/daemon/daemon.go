@@ -38,6 +38,10 @@ type ShipDaemon struct {
 	*V2Routes
 }
 
+func (d *ShipDaemon) AwaitShutdown() error {
+	return <-d.ExitChan
+}
+
 // "this is fine"
 func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) chan error {
 

@@ -61,7 +61,7 @@ func TestRender(t *testing.T) {
 			renderer.Fs = mockFS
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
-			renderer.PlannerFactory = func() planner.Planner { return p }
+			renderer.Planner = p
 			renderer.StateManager = &state.MManager{
 				Logger: renderer.Logger,
 				FS:     mockFS,
@@ -77,7 +77,7 @@ func TestRender(t *testing.T) {
 			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 
-			renderer.Daemon = mockDaemon
+			renderer.StatusReceiver = mockDaemon
 
 			release := &api.Release{Spec: test.Spec}
 

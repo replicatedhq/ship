@@ -129,20 +129,20 @@ func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGrou
 			if evaluatedWhen {
 				plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
 			}
-		} else if asset.AmazonElasticKubernetesService != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.AmazonElasticKubernetesService.AssetShared.When)
+		} else if asset.AmazonEKS != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.AmazonEKS.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
 			if evaluatedWhen {
-				plan = append(plan, p.amazonElasticKubernetesServiceStep(*asset.AmazonElasticKubernetesService, meta, templateContext, configGroups))
+				plan = append(plan, p.amazonElasticKubernetesServiceStep(*asset.AmazonEKS, meta, templateContext, configGroups))
 			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform amazonEKS]",
+					"[inline docker helm dockerlayer github terraform amazon_eks]",
 			)
 		}
 	}

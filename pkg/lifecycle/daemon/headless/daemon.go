@@ -24,6 +24,10 @@ type HeadlessDaemon struct {
 	ResolvedConfig map[string]interface{}
 }
 
+func (d *HeadlessDaemon) AwaitShutdown() error {
+	return nil
+}
+
 func NewHeadlessDaemon(
 	ui cli.Ui,
 	logger log.Logger,

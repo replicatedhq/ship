@@ -22,6 +22,7 @@ serve_ship:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipDev --mode development
 
 .state/build_ship: .state/package $(SRC)
+	rm -rf dist
 	`yarn bin`/webpack --config webpack.config.js --env ship --mode production
 	@mkdir -p .state
 	@touch .state/build_ship

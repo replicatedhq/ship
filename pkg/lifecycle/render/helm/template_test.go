@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"strings"
 
+	"path"
+
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -233,4 +235,65 @@ func TestMockHelm(t *testing.T) {
 		os.Exit(0)
 	}
 
+}
+
+func TestTryRemoveRenderedHelmPath(t *testing.T) {
+	tests := []struct {
+		name        string
+		describe    string
+		baseDir     string
+		expectError bool
+	}{
+		{
+			name:        "base exists",
+			describe:    "ensure base is removed and removeAll doesn't error",
+			baseDir:     constants.RenderedHelmPath,
+			expectError: false,
+		},
+		{
+			name:        "base does not exist",
+			describe:    "missing base, ensure removeAll doesn't error",
+			baseDir:     "",
+			expectError: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+
+			testLogger := &logger.TestLogger{T: t}
+
+			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			// create the base directory
+			err := fakeFS.MkdirAll(path.Join(test.baseDir, "myCoolManifest.yaml"), 0777)
+			req.NoError(err)
+
+			// verify path actually exists
+			successfulMkdirAll, err := fakeFS.DirExists(path.Join(test.baseDir, "myCoolManifest.yaml"))
+			req.True(successfulMkdirAll)
+			req.NoError(err)
+
+			ft := &ForkTemplater{
+				FS:     fakeFS,
+				Logger: testLogger,
+			}
+
+			removeErr := ft.tryRemoveRenderedHelmPath()
+
+			if test.expectError {
+				req.Error(removeErr)
+			} else {
+				if dirExists, existErr := ft.FS.DirExists(constants.RenderedHelmPath); dirExists {
+					req.NoError(existErr)
+					// if dir exists, we expect tryRemoveRenderedHelmPath to have err'd
+					req.Error(removeErr)
+				} else {
+					// if dir does not exist, we expect tryRemoveRenderedHelmPath to have succeeded without err'ing
+					req.NoError(removeErr)
+				}
+			}
+		})
+	}
 }

@@ -9,17 +9,53 @@ import (
 
 // Make sure we can get an instance of ship
 func TestDI(t *testing.T) {
-	req := require.New(t)
-	viper.Set("headless", true)
-	viper.Set("customer-endpoint", "https://g.replicated.com")
+	tests := []struct {
+		name string
+		set  map[string]bool
+	}{
+		{
+			name: "headless",
+			set: map[string]bool{
+				"headless":           true,
+				"navigate-lifecycle": false,
+			},
+		},
+		{
+			name: "navigate",
+			set: map[string]bool{
+				"headless":           false,
+				"navigate-lifecycle": true,
+			},
+		},
+		{
+			name: "headed",
+			set: map[string]bool{
+				"headless":           false,
+				"navigate-lifecycle": false,
+			},
+		},
+	}
 
-	container, err := buildInjector()
-	req.NoError(err)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			for key, value := range test.set {
+				viper.Set(key, value)
+				viper.Set("customer-endpoint", "https://g.replicated.com")
+			}
 
-	err = container.Invoke(func(s *Ship) error {
-		// don't do anything with it, just make sure we can get one
-		return nil
-	})
+			req := require.New(t)
 
-	req.NoError(err)
+			container, err := buildInjector()
+			req.NoError(err)
+
+			err = container.Invoke(func(s *Ship) error {
+				// don't do anything with it, just make sure we can get one
+				return nil
+			})
+
+			req.NoError(err)
+
+		})
+
+	}
 }

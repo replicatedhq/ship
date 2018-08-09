@@ -1,7 +1,6 @@
 var webpack = require("webpack");
 var path = require("path");
 var srcPath = path.join(__dirname, "src");
-var WriteFilePlugin = require("write-file-webpack-plugin");
 
 module.exports = {
   entry: [
@@ -10,13 +9,13 @@ module.exports = {
 
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NamedModulesPlugin(),
-    new WriteFilePlugin()
+    new webpack.NamedModulesPlugin()
   ],
   output: {
-    path: path.join(__dirname, 'dist')
+    path: path.join(__dirname, 'dist'),
+    publicPath: "/",
+    filename: "[name].[hash].js"
   },
-
 
   module: {
     rules: [

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazonElasticKubernetesService"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -44,9 +44,51 @@ type Planner interface {
 	) (Plan, error)
 
 	Execute(context.Context, Plan) error
+
+	WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 }
 
-type Factory func() Planner
+type Factory func() *CLIPlanner
+
+func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner {
+	return Factory(func() *CLIPlanner {
+		planner := f()
+		return &CLIPlanner{
+			Status: receiver,
+
+			Logger:         planner.Logger,
+			Fs:             planner.Fs,
+			UI:             planner.UI,
+			Viper:          planner.Viper,
+			BuilderBuilder: planner.BuilderBuilder,
+
+			Inline:      planner.Inline,
+			Helm:        planner.Helm,
+			Docker:      planner.Docker,
+			DockerLayer: planner.DockerLayer,
+			GitHub:      planner.GitHub,
+			Terraform:   planner.Terraform,
+			Web:         planner.Web,
+			AWSEKS:      planner.AWSEKS,
+		}
+
+	})
+}
+
+func (f Factory) Build(
+	assets []api.Asset,
+	configGroups []libyaml.ConfigGroup,
+	releaseMeta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+) (Plan, error) {
+	planner := f()
+	return planner.Build(assets, configGroups, releaseMeta, templateContext)
+}
+
+func (f Factory) Execute(ctx context.Context, p Plan) error {
+	planner := f()
+	return planner.Execute(ctx, p)
+}
 
 // CLIPlanner is the default Planner
 type CLIPlanner struct {
@@ -64,7 +106,7 @@ type CLIPlanner struct {
 	Web         web.Renderer
 	GitHub      github.Renderer
 	Terraform   terraform.Renderer
-	AWSEKS      amazonElasticKubernetesService.Renderer
+	AWSEKS      amazoneks.Renderer
 }
 
 // Use a factory so we can create instances and override the StatusReceiver on those instances.
@@ -81,10 +123,10 @@ func NewFactory(
 	gh github.Renderer,
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
-	awseks amazonElasticKubernetesService.Renderer,
-	daemon daemontypes.Daemon,
-) Factory {
-	return func() Planner {
+	awseks amazoneks.Renderer,
+	status daemontypes.StatusReceiver,
+) Planner {
+	return Factory(func() *CLIPlanner {
 		return &CLIPlanner{
 			Logger:         logger,
 			Fs:             fs,
@@ -100,8 +142,8 @@ func NewFactory(
 			Terraform:   tf,
 			Web:         webRenderer,
 			AWSEKS:      awseks,
-			Status:      daemon,
+			Status:      status,
 		}
-	}
+	})
 
 }

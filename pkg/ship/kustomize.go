@@ -80,6 +80,8 @@ func (s *Ship) Update(ctx context.Context) error {
 
 func (s *Ship) Watch(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "watch"))
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer s.Shutdown(cancelFunc)
 
 	for {
 		existingState, err := s.State.TryLoad()
@@ -118,6 +120,8 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer s.Shutdown(cancelFunc)
 
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
@@ -158,6 +162,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	s.State.SerializeChartURL(helmChartPath)
 
 	release := s.buildRelease(helmChartMetadata)
+	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
@@ -176,13 +181,35 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
 					{
+						KustomizeIntro: &api.KustomizeIntro{
+							StepShared: api.StepShared{
+								ID: "kustomize",
+							},
+						},
+					},
+					{
 						Kustomize: &api.Kustomize{
 							BasePath: s.KustomizeRaw,
 							Dest:     path.Join("overlays", "ship"),
+							StepShared: api.StepShared{
+								ID:          "kustomize",
+								Invalidates: []string{"diff"},
+							},
+						},
+					},
+					{
+						KustomizeDiff: &api.KustomizeDiff{
+							StepShared: api.StepShared{
+								ID:       "kustomize",
+								Requires: []string{"kustomize"},
+							},
 						},
 					},
 					{
 						Message: &api.Message{
+							StepShared: api.StepShared{
+								ID: "outro",
+							},
 							Contents: `
 Assets are ready to deploy. You can run
 
@@ -227,22 +254,45 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 			Lifecycle: api.Lifecycle{
 				V1: []api.Step{
 					{
-						HelmIntro: &api.HelmIntro{},
+						HelmIntro: &api.HelmIntro{
+							StepShared: api.StepShared{
+								ID: "intro",
+							},
+						},
 					},
 					{
-						HelmValues: &api.HelmValues{},
+						HelmValues: &api.HelmValues{
+							StepShared: api.StepShared{
+								ID:          "values",
+								Requires:    []string{"intro"},
+								Invalidates: []string{"render"},
+							},
+						},
 					},
 					{
-						Render: &api.Render{},
+						Render: &api.Render{
+							StepShared: api.StepShared{
+								ID:       "render",
+								Requires: []string{"values"},
+							},
+						},
 					},
 					{
 						Kustomize: &api.Kustomize{
 							BasePath: constants.RenderedHelmPath,
 							Dest:     path.Join("overlays", "ship"),
+							StepShared: api.StepShared{
+								ID:       "kustomize",
+								Requires: []string{"render"},
+							},
 						},
 					},
 					{
 						Message: &api.Message{
+							StepShared: api.StepShared{
+								ID:       "outro",
+								Requires: []string{"kustomize"},
+							},
 							Contents: `
 Assets are ready to deploy. You can run
 

@@ -74,12 +74,13 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	debug.Log("event", "state.loaded")
 	kustomizeState := current.CurrentKustomize()
+
+	var shipOverlay state.Overlay
 	if kustomizeState == nil {
 		debug.Log("event", "state.kustomize.empty")
-		return nil
+	} else {
+		shipOverlay = kustomizeState.Ship()
 	}
-
-	shipOverlay := kustomizeState.Ship()
 
 	debug.Log("event", "mkdir", "dir", step.Dest)
 	err = l.FS.MkdirAll(step.Dest, 0777)
@@ -88,12 +89,12 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 		return errors.Wrapf(err, "make dir %s", step.Dest)
 	}
 
-	patches, err := l.writePatches(shipOverlay, step.Dest)
+	relativePatchPaths, err := l.writePatches(shipOverlay, step.Dest)
 	if err != nil {
 		return err
 	}
 
-	err = l.writeOverlay(step, patches)
+	err = l.writeOverlay(step, relativePatchPaths)
 	if err != nil {
 		return errors.Wrap(err, "write overlay")
 	}
@@ -123,10 +124,9 @@ func (l *kustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan c
 	}
 }
 
-func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) ([]string, error) {
+func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatches"))
 
-	var patches []string
 	for file, contents := range shipOverlay.Patches {
 		name := path.Join(destDir, file)
 		err := l.writePatch(name, destDir, contents)
@@ -134,9 +134,14 @@ func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) ([]
 			debug.Log("event", "write", "name", name)
 			return []string{}, errors.Wrapf(err, "write %s", name)
 		}
-		patches = append(patches, file)
+
+		relativePatchPath, err := filepath.Rel(destDir, name)
+		if err != nil {
+			return []string{}, errors.Wrap(err, "unable to determine relative path")
+		}
+		relativePatchPaths = append(relativePatchPaths, relativePatchPath)
 	}
-	return patches, nil
+	return relativePatchPaths, nil
 }
 
 func (l *kustomizer) writePatch(name string, destDir string, contents string) error {
@@ -158,13 +163,13 @@ func (l *kustomizer) writePatch(name string, destDir string, contents string) er
 	return nil
 }
 
-func (l *kustomizer) writeOverlay(step api.Kustomize, patches []string) error {
+func (l *kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
 			filepath.Join("../../", step.BasePath),
 		},
-		Patches: patches,
+		Patches: relativePatchPaths,
 	}
 
 	marshalled, err := yaml.Marshal(kustomization)

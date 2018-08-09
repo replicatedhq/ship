@@ -40,12 +40,13 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon   daemontypes.Daemon
-	Resolver *specs.Resolver
-	Runbook  string
-	Client   *specs.GraphQLClient
-	UI       cli.Ui
-	State    state.Manager
+	Daemon    daemontypes.Daemon
+	Resolver  *specs.Resolver
+	Runbook   string
+	Client    *specs.GraphQLClient
+	UI        cli.Ui
+	State     state.Manager
+	IDPatcher *specs.IDPatcher
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
@@ -61,6 +62,7 @@ func NewShip(
 	runner *lifecycle.Runner,
 	ui cli.Ui,
 	stateManager state.Manager,
+	patcher *specs.IDPatcher,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -75,14 +77,15 @@ func NewShip(
 
 		KustomizeRaw: v.GetString("raw"),
 
-		Viper:    v,
-		Logger:   logger,
-		Resolver: resolver,
-		Client:   graphql,
-		Daemon:   daemon,
-		UI:       ui,
-		Runner:   runner,
-		State:    stateManager,
+		Viper:     v,
+		Logger:    logger,
+		Resolver:  resolver,
+		Client:    graphql,
+		Daemon:    daemon,
+		UI:        ui,
+		Runner:    runner,
+		State:     stateManager,
+		IDPatcher: patcher,
 	}, nil
 }
 
@@ -141,7 +144,6 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	var release *api.Release
 	selector := &specs.Selector{
 		CustomerID:     s.CustomerID,
 		ReleaseSemver:  s.ReleaseSemver,
@@ -149,11 +151,11 @@ func (s *Ship) Execute(ctx context.Context) error {
 		ChannelID:      s.ChannelID,
 		InstallationID: s.InstallationID,
 	}
-	cloudOrRunbookRelease, err := s.Resolver.ResolveRelease(ctx, *selector)
+	release, err := s.Resolver.ResolveRelease(ctx, *selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
-	release = cloudOrRunbookRelease
+	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	return s.execute(ctx, release, selector, false)
 }
@@ -162,8 +164,16 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
-		err := s.Runner.Run(ctx, release)
-		s.Daemon.AllStepsDone(ctx)
+		var err error
+		// *wince* dex do this better
+		if viper.GetBool("navigate-lifecycle") {
+			s.Daemon.EnsureStarted(ctx, release)
+			err = s.Daemon.AwaitShutdown()
+		} else {
+			err = s.Runner.Run(ctx, release)
+			s.Daemon.AllStepsDone(ctx)
+		}
+
 		if err != nil {
 			level.Error(s.Logger).Log("event", "shutdown", "reason", "error", "err", err)
 		} else {

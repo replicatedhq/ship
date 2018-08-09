@@ -13,13 +13,13 @@ import (
 )
 
 type TestCase struct {
-	Name      string                   `yaml:"name"`
-	Mkdir     []string                 `yaml:"mkdir"`
-	Touch     []string                 `yaml:"touch"`
-	Overlays  map[string]state.Overlay `yaml:"overlays"`
-	Read      string                   `yaml:"read"`
-	Expect    *Node                    `yaml:"expect"`
-	ExpectErr string                   `yaml:"expectErr"`
+	Name      string        `yaml:"name"`
+	Mkdir     []string      `yaml:"mkdir"`
+	Touch     []string      `yaml:"touch"`
+	Patches   yaml.MapSlice `yaml:"patches"`
+	Read      string        `yaml:"read"`
+	Expect    *Node         `yaml:"expect"`
+	ExpectErr string        `yaml:"expectErr"`
 }
 
 func loadTestCases(t *testing.T) []TestCase {
@@ -58,8 +58,17 @@ func TestAferoLoader(t *testing.T) {
 				toRead = "/"
 			}
 
+			testPatches := make(map[string]string)
+			for _, patch := range test.Patches {
+				testPatches[patch.Key.(string)] = patch.Value.(string)
+			}
+
 			tree, err := loader.LoadTree(toRead, &state.Kustomize{
-				Overlays: test.Overlays,
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches: testPatches,
+					},
+				},
 			})
 			if test.ExpectErr == "" {
 				req.NoError(err)
