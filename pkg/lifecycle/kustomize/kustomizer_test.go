@@ -292,28 +292,28 @@ func Test_kustomizer_writeBase(t *testing.T) {
 func TestKustomizer(t *testing.T) {
 	tests := []struct {
 		name        string
-		kustomize   state.Kustomize
+		kustomize   *state.Kustomize
 		expectFiles map[string]string
 	}{
 		{
-			name: "no files",
-			kustomize: state.Kustomize{
-				Overlays: map[string]state.Overlay{
-					"ship": {
-						Patches:           make(map[string]string),
-						KustomizationYAML: "",
-					},
-				},
+			name:      "no files",
+			kustomize: nil,
+			expectFiles: map[string]string{
+				"overlays/ship/kustomization.yaml": `bases:
+- ../../base
+`,
+				"base/kustomization.yaml": `resources:
+- deployment.yaml
+`,
 			},
-			expectFiles: map[string]string{},
 		},
 		{
 			name: "one file",
-			kustomize: state.Kustomize{
+			kustomize: &state.Kustomize{
 				Overlays: map[string]state.Overlay{
 					"ship": {
 						Patches: map[string]string{
-							"deployment.yaml": `---
+							"/deployment.yaml": `---
 metadata:
   name: my-deploy
 spec:
@@ -324,15 +324,18 @@ spec:
 				},
 			},
 			expectFiles: map[string]string{
-				"deployment.yaml": `---
+				"overlays/ship/deployment.yaml": `---
 metadata:
   name: my-deploy
 spec:
   replicas: 100`,
 
-				"kustomization.yaml": `bases:
+				"overlays/ship/kustomization.yaml": `bases:
 - ../../base
 patches:
+- deployment.yaml
+`,
+				"base/kustomization.yaml": `resources:
 - deployment.yaml
 `,
 			},
@@ -369,7 +372,7 @@ patches:
 			})
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
-				Kustomize: &test.kustomize,
+				Kustomize: test.kustomize,
 			}}, nil)
 
 			k := &kustomizer{
@@ -389,9 +392,8 @@ patches:
 			)
 
 			for name, contents := range test.expectFiles {
-				pathToFile := path.Join("overlays", "ship", name)
-				actual, err := mockFS.ReadFile(pathToFile)
-				req.NoError(err, "read expected file %s", pathToFile)
+				actual, err := mockFS.ReadFile(name)
+				req.NoError(err, "read expected file %s", name)
 				req.Equal(contents, string(actual))
 			}
 
