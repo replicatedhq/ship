@@ -3,12 +3,17 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
+	"path"
+	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/kubernetes-sigs/kustomize/pkg/resource"
+	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -18,15 +23,18 @@ import (
 type Patcher interface {
 	CreateTwoWayMergePatch(string, string) ([]byte, error)
 	MergePatches([]byte, []byte) ([]byte, error)
+	ApplyPatch(string) ([]byte, error)
 }
 
 type ShipPatcher struct {
 	Logger log.Logger
+	FS     afero.Afero
 }
 
-func NewShipPatcher(logger log.Logger) Patcher {
+func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
 	return &ShipPatcher{
 		Logger: logger,
+		FS:     fs,
 	}
 }
 
@@ -173,4 +181,58 @@ func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error
 	}
 
 	return patch, nil
+}
+
+func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
+	defer p.applyPatchCleanup()
+
+	debug.Log("event", "mkdir.tempApplyOverlayPath")
+	if err := p.FS.MkdirAll(constants.TempApplyOverlayPath, 0755); err != nil {
+		return nil, errors.Wrap(err, "create temp apply overlay path")
+	}
+
+	debug.Log("event", "writeFile.tempPatch")
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), []byte(patch), 0755); err != nil {
+		return nil, errors.Wrap(err, "write temp patch overlay")
+	}
+
+	debug.Log("event", "relPath")
+	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.RenderedHelmPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find relative path")
+	}
+
+	kustomizationYaml := k8stypes.Kustomization{
+		Bases:   []string{relativePathToBases},
+		Patches: []string{"temp.yaml"},
+	}
+
+	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal kustomization yaml")
+	}
+
+	debug.Log("event", "writeFile.tempKustomizationYaml")
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "kustomization.yaml"), kustomizationYamlBytes, 0755); err != nil {
+		return nil, errors.Wrap(err, "write temp kustomization yaml")
+	}
+
+	debug.Log("event", "run.kustomizeBuild")
+	merged, err := p.RunKustomize(constants.TempApplyOverlayPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return merged, nil
+}
+
+func (p *ShipPatcher) applyPatchCleanup() {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "patchCleanup"))
+
+	debug.Log("event", "remove temp directory")
+	err := p.FS.RemoveAll(constants.TempApplyOverlayPath)
+	if err != nil {
+		level.Error(log.With(p.Logger, "clean up"))
+	}
 }

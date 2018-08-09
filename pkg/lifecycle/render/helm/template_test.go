@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/process"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
@@ -154,6 +155,7 @@ func TestForkTemplater(t *testing.T) {
 				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 				Viper:          viper.New(),
+				process:        process.Process{Logger: testLogger},
 			}
 
 			channelName := "Frobnitz"

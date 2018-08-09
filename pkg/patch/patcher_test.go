@@ -2,8 +2,11 @@ package patch
 
 import (
 	"io/ioutil"
+	"os"
 	"path"
 	"testing"
+
+	"github.com/spf13/afero"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,14 +18,19 @@ func TestShipPatcher(t *testing.T) {
 	RunSpecs(t, "ShipPatcher")
 }
 
-const createTestCasesFolder = "create-test-cases"
-const mergeTestCasesFolder = "merge-test-cases"
+const (
+	createTestCasesFolder = "create-test-cases"
+	mergeTestCasesFolder  = "merge-test-cases"
+	applyTestCasesFolder  = "apply-test-cases"
+)
 
 var shipPatcher *ShipPatcher
 
 var _ = BeforeSuite(func() {
+	logger := &logger.TestLogger{T: GinkgoT()}
 	shipPatcher = &ShipPatcher{
-		Logger: &logger.TestLogger{T: GinkgoT()},
+		Logger: logger,
+		FS:     afero.Afero{Fs: afero.NewOsFs()},
 	}
 })
 
@@ -43,7 +51,7 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				expectPatch, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "patch.yaml"))
-				Expect(patch).To(Equal(expectPatch))
+				Expect(string(patch)).To(Equal(string(expectPatch)))
 			}
 		})
 	})
@@ -64,6 +72,28 @@ var _ = Describe("ShipPatcher", func() {
 
 				expectPatch, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "patch.yaml"))
 				Expect(patch).To(Equal(expectPatch))
+			}
+		})
+	})
+	Describe("ApplyPatch", func() {
+		It("Applies a single patch to a file, producing a modified yaml", func() {
+			applyTestDirs, err := ioutil.ReadDir(path.Join(applyTestCasesFolder))
+			Expect(err).NotTo(HaveOccurred())
+
+			for _, applyTestDir := range applyTestDirs {
+				err := os.Chdir(path.Join(applyTestCasesFolder, applyTestDir.Name()))
+				Expect(err).NotTo(HaveOccurred())
+
+				patch, err := ioutil.ReadFile(path.Join("patch.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+
+				expectModified, err := ioutil.ReadFile(path.Join("modified.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+
+				modified, err := shipPatcher.ApplyPatch(string(patch))
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(modified).To(Equal(expectModified))
 			}
 		})
 	})

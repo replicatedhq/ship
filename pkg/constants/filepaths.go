@@ -23,3 +23,6 @@ const RenderedHelmPath = "base"
 
 // TempHelmValuesPath is the folder path used to store the updated values.yaml
 const TempHelmValuesPath = "chart/tmp"
+
+// TempApplyOverlayPath is the folder path used to apply patch
+const TempApplyOverlayPath = "overlays/tmp-apply"

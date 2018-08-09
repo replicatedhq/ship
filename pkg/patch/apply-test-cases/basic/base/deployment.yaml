@@ -10,27 +10,26 @@ spec:
         deployment: hello
     spec:
       containers:
-      - command:
-        - /hello
-        - --port=8080
-        - --enableRiskyFeature=$(ENABLE_RISKY)
+      - name: the-container
+        image: monopole/hello:1
+        command: ["/hello",
+                  "--port=8080",
+                  "--enableRiskyFeature=$(ENABLE_RISKY)"]
+        ports:
+        - name: test
+          containerPort: 8080
+        - name: test2
+          containerPort: 8081
+        - name: test3
+          containerPort: 8082
         env:
         - name: ALT_GREETING
           valueFrom:
             configMapKeyRef:
-              key: altGreeting
               name: the-map
+              key: altGreeting
         - name: ENABLE_RISKY
           valueFrom:
             configMapKeyRef:
-              key: enableRisky
               name: the-map
-        image: monopole/hello:1
-        name: the-container
-        ports:
-        - containerPort: 1111
-          name: test
-        - containerPort: 8081
-          name: test2
-        - containerPort: 8082
-          name: test3
+              key: enableRisky
