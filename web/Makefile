@@ -21,7 +21,7 @@ serve_config:
 serve_ship:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipDev --mode development
 
-.state/build_ship: .state/package $(SRC)
+.state/build_ship: .state/package webpack* postcss* $(shell find src -type f)
 	rm -rf dist
 	`yarn bin`/webpack --config webpack.config.js --env ship --mode production
 	@mkdir -p .state
@@ -34,6 +34,7 @@ embed_ship:
 	cp -r dist/* ${GOPATH}/src/github.com/replicatedhq/ship/ui/
 	:
 	: Assets embedded. You will need to rebuild ship to see changes reflected
+
 
 test:
 	yarn test

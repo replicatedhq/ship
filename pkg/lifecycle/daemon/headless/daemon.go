@@ -173,7 +173,9 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 }
 
 func (d *HeadlessDaemon) SetProgress(progress daemontypes.Progress) {
-	d.UI.Output(progress.Detail)
+	if progress.Type == "string" {
+		d.UI.Output(progress.Detail)
+	}
 }
 
 func (d *HeadlessDaemon) ClearProgress() {}
