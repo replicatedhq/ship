@@ -3,7 +3,6 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
-	"os/exec"
 	"path"
 	"path/filepath"
 
@@ -14,7 +13,6 @@ import (
 	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/process"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
@@ -29,20 +27,14 @@ type Patcher interface {
 }
 
 type ShipPatcher struct {
-	Logger  log.Logger
-	FS      afero.Afero
-	process process.Process
-	cmd     *exec.Cmd
+	Logger log.Logger
+	FS     afero.Afero
 }
 
 func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
-	process := process.Process{Logger: logger}
-	cmd := exec.Command("/usr/local/bin/kustomize")
 	return &ShipPatcher{
-		Logger:  logger,
-		FS:      fs,
-		process: process,
-		cmd:     cmd,
+		Logger: logger,
+		FS:     fs,
 	}
 }
 
@@ -226,21 +218,13 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 		return nil, errors.Wrap(err, "write temp kustomization yaml")
 	}
 
-	p.cmd.Args = append(
-		p.cmd.Args,
-		"build", constants.TempApplyOverlayPath,
-	)
-
-	debug.Log("event", "fork")
-	stdout, stderr, err := p.process.Fork(p.cmd)
+	debug.Log("event", "run.kustomizeBuild")
+	merged, err := p.RunKustomize(constants.TempApplyOverlayPath)
 	if err != nil {
-		debug.Log("event", "cmd.err")
-		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return nil, errors.Errorf(`execute kustomize: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
-		}
-		return nil, errors.Wrap(err, "execute kustomize")
+		return nil, err
 	}
-	return stdout, nil
+
+	return merged, nil
 }
 
 func (p *ShipPatcher) applyPatchCleanup() {
