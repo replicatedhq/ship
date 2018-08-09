@@ -68,13 +68,9 @@ func TestRender(t *testing.T) {
 				V:      viper.New(),
 			}
 
-			prog := mockDaemon.EXPECT().SetProgress(ProgressLoad)
-			prog = mockDaemon.EXPECT().SetProgress(ProgressResolve).After(prog)
-			prog = mockDaemon.EXPECT().SetProgress(ProgressBuild).After(prog)
-			prog = mockDaemon.EXPECT().SetProgress(ProgressBackup).After(prog)
-			prog = mockDaemon.EXPECT().SetProgress(ProgressExecute).After(prog)
+			prog := mockDaemon.EXPECT().SetProgress(ProgressRead)
+			prog = mockDaemon.EXPECT().SetProgress(ProgressRender).After(prog)
 			prog = mockDaemon.EXPECT().SetStepName(ctx, daemontypes.StepNameConfirm).After(prog)
-			prog = mockDaemon.EXPECT().SetProgress(ProgressCommit).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 
 			renderer.StatusReceiver = mockDaemon

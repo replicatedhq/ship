@@ -57,6 +57,10 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 	})
 	debug.Log("event", "step.pushed")
 
+	if err := l.writeBase(step); err != nil {
+		return errors.Wrap(err, "write base kustomization")
+	}
+
 	err := l.awaitKustomizeSaved(ctx, daemonExitedChan)
 	debug.Log("event", "kustomize.saved", "err", err)
 	if err != nil {
@@ -70,12 +74,13 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 
 	debug.Log("event", "state.loaded")
 	kustomizeState := current.CurrentKustomize()
+
+	var shipOverlay state.Overlay
 	if kustomizeState == nil {
 		debug.Log("event", "state.kustomize.empty")
-		return nil
+	} else {
+		shipOverlay = kustomizeState.Ship()
 	}
-
-	shipOverlay := kustomizeState.Ship()
 
 	debug.Log("event", "mkdir", "dir", step.Dest)
 	err = l.FS.MkdirAll(step.Dest, 0777)
@@ -90,11 +95,6 @@ func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.
 	}
 
 	err = l.writeOverlay(step, relativePatchPaths)
-	if err != nil {
-		return errors.Wrap(err, "write overlay")
-	}
-
-	err = l.writeBase(step)
 	if err != nil {
 		return errors.Wrap(err, "write overlay")
 	}

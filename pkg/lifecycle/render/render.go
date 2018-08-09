@@ -21,12 +21,8 @@ import (
 )
 
 var (
-	ProgressLoad    = daemontypes.StringProgress("render", "load")
-	ProgressResolve = daemontypes.StringProgress("render", "resolve")
-	ProgressBuild   = daemontypes.StringProgress("render", "build")
-	ProgressBackup  = daemontypes.StringProgress("render", "backup")
-	ProgressExecute = daemontypes.StringProgress("render", "execute")
-	ProgressCommit  = daemontypes.StringProgress("render", "commit")
+	ProgressRead   = daemontypes.StringProgress("render", "reading application release")
+	ProgressRender = daemontypes.StringProgress("render", "rendering assets and configuration values")
 )
 
 // A renderer takes a resolved spec, collects config values, and renders assets
@@ -48,34 +44,35 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute")
 
-	r.StatusReceiver.SetProgress(ProgressLoad)
+	debug.Log("event", "try.load")
 	previousState, err := r.StateManager.TryLoad()
 	if err != nil {
 		return err
 	}
 
-	r.StatusReceiver.SetProgress(ProgressResolve)
+	r.StatusReceiver.SetProgress(ProgressRead)
+
+	debug.Log("event", "resolve.config")
 	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousState.CurrentConfig())
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
 
+	r.StatusReceiver.SetProgress(ProgressRender)
+
 	debug.Log("event", "render.plan")
-	r.StatusReceiver.SetProgress(ProgressBuild)
 	pln, err := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
-
 	}
 
 	debug.Log("event", "backup.start")
-	r.StatusReceiver.SetProgress(ProgressBackup)
 	err = r.backupIfPresent(constants.InstallerPrefixPath)
 	if err != nil {
 		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
 	}
 
-	r.StatusReceiver.SetProgress(ProgressExecute)
+	debug.Log("event", "execute.plan")
 	r.StatusReceiver.SetStepName(ctx, daemontypes.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
@@ -97,7 +94,7 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 		stateTemplateContext = templateContext
 	}
 
-	r.StatusReceiver.SetProgress(ProgressCommit)
+	debug.Log("event", "commit")
 	if err := r.StateManager.SerializeConfig(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
 	}

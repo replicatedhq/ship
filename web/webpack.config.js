@@ -28,7 +28,7 @@ module.exports = function (env) {
     output: {
       path: distPath,
       publicPath: "/",
-      filename: "[name].[hash].js"
+      filename: "[name].[chunkhash].js"
     },
 
     resolve: {
