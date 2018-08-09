@@ -1,6 +1,8 @@
 package daemon
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -31,6 +33,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 }
 
 func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
+
 	if step.Kustomize != nil {
 		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
 		currentState, err := d.StateManager.TryLoad()
@@ -85,5 +88,26 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 		result.Progress = &progress
 	}
 
+	d.hydrateActions(result)
+
 	return result, nil
+}
+
+func (d *V2Routes) hydrateActions(response *daemontypes.StepResponse) {
+	step := response.CurrentStep
+	if step.Message != nil {
+		response.Actions = []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Confirm",
+				LoadingText: "Confirming",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	}
+
 }

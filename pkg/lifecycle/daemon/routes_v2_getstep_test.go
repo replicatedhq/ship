@@ -63,6 +63,18 @@ func TestV2GetStep(t *testing.T) {
 					},
 				},
 				"phase": "message",
+				"actions": []daemontypes.Action{
+					{
+						ButtonType:  "primary",
+						Text:        "Confirm",
+						LoadingText: "Confirming",
+						OnClick: daemontypes.ActionRequest{
+							URI:    "/api/v2/lifecycle/step/foo",
+							Method: "POST",
+							Body:   "",
+						},
+					},
+				},
 			},
 		},
 		{
