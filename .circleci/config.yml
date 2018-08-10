@@ -116,7 +116,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
-      - run: make build-deps embed-ui
+      - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
@@ -146,7 +146,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
-      - run: make build-deps embed-ui
+      - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
