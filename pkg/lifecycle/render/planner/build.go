@@ -54,7 +54,6 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 		p.Status.SetProgress(daemontypes.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
-			asset.Inline.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Inline.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Inline.AssetShared.When)
 			if err != nil {
 				return nil, err
