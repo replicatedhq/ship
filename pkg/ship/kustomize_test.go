@@ -10,15 +10,15 @@ import (
 type CheckUpstreamRelease struct {
 	Name        string
 	Description string
-	Expected    *api.Lifecycle
+	Expected    *api.Spec
 }
 
-type ApplyUpstreamReleaseLifecycle struct {
-	Name              string
-	Description       string
-	UpstreamLifecycle *api.Lifecycle
-	DefaultLifecycle  *api.Lifecycle
-	UpstreamExists    bool
+type ApplyUpstreamReleaseSpec struct {
+	Name           string
+	Description    string
+	UpstreamSpec   *api.Spec
+	DefaultSpec    *api.Spec
+	UpstreamExists bool
 }
 
 func TestCheckUpstreamRelease(t *testing.T) {
@@ -43,14 +43,14 @@ func TestCheckUpstreamRelease(t *testing.T) {
 	}
 }
 
-func TestApplyUpstreamReleaseLifecycle(t *testing.T) {
-	tests := []ApplyUpstreamReleaseLifecycle{
+func TestApplyUpstreamReleaseSpec(t *testing.T) {
+	tests := []ApplyUpstreamReleaseSpec{
 		{
-			Name:              "no upstream",
-			Description:       "no upstream, should use default release lifecycle",
-			UpstreamLifecycle: nil,
-			DefaultLifecycle:  nil,
-			UpstreamExists:    false,
+			Name:           "no upstream",
+			Description:    "no upstream, should use default release lifecycle",
+			UpstreamSpec:   nil,
+			DefaultSpec:    DefaultHelmSpec,
+			UpstreamExists: false,
 		},
 	}
 	for _, test := range tests {
@@ -62,11 +62,11 @@ func TestApplyUpstreamReleaseLifecycle(t *testing.T) {
 
 			var release *api.Release
 			if test.UpstreamExists {
-				release = s.buildHelmRelease(meta, test.UpstreamLifecycle)
-				req.Equal(release.Spec.Lifecycle, test.UpstreamLifecycle)
+				release = s.buildHelmRelease(meta, test.UpstreamSpec)
+				req.Equal(&release.Spec, test.UpstreamSpec)
 			} else {
-				release = s.buildHelmRelease(meta, DefaultHelmLifecycle)
-				req.Equal(release.Spec.Lifecycle, test.DefaultLifecycle)
+				release = s.buildHelmRelease(meta, DefaultHelmSpec)
+				req.Equal(&release.Spec, test.DefaultSpec)
 			}
 		})
 	}

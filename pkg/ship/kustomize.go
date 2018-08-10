@@ -18,55 +18,75 @@ import (
 )
 
 var (
-	DefaultHelmLifecycle = &api.Lifecycle{
-		V1: []api.Step{
-			{
-				HelmIntro: &api.HelmIntro{
-					StepShared: api.StepShared{
-						ID: "intro",
+	DefaultHelmSpec = &api.Spec{
+		Assets: api.Assets{
+			V1: []api.Asset{
+				{
+					Helm: &api.HelmAsset{
+						AssetShared: api.AssetShared{
+							Dest: constants.RenderedHelmPath,
+						},
+						Local: &api.LocalHelmOpts{
+							ChartRoot: constants.KustomizeHelmPath,
+						},
+						HelmOpts: []string{
+							"--values",
+							path.Join(constants.TempHelmValuesPath, "values.yaml"),
+						},
 					},
 				},
 			},
-			{
-				HelmValues: &api.HelmValues{
-					StepShared: api.StepShared{
-						ID:          "values",
-						Requires:    []string{"intro"},
-						Invalidates: []string{"render"},
+		},
+		Lifecycle: api.Lifecycle{
+			V1: []api.Step{
+				{
+					HelmIntro: &api.HelmIntro{
+						StepShared: api.StepShared{
+							ID: "intro",
+						},
 					},
 				},
-			},
-			{
-				Render: &api.Render{
-					StepShared: api.StepShared{
-						ID:       "render",
-						Requires: []string{"values"},
+				{
+					HelmValues: &api.HelmValues{
+						StepShared: api.StepShared{
+							ID:          "values",
+							Requires:    []string{"intro"},
+							Invalidates: []string{"render"},
+						},
 					},
 				},
-			},
-			{
-				Kustomize: &api.Kustomize{
-					BasePath: constants.RenderedHelmPath,
-					Dest:     path.Join("overlays", "ship"),
-					StepShared: api.StepShared{
-						ID:       "kustomize",
-						Requires: []string{"render"},
+				{
+					Render: &api.Render{
+						StepShared: api.StepShared{
+							ID:       "render",
+							Requires: []string{"values"},
+						},
 					},
 				},
-			},
-			{
-				Message: &api.Message{
-					StepShared: api.StepShared{
-						ID:       "outro",
-						Requires: []string{"kustomize"},
+				{
+					Kustomize: &api.Kustomize{
+						BasePath: constants.RenderedHelmPath,
+						Dest:     path.Join("overlays", "ship"),
+						StepShared: api.StepShared{
+							ID:       "kustomize",
+							Requires: []string{"render"},
+						},
 					},
-					Contents: `
+				},
+				{
+					Message: &api.Message{
+						StepShared: api.StepShared{
+							ID:       "outro",
+							Requires: []string{"kustomize"},
+						},
+						Contents: `
 Assets are ready to deploy. You can run
 
     kubectl apply -f installer/rendered
 
 to deploy the overlaid assets to your cluster.
 `},
+				},
 			},
 		},
 	}
@@ -132,12 +152,12 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	// if upstream release exists, use its `lifecycle` in app release
+	// if upstream release exists, use its `spec` in app release
 	var release *api.Release
-	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
-		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseLifecycle)
+	if upstreamReleaseSpec := s.checkUpstreamForRelease(); upstreamReleaseSpec != nil {
+		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseSpec)
 	} else {
-		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmLifecycle)
+		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
@@ -229,12 +249,12 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	// serialize the ChartURL to disk. First step in creating a state file
 	s.State.SerializeChartURL(helmChartPath)
 
-	// if upstream release exists, use its `lifecycle` in app release
+	// if upstream release exists, use its `spec` in app release
 	var release *api.Release
-	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
-		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseLifecycle)
+	if upstreamReleaseSpec := s.checkUpstreamForRelease(); upstreamReleaseSpec != nil {
+		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseSpec)
 	} else {
-		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmLifecycle)
+		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
@@ -245,12 +265,10 @@ Continuing will delete this state, would you like to continue? There is no undo.
 
 // TODO
 // checkUpstreamForRelease checks upstream for a release. if one exists,
-// its `lifecycle` will be returned and used to build app release
-func (s *Ship) checkUpstreamForRelease() *api.Lifecycle {
+// its `spec` will be returned and used to build app release
+func (s *Ship) checkUpstreamForRelease() *api.Spec {
 	// TODO: determine upstream. What is upstream?
-
-	// TODO: if it upstream release exists, return its `lifecycle`
-
+	// TODO: if it upstream release exists, return its `spec`
 	return nil
 }
 
@@ -312,33 +330,13 @@ to deploy the overlaid assets to your cluster.
 }
 
 // buildHelmRelease builds a Helm release which is applied to all Helm charts
-func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, lifecycle *api.Lifecycle) *api.Release {
+func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, spec *api.Spec) *api.Release {
 
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			HelmChartMetadata: helmChartMetadata,
 		},
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{
-					{
-						Helm: &api.HelmAsset{
-							AssetShared: api.AssetShared{
-								Dest: constants.RenderedHelmPath,
-							},
-							Local: &api.LocalHelmOpts{
-								ChartRoot: constants.KustomizeHelmPath,
-							},
-							HelmOpts: []string{
-								"--values",
-								path.Join(constants.TempHelmValuesPath, "values.yaml"),
-							},
-						},
-					},
-				},
-			},
-			Lifecycle: *lifecycle,
-		},
+		Spec: *spec,
 	}
 
 	return release
