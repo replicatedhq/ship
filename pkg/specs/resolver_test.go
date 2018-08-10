@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
@@ -28,6 +30,6 @@ func TestPersistSpec(t *testing.T) {
 	err := r.persistSpec(desiredSpec)
 	req.NoError(err)
 
-	persistedSpec, err := r.FS.ReadFile(".ship/release.yml")
+	persistedSpec, err := r.FS.ReadFile(constants.ReleasePath)
 	req.True(reflect.DeepEqual(desiredSpec, persistedSpec))
 }

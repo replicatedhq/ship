@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -561,7 +563,7 @@ func TestHeadlessDaemon(t *testing.T) {
 
 			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			err := fakeFS.WriteFile(".ship/state.json", test.State, 0666)
+			err := fakeFS.WriteFile(constants.StatePath, test.State, 0666)
 			req.NoError(err)
 
 			v := viper.New()
@@ -597,7 +599,7 @@ func TestHeadlessDaemon(t *testing.T) {
 			if test.ExpectedError {
 				req.Error(err)
 			} else {
-				updatedState, err := fakeFS.ReadFile(".ship/state.json")
+				updatedState, err := fakeFS.ReadFile(constants.StatePath)
 				req.NoError(err)
 
 				req.Equal(updatedState, test.ExpectedValue)
