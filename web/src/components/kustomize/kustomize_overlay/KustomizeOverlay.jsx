@@ -174,9 +174,7 @@ export default class KustomizeOverlay extends React.Component {
 
     await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
-    const { currentStep } = await this.props.getCurrentStep(this.props.routeId);
-    this.setFileTree(currentStep);
-
+    await this.setSelectedFile(selectedFile);
     if (closeOverlay) {
       this.setState({ patch: ""});
     }
@@ -274,7 +272,7 @@ export default class KustomizeOverlay extends React.Component {
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
                               (fileToView && fileToView.overlayContent.length ?
-                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
+                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: this.props.patch })}>
                                   <span className="icon clickable u-overlayViewIcon"></span>
                                 </div>
                                 : fileToView && !fileToView.isSupported ? null :
