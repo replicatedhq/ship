@@ -70,24 +70,10 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  async handleApplyPatch() {
-    const { selectedFile, fileTreeBasePath } = this.state;
-    const contents = this.aceEditorOverlay.editor.getValue();
-
-    const applyPayload = {
-      resource: `${fileTreeBasePath}${selectedFile}`,
-      patch: contents,
-    };
-    await this.props.applyPatch(applyPayload).catch();
-  }
-
-  async toggleDiff() {
-    const { patch, modified } = this.props;
-    const hasPatchButNoModified = patch.length > 0 && modified.length === 0;
-    if (hasPatchButNoModified) {
-      await this.handleApplyPatch().catch();
+  toggleDiff() {
+    if (!this.state.viewDiff) {
+      this.fetchAppliedOverlay();
     }
-
     this.setState({ viewDiff: !this.state.viewDiff });
   }
 
@@ -160,6 +146,13 @@ export default class KustomizeOverlay extends React.Component {
       }
     }
     this.setState({ toastDetails });
+  }
+
+  async fetchAppliedOverlay() {
+    const payload = {
+      patch: this.state.patch
+    };
+    await this.props.fetchAppliedOverlay(payload)
   }
 
   async handleKustomizeSave(closeOverlay) {
