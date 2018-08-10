@@ -77,7 +77,16 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	release := s.buildRelease(helmChartMetadata)
+	release := s.buildDefaultHelmRelease(helmChartMetadata)
+
+	// if upstream release exists, use its `lifecycle` in app release
+	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
+		release.Spec.Lifecycle = *upstreamReleaseLifecycle
+	}
+
+	// todo: do we need the following
+	// release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
+	// s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -165,12 +174,28 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	// serialize the ChartURL to disk. First step in creating a state file
 	s.State.SerializeChartURL(helmChartPath)
 
-	release := s.buildRelease(helmChartMetadata)
+	release := s.buildDefaultHelmRelease(helmChartMetadata)
+
+	// if upstream release exists, use its `lifecycle` in app release
+	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
+		release.Spec.Lifecycle = *upstreamReleaseLifecycle
+	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
+}
+
+// TODO
+// checkUpstreamForRelease checks upstream for a release. if one exists,
+// its `lifecycle` will be returned and used to build app release
+func (s *Ship) checkUpstreamForRelease() *api.Lifecycle {
+	// TODO: determine upstream. What is upstream?
+
+	// TODO: if it upstream release exists, return its `lifecycle`
+
+	return nil
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
@@ -230,7 +255,8 @@ to deploy the overlaid assets to your cluster.
 	return release
 }
 
-func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
+// buildDefaultHelmRelease builds a Helm release which is applied to all Helm charts
+func (s *Ship) buildDefaultHelmRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
 
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
