@@ -3,23 +3,23 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: -basic
+  name: basic
   labels:
     app: basic
     chart: basic-0.1.0
-    release: 
+    release: basic
     heritage: Tiller
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: basic
-      release: 
+      release: basic
   template:
     metadata:
       labels:
         app: basic
-        release: 
+        release: basic
     spec:
       containers:
         - name: basic

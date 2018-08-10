@@ -316,7 +316,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 							Contents: `
 Assets are ready to deploy. You can run
 
-    kubectl apply -f installer/rendered
+    kustomize build overlays/ship | kubectl apply -f -
 
 to deploy the overlaid assets to your cluster.
 						`},
