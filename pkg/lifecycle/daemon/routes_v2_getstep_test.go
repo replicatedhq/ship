@@ -286,6 +286,28 @@ func TestHydrateActions(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "helmintro",
+			step: daemontypes.NewStep(api.Step{
+				HelmIntro: &api.HelmIntro{
+					StepShared: api.StepShared{
+						ID: "yo",
+					},
+				},
+			}),
+			want: []daemontypes.Action{
+				{
+					ButtonType:  "primary",
+					Text:        "Get started",
+					LoadingText: "Confirming",
+					OnClick: daemontypes.ActionRequest{
+						URI:    "/api/v2/lifecycle/step/yo",
+						Method: "POST",
+						Body:   "",
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
