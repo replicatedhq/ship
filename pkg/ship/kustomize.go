@@ -17,6 +17,61 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
+var (
+	DefaultHelmLifecycle = &api.Lifecycle{
+		V1: []api.Step{
+			{
+				HelmIntro: &api.HelmIntro{
+					StepShared: api.StepShared{
+						ID: "intro",
+					},
+				},
+			},
+			{
+				HelmValues: &api.HelmValues{
+					StepShared: api.StepShared{
+						ID:          "values",
+						Requires:    []string{"intro"},
+						Invalidates: []string{"render"},
+					},
+				},
+			},
+			{
+				Render: &api.Render{
+					StepShared: api.StepShared{
+						ID:       "render",
+						Requires: []string{"values"},
+					},
+				},
+			},
+			{
+				Kustomize: &api.Kustomize{
+					BasePath: constants.RenderedHelmPath,
+					Dest:     path.Join("overlays", "ship"),
+					StepShared: api.StepShared{
+						ID:       "kustomize",
+						Requires: []string{"render"},
+					},
+				},
+			},
+			{
+				Message: &api.Message{
+					StepShared: api.StepShared{
+						ID:       "outro",
+						Requires: []string{"kustomize"},
+					},
+					Contents: `
+Assets are ready to deploy. You can run
+
+    kubectl apply -f installer/rendered
+
+to deploy the overlaid assets to your cluster.
+`},
+			},
+		},
+	}
+)
+
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 	if err := s.Init(ctx); err != nil {
 		if err.Error() == constants.ShouldUseUpdate {
@@ -77,16 +132,16 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	release := s.buildDefaultHelmRelease(helmChartMetadata)
-
 	// if upstream release exists, use its `lifecycle` in app release
+	var release *api.Release
 	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
-		release.Spec.Lifecycle = *upstreamReleaseLifecycle
+		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseLifecycle)
+	} else {
+		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmLifecycle)
 	}
+	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	// todo: do we need the following
-	// release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-	// s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -174,11 +229,12 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	// serialize the ChartURL to disk. First step in creating a state file
 	s.State.SerializeChartURL(helmChartPath)
 
-	release := s.buildDefaultHelmRelease(helmChartMetadata)
-
 	// if upstream release exists, use its `lifecycle` in app release
+	var release *api.Release
 	if upstreamReleaseLifecycle := s.checkUpstreamForRelease(); upstreamReleaseLifecycle != nil {
-		release.Spec.Lifecycle = *upstreamReleaseLifecycle
+		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseLifecycle)
+	} else {
+		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmLifecycle)
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
@@ -255,8 +311,8 @@ to deploy the overlaid assets to your cluster.
 	return release
 }
 
-// buildDefaultHelmRelease builds a Helm release which is applied to all Helm charts
-func (s *Ship) buildDefaultHelmRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
+// buildHelmRelease builds a Helm release which is applied to all Helm charts
+func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, lifecycle *api.Lifecycle) *api.Release {
 
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
@@ -281,58 +337,7 @@ func (s *Ship) buildDefaultHelmRelease(helmChartMetadata api.HelmChartMetadata) 
 					},
 				},
 			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						HelmIntro: &api.HelmIntro{
-							StepShared: api.StepShared{
-								ID: "intro",
-							},
-						},
-					},
-					{
-						HelmValues: &api.HelmValues{
-							StepShared: api.StepShared{
-								ID:          "values",
-								Requires:    []string{"intro"},
-								Invalidates: []string{"render"},
-							},
-						},
-					},
-					{
-						Render: &api.Render{
-							StepShared: api.StepShared{
-								ID:       "render",
-								Requires: []string{"values"},
-							},
-						},
-					},
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: constants.RenderedHelmPath,
-							Dest:     path.Join("overlays", "ship"),
-							StepShared: api.StepShared{
-								ID:       "kustomize",
-								Requires: []string{"render"},
-							},
-						},
-					},
-					{
-						Message: &api.Message{
-							StepShared: api.StepShared{
-								ID:       "outro",
-								Requires: []string{"kustomize"},
-							},
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
+			Lifecycle: *lifecycle,
 		},
 	}
 
