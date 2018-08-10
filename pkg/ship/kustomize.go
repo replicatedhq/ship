@@ -161,8 +161,6 @@ func (s *Ship) Update(ctx context.Context) error {
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
-
 	return s.execute(ctx, release, nil, true)
 }
 
@@ -251,8 +249,8 @@ Continuing will delete this state, would you like to continue? There is no undo.
 
 	// if upstream release exists, use its `spec` in app release
 	var release *api.Release
-	if upstreamReleaseSpec := s.checkUpstreamForRelease(); upstreamReleaseSpec != nil {
-		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseSpec)
+	if upstreamRelease := s.checkUpstreamForRelease(); upstreamRelease != nil {
+		release = s.buildHelmRelease(helmChartMetadata, upstreamRelease)
 	} else {
 		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
 	}
@@ -316,7 +314,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 							Contents: `
 Assets are ready to deploy. You can run
 
-    kubectl apply -f installer/rendered
+    kustomize build overlays/ship | kubectl apply -f -
 
 to deploy the overlaid assets to your cluster.
 						`},
