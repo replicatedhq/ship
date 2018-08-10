@@ -62,7 +62,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "inline")
 			if evaluatedWhen {
-				plan = append(plan, p.inlineStep(*asset.Inline, configGroups, meta, templateContext))
+				plan = append(plan, p.inlineStep(rootFs, *asset.Inline, configGroups, meta, templateContext))
 			}
 		} else if asset.Docker != nil {
 			// TODO: Improve handling of docker scheme, this is done because config not parsed yet
@@ -157,6 +157,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 }
 
 func (p *CLIPlanner) inlineStep(
+	rootFs afero.Afero,
 	inline api.InlineAsset,
 	configGroups []libyaml.ConfigGroup,
 	meta api.ReleaseMetadata,
@@ -165,7 +166,7 @@ func (p *CLIPlanner) inlineStep(
 	return Step{
 		Dest:        inline.Dest,
 		Description: inline.Description,
-		Execute:     p.Inline.Execute(inline, meta, templateContext, configGroups),
+		Execute:     p.Inline.Execute(rootFs, inline, meta, templateContext, configGroups),
 	}
 }
 

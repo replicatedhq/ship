@@ -51,10 +51,10 @@ func TestInlineRender(t *testing.T) {
 				Logger:         testLogger,
 				Viper:          v,
 				BuilderBuilder: bb,
-				FS:             fs,
 			}
 
 			err := renderer.Execute(
+				fs,
 				test.asset,
 				test.meta,
 				test.templateContext,

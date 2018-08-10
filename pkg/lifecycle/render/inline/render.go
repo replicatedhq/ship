@@ -18,6 +18,7 @@ import (
 // Renderer is something that can render a helm asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
+		rootFs afero.Afero,
 		asset api.InlineAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -32,25 +33,23 @@ var _ Renderer = &LocalRenderer{}
 type LocalRenderer struct {
 	Logger         log.Logger
 	BuilderBuilder *templates.BuilderBuilder
-	FS             afero.Afero
 	Viper          *viper.Viper
 }
 
 func NewRenderer(
 	logger log.Logger,
 	bb *templates.BuilderBuilder,
-	fs afero.Afero,
 	v *viper.Viper,
 ) Renderer {
 	return &LocalRenderer{
 		Logger:         logger,
 		BuilderBuilder: bb,
-		FS:             fs,
 		Viper:          v,
 	}
 }
 
 func (r *LocalRenderer) Execute(
+	rootFs afero.Afero,
 	asset api.InlineAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -82,7 +81,7 @@ func (r *LocalRenderer) Execute(
 
 		basePath := filepath.Dir(asset.Dest)
 		debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", basePath)
-		if err := r.FS.MkdirAll(basePath, 0755); err != nil {
+		if err := rootFs.MkdirAll(basePath, 0755); err != nil {
 			debug.Log("event", "mkdirall.fail", "err", err, "dest", asset.Dest, "basePath", basePath)
 			return errors.Wrapf(err, "write directory to %s", asset.Dest)
 		}
@@ -93,7 +92,7 @@ func (r *LocalRenderer) Execute(
 			mode = asset.Mode
 		}
 
-		if err := r.FS.WriteFile(asset.Dest, []byte(built), mode); err != nil {
+		if err := rootFs.WriteFile(asset.Dest, []byte(built), mode); err != nil {
 			debug.Log("event", "execute.fail", "err", err)
 			return errors.Wrapf(err, "Write inline asset to %s", asset.Dest)
 		}
