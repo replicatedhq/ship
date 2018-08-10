@@ -109,7 +109,7 @@ func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
 				Text:        "Confirm",
 				LoadingText: "Confirming",
 				OnClick: daemontypes.ActionRequest{
-					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",
 					Body:   "",
 				},
@@ -122,7 +122,30 @@ func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
 				Text:        "Get started",
 				LoadingText: "Confirming",
 				OnClick: daemontypes.ActionRequest{
-					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.HelmValues != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Saving",
+				LoadingText: "Save",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/helm-values"),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+			{
+				ButtonType:  "popover",
+				Text:        "Save & Continue",
+				LoadingText: "Saving",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",
 					Body:   "",
 				},

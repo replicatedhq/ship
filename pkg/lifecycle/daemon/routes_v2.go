@@ -31,10 +31,10 @@ type V2Routes struct {
 
 func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
 	d.Release = release
-	v2 := group.Group("/api/v2")
-	v2.GET("/lifecycle", d.getLifecycle)
-	v2.GET("/lifecycle/step/:step", d.getStep)
-	v2.POST("/lifecycle/step/:step", d.completeStep)
+	v2 := group.Group("/api/v1")
+	v2.GET("/navcycle", d.getLifecycle)
+	v2.GET("/navcycle/step/:step", d.getStep)
+	v2.POST("/navcycle/step/:step", d.completeStep)
 }
 
 // returns false if aborted
