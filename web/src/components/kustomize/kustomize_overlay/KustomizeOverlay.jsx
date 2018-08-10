@@ -163,6 +163,13 @@ export default class KustomizeOverlay extends React.Component {
     this.setState({ toastDetails });
   }
 
+  async fetchAppliedOverlay() {
+    const payload = {
+      patch: this.state.patch
+    };
+    await this.props.fetchAppliedOverlay(payload)
+  }
+
   async handleKustomizeSave(closeOverlay) {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();

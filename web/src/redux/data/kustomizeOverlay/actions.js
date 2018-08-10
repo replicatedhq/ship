@@ -77,6 +77,35 @@ export function saveKustomizeOverlay(payload) {
   };
 }
 
+export function fetchAppliedOverlay(payload) {
+  return async (dispatch) => {
+    let response;
+    dispatch(loadingData("fetchAppliedOverlay", true));
+    try {
+      const url = `${apiEndpoint}/kustomize/apply`;
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        dispatch(loadingData("fetchAppliedOverlay", false));
+        return;
+      }
+      await response.json();
+      dispatch(loadingData("fetchAppliedOverlay", false));
+      console.log(response)
+    } catch (error) {
+      dispatch(loadingData("fetchAppliedOverlay", false));
+      console.log(error)
+      return;
+    }
+  };
+}
+
 export function finalizeKustomizeOverlay() {
   return async (dispatch) => {
     let response;
