@@ -74,7 +74,7 @@ var _ = Describe("basic", func() {
 				}, 20)
 
 				It("Should output files matching those expected when running in init mode", func() {
-					cmd := cli.Init()
+					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
