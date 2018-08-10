@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/afero"
+
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -23,11 +25,16 @@ type buildProgress struct {
 }
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
-
+func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
 	defer p.Status.ClearProgress()
-
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
+
+	if (root == "") {
+		root = constants.InstallerPrefixPath
+	}
+	rootFs := afero.Afero {
+		Fs: afero.NewBasePathFs(afero.NewOsFs(), root)
+	}
 
 	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
 	if err != nil {
