@@ -47,6 +47,8 @@ func NewUnpacker(
 }
 
 func (u *Unpacker) Execute(
+	renderRoot string,
+	rootFs afero.Afero,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
@@ -56,7 +58,7 @@ func (u *Unpacker) Execute(
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(u.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "dockerlayer", "dest", asset.Dest, "description", asset.Description))
 
-		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset)
+		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, renderRoot)
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
 		}
@@ -70,16 +72,16 @@ func (u *Unpacker) Execute(
 		)
 
 		return errors.Wrap(u.chain(
-			u.save(ctx, asset, meta, doWithProgress, savePath, templateContext, configGroups),
+			u.save(ctx, rootFs, asset, meta, doWithProgress, savePath, templateContext, configGroups),
 			u.mkdirall(basePath),
 			u.unpack(savePath, firstPassUnpackPath),
-			u.unpack(layerPath, asset.Dest),
+			u.unpack(layerPath, basePath),
 		), "execute chain")
 
 	}
 }
 
-func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string, string, error) {
+func (u *Unpacker) getPaths(asset api.DockerLayerAsset, renderRoot string) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
 
 	saveDir, err := u.FS.TempDir("/tmp", "dockerlayer")
@@ -94,13 +96,14 @@ func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string,
 		return fail(errors.Wrap(err, "get unpack tmpdir"))
 	}
 
-	basePath := asset.Dest //TODO enforce that this is a directory
+	basePath := path.Join(renderRoot, asset.Dest) //TODO enforce that this is a directory
 	layerPath := path.Join(firstPassUnpackPath, asset.Layer, "layer.tar")
 	return savePath, firstPassUnpackPath, basePath, layerPath, nil
 }
 
 func (u *Unpacker) save(
 	ctx context.Context,
+	rootFs afero.Afero,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
@@ -111,6 +114,7 @@ func (u *Unpacker) save(
 	return func() error {
 		return errors.Wrapf(
 			u.DockerSaver.Execute(
+				rootFs,
 				asset.DockerAsset,
 				meta,
 				doWithProgress,

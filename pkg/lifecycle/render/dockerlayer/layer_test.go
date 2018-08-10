@@ -85,7 +85,18 @@ func TestUnpackLayer(t *testing.T) {
 					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, asset.Dest).Return(nil)
 				}
 
-				err := unpacker.Execute(asset, meta, watchProgress, map[string]interface{}{}, []libyaml.ConfigGroup{})(ctx)
+				renderRoot := ""
+				rootFs := afero.Afero{Fs: afero.NewMemMapFs()}
+
+				err := unpacker.Execute(
+					renderRoot,
+					rootFs,
+					asset,
+					meta,
+					watchProgress,
+					map[string]interface{}{},
+					[]libyaml.ConfigGroup{}
+				)(ctx)
 
 				if test.dockerError != nil {
 					req.Error(err, "expected error "+test.dockerError.Error())

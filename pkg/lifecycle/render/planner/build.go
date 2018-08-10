@@ -84,7 +84,6 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 				plan = append(plan, p.helmStep(root, *asset.Helm, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
-			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefixPath, asset.DockerLayer.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.DockerLayer.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -92,7 +91,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "dockerlayer")
 			if evaluatedWhen {
-				plan = append(plan, p.dockerLayerStep(*asset.DockerLayer, meta, templateContext, configGroups))
+				plan = append(plan, p.dockerLayerStep(renderRoot, rootFs, *asset.DockerLayer, meta, templateContext, configGroups))
 			}
 		} else if asset.Web != nil {
 			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
@@ -211,6 +210,8 @@ func (p *CLIPlanner) helmStep(
 }
 
 func (p *CLIPlanner) dockerLayerStep(
+	renderRoot string,
+	rootFs afero.Afero,
 	asset api.DockerLayerAsset,
 	metadata api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -220,6 +221,8 @@ func (p *CLIPlanner) dockerLayerStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute: p.DockerLayer.Execute(
+			renderRoot,
+			rootFs,
 			asset,
 			metadata,
 			p.watchProgress,
