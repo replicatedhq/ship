@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
 )
 
@@ -19,6 +20,7 @@ import (
 type ChartFetcher interface {
 	FetchChart(
 		ctx context.Context,
+		rootFs root.Fs,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		configGroups []libyaml.ConfigGroup,
@@ -35,6 +37,7 @@ type ClientFetcher struct {
 
 func (f *ClientFetcher) FetchChart(
 	ctx context.Context,
+	rootFs root.Fs,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
@@ -52,6 +55,7 @@ func (f *ClientFetcher) FetchChart(
 		}
 		asset.GitHub.Dest = checkoutDir
 		err = f.GitHub.Execute(
+			rootFs,
 			*asset.GitHub,
 			configGroups,
 			meta,

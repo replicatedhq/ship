@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
 
 	"regexp"
@@ -26,7 +27,7 @@ import (
 type Templater interface {
 	Template(
 		chartRoot string,
-		renderRoot string,
+		rootFs root.Fs,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		configGroups []libyaml.ConfigGroup,
@@ -49,7 +50,7 @@ type ForkTemplater struct {
 
 func (f *ForkTemplater) Template(
 	chartRoot string,
-	renderRoot string,
+	rootFs root.Fs,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
@@ -129,7 +130,7 @@ func (f *ForkTemplater) Template(
 		}
 
 		renderedChartDir := path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name())
-		destDir := path.Join(renderRoot, asset.Dest)
+		destDir := path.Join(rootFs.RootPath, asset.Dest)
 		if err := f.FS.Rename(renderedChartDir, destDir); err != nil {
 			return errors.Wrap(err, "failed to move rendered chart dir")
 		}

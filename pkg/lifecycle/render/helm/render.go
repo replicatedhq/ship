@@ -3,6 +3,8 @@ package helm
 import (
 	"context"
 
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -12,7 +14,7 @@ import (
 // Renderer is something that can render a helm asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
-		renderRoot string,
+		rootFs root.Fs,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -40,7 +42,7 @@ func NewRenderer(cloner ChartFetcher, templater Templater, github github.Rendere
 }
 
 func (r *LocalRenderer) Execute(
-	renderRoot string,
+	rootFs root.Fs,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -50,6 +52,7 @@ func (r *LocalRenderer) Execute(
 
 		chartLocation, err := r.Fetcher.FetchChart(
 			ctx,
+			rootFs,
 			asset,
 			meta,
 			configGroups,
@@ -60,7 +63,7 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "fetch chart")
 		}
 
-		err = r.Templater.Template(chartLocation, renderRoot, asset, meta, configGroups, templateContext)
+		err = r.Templater.Template(chartLocation, rootFs, asset, meta, configGroups, templateContext)
 		if err != nil {
 			return errors.Wrap(err, "execute templating")
 		}

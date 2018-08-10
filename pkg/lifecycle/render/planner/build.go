@@ -2,14 +2,9 @@ package planner
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
-
-	"github.com/spf13/afero"
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/templates"
 
 	"github.com/go-kit/kit/log"
@@ -17,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 )
 
 type buildProgress struct {
@@ -25,16 +21,11 @@ type buildProgress struct {
 }
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
+func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
 	defer p.Status.ClearProgress()
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 
-	if (root == "") {
-		root = constants.InstallerPrefixPath
-	}
-	rootFs := afero.Afero {
-		Fs: afero.NewBasePathFs(afero.NewOsFs(), root)
-	}
+	rootFs := root.NewRootFS(renderRoot)
 
 	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
 	if err != nil {
@@ -81,7 +72,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "helm")
 			if evaluatedWhen {
-				plan = append(plan, p.helmStep(root, *asset.Helm, meta, templateContext, configGroups))
+				plan = append(plan, p.helmStep(rootFs, *asset.Helm, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.DockerLayer.AssetShared.When)
@@ -91,10 +82,9 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "dockerlayer")
 			if evaluatedWhen {
-				plan = append(plan, p.dockerLayerStep(renderRoot, rootFs, *asset.DockerLayer, meta, templateContext, configGroups))
+				plan = append(plan, p.dockerLayerStep(rootFs, *asset.DockerLayer, meta, templateContext, configGroups))
 			}
 		} else if asset.Web != nil {
-			asset.Web.Dest = filepath.Join("installer", asset.Web.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Web.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -102,10 +92,9 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "web")
 			if evaluatedWhen {
-				plan = append(plan, p.webStep(*asset.Web, meta, configGroups, templateContext))
+				plan = append(plan, p.webStep(rootFs, *asset.Web, meta, configGroups, templateContext))
 			}
 		} else if asset.GitHub != nil {
-			asset.GitHub.Dest = filepath.Join("installer", asset.GitHub.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.GitHub.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -113,10 +102,9 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "github")
 			if evaluatedWhen {
-				plan = append(plan, p.githubStep(*asset.GitHub, configGroups, meta, templateContext))
+				plan = append(plan, p.githubStep(rootFs, *asset.GitHub, configGroups, meta, templateContext))
 			}
 		} else if asset.Terraform != nil {
-			asset.Terraform.Dest = filepath.Join("installer", asset.Terraform.Dest)
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Terraform.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -124,7 +112,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "terraform")
 			if evaluatedWhen {
-				plan = append(plan, p.terraformStep(*asset.Terraform, meta, templateContext, configGroups))
+				plan = append(plan, p.terraformStep(rootFs, *asset.Terraform, meta, templateContext, configGroups))
 			}
 		} else if asset.AmazonEKS != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.AmazonEKS.AssetShared.When)
@@ -133,7 +121,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
 			if evaluatedWhen {
-				plan = append(plan, p.amazonElasticKubernetesServiceStep(*asset.AmazonEKS, meta, templateContext, configGroups))
+				plan = append(plan, p.amazonElasticKubernetesServiceStep(rootFs, *asset.AmazonEKS, meta, templateContext, configGroups))
 			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
@@ -147,7 +135,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 }
 
 func (p *CLIPlanner) inlineStep(
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	inline api.InlineAsset,
 	configGroups []libyaml.ConfigGroup,
 	meta api.ReleaseMetadata,
@@ -161,6 +149,7 @@ func (p *CLIPlanner) inlineStep(
 }
 
 func (p *CLIPlanner) webStep(
+	rootFs root.Fs,
 	web api.WebAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
@@ -169,12 +158,12 @@ func (p *CLIPlanner) webStep(
 	return Step{
 		Dest:        web.Dest,
 		Description: web.Description,
-		Execute:     p.Web.Execute(web, meta, templateContext, configGroups),
+		Execute:     p.Web.Execute(rootFs, web, meta, templateContext, configGroups),
 	}
 }
 
 func (p *CLIPlanner) dockerStep(
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.DockerAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -196,7 +185,7 @@ func (p *CLIPlanner) dockerStep(
 }
 
 func (p *CLIPlanner) helmStep(
-	renderRoot string,
+	rootFs root.Fs,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -205,13 +194,12 @@ func (p *CLIPlanner) helmStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.Helm.Execute(renderRoot, asset, meta, templateContext, configGroups),
+		Execute:     p.Helm.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 
 func (p *CLIPlanner) dockerLayerStep(
-	renderRoot string,
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.DockerLayerAsset,
 	metadata api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -221,7 +209,6 @@ func (p *CLIPlanner) dockerLayerStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute: p.DockerLayer.Execute(
-			renderRoot,
 			rootFs,
 			asset,
 			metadata,
@@ -233,6 +220,7 @@ func (p *CLIPlanner) dockerLayerStep(
 }
 
 func (p *CLIPlanner) terraformStep(
+	rootFs root.Fs,
 	asset api.TerraformAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -241,11 +229,12 @@ func (p *CLIPlanner) terraformStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.Terraform.Execute(asset, meta, templateContext, configGroups),
+		Execute:     p.Terraform.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 
 func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
+	rootFs root.Fs,
 	asset api.EKSAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -254,7 +243,7 @@ func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.AWSEKS.Execute(asset, meta, templateContext, configGroups),
+		Execute:     p.AWSEKS.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 

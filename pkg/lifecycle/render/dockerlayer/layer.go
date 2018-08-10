@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -47,8 +48,7 @@ func NewUnpacker(
 }
 
 func (u *Unpacker) Execute(
-	renderRoot string,
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
@@ -58,7 +58,7 @@ func (u *Unpacker) Execute(
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(u.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "dockerlayer", "dest", asset.Dest, "description", asset.Description))
 
-		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, renderRoot)
+		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, rootFs.RootPath)
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
 		}
@@ -103,7 +103,7 @@ func (u *Unpacker) getPaths(asset api.DockerLayerAsset, renderRoot string) (stri
 
 func (u *Unpacker) save(
 	ctx context.Context,
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,

@@ -11,15 +11,15 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // A Renderer can execute a "docker" step in the lifecycle
 type Renderer interface {
 	Execute(
-		rootFs afero.Afero,
+		rootFs root.Fs,
 		asset api.DockerAsset,
 		meta api.ReleaseMetadata,
 		doWithProgress func(ch chan interface{}, debug log.Logger) error,
@@ -62,7 +62,7 @@ func NewStep(
 
 // Execute runs the step for an asset
 func (p *DefaultStep) Execute(
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.DockerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, debug log.Logger) error,

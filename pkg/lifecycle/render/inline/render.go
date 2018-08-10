@@ -10,15 +10,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // Renderer is something that can render a helm asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
-		rootFs afero.Afero,
+		rootFs root.Fs,
 		asset api.InlineAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -49,7 +49,7 @@ func NewRenderer(
 }
 
 func (r *LocalRenderer) Execute(
-	rootFs afero.Afero,
+	rootFs root.Fs,
 	asset api.InlineAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},

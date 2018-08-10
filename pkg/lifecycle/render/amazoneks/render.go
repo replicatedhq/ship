@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
@@ -19,6 +19,7 @@ import (
 // Renderer is something that can render a terraform asset (that produces an EKS cluster) as part of a planner.Plan
 type Renderer interface {
 	Execute(
+		rootFs root.Fs,
 		asset api.EKSAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -48,6 +49,7 @@ func NewRenderer(
 }
 
 func (r *LocalRenderer) Execute(
+	rootFs root.Fs,
 	asset api.EKSAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -69,10 +71,9 @@ func (r *LocalRenderer) Execute(
 		templates.AddAmazonEKSPath(asset.ClusterName,
 			path.Join(path.Dir(assetsPath), "kubeconfig_"+asset.ClusterName))
 
-		assetsPath = path.Join(constants.InstallerPrefixPath, assetsPath)
-
 		// write the inline spec
 		err = r.Inline.Execute(
+			rootFs,
 			api.InlineAsset{
 				Contents: contents,
 				AssetShared: api.AssetShared{

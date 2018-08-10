@@ -8,14 +8,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
 )
 
 // Renderer is something that can render a terraform asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
+		rootFs root.Fs,
 		asset api.TerraformAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -45,6 +46,7 @@ func NewRenderer(
 }
 
 func (r *LocalRenderer) Execute(
+	rootFs root.Fs,
 	asset api.TerraformAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -56,15 +58,14 @@ func (r *LocalRenderer) Execute(
 			return errors.New("online \"inline\" terraform assets are supported")
 		}
 
-		var assetsPath string
+		assetsPath := "main.tf"
 		if asset.Dest != "" && path.Ext(asset.Dest) == ".tf" {
 			assetsPath = asset.Dest
-		} else {
-			assetsPath = path.Join(constants.InstallerPrefixPath, "main.tf")
 		}
 
 		// write the inline spec
 		err := r.Inline.Execute(
+			rootFs,
 			api.InlineAsset{
 				Contents: asset.Inline,
 				AssetShared: api.AssetShared{
