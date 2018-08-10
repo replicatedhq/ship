@@ -1,16 +1,22 @@
 package ship
 
 import (
+	"path/filepath"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
 type CheckUpstreamRelease struct {
-	Name        string
-	Description string
-	Expected    *api.Spec
+	Name         string
+	Description  string
+	ExpectedSpec *api.Spec
+	ExpectedErr  bool
 }
 
 type ApplyUpstreamReleaseSpec struct {
@@ -24,9 +30,10 @@ type ApplyUpstreamReleaseSpec struct {
 func TestCheckUpstreamRelease(t *testing.T) {
 	tests := []CheckUpstreamRelease{
 		{
-			Name:        "no upstream",
-			Description: "no upstream, should return nil",
-			Expected:    nil,
+			Name:         "no upstream",
+			Description:  "no upstream, should return nil",
+			ExpectedSpec: nil,
+			ExpectedErr:  false,
 		},
 	}
 
@@ -35,12 +42,25 @@ func TestCheckUpstreamRelease(t *testing.T) {
 			req := require.New(t)
 
 			s := &Ship{}
+			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			// todo where is upstream?
+			if test.ExpectedSpec != nil {
+				upstreamRelease, err := json.Marshal(test.ExpectedSpec)
+				req.NoError(err)
 
-			upstreamRelease := s.checkUpstreamForRelease()
+				err = fakeFS.WriteFile(filepath.Join(constants.KustomizeHelmPath, "ship.yaml"), upstreamRelease, 0666)
+				req.NoError(err)
+			}
 
-			req.Equal(upstreamRelease, test.Expected)
+			upstreamRelease, err := s.checkUpstreamForRelease()
+
+			if test.ExpectedErr {
+				req.Error(err)
+			} else {
+				req.NoError(err)
+			}
+
+			req.Equal(upstreamRelease, test.ExpectedSpec)
 		})
 	}
 }

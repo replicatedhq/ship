@@ -7,6 +7,10 @@ import (
 
 	"strings"
 
+	"path/filepath"
+
+	"encoding/json"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -154,9 +158,11 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	// if upstream release exists, use its `spec` in app release
 	var release *api.Release
-	if upstreamReleaseSpec := s.checkUpstreamForRelease(); upstreamReleaseSpec != nil {
-		release = s.buildHelmRelease(helmChartMetadata, upstreamReleaseSpec)
+	if upstreamRelease, err := s.checkUpstreamForRelease(); err == nil && upstreamRelease != nil {
+		debug.Log("event", "buildHelmRelease", "spec", "upstreamSpec", "message", "Building Helm release using upstream ship.yaml")
+		release = s.buildHelmRelease(helmChartMetadata, upstreamRelease)
 	} else {
+		debug.Log("event", "buildHelmRelease", "spec", "defaultSpec", "message", "Building Helm release using default spec")
 		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
@@ -249,9 +255,11 @@ Continuing will delete this state, would you like to continue? There is no undo.
 
 	// if upstream release exists, use its `spec` in app release
 	var release *api.Release
-	if upstreamRelease := s.checkUpstreamForRelease(); upstreamRelease != nil {
+	if upstreamRelease, err := s.checkUpstreamForRelease(); err == nil && upstreamRelease != nil {
+		debug.Log("event", "buildHelmRelease", "spec", "upstreamSpec", "message", "Building Helm release using upstream ship.yaml")
 		release = s.buildHelmRelease(helmChartMetadata, upstreamRelease)
 	} else {
+		debug.Log("event", "buildHelmRelease", "spec", "defaultSpec", "message", "Building Helm release using default spec")
 		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
@@ -261,13 +269,26 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	return s.execute(ctx, release, nil, true)
 }
 
-// TODO
 // checkUpstreamForRelease checks upstream for a release. if one exists,
 // its `spec` will be returned and used to build app release
-func (s *Ship) checkUpstreamForRelease() *api.Spec {
-	// TODO: determine upstream. What is upstream?
-	// TODO: if it upstream release exists, return its `spec`
-	return nil
+func (s *Ship) checkUpstreamForRelease() (*api.Spec, error) {
+	debug := level.Debug(log.With(s.Logger, "method", "checkUpstreamForRelease"))
+
+	localChartPath := filepath.Join(constants.KustomizeHelmPath, "ship.yaml")
+
+	debug.Log("phase", "read-release", "from", localChartPath)
+	release, err := s.State.ReadFile(localChartPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "read release from %", localChartPath)
+	}
+
+	debug.Log("phase", "unmarshal ship.yaml")
+	var upstreamRelease api.Release
+	if err := json.Unmarshal(release, &upstreamRelease); err != nil {
+		return nil, errors.Wrapf(err, "unmarshal ship.yaml")
+	}
+
+	return &upstreamRelease.Spec, nil
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {

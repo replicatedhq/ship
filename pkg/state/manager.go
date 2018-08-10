@@ -28,6 +28,8 @@ type Manager interface {
 	SerializeChartURL(URL string) error
 	SerializeContentSHA(contentSHA string) error
 	Save(v VersionedState) error
+	ReadFile(localPath string) ([]byte, error)
+	// Exists(localPath string) (bool, error)
 }
 
 var _ Manager = &MManager{}
@@ -53,6 +55,14 @@ func NewManager(
 		FS:     fs,
 		V:      v,
 	}
+}
+
+// func (s *MManager) Exists(localPath string) (bool, error) {
+// 	return s.FS.Exists(localPath)
+// }
+
+func (s *MManager) ReadFile(localPath string) ([]byte, error) {
+	return s.FS.ReadFile(localPath)
 }
 
 // SerializeChartURL is used by `ship init` to serialize a state file with ChartURL to disk
