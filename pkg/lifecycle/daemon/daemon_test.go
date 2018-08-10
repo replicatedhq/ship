@@ -30,7 +30,7 @@ type daemonAPITestCase struct {
 func initTestDaemon(
 	t *testing.T,
 	release *api.Release,
-	v2 *V2Routes,
+	v2 *NavcycleRoutes,
 ) (*ShipDaemon, int, context.CancelFunc, error) {
 	v := viper.New()
 
@@ -49,11 +49,11 @@ func initTestDaemon(
 	}
 
 	daemon := &ShipDaemon{
-		Logger:       log,
-		WebUIFactory: WebUIFactoryFactory(log),
-		Viper:        v,
-		V1Routes:     v1,
-		V2Routes:     v2,
+		Logger:         log,
+		WebUIFactory:   WebUIFactoryFactory(log),
+		Viper:          v,
+		V1Routes:       v1,
+		NavcycleRoutes: v2,
 	}
 
 	daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

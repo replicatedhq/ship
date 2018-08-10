@@ -47,6 +47,7 @@ func TestV2GetStep(t *testing.T) {
 				{
 					Message: &api.Message{
 						StepShared: api.StepShared{
+
 							ID: "foo",
 						},
 						Contents: "hi",
@@ -214,7 +215,7 @@ func TestV2GetStep(t *testing.T) {
 			for key, val := range test.StepProgress {
 				progressmap.Store(key, val)
 			}
-			v2 := &V2Routes{
+			v2 := &NavcycleRoutes{
 				Logger:       testLogger,
 				StateManager: fakeState,
 				StepProgress: progressmap,
@@ -316,7 +317,7 @@ func TestHydrateActions(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			progressmap := &daemontypes.ProgressMap{}
 
-			v2 := &V2Routes{
+			v2 := &NavcycleRoutes{
 				Logger:       testLogger,
 				StepProgress: progressmap,
 			}

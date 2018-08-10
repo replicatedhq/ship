@@ -206,4 +206,5 @@ assets:
 
 lifecycle:
   v1:
+  - config: {}
   - render: {}

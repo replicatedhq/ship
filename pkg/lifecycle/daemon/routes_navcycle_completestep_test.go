@@ -32,7 +32,7 @@ type completestepTestCase struct {
 	ExpectBody     map[string]interface{}
 	State          *state2.Lifeycle
 	ExpectState    *matchers.Is
-	OnExecute      func(d *V2Routes, step api.Step) error
+	OnExecute      func(d *NavcycleRoutes, step api.Step) error
 	WaitForCleanup func() <-chan time.Time
 
 	// gonna move this to another test
@@ -170,7 +170,7 @@ func TestV2CompleteStep(t *testing.T) {
 					return false
 				},
 			},
-			OnExecute: func(d *V2Routes, step api.Step) error {
+			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
 				time.Sleep(100 * time.Millisecond)
 				return nil
 			},
@@ -194,7 +194,7 @@ func TestV2CompleteStep(t *testing.T) {
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
 			WaitForCleanup: func() <-chan time.Time { return time.After(150 * time.Millisecond) },
-			OnExecute: func(d *V2Routes, step api.Step) error {
+			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
 				time.Sleep(600 * time.Millisecond)
 				return nil
 			},
@@ -233,13 +233,13 @@ func TestV2CompleteStep(t *testing.T) {
 			messenger := lifecycle.NewMockMessenger(mc)
 			renderer := lifecycle.NewMockRenderer(mc)
 			mockPlanner := planner2.NewMockPlanner(mc)
-			v2 := &V2Routes{
+			v2 := &NavcycleRoutes{
 				Logger:       testLogger,
 				StateManager: fakeState,
 				Messenger:    messenger,
 				Renderer:     renderer,
 				Planner:      mockPlanner,
-				StepExecutor: func(d *V2Routes, step api.Step) error {
+				StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 					return nil
 				},
 				StepProgress: &daemontypes.ProgressMap{},

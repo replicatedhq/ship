@@ -17,7 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (d *V2Routes) completeStep(c *gin.Context) {
+func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 	requestedStep := c.Param("step")
 	logger := log.With(d.Logger, "handler", "completeStep", "step", requestedStep)
 	debug := level.Debug(logger)
@@ -98,7 +98,7 @@ func (d *V2Routes) completeStep(c *gin.Context) {
 	d.errNotFond(c)
 }
 
-func (d *V2Routes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
+func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
 	err := d.awaitAsyncStep(errChan, debug, step)
 	if err != nil {
 		debug.Log("event", "execute.fail", "err", err)
@@ -114,7 +114,7 @@ func (d *V2Routes) handleAsync(errChan chan error, debug log.Logger, step api.St
 	}
 }
 
-func (d *V2Routes) awaitAsyncStep(errChan chan error, debug log.Logger, step api.Step) error {
+func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, step api.Step) error {
 	debug.Log("event", "async.await")
 	for {
 		select {
@@ -133,11 +133,11 @@ func (d *V2Routes) awaitAsyncStep(errChan chan error, debug log.Logger, step api
 	}
 }
 
-type V2Exectuor func(d *V2Routes, step api.Step) error
+type V2Exectuor func(d *NavcycleRoutes, step api.Step) error
 
 // temprorary home for a copy of pkg/lifecycle.StepExecutor while
 // we re-implement each lifecycle step to not need a handle on a daemon (or something)
-func (d *V2Routes) execute(step api.Step) error {
+func (d *NavcycleRoutes) execute(step api.Step) error {
 	debug := level.Debug(log.With(d.Logger, "method", "execute"))
 
 	statusReceiver := &statusonly.StatusReceiver{
@@ -169,7 +169,7 @@ func (d *V2Routes) execute(step api.Step) error {
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)
 }
 
-func (d *V2Routes) progress(step api.Step) daemontypes.Progress {
+func (d *NavcycleRoutes) progress(step api.Step) daemontypes.Progress {
 	progress, ok := d.StepProgress.Load(step.Shared().ID)
 	if !ok {
 		progress = daemontypes.StringProgress("v2router", "unknown")

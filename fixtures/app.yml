@@ -45,6 +45,7 @@ lifecycle:
       contents: |
         This tool will prepare assets so you can deploy Cooltool-Enterpise
         to your existing Kubernetes cluster
+  - config: {}
   - render:
       id: render
   - message:

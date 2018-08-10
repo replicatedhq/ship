@@ -12,7 +12,7 @@ type lifeycleStep struct {
 	Progress    *daemontypes.Progress `json:"progress,omitempty"`
 }
 
-func (d *V2Routes) getLifecycle(c *gin.Context) {
+func (d *NavcycleRoutes) getNavcycle(c *gin.Context) {
 	lifecycleIDs := make([]lifeycleStep, 0)
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
 		stepResponse := lifeycleStep{

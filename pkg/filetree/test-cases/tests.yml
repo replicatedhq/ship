@@ -23,7 +23,6 @@
   read: foo.txt
   expectErr: 'read dir "foo.txt": readdirent: not a directory'
 
-
 - name: read single file
   touch:
     - foo.txt

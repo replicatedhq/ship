@@ -35,7 +35,7 @@ type ShipDaemon struct {
 	StartOnce sync.Once
 
 	*V1Routes
-	*V2Routes
+	*NavcycleRoutes
 }
 
 func (d *ShipDaemon) AwaitShutdown() error {
@@ -121,8 +121,8 @@ func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 		d.V1Routes.Register(root, release)
 	}
 
-	if d.V2Routes != nil {
-		d.V2Routes.Register(root, release)
+	if d.NavcycleRoutes != nil {
+		d.NavcycleRoutes.Register(root, release)
 	}
 }
 

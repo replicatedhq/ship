@@ -780,7 +780,7 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.terraform.properties.path",
     "merge": {
-      "description": "the directory within `installer` to run terraform within."
+      "description": "the directory within `installer` within which to run terraform."
     }
   },
   {
@@ -829,19 +829,27 @@
     }
   },
 
+  {
+    "path": "properties.lifecycle.properties.v1.items.properties.config",
+    "merge": {
+      "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section",
+      "examples": [
+        {}
+      ]
+    },
+    "replace": {
+      "required": []
+    }
+  },
   { "comment": "last step -- delete internal spec types"},
+
   {
     "path": "properties.lifecycle.properties.v1.items.properties",
     "delete": [
-      "message.properties.StepShared",
-      "render.properties.StepShared",
-      "terraform.properties.StepShared",
-      "kustomize.properties.StepShared",
       "kustomizeIntro",
       "kustomizeDiff",
       "helmIntro",
       "helmValues",
-      "config",
       "kubectl_apply.properties.StepShared"
     ]
   }
