@@ -74,10 +74,6 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 				plan = append(plan, p.dockerStep(rootFs, *asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
-			// For now, ignore destination reassign if `app` command
-			if p.Viper.GetBool("is-app") {
-				asset.Helm.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Helm.Dest)
-			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -85,7 +81,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "helm")
 			if evaluatedWhen {
-				plan = append(plan, p.helmStep(*asset.Helm, meta, templateContext, configGroups))
+				plan = append(plan, p.helmStep(root, *asset.Helm, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
 			asset.DockerLayer.Dest = filepath.Join(constants.InstallerPrefixPath, asset.DockerLayer.Dest)
@@ -201,6 +197,7 @@ func (p *CLIPlanner) dockerStep(
 }
 
 func (p *CLIPlanner) helmStep(
+	renderRoot string,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -209,7 +206,7 @@ func (p *CLIPlanner) helmStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.Helm.Execute(asset, meta, templateContext, configGroups),
+		Execute:     p.Helm.Execute(renderRoot, asset, meta, templateContext, configGroups),
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 // Renderer is something that can render a helm asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
+		renderRoot string,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -39,6 +40,7 @@ func NewRenderer(cloner ChartFetcher, templater Templater, github github.Rendere
 }
 
 func (r *LocalRenderer) Execute(
+	renderRoot string,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -58,7 +60,7 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "fetch chart")
 		}
 
-		err = r.Templater.Template(chartLocation, asset, meta, configGroups, templateContext)
+		err = r.Templater.Template(chartLocation, renderRoot, asset, meta, configGroups, templateContext)
 		if err != nil {
 			return errors.Wrap(err, "execute templating")
 		}

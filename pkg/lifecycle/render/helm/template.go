@@ -26,6 +26,7 @@ import (
 type Templater interface {
 	Template(
 		chartRoot string,
+		renderRoot string,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		configGroups []libyaml.ConfigGroup,
@@ -48,6 +49,7 @@ type ForkTemplater struct {
 
 func (f *ForkTemplater) Template(
 	chartRoot string,
+	renderRoot string,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
@@ -114,6 +116,7 @@ func (f *ForkTemplater) Template(
 	}
 
 	// In app mode, copy the first found directory in RenderedHelmTempPath to dest
+	// TODO: Unify branching logic when `Fork` is removed
 	if f.Viper.GetBool("is-app") {
 		files, err := f.FS.ReadDir(constants.RenderedHelmTempPath)
 		if err != nil {
@@ -126,7 +129,8 @@ func (f *ForkTemplater) Template(
 		}
 
 		renderedChartDir := path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name())
-		if err := f.FS.Rename(renderedChartDir, asset.Dest); err != nil {
+		destDir := path.Join(renderRoot, asset.Dest)
+		if err := f.FS.Rename(renderedChartDir, destDir); err != nil {
 			return errors.Wrap(err, "failed to move rendered chart dir")
 		}
 
