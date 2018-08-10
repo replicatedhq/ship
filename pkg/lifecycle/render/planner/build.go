@@ -64,10 +64,6 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 				plan = append(plan, p.inlineStep(rootFs, *asset.Inline, configGroups, meta, templateContext))
 			}
 		} else if asset.Docker != nil {
-			// TODO: Improve handling of docker scheme, this is done because config not parsed yet
-			if !strings.HasPrefix(asset.Docker.Dest, "docker://") {
-				asset.Docker.Dest = filepath.Join(constants.InstallerPrefixPath, asset.Docker.Dest)
-			}
 			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Docker.AssetShared.When)
 			if err != nil {
 				return nil, err
@@ -75,7 +71,7 @@ func (p *CLIPlanner) Build(root string, assets []api.Asset, configGroups []libya
 
 			p.logAssetResolve(debug, evaluatedWhen, "docker")
 			if evaluatedWhen {
-				plan = append(plan, p.dockerStep(*asset.Docker, meta, templateContext, configGroups))
+				plan = append(plan, p.dockerStep(rootFs, *asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
 			// For now, ignore destination reassign if `app` command
@@ -183,6 +179,7 @@ func (p *CLIPlanner) webStep(
 }
 
 func (p *CLIPlanner) dockerStep(
+	rootFs afero.Afero,
 	asset api.DockerAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -192,6 +189,7 @@ func (p *CLIPlanner) dockerStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute: p.Docker.Execute(
+			rootFs,
 			asset,
 			meta,
 			p.watchProgress,

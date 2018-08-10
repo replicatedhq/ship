@@ -61,7 +61,6 @@ func TestDockerStep(t *testing.T) {
 
 			step := &DefaultStep{
 				Logger:         testLogger,
-				Fs:             afero.Afero{Fs: afero.NewMemMapFs()},
 				URLResolver:    urlResolver,
 				ImageSaver:     saver,
 				Viper:          v,
@@ -136,7 +135,15 @@ func TestDockerStep(t *testing.T) {
 			req := require.New(t)
 
 			// When
-			err := step.Execute(asset, metadata, mockProgress, asset.Dest, templateContext, configGroups)(ctx)
+			err := step.Execute(
+				afero.Afero{Fs: afero.NewMemMapFs()},
+				asset,
+				metadata,
+				mockProgress,
+				asset.Dest,
+				templateContext,
+				configGroups,
+			)(ctx)
 
 			// Then
 			if test.Expect == nil {
