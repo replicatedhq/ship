@@ -94,19 +94,32 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 }
 
 func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
+	progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
+
+	shouldAddActions := ok && progress.Detail != "success"
+
+	if shouldAddActions {
+		return nil
+	}
+
 	if step.Message != nil {
-		progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
-
-		shouldAddActions := ok && progress.Detail != "success"
-
-		if shouldAddActions {
-			return nil
-		}
-
 		return []daemontypes.Action{
 			{
 				ButtonType:  "primary",
 				Text:        "Confirm",
+				LoadingText: "Confirming",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.HelmIntro != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Get started",
 				LoadingText: "Confirming",
 				OnClick: daemontypes.ActionRequest{
 					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
