@@ -279,6 +279,7 @@ func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Releas
 								ID:       "render",
 								Requires: []string{"values"},
 							},
+							Root: ".",
 						},
 					},
 					{
