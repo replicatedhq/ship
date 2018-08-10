@@ -54,8 +54,6 @@ func buildInjector() (*dig.Container, error) {
 		logger.FromViper,
 		ui.FromViper,
 		fs.NewBaseFilesystem,
-		fs.NewFilesystemParams,
-		fs.NewFilesystems,
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
