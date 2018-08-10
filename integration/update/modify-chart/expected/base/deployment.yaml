@@ -3,23 +3,23 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: -modify-chart
+  name: modify-chart
   labels:
     app: modify-chart
     chart: modify-chart-0.1.0
-    release: 
+    release: modify-chart
     heritage: Tiller
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: modify-chart
-      release: 
+      release: modify-chart
   template:
     metadata:
       labels:
         app: modify-chart
-        release: 
+        release: modify-chart
     spec:
       containers:
         - name: modify-chart

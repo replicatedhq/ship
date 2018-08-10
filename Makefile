@@ -1,8 +1,9 @@
-.PHONY: build-deps -dep-deps docker shell githooks dep fmt _vet vet _lint lint _test test build e2e run build_yoonit_docker_image _build citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui pkg/lifecycle/ui.bindatafs.go embed-ui mark-ui-gitignored
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui
 
 
 SHELL := /bin/bash
-SRC = $(shell find . -name "*.go")
+SRC = $(shell find . -name "*.go" ! -name "ui.bindatafs.go")
+FULLSRC = $(shell find . -name "*.go")
 UI = $(shell find web/dist -name "*.js")
 
 DOCKER_REPO ?= replicated
@@ -159,34 +160,43 @@ deps:
 	dep ensure -v
 
 
-fmt: .state/build-deps
+.state/fmt: $(SRC)
 	goimports -w pkg
 	goimports -w cmd
+	@mkdir -p .state
+	@touch .state/fmt
 
-_vet:
+
+fmt: .state/build-deps .state/fmt
+
+.state/vet: $(SRC)
 	go vet ./pkg/...
 	go vet ./cmd/...
+	@mkdir -p .state
+	@touch .state/vet
 
-# we have to build bindata here, because for some reason goimports
-# hacks up that generated file in a way that makes vet fail
-vet: fmt _vet
+vet: .state/vet
 
-_lint:
+.state/lint: $(SRC)
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
 	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
+	@mkdir -p .state
+	@touch .state/lint
 
-lint: vet _lint
+lint: vet .state/lint
 
-_test:
+.state/test: $(SRC)
 	go test ./pkg/... | grep -v '?'
+	@mkdir -p .state
+	@touch .state/test
 
-test: lint _test
+test: lint .state/test
 
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
 	go test -coverprofile=.state/coverage.out -v ./pkg/...
 
-citest: _vet _lint .state/coverage.out
+citest: .state/vet .state/lint .state/coverage.out
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
@@ -197,11 +207,9 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
-build: test bin/ship
+build: fmt embed-ui test bin/ship
 
-_build: bin/ship
-
-bin/ship: $(SRC)
+bin/ship: $(FULLSRC)
 	go build \
 		${LDFLAGS} \
 		-i \
@@ -214,8 +222,8 @@ integration-test:
 	ginkgo -p -stream integration/base
 
 # tests "ship kustomize"
-integration-test-kustomize:
-	ginkgo -p -stream integration/kustomize
+integration-test-update:
+	ginkgo -p -stream integration/update
 
 goreleaser: .state/goreleaser
 
@@ -224,17 +232,13 @@ goreleaser: .state/goreleaser
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --rm-dist --config deploy/.goreleaser.unstable.yml
 	@touch .state/goreleaser
 
-run: bin/ship
+run: build
 	./bin/ship app --log-level=debug --runbook=./fixtures/app.yml
-
-# this should really be in a different repo
-build_yoonit_docker_image:
-	docker build -t replicated/yoonit:latest -f deploy/Dockerfile-yoonit .
 
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
+pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps $(shell find web/dist -type f)
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix web/ \
@@ -244,11 +248,17 @@ mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go fmt
+embed-ui: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 
 
 build-ui:
 	$(MAKE) -C web build_ship
+
+build-ui-dev:
+	$(MAKE) -C web build_ship_dev
+
+ci-build-ui-dev:
+	$(MAKE) -C web build_ship_dev PROGRESS=
 
 test_CI:
 	$(MAKE) -C web test_CI

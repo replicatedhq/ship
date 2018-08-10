@@ -57,6 +57,19 @@ type ReleaseMetadata struct {
 	HelmChartMetadata HelmChartMetadata `json:"helmChartMetadata" yaml:"helmChartMetadata" hcl:"helmChartMetadata" meta:"helmChartMetadata"`
 }
 
+func (r *ReleaseMetadata) ReleaseName() string {
+	if r.ChannelName != "" {
+		return r.ChannelName
+	}
+
+	if r.HelmChartMetadata.Name != "" {
+		return r.HelmChartMetadata.Name
+	}
+
+	return "ship"
+
+}
+
 // Release
 type Release struct {
 	Metadata ReleaseMetadata

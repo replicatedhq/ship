@@ -3,11 +3,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: -modify-chart
+  name: modify-chart
   labels:
     app: modify-chart
     chart: modify-chart-0.1.0
-    release: 
+    release: modify-chart
     heritage: Tiller
 spec:
   type: ClusterIP
@@ -18,4 +18,4 @@ spec:
       name: http
   selector:
     app: modify-chart
-    release: 
+    release: modify-chart
