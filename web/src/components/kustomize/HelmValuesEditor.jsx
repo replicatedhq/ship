@@ -89,9 +89,13 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   handleContinue() {
-    const { actions } = this.props;
-    const submitAction = find(actions, ["sort", 1]);
-    // const submitActionForShipV2 = find(actions, ["buttonType", "popover"]);
+    const { actions, isNewRouter } = this.props;
+    let submitAction;
+    if (isNewRouter) {
+      submitAction = find(actions, ["buttonType", "popover"]);
+    } else {
+      submitAction = find(actions, ["sort", 1]);
+    }
     this.props.handleAction(submitAction);
   }
 

@@ -13,6 +13,7 @@ const DetermineComponentForRoute = connect(
     actions: state.data.determineSteps.stepsData.actions,
     phase: state.data.determineSteps.stepsData.phase,
     progress: state.data.determineSteps.stepsData.progress,
+    isNewRouter: state.data.appRoutes.routesData.isKustomizeFlow,
   }),
   dispatch => ({
     getChannel() { return dispatch(getChannel()); },

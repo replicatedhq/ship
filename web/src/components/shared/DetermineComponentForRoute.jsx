@@ -94,6 +94,7 @@ class DetermineComponentForRoute extends React.Component {
         <StepHelmValues
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
+          isNewRouter={this.props.isNewRouter}
           helmChartMetadata={this.props.helmChartMetadata} 
           actions={actions} 
           handleAction={this.handleAction} 
