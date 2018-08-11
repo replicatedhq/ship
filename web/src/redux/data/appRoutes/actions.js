@@ -2,7 +2,7 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 import { receiveCurrentStep } from "../determineSteps/actions";
 
-const apiEndpoint = window.env.LIFECYCLE_ENDPOINT;
+const apiEndpoint = window.env.API_ENDPOINT;
 
 export const constants = {
   RECEIVE_ROUTES: "RECEIVE_ROUTES",
@@ -28,7 +28,7 @@ export function getRoutes() {
     let response;
     dispatch(loadingData("routes", true));
     try {
-      const url = `${apiEndpoint}/lifecycle`;
+      const url = `${apiEndpoint}/navcycle`;
       response = await fetch(url, {
         method: "GET",
         headers: {
@@ -54,7 +54,7 @@ export function getContentForStep(stepId) {
     let response;
     dispatch(loadingData("getCurrentStep", true));
     try {
-      const url = `${apiEndpoint}/lifecycle/step/${stepId}`;
+      const url = `${apiEndpoint}/navcycle/step/${stepId}`;
       response = await fetch(url, {
         method: "GET",
         headers: {

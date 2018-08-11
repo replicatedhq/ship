@@ -28,7 +28,7 @@ class DetermineComponentForRoute extends React.Component {
     const currRoute = find(this.props.routes, ["id", this.props.routeId]);
     const currIndex = indexOf(this.props.routes, currRoute);
     const nextRoute = this.props.routes[currIndex + 1];
-    await this.props.submitAction({action}).then(() => {
+    await this.props.finalizeStep({action}).then(() => {
       this.props.history.push(`/${nextRoute.id}`);
     });
   }

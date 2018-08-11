@@ -90,7 +90,7 @@ export default class HelmValuesEditor extends React.Component {
 
   handleContinue() {
     const { actions } = this.props;
-    const submitAction = find(actions, { sort: 1 }); // Find the continue action
+    const submitAction = find(actions, ["buttonType", "popover"]); // Find the continue action
     this.props.handleAction(submitAction);
   }
 
@@ -172,7 +172,7 @@ export default class HelmValuesEditor extends React.Component {
 
     return (
       <ErrorBoundary>
-        <div className="flex-column flex1">
+        <div className="flex-column flex1 HelmValues--wrapper">
           <Toast toast={toastDetails} onCancel={this.cancelToast} />
           <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
             /{name}/
@@ -205,7 +205,7 @@ export default class HelmValuesEditor extends React.Component {
               <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
             </div>
           </div>
-          <div className="action container u-width--full u-marginTop--30 flex flex1 alignItems--center justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+          <div className="action container u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
             <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--30 u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
             <div className="flex flex-auto alignItems--center">
               <p
