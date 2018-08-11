@@ -60,7 +60,7 @@ func testGet(
 	test lifecycleTestcase,
 	req *require.Assertions,
 ) {
-	resp, err := http.Get(fmt.Sprintf("%s%s", addr, "/api/v2/lifecycle"))
+	resp, err := http.Get(fmt.Sprintf("%s%s", addr, "/api/v1/navcycle"))
 	req.NoError(err)
 	req.Equal(resp.StatusCode, test.ExpectStatus)
 	bytes, err := ioutil.ReadAll(resp.Body)

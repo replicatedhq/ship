@@ -32,7 +32,7 @@ func TestV2GetStep(t *testing.T) {
 		{
 			Name:         "empty",
 			Lifecycle:    []api.Step{},
-			GET:          "/api/v2/lifecycle/step/foo",
+			GET:          "/api/v1/navcycle/step/foo",
 			ExpectStatus: 404,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -53,7 +53,7 @@ func TestV2GetStep(t *testing.T) {
 					},
 				},
 			},
-			GET:          "/api/v2/lifecycle/step/foo",
+			GET:          "/api/v1/navcycle/step/foo",
 			ExpectStatus: 200,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -69,7 +69,7 @@ func TestV2GetStep(t *testing.T) {
 						"text":        "Confirm",
 						"loadingText": "Confirming",
 						"onclick": map[string]interface{}{
-							"uri":    "/api/v2/lifecycle/step/foo",
+							"uri":    "/navcycle/step/foo",
 							"method": "POST",
 							"body":   "",
 						},
@@ -100,7 +100,7 @@ func TestV2GetStep(t *testing.T) {
 					},
 				},
 			},
-			GET:          "/api/v2/lifecycle/step/bar",
+			GET:          "/api/v1/navcycle/step/bar",
 			ExpectStatus: 400,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -139,7 +139,7 @@ func TestV2GetStep(t *testing.T) {
 					"foo": nil,
 				},
 			},
-			GET:          "/api/v2/lifecycle/step/bar",
+			GET:          "/api/v1/navcycle/step/bar",
 			ExpectStatus: 200,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -155,7 +155,7 @@ func TestV2GetStep(t *testing.T) {
 						"text":        "Confirm",
 						"loadingText": "Confirming",
 						"onclick": map[string]interface{}{
-							"uri":    "/api/v2/lifecycle/step/bar",
+							"uri":    "/navcycle/step/bar",
 							"method": "POST",
 							"body":   "",
 						},
@@ -178,7 +178,7 @@ func TestV2GetStep(t *testing.T) {
 			StepProgress: map[string]daemontypes.Progress{
 				"foo": daemontypes.StringProgress("v2router", "working"),
 			},
-			GET:          "/api/v2/lifecycle/step/foo",
+			GET:          "/api/v1/navcycle/step/foo",
 			ExpectStatus: 200,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -279,7 +279,7 @@ func TestHydrateActions(t *testing.T) {
 					Text:        "Confirm",
 					LoadingText: "Confirming",
 					OnClick: daemontypes.ActionRequest{
-						URI:    "/api/v2/lifecycle/step/foo",
+						URI:    "/navcycle/step/foo",
 						Method: "POST",
 						Body:   "",
 					},
@@ -301,7 +301,7 @@ func TestHydrateActions(t *testing.T) {
 					Text:        "Get started",
 					LoadingText: "Confirming",
 					OnClick: daemontypes.ActionRequest{
-						URI:    "/api/v2/lifecycle/step/yo",
+						URI:    "/navcycle/step/yo",
 						Method: "POST",
 						Body:   "",
 					},
