@@ -9,6 +9,7 @@ const NavBar = connect(
     helmChartMetadata: state.data.kustomizeSettings.helmChartMetadata,
     phase: state.data.determineSteps.stepsData.phase,
     isKustomizeFlow: state.data.appRoutes.routesData.isKustomizeFlow,
+    isKustomize: state.data.determineSteps.stepsData.kustomizeFlow,
     dataLoading: state.ui.main.loading,
   }),
   dispatch => ({
