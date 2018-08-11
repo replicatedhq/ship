@@ -56,7 +56,7 @@ func TestV2CompleteStep(t *testing.T) {
 		{
 			Name:         "empty",
 			Lifecycle:    []api.Step{},
-			POST:         "/api/v2/lifecycle/step/foo",
+			POST:         "/api/v1/navcycle/step/foo",
 			ExpectStatus: 404,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -77,7 +77,7 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v2/lifecycle/step/bar",
+			POST:         "/api/v1/navcycle/step/bar",
 			ExpectStatus: 404,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -98,7 +98,7 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v2/lifecycle/step/foo",
+			POST:         "/api/v1/navcycle/step/foo",
 			ExpectStatus: 200,
 			ExpectBody: map[string]interface{}{
 				"status": "success",
@@ -136,7 +136,7 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v2/lifecycle/step/foo",
+			POST:         "/api/v1/navcycle/step/foo",
 			ExpectStatus: 400,
 			ExpectBody: map[string]interface{}{
 				"currentStep": map[string]interface{}{
@@ -158,7 +158,7 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v2/lifecycle/step/make-the-things",
+			POST:         "/api/v1/navcycle/step/make-the-things",
 			ExpectStatus: 200,
 			ExpectState: &matchers.Is{
 				Describe: "saved state has step make-the-things completed",
@@ -190,7 +190,7 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST: "/api/v2/lifecycle/step/make-the-things",
+			POST: "/api/v1/navcycle/step/make-the-things",
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
 			WaitForCleanup: func() <-chan time.Time { return time.After(150 * time.Millisecond) },
