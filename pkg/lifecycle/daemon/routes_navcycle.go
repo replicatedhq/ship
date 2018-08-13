@@ -21,7 +21,7 @@ type NavcycleRoutes struct {
 	Logger       log.Logger
 	TreeLoader   filetree.Loader
 	StateManager state.Manager
-	StepExecutor V2Exectuor
+	StepExecutor V2Executor
 	Fs           afero.Afero
 
 	StepProgress *daemontypes.ProgressMap
@@ -29,6 +29,7 @@ type NavcycleRoutes struct {
 	Messenger  lifecycle.Messenger
 	HelmIntro  lifecycle.HelmIntro
 	HelmValues lifecycle.HelmValues
+	Kustomizer lifecycle.Kustomizer
 	Renderer   lifecycle.Renderer
 	Planner    planner.Planner
 

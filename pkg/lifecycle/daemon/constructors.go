@@ -46,6 +46,7 @@ func NewV2Router(
 	helmValues lifecycle.HelmValues,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
+	treeLoader filetree.Loader,
 	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
@@ -60,6 +61,7 @@ func NewV2Router(
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},
+		TreeLoader:   treeLoader,
 		StepProgress: &daemontypes.ProgressMap{},
 		Fs:           fs,
 	}

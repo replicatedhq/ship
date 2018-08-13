@@ -133,7 +133,7 @@ func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, st
 	}
 }
 
-type V2Exectuor func(d *NavcycleRoutes, step api.Step) error
+type V2Executor func(d *NavcycleRoutes, step api.Step) error
 
 // temprorary home for a copy of pkg/lifecycle.StepExecutor while
 // we re-implement each lifecycle step to not need a handle on a daemon (or something)
@@ -162,13 +162,17 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
 	} else if step.Render != nil {
-		debug.Log("event", "step.resolve", "type", "helmIntro")
+		debug.Log("event", "step.resolve", "type", "render")
 		planner := d.Planner.WithStatusReceiver(statusReceiver)
 		renderer := d.Renderer.WithPlanner(planner)
 		renderer = renderer.WithStatusReceiver(statusReceiver)
 		err := renderer.Execute(context.Background(), d.Release, step.Render)
 		debug.Log("event", "step.complete", "type", "render", "err", err)
 		return errors.Wrap(err, "execute render step")
+	} else if step.Kustomize != nil {
+		debug.Log("event", "step.resolve", "type", "kustomize")
+		err := d.Kustomizer.Execute(context.Background(), d.Release, *step.Kustomize)
+		return errors.Wrap(err, "execute kustomize step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

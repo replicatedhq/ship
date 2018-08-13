@@ -233,14 +233,6 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 						},
 					},
 					{
-						KustomizeDiff: &api.KustomizeDiff{
-							StepShared: api.StepShared{
-								ID:       "kustomize",
-								Requires: []string{"kustomize"},
-							},
-						},
-					},
-					{
 						Message: &api.Message{
 							StepShared: api.StepShared{
 								ID: "outro",

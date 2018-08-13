@@ -5,8 +5,11 @@ import (
 	"path"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/replicatedhq/ship/pkg/state"
 
+	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/tmpfs"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -40,10 +43,15 @@ func TestAferoLoader(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			req := require.New(t)
+			mc := gomock.NewController(t)
 
+			mockState := state2.NewMockManager(mc)
 			fs, cleanup := tmpfs.Tmpfs(t)
 			defer cleanup()
-			loader := aferoLoader{FS: fs}
+			loader := aferoLoader{
+				FS:           fs,
+				StateManager: mockState,
+			}
 
 			for _, dir := range test.Mkdir {
 				req.NoError(fs.MkdirAll(dir, 0777), "create dir "+dir)
@@ -63,13 +71,19 @@ func TestAferoLoader(t *testing.T) {
 				testPatches[patch.Key.(string)] = patch.Value.(string)
 			}
 
-			tree, err := loader.LoadTree(toRead, &state.Kustomize{
-				Overlays: map[string]state.Overlay{
-					"ship": state.Overlay{
-						Patches: testPatches,
+			mockState.EXPECT().TryLoad().Return(state.VersionedState{
+				V1: &state.V1{
+					Kustomize: &state.Kustomize{
+						Overlays: map[string]state.Overlay{
+							"ship": state.Overlay{
+								Patches: testPatches,
+							},
+						},
 					},
 				},
-			})
+			}, nil)
+
+			tree, err := loader.LoadTree(toRead)
 			if test.ExpectErr == "" {
 				req.NoError(err)
 			} else {
