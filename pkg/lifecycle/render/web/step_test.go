@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
@@ -211,12 +212,15 @@ func TestWebStep(t *testing.T) {
 
 			v := viper.New()
 			testLogger := &logger.TestLogger{T: t}
-			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+			rootFs := root.Fs{
+				Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+				RootPath: "",
+			}
 			client := &http.Client{}
 
 			step := &DefaultStep{
 				Logger: testLogger,
-				Fs:     fs,
+				Fs:     rootFs.Afero,
 				Viper:  v,
 				BuilderBuilder: &templates.BuilderBuilder{
 					Logger: testLogger,
@@ -230,6 +234,7 @@ func TestWebStep(t *testing.T) {
 			test.RegisterResponders()
 
 			err := step.Execute(
+				rootFs,
 				test.Asset,
 				api.ReleaseMetadata{},
 				map[string]interface{}{},
@@ -244,7 +249,7 @@ func TestWebStep(t *testing.T) {
 			}
 
 			for name, contents := range test.ExpectFiles {
-				actual, err := fs.ReadFile(name)
+				actual, err := rootFs.ReadFile(name)
 				req.NoError(err)
 				req.Equal(contents, string(actual))
 			}

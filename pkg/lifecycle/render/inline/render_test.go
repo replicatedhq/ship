@@ -6,6 +6,7 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
@@ -45,7 +46,10 @@ func TestInlineRender(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
 			bb := templates.NewBuilderBuilder(testLogger)
-			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+			rootFs := root.Fs{
+				Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+				RootPath: "",
+			}
 
 			renderer := &LocalRenderer{
 				Logger:         testLogger,
@@ -54,7 +58,7 @@ func TestInlineRender(t *testing.T) {
 			}
 
 			err := renderer.Execute(
-				fs,
+				rootFs,
 				test.asset,
 				test.meta,
 				test.templateContext,
@@ -63,7 +67,7 @@ func TestInlineRender(t *testing.T) {
 			req.NoError(err)
 
 			for filename, expectContents := range test.expect {
-				contents, err := fs.ReadFile(filename)
+				contents, err := rootFs.ReadFile(filename)
 				req.NoError(err)
 				req.Equal(expectContents, string(contents))
 			}

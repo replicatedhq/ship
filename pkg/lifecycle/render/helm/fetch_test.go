@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/test-mocks/github"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
@@ -56,6 +57,10 @@ func TestFetch(t *testing.T) {
 			},
 			mockExpect: func(t *testing.T, gh *github.MockRenderer) {
 				gh.EXPECT().Execute(
+					root.Fs{
+						Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+						RootPath: "",
+					},
 					&matchers.Is{
 						Describe: "is github asset and has dest overriden",
 						Test: func(asset interface{}) bool {
@@ -95,6 +100,10 @@ func TestFetch(t *testing.T) {
 
 			dest, err := fetcher.FetchChart(
 				context.Background(),
+				root.Fs{
+					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					RootPath: "",
+				},
 				test.asset,
 				api.ReleaseMetadata{},
 				[]libyaml.ConfigGroup{},

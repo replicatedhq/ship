@@ -14,6 +14,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
@@ -136,7 +137,10 @@ func TestDockerStep(t *testing.T) {
 
 			// When
 			err := step.Execute(
-				afero.Afero{Fs: afero.NewMemMapFs()},
+				root.Fs{
+					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					RootPath: "",
+				},
 				asset,
 				metadata,
 				mockProgress,
