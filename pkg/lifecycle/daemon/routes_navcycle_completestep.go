@@ -171,7 +171,7 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		return errors.Wrap(err, "execute render step")
 	} else if step.Kustomize != nil {
 		debug.Log("event", "step.resolve", "type", "kustomize")
-		err := d.Kustomize.Execute(context.Background(), d.Release, *step.Kustomize)
+		err := d.Kustomizer.Execute(context.Background(), d.Release, *step.Kustomize)
 		return errors.Wrap(err, "execute kustomize step")
 	}
 

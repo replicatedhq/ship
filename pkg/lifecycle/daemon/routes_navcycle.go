@@ -29,7 +29,7 @@ type NavcycleRoutes struct {
 	Messenger  lifecycle.Messenger
 	HelmIntro  lifecycle.HelmIntro
 	HelmValues lifecycle.HelmValues
-	Kustomize  lifecycle.Kustomizer
+	Kustomizer lifecycle.Kustomizer
 	Renderer   lifecycle.Renderer
 	Planner    planner.Planner
 
