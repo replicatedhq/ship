@@ -254,7 +254,9 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	debug.Log("phase", "read-readme", "from", localReadmePath)
 	readme, err := r.FS.ReadFile(localReadmePath)
 	if err != nil {
-		return api.HelmChartMetadata{}, errors.Wrapf(err, "read file from %s", localReadmePath)
+		if !os.IsNotExist(err) {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "read file from %s", localReadmePath)
+		}
 	}
 
 	debug.Log("phase", "unmarshal-chart.yaml")
@@ -262,7 +264,9 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 		return api.HelmChartMetadata{}, err
 	}
 
-	md.Readme = string(readme)
+	if readme != nil {
+		md.Readme = string(readme)
+	}
 
 	return md, nil
 }
