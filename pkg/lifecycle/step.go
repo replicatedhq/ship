@@ -43,7 +43,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		return errors.Wrap(err, "execute terraform step")
 	} else if step.Kustomize != nil {
 		debug.Log("event", "step.resolve", "type", "kustomize")
-		err := s.Kustomizer.Execute(ctx, *release, *step.Kustomize)
+		err := s.Kustomizer.Execute(ctx, release, *step.Kustomize)
 		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
 		return errors.Wrap(err, "execute kustomize step")
 	} else if step.HelmIntro != nil {

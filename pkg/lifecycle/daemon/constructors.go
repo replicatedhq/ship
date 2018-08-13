@@ -45,6 +45,7 @@ func NewV2Router(
 	helmIntro lifecycle.HelmIntro,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
+	treeLoader filetree.Loader,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
 		Logger:       logger,
@@ -57,6 +58,7 @@ func NewV2Router(
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},
+		TreeLoader:   treeLoader,
 		StepProgress: &daemontypes.ProgressMap{},
 	}
 }

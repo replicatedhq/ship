@@ -45,10 +45,10 @@ type kustomizer struct {
 	State  state.Manager
 }
 
-func (l *kustomizer) Execute(ctx context.Context, release api.Release, step api.Kustomize) error {
+func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "execute"))
 
-	daemonExitedChan := l.Daemon.EnsureStarted(ctx, &release)
+	daemonExitedChan := l.Daemon.EnsureStarted(ctx, release)
 
 	debug.Log("event", "daemon.started")
 

@@ -34,7 +34,7 @@ type HelmValues interface {
 }
 
 type Kustomizer interface {
-	Execute(ctx context.Context, release api.Release, step api.Kustomize) error
+	Execute(ctx context.Context, release *api.Release, step api.Kustomize) error
 }
 
 type KubectlApply interface {

@@ -20,9 +20,10 @@ type NavcycleRoutes struct {
 	StateManager state.Manager
 	Messenger    lifecycle.Messenger
 	HelmIntro    lifecycle.HelmIntro
+	Kustomize    lifecycle.Kustomizer
 	Renderer     lifecycle.Renderer
 	Planner      planner.Planner
-	StepExecutor V2Exectuor
+	StepExecutor V2Executor
 
 	StepProgress *daemontypes.ProgressMap
 
