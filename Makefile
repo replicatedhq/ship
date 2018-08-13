@@ -9,7 +9,7 @@ UI = $(shell find web/dist -name "*.js")
 DOCKER_REPO ?= replicated
 
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
-VERSION=`git describe --tags`
+VERSION=`git describe --tags &>/dev/null || echo "v0.0.1"`
 GIT_SHA=`git rev-parse HEAD`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
@@ -244,7 +244,7 @@ pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
 	  -prefix web/ \
 	  web/dist/...
 
-mark-ui-gitignored: 
+mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
