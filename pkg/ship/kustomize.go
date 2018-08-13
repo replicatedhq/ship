@@ -174,6 +174,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	}
 
 	helmChartPath := s.Viper.GetString("chart")
+	s.UI.Info("Downloading from " + helmChartPath + " ...")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
