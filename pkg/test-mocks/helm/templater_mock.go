@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
+	root "github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 )
 
 // MockTemplater is a mock of Templater interface
@@ -36,13 +37,13 @@ func (m *MockTemplater) EXPECT() *MockTemplaterMockRecorder {
 }
 
 // Template mocks base method
-func (m *MockTemplater) Template(arg0 string, arg1 api.HelmAsset, arg2 api.ReleaseMetadata, arg3 []libyaml.ConfigGroup, arg4 map[string]interface{}) error {
-	ret := m.ctrl.Call(m, "Template", arg0, arg1, arg2, arg3, arg4)
+func (m *MockTemplater) Template(arg0 string, arg1 root.Fs, arg2 api.HelmAsset, arg3 api.ReleaseMetadata, arg4 []libyaml.ConfigGroup, arg5 map[string]interface{}) error {
+	ret := m.ctrl.Call(m, "Template", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Template indicates an expected call of Template
-func (mr *MockTemplaterMockRecorder) Template(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Template", reflect.TypeOf((*MockTemplater)(nil).Template), arg0, arg1, arg2, arg3, arg4)
+func (mr *MockTemplaterMockRecorder) Template(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Template", reflect.TypeOf((*MockTemplater)(nil).Template), arg0, arg1, arg2, arg3, arg4, arg5)
 }
