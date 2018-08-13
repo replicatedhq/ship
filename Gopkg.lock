@@ -1065,13 +1065,12 @@
   version = "v7.0.0"
 
 [[projects]]
-  digest = "1:71307d61ebca20050bd4a49ff31f48c878187ee00cda3e699bdf285a8b5df0b5"
+  digest = "1:3bbc03405bad1e72bd9f9b72a35a5a66e2deefd32784e062ce83eafabd3cbcc0"
   name = "k8s.io/helm"
   packages = [
     "pkg/chartutil",
     "pkg/engine",
     "pkg/ignore",
-    "pkg/lint",
     "pkg/lint/rules",
     "pkg/lint/support",
     "pkg/proto/hapi/chart",
@@ -1144,7 +1143,8 @@
     "k8s.io/apimachinery/pkg/util/strategicpatch",
     "k8s.io/apimachinery/pkg/util/yaml",
     "k8s.io/client-go/kubernetes/scheme",
-    "k8s.io/helm/pkg/lint",
+    "k8s.io/helm/pkg/lint/rules",
+    "k8s.io/helm/pkg/lint/support",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

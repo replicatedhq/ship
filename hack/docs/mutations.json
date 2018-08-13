@@ -464,7 +464,7 @@
       ]
     },
     "merge": {
-      "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster",
+      "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster.",
       "examples": [
         {
           "cluster_name": "existing-vpc-cluster",
