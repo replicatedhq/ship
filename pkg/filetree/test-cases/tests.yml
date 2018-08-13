@@ -21,7 +21,7 @@
   touch:
     - foo.txt
   read: foo.txt
-  expectErr: 'read dir "foo.txt": readdirent: not a directory'
+  expectErr: 'read dir "foo.txt": readdirent:'
 
 - name: read single file
   touch:

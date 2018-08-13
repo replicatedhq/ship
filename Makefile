@@ -1,7 +1,7 @@
 .PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui
 
 
-SHELL := /bin/bash
+SHELL := /bin/bash -o pipefail
 SRC = $(shell find . -name "*.go" ! -name "ui.bindatafs.go")
 FULLSRC = $(shell find . -name "*.go")
 UI = $(shell find web/dist -name "*.js")
