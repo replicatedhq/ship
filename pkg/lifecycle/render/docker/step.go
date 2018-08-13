@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"net/url"
+	"path"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
@@ -127,7 +128,7 @@ func (p *DefaultStep) Execute(
 		if destIsDockerURL {
 			registrySecretSaveOpts.DestinationURL = destinationURL
 		} else {
-			registrySecretSaveOpts.Filename = dest
+			registrySecretSaveOpts.Filename = path.Join(rootFs.RootPath, dest)
 		}
 
 		ch := p.ImageSaver.SaveImage(ctx, registrySecretSaveOpts)
@@ -153,7 +154,7 @@ func (p *DefaultStep) Execute(
 		if destIsDockerURL {
 			installationIDSaveOpts.DestinationURL = destinationURL
 		} else {
-			installationIDSaveOpts.Filename = dest
+			installationIDSaveOpts.Filename = path.Join(rootFs.RootPath, dest)
 		}
 
 		ch = p.ImageSaver.SaveImage(ctx, installationIDSaveOpts)
