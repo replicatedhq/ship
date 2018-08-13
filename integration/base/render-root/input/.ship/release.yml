@@ -1,0 +1,18 @@
+assets:
+  v1:
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "Hello world"
+        dest: ./scripts/install.sh
+        mode: 0777
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "tested nothing"
+        dest: ./scripts/test.sh
+        mode: 0777
+lifecycle:
+  v1:
+    - render:
+        root: "example_installer_directory"
