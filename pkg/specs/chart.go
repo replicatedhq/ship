@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,6 +18,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
+
+	"path"
 
 	"github.com/google/go-github/github"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -39,6 +40,83 @@ func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
 		logger: logger,
 	}
 }
+
+var (
+	DefaultHelmRelease = api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{
+					{
+						Helm: &api.HelmAsset{
+							AssetShared: api.AssetShared{
+								Dest: constants.RenderedHelmPath,
+							},
+							Local: &api.LocalHelmOpts{
+								ChartRoot: constants.KustomizeHelmPath,
+							},
+							HelmOpts: []string{
+								"--values",
+								path.Join(constants.TempHelmValuesPath, "values.yaml"),
+							},
+						},
+					},
+				},
+			},
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						HelmIntro: &api.HelmIntro{
+							StepShared: api.StepShared{
+								ID: "intro",
+							},
+						},
+					},
+					{
+						HelmValues: &api.HelmValues{
+							StepShared: api.StepShared{
+								ID:          "values",
+								Requires:    []string{"intro"},
+								Invalidates: []string{"render"},
+							},
+						},
+					},
+					{
+						Render: &api.Render{
+							StepShared: api.StepShared{
+								ID:       "render",
+								Requires: []string{"values"},
+							},
+						},
+					},
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: constants.RenderedHelmPath,
+							Dest:     path.Join("overlays", "ship"),
+							StepShared: api.StepShared{
+								ID:       "kustomize",
+								Requires: []string{"render"},
+							},
+						},
+					},
+					{
+						Message: &api.Message{
+							StepShared: api.StepShared{
+								ID:       "outro",
+								Requires: []string{"kustomize"},
+							},
+							Contents: `
+Assets are ready to deploy. You can run
+
+    kustomize build overlays/ship | kubectl apply -f -
+
+to deploy the overlaid assets to your cluster.
+`},
+					},
+				},
+			},
+		},
+	}
+)
 
 func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLString string) error {
 	debug := level.Debug(log.With(g.logger, "method", "getChartAndReadmeContents"))
@@ -189,26 +267,26 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	return md, nil
 }
 
-func (r *Resolver) ResolveChartRelease(ctx context.Context) (api.Release, error) {
-	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartRelease"))
-
+func (r *Resolver) ResolveChartReleaseSpec(ctx context.Context) (api.Spec, error) {
 	localReleasePath := filepath.Join(constants.KustomizeHelmPath, "ship.yaml")
 
-	debug.Log("phase", "read-release", "from", localReleasePath)
-	var upstreamRelease api.Release
-	release, err := r.FS.ReadFile(localReleasePath)
+	if upstreamExists, err := r.FS.Exists(localReleasePath); err == nil && !upstreamExists {
+		return DefaultHelmRelease.Spec, nil
+	}
+
+	upstreamRelease, err := r.FS.ReadFile(localReleasePath)
 	if err != nil {
-		level.Debug(log.With(r.Logger, "event", "read file from %s", localReleasePath))
-		return api.Release{}, nil
+		level.Debug(r.Logger).Log("message", "failed to read upstream release, using default", "from", localReleasePath, "error", err)
+		return DefaultHelmRelease.Spec, nil
 	}
 
-	debug.Log("phase", "unmarshal ship.yaml", "from", localReleasePath)
-	if err := json.Unmarshal(release, &upstreamRelease); err == nil {
-		level.Debug(log.With(r.Logger, "event", "unmarshal release from %s", localReleasePath))
-		return api.Release{}, errors.Wrapf(err, "unmarshal ship.yaml")
+	var spec api.Spec
+	if err := yaml.UnmarshalStrict(upstreamRelease, &spec); err != nil {
+		level.Debug(r.Logger).Log("event", "release.unmarshal.fail", "error", err)
+		return api.Spec{}, errors.Wrapf(err, "unmarshal ship.yaml")
 	}
 
-	return upstreamRelease, nil
+	return spec, nil
 }
 
 func (r *Resolver) calculateContentSHA(root string) (string, error) {

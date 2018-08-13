@@ -19,83 +19,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-var (
-	DefaultHelmRelease = &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{
-					{
-						Helm: &api.HelmAsset{
-							AssetShared: api.AssetShared{
-								Dest: constants.RenderedHelmPath,
-							},
-							Local: &api.LocalHelmOpts{
-								ChartRoot: constants.KustomizeHelmPath,
-							},
-							HelmOpts: []string{
-								"--values",
-								path.Join(constants.TempHelmValuesPath, "values.yaml"),
-							},
-						},
-					},
-				},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						HelmIntro: &api.HelmIntro{
-							StepShared: api.StepShared{
-								ID: "intro",
-							},
-						},
-					},
-					{
-						HelmValues: &api.HelmValues{
-							StepShared: api.StepShared{
-								ID:          "values",
-								Requires:    []string{"intro"},
-								Invalidates: []string{"render"},
-							},
-						},
-					},
-					{
-						Render: &api.Render{
-							StepShared: api.StepShared{
-								ID:       "render",
-								Requires: []string{"values"},
-							},
-						},
-					},
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: constants.RenderedHelmPath,
-							Dest:     path.Join("overlays", "ship"),
-							StepShared: api.StepShared{
-								ID:       "kustomize",
-								Requires: []string{"render"},
-							},
-						},
-					},
-					{
-						Message: &api.Message{
-							StepShared: api.StepShared{
-								ID:       "outro",
-								Requires: []string{"kustomize"},
-							},
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f installer/rendered
-
-to deploy the overlaid assets to your cluster.
-`},
-					},
-				},
-			},
-		},
-	}
-)
-
 func (s *Ship) InitAndMaybeExit(ctx context.Context) {
 	if err := s.Init(ctx); err != nil {
 		if err.Error() == constants.ShouldUseUpdate {
@@ -156,16 +79,22 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	debug.Log("event", "check upstream release")
-	upstreamRelease, err := s.Resolver.ResolveChartRelease(ctx)
+	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "detect upstream chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
+		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
 	}
 
 	debug.Log("event", "build helm release")
-	release := s.buildHelmRelease(helmChartMetadata, upstreamRelease)
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			HelmChartMetadata: helmChartMetadata,
+		},
+		Spec: spec,
+	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
+
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -254,13 +183,18 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	s.State.SerializeChartURL(helmChartPath)
 
 	debug.Log("event", "check upstream release")
-	upstreamRelease, err := s.Resolver.ResolveChartRelease(ctx)
+	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "detect upstream chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
+		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
 	}
 
 	debug.Log("event", "build helm release")
-	release := s.buildHelmRelease(helmChartMetadata, upstreamRelease)
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			HelmChartMetadata: helmChartMetadata,
+		},
+		Spec: spec,
+	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
@@ -324,27 +258,4 @@ to deploy the overlaid assets to your cluster.
 	}
 
 	return release
-}
-
-// buildHelmRelease builds a Helm release which is applied to all Helm charts
-func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, release api.Release) *api.Release {
-	level.Debug(log.With(s.Logger, "method", "buildHelmRelease"))
-
-	level.Debug(log.With(s.Logger, "phase", "build release metadata"))
-	var helmRelease = &api.Release{
-		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
-		},
-		Spec: api.Spec{},
-	}
-
-	// if upstream release doesn't exist, use default helm release
-	level.Debug(log.With(s.Logger, "phase", "build release spec"))
-	if len(release.Spec.Assets.V1) == 0 {
-		helmRelease.Spec = DefaultHelmRelease.Spec
-	} else {
-		helmRelease.Spec = release.Spec
-	}
-
-	return helmRelease
 }
