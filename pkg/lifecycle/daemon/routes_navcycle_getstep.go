@@ -8,7 +8,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
-	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
@@ -35,31 +34,7 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
 
 	if step.Kustomize != nil {
-		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
-		currentState, err := d.StateManager.TryLoad()
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to load state")
-		}
-
-		kustomize := currentState.CurrentKustomize()
-		if kustomize == nil {
-			kustomize = &state.Kustomize{}
-		}
-
-		if kustomize.Overlays == nil {
-			kustomize.Overlays = make(map[string]state.Overlay)
-		}
-
-		if _, ok := kustomize.Overlays["ship"]; !ok {
-			kustomize.Overlays["ship"] = state.Overlay{
-				Patches: make(map[string]string),
-			}
-		}
-
-		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath, kustomize)
-		if err != nil {
-			return nil, errors.Wrap(err, "daemon.loadTree")
-		}
+		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
 			return nil, errors.Wrap(err, "load kustomize tree")
