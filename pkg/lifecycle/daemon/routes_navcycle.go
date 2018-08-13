@@ -21,14 +21,16 @@ type NavcycleRoutes struct {
 	Logger       log.Logger
 	TreeLoader   filetree.Loader
 	StateManager state.Manager
-	Messenger    lifecycle.Messenger
-	HelmIntro    lifecycle.HelmIntro
-	Renderer     lifecycle.Renderer
-	Planner      planner.Planner
 	StepExecutor V2Exectuor
 	Fs           afero.Afero
 
 	StepProgress *daemontypes.ProgressMap
+
+	Messenger  lifecycle.Messenger
+	HelmIntro  lifecycle.HelmIntro
+	HelmValues lifecycle.HelmValues
+	Renderer   lifecycle.Renderer
+	Planner    planner.Planner
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release

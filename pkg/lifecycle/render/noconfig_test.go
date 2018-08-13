@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
 	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
@@ -50,7 +48,6 @@ func TestRenderNoConfig(t *testing.T) {
 
 			prog := mockDaemon.EXPECT().SetProgress(ProgressRead)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressRender).After(prog)
-			prog = mockDaemon.EXPECT().SetStepName(ctx, daemontypes.StepNameConfirm).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
 
 			renderer.StatusReceiver = mockDaemon
