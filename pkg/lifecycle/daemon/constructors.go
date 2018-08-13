@@ -45,6 +45,7 @@ func NewV2Router(
 	helmIntro lifecycle.HelmIntro,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
+	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
 		Logger:       logger,
@@ -58,6 +59,7 @@ func NewV2Router(
 			return d.execute(step)
 		},
 		StepProgress: &daemontypes.ProgressMap{},
+		Fs:           fs,
 	}
 }
 

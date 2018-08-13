@@ -3,10 +3,13 @@ package daemon
 import (
 	"fmt"
 
+	"path"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 )
@@ -32,7 +35,7 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 	d.errNotFond(c)
 }
 
-func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
+func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
 
 	if step.Kustomize != nil {
 		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
@@ -73,9 +76,17 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step, isCurrent bool) (*da
 		return nil, errors.Wrap(err, "load state")
 	}
 
-	helmValues := currentState.CurrentHelmValues()
-	if step.HelmValues != nil && helmValues != "" {
-		step.HelmValues.Values = helmValues
+	if step.HelmValues != nil {
+		helmValues := currentState.CurrentHelmValues()
+		if helmValues != "" {
+			step.HelmValues.Values = helmValues
+		} else {
+			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+			if err != nil {
+				return nil, errors.Wrap(err, "read file values.yaml")
+			}
+			step.HelmValues.Values = string(valuesFileContents)
+		}
 	}
 
 	result := &daemontypes.StepResponse{
