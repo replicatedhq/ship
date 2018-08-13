@@ -690,6 +690,34 @@
           "items": {
             "type": "object",
             "properties": {
+              "config": {
+                "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section",
+                "examples": [
+                  {}
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": []
+              },
               "kubectl_apply": {
                 "description": "A `kubectl_apply` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [
@@ -703,6 +731,18 @@
                 ],
                 "type": "object",
                 "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "kubeconfig": {
                     "description": "the kubeconfig file to use, overriding the system default",
                     "type": "string"
@@ -710,6 +750,12 @@
                   "path": {
                     "description": "the file to apply",
                     "type": "string"
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -724,8 +770,26 @@
                   "base_path": {
                     "type": "string"
                   },
+                  "description": {
+                    "type": "string"
+                  },
                   "dest": {
                     "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": []
@@ -747,9 +811,27 @@
                     "description": "the message to display",
                     "type": "string"
                   },
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "level": {
                     "description": "the severity of the message -- defaults to `info`. Other options are `debug`, `warn`, and `error`",
                     "type": "string"
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -762,7 +844,26 @@
                   {}
                 ],
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "required": []
               },
               "terraform": {
@@ -775,9 +876,27 @@
                 ],
                 "type": "object",
                 "properties": {
-                  "path": {
-                    "description": "the directory within `installer` to run terraform within.",
+                  "description": {
                     "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "path": {
+                    "description": "the directory within `installer` within which to run terraform.",
+                    "type": "string"
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": []

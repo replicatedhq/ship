@@ -10,6 +10,7 @@
            mode: 0777
     lifecycle:
       v1:
+        - config: {}
         - render: {}
   expect:
     ./uninstall.sh: |

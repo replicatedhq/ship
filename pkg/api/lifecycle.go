@@ -59,9 +59,9 @@ type StepShared struct {
 
 // Message is a lifeycle step to print a message
 type Message struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Contents   string     `json:"contents" yaml:"contents" hcl:"contents"`
-	Level      string     `json:"level,omitempty" yaml:"level,omitempty" hcl:"level,omitempty"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Contents   string `json:"contents" yaml:"contents" hcl:"contents"`
+	Level      string `json:"level,omitempty" yaml:"level,omitempty" hcl:"level,omitempty"`
 }
 
 func (m *Message) Shared() *StepShared { return &m.StepShared }
@@ -69,7 +69,7 @@ func (m *Message) ShortName() string   { return "message" }
 
 // Render is a lifeycle step to collect config and render assets
 type Render struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
 func (r *Render) Shared() *StepShared { return &r.StepShared }
@@ -78,8 +78,8 @@ func (r *Render) ShortName() string { return "render" }
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Path       string     `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
 
 func (t *Terraform) Shared() *StepShared { return &t.StepShared }
@@ -88,9 +88,9 @@ func (t *Terraform) ShortName() string   { return "terraform" }
 // Kustomize is a lifeycle step to generate overlays for generated assets.
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
 type Kustomize struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	BasePath   string     `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
-	Dest       string     `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	BasePath   string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
+	Dest       string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 }
 
 func (k *Kustomize) Shared() *StepShared { return &k.StepShared }
@@ -98,7 +98,7 @@ func (k *Kustomize) ShortName() string   { return "kustomize" }
 
 // KustomizeIntro is a lifeycle step to display an informative intro page for kustomize
 type KustomizeIntro struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
 func (k *KustomizeIntro) Shared() *StepShared { return &k.StepShared }
@@ -106,9 +106,9 @@ func (k *KustomizeIntro) ShortName() string   { return "kustomize-intro" }
 
 // KustomizeDiff is a lifecycle step to display the diff of kustomized assets
 type KustomizeDiff struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	BasePath   string     `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
-	Dest       string     `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	BasePath   string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
+	Dest       string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 }
 
 func (k *KustomizeDiff) Shared() *StepShared { return &k.StepShared }
@@ -116,7 +116,7 @@ func (k *KustomizeDiff) ShortName() string   { return "kustomize-diff" }
 
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
 func (h *HelmIntro) Shared() *StepShared { return &h.StepShared }
@@ -125,14 +125,14 @@ func (h *HelmIntro) ShortName() string   { return "helm-intro" }
 // HelmValues is a lifecycle step to render persisted values.yaml in the .ship folder
 // and save user input changes to values.yaml
 type HelmValues struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
 func (h *HelmValues) Shared() *StepShared { return &h.StepShared }
 func (h *HelmValues) ShortName() string   { return "helm-values" }
 
 type ConfigStep struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
 func (c *ConfigStep) Shared() *StepShared {
@@ -145,9 +145,9 @@ func (c ConfigStep) ShortName() string {
 
 // KubectlApply is a lifeycle step to execute `apply` for a kubeconfig asset
 type KubectlApply struct {
-	StepShared StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Path       string     `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
-	Kubeconfig string     `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
+	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty" yaml:"kubeconfig,omitempty" hcl:"kubeconfig,omitempty"`
 }
 
 func (k *KubectlApply) Shared() *StepShared { return &k.StepShared }

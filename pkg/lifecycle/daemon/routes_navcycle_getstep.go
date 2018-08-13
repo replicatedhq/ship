@@ -11,7 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (d *V2Routes) getStep(c *gin.Context) {
+func (d *NavcycleRoutes) getStep(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "getStep"))
 	debug.Log()
 
@@ -32,7 +32,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 	d.errNotFond(c)
 }
 
-func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
+func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
 
 	if step.Kustomize != nil {
 		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
@@ -93,7 +93,7 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 	return result, nil
 }
 
-func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
+func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action {
 	progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
 
 	shouldAddActions := ok && progress.Detail != "success"

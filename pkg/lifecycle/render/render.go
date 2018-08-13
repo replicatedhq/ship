@@ -3,7 +3,6 @@ package render
 import (
 	"context"
 
-	"fmt"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -97,27 +96,6 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	debug.Log("event", "commit")
 	if err := r.StateManager.SerializeConfig(release.Spec.Assets.V1, release.Metadata, stateTemplateContext); err != nil {
 		return errors.Wrap(err, "serialize state")
-	}
-
-	return nil
-}
-
-func (r *renderer) backupIfPresent(basePath string) error {
-	exists, err := r.Fs.Exists(basePath)
-	if err != nil {
-		return errors.Wrapf(err, "check file exists")
-	}
-	if !exists {
-		return nil
-	}
-
-	backupDest := fmt.Sprintf("%s.bak", basePath)
-	level.Info(r.Logger).Log("step.type", "render", "event", "unpackTarget.backup.remove", "src", basePath, "dest", backupDest)
-	if err := r.Fs.RemoveAll(backupDest); err != nil {
-		return errors.Wrapf(err, "backup existing dir %s to %s: remove existing %s", basePath, backupDest, backupDest)
-	}
-	if err := r.Fs.Rename(basePath, backupDest); err != nil {
-		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
 	}
 
 	return nil
