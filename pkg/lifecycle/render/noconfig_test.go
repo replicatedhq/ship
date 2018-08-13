@@ -8,8 +8,6 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/constants"
 
-	"time"
-
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
 
 	"github.com/go-kit/kit/log"
