@@ -40,3 +40,8 @@ type Kustomizer interface {
 type KubectlApply interface {
 	Execute(ctx context.Context, release api.Release, step api.KubectlApply) error
 }
+
+// Config is a thing that can resolve configuration options
+type Config interface {
+	ResolveConfig(context.Context, *api.Release) (map[string]interface{}, error)
+}

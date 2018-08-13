@@ -22,6 +22,26 @@ jobs:
           if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
             make ci-upload-coverage
           fi
+  build_dev_ui:
+    docker:
+    - image: circleci/node:9
+    working_directory: ~/repo
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "web/package.json" }}
+        - v1-dependencies-
+
+    - run:
+        name: build
+        command: make ci-build-ui-dev
+
+    - save_cache:
+        paths:
+        - web/node_modules
+        key: v1-dependencies-{{ checksum "web/package.json" }}
+
   build_ui:
     docker:
       - image: circleci/node:9
@@ -34,7 +54,7 @@ jobs:
           - v1-dependencies-
 
       - run:
-          name: build
+          name: build dev UI to ensure it compiles
           command: make build-ui
 
       - save_cache:
@@ -82,6 +102,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run: docker pull replicated/ship-e2e-test:latest
       - run: make build_ship_integration_test
       #the entrypoint is set explicitly here because that file is expected by other circle builds
       - run: docker run --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /test/integration_docker_start.sh replicated/ship-e2e-test:latest
@@ -95,7 +116,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
-      - run: make build-deps embed-ui
+      - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
@@ -125,7 +146,7 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /go/src/github.com/replicatedhq/ship/web
-      - run: make build-deps embed-ui
+      - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
@@ -139,11 +160,20 @@ workflows:
   # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
   unstable:
     jobs:
-      - build_ui
       - test_ui
       - integration
       - test
 
+      # only run this on forks, to make sure webpack is compiling
+      - build_dev_ui:
+          filters:
+            branches:
+              ignore: /master/
+      # build the prod UI on master builds
+      - build_ui:
+          filters:
+            branches:
+              only: /master/
       - deploy_unstable:
           requires:
           - test

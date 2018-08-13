@@ -41,4 +41,5 @@ assets:
                       - infinity
 lifecycle:
   v1:
+    - config: {}
     - render: {}

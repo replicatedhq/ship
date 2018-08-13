@@ -10,6 +10,8 @@ Issues
 Pull Requests
 ------------------------
 
+Before submitting a pull request, please ensure you have enabled your fork on CircleCI, so that unit and acceptance tests can be run against the request.
+
 Build & Run the Project
 ------------------------
 
@@ -26,10 +28,14 @@ Ensure you have (min versions to be added):
 The first time you build ship, you'll need to run the following
 
 ```
-make build-ui embed-ui build
+make build
 ```
 
-If you're planning to only work on "headless" modes, you can omit the `build-ui` and `embed-ui` steps.
+If you're planning to only work on "headless" mode, and don't need the UI built, you can just run
+
+```
+make bin/ship
+```
 
 ### Running
 
@@ -47,7 +53,7 @@ for example,
 
 ### Iterating
 
-For iterating on the go (not the UI), you can use
+You can run
 
 ```
 make build
@@ -61,3 +67,4 @@ For iterating on the ui, you can start a webpack development server with
 make -C web serve_ship
 ```
 
+The go binary serves the UI on `localhost:8800`, the webpack dev server will serve on `localhost:8880`.

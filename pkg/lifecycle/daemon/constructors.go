@@ -18,8 +18,8 @@ import (
 
 type OptionalRoutes struct {
 	dig.In
-	V2Router *V2Routes `optional:"true"`
-	V1Router *V1Routes `optional:"true"`
+	V2Router *NavcycleRoutes `optional:"true"`
+	V1Router *V1Routes       `optional:"true"`
 }
 
 func NewHeadedDaemon(
@@ -29,12 +29,12 @@ func NewHeadedDaemon(
 	routes OptionalRoutes,
 ) daemontypes.Daemon {
 	return &ShipDaemon{
-		Logger:       log.With(logger, "struct", "daemon"),
-		WebUIFactory: webUIFactory,
-		Viper:        v,
-		ExitChan:     make(chan error),
-		V1Routes:     routes.V1Router,
-		V2Routes:     routes.V2Router,
+		Logger:         log.With(logger, "struct", "daemon"),
+		WebUIFactory:   webUIFactory,
+		Viper:          v,
+		ExitChan:       make(chan error),
+		V1Routes:       routes.V1Router,
+		NavcycleRoutes: routes.V2Router,
 	}
 }
 
@@ -45,8 +45,8 @@ func NewV2Router(
 	helmIntro lifecycle.HelmIntro,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
-) *V2Routes {
-	return &V2Routes{
+) *NavcycleRoutes {
+	return &NavcycleRoutes{
 		Logger:       logger,
 		StateManager: stateManager,
 		Planner:      planners,
@@ -54,7 +54,7 @@ func NewV2Router(
 		Messenger: messenger,
 		HelmIntro: helmIntro,
 		Renderer:  renderer,
-		StepExecutor: func(d *V2Routes, step api.Step) error {
+		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},
 		StepProgress: &daemontypes.ProgressMap{},

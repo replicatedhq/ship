@@ -23,7 +23,7 @@ type lifecycleTestcase struct {
 	ExpectBody   []lifeycleStep `yaml:"expectBody"`
 }
 
-func TestV2Lifecycle(t *testing.T) {
+func TestNavcycle(t *testing.T) {
 	tests := loadTestCases(t)
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestV2Lifecycle(t *testing.T) {
 				},
 			}
 			testLogger := &logger.TestLogger{T: t}
-			v2 := &V2Routes{
+			v2 := &NavcycleRoutes{
 				Logger:       testLogger,
 				StepProgress: &daemontypes.ProgressMap{},
 			}
@@ -60,7 +60,7 @@ func testGet(
 	test lifecycleTestcase,
 	req *require.Assertions,
 ) {
-	resp, err := http.Get(fmt.Sprintf("%s%s", addr, "/api/v2/lifecycle"))
+	resp, err := http.Get(fmt.Sprintf("%s%s", addr, "/api/v1/navcycle"))
 	req.NoError(err)
 	req.Equal(resp.StatusCode, test.ExpectStatus)
 	bytes, err := ioutil.ReadAll(resp.Body)

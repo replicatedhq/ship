@@ -13,7 +13,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-type V2Routes struct {
+// NavcycleRoutes provide workflow execution with standard browser navigation
+type NavcycleRoutes struct {
 	Logger       log.Logger
 	TreeLoader   filetree.Loader
 	StateManager state.Manager
@@ -29,16 +30,17 @@ type V2Routes struct {
 	Release *api.Release
 }
 
-func (d *V2Routes) Register(group *gin.RouterGroup, release *api.Release) {
+// Register registers routes
+func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) {
 	d.Release = release
-	v2 := group.Group("/api/v2")
-	v2.GET("/lifecycle", d.getLifecycle)
-	v2.GET("/lifecycle/step/:step", d.getStep)
-	v2.POST("/lifecycle/step/:step", d.completeStep)
+	v1 := group.Group("/api/v1")
+	v1.GET("/navcycle", d.getNavcycle)
+	v1.GET("/navcycle/step/:step", d.getStep)
+	v1.POST("/navcycle/step/:step", d.completeStep)
 }
 
 // returns false if aborted
-func (d *V2Routes) maybeAbortDueToMissingRequirement(requires []string, c *gin.Context, requestedStepID string) (ok bool) {
+func (d *NavcycleRoutes) maybeAbortDueToMissingRequirement(requires []string, c *gin.Context, requestedStepID string) (ok bool) {
 	required, err := d.getRequiredButIncompleteStepFor(requires)
 	if err != nil {
 		c.AbortWithError(500, errors.Wrapf(err, "check requirements for step %s", requestedStepID))
@@ -54,7 +56,7 @@ func (d *V2Routes) maybeAbortDueToMissingRequirement(requires []string, c *gin.C
 // this will return an incomplete step that is present in the list of required steps.
 // if there are multiple required but incomplete steps, this will return the first one,
 // although from a UI perspective the order is probably not strictly defined
-func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
+func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "getRequiredButIncompleteStepFor"))
 
 	stepsCompleted := map[string]interface{}{}
@@ -79,7 +81,7 @@ func (d *V2Routes) getRequiredButIncompleteStepFor(requires []string) (string, e
 	return "", nil
 }
 
-func (d *V2Routes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
+func (d *NavcycleRoutes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
 	result, err := d.hydrateStep(step, true)
 	if err != nil {
 		c.AbortWithError(500, err)
@@ -88,7 +90,7 @@ func (d *V2Routes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
 	c.JSON(200, result)
 }
 
-func (d *V2Routes) errRequired(required string, c *gin.Context) {
+func (d *NavcycleRoutes) errRequired(required string, c *gin.Context) {
 	c.JSON(400, map[string]interface{}{
 		"currentStep": map[string]interface{}{
 			"requirementNotMet": map[string]interface{}{
@@ -99,7 +101,7 @@ func (d *V2Routes) errRequired(required string, c *gin.Context) {
 	})
 }
 
-func (d *V2Routes) errNotFond(c *gin.Context) {
+func (d *NavcycleRoutes) errNotFond(c *gin.Context) {
 	c.JSON(404, map[string]interface{}{
 		"currentStep": map[string]interface{}{
 			"notFound": map[string]interface{}{},

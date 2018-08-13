@@ -44,12 +44,16 @@ import (
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
+	"time"
 )
+
+
 
 func buildInjector() (*dig.Container, error) {
 
 	providers := []interface{}{
 
+		clock,
 		viper.GetViper,
 		logger.FromViper,
 		ui.FromViper,
@@ -123,8 +127,8 @@ func buildInjector() (*dig.Container, error) {
 	// Hopefully once everything is moved over to v2 this gets a lot simpler again.
 	if viper.GetBool("headless") {
 		providers = append(providers, headlessProviders()...)
-	} else if viper.GetBool("navigate-lifecycle") {
-		providers = append(providers, navigableProviders()...)
+	} else if viper.GetBool("navcycle") {
+		providers = append(providers, navcycleProviders()...)
 	} else {
 		providers = append(providers, headedProviders()...)
 
@@ -171,10 +175,10 @@ func headedProviders() []interface{} {
 // "navigable mode" provides a new, v2-ish version of ship that provides browser navigation back
 // and forth through the lifecycle, and uses runbook declarations of lifecycle dependencies to
 // control execution ordering and workflows
-func navigableProviders() []interface{} {
+func navcycleProviders() []interface{} {
 	return []interface{}{
 		daemon.NewHeadedDaemon,
-		render.NewFactory,
+		render.NoConfigRenderer,
 		config.NewNoOpResolver,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
@@ -219,4 +223,11 @@ func RunE(ctx context.Context) error {
 	}
 	s.ExecuteAndMaybeExit(ctx)
 	return nil
+}
+
+func clock() func() time.Time {
+	clock := func() time.Time {
+		return time.Now()
+	}
+	return clock
 }

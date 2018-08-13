@@ -74,7 +74,7 @@ func (f *ForkTemplater) Template(
 	}
 	defer f.FS.RemoveAll(constants.RenderedHelmTempPath)
 
-	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ChannelName))
+	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ReleaseName()))
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 

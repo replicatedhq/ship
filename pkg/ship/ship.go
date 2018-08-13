@@ -166,7 +166,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 		defer close(runResultCh)
 		var err error
 		// *wince* dex do this better
-		if viper.GetBool("navigate-lifecycle") {
+		if viper.GetBool("navcycle") {
 			s.Daemon.EnsureStarted(ctx, release)
 			err = s.Daemon.AwaitShutdown()
 		} else {

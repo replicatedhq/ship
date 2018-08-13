@@ -11,7 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (d *V2Routes) getStep(c *gin.Context) {
+func (d *NavcycleRoutes) getStep(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "getStep"))
 	debug.Log()
 
@@ -32,7 +32,7 @@ func (d *V2Routes) getStep(c *gin.Context) {
 	d.errNotFond(c)
 }
 
-func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
+func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemontypes.StepResponse, error) {
 
 	if step.Kustomize != nil {
 		// TODO(Robert): move this into TreeLoader, duplicated in V1 routes
@@ -93,23 +93,59 @@ func (d *V2Routes) hydrateStep(step daemontypes.Step, isCurrent bool) (*daemonty
 	return result, nil
 }
 
-func (d *V2Routes) getActions(step daemontypes.Step) []daemontypes.Action {
+func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action {
+	progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
+
+	shouldAddActions := ok && progress.Detail != "success"
+
+	if shouldAddActions {
+		return nil
+	}
+
 	if step.Message != nil {
-		progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
-
-		shouldAddActions := ok && progress.Detail != "success"
-
-		if shouldAddActions {
-			return nil
-		}
-
 		return []daemontypes.Action{
 			{
 				ButtonType:  "primary",
 				Text:        "Confirm",
 				LoadingText: "Confirming",
 				OnClick: daemontypes.ActionRequest{
-					URI:    fmt.Sprintf("/api/v2/lifecycle/step/%s", step.Source.Shared().ID),
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.HelmIntro != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Get started",
+				LoadingText: "Confirming",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.HelmValues != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Saving",
+				LoadingText: "Save",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/helm-values"),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+			{
+				ButtonType:  "popover",
+				Text:        "Save & Continue",
+				LoadingText: "Saving",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",
 					Body:   "",
 				},
