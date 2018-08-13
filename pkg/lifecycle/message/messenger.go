@@ -2,8 +2,8 @@ package message
 
 import (
 	"github.com/replicatedhq/ship/pkg/api"
-		"github.com/replicatedhq/ship/pkg/templates"
-	)
+	"github.com/replicatedhq/ship/pkg/templates"
+)
 
 func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) templates.Builder {
 	builder := m.BuilderBuilder.NewBuilder(

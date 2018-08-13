@@ -2,10 +2,7 @@ package ship
 
 import (
 	"context"
-
-	"github.com/replicatedhq/ship/pkg/patch"
-
-	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
+	"time"
 
 	dockercli "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
@@ -20,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmIntro"
+	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
@@ -38,16 +36,14 @@ import (
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
-	"time"
 )
-
-
 
 func buildInjector() (*dig.Container, error) {
 

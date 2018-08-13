@@ -1,0 +1,66 @@
+.steps-numbers-wrapper {
+  padding: 12px 0 10px;
+  background-color: #F8F8F8;
+  border-bottom: 1px solid #DFDFDF;
+  
+  .numbers-wrapper {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+
+    .progress-base {
+      width: 100%;
+      position: absolute;
+      z-index: 1;
+      background-color: #ffffff;
+      height: 2px;
+      top: 50%;
+      margin-top: -1px;
+    }
+
+    .completed-progress-bar {
+      position: absolute;
+      height: 2px;
+      background-color: #193B5B;
+      top: 50%;
+      margin-top: -1px;
+      z-index: 2;
+      transition: width .4s ease-in-out;
+    }
+  }
+}
+
+.step-number {
+  color: #C4C8CA;
+  font-weight: 500;
+  font-size: 16px;
+  position: relative;
+  z-index: 3;
+
+  .number {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 0 3px rgba(0,0,0,.16);
+    transition: background-color .3s ease-in-out .4s, color .3s linear .4s;
+  }
+
+  &.is-active {
+    color: #ffffff;
+    font-weight: 700;
+
+    .number {
+      color: #ffffff;
+      background-color: #337AB7;
+    }
+  }
+
+  &.is-complete .number {
+    background-color: #193B5B;
+    transition: none;
+  }
+}
