@@ -89,7 +89,7 @@ class NavBar extends React.Component {
 
   componentDidUpdate(lastProps) {
     if (this.props.phase !== lastProps.phase && this.props.phase !== "loading") {
-      if (this.props.isKustomizeFlow) {
+      if (this.props.isKustomizeFlow || this.props.isKustomize) {
         this.setState({ 
           navDetails: {
             name: this.props.helmChartMetadata.name,

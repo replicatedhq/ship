@@ -8,7 +8,6 @@ var MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 module.exports = function (env) {
   var distPath = path.join(__dirname, "dist");
   var srcPath = path.join(__dirname, "src");
-  var modulePath = path.join(__dirname, "node_modules");
 
   var appEnv = require("./env/" + (env || "dev") + ".js");
 
@@ -124,6 +123,12 @@ module.exports = function (env) {
   if (env === "dev" || env === "local" || env === "composer" || !env) {
     var dev = require("./webpack.config.dev");
     return webpackMerge(common, dev);
+  } else if (env === "shipV2Dev") {
+    var configEnv = require("./webpack.config.devShipV2");
+    return webpackMerge(common, configEnv);
+  } else if (env === "shipV2") {
+    var configEnv = require("./webpack.config.distShipV2");
+    return webpackMerge(common, configEnv);
   } else if (env === "shipDev" || env === "configOnly") {
     var configEnv = require("./webpack.config.configOnly");
     return webpackMerge(common, configEnv);
