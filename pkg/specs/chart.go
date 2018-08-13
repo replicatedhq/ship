@@ -270,13 +270,17 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 func (r *Resolver) ResolveChartReleaseSpec(ctx context.Context) (api.Spec, error) {
 	localReleasePath := filepath.Join(constants.KustomizeHelmPath, "ship.yaml")
 
+	r.ui.Info("Looking for ship.yaml ...")
+
 	if upstreamExists, err := r.FS.Exists(localReleasePath); err == nil && !upstreamExists {
+		r.ui.Info("ship.yaml not found ... Generating default ship.yaml for Helm application ...")
 		return DefaultHelmRelease.Spec, nil
 	}
 
 	upstreamRelease, err := r.FS.ReadFile(localReleasePath)
 	if err != nil {
 		level.Debug(r.Logger).Log("message", "failed to read upstream release, using default", "from", localReleasePath, "error", err)
+		r.ui.Info("Unable to read ship.yaml ... Generating default ship.yaml for Helm application ...")
 		return DefaultHelmRelease.Spec, nil
 	}
 

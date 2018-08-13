@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 
 	"github.com/google/go-github/github"
+	"github.com/mitchellh/cli"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/libyaml"
@@ -260,6 +261,7 @@ lifecycle:
 			r := Resolver{
 				FS:     mockFs,
 				Logger: log.NewNopLogger(),
+				ui:     cli.NewMockUi(),
 			}
 
 			ctx := context.Background()
