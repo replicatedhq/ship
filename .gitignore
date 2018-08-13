@@ -9,7 +9,6 @@ e2e-retraced/retraced-post.sh
 /.ship/
 /base/
 integration/*/test*
-/base/
 
 /.state/
 /chart/
