@@ -38,7 +38,13 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 	cmd.PersistentFlags().Bool("no-open", false, "skip opening the ship console in the default browser--does not disable the UI, has no effect if `headless` is set to true.")
+
+	cmd.PersistentFlags().String("state-from", "", "type of resource to use when loading/saving state (currently supported values: 'file', 'secret'")
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
+	cmd.PersistentFlags().String("secret-namespace", "default", "namespace containing the state secret")
+	cmd.PersistentFlags().String("secret-name", "", "name of the secret to laod state from")
+	cmd.PersistentFlags().String("secret-key", "", "name of the key in the secret containing state")
+
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
 
 	cmd.AddCommand(Init())

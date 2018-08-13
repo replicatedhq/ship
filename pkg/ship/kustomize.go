@@ -56,10 +56,13 @@ func (s *Ship) stateFileExists(ctx context.Context) bool {
 func (s *Ship) Update(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "update"))
 
-	// does a state file exist on disk?
+	// does a state already exist
 	existingState, err := s.State.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
 
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Loading state from `+constants.StatePath))
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
@@ -96,6 +99,8 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
+
 	return s.execute(ctx, release, nil, true)
 }
 
@@ -106,10 +111,13 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 	for {
 		existingState, err := s.State.TryLoad()
+		if err != nil {
+			return errors.Wrap(err, "load state")
+		}
 
 		if _, noExistingState := existingState.(state.Empty); noExistingState {
 			debug.Log("event", "state.missing")
-			return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+			return errors.New(`No state found, please run "ship init"`)
 		}
 
 		debug.Log("event", "read.chartURL")
