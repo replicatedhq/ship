@@ -59,6 +59,7 @@ func (u *Unpacker) Execute(
 		debug := level.Debug(log.With(u.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "dockerlayer", "dest", asset.Dest, "description", asset.Description))
 
 		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, rootFs.RootPath)
+		defer u.FS.RemoveAll(path.Join(rootFs.RootPath, "tmp"))
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
 		}
@@ -77,7 +78,6 @@ func (u *Unpacker) Execute(
 			u.unpack(savePath, firstPassUnpackPath),
 			u.unpack(layerPath, basePath),
 		), "execute chain")
-
 	}
 }
 
