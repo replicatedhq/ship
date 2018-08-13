@@ -7,6 +7,8 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 
+	"time"
+
 	dockercli "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -44,10 +46,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/ui"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
-	"time"
 )
-
-
 
 func buildInjector() (*dig.Container, error) {
 

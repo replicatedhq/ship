@@ -133,7 +133,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// does a state file exist on disk?
-	if s.stateFileExists(ctx) {
+	if s.stateFileExists(ctx) && !s.Viper.GetBool("rm-state") {
 		debug.Log("event", "state.exists")
 
 		useUpdate, err := s.UI.Ask(`

@@ -1,5 +1,7 @@
 package api
 
+import "fmt"
+
 // A Lifecycle  is the top-level lifecycle object
 type Lifecycle struct {
 	V1 []Step `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
@@ -17,6 +19,11 @@ type Step struct {
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	KubectlApply   *KubectlApply   `json:"kubectl_apply,omitempty" yaml:"kubectl_apply,omitempty" hcl:"kubectl_apply,omitempty"`
+}
+
+func (s *Step) String() string {
+	step := s.GetStep()
+	return fmt.Sprintf("api.Step{ID: %q, Name: %q}", step.Shared().ID, step.ShortName())
 }
 
 type StepDetails interface {

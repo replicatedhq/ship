@@ -11,6 +11,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/afero"
+	"fmt"
 )
 
 // NavcycleRoutes provide workflow execution with standard browser navigation
@@ -23,6 +25,7 @@ type NavcycleRoutes struct {
 	Renderer     lifecycle.Renderer
 	Planner      planner.Planner
 	StepExecutor V2Exectuor
+	Fs           afero.Afero
 
 	StepProgress *daemontypes.ProgressMap
 
@@ -67,7 +70,7 @@ func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (str
 	if currentState.Versioned().V1.Lifecycle != nil &&
 		currentState.Versioned().V1.Lifecycle.StepsCompleted != nil {
 		stepsCompleted = currentState.Versioned().V1.Lifecycle.StepsCompleted
-		debug.Log("event", "steps.notEmpty", "completed", stepsCompleted)
+		debug.Log("event", "steps.notEmpty", "completed", fmt.Sprintf("%v", stepsCompleted))
 	}
 
 	for _, requiredStep := range requires {
@@ -82,7 +85,7 @@ func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (str
 }
 
 func (d *NavcycleRoutes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
-	result, err := d.hydrateStep(step, true)
+	result, err := d.hydrateStep(step)
 	if err != nil {
 		c.AbortWithError(500, err)
 		return
