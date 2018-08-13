@@ -132,10 +132,9 @@ func TestDaemonResolver(t *testing.T) {
 				WebUIFactory: daemon.WebUIFactoryFactory(log),
 				Viper:        v,
 				V1Routes: &daemon.V1Routes{
-					Logger: log,
-					Fs:     fs,
-					Viper:  v,
-
+					Logger:         log,
+					Fs:             fs,
+					Viper:          v,
 					UI:             cli.NewMockUi(),
 					OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
 				},

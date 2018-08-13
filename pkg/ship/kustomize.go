@@ -200,6 +200,11 @@ Continuing will delete this state, would you like to continue? There is no undo.
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
+	s.UI.Info("Downloading from " + helmChartPath + " ...")
+	s.UI.Info("Looking for ship.yaml ...")                                                   // TODO
+	s.UI.Info("ship.yaml not found ... determining application type [application-type] ...") // TODO
+	s.UI.Info("Generating default ship.yaml for [application-type] application ...")         // TODO
+
 	return s.execute(ctx, release, nil, true)
 }
 

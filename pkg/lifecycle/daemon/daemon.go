@@ -80,6 +80,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	if !d.Viper.GetBool("no-open") {
 		err := d.OpenWebConsole(d.UI, openUrl)
 		debug.Log("event", "console.open.fail.ignore", "err", err)
+	} else {
+		d.UI.Info(fmt.Sprintf(
+			"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
+			openUrl,
+		))
 	}
 
 	defer func() {
