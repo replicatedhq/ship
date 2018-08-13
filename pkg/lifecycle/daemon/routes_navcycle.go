@@ -1,6 +1,8 @@
 package daemon
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -12,7 +14,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
-	"fmt"
 )
 
 // NavcycleRoutes provide workflow execution with standard browser navigation

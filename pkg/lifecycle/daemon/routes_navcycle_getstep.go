@@ -3,14 +3,15 @@ package daemon
 import (
 	"fmt"
 
+	"path"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
-	"path"
-	"github.com/replicatedhq/ship/pkg/constants"
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
@@ -77,7 +78,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 
 	if step.HelmValues != nil {
 		helmValues := currentState.CurrentHelmValues()
-		if helmValues != ""  {
+		if helmValues != "" {
 			step.HelmValues.Values = helmValues
 		} else {
 			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
