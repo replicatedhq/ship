@@ -156,6 +156,11 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		err := d.HelmIntro.Execute(context.Background(), d.Release, step.HelmIntro)
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
+	} else if step.HelmValues != nil {
+		debug.Log("event", "step.resolve", "type", "helmIntro")
+		err := d.HelmValues.Execute(context.Background(), d.Release, step.HelmValues)
+		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
+		return errors.Wrap(err, "execute helmIntro step")
 	} else if step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "helmIntro")
 		planner := d.Planner.WithStatusReceiver(statusReceiver)

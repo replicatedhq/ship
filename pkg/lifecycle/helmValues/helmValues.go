@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"path/filepath"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -36,6 +38,17 @@ func NewHelmValues(
 		Daemon:       daemon,
 		StateManager: stateManager,
 	}
+}
+
+type daemonlessHelmValues struct {
+	Fs           afero.Afero
+	Logger       log.Logger
+	Daemon       daemontypes.Daemon
+	StateManager state.Manager
+}
+
+func (d *daemonlessHelmValues) Execute(context.Context, *api.Release, *api.HelmValues) error {
+	return d.resolveStateHelmValues()
 }
 
 func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *api.HelmValues) error {
@@ -84,26 +97,34 @@ func (h *helmValues) awaitContinue(ctx context.Context, daemonExitedChan chan er
 }
 
 func (h *helmValues) resolveStateHelmValues() error {
-	debug := level.Debug(log.With(h.Logger, "step.type", "helmValues", "resolveHelmValues"))
+	return resolveStateHelmValues(h.Logger, h.StateManager, h.Fs)
+}
 
+func resolveStateHelmValues(logger log.Logger, manager state.Manager, fs afero.Afero) error {
+	debug := level.Debug(log.With(logger, "step.type", "helmValues", "resolveHelmValues"))
 	debug.Log("event", "tryLoadState")
-	editState, err := h.StateManager.TryLoad()
+	editState, err := manager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
 	helmValues := editState.CurrentHelmValues()
-
+	if helmValues == "" {
+		path := filepath.Join(constants.KustomizeHelmPath, "values.yaml")
+		bytes, err := fs.ReadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "read helm values from %s", constants.TempHelmValuesPath)
+		}
+		helmValues = string(bytes)
+	}
 	debug.Log("event", "tryLoadState")
-	err = h.Fs.MkdirAll(constants.TempHelmValuesPath, 0700)
+	err = fs.MkdirAll(constants.TempHelmValuesPath, 0700)
 	if err != nil {
 		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
 	}
-
 	debug.Log("event", "writeTempValuesYaml")
-	err = h.Fs.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(helmValues), 0644)
+	err = fs.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(helmValues), 0644)
 	if err != nil {
 		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
 	}
-
 	return nil
 }

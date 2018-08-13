@@ -2,7 +2,8 @@ package ship
 
 import (
 	"context"
-	"time"
+
+	"github.com/replicatedhq/ship/pkg/patch"
 
 	"time"
 
@@ -38,7 +39,6 @@ import (
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
-	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -69,7 +69,6 @@ func buildInjector() (*dig.Container, error) {
 		terraform2.NewTerraformer,
 		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
-		helmValues.NewHelmValues,
 
 		state.NewManager,
 		planner.NewFactory,
@@ -154,6 +153,7 @@ func headlessProviders() []interface{} {
 		helmIntro.NewHelmIntro,
 		config.NewResolver,
 		render.NewFactory,
+		helmValues.NewHelmValues,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -167,6 +167,7 @@ func headedProviders() []interface{} {
 		helmIntro.NewHelmIntro,
 		config.NewResolver,
 		render.NewFactory,
+		helmValues.NewHelmValues,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -180,6 +181,7 @@ func navcycleProviders() []interface{} {
 		daemon.NewHeadedDaemon,
 		render.NoConfigRenderer,
 		config.NewNoOpResolver,
+		helmValues.NewDaemonlessHelmValues,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		// fake, we override it, this is janky, use a factory dex
