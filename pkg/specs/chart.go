@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -186,6 +187,28 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.H
 	md.Readme = string(readme)
 
 	return md, nil
+}
+
+func (r *Resolver) ResolveChartRelease(ctx context.Context) (api.Release, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartRelease"))
+
+	localReleasePath := filepath.Join(constants.KustomizeHelmPath, "ship.yaml")
+
+	debug.Log("phase", "read-release", "from", localReleasePath)
+	var upstreamRelease api.Release
+	release, err := r.FS.ReadFile(localReleasePath)
+	if err != nil {
+		level.Debug(log.With(r.Logger, "event", "read file from %s", localReleasePath))
+		return api.Release{}, nil
+	}
+
+	debug.Log("phase", "unmarshal ship.yaml", "from", localReleasePath)
+	if err := json.Unmarshal(release, &upstreamRelease); err == nil {
+		level.Debug(log.With(r.Logger, "event", "unmarshal release from %s", localReleasePath))
+		return api.Release{}, errors.Wrapf(err, "unmarshal ship.yaml")
+	}
+
+	return upstreamRelease, nil
 }
 
 func (r *Resolver) calculateContentSHA(root string) (string, error) {

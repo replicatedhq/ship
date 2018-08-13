@@ -9,8 +9,6 @@ import (
 
 	"path/filepath"
 
-	"encoding/json"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -22,74 +20,76 @@ import (
 )
 
 var (
-	DefaultHelmSpec = &api.Spec{
-		Assets: api.Assets{
-			V1: []api.Asset{
-				{
-					Helm: &api.HelmAsset{
-						AssetShared: api.AssetShared{
-							Dest: constants.RenderedHelmPath,
-						},
-						Local: &api.LocalHelmOpts{
-							ChartRoot: constants.KustomizeHelmPath,
-						},
-						HelmOpts: []string{
-							"--values",
-							path.Join(constants.TempHelmValuesPath, "values.yaml"),
+	DefaultHelmRelease = &api.Release{
+		Spec: api.Spec{
+			Assets: api.Assets{
+				V1: []api.Asset{
+					{
+						Helm: &api.HelmAsset{
+							AssetShared: api.AssetShared{
+								Dest: constants.RenderedHelmPath,
+							},
+							Local: &api.LocalHelmOpts{
+								ChartRoot: constants.KustomizeHelmPath,
+							},
+							HelmOpts: []string{
+								"--values",
+								path.Join(constants.TempHelmValuesPath, "values.yaml"),
+							},
 						},
 					},
 				},
 			},
-		},
-		Lifecycle: api.Lifecycle{
-			V1: []api.Step{
-				{
-					HelmIntro: &api.HelmIntro{
-						StepShared: api.StepShared{
-							ID: "intro",
+			Lifecycle: api.Lifecycle{
+				V1: []api.Step{
+					{
+						HelmIntro: &api.HelmIntro{
+							StepShared: api.StepShared{
+								ID: "intro",
+							},
 						},
 					},
-				},
-				{
-					HelmValues: &api.HelmValues{
-						StepShared: api.StepShared{
-							ID:          "values",
-							Requires:    []string{"intro"},
-							Invalidates: []string{"render"},
+					{
+						HelmValues: &api.HelmValues{
+							StepShared: api.StepShared{
+								ID:          "values",
+								Requires:    []string{"intro"},
+								Invalidates: []string{"render"},
+							},
 						},
 					},
-				},
-				{
-					Render: &api.Render{
-						StepShared: api.StepShared{
-							ID:       "render",
-							Requires: []string{"values"},
+					{
+						Render: &api.Render{
+							StepShared: api.StepShared{
+								ID:       "render",
+								Requires: []string{"values"},
+							},
 						},
 					},
-				},
-				{
-					Kustomize: &api.Kustomize{
-						BasePath: constants.RenderedHelmPath,
-						Dest:     path.Join("overlays", "ship"),
-						StepShared: api.StepShared{
-							ID:       "kustomize",
-							Requires: []string{"render"},
+					{
+						Kustomize: &api.Kustomize{
+							BasePath: constants.RenderedHelmPath,
+							Dest:     path.Join("overlays", "ship"),
+							StepShared: api.StepShared{
+								ID:       "kustomize",
+								Requires: []string{"render"},
+							},
 						},
 					},
-				},
-				{
-					Message: &api.Message{
-						StepShared: api.StepShared{
-							ID:       "outro",
-							Requires: []string{"kustomize"},
-						},
-						Contents: `
+					{
+						Message: &api.Message{
+							StepShared: api.StepShared{
+								ID:       "outro",
+								Requires: []string{"kustomize"},
+							},
+							Contents: `
 Assets are ready to deploy. You can run
 
     kubectl apply -f installer/rendered
 
 to deploy the overlaid assets to your cluster.
 `},
+					},
 				},
 			},
 		},
@@ -156,15 +156,15 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	// if upstream release exists, use its `spec` in app release
-	var release *api.Release
-	if upstreamRelease, err := s.checkUpstreamForRelease(); err == nil && upstreamRelease != nil {
-		debug.Log("event", "buildHelmRelease", "spec", "upstreamSpec", "message", "Building Helm release using upstream ship.yaml")
-		release = s.buildHelmRelease(helmChartMetadata, upstreamRelease)
-	} else {
-		debug.Log("event", "buildHelmRelease", "spec", "defaultSpec", "message", "Building Helm release using default spec")
-		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
+	debug.Log("event", "check upstream release")
+	upstreamRelease, err := s.Resolver.ResolveChartRelease(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "detect upstream chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
 	}
+
+	debug.Log("event", "build helm release")
+	release := s.buildHelmRelease(helmChartMetadata, upstreamRelease)
+
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	return s.execute(ctx, release, nil, true)
@@ -253,42 +253,20 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	// serialize the ChartURL to disk. First step in creating a state file
 	s.State.SerializeChartURL(helmChartPath)
 
-	// if upstream release exists, use its `spec` in app release
-	var release *api.Release
-	if upstreamRelease, err := s.checkUpstreamForRelease(); err == nil && upstreamRelease != nil {
-		debug.Log("event", "buildHelmRelease", "spec", "upstreamSpec", "message", "Building Helm release using upstream ship.yaml")
-		release = s.buildHelmRelease(helmChartMetadata, upstreamRelease)
-	} else {
-		debug.Log("event", "buildHelmRelease", "spec", "defaultSpec", "message", "Building Helm release using default spec")
-		release = s.buildHelmRelease(helmChartMetadata, DefaultHelmSpec)
+	debug.Log("event", "check upstream release")
+	upstreamRelease, err := s.Resolver.ResolveChartRelease(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "detect upstream chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
 	}
+
+	debug.Log("event", "build helm release")
+	release := s.buildHelmRelease(helmChartMetadata, upstreamRelease)
+
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
-}
-
-// checkUpstreamForRelease checks upstream for a release. if one exists,
-// its `spec` will be returned and used to build app release
-func (s *Ship) checkUpstreamForRelease() (*api.Spec, error) {
-	debug := level.Debug(log.With(s.Logger, "method", "checkUpstreamForRelease"))
-
-	localChartPath := filepath.Join(constants.KustomizeHelmPath, "ship.yaml")
-
-	debug.Log("phase", "read-release", "from", localChartPath)
-	release, err := s.State.ReadFile(localChartPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "read release from %", localChartPath)
-	}
-
-	debug.Log("phase", "unmarshal ship.yaml")
-	var upstreamRelease api.Release
-	if err := json.Unmarshal(release, &upstreamRelease); err != nil {
-		return nil, errors.Wrapf(err, "unmarshal ship.yaml")
-	}
-
-	return &upstreamRelease.Spec, nil
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
@@ -349,14 +327,24 @@ to deploy the overlaid assets to your cluster.
 }
 
 // buildHelmRelease builds a Helm release which is applied to all Helm charts
-func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, spec *api.Spec) *api.Release {
+func (s *Ship) buildHelmRelease(helmChartMetadata api.HelmChartMetadata, release api.Release) *api.Release {
+	level.Debug(log.With(s.Logger, "method", "buildHelmRelease"))
 
-	release := &api.Release{
+	level.Debug(log.With(s.Logger, "phase", "build release metadata"))
+	var helmRelease = &api.Release{
 		Metadata: api.ReleaseMetadata{
 			HelmChartMetadata: helmChartMetadata,
 		},
-		Spec: *spec,
+		Spec: api.Spec{},
 	}
 
-	return release
+	// if upstream release doesn't exist, use default helm release
+	level.Debug(log.With(s.Logger, "phase", "build release spec"))
+	if len(release.Spec.Assets.V1) == 0 {
+		helmRelease.Spec = DefaultHelmRelease.Spec
+	} else {
+		helmRelease.Spec = release.Spec
+	}
+
+	return helmRelease
 }
