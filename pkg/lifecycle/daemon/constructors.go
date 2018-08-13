@@ -43,23 +43,27 @@ func NewV2Router(
 	stateManager state.Manager,
 	messenger lifecycle.Messenger,
 	helmIntro lifecycle.HelmIntro,
+	helmValues lifecycle.HelmValues,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
 	treeLoader filetree.Loader,
+	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
 		Logger:       logger,
 		StateManager: stateManager,
 		Planner:      planners,
 
-		Messenger: messenger,
-		HelmIntro: helmIntro,
-		Renderer:  renderer,
+		Messenger:  messenger,
+		HelmIntro:  helmIntro,
+		HelmValues: helmValues,
+		Renderer:   renderer,
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},
 		TreeLoader:   treeLoader,
 		StepProgress: &daemontypes.ProgressMap{},
+		Fs:           fs,
 	}
 }
 

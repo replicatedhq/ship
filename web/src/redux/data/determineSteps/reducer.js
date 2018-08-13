@@ -1,4 +1,5 @@
 import { constants } from "./actions";
+import { constants as phaseConstants } from "../appRoutes/actions";
 
 const stepsDataState = {
   step: {},
@@ -21,6 +22,10 @@ export function stepsData(state = stepsDataState, action) {
       actions: action.payload.actions,
       kustomizeFlow: isKustomize
     });
+  case phaseConstants.SET_PHASE:
+    return Object.assign({}, state, {
+      phase: action.payload
+    })
   case constants.SET_STEP_ERROR:
     return Object.assign({}, state, {
       stepError: action.payload

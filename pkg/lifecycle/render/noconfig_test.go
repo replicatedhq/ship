@@ -5,21 +5,21 @@ import (
 	"path/filepath"
 	"testing"
 
+	"time"
+
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
-		"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	"github.com/replicatedhq/ship/pkg/state"
 	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
+	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
-		"github.com/stretchr/testify/assert"
-	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
-	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRenderNoConfig(t *testing.T) {
@@ -48,9 +48,7 @@ func TestRenderNoConfig(t *testing.T) {
 
 			prog := mockDaemon.EXPECT().SetProgress(ProgressRead)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressRender).After(prog)
-			prog = mockDaemon.EXPECT().SetStepName(ctx, daemontypes.StepNameConfirm).After(prog)
 			mockDaemon.EXPECT().ClearProgress().After(prog)
-
 
 			renderer.StatusReceiver = mockDaemon
 

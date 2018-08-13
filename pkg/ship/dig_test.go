@@ -16,21 +16,21 @@ func TestDI(t *testing.T) {
 		{
 			name: "headless",
 			set: map[string]bool{
-				"headless":           true,
+				"headless": true,
 				"navcycle": false,
 			},
 		},
 		{
 			name: "navcycle",
 			set: map[string]bool{
-				"headless":           false,
+				"headless": false,
 				"navcycle": true,
 			},
 		},
 		{
 			name: "headed",
 			set: map[string]bool{
-				"headless":           false,
+				"headless": false,
 				"navcycle": false,
 			},
 		},

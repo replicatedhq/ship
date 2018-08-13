@@ -16,17 +16,30 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/state"
 
+	"path/filepath"
+
 	"github.com/google/go-github/github"
+	"github.com/mitchellh/cli"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
 var client *github.Client
 var mux *http.ServeMux
 var serverURL string
 var teardown func()
+
+type ApplyUpstreamReleaseSpec struct {
+	Name             string
+	Description      string
+	UpstreamShipYAML string
+	ExpectedSpec     api.Spec
+}
 
 func setupGitClient() (client *github.Client, mux *http.ServeMux, serveURL string, teardown func()) {
 	mux = http.NewServeMux()
@@ -198,3 +211,64 @@ var _ = Describe("GithubClient", func() {
 var _ = AfterSuite(func() {
 	teardown()
 })
+
+func TestResolveChartRelease(t *testing.T) {
+	tests := []ApplyUpstreamReleaseSpec{
+		{
+			Name:         "no upstream",
+			Description:  "no upstream, should use default release spec",
+			ExpectedSpec: DefaultHelmRelease.Spec,
+		},
+		{
+			Name:        "upstream exists",
+			Description: "upstream exists, should use upstream release spec",
+			UpstreamShipYAML: `
+assets:
+  v1: []
+config:
+  v1: []
+lifecycle:
+  v1:
+   - helmIntro: {}
+`,
+			ExpectedSpec: api.Spec{
+				Assets: api.Assets{
+					V1: []api.Asset{},
+				},
+				Config: api.Config{
+					V1: []libyaml.ConfigGroup{},
+				},
+				Lifecycle: api.Lifecycle{
+					V1: []api.Step{
+						{
+							HelmIntro: &api.HelmIntro{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
+
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			if test.UpstreamShipYAML != "" {
+				mockFs.WriteFile(filepath.Join(constants.KustomizeHelmPath, "ship.yaml"), []byte(test.UpstreamShipYAML), 0755)
+			}
+
+			r := Resolver{
+				FS:     mockFs,
+				Logger: log.NewNopLogger(),
+				ui:     cli.NewMockUi(),
+			}
+
+			ctx := context.Background()
+			spec, err := r.ResolveChartReleaseSpec(ctx)
+			req.NoError(err)
+
+			req.Equal(test.ExpectedSpec, spec)
+		})
+	}
+}

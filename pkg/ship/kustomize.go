@@ -7,6 +7,8 @@ import (
 
 	"strings"
 
+	"path/filepath"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -57,7 +59,7 @@ func (s *Ship) Update(ctx context.Context) error {
 	// does a state file exist on disk?
 	existingState, err := s.State.TryLoad()
 
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state from `+constants.StatePath))
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Loading state from `+constants.StatePath))
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
@@ -71,13 +73,28 @@ func (s *Ship) Update(ctx context.Context) error {
 	}
 
 	debug.Log("event", "fetch latest chart")
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `downloading latest from upstream `+helmChartPath))
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+helmChartPath))
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
 
-	release := s.buildRelease(helmChartMetadata)
+	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
+	}
+
+	debug.Log("event", "build helm release")
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			HelmChartMetadata: helmChartMetadata,
+		},
+		Spec: spec,
+	}
+
+	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
+
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -133,7 +150,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// does a state file exist on disk?
-	if s.stateFileExists(ctx) {
+	if s.stateFileExists(ctx) && !s.Viper.GetBool("rm-state") {
 		debug.Log("event", "state.exists")
 
 		useUpdate, err := s.UI.Ask(`
@@ -157,6 +174,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	}
 
 	helmChartPath := s.Viper.GetString("chart")
+	s.UI.Info("Downloading from " + helmChartPath + " ...")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
@@ -165,7 +183,20 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	// serialize the ChartURL to disk. First step in creating a state file
 	s.State.SerializeChartURL(helmChartPath)
 
-	release := s.buildRelease(helmChartMetadata)
+	debug.Log("event", "check upstream release")
+	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
+	}
+
+	debug.Log("event", "build helm release")
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			HelmChartMetadata: helmChartMetadata,
+		},
+		Spec: spec,
+	}
+
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
@@ -213,89 +244,6 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 						Message: &api.Message{
 							StepShared: api.StepShared{
 								ID: "outro",
-							},
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kustomize build overlays/ship | kubectl apply -f -
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
-	}
-
-	return release
-}
-
-func (s *Ship) buildRelease(helmChartMetadata api.HelmChartMetadata) *api.Release {
-
-	release := &api.Release{
-		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
-		},
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{
-					{
-						Helm: &api.HelmAsset{
-							AssetShared: api.AssetShared{
-								Dest: constants.RenderedHelmPath,
-							},
-							Local: &api.LocalHelmOpts{
-								ChartRoot: constants.KustomizeHelmPath,
-							},
-							HelmOpts: []string{
-								"--values",
-								path.Join(constants.TempHelmValuesPath, "values.yaml"),
-							},
-						},
-					},
-				},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						HelmIntro: &api.HelmIntro{
-							StepShared: api.StepShared{
-								ID: "intro",
-							},
-						},
-					},
-					{
-						HelmValues: &api.HelmValues{
-							StepShared: api.StepShared{
-								ID:          "values",
-								Requires:    []string{"intro"},
-								Invalidates: []string{"render"},
-							},
-						},
-					},
-					{
-						Render: &api.Render{
-							StepShared: api.StepShared{
-								ID:       "render",
-								Requires: []string{"values"},
-							},
-						},
-					},
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: constants.RenderedHelmPath,
-							Dest:     path.Join("overlays", "ship"),
-							StepShared: api.StepShared{
-								ID:       "kustomize",
-								Requires: []string{"render"},
-							},
-						},
-					},
-					{
-						Message: &api.Message{
-							StepShared: api.StepShared{
-								ID:       "outro",
-								Requires: []string{"kustomize"},
 							},
 							Contents: `
 Assets are ready to deploy. You can run

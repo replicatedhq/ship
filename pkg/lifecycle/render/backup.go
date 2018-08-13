@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/spf13/afero"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 )
 
 func (r *noconfigrenderer) backupIfPresent(basePath string) error {
@@ -35,4 +35,3 @@ func backupIfPresent(fs afero.Afero, basePath string, logger log.Logger) error {
 	}
 	return nil
 }
-

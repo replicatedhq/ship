@@ -14,6 +14,7 @@ import (
 	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -259,10 +260,9 @@ func TestV2GetStep(t *testing.T) {
 
 func TestHydrateActions(t *testing.T) {
 	tests := []struct {
-		name     string
-		step     daemontypes.Step
-		progress map[string]interface{}
-		want     []daemontypes.Action
+		name string
+		step daemontypes.Step
+		want []daemontypes.Action
 	}{
 		{
 			name: "message",
@@ -324,6 +324,85 @@ func TestHydrateActions(t *testing.T) {
 
 			actions := v2.getActions(test.step)
 			req.Equal(test.want, actions)
+		})
+	}
+}
+
+func TestHydrateStep(t *testing.T) {
+	tests := []struct {
+		name  string
+		step  daemontypes.Step
+		state state2.State
+		fs    map[string]string
+		want  *daemontypes.StepResponse
+	}{
+		{
+			name: "message",
+			step: daemontypes.NewStep(api.Step{
+				Message: &api.Message{
+					Contents: "hey there",
+					StepShared: api.StepShared{
+						ID: "foo",
+					},
+				},
+			}),
+			state: state2.V0{},
+			want: &daemontypes.StepResponse{
+				CurrentStep: daemontypes.Step{
+					Source: api.Step{
+						Message: &api.Message{
+							Contents: "hey there",
+							StepShared: api.StepShared{
+								ID: "foo",
+							},
+						},
+					},
+					Message: &daemontypes.Message{
+						Contents:    "hey there",
+						TrustedHTML: true,
+					},
+				},
+				Phase: "message",
+				Actions: []daemontypes.Action{
+					{
+						ButtonType:  "primary",
+						Text:        "Confirm",
+						LoadingText: "Confirming",
+						OnClick: daemontypes.ActionRequest{
+							URI:    "/navcycle/step/foo",
+							Method: "POST",
+							Body:   "",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+
+			mc := gomock.NewController(t)
+			testLogger := &logger.TestLogger{T: t}
+			progressmap := &daemontypes.ProgressMap{}
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			mockState := state.NewMockManager(mc)
+
+			if test.state != nil {
+				mockState.EXPECT().TryLoad().Return(test.state, nil)
+			}
+
+			v2 := &NavcycleRoutes{
+				Logger:       testLogger,
+				StepProgress: progressmap,
+				Fs:           mockFs,
+				StateManager: mockState,
+			}
+
+			response, err := v2.hydrateStep(test.step)
+			req.NoError(err, "hydrate step")
+			req.Equal(test.want, response)
 		})
 	}
 }
