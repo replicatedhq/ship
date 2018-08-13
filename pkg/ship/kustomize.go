@@ -1,9 +1,14 @@
 package ship
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
 	"path"
 	"time"
+
+	"github.com/spf13/viper"
 
 	"strings"
 
@@ -157,6 +162,24 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	}
 
 	helmChartPath := s.Viper.GetString("chart")
+
+	if !viper.GetBool("no-stats") {
+		debug.Log("event", "statsReporting")
+		go func() {
+			url := "https://stats.shipinit.org/v1/init"
+			values := map[string]string{"chartPath": helmChartPath}
+			jsonValues, err := json.Marshal(values)
+			if err != nil {
+				debug.Log("marshal usage report", err)
+				return
+			}
+			_, err = http.Post(url, "application/json", bytes.NewBuffer(jsonValues))
+			if err != nil {
+				debug.Log("send usage report", err)
+			}
+		}()
+	}
+
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
