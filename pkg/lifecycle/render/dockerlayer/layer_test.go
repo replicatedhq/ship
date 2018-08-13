@@ -87,7 +87,7 @@ func TestUnpackLayer(t *testing.T) {
 				}
 
 				rootFs := root.Fs{
-					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					Afero:    mockFS,
 					RootPath: "",
 				}
 
