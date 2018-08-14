@@ -11,6 +11,7 @@ import StepDone from "./StepDone";
 import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
+import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty"
 
 import "../../scss/components/shared/DetermineStep.scss";
 
@@ -71,10 +72,12 @@ class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets 
+          actions={actions} 
           getStep={() => this.props.getContentForStep(this.props.routeId)}
           handleAction={this.handleAction}
-          stepId={this.props.routeId} 
+          stepId={phase} 
           status={progress || currentStep.status} 
+          isLoading={this.props.dataLoading.submitActionLoading} 
         />
       );
     case "terraform.prepare":
@@ -106,6 +109,10 @@ class DetermineComponentForRoute extends React.Component {
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
+    case "kustomize-intro":
+      return (
+        <KustomizeEmpty />
+      )
     case "done":
       return (
         <StepDone />
