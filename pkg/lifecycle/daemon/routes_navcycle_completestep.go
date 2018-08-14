@@ -72,15 +72,16 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 		}))
 		return
 	}
-	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-		"status": "success",
-	}))
 	newState := state.Versioned().WithCompletedStep(step)
 	err = d.StateManager.Save(newState)
 	if err != nil {
-		debug.Log("event", "state.save.fail", "err", err)
+		level.Error(d.Logger).Log("event", "state.save.fail", "err", err, "step.id", stepID)
 		return
 	}
+
+	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+		"status": "success",
+	}))
 }
 
 func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, step api.Step) error {
