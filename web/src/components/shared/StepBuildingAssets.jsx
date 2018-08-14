@@ -15,6 +15,14 @@ export default class StepBuildingAssets extends React.Component {
     this.startPoll();
   }
 
+  componentWillMount() {
+    const { detail } = this.props.status;
+    const parsedDetail = JSON.parse(detail);
+    if(this.props.status && parsedDetail.status === "success") {
+      this.props.handleAction();
+    }
+  }
+
   componentDidUpdate(lastProps) {
     if (this.props.status !== lastProps.status) {
       clearTimeout(this.timeout);
@@ -41,7 +49,12 @@ export default class StepBuildingAssets extends React.Component {
     }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
-        <Loader size="60" />
+        { progressDetail && progressDetail.status === "success" ? 
+          <div className="success">
+            <span className="icon u-smallCheckWhite"></span>
+          </div> : 
+          <Loader size="60" /> 
+        }
         {status.source === "render" ?
           <div>
             <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">

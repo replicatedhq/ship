@@ -28,9 +28,13 @@ class DetermineComponentForRoute extends React.Component {
     const currRoute = find(this.props.routes, ["id", this.props.routeId]);
     const currIndex = indexOf(this.props.routes, currRoute);
     const nextRoute = this.props.routes[currIndex + 1];
-    await this.props.finalizeStep({action}).then(() => {
+    if(action) {
+      await this.props.finalizeStep({action}).then(() => {
+        this.props.history.push(`/${nextRoute.id}`);
+      });
+    } else {
       this.props.history.push(`/${nextRoute.id}`);
-    });
+    }
   }
 
   renderStep(phase) {
@@ -64,12 +68,13 @@ class DetermineComponentForRoute extends React.Component {
           isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents} 
         />
       );
-    case "render.confirm":
+    case "render":
       return (
         <StepBuildingAssets 
-          getStep={this.props.getCurrentStep}
+          getStep={() => this.props.getContentForStep(this.props.routeId)}
+          handleAction={this.handleAction}
           stepId={this.props.routeId} 
-          status={progress} 
+          status={progress || currentStep.status} 
         />
       );
     case "terraform.prepare":
@@ -142,14 +147,14 @@ class DetermineComponentForRoute extends React.Component {
       }
     }
 
-    // if (this.props.phase !== lastProps.phase) {
-    //   if (this.props.phase === "render.config") {
-    //     this.props.history.push("/application-settings");
-    //   }
-    //   if (this.props.phase === "kustomize") {
-    //     this.props.history.push("/kustomize");
-    //   }
-    // }
+    if (this.props.phase !== lastProps.phase) {
+      // if (this.props.phase === "render.config") {
+      //   this.props.history.push("/application-settings");
+      // }
+      // if (this.props.phase === "kustomize") {
+      //   this.props.history.push("/kustomize");
+      // }
+    }
     this.pollIfStream();
   }
 

@@ -7,6 +7,7 @@ import ConfigOnly from "../../containers/ConfigOnly";
 import Loader from "./Loader";
 import StepNumbers from "./StepNumbers";
 import DetermineComponentForRoute from "../../containers/DetermineComponentForRoute";
+import KustomizeOverlay from "../../containers/KustomizeOverlay";
 
 export default class RouteDecider extends React.Component {
 
@@ -49,6 +50,7 @@ export default class RouteDecider extends React.Component {
                   <div className="flex-1-auto flex-column u-overflow--auto">
                     <Switch>
                       <Route exact path="/application-settings" component={ConfigOnly} />
+                      <Route exact path="/kustomize" component={KustomizeOverlay} />
                       {routes && routes.map((route) => (
                         <Route
                           exact

@@ -73,7 +73,11 @@ export function getContentForStep(stepId) {
       }
       const body = await response.json();
       dispatch(loadingData("getCurrentStep", false));
-      dispatch(receiveCurrentStep(body));
+      let resp = body;
+      if(!body.currentStep) {
+        resp["currentStep"] = {}
+      }
+      dispatch(receiveCurrentStep(resp));
     } catch (error) {
       console.log(error);
       return;
