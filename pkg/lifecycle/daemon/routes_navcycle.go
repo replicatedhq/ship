@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 )
@@ -33,6 +34,7 @@ type NavcycleRoutes struct {
 	KustomizeIntro lifecycle.KustomizeIntro
 	Renderer       lifecycle.Renderer
 	Planner        planner.Planner
+	Patcher        patch.Patcher
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
@@ -45,6 +47,13 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	v1.GET("/navcycle", d.getNavcycle)
 	v1.GET("/navcycle/step/:step", d.getStep)
 	v1.POST("/navcycle/step/:step", d.completeStep)
+
+	v1.POST("/kustomize/file", d.kustomizeGetFile)
+	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
+	v1.POST("/kustomize/finalize", d.kustomizeFinalize)
+	v1.POST("/kustomize/patch", d.createOrMergePatch)
+	v1.DELETE("/kustomize/patch", d.deletePatch)
+	v1.POST("/kustomize/apply", d.applyPatch)
 }
 
 // returns false if aborted
