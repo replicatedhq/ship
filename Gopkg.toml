@@ -31,6 +31,11 @@
   branch = "master"
 
 [[override]]
+  name = "k8s.io/kubernetes"
+  # revision for tag "kubernetes-1.10.6"
+  revision = "a21fdbd78dde8f5447f5f6c331f7eb6f80bd684e"
+
+[[override]]
   name = "k8s.io/code-generator"
   # revision for tag "kubernetes-1.11.2"
   revision = "6702109cc68eb6fe6350b83e14407c8d7309fd1a"
@@ -42,8 +47,9 @@
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision for tag "kubernetes-1.11.2"
-  revision = "103fd098999dc9c0c88536f5c9ad2e5da39373ae"
+  # revision to include dependencies for Kustomize
+  # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
+  revision = "bca10bed01016dcaebb845433499fbb2a6343139"
 
 [[override]]
   name = "k8s.io/client-go"
