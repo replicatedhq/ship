@@ -107,21 +107,11 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 				"phase": "message",
-				"actions": []interface{}{
-					map[string]interface{}{
-						"buttonType":  "primary",
-						"text":        "Confirm",
-						"loadingText": "Confirming",
-						"onclick": map[string]interface{}{
-							"uri":    "/navcycle/step/foo",
-							"method": "POST",
-							"body":   "",
-						},
-					},
-				},
-
 				"progress": map[string]interface{}{
-					"source": "v2router", "type": "string", "level": "info", "detail": "success",
+					"source": "v2router",
+					"type": "json",
+					"level": "info",
+					"detail": `{"status":"working"}`,
 				},
 			},
 			ExpectState: &matchers.Is{
@@ -168,47 +158,7 @@ func TestV2CompleteStep(t *testing.T) {
 			},
 		},
 		{
-			Name: "fast render completes synchronously",
-			Lifecycle: []api.Step{
-				{
-					Render: &api.Render{
-						StepShared: api.StepShared{
-							ID: "make-the-things",
-						},
-					},
-				},
-			},
-			POST:         "/api/v1/navcycle/step/make-the-things",
-			ExpectStatus: 200,
-			ExpectState: &matchers.Is{
-				Describe: "saved state has step make-the-things completed",
-				Test: func(v interface{}) bool {
-					if versioned, ok := v.(state2.VersionedState); ok {
-						_, ok := versioned.V1.Lifecycle.StepsCompleted["make-the-things"]
-						return ok
-					}
-					return false
-				},
-			},
-			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
-				time.Sleep(100 * time.Millisecond)
-				return nil
-			},
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"render": map[string]interface{}{},
-				},
-				"phase": "render",
-				"progress": map[string]interface{}{
-					"source": "v2router",
-					"type":   "string",
-					"level":  "info",
-					"detail": "success",
-				},
-			},
-		},
-		{
-			Name: "slow render (600ms) completes async, within 150ms of api route returning",
+			Name: "render (60ms) completes async, within 15ms of api route returning",
 			Lifecycle: []api.Step{
 				{
 					Render: &api.Render{
@@ -221,10 +171,10 @@ func TestV2CompleteStep(t *testing.T) {
 			POST: "/api/v1/navcycle/step/make-the-things",
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
-			WaitForCleanup: func() <-chan time.Time { return time.After(150 * time.Millisecond) },
+			WaitForCleanup: func() <-chan time.Time { return time.After(15 * time.Millisecond) },
 			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
 				d.StepProgress.Store("make-the-things", daemontypes.StringProgress("unittest", "workin on it"))
-				time.Sleep(600 * time.Millisecond)
+				time.Sleep(60 * time.Millisecond)
 				return nil
 			},
 			ExpectStatus: 200,
@@ -246,8 +196,8 @@ func TestV2CompleteStep(t *testing.T) {
 				"progress": map[string]interface{}{
 					"source": "unittest",
 					"level":  "info",
-					"type":   "string",
-					"detail": "workin on it",
+					"type":   "json",
+					"detail": `{"status":"workin on it"}`,
 				},
 			},
 		},

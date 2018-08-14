@@ -44,47 +44,19 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		// todo also stream statuses from execute step
 		errChan := make(chan error)
+		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+			"status": "working",
+		}))
 		go func() {
 			errChan <- d.StepExecutor(d, step)
 		}()
 
-		var async bool
-		select {
-		case err = <-errChan:
-			if err != nil {
-				debug.Log("event", "step.fail", "err", err)
-				// todo need some kind of errprogress
-				d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", fmt.Sprintf("failed - %v", err)))
-				c.AbortWithError(500, err)
-				return
-			}
-			debug.Log("event", "step.complete")
-
-			// if it takes more than half a second, treat it as async, and provide status info
-		case <-time.After(500 * time.Millisecond):
-			debug.Log("event", "step.async")
-			async = true
-		}
-
-		if async {
-			d.hydrateAndSend(daemontypes.NewStep(step), c)
-			go d.handleAsync(errChan, debug, step, stepID, currentState)
-			return
-		}
-		level.Info(logger).Log("event", "task.complete", "progess", d.progress(step))
-		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
-		newState := currentState.Versioned().WithCompletedStep(step)
-
-		err = d.StateManager.Save(newState)
-		if err != nil {
-			debug.Log("event", "state.save.fail", "err", err)
-			c.AbortWithError(500, errors.Wrap(err, "save state after successful execution"))
-			return
-		}
+		// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
+		time.Sleep(10 * time.Millisecond)
 
 		d.hydrateAndSend(daemontypes.NewStep(step), c)
+		go d.handleAsync(errChan, debug, step, stepID, currentState)
 		return
 	}
 
@@ -95,10 +67,14 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 	err := d.awaitAsyncStep(errChan, debug, step)
 	if err != nil {
 		debug.Log("event", "execute.fail", "err", err)
-		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", fmt.Sprintf("failed - %v", err)))
+		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+			"status": fmt.Sprintf("failed - %v", err),
+		}))
 		return
 	}
-	d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
+	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+		"status": "success",
+	}))
 	newState := state.Versioned().WithCompletedStep(step)
 	err = d.StateManager.Save(newState)
 	if err != nil {
