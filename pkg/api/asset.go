@@ -73,6 +73,12 @@ type WebAsset struct {
 	URL         string              `json:"url" yaml:"url" hcl:"url"`
 }
 
+type HelmGitAsset struct {
+	Name    string
+	URL     string
+	Version string
+}
+
 // HelmAsset is an asset that declares a helm chart on github
 type HelmAsset struct {
 	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
@@ -80,6 +86,7 @@ type HelmAsset struct {
 	HelmOpts    []string               `json:"helm_opts" yaml:"helm_opts" hcl:"helm_opts"`
 	// GitHub references a github asset from which to pull the chart
 	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
+	Git    *HelmGitAsset
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 }

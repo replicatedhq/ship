@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/spf13/afero"
 )
@@ -46,7 +47,7 @@ func (f *ClientFetcher) FetchChart(
 		debug.Log("event", "chart.fetch", "source", "local", "root", asset.Local.ChartRoot)
 		return asset.Local.ChartRoot, nil
 	} else if asset.GitHub != nil {
-		checkoutDir, err := f.FS.TempDir("/tmp", "helmchart")
+		checkoutDir, err := f.FS.TempDir("", "helmchart")
 		if err != nil {
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
@@ -63,6 +64,17 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
+	} else if asset.Git != nil {
+		checkoutDir, err := f.FS.TempDir("", "helmchart")
+		if err != nil {
+			return "", errors.Wrap(err, "get chart checkout tmpdir gitAsset")
+		}
+
+		err = helm.Fetch(asset.Git.URL, asset.Git.Version, asset.Git.Name, checkoutDir)
+		if err != nil {
+			return "", errors.Wrap(err, "get chart via helm fetch")
+		}
+		return checkoutDir, nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
