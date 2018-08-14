@@ -78,11 +78,15 @@
 
 [[override]]
   name = "k8s.io/code-generator"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.10.6"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.10.6"
+
+[[override]]
+  name = "k8s.io/apiserver"
+  version = "kubernetes-1.10.6"
 
 [[override]]
   name = "k8s.io/apimachinery"
@@ -92,4 +96,8 @@
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.11.2"
+  version = "kubernetes-1.10.6"
+
+[[override]]
+  name = "github.com/russross/blackfriday"
+  version = "1.5.1"
