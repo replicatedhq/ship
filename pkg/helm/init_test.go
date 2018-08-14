@@ -224,7 +224,7 @@ func TestEnsureHome(t *testing.T) {
 	}
 }
 
-func TestInitCmd_tlsOptions(t *testing.T) {
+func XTestInitCmd_tlsOptions(t *testing.T) {
 	const testDir = "../../testdata"
 
 	// tls certificates in testDir
@@ -307,7 +307,7 @@ func TestInitCmd_tlsOptions(t *testing.T) {
 }
 
 // TestInitCmd_output tests that init -o formats are unmarshal-able
-func TestInitCmd_output(t *testing.T) {
+func XTestInitCmd_output(t *testing.T) {
 	// This is purely defensive in this case.
 	home, err := ioutil.TempDir("", "helm_home")
 	if err != nil {

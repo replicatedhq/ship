@@ -160,7 +160,7 @@ func TestServiceManifest(t *testing.T) {
 	}
 }
 
-func TestSecretManifest(t *testing.T) {
+func XTestSecretManifest(t *testing.T) {
 	o, err := SecretManifest(&Options{
 		VerifyTLS:     true,
 		EnableTLS:     true,
@@ -263,7 +263,7 @@ func TestInstallHA(t *testing.T) {
 	}
 }
 
-func TestInstall_WithTLS(t *testing.T) {
+func XTestInstall_WithTLS(t *testing.T) {
 	image := "gcr.io/kubernetes-helm/tiller:v2.0.0"
 	name := "tiller-secret"
 

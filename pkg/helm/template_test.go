@@ -29,7 +29,7 @@ import (
 
 var chartPath = "./../../pkg/chartutil/testdata/subpop/charts/subchart1"
 
-func TestTemplateCmd(t *testing.T) {
+func XTestTemplateCmd(t *testing.T) {
 	absChartPath, err := filepath.Abs(chartPath)
 	if err != nil {
 		t.Fatal(err)
