@@ -194,7 +194,8 @@ test: lint .state/test
 
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
-	go test -coverprofile=.state/coverage.out ./pkg/...
+	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
+	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/...
 
 citest: .state/vet .state/lint .state/coverage.out
 
