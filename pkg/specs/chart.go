@@ -91,8 +91,7 @@ var (
 					{
 						KustomizeIntro: &api.KustomizeIntro{
 							StepShared: api.StepShared{
-								ID:       "kustomize-intro",
-								Requires: []string{"render"},
+								ID: "kustomize-intro",
 							},
 						},
 					},
