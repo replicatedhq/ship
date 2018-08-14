@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-type kustomizer struct {
+type Kustomizer struct {
 	Logger log.Logger
 	FS     afero.Afero
 	State  state.Manager
@@ -23,20 +23,15 @@ func NewDaemonlessKustomizer(
 	fs afero.Afero,
 	state state.Manager,
 ) lifecycle.Kustomizer {
-	return &kustomizer{
+	return &Kustomizer{
 		Logger: logger,
 		FS:     fs,
 		State:  state,
 	}
 }
 
-func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
+func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "execute"))
-
-	debug.Log("event", "write.base")
-	if err := l.writeBase(step); err != nil {
-		return errors.Wrap(err, "write base kustomization")
-	}
 
 	current, err := l.State.TryLoad()
 	if err != nil {

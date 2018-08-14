@@ -71,7 +71,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			l := &daemonkustomizer{
-				kustomizer: kustomizer{
+				Kustomizer: Kustomizer{
 					Logger: testLogger,
 					State:  mockState,
 					FS:     mockFs,
@@ -144,7 +144,7 @@ patches:
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			l := &daemonkustomizer{
-				kustomizer: kustomizer{
+				Kustomizer: Kustomizer{
 					Logger: testLogger,
 					State:  mockState,
 					FS:     mockFs,
@@ -273,7 +273,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			req.NoError(err)
 
 			l := &daemonkustomizer{
-				kustomizer: kustomizer{
+				Kustomizer: Kustomizer{
 					Logger: testLogger,
 					State:  mockState,
 					FS:     fs,
@@ -281,8 +281,8 @@ func Test_kustomizer_writeBase(t *testing.T) {
 				Daemon: mockDaemon,
 			}
 
-			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
-				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
+			if err := l.WriteBase(mockStep); (err != nil) != tt.wantErr {
+				t.Errorf("kustomizer.WriteBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				basePathDest := path.Join(mockStep.BasePath, "kustomization.yaml")
 				fileBytes, err := l.FS.ReadFile(basePathDest)
@@ -382,7 +382,7 @@ patches:
 			}}, nil)
 
 			k := &daemonkustomizer{
-				kustomizer: kustomizer{
+				Kustomizer: Kustomizer{
 					Logger: testLogger,
 					FS:     mockFS,
 					State:  mockState,
