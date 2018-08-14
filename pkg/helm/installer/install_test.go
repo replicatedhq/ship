@@ -160,7 +160,7 @@ func TestServiceManifest(t *testing.T) {
 	}
 }
 
-func XTestSecretManifest(t *testing.T) {
+func TestSecretManifest(t *testing.T) {
 	o, err := SecretManifest(&Options{
 		VerifyTLS:     true,
 		EnableTLS:     true,
@@ -263,7 +263,7 @@ func TestInstallHA(t *testing.T) {
 	}
 }
 
-func XTestInstall_WithTLS(t *testing.T) {
+func TestInstall_WithTLS(t *testing.T) {
 	image := "gcr.io/kubernetes-helm/tiller:v2.0.0"
 	name := "tiller-secret"
 
@@ -627,7 +627,7 @@ func TestUpgrade_canaryServer(t *testing.T) {
 }
 
 func tlsTestFile(t *testing.T, path string) string {
-	const tlsTestDir = "../../../testdata"
+	const tlsTestDir = "../helmtestdata"
 	path = filepath.Join(tlsTestDir, path)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Fatalf("tls test file %s does not exist", path)

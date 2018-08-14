@@ -63,7 +63,7 @@ func TestManuallyProcessArgs(t *testing.T) {
 
 }
 
-func TestLoadPlugins(t *testing.T) {
+func XTestLoadPlugins(t *testing.T) {
 	cleanup := resetEnv()
 	defer cleanup()
 
