@@ -14,7 +14,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
-	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func (d *NavcycleRoutes) completeStep(c *gin.Context) {
@@ -38,49 +37,44 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		currentState, err := d.StateManager.TryLoad()
+		err := d.StepExecutor(d, step)
+		err = d.handleSyncStep(err, debug, step, stepID)
 		if err != nil {
+			level.Error(d.Logger).Log("event", "sync.fail", "error", err)
 			c.AbortWithError(500, err)
-			return
 		}
-
-		errChan := make(chan error)
-		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-			"status": "working",
-		}))
-		go func() {
-			errChan <- d.StepExecutor(d, step)
-		}()
-
-		// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
-		time.Sleep(10 * time.Millisecond)
-
 		d.hydrateAndSend(daemontypes.NewStep(step), c)
-		go d.handleAsync(errChan, debug, step, stepID, currentState)
 		return
 	}
 
 	d.errNotFond(c)
 }
 
-func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
-	err := d.awaitAsyncStep(errChan, debug, step)
+func (d *NavcycleRoutes) handleSyncStep(err error, debug log.Logger, step api.Step, stepID string) error {
 	if err != nil {
 		debug.Log("event", "execute.fail", "err", err)
 		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
 			"status": fmt.Sprintf("failed - %v", err),
 		}))
-		return
+		return errors.Wrap(err, "execute step")
+	}
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	newState := currentState.Versioned().WithCompletedStep(step)
+	err = d.StateManager.Save(newState)
+	if err != nil {
+		level.Error(debug).Log("event", "state.save.fail", "err", err)
+		return errors.Wrap(err, "save state")
 	}
 	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
 		"status": "success",
 	}))
-	newState := state.Versioned().WithCompletedStep(step)
-	err = d.StateManager.Save(newState)
-	if err != nil {
-		debug.Log("event", "state.save.fail", "err", err)
-		return
-	}
+	// HAAAACK
+	time.Sleep(1 * time.Second)
+	return nil
 }
 
 func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, step api.Step) error {
