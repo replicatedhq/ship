@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package installer // import "k8s.io/helm/cmd/helm/installer"
+package installer
 
 import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
