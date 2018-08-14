@@ -23,6 +23,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/helmValues"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kubectl"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomizeintro"
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
@@ -182,6 +183,7 @@ func navcycleProviders() []interface{} {
 		render.NoConfigRenderer,
 		config.NewNoOpResolver,
 		helmValues.NewDaemonlessHelmValues,
+		kustomizeintro.NewKustomizeIntro,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		// fake, we override it, this is janky, use a factory dex

@@ -26,12 +26,13 @@ type NavcycleRoutes struct {
 
 	StepProgress *daemontypes.ProgressMap
 
-	Messenger  lifecycle.Messenger
-	HelmIntro  lifecycle.HelmIntro
-	HelmValues lifecycle.HelmValues
-	Kustomizer lifecycle.Kustomizer
-	Renderer   lifecycle.Renderer
-	Planner    planner.Planner
+	Messenger      lifecycle.Messenger
+	HelmIntro      lifecycle.HelmIntro
+	HelmValues     lifecycle.HelmValues
+	Kustomizer     lifecycle.Kustomizer
+	KustomizeIntro lifecycle.KustomizeIntro
+	Renderer       lifecycle.Renderer
+	Planner        planner.Planner
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release

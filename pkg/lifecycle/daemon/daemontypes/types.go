@@ -56,12 +56,13 @@ const StepNameKustomize = "kustomize"
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
 type Step struct {
-	Source     api.Step    `json:"-"`
-	Message    *Message    `json:"message,omitempty"`
-	Render     *Render     `json:"render,omitempty"`
-	HelmIntro  *HelmIntro  `json:"helmIntro,omitempty"`
-	HelmValues *HelmValues `json:"helmValues,omitempty"`
-	Kustomize  *Kustomize  `json:"kustomize,omitempty"`
+	Source         api.Step        `json:"-"`
+	Message        *Message        `json:"message,omitempty"`
+	Render         *Render         `json:"render,omitempty"`
+	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty"`
+	HelmValues     *HelmValues     `json:"helmValues,omitempty"`
+	Kustomize      *Kustomize      `json:"kustomize,omitempty"`
+	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty"`
 }
 
 // hack hack hack, I don't even know what to call this one
@@ -85,6 +86,8 @@ func NewStep(apiStep api.Step) Step {
 		step.Kustomize = &Kustomize{
 			BasePath: apiStep.Kustomize.BasePath,
 		}
+	} else if apiStep.KustomizeIntro != nil {
+		step.KustomizeIntro = &KustomizeIntro{}
 	}
 	return step
 
@@ -129,4 +132,7 @@ type HelmValues struct {
 type Kustomize struct {
 	BasePath string        `json:"basePath,omitempty"`
 	Tree     filetree.Node `json:"tree,omitempty"`
+}
+
+type KustomizeIntro struct {
 }
