@@ -309,6 +309,28 @@ func TestHydrateActions(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "kustomizeIntro",
+			step: daemontypes.NewStep(api.Step{
+				KustomizeIntro: &api.KustomizeIntro{
+					StepShared: api.StepShared{
+						ID: "heyo",
+					},
+				},
+			}),
+			want: []daemontypes.Action{
+				{
+					ButtonType:  "primary",
+					Text:        "Next",
+					LoadingText: "Next",
+					OnClick: daemontypes.ActionRequest{
+						URI:    "/navcycle/step/heyo",
+						Method: "POST",
+						Body:   "",
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

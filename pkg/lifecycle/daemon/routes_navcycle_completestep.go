@@ -38,7 +38,7 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		state, err := d.StateManager.TryLoad()
+		currentState, err := d.StateManager.TryLoad()
 		if err != nil {
 			c.AbortWithError(500, err)
 			return
@@ -69,17 +69,13 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 		}
 
 		if async {
-			c.JSON(200, map[string]interface{}{
-				"status": "working",
-				"phase":  step.ShortName(),
-				"poll":   fmt.Sprintf("/lifecycle/step/%s", stepID),
-			})
-			go d.handleAsync(errChan, debug, step, stepID, state)
+			d.hydrateAndSend(daemontypes.NewStep(step), c)
+			go d.handleAsync(errChan, debug, step, stepID, currentState)
 			return
 		}
 		level.Info(logger).Log("event", "task.complete", "progess", d.progress(step))
 		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
-		newState := state.Versioned().WithCompletedStep(step)
+		newState := currentState.Versioned().WithCompletedStep(step)
 
 		err = d.StateManager.Save(newState)
 		if err != nil {
@@ -88,10 +84,7 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		c.JSON(200, map[string]interface{}{
-			"status": "success",
-			"phase":  step.ShortName(),
-		})
+		d.hydrateAndSend(daemontypes.NewStep(step), c)
 		return
 	}
 
@@ -157,9 +150,9 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
 	} else if step.HelmValues != nil {
-		debug.Log("event", "step.resolve", "type", "helmIntro")
+		debug.Log("event", "step.resolve", "type", "helmValues")
 		err := d.HelmValues.Execute(context.Background(), d.Release, step.HelmValues)
-		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
+		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
 		return errors.Wrap(err, "execute helmIntro step")
 	} else if step.Render != nil {
 		debug.Log("event", "step.resolve", "type", "render")
@@ -173,6 +166,10 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		debug.Log("event", "step.resolve", "type", "kustomize")
 		err := d.Kustomizer.Execute(context.Background(), d.Release, *step.Kustomize)
 		return errors.Wrap(err, "execute kustomize step")
+	} else if step.KustomizeIntro != nil {
+		debug.Log("event", "step.resolve", "type", "kustomizeIntro")
+		err := d.KustomizeIntro.Execute(context.Background(), d.Release, *step.KustomizeIntro)
+		return errors.Wrap(err, "execute kustomize intro step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)
