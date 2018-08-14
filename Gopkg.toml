@@ -30,32 +30,6 @@
   name = "github.com/pkg/errors"
   branch = "master"
 
-[[override]]
-  name = "k8s.io/kubernetes"
-  # revision for tag "kubernetes-1.10.6"
-  revision = "a21fdbd78dde8f5447f5f6c331f7eb6f80bd684e"
-
-[[override]]
-  name = "k8s.io/code-generator"
-  # revision for tag "kubernetes-1.11.2"
-  revision = "6702109cc68eb6fe6350b83e14407c8d7309fd1a"
-
-[[override]]
-  name = "k8s.io/api"
-  # revision for tag "kubernetes-1.11.2"
-  revision = "2d6f90ab1293a1fb871cf149423ebb72aa7423aa"
-
-[[override]]
-  name = "k8s.io/apimachinery"
-  # revision to include dependencies for Kustomize
-  # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
-  revision = "bca10bed01016dcaebb845433499fbb2a6343139"
-
-[[override]]
-  name = "k8s.io/client-go"
-  # revision for tag "kubernetes-1.11.2"
-  revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
-
 [[constraint]]
   name = "github.com/go-stack/stack"
   version = "1.7.0"
@@ -85,14 +59,9 @@
 #  name = "github.com/ugorji/go"
 #  revision = "8c0409fcbb70099c748d71f714529204975f6c3f"
 
-
 [[constraint]]
   name = "github.com/google/go-github"
   version = "15.0.0"
-
-[[constraint]]
-  branch = "master"
-  name = "k8s.io/apimachinery"
 
 [[constraint]]
   name = "github.com/ghodss/yaml"
@@ -101,3 +70,26 @@
 [[constraint]]
   name = "k8s.io/helm"
   version = "2.9.1"
+
+# Overrides for Kustomize & Helm
+[[override]]
+  name = "k8s.io/kubernetes"
+  version = "1.10.6"
+
+[[override]]
+  name = "k8s.io/code-generator"
+  version = "kubernetes-1.11.2"
+
+[[override]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.11.2"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  # revision to include dependencies for Kustomize
+  # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
+  revision = "bca10bed01016dcaebb845433499fbb2a6343139"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.11.2"

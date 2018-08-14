@@ -1276,6 +1276,7 @@
   ]
   pruneopts = "UT"
   revision = "2d6f90ab1293a1fb871cf149423ebb72aa7423aa"
+  version = "kubernetes-1.11.2"
 
 [[projects]]
   branch = "master"
@@ -1511,6 +1512,7 @@
   ]
   pruneopts = "UT"
   revision = "1f13a808da65775f22cbf47862c4e5898d8f4ca1"
+  version = "kubernetes-1.11.2"
 
 [[projects]]
   digest = "1:1dafa4fef1cf67d00b727e4ee3f36baf1e6707cdd01c76f2a2f73d87a0117f61"
@@ -1724,6 +1726,7 @@
   ]
   pruneopts = "UT"
   revision = "a21fdbd78dde8f5447f5f6c331f7eb6f80bd684e"
+  version = "v1.10.6"
 
 [[projects]]
   branch = "master"
