@@ -68,3 +68,18 @@ make -C web serve_ship
 ```
 
 The go binary serves the UI on `localhost:8800`, the webpack dev server will serve on `localhost:8880`.
+
+### A note on node modules
+On rare occasions, you may need to refresh your node modules. If `make build` gives you an error of the following flavor:
+```
+...
+make[1]: *** [.state/build_ship] Error 2
+make: *** [build-ui] Error 2
+``` 
+and/or if `make -C web serve_ship` gives you a `Failed to compile` error, the following commands should get you back up and running. From the root of the project:
+```
+cd web
+rm -rf node_modules
+yarn
+```
+
