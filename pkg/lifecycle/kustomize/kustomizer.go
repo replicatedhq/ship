@@ -22,30 +22,30 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func NewKustomizer(
+func NewDaemonKustomizer(
 	logger log.Logger,
 	daemon daemontypes.Daemon,
 	fs afero.Afero,
 	stateManager state.Manager,
 ) lifecycle.Kustomizer {
-	return &kustomizer{
-		Logger: logger,
+	return &daemonkustomizer{
+		kustomizer: kustomizer{
+			Logger: logger,
+			FS:     fs,
+			State:  stateManager,
+		},
 		Daemon: daemon,
-		FS:     fs,
-		State:  stateManager,
 	}
 }
 
 // kustomizer will *try* to pull in the Kustomizer libs from kubernetes-sigs/kustomize,
 // if not we'll have to fork. for now it just explodes
-type kustomizer struct {
-	Logger log.Logger
+type daemonkustomizer struct {
+	kustomizer
 	Daemon daemontypes.Daemon
-	FS     afero.Afero
-	State  state.Manager
 }
 
-func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
+func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "execute"))
 
 	daemonExitedChan := l.Daemon.EnsureStarted(ctx, release)
@@ -102,7 +102,7 @@ func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	return nil
 }
 
-func (l *kustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan chan error) error {
+func (l *daemonkustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan chan error) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "kustomize.save.await"))
 	for {
 		select {
