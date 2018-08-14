@@ -192,9 +192,9 @@ func TestV2GetStep(t *testing.T) {
 				"phase": "message",
 				"progress": map[string]interface{}{
 					"source": "v2router",
-					"type":   "string",
+					"type":   "json",
 					"level":  "info",
-					"detail": "working",
+					"detail": `{"status":"working"}`,
 				},
 			},
 		},

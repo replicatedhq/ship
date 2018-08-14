@@ -22,12 +22,9 @@ func (p Progress) String() string {
 }
 
 func StringProgress(source, detail string) Progress {
-	return Progress{
-		Source: source,
-		Type:   "string",
-		Level:  "info",
-		Detail: detail,
-	}
+	return JSONProgress(source, map[string]interface{}{
+		"status": detail,
+	})
 }
 
 func JSONProgress(source string, detail interface{}) Progress {
