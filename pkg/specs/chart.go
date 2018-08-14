@@ -89,6 +89,14 @@ var (
 						},
 					},
 					{
+						KustomizeIntro: &api.KustomizeIntro{
+							StepShared: api.StepShared{
+								ID:       "kustomize-intro",
+								Requires: []string{"render"},
+							},
+						},
+					},
+					{
 						Kustomize: &api.Kustomize{
 							BasePath: constants.RenderedHelmPath,
 							Dest:     path.Join("overlays", "ship"),
