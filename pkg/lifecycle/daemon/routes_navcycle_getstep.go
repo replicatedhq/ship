@@ -30,7 +30,8 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				kustomizer := d.Kustomizer.(*kustomize.Kustomizer)
 				err := kustomizer.WriteBase(*step.Kustomize)
 				if err != nil {
-					c.AbortWithError(http.StatusInternalServerError, err)
+					level.Error(d.Logger).Log("event", "write base kustomization yaml")
+					c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "write base kustomization yaml"))
 				}
 			}
 
