@@ -83,12 +83,15 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))
 	v1.POST("/helm-values", d.saveHelmValues)
 
-	v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
-	v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
-	v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
-	v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
-	v1.DELETE("/kustomize/patch", d.requireKustomize(), d.deletePatch)
-	v1.POST("/kustomize/apply", d.requireKustomize(), d.applyPatch)
+	/// haaack -- refactor this out into a sub routing component
+	if !d.Viper.GetBool("navcycle") {
+		v1.POST("/kustomize/file", d.requireKustomize(), d.kustomizeGetFile)
+		v1.POST("/kustomize/save", d.requireKustomize(), d.kustomizeSaveOverlay)
+		v1.POST("/kustomize/finalize", d.requireKustomize(), d.kustomizeFinalize)
+		v1.POST("/kustomize/patch", d.requireKustomize(), d.createOrMergePatch)
+		v1.DELETE("/kustomize/patch", d.requireKustomize(), d.deletePatch)
+		v1.POST("/kustomize/apply", d.requireKustomize(), d.applyPatch)
+	}
 }
 
 func (d *V1Routes) applyPatch(c *gin.Context) {

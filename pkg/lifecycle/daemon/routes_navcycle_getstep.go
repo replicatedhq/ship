@@ -69,7 +69,7 @@ func (d *NavcycleRoutes) hackMaybeRunRenderOnGET(debug log.Logger, c *gin.Contex
 	}
 	_, renderAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
 	progress, ok := d.StepProgress.Load(step.Shared().ID)
-	shouldRender := !ok || progress.Detail == "success" && !renderAlreadyComplete
+	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !renderAlreadyComplete
 	if shouldRender {
 		d.completeStep(c)
 	} else {
