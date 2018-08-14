@@ -194,7 +194,7 @@ test: lint .state/test
 
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
-	go test -coverprofile=.state/coverage.out -v ./pkg/...
+	go test -coverprofile=.state/coverage.out ./pkg/...
 
 citest: .state/vet .state/lint .state/coverage.out
 
