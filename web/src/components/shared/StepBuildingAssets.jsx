@@ -3,43 +3,35 @@ import autoBind from "react-autobind";
 import { Utilities } from "../../utilities/utilities";
 import { Line } from "rc-progress";
 import Loader from "./Loader";
+import RenderActions from "./RenderActions";
 
 export default class StepBuildingAssets extends React.Component {
-
+  
   constructor(props) {
     super(props);
     autoBind(this);
+    this.finished = false;
   }
-
-  componentDidMount() {
-    this.startPoll();
-  }
-
-  componentWillMount() {
-    const { detail } = this.props.status;
-    const parsedDetail = JSON.parse(detail);
-    if(this.props.status && parsedDetail.status === "success") {
-      this.props.handleAction();
-    }
-  }
-
+  
   componentDidUpdate(lastProps) {
     if (this.props.status !== lastProps.status) {
       clearTimeout(this.timeout);
       this.startPoll();
     }
   }
-
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
-  }
-
+  
   startPoll() {
-    this.timeout = setTimeout(() => this.props.getStep("getStatus"), 1000);
+    const self = this;
+    this.timeout = setTimeout(() => {
+      if (!self.finished) {
+        this.props.getStep("getStatus");
+      }
+    }, 1000);
   }
 
   render() {
     const { status = {} } = this.props;
+    const actions = this.props.actions || null;
     const isJSON = status.type === "json";
     const progressDetail = isJSON ? JSON.parse(status.detail).progressDetail : null;
     let percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
@@ -79,6 +71,9 @@ export default class StepBuildingAssets extends React.Component {
               :
               <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{status.detail}</p>
             }
+            <div className="u-marginTop--30 flex justifyContent--flexEnd">
+              <RenderActions actions={actions} handleAction={this.props.handleAction} isLoading={this.props.isLoading} />
+            </div>
           </div>
         }
       </div>

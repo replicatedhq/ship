@@ -46,7 +46,6 @@ export default class KustomizeEmpty extends React.Component {
           <p className="u-fontSize--normal u-fontWeight--medium u-lineHeight--more">
           You are not required to customize your YAML. We built this tool to make it easy to apply overlay values and ship customized YAML quickly and effeciently. However, if you have no need to change any of these files you can move right along to the deployment step.
           </p>
-          <p className="u-marginTop--20 u-fontSize--normal u-fontWeight--medium u-lineHeight--more">If you’re ready to deploy your YAML simply <span onClick={this.props.skipKustomize} className="u-color--astral u-textDecoration--underlineOnHover">click here</span>.</p>
         </div>
       </div>
     );
