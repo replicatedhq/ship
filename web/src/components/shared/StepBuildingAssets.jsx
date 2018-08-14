@@ -9,33 +9,39 @@ export default class StepBuildingAssets extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+    this.finished = false;
   }
 
   componentDidMount() {
     this.startPoll();
   }
 
-  componentWillMount() {
+  componentDidUpdate(lastProps) {
     const { detail } = this.props.status;
     const parsedDetail = JSON.parse(detail);
-    if(this.props.status && parsedDetail.status === "success") {
-      this.props.handleAction();
-    }
-  }
 
-  componentDidUpdate(lastProps) {
     if (this.props.status !== lastProps.status) {
       clearTimeout(this.timeout);
       this.startPoll();
     }
+
+    if(this.props.status && parsedDetail.status === "success") {
+      this.finished = true;
+      this.props.handleAction();
+    }
   }
 
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
+  isFinished() {
+    return this.finished;
   }
 
   startPoll() {
-    this.timeout = setTimeout(() => this.props.getStep("getStatus"), 1000);
+    const self = this;
+    this.timeout = setTimeout(() => {
+      if (!self.finished) {
+        this.props.getStep("getStatus");
+      }
+    }, 1000);
   }
 
   render() {
@@ -49,11 +55,11 @@ export default class StepBuildingAssets extends React.Component {
     }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
-        { progressDetail && progressDetail.status === "success" ? 
+        { progressDetail && progressDetail.status === "success" ?
           <div className="success">
             <span className="icon u-smallCheckWhite"></span>
-          </div> : 
-          <Loader size="60" /> 
+          </div> :
+          <Loader size="60" />
         }
         {status.source === "render" ?
           <div>
