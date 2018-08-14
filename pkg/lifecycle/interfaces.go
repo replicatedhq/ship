@@ -37,6 +37,10 @@ type Kustomizer interface {
 	Execute(ctx context.Context, release *api.Release, step api.Kustomize) error
 }
 
+type KustomizeIntro interface {
+	Execute(ctx context.Context, release *api.Release, step api.KustomizeIntro) error
+}
+
 type KubectlApply interface {
 	Execute(ctx context.Context, release api.Release, step api.KubectlApply) error
 }

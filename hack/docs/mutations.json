@@ -847,7 +847,6 @@
     "path": "properties.lifecycle.properties.v1.items.properties",
     "delete": [
       "kustomizeIntro",
-      "kustomizeDiff",
       "helmIntro",
       "helmValues",
       "kubectl_apply.properties.StepShared"

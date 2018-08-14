@@ -226,7 +226,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 					{
 						KustomizeIntro: &api.KustomizeIntro{
 							StepShared: api.StepShared{
-								ID: "kustomize",
+								ID: "kustomize-intro",
 							},
 						},
 					},

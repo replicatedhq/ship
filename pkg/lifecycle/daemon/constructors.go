@@ -44,6 +44,7 @@ func NewV2Router(
 	messenger lifecycle.Messenger,
 	helmIntro lifecycle.HelmIntro,
 	helmValues lifecycle.HelmValues,
+	kustomizeIntro lifecycle.KustomizeIntro,
 	planners planner.Planner,
 	renderer lifecycle.Renderer,
 	treeLoader filetree.Loader,
@@ -54,10 +55,11 @@ func NewV2Router(
 		StateManager: stateManager,
 		Planner:      planners,
 
-		Messenger:  messenger,
-		HelmIntro:  helmIntro,
-		HelmValues: helmValues,
-		Renderer:   renderer,
+		Messenger:      messenger,
+		HelmIntro:      helmIntro,
+		HelmValues:     helmValues,
+		KustomizeIntro: kustomizeIntro,
+		Renderer:       renderer,
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},
