@@ -120,6 +120,8 @@ func (m *MManager) TryLoad() (State, error) {
 		stateFrom = "file"
 	}
 
+	// TODO consider an interface
+
 	switch stateFrom {
 	case "file":
 		return m.tryLoadFromFile()
@@ -144,14 +146,27 @@ func (m *MManager) tryLoadFromSecret() (State, error) {
 		return nil, errors.Wrap(err, "get kubernetes client")
 	}
 
-	secret, err := clientset.CoreV1().Secrets(m.V.GetString("secret-namespace")).Get(m.V.GetString("secret-name"), metav1.GetOptions{})
+	ns := m.V.GetString("secret-namespace")
+	if ns == "" {
+		return nil, errors.New("secret-namespace is not set")
+	}
+	secretName := m.V.GetString("secret-name")
+	if secretName == "" {
+		return nil, errors.New("secret-name is not set")
+	}
+	secretKey := m.V.GetString("secret-key")
+	if secretKey == "" {
+		return nil, errors.New("secret-key is not set")
+	}
+
+	secret, err := clientset.CoreV1().Secrets(ns).Get(secretName, metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "get secret")
 	}
 
-	serialized, ok := secret.Data[m.V.GetString("secret-key")]
+	serialized, ok := secret.Data[secretKey]
 	if !ok {
-		err := fmt.Errorf("key %q not found in secret %q", m.V.GetString("secret-key"), m.V.GetString("secret-name"))
+		err := fmt.Errorf("key %q not found in secret %q", secretKey, secretName)
 		return nil, errors.Wrap(err, "get state from secret")
 	}
 
