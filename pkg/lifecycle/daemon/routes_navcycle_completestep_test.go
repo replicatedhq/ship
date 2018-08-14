@@ -34,21 +34,6 @@ type completestepTestCase struct {
 	ExpectState    *matchers.Is
 	OnExecute      func(d *NavcycleRoutes, step api.Step) error
 	WaitForCleanup func() <-chan time.Time
-
-	// gonna move this to another test
-	//ExpectLifecycleCalls func(
-	//	release *api.Release,
-	//	m *lifecycle.MockMessenger,
-	//	r *lifecycle.MockRenderer,
-	//	d *daemon.MockDaemon, // this really only needs to be a StatusReceiver but I'm too lazy to mockgen one
-	//	p *planner2.MockPlanner,
-	//)
-	//ExpectStepStatuses []struct {
-	//	channel  chan interface{}
-	//	GET      string
-	//	progress interface{}
-	//}
-
 }
 
 func TestV2CompleteStep(t *testing.T) {
@@ -109,8 +94,8 @@ func TestV2CompleteStep(t *testing.T) {
 				"phase": "message",
 				"progress": map[string]interface{}{
 					"source": "v2router",
-					"type": "json",
-					"level": "info",
+					"type":   "json",
+					"level":  "info",
 					"detail": `{"status":"working"}`,
 				},
 			},
@@ -171,7 +156,7 @@ func TestV2CompleteStep(t *testing.T) {
 			POST: "/api/v1/navcycle/step/make-the-things",
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
-			WaitForCleanup: func() <-chan time.Time { return time.After(15 * time.Millisecond) },
+			WaitForCleanup: func() <-chan time.Time { return time.After(60 * time.Millisecond) },
 			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
 				d.StepProgress.Store("make-the-things", daemontypes.StringProgress("unittest", "workin on it"))
 				time.Sleep(60 * time.Millisecond)

@@ -42,10 +42,10 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 
 			if step.Render == nil {
 				d.hydrateAndSend(daemontypes.NewStep(step), c)
-				return
 			} else {
 				d.hackMaybeRunRenderOnGET(debug, c, step)
 			}
+			return
 		}
 	}
 
