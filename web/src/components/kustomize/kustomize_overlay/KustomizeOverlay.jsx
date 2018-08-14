@@ -61,10 +61,9 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getHelmChartMetadata();
-    if (isEmpty(this.props.currentStep)) {
-      this.props.getCurrentStep("kustomize")
-    }
+    // if (isEmpty(this.props.currentStep)) {
+    //   this.props.getCurrentStep("kustomize")
+    // }
     if (this.props.currentStep && !isEmpty(this.props.currentStep)) {
       this.setFileTree();
     }

@@ -11,6 +11,8 @@ import StepDone from "./StepDone";
 import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
+import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
+import KustomizeOverlay from "../../containers/KustomizeOverlay";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
@@ -50,48 +52,48 @@ class DetermineComponentForRoute extends React.Component {
       )
     case "message":
       return (
-        <StepMessage 
-          actions={actions} 
-          message={currentStep.message} 
-          level={currentStep.level} 
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading} 
+        <StepMessage
+          actions={actions}
+          message={currentStep.message}
+          level={currentStep.level}
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
     case "stream":
       return (
-        <StepMessage 
-          actions={actions} 
-          message={currentStep.message} 
-          level={currentStep.level} 
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents} 
+        <StepMessage
+          actions={actions}
+          message={currentStep.message}
+          level={currentStep.level}
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents}
         />
       );
     case "render":
       return (
-        <StepBuildingAssets 
+        <StepBuildingAssets
           getStep={() => this.props.getContentForStep(this.props.routeId)}
           handleAction={this.handleAction}
-          stepId={this.props.routeId} 
-          status={progress || currentStep.status} 
+          stepId={this.props.routeId}
+          status={progress || currentStep.status}
         />
       );
     case "terraform.prepare":
       return (
-        <StepBuildingAssets 
+        <StepBuildingAssets
           getStep={this.props.getCurrentStep}
-          stepId={this.props.routeId} 
-          status={progress} 
+          stepId={this.props.routeId}
+          status={progress}
         />
       );
     case "helm-intro":
       return (
         <StepHelmIntro
           actions={actions}
-          helmChartMetadata={this.props.helmChartMetadata} 
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading} 
+          helmChartMetadata={this.props.helmChartMetadata}
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
     case "helm-values":
@@ -100,10 +102,21 @@ class DetermineComponentForRoute extends React.Component {
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
           isNewRouter={this.props.isNewRouter}
-          helmChartMetadata={this.props.helmChartMetadata} 
-          actions={actions} 
-          handleAction={this.handleAction} 
+          helmChartMetadata={this.props.helmChartMetadata}
+          actions={actions}
+          handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
+        />
+      );
+    case "kustomize-intro":
+      return (
+        <KustomizeEmpty />
+      );
+    case "kustomize":
+      return (
+        <KustomizeOverlay
+          currentStep={currentStep}
+          dataLoading={this.props.dataLoading}
         />
       );
     case "done":
