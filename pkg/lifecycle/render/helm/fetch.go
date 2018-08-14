@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/afero"
 )
 
+var importMe helm.ImportMe
+
 // ChartFetcher fetches a chart based on an asset. it returns
 // the location that the chart was unpacked to, usually a temporary directory
 type ChartFetcher interface {
@@ -64,17 +66,6 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
-	} else if asset.Git != nil {
-		checkoutDir, err := f.FS.TempDir("", "helmchart")
-		if err != nil {
-			return "", errors.Wrap(err, "get chart checkout tmpdir gitAsset")
-		}
-
-		err = helm.Fetch(asset.Git.URL, asset.Git.Version, asset.Git.Name, checkoutDir)
-		if err != nil {
-			return "", errors.Wrap(err, "get chart via helm fetch")
-		}
-		return checkoutDir, nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")

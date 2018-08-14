@@ -13,3 +13,5 @@ func Fetch(url, version, name, dest string) error {
 	err := toFetch.run()
 	return err
 }
+
+type ImportMe struct{}
