@@ -22,30 +22,30 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func NewKustomizer(
+func NewDaemonKustomizer(
 	logger log.Logger,
 	daemon daemontypes.Daemon,
 	fs afero.Afero,
 	stateManager state.Manager,
 ) lifecycle.Kustomizer {
-	return &kustomizer{
-		Logger: logger,
+	return &daemonkustomizer{
+		Kustomizer: Kustomizer{
+			Logger: logger,
+			FS:     fs,
+			State:  stateManager,
+		},
 		Daemon: daemon,
-		FS:     fs,
-		State:  stateManager,
 	}
 }
 
 // kustomizer will *try* to pull in the Kustomizer libs from kubernetes-sigs/kustomize,
 // if not we'll have to fork. for now it just explodes
-type kustomizer struct {
-	Logger log.Logger
+type daemonkustomizer struct {
+	Kustomizer
 	Daemon daemontypes.Daemon
-	FS     afero.Afero
-	State  state.Manager
 }
 
-func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
+func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "execute"))
 
 	daemonExitedChan := l.Daemon.EnsureStarted(ctx, release)
@@ -57,7 +57,7 @@ func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	})
 	debug.Log("event", "step.pushed")
 
-	if err := l.writeBase(step); err != nil {
+	if err := l.WriteBase(step); err != nil {
 		return errors.Wrap(err, "write base kustomization")
 	}
 
@@ -102,7 +102,7 @@ func (l *kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	return nil
 }
 
-func (l *kustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan chan error) error {
+func (l *daemonkustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan chan error) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "kustomize.save.await"))
 	for {
 		select {
@@ -124,7 +124,7 @@ func (l *kustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan c
 	}
 }
 
-func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
+func (l *Kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatches"))
 
 	for file, contents := range shipOverlay.Patches {
@@ -144,7 +144,7 @@ func (l *kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (re
 	return relativePatchPaths, nil
 }
 
-func (l *kustomizer) writePatch(name string, destDir string, contents string) error {
+func (l *Kustomizer) writePatch(name string, destDir string, contents string) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatch"))
 
 	// make the dir
@@ -163,7 +163,7 @@ func (l *kustomizer) writePatch(name string, destDir string, contents string) er
 	return nil
 }
 
-func (l *kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []string) error {
+func (l *Kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
@@ -186,7 +186,7 @@ func (l *kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []strin
 	return nil
 }
 
-func (l *kustomizer) writeBase(step api.Kustomize) error {
+func (l *Kustomizer) WriteBase(step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
 	baseKustomization := ktypes.Kustomization{}

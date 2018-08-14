@@ -70,11 +70,13 @@ func Test_kustomizer_writePatches(t *testing.T) {
 			mockState := state2.NewMockManager(mc)
 
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-			l := &kustomizer{
-				Logger: testLogger,
+			l := &daemonkustomizer{
+				Kustomizer: Kustomizer{
+					Logger: testLogger,
+					State:  mockState,
+					FS:     mockFs,
+				},
 				Daemon: mockDaemon,
-				State:  mockState,
-				FS:     mockFs,
 			}
 
 			got, err := l.writePatches(tt.args.shipOverlay, tt.args.destDir)
@@ -141,11 +143,13 @@ patches:
 			mockState := state2.NewMockManager(mc)
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			l := &kustomizer{
-				Logger: testLogger,
+			l := &daemonkustomizer{
+				Kustomizer: Kustomizer{
+					Logger: testLogger,
+					State:  mockState,
+					FS:     mockFs,
+				},
 				Daemon: mockDaemon,
-				State:  mockState,
-				FS:     mockFs,
 			}
 			if err := l.writeOverlay(mockStep, tt.patches); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
@@ -268,15 +272,17 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			fs, err := tt.fields.GetFS()
 			req.NoError(err)
 
-			l := &kustomizer{
-				Logger: testLogger,
+			l := &daemonkustomizer{
+				Kustomizer: Kustomizer{
+					Logger: testLogger,
+					State:  mockState,
+					FS:     fs,
+				},
 				Daemon: mockDaemon,
-				State:  mockState,
-				FS:     fs,
 			}
 
-			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
-				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
+			if err := l.WriteBase(mockStep); (err != nil) != tt.wantErr {
+				t.Errorf("kustomizer.WriteBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				basePathDest := path.Join(mockStep.BasePath, "kustomization.yaml")
 				fileBytes, err := l.FS.ReadFile(basePathDest)
@@ -375,11 +381,13 @@ patches:
 				Kustomize: test.kustomize,
 			}}, nil)
 
-			k := &kustomizer{
-				Logger: testLogger,
-				FS:     mockFS,
+			k := &daemonkustomizer{
+				Kustomizer: Kustomizer{
+					Logger: testLogger,
+					FS:     mockFS,
+					State:  mockState,
+				},
 				Daemon: mockDaemon,
-				State:  mockState,
 			}
 
 			err = k.Execute(

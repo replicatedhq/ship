@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"fmt"
+	"net/http"
 
 	"path"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
@@ -22,6 +24,16 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
 		stepShared := step.Shared()
 		if stepShared.ID == requestedStep {
+			// TODO(Robert): We need a base kustomization yaml to be written before the kustomization
+			// step, but kustomizeIntro is a no-op step.
+			if step.Kustomize != nil {
+				kustomizer := d.Kustomizer.(*kustomize.Kustomizer)
+				err := kustomizer.WriteBase(*step.Kustomize)
+				if err != nil {
+					level.Error(d.Logger).Log("event", "write base kustomization yaml")
+					c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "write base kustomization yaml"))
+				}
+			}
 
 			if ok := d.maybeAbortDueToMissingRequirement(stepShared.Requires, c, requestedStep); !ok {
 				return
