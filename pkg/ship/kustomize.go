@@ -56,10 +56,13 @@ func (s *Ship) stateFileExists(ctx context.Context) bool {
 func (s *Ship) Update(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "update"))
 
-	// does a state file exist on disk?
+	// does a state already exist
 	existingState, err := s.State.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
 
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Loading state from `+constants.StatePath))
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
@@ -96,6 +99,8 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
+	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
+
 	return s.execute(ctx, release, nil, true)
 }
 
@@ -106,10 +111,13 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 	for {
 		existingState, err := s.State.TryLoad()
+		if err != nil {
+			return errors.Wrap(err, "load state")
+		}
 
 		if _, noExistingState := existingState.(state.Empty); noExistingState {
 			debug.Log("event", "state.missing")
-			return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+			return errors.New(`No state found, please run "ship init"`)
 		}
 
 		debug.Log("event", "read.chartURL")
@@ -150,7 +158,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// does a state file exist on disk?
-	if s.stateFileExists(ctx) {
+	if s.stateFileExists(ctx) && !s.Viper.GetBool("rm-state") {
 		debug.Log("event", "state.exists")
 
 		useUpdate, err := s.UI.Ask(`
@@ -174,6 +182,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	}
 
 	helmChartPath := s.Viper.GetString("chart")
+	s.UI.Info("Downloading from " + helmChartPath + " ...")
 	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
@@ -217,7 +226,7 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 					{
 						KustomizeIntro: &api.KustomizeIntro{
 							StepShared: api.StepShared{
-								ID: "kustomize",
+								ID: "kustomize-intro",
 							},
 						},
 					},
@@ -228,14 +237,6 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 							StepShared: api.StepShared{
 								ID:          "kustomize",
 								Invalidates: []string{"diff"},
-							},
-						},
-					},
-					{
-						KustomizeDiff: &api.KustomizeDiff{
-							StepShared: api.StepShared{
-								ID:       "kustomize",
-								Requires: []string{"kustomize"},
 							},
 						},
 					},

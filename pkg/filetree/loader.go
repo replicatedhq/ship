@@ -25,7 +25,7 @@ const (
 // A Loader returns a struct representation
 // of a filesystem directory tree
 type Loader interface {
-	LoadTree(root string, kustomize *state.Kustomize) (*Node, error)
+	LoadTree(root string) (*Node, error)
 	// someday this should return an overlay too
 	LoadFile(root string, path string) (string, error)
 }
@@ -34,22 +34,44 @@ type Loader interface {
 func NewLoader(
 	fs afero.Afero,
 	logger log.Logger,
+	stateManager state.Manager,
 ) Loader {
 	return &aferoLoader{
-		FS:     fs,
-		Logger: logger,
+		FS:           fs,
+		Logger:       logger,
+		StateManager: stateManager,
 	}
 }
 
 type aferoLoader struct {
-	Logger  log.Logger
-	FS      afero.Afero
-	patches map[string]string
+	Logger       log.Logger
+	FS           afero.Afero
+	StateManager state.Manager
+	patches      map[string]string
 }
 
-func (a *aferoLoader) LoadTree(root string, kustomize *state.Kustomize) (*Node, error) {
+func (a *aferoLoader) loadShipPatches() error {
+	currentState, err := a.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "failed to load state")
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	shipOverlay := kustomize.Ship()
+	a.patches = shipOverlay.Patches
+	return nil
+}
+
+func (a *aferoLoader) LoadTree(root string) (*Node, error) {
+	if err := a.loadShipPatches(); err != nil {
+		return nil, errors.Wrapf(err, "load overlays")
+	}
+
 	fs := afero.Afero{Fs: afero.NewBasePathFs(a.FS, root)}
-	a.patches = kustomize.Overlays["ship"].Patches
 
 	files, err := fs.ReadDir("/")
 	if err != nil {

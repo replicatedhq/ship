@@ -13,12 +13,15 @@ import (
 
 	"path"
 
+	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
+	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -145,7 +148,9 @@ func TestForkTemplater(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 
+			mc := gomock.NewController(t)
 			testLogger := &logger.TestLogger{T: t}
+			mockState := state.NewMockManager(mc)
 			tpl := &ForkTemplater{
 				Helm: func() *exec.Cmd {
 					cmd := exec.Command(os.Args[0], "-test.run=TestMockHelm")
@@ -156,8 +161,15 @@ func TestForkTemplater(t *testing.T) {
 				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 				Viper:          viper.New(),
+				StateManager:   mockState,
 				process:        process.Process{Logger: testLogger},
 			}
+
+			mockState.EXPECT().TryLoad().Return(state2.VersionedState{
+				V1: &state2.V1{
+					HelmValues: "we fake",
+				},
+			}, nil)
 
 			channelName := "Frobnitz"
 			if test.channelName != "" {

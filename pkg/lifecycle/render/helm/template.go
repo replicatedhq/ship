@@ -12,11 +12,14 @@ import (
 
 	"regexp"
 
+	"path/filepath"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -45,6 +48,7 @@ type ForkTemplater struct {
 	FS             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
 	Viper          *viper.Viper
+	StateManager   state.Manager
 	process        process.Process
 }
 
@@ -105,6 +109,15 @@ func (f *ForkTemplater) Template(
 	err = f.helmDependencyUpdate(chartRoot)
 	if err != nil {
 		return errors.Wrap(err, "update helm dependencies")
+	}
+
+	if !viper.GetBool("is-app") {
+		// HACKKK for ship init
+
+		// todo move this, or refactor to share duped code from helmValues package
+		if err := writeStateHelmValuesToChartTmpdir(f.Logger, f.StateManager, f.FS); err != nil {
+			return errors.Wrapf(err, "copy state value to tmp directory", constants.RenderedHelmTempPath)
+		}
 	}
 
 	stdout, stderr, err := f.process.Fork(cmd)
@@ -285,6 +298,7 @@ func NewTemplater(
 	fs afero.Afero,
 	builderBuilder *templates.BuilderBuilder,
 	viper *viper.Viper,
+	stateManager state.Manager,
 ) Templater {
 	return &ForkTemplater{
 		Helm: func() *exec.Cmd {
@@ -294,6 +308,37 @@ func NewTemplater(
 		FS:             fs,
 		BuilderBuilder: builderBuilder,
 		Viper:          viper,
+		StateManager:   stateManager,
 		process:        process.Process{Logger: logger},
 	}
+}
+
+// TODO duped from lifecycle/helmValues
+func writeStateHelmValuesToChartTmpdir(logger log.Logger, manager state.Manager, fs afero.Afero) error {
+	debug := level.Debug(log.With(logger, "step.type", "helmValues", "resolveHelmValues"))
+	debug.Log("event", "tryLoadState")
+	editState, err := manager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	helmValues := editState.CurrentHelmValues()
+	if helmValues == "" {
+		defaultValuesShippedWithChart := filepath.Join(constants.KustomizeHelmPath, "values.yaml")
+		bytes, err := fs.ReadFile(defaultValuesShippedWithChart)
+		if err != nil {
+			return errors.Wrapf(err, "read helm values from %s", defaultValuesShippedWithChart)
+		}
+		helmValues = string(bytes)
+	}
+	debug.Log("event", "tryLoadState")
+	err = fs.MkdirAll(constants.TempHelmValuesPath, 0700)
+	if err != nil {
+		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
+	}
+	debug.Log("event", "writeTempValuesYaml")
+	err = fs.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(helmValues), 0644)
+	if err != nil {
+		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
+	}
+	return nil
 }

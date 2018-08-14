@@ -101,8 +101,28 @@ func TestV2CompleteStep(t *testing.T) {
 			POST:         "/api/v1/navcycle/step/foo",
 			ExpectStatus: 200,
 			ExpectBody: map[string]interface{}{
-				"status": "success",
-				"phase":  "message",
+				"currentStep": map[string]interface{}{
+					"message": map[string]interface{}{
+						"contents": "lol", "trusted_html": true,
+					},
+				},
+				"phase": "message",
+				"actions": []interface{}{
+					map[string]interface{}{
+						"buttonType":  "primary",
+						"text":        "Confirm",
+						"loadingText": "Confirming",
+						"onclick": map[string]interface{}{
+							"uri":    "/navcycle/step/foo",
+							"method": "POST",
+							"body":   "",
+						},
+					},
+				},
+
+				"progress": map[string]interface{}{
+					"source": "v2router", "type": "string", "level": "info", "detail": "success",
+				},
 			},
 			ExpectState: &matchers.Is{
 				Describe: "saved state has step foo completed",
@@ -175,8 +195,16 @@ func TestV2CompleteStep(t *testing.T) {
 				return nil
 			},
 			ExpectBody: map[string]interface{}{
-				"status": "success",
-				"phase":  "render",
+				"currentStep": map[string]interface{}{
+					"render": map[string]interface{}{},
+				},
+				"phase": "render",
+				"progress": map[string]interface{}{
+					"source": "v2router",
+					"type":   "string",
+					"level":  "info",
+					"detail": "success",
+				},
 			},
 		},
 		{
@@ -195,6 +223,7 @@ func TestV2CompleteStep(t *testing.T) {
 			// otherwise the state won't have been saved yet
 			WaitForCleanup: func() <-chan time.Time { return time.After(150 * time.Millisecond) },
 			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
+				d.StepProgress.Store("make-the-things", daemontypes.StringProgress("unittest", "workin on it"))
 				time.Sleep(600 * time.Millisecond)
 				return nil
 			},
@@ -210,9 +239,16 @@ func TestV2CompleteStep(t *testing.T) {
 				},
 			},
 			ExpectBody: map[string]interface{}{
-				"status": "working",
-				"phase":  "render",
-				"poll":   "/lifecycle/step/make-the-things",
+				"currentStep": map[string]interface{}{
+					"render": map[string]interface{}{},
+				},
+				"phase": "render",
+				"progress": map[string]interface{}{
+					"source": "unittest",
+					"level":  "info",
+					"type":   "string",
+					"detail": "workin on it",
+				},
 			},
 		},
 	}
@@ -287,7 +323,7 @@ func TestV2CompleteStep(t *testing.T) {
 				if err != nil {
 					bodyForDebug = []byte(err.Error())
 				}
-				req.Empty(diff, "\nexpect: %s\nactual: %s", bodyForDebug, string(bytes))
+				req.Empty(diff, "\nexpect: %s\nactual: %s\ndiff: %s", bodyForDebug, string(bytes), strings.Join(diff, "\n"))
 
 			}()
 		})

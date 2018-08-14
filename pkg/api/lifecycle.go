@@ -1,5 +1,7 @@
 package api
 
+import "fmt"
+
 // A Lifecycle  is the top-level lifecycle object
 type Lifecycle struct {
 	V1 []Step `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
@@ -13,10 +15,14 @@ type Step struct {
 	Terraform      *Terraform      `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	Kustomize      *Kustomize      `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty" yaml:"kustomizeIntro,omitempty" hcl:"kustomizeIntro,omitempty"`
-	KustomizeDiff  *KustomizeDiff  `json:"kustomizeDiff,omitempty" yaml:"kustomizeDiff,omitempty" hcl:"kustomizeDiff,omitempty"`
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	KubectlApply   *KubectlApply   `json:"kubectl_apply,omitempty" yaml:"kubectl_apply,omitempty" hcl:"kubectl_apply,omitempty"`
+}
+
+func (s *Step) String() string {
+	step := s.GetStep()
+	return fmt.Sprintf("api.Step{ID: %q, Name: %q}", step.Shared().ID, step.ShortName())
 }
 
 type StepDetails interface {
@@ -36,8 +42,6 @@ func (s Step) GetStep() StepDetails {
 		return s.Terraform
 	} else if s.KustomizeIntro != nil {
 		return s.KustomizeIntro
-	} else if s.KustomizeDiff != nil {
-		return s.KustomizeDiff
 	} else if s.Kustomize != nil {
 		return s.Kustomize
 	} else if s.HelmIntro != nil {
@@ -104,16 +108,6 @@ type KustomizeIntro struct {
 
 func (k *KustomizeIntro) Shared() *StepShared { return &k.StepShared }
 func (k *KustomizeIntro) ShortName() string   { return "kustomize-intro" }
-
-// KustomizeDiff is a lifecycle step to display the diff of kustomized assets
-type KustomizeDiff struct {
-	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	BasePath   string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
-	Dest       string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
-}
-
-func (k *KustomizeDiff) Shared() *StepShared { return &k.StepShared }
-func (k *KustomizeDiff) ShortName() string   { return "kustomize-diff" }
 
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {

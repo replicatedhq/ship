@@ -384,7 +384,7 @@ patches:
 
 			err = k.Execute(
 				ctx,
-				release,
+				&release,
 				api.Kustomize{
 					BasePath: constants.RenderedHelmPath,
 					Dest:     "overlays/ship",

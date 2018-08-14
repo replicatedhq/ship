@@ -13,6 +13,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 type Manager interface {
@@ -112,6 +115,89 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 
 // TryLoad will attempt to load a state file from disk, if present
 func (m *MManager) TryLoad() (State, error) {
+	stateFrom := m.V.GetString("state-from")
+	if stateFrom == "" {
+		stateFrom = "file"
+	}
+
+	// TODO consider an interface
+
+	switch stateFrom {
+	case "file":
+		return m.tryLoadFromFile()
+	case "secret":
+		return m.tryLoadFromSecret()
+	default:
+		err := fmt.Errorf("unsupported state-from value: %q", stateFrom)
+		return nil, errors.Wrap(err, "try load state")
+	}
+}
+
+// tryLoadFromSecret will attempt to load the state from a secret
+// currently only supports in-cluster execution
+func (m *MManager) tryLoadFromSecret() (State, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "get in cluster config")
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "get kubernetes client")
+	}
+
+	ns := m.V.GetString("secret-namespace")
+	if ns == "" {
+		return nil, errors.New("secret-namespace is not set")
+	}
+	secretName := m.V.GetString("secret-name")
+	if secretName == "" {
+		return nil, errors.New("secret-name is not set")
+	}
+	secretKey := m.V.GetString("secret-key")
+	if secretKey == "" {
+		return nil, errors.New("secret-key is not set")
+	}
+
+	secret, err := clientset.CoreV1().Secrets(ns).Get(secretName, metav1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "get secret")
+	}
+
+	serialized, ok := secret.Data[secretKey]
+	if !ok {
+		err := fmt.Errorf("key %q not found in secret %q", secretKey, secretName)
+		return nil, errors.Wrap(err, "get state from secret")
+	}
+
+	// HACK -- try to deserialize it as VersionedState, otherwise, assume its a raw map of config values
+	var state VersionedState
+	if err := json.Unmarshal(serialized, &state); err != nil {
+		return nil, errors.Wrap(err, "unmarshal state")
+	}
+
+	level.Debug(m.Logger).Log(
+		"event", "state.unmarshal",
+		"type", "versioned",
+		"source", "secret",
+		"value", fmt.Sprintf("%+v", state),
+	)
+
+	if state.V1 != nil {
+		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
+		return state, nil
+	}
+
+	var mapState map[string]interface{}
+	if err := json.Unmarshal(serialized, &mapState); err != nil {
+		return nil, errors.Wrap(err, "unmarshal state")
+	}
+
+	level.Debug(m.Logger).Log("event", "state.resolve", "type", "raw")
+	return V0(mapState), nil
+}
+
+func (m *MManager) tryLoadFromFile() (State, error) {
 	statePath := m.V.GetString("state-file")
 	if statePath == "" {
 		statePath = constants.StatePath
@@ -136,6 +222,7 @@ func (m *MManager) TryLoad() (State, error) {
 	level.Debug(m.Logger).Log(
 		"event", "state.unmarshal",
 		"type", "versioned",
+		"source", "file",
 		"value", fmt.Sprintf("%+v", state),
 	)
 
@@ -184,7 +271,28 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (m *MManager) serializeAndWriteState(state VersionedState) error {
-	state.V1.ChartURL = state.CurrentChartURL() // chart URL persists throughout `init` lifecycle
+	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
+
+	stateFrom := m.V.GetString("state-from")
+	if stateFrom == "" {
+		stateFrom = "file"
+	}
+
+	debug.Log("event", "serializeAndWriteState", "stateFrom", stateFrom)
+
+	switch stateFrom {
+	case "file":
+		return m.serializeAndWriteStateFile(state)
+	case "secret":
+		return m.serializeAndWriteStateSecret(state)
+	default:
+		err := fmt.Errorf("unsupported state-from value: %q", stateFrom)
+		return errors.Wrap(err, "serializeAndWriteState")
+	}
+}
+
+func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
+	state.V1.ChartURL = state.CurrentChartURL()
 
 	serialized, err := json.Marshal(state)
 	if err != nil {
@@ -199,6 +307,43 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 	err = m.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")
+	}
+
+	return nil
+}
+
+func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
+	state.V1.ChartURL = state.CurrentChartURL()
+
+	serialized, err := json.Marshal(state)
+	if err != nil {
+		return errors.Wrap(err, "serialize state")
+	}
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return errors.Wrap(err, "get in cluster config")
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "get kubernetes client")
+	}
+
+	secret, err := clientset.CoreV1().Secrets(m.V.GetString("secret-namespace")).Get(m.V.GetString("secret-name"), metav1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "get secret")
+	}
+
+	secret.Data[m.V.GetString("secret-key")] = serialized
+	secret.Data["marc"] = []byte("Asdasd")
+	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
+
+	debug.Log("event", "serializeAndWriteStateSecret", "name", secret.Name, "key", m.V.GetString("secret-key"))
+
+	_, err = clientset.CoreV1().Secrets(m.V.GetString("secret-namespace")).Update(secret)
+	if err != nil {
+		return errors.Wrap(err, "update secret")
 	}
 
 	return nil
