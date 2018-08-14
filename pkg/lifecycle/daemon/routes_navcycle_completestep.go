@@ -38,7 +38,7 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		state, err := d.StateManager.TryLoad()
+		currentState, err := d.StateManager.TryLoad()
 		if err != nil {
 			c.AbortWithError(500, err)
 			return
@@ -69,17 +69,13 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 		}
 
 		if async {
-			c.JSON(200, map[string]interface{}{
-				"status": "working",
-				"phase":  step.ShortName(),
-				"poll":   fmt.Sprintf("/lifecycle/step/%s", stepID),
-			})
-			go d.handleAsync(errChan, debug, step, stepID, state)
+			d.hydrateAndSend(daemontypes.NewStep(step), c)
+			go d.handleAsync(errChan, debug, step, stepID, currentState)
 			return
 		}
 		level.Info(logger).Log("event", "task.complete", "progess", d.progress(step))
 		d.StepProgress.Store(stepID, daemontypes.StringProgress("v2router", "success"))
-		newState := state.Versioned().WithCompletedStep(step)
+		newState := currentState.Versioned().WithCompletedStep(step)
 
 		err = d.StateManager.Save(newState)
 		if err != nil {
@@ -88,10 +84,7 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		c.JSON(200, map[string]interface{}{
-			"status": "success",
-			"phase":  step.ShortName(),
-		})
+		d.hydrateAndSend(daemontypes.NewStep(step), c)
 		return
 	}
 
