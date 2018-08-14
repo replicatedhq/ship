@@ -19,6 +19,14 @@
 # [[override]]
 #  name = "github.com/x/y"
 #  version = "2.4.0"
+
+# vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go has a change to fix types for version kubernetes-1.10.6
+# at line 300,
+# 		token:       spt.Token,
+# was replaced by
+#		token:       spt.Token(),
+noverify = ["k8s.io/client-go"]
+
 [prune]
   go-tests = true
   unused-packages = true
@@ -94,6 +102,9 @@
   # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
   revision = "bca10bed01016dcaebb845433499fbb2a6343139"
 
+# this package is currently marked as noverify
+# if we change it so that we no longer need to edit vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go
+# then that noverify entry should be removed
 [[override]]
   name = "k8s.io/client-go"
   version = "kubernetes-1.10.6"
