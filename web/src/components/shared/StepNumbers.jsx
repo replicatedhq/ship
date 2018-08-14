@@ -31,14 +31,14 @@ class StepNumbers extends React.Component {
 
   setStepsToState() {
     const { steps } = this.props;
-    let stateSteps = [];
-    steps.map((step) => {
+    const stateSteps = steps.map((step) => {
+      const cleanedPath = this.props.location.pathname.split("/")[1];
       const newStep = {
         ...step,
         isComplete: false,
-        isActive: this.props.location.pathname.includes(step.id),
-      }
-      stateSteps.push(newStep);
+        isActive: cleanedPath === step.id,
+      };
+      return newStep;
     });
     const currIdx = find(stateSteps, ["isActive", true]);
     const currStep = indexOf(stateSteps, currIdx);
@@ -55,9 +55,11 @@ class StepNumbers extends React.Component {
   }
 
   determineCurrentStep(id) {
+    // console.log("id", id);
     let stateStep = find(this.state.steps, ["id", id]);
     const stateStepIndex = indexOf(this.state.steps, stateStep);
     const { currentStep } = this.state;
+    // console.log("currentStep", currentStep);
     stateStep.isActive = currentStep === stateStepIndex ? true : false;
   }
 
@@ -91,6 +93,7 @@ class StepNumbers extends React.Component {
 
   renderSteps() {
     const { steps } = this.state;
+    // console.log("steps", steps);
     if (!steps.length) return;
     const renderedSteps = this.state.steps.map((step, i) => {
       this.determineCurrentStep(step.id); // Is this the current step, if so set to active
