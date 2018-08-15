@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"time"
 
 	_ "github.com/kubernetes-sigs/kustomize/pkg/app"
 	_ "github.com/kubernetes-sigs/kustomize/pkg/fs"
@@ -28,6 +29,8 @@ of 0 when there's an update available.`,
 			return nil
 		},
 	}
+
+	cmd.Flags().DurationP("interval", "", time.Duration(time.Minute*15), "interval to wait between cycles polling for updates")
 
 	return cmd
 }
