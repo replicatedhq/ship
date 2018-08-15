@@ -173,7 +173,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 		if strings.Compare(useUpdate, "y") == 0 {
 			// remove state.json and start from scratch
 			if err := s.State.RemoveStateFile(); err != nil {
-				return err
+				return errors.Wrap(err, "remove existing state")
 			}
 		} else {
 			// exit and use 'ship update'
