@@ -10,12 +10,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/helm"
+	_ "github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/spf13/afero"
 )
-
-var importMe helm.ImportMe
 
 // ChartFetcher fetches a chart based on an asset. it returns
 // the location that the chart was unpacked to, usually a temporary directory
