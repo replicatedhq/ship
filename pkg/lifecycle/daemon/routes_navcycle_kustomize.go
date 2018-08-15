@@ -8,7 +8,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	patch2 "github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -187,12 +186,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	debug.Log("event", "patcher.CreatePatch")
-	// I have no idea why d.Patcher is hanging forever here
-	patcher := &patch2.ShipPatcher{
-		Logger: d.Logger,
-		FS:     d.Fs,
-	}
-	patch, err := patcher.CreateTwoWayMergePatch(original, request.Modified)
+	patch, err := d.Patcher.CreateTwoWayMergePatch(original, request.Modified)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))

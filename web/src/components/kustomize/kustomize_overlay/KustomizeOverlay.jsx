@@ -12,7 +12,6 @@ import find from "lodash/find";
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
 import Toast from "../../shared/Toast";
-import KustomizeEmpty from "./KustomizeEmpty";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 import DiffEditor from "../../shared/DiffEditor";
 
@@ -216,22 +215,21 @@ export default class KustomizeOverlay extends React.Component {
 
                 <div className={`flex-column flex1 ${showOverlay && "u-paddingRight--15"}`}>
                   <div className="flex1 flex-column u-position--relative">
-                    {selectedFile === "" ?
-                      <KustomizeEmpty skipKustomize={() => this.handlFinalize()} />
-                      : fileLoadErr ?
+                    {fileLoadErr ?
+                      <div className="flex-column flex1 alignItems--center justifyContent--center">
+                        <p className="u-color--chestnut u-fontSize--normal u-fontWeight--medium">Oops, we ran into a probelm getting that file, <span className="u-fontWeight--bold">{fileLoadErrMessage}</span></p>
+                      </div>
+                      : dataLoading.fileContentLoading ?
                         <div className="flex-column flex1 alignItems--center justifyContent--center">
-                          <p className="u-color--chestnut u-fontSize--normal u-fontWeight--medium">Oops, we ran into a probelm getting that file, <span className="u-fontWeight--bold">{fileLoadErrMessage}</span></p>
+                          <Loader size="50" color="#337AB7" />
                         </div>
-                        : dataLoading.fileContentLoading ?
-                          <div className="flex-column flex1 alignItems--center justifyContent--center">
-                            <Loader size="50" color="#337AB7" />
+                        :
+                        <div className="flex1 flex-column">
+                          <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
+                            <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
+                            <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
                           </div>
-                          :
-                          <div className="flex1 flex-column">
-                            <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
-                              <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
-                              <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
-                            </div>
+                          { selectedFile !== "" ?
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
                               (fileToView && fileToView.overlayContent.length ?
@@ -252,7 +250,8 @@ export default class KustomizeOverlay extends React.Component {
                                 overlayOpen={showOverlay}
                               />
                             </div>
-                          </div>
+                            : null }
+                        </div>
                     }
                   </div>
                 </div>

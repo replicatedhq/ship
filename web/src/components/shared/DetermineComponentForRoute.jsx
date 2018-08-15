@@ -110,7 +110,10 @@ class DetermineComponentForRoute extends React.Component {
       );
     case "kustomize-intro":
       return (
-        <KustomizeEmpty />
+        <KustomizeEmpty
+          actions={actions}
+          handleAction={this.handleAction}
+        />
       );
     case "kustomize":
       return (
