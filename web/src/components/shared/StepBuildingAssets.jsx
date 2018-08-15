@@ -9,39 +9,16 @@ export default class StepBuildingAssets extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.finished = false;
   }
 
-  componentDidMount() {
-    this.startPoll();
-  }
-
-  componentDidUpdate(lastProps) {
-    const { detail } = this.props.status;
-    const parsedDetail = JSON.parse(detail);
-
-    if (this.props.status !== lastProps.status) {
-      clearTimeout(this.timeout);
-      this.startPoll();
-    }
-
-    if(this.props.status && parsedDetail.status === "success") {
-      this.finished = true;
+  componentDidUpdate() {
+    if (this.props.finished && this.props.location.pathname === "/render") {
       this.props.handleAction();
     }
   }
 
-  isFinished() {
-    return this.finished;
-  }
-
-  startPoll() {
-    const self = this;
-    this.timeout = setTimeout(() => {
-      if (!self.finished) {
-        this.props.getStep("getStatus");
-      }
-    }, 1000);
+  componentDidMount() {
+    this.props.startPoll();
   }
 
   render() {

@@ -1,7 +1,6 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
 import autoBind from "react-autobind";
-import isEmpty from "lodash/isEmpty";
 import find from "lodash/find";
 import indexOf from "lodash/indexOf";
 
@@ -21,9 +20,27 @@ class DetermineComponentForRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      maxPollReached: false
+      startPoll: false,
+      finished: false,
     };
     autoBind(this);
+  }
+
+  componentDidMount() {
+    this.props.getContentForStep(this.props.routeId);
+  }
+
+  componentDidUpdate() {
+    const { progress = {} } = this.props;
+    const { detail = "{}" } = progress;
+    const parsedDetail = JSON.parse(detail);
+
+    const pollStartedButNotFinished = !this.state.finished && this.state.startPoll;
+    if(parsedDetail.status === "success" && pollStartedButNotFinished) {
+      this.setState({ finished: true, startPoll: false }, () => {
+        clearInterval(this.interval);
+      });
+    }
   }
 
   async handleAction(action) {
@@ -39,8 +56,20 @@ class DetermineComponentForRoute extends React.Component {
     }
   }
 
+  startPoll(routeId) {
+    if (!this.state.startPoll) {
+      this.setState({ startPoll: true, finished: false });
+      const { finished } = this.state;
+      this.interval = setInterval(() => {
+        if (!finished) {
+          this.props.getContentForStep(routeId);
+        }
+      }, 1000);
+    }
+  }
+
   renderStep(phase) {
-    const { currentStep, progress, actions } = this.props;
+    const { currentStep, progress, actions, location } = this.props;
     if (!phase || !phase.length) return null;
     switch (phase) {
     case "requirementNotMet":
@@ -73,18 +102,17 @@ class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets
-          getStep={() => this.props.getContentForStep(this.props.routeId)}
+          startPoll={() => this.startPoll(this.props.routeId)}
+          finished={this.state.finished}
           handleAction={this.handleAction}
-          stepId={this.props.routeId}
+          location={location}
           status={progress || currentStep.status}
         />
       );
     case "terraform.prepare":
       return (
         <StepBuildingAssets
-          getStep={this.props.getCurrentStep}
           stepId={this.props.routeId}
-          status={progress}
         />
       );
     case "helm-intro":
@@ -118,6 +146,13 @@ class DetermineComponentForRoute extends React.Component {
     case "kustomize":
       return (
         <KustomizeOverlay
+          startPoll={() => this.startPoll(this.props.routeId)}
+          finished={this.state.finished}
+          location={location}
+          actions={actions}
+          isNavcycle={true}
+          finalizeStep={this.props.finalizeStep}
+          handleAction={this.handleAction}
           currentStep={currentStep}
           dataLoading={this.props.dataLoading}
         />
@@ -132,60 +167,6 @@ class DetermineComponentForRoute extends React.Component {
           <Loader size="60" />
         </div>
       );
-    }
-  }
-
-  startMaxTimeout() {
-    this.maxTimout = setTimeout(() => this.setState({ maxPollReached: true }), 60000);
-  }
-
-  componentDidMount() {
-    this.startPoll();
-    this.startMaxTimeout();
-    this.pollIfStream();
-  }
-
-  componentWillUnmount() {
-    // clearTimeout(this.timeout);
-    // clearTimeout(this.maxTimout);
-    // clearInterval(this.streamer);
-  }
-
-  componentDidUpdate(lastProps) {
-    if (this.props.currentStep !== lastProps.currentStep && !isEmpty(this.props.currentStep)) {
-      clearTimeout(this.timeout);
-      clearTimeout(this.maxTimout);
-    }
-    if (this.props.currentStep !== lastProps.currentStep && isEmpty(this.props.currentStep)) {
-      clearTimeout(this.timeout);
-      if (!this.props.dataLoading.getCurrentStepLoading && !this.state.maxPollReached) {
-        this.startPoll();
-      }
-    }
-
-    if (this.props.phase !== lastProps.phase) {
-      // if (this.props.phase === "render.config") {
-      //   this.props.history.push("/application-settings");
-      // }
-      // if (this.props.phase === "kustomize") {
-      //   this.props.history.push("/kustomize");
-      // }
-    }
-    this.pollIfStream();
-  }
-
-  startPoll() {
-    this.timeout = setTimeout(() => this.props.getContentForStep(this.props.routeId), 1000);
-  }
-
-  pollIfStream() {
-    if (this.props.phase !== "stream") {
-      clearInterval(this.streamer);
-      delete this.streamer;
-      return;
-    }
-    if (!this.streamer) {
-      this.streamer = setInterval(() => this.props.getContentForStep(this.props.routeId), 1000);
     }
   }
 

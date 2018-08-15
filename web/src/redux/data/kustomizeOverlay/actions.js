@@ -1,6 +1,5 @@
 import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
-import { getCurrentStep } from "../determineSteps/actions";
 
 const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
@@ -68,7 +67,6 @@ export function saveKustomizeOverlay(payload) {
       }
       await response.json();
       dispatch(loadingData("saveKustomize", false));
-      dispatch(getCurrentStep());
     } catch (error) {
       dispatch(loadingData("saveKustomize", false));
       console.log(error)

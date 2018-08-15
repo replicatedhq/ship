@@ -70,3 +70,7 @@ func (p *ProgressMap) Load(stepID string) (Progress, bool) {
 func (p *ProgressMap) Store(stepID string, progress Progress) {
 	p.Map.Store(stepID, progress)
 }
+
+func (p *ProgressMap) Delete(stepID string) {
+	p.Map.Delete(stepID)
+}
