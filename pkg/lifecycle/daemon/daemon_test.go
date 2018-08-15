@@ -48,6 +48,9 @@ func initTestDaemon(
 		OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
 	}
 
+	if v2 != nil {
+		v.Set("navcycle", true)
+	}
 	daemon := &ShipDaemon{
 		Logger:         log,
 		WebUIFactory:   WebUIFactoryFactory(log),

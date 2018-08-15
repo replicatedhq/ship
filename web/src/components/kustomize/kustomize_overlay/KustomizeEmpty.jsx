@@ -1,13 +1,14 @@
 import React from "react";
+import RenderActions from "../../shared/RenderActions";
 
 export default class KustomizeEmpty extends React.Component {
-
   render() {
+    const { actions, handleAction} = this.props;
     return (
       <div className="flex1 flex-column u-paddingLeft--20 u-paddingRight--20 u-paddingTop--30 u-paddingBottom--30 u-overflow--auto EmmptyState--wrapper">
         <p className="u-fontSize--jumbo u-color--tuna u-fontWeight--bold u-marginBottom--normal u-lineHeight--normal">Kustomize your YAML with overlays</p>
         <p className="u-fontSize--normal u-fontWeight--medium u-lineHeight--more">
-          An overlay is a target that modifies (and thus depends on) another target. The kustomization in an overlay refers to (via file path, URI or other method) 
+          An overlay is a target that modifies (and thus depends on) another target. The kustomization in an overlay refers to (via file path, URI or other method)
           some other kustomization, known as its base. Overlays make the most sense when there is more than one, because they create different variants of a common base
           - e.g. development, QA, staging and production environment variants.
         </p>
@@ -41,6 +42,9 @@ export default class KustomizeEmpty extends React.Component {
               </div>
             </div>
           </div>
+        </div>
+        <div className="action container u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+          <RenderActions actions={actions} handleAction={handleAction} />
         </div>
         <div className="skip-wrapper">
           <p className="u-fontSize--normal u-fontWeight--medium u-lineHeight--more">

@@ -31,14 +31,14 @@ class StepNumbers extends React.Component {
 
   setStepsToState() {
     const { steps } = this.props;
-    let stateSteps = [];
-    steps.map((step) => {
+    const stateSteps = steps.map((step) => {
+      const cleanedPath = this.props.location.pathname.split("/")[1];
       const newStep = {
         ...step,
         isComplete: false,
-        isActive: this.props.location.pathname.includes(step.id),
-      }
-      stateSteps.push(newStep);
+        isActive: cleanedPath === step.id,
+      };
+      return newStep;
     });
     const currIdx = find(stateSteps, ["isActive", true]);
     const currStep = indexOf(stateSteps, currIdx);

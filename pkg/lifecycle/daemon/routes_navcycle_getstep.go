@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"fmt"
+	"net/http"
 
 	"path"
 
@@ -9,8 +10,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
@@ -22,6 +25,16 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
 		stepShared := step.Shared()
 		if stepShared.ID == requestedStep {
+			// TODO(Robert): We need a base kustomization yaml to be written before the kustomization
+			// step, but kustomizeIntro is a no-op step.
+			if step.Kustomize != nil {
+				kustomizer := d.Kustomizer.(*kustomize.Kustomizer)
+				err := kustomizer.WriteBase(*step.Kustomize)
+				if err != nil {
+					level.Error(d.Logger).Log("event", "write base kustomization yaml")
+					c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "write base kustomization yaml"))
+				}
+			}
 
 			if ok := d.maybeAbortDueToMissingRequirement(stepShared.Requires, c, requestedStep); !ok {
 				return
@@ -29,29 +42,40 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 
 			if step.Render == nil {
 				d.hydrateAndSend(daemontypes.NewStep(step), c)
-				return
 			} else {
-				debug.Log("event", "renderStep.get", "msg", "(hack) starting render on GET request")
-				// HACK HACK HACK because dex can't redux
-				//
-				// on get render, automatically treat it like a POST to the render step,
-				// that is, start rendering, let the UI poll for status.
-				//
-				// ideally (maybe?) this can happen on the FE, as soon as render page loads, FE does a POST
-				//
-				// we check if its in the map, for now only run render if its never been run, or if its already done
-				progress, ok := d.StepProgress.Load(step.Shared().ID)
-				if !ok || progress.Detail == "success" {
-					d.completeStep(c)
-				} else {
-					d.hydrateAndSend(daemontypes.NewStep(step), c)
-				}
-				return
+				d.hackMaybeRunRenderOnGET(debug, c, step)
 			}
+			return
 		}
 	}
 
 	d.errNotFond(c)
+}
+
+func (d *NavcycleRoutes) hackMaybeRunRenderOnGET(debug log.Logger, c *gin.Context, step api.Step) {
+	debug.Log("event", "renderStep.get", "msg", "(hack) starting render on GET request")
+	// HACK HACK HACK because dex can't redux
+	//
+	// on get render, automatically treat it like a POST to the render step,
+	// that is, start rendering, let the UI poll for status.
+	//
+	// ideally (maybe?) this can happen on the FE, as soon as render page loads, FE does a POST
+	//
+	// we check if its in the map, for now only run render if its never been run, or if its already done
+	state, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "load state"))
+		return
+	}
+	_, renderAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
+	progress, ok := d.StepProgress.Load(step.Shared().ID)
+	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !renderAlreadyComplete
+	if shouldRender {
+		d.completeStep(c)
+	} else {
+		d.hydrateAndSend(daemontypes.NewStep(step), c)
+	}
+	return
 }
 
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
@@ -100,11 +124,12 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 }
 
 func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action {
-	progress, ok := d.StepProgress.Load(step.Source.Shared().ID)
+	progress, hasProgress := d.StepProgress.Load(step.Source.Shared().ID)
 
-	shouldAddActions := ok && progress.Detail != "success"
+	/// JAAAANK
+	shouldSkipActions := hasProgress && progress.Detail != `{"status":"success"}`
 
-	if shouldAddActions {
+	if shouldSkipActions {
 		return nil
 	}
 
@@ -159,6 +184,19 @@ func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action 
 				ButtonType:  "primary",
 				Text:        "Next",
 				LoadingText: "Next",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.Kustomize != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Finalize Overlays",
+				LoadingText: "Finalizing Overlays",
 				OnClick: daemontypes.ActionRequest{
 					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",

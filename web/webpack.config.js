@@ -116,7 +116,19 @@ module.exports = function (env) {
           ]
         },
       }),
-      new MonacoWebpackPlugin()
+      new MonacoWebpackPlugin({
+        languages: [
+          "yaml",
+          "json",
+        ],
+        features: [
+          "coreCommands",
+          "folding",
+          "bracketMatching",
+          "clipboard",
+          "find",
+        ],
+      })
     ],
   };
 

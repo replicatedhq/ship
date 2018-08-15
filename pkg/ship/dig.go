@@ -66,7 +66,6 @@ func buildInjector() (*dig.Container, error) {
 		daemon.NewV1Router,
 		resolve.NewRenderer,
 		terraform2.NewTerraformer,
-		kustomize.NewKustomizer,
 		tfplan.NewPlanner,
 
 		state.NewManager,
@@ -153,6 +152,7 @@ func headlessProviders() []interface{} {
 		config.NewResolver,
 		render.NewFactory,
 		helmValues.NewHelmValues,
+		kustomize.NewDaemonKustomizer,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -167,6 +167,7 @@ func headedProviders() []interface{} {
 		config.NewResolver,
 		render.NewFactory,
 		helmValues.NewHelmValues,
+		kustomize.NewDaemonKustomizer,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -182,6 +183,7 @@ func navcycleProviders() []interface{} {
 		config.NewNoOpResolver,
 		helmValues.NewDaemonlessHelmValues,
 		kustomizeintro.NewKustomizeIntro,
+		kustomize.NewDaemonlessKustomizer,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		// fake, we override it, this is janky, use a factory dex

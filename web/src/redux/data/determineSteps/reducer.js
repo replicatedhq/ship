@@ -18,7 +18,7 @@ export function stepsData(state = stepsDataState, action) {
     return Object.assign({}, state, {
       step: currentStep,
       phase: action.payload.phase,
-      progress: action.payload.progress,
+      progress: action.payload.progress || action.payload.status,
       actions: action.payload.actions,
       kustomizeFlow: isKustomize
     });

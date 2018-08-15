@@ -43,7 +43,6 @@ func NewHelmValues(
 type daemonlessHelmValues struct {
 	Fs           afero.Afero
 	Logger       log.Logger
-	Daemon       daemontypes.Daemon
 	StateManager state.Manager
 }
 

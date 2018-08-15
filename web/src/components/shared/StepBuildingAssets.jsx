@@ -11,23 +11,14 @@ export default class StepBuildingAssets extends React.Component {
     autoBind(this);
   }
 
-  componentDidMount() {
-    this.startPoll();
-  }
-
-  componentDidUpdate(lastProps) {
-    if (this.props.status !== lastProps.status) {
-      clearTimeout(this.timeout);
-      this.startPoll();
+  componentDidUpdate() {
+    if (this.props.finished && this.props.location.pathname === "/render") {
+      this.props.handleAction();
     }
   }
 
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
-  }
-
-  startPoll() {
-    this.timeout = setTimeout(() => this.props.getStep("getStatus"), 1000);
+  componentDidMount() {
+    this.props.startPoll();
   }
 
   render() {
@@ -41,7 +32,12 @@ export default class StepBuildingAssets extends React.Component {
     }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
-        <Loader size="60" />
+        { progressDetail && progressDetail.status === "success" ?
+          <div className="success">
+            <span className="icon u-smallCheckWhite"></span>
+          </div> :
+          <Loader size="60" />
+        }
         {status.source === "render" ?
           <div>
             <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">

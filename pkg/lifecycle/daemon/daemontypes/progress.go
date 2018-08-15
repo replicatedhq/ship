@@ -22,12 +22,9 @@ func (p Progress) String() string {
 }
 
 func StringProgress(source, detail string) Progress {
-	return Progress{
-		Source: source,
-		Type:   "string",
-		Level:  "info",
-		Detail: detail,
-	}
+	return JSONProgress(source, map[string]interface{}{
+		"status": detail,
+	})
 }
 
 func JSONProgress(source string, detail interface{}) Progress {
@@ -72,4 +69,8 @@ func (p *ProgressMap) Load(stepID string) (Progress, bool) {
 
 func (p *ProgressMap) Store(stepID string, progress Progress) {
 	p.Map.Store(stepID, progress)
+}
+
+func (p *ProgressMap) Delete(stepID string) {
+	p.Map.Delete(stepID)
 }
