@@ -229,8 +229,9 @@ export default class KustomizeOverlay extends React.Component {
                             <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
                             <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
                           </div>
-                          <div className="flex1 file-contents-wrapper AceEditor--wrapper">
-                            {!showOverlay &&
+                          { selectedFile !== "" ?
+                            <div className="flex1 file-contents-wrapper AceEditor--wrapper">
+                              {!showOverlay &&
                               (fileToView && fileToView.overlayContent.length ?
                                 <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
                                   <span className="icon clickable u-overlayViewIcon"></span>
@@ -240,15 +241,16 @@ export default class KustomizeOverlay extends React.Component {
                                   <span className="icon clickable u-overlayCreateIcon"></span>
                                 </div>
                               )
-                            }
-                            <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>
-                            <AceEditorHOC
-                              handleGeneratePatch={this.handleGeneratePatch}
-                              fileToView={fileToView}
-                              diffOpen={this.state.viewDiff}
-                              overlayOpen={showOverlay}
-                            />
-                          </div>
+                              }
+                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>
+                              <AceEditorHOC
+                                handleGeneratePatch={this.handleGeneratePatch}
+                                fileToView={fileToView}
+                                diffOpen={this.state.viewDiff}
+                                overlayOpen={showOverlay}
+                              />
+                            </div>
+                            : null }
                         </div>
                     }
                   </div>
