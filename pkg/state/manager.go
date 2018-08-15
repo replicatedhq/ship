@@ -262,7 +262,7 @@ func (m *MManager) RemoveStateFile() error {
 		statePath = constants.StatePath
 	}
 
-	err := m.FS.Remove(statePath)
+	err := m.FS.RemoveAll(statePath)
 	if err != nil {
 		return errors.Wrap(err, "remove state file")
 	}
