@@ -20,7 +20,6 @@ class DetermineComponentForRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      maxPollReached: false,
       startPoll: false,
       finished: false,
     };
@@ -70,7 +69,7 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   renderStep(phase) {
-    const { currentStep, progress, actions } = this.props;
+    const { currentStep, progress, actions, location } = this.props;
     if (!phase || !phase.length) return null;
     switch (phase) {
     case "requirementNotMet":
@@ -106,7 +105,7 @@ class DetermineComponentForRoute extends React.Component {
           startPoll={() => this.startPoll(this.props.routeId)}
           finished={this.state.finished}
           handleAction={this.handleAction}
-          stepId={this.props.routeId}
+          location={location}
           status={progress || currentStep.status}
         />
       );
@@ -149,7 +148,7 @@ class DetermineComponentForRoute extends React.Component {
         <KustomizeOverlay
           startPoll={() => this.startPoll(this.props.routeId)}
           finished={this.state.finished}
-          stepId={this.props.routeId}
+          location={location}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}

@@ -12,7 +12,7 @@ export default class StepBuildingAssets extends React.Component {
   }
 
   componentDidUpdate() {
-    if (this.props.finished && this.props.stepId === "render") {
+    if (this.props.finished && this.props.location.pathname === "/render") {
       this.props.handleAction();
     }
   }

@@ -58,7 +58,7 @@ export default class KustomizeOverlay extends React.Component {
       this.setState({ patch: this.props.patch });
     }
 
-    if (this.props.finished && this.props.stepId === "kustomize") {
+    if (this.props.finished && this.props.location.pathname === "/kustomize") {
       this.props.handleAction();
     }
   }
