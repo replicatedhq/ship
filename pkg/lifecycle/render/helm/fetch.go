@@ -1,16 +1,18 @@
 package helm
 
 import (
-	"path"
-
 	"context"
+	"fmt"
+	"path"
+	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	_ "github.com/replicatedhq/ship/pkg/helm"
+	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
@@ -68,6 +70,28 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
+	} else if asset.HelmRef != nil {
+		checkoutDir, err := f.FS.TempDir("", "helmchart")
+		if err != nil {
+			return "", errors.Wrap(err, "get chart checkout tmpdir")
+		}
+
+		helmHomeDir, err := helmHome()
+		if err != nil {
+			return "", errors.Wrap(err, "get home directory")
+		}
+
+		outstring, err := helm.Init(helmHomeDir)
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
+		}
+
+		outstring, err = helm.Fetch(asset.HelmRef.ChartRef, asset.HelmRef.RepoURL, asset.HelmRef.Version, checkoutDir, helmHomeDir)
+
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))
+		}
+		return path.Join(checkoutDir, "mysql"), nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
@@ -85,4 +109,13 @@ func NewFetcher(
 		GitHub: github,
 		FS:     fs,
 	}
+}
+
+func helmHome() (string, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, ".helm"), nil
 }

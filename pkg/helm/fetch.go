@@ -30,6 +30,7 @@ import (
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -52,9 +53,11 @@ type fetchCmd struct {
 	devel bool // use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored.
 
 	out io.Writer
+
+	home helmpath.Home // helm home directory
 }
 
-func Fetch(chartRef, repoURL, version, dest string) (string, error) {
+func Fetch(chartRef, repoURL, version, dest, home string) (string, error) {
 
 	var buf bytes.Buffer
 	bufWriter := bufio.NewWriter(&buf)
@@ -69,16 +72,21 @@ func Fetch(chartRef, repoURL, version, dest string) (string, error) {
 		out:     bufWriter,
 	}
 
+	if home != "" {
+		toFetch.home = helmpath.Home(home)
+	}
+
 	err := toFetch.run()
 	return buf.String(), err
 }
 
 func (f *fetchCmd) run() error {
 	c := downloader.ChartDownloader{
+		HelmHome: f.home,
 		Out:      f.out,
 		Keyring:  f.keyring,
 		Verify:   downloader.VerifyNever,
-		Getters:  getter.All(environment.EnvSettings{}),
+		Getters:  getter.All(environment.EnvSettings{Home: f.home}),
 		Username: f.username,
 		Password: f.password,
 	}
@@ -97,7 +105,7 @@ func (f *fetchCmd) run() error {
 	defer os.RemoveAll(dest)
 
 	if f.repoURL != "" {
-		chartURL, err := repo.FindChartInAuthRepoURL(f.repoURL, f.username, f.password, f.chartRef, f.version, f.certFile, f.keyFile, f.caFile, getter.All(environment.EnvSettings{}))
+		chartURL, err := repo.FindChartInAuthRepoURL(f.repoURL, f.username, f.password, f.chartRef, f.version, f.certFile, f.keyFile, f.caFile, getter.All(environment.EnvSettings{Home: f.home}))
 		if err != nil {
 			return err
 		}
