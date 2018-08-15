@@ -36,6 +36,11 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 		return
 	}
 
+	step, ok := d.getKustomizeStepOrAbort(c)
+	if !ok {
+		return
+	}
+
 	debug.Log("event", "request.bind")
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {
@@ -69,6 +74,9 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 		c.AbortWithError(500, err)
 		return
 	}
+
+	debug.Log("event", "stepProgress.storeStatus")
+	d.StepProgress.Delete(step.Shared().ID)
 
 	c.JSON(200, map[string]string{"status": "success"})
 }

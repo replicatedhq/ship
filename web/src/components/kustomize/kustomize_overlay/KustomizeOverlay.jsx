@@ -57,12 +57,13 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.patch !== lastProps.patch) {
       this.setState({ patch: this.props.patch });
     }
+
+    if (this.props.finished && this.props.stepId === "kustomize") {
+      this.props.handleAction();
+    }
   }
 
   componentDidMount() {
-    // if (isEmpty(this.props.currentStep)) {
-    //   this.props.getCurrentStep("kustomize")
-    // }
     if (this.props.currentStep && !isEmpty(this.props.currentStep)) {
       this.setFileTree();
     }
@@ -110,11 +111,24 @@ export default class KustomizeOverlay extends React.Component {
     this.setState(nextState)
   }
 
-  async handlFinalize() {
-    await this.props.finalizeKustomizeOverlay()
-      .then(() => {
-        this.props.history.push("/");
-      }).catch();
+  async handleFinalize() {
+    const {
+      finalizeKustomizeOverlay,
+      finalizeStep,
+      history,
+      isNavcycle,
+      actions,
+      startPoll,
+    } = this.props;
+    if (isNavcycle) {
+      await finalizeStep({ action: actions[0] });
+      startPoll();
+    } else {
+      await finalizeKustomizeOverlay()
+        .then(() => {
+          history.push("/");
+        }).catch();
+    }
   }
 
   onKustomizeSaved() {
@@ -125,7 +139,7 @@ export default class KustomizeOverlay extends React.Component {
       opts: {
         showCancelButton: true,
         confirmButtonText: "Finalize overlays",
-        confirmAction: () => this.handlFinalize()
+        confirmAction: () => this.handleFinalize()
       }
     }
     this.setState({ toastDetails });
