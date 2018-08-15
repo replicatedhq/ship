@@ -1,4 +1,4 @@
-.PHONY: clean deps serve_config serve_ship build_ship test test_CI build_ship_dev
+.PHONY: clean deps serve_config serve_ship build_ship test test_CI build_ship_dev build_ship_dev_v1 build_ship_v1
 
 PROGRESS := --progress
 SHELL := /bin/bash
