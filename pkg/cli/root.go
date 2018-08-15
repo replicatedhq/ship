@@ -34,10 +34,12 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/replicated/ship.yaml)")
 	cmd.PersistentFlags().String("log-level", "off", "Log level")
 
-	// optional
 	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
-	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 	cmd.PersistentFlags().Bool("no-open", false, "skip opening the ship console in the default browser--does not disable the UI, has no effect if `headless` is set to true.")
+
+	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
+	// TODO remove me, just always set this to true
+	cmd.PersistentFlags().BoolP("navcycle", "", true, "set to false to run ship in v1/non-navigable mode (deprecated)")
 
 	cmd.PersistentFlags().String("state-from", "", "type of resource to use when loading/saving state (currently supported values: 'file', 'secret'")
 	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")

@@ -20,30 +20,24 @@ serve_config:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env configOnly --mode development
 
 serve_ship:
-	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipDev --mode development
-
-serve_ship_v2:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipV2Dev --mode development
+
+serve_ship_v1:
+	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env shipDev --mode development
 
 .state/build_ship_dev:	.state/package webpack* postcss* $(shell find src -type f)
 		rm -rf dist
-		`yarn bin`/webpack --config webpack.config.js $(PROGRESS) --debug --env shipDev --mode development
+		`yarn bin`/webpack --config webpack.config.js $(PROGRESS) --debug --env shipV2Dev --mode development
 		@mkdir -p .state
 		@touch .state/build_ship_dev
 
 .state/build_ship:	.state/package webpack* postcss* $(shell find src -type f)
 		rm -rf dist
-		`yarn bin`/webpack --config webpack.config.js --env production --mode production
+		`yarn bin`/webpack --config webpack.config.js --env shipV2 --mode production
 		@mkdir -p .state
 		@touch .state/build_ship
 
 build_ship_dev: .state/build_ship_dev
-
-.state/build_ship: .state/package webpack* postcss* $(shell find src -type f)
-	rm -rf dist
-	`yarn bin`/webpack --config webpack.config.js --env production --mode production
-	@mkdir -p .state
-	@touch .state/build_ship
 
 build_ship: .state/build_ship
 
@@ -52,3 +46,26 @@ test:
 
 test_CI:
 	CI=1 yarn test
+
+
+##########################
+#  ship v1 tasks
+#
+# deprecated, remove
+#
+.state/build_ship_dev_v1:	.state/package webpack* postcss* $(shell find src -type f)
+		rm -rf dist
+		`yarn bin`/webpack --config webpack.config.js $(PROGRESS) --debug --env shipDev --mode development
+		@mkdir -p .state
+		@touch .state/build_ship_dev
+
+.state/build_ship_v1:	.state/package webpack* postcss* $(shell find src -type f)
+		rm -rf dist
+		`yarn bin`/webpack --config webpack.config.js --env production --mode production
+		@mkdir -p .state
+		@touch .state/build_ship
+
+build_ship_dev_v1: .state/build_ship_dev
+
+build_ship_v1: .state/build_ship
+
