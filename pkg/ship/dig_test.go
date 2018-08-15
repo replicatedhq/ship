@@ -14,6 +14,13 @@ func TestDI(t *testing.T) {
 		set  map[string]bool
 	}{
 		{
+			name: "headless+navcycle",
+			set: map[string]bool{
+				"headless": true,
+				"navcycle": true,
+			},
+		},
+		{
 			name: "headless",
 			set: map[string]bool{
 				"headless": true,

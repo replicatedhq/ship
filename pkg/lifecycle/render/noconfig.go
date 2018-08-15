@@ -64,7 +64,6 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	debug.Log("event", "execute.plan")
-	//r.StatusReceiver.SetStepName(ctx, daemontypes.StepNameConfirm)
 	err = r.Planner.Execute(ctx, pln)
 	if err != nil {
 		return errors.Wrap(err, "execute plan")

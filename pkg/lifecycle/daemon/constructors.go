@@ -47,6 +47,7 @@ func NewV2Router(
 	kustomizeIntro lifecycle.KustomizeIntro,
 	kustomizer lifecycle.Kustomizer,
 	planners planner.Planner,
+	patcher patch.Patcher,
 	renderer lifecycle.Renderer,
 	treeLoader filetree.Loader,
 	fs afero.Afero,
@@ -61,6 +62,7 @@ func NewV2Router(
 		HelmValues:     helmValues,
 		KustomizeIntro: kustomizeIntro,
 		Kustomizer:     kustomizer,
+		Patcher:        patcher,
 		Renderer:       renderer,
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
