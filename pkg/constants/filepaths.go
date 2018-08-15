@@ -12,6 +12,9 @@ const OverlaysPrefixPath = "overlays/ship"
 // StatePath is the default state file path
 const StatePath = ".ship/state.json"
 
+// ReleasePath is the default place to write a pulled release to the filesystem
+const ReleasePath = ".ship/release.yml"
+
 // KustomizeHelmPath is the path used to store Helm chart contents
 const KustomizeHelmPath = "chart"
 

@@ -85,7 +85,7 @@ func TestRender(t *testing.T) {
 					Return(test.ViperConfig, nil)
 
 				p.EXPECT().
-					Build(test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
+					Build("", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
 					Return(planner.Plan{}, nil)
 
 				p.EXPECT().

@@ -52,7 +52,7 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	r.StatusReceiver.SetProgress(ProgressRender)
 
 	debug.Log("event", "render.plan")
-	pln, err := r.Planner.Build(release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
+	pln, err := r.Planner.Build(constants.InstallerPrefixPath, release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
 	}

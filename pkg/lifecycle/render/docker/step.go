@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"net/url"
+	"path"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
@@ -10,16 +11,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 // A Renderer can execute a "docker" step in the lifecycle
 type Renderer interface {
 	Execute(
+		rootFs root.Fs,
 		asset api.DockerAsset,
 		meta api.ReleaseMetadata,
 		doWithProgress func(ch chan interface{}, debug log.Logger) error,
@@ -37,7 +38,6 @@ var _ Renderer = &DefaultStep{}
 // DefaultStep is the default implementation of Renderer
 type DefaultStep struct {
 	Logger         log.Logger
-	Fs             afero.Afero
 	URLResolver    images.PullURLResolver
 	ImageSaver     images.ImageSaver
 	Viper          *viper.Viper
@@ -47,7 +47,6 @@ type DefaultStep struct {
 // NewStep gets a new Renderer with the default impl
 func NewStep(
 	logger log.Logger,
-	fs afero.Afero,
 	resolver images.PullURLResolver,
 	saver images.ImageSaver,
 	v *viper.Viper,
@@ -55,7 +54,6 @@ func NewStep(
 ) Renderer {
 	return &DefaultStep{
 		Logger:         logger,
-		Fs:             fs,
 		URLResolver:    resolver,
 		ImageSaver:     saver,
 		Viper:          v,
@@ -65,6 +63,7 @@ func NewStep(
 
 // Execute runs the step for an asset
 func (p *DefaultStep) Execute(
+	rootFs root.Fs,
 	asset api.DockerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, debug log.Logger) error,
@@ -106,14 +105,11 @@ func (p *DefaultStep) Execute(
 		if !destIsDockerURL {
 			basePath := filepath.Dir(dest)
 			debug.Log("event", "mkdirall.attempt", "dest", dest, "basePath", basePath)
-			if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
+			if err := rootFs.MkdirAll(basePath, 0755); err != nil {
 				debug.Log("event", "mkdirall.fail", "err", err, "dest", dest, "basePath", basePath)
 				return errors.Wrapf(err, "write directory to %s", dest)
 			}
-		} else {
-			dest = filepath.Join(constants.InstallerPrefixPath, dest)
 		}
-
 		pullURL, err := p.URLResolver.ResolvePullURL(asset, meta)
 		if err != nil {
 			return errors.Wrapf(err, "resolve pull url")
@@ -132,7 +128,7 @@ func (p *DefaultStep) Execute(
 		if destIsDockerURL {
 			registrySecretSaveOpts.DestinationURL = destinationURL
 		} else {
-			registrySecretSaveOpts.Filename = dest
+			registrySecretSaveOpts.Filename = path.Join(rootFs.RootPath, dest)
 		}
 
 		ch := p.ImageSaver.SaveImage(ctx, registrySecretSaveOpts)
@@ -158,7 +154,7 @@ func (p *DefaultStep) Execute(
 		if destIsDockerURL {
 			installationIDSaveOpts.DestinationURL = destinationURL
 		} else {
-			installationIDSaveOpts.Filename = dest
+			installationIDSaveOpts.Filename = path.Join(rootFs.RootPath, dest)
 		}
 
 		ch = p.ImageSaver.SaveImage(ctx, installationIDSaveOpts)

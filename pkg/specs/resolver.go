@@ -10,14 +10,13 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
-
-const ReleasePath = ".ship/release.yml"
 
 // Selector selects a spec from the Vendor's releases and channels.
 // See pkg/cli/root.go for some more info on which are required and why.
@@ -123,7 +122,7 @@ func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
 	if err := r.persistSpec(specYAML); err != nil {
 		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
 	}
-	debug.Log("phase", "write-yaml", "from", r.Runbook, "write-location", ReleasePath)
+	debug.Log("phase", "write-yaml", "from", r.Runbook, "write-location", constants.ReleasePath)
 
 	return &ShipRelease{
 		Spec:        string(specYAML),
@@ -146,18 +145,18 @@ func (r *Resolver) resolveCloudRelease(customerID, installationID, semver string
 	if err := r.persistSpec([]byte(release.Spec)); err != nil {
 		return nil, errors.Wrapf(err, "serialize last-used YAML to disk")
 	}
-	debug.Log("phase", "write-yaml", "from", release.Spec, "write-location", ReleasePath)
+	debug.Log("phase", "write-yaml", "from", release.Spec, "write-location", constants.ReleasePath)
 
 	return release, err
 }
 
 // persistSpec persists last-used YAML to disk at .ship/release.yml
 func (r *Resolver) persistSpec(specYAML []byte) error {
-	if err := r.FS.MkdirAll(filepath.Dir(ReleasePath), 0700); err != nil {
+	if err := r.FS.MkdirAll(filepath.Dir(constants.ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
 	}
 
-	if err := r.FS.WriteFile(ReleasePath, specYAML, 0644); err != nil {
+	if err := r.FS.WriteFile(constants.ReleasePath, specYAML, 0644); err != nil {
 		return errors.Wrap(err, "write yaml file")
 	}
 	return nil

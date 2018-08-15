@@ -3,6 +3,8 @@ package templates
 import (
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
@@ -93,7 +95,7 @@ func testCases() []TestInstallation {
 			Name:     "state_file_path",
 			Meta:     api.ReleaseMetadata{},
 			Tpl:      `It's {{repl Installation "state_file_path" }}`,
-			Expected: `It's .ship/state.json`,
+			Expected: "It's " + constants.StatePath,
 		},
 		{
 			Name:     "customer_id",

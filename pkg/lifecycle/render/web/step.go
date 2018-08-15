@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -22,6 +23,7 @@ import (
 
 type Renderer interface {
 	Execute(
+		rootFs root.Fs,
 		asset api.WebAsset,
 		meta api.ReleaseMetadata,
 		templateContext map[string]interface{},
@@ -64,6 +66,7 @@ type Built struct {
 }
 
 func (p *DefaultStep) Execute(
+	rootFs root.Fs,
 	asset api.WebAsset,
 	meta api.ReleaseMetadata,
 	templateContext map[string]interface{},
@@ -83,13 +86,13 @@ func (p *DefaultStep) Execute(
 		}
 
 		basePath := filepath.Dir(asset.Dest)
-		debug.Log("event", "mkdirall.attempt", "dest", built.Dest, "basePath", basePath)
-		if err := p.Fs.MkdirAll(basePath, 0755); err != nil {
-			debug.Log("event", "mkdirall.fail", "err", err, "dest", built.Dest, "basePath", basePath)
+		debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", built.Dest, "basePath", basePath)
+		if err := rootFs.MkdirAll(basePath, 0755); err != nil {
+			debug.Log("event", "mkdirall.fail", "err", err, "root", rootFs.RootPath, "dest", built.Dest, "basePath", basePath)
 			return errors.Wrapf(err, "Create directory path %s", basePath)
 		}
 
-		if err := p.pullWebAsset(built); err != nil {
+		if err := p.pullWebAsset(rootFs, built); err != nil {
 			debug.Log("event", "pullWebAsset.fail", "err", err)
 			return errors.Wrapf(err, "Get web asset from %s", asset.URL)
 		}
@@ -163,7 +166,7 @@ func (p *DefaultStep) buildAsset(
 	}, nil
 }
 
-func (p *DefaultStep) pullWebAsset(built *Built) error {
+func (p *DefaultStep) pullWebAsset(rootFs root.Fs, built *Built) error {
 	resp, err := p.makeRequest(built.URL, built.BodyFormat, built.Method, built.Body)
 	if err != nil {
 		return errors.Wrapf(err, "Request web asset from %s", built.URL)
@@ -192,7 +195,7 @@ func (p *DefaultStep) pullWebAsset(built *Built) error {
 		return errors.Errorf("received response with status %d", resp.StatusCode)
 	}
 
-	file, err := p.Fs.Create(built.Dest)
+	file, err := rootFs.Create(built.Dest)
 	if err != nil {
 		return errors.Wrapf(err, "Create file %s", file)
 	}

@@ -2,16 +2,17 @@ package terraform
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,16 +46,22 @@ func TestRenderer(t *testing.T) {
 					if !ok {
 						return false
 					}
-					return asset.Contents == test.asset.Inline &&
-						strings.HasPrefix(asset.Dest, constants.InstallerPrefixPath)
+					return asset.Contents == test.asset.Inline
 				},
 			}
 
+			rootFs := root.Fs{
+				Afero: afero.Afero{
+					Fs: afero.NewBasePathFs(afero.NewMemMapFs(), constants.InstallerPrefixPath),
+				},
+				RootPath: constants.InstallerPrefixPath,
+			}
 			metadata := api.ReleaseMetadata{}
 			groups := []libyaml.ConfigGroup{}
 			templateContext := map[string]interface{}{}
 
 			mockInline.EXPECT().Execute(
+				rootFs,
 				assetMatcher,
 				metadata,
 				templateContext,
@@ -62,6 +69,7 @@ func TestRenderer(t *testing.T) {
 			).Return(func(ctx context.Context) error { return nil })
 
 			err := renderer.Execute(
+				rootFs,
 				test.asset,
 				metadata,
 				templateContext,

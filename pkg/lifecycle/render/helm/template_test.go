@@ -17,6 +17,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
 	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -181,6 +182,10 @@ func TestForkTemplater(t *testing.T) {
 
 			err := tpl.Template(
 				"/tmp/chartroot",
+				root.Fs{
+					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					RootPath: "",
+				},
 				api.HelmAsset{
 					AssetShared: api.AssetShared{
 						Dest: "k8s/",

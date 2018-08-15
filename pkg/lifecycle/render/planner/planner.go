@@ -37,6 +37,7 @@ type Step struct {
 // Planner is a thing that can plan and execute rendering
 type Planner interface {
 	Build(
+		string,
 		[]api.Asset,
 		[]libyaml.ConfigGroup,
 		api.ReleaseMetadata,
@@ -76,13 +77,14 @@ func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 }
 
 func (f Factory) Build(
+	root string,
 	assets []api.Asset,
 	configGroups []libyaml.ConfigGroup,
 	releaseMeta api.ReleaseMetadata,
 	templateContext map[string]interface{},
 ) (Plan, error) {
 	planner := f()
-	return planner.Build(assets, configGroups, releaseMeta, templateContext)
+	return planner.Build(root, assets, configGroups, releaseMeta, templateContext)
 }
 
 func (f Factory) Execute(ctx context.Context, p Plan) error {

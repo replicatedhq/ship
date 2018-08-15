@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	mockdocker "github.com/replicatedhq/ship/pkg/test-mocks/docker"
 	"github.com/replicatedhq/ship/pkg/test-mocks/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -74,7 +75,7 @@ func TestUnpackLayer(t *testing.T) {
 				defer mc.Finish()
 
 				var calledDockerExec bool
-				renderer.EXPECT().Execute(asset.DockerAsset, meta, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(func(ctx2 context.Context) error {
+				renderer.EXPECT().Execute(gomock.Any(), asset.DockerAsset, meta, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(func(ctx2 context.Context) error {
 					// todo make sure this thing got called
 					calledDockerExec = true
 					return test.dockerError
@@ -85,7 +86,19 @@ func TestUnpackLayer(t *testing.T) {
 					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, asset.Dest).Return(nil)
 				}
 
-				err := unpacker.Execute(asset, meta, watchProgress, map[string]interface{}{}, []libyaml.ConfigGroup{})(ctx)
+				rootFs := root.Fs{
+					Afero:    mockFS,
+					RootPath: "",
+				}
+
+				err := unpacker.Execute(
+					rootFs,
+					asset,
+					meta,
+					watchProgress,
+					map[string]interface{}{},
+					[]libyaml.ConfigGroup{},
+				)(ctx)
 
 				if test.dockerError != nil {
 					req.Error(err, "expected error "+test.dockerError.Error())

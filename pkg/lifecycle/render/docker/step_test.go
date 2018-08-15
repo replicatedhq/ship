@@ -14,6 +14,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
@@ -61,7 +62,6 @@ func TestDockerStep(t *testing.T) {
 
 			step := &DefaultStep{
 				Logger:         testLogger,
-				Fs:             afero.Afero{Fs: afero.NewMemMapFs()},
 				URLResolver:    urlResolver,
 				ImageSaver:     saver,
 				Viper:          v,
@@ -136,7 +136,18 @@ func TestDockerStep(t *testing.T) {
 			req := require.New(t)
 
 			// When
-			err := step.Execute(asset, metadata, mockProgress, asset.Dest, templateContext, configGroups)(ctx)
+			err := step.Execute(
+				root.Fs{
+					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					RootPath: "",
+				},
+				asset,
+				metadata,
+				mockProgress,
+				asset.Dest,
+				templateContext,
+				configGroups,
+			)(ctx)
 
 			// Then
 			if test.Expect == nil {

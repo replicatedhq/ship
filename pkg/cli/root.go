@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/version"
@@ -42,7 +44,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().BoolP("navcycle", "", true, "set to false to run ship in v1/non-navigable mode (deprecated)")
 
 	cmd.PersistentFlags().String("state-from", "", "type of resource to use when loading/saving state (currently supported values: 'file', 'secret'")
-	cmd.PersistentFlags().String("state-file", "", "path to the state file to read from, defaults to .ship/state.json")
+	cmd.PersistentFlags().String("state-file", "", fmt.Sprintf("path to the state file to read from, defaults to %s", constants.StatePath))
 	cmd.PersistentFlags().String("secret-namespace", "default", "namespace containing the state secret")
 	cmd.PersistentFlags().String("secret-name", "", "name of the secret to laod state from")
 	cmd.PersistentFlags().String("secret-key", "", "name of the key in the secret containing state")

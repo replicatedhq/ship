@@ -8,7 +8,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,6 +55,10 @@ func TestRender(t *testing.T) {
 				Templater: mockTemplater,
 			}
 
+			rootFs := root.Fs{
+				Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+				RootPath: "",
+			}
 			asset := api.HelmAsset{}
 			metadata := api.ReleaseMetadata{}
 			templateContext := map[string]interface{}{}
@@ -61,16 +67,17 @@ func TestRender(t *testing.T) {
 			ctx := context.Background()
 
 			mockFetcher.EXPECT().
-				FetchChart(ctx, asset, metadata, configGroups, templateContext).
+				FetchChart(ctx, rootFs, asset, metadata, configGroups, templateContext).
 				Return(test.fetchPath, test.fetchErr)
 
 			if test.fetchErr == nil {
 				mockTemplater.EXPECT().
-					Template(test.fetchPath, asset, metadata, configGroups, templateContext).
+					Template(test.fetchPath, rootFs, asset, metadata, configGroups, templateContext).
 					Return(test.templateErr)
 			}
 
 			err := renderer.Execute(
+				rootFs,
 				asset,
 				metadata,
 				templateContext,

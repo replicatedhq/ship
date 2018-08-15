@@ -86,6 +86,7 @@ var (
 								ID:       "render",
 								Requires: []string{"values"},
 							},
+							Root: ".",
 						},
 					},
 					{

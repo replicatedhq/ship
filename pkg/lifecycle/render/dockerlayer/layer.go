@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -47,6 +48,7 @@ func NewUnpacker(
 }
 
 func (u *Unpacker) Execute(
+	rootFs root.Fs,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
@@ -56,7 +58,11 @@ func (u *Unpacker) Execute(
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(u.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "dockerlayer", "dest", asset.Dest, "description", asset.Description))
 
-		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset)
+		if err := u.mkdirall(rootFs, "tmp")(); err != nil {
+			return errors.Wrap(err, "create root tmp path dir")
+		}
+		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, rootFs)
+		defer rootFs.RemoveAll("tmp")
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
 		}
@@ -70,26 +76,25 @@ func (u *Unpacker) Execute(
 		)
 
 		return errors.Wrap(u.chain(
-			u.save(ctx, asset, meta, doWithProgress, savePath, templateContext, configGroups),
-			u.mkdirall(basePath),
-			u.unpack(savePath, firstPassUnpackPath),
-			u.unpack(layerPath, asset.Dest),
+			u.save(ctx, rootFs, asset, meta, doWithProgress, savePath, templateContext, configGroups),
+			u.mkdirall(rootFs, basePath),
+			u.unpack(rootFs, savePath, firstPassUnpackPath),
+			u.unpack(rootFs, layerPath, basePath),
 		), "execute chain")
-
 	}
 }
 
-func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string, string, error) {
+func (u *Unpacker) getPaths(asset api.DockerLayerAsset, rootFs root.Fs) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
 
-	saveDir, err := u.FS.TempDir("/tmp", "dockerlayer")
+	saveDir, err := rootFs.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(errors.Wrap(err, "get image save tmpdir"))
 	}
 
 	savePath := path.Join(saveDir, "image.tar")
 
-	firstPassUnpackPath, err := u.FS.TempDir("/tmp", "dockerlayer")
+	firstPassUnpackPath, err := rootFs.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(errors.Wrap(err, "get unpack tmpdir"))
 	}
@@ -101,6 +106,7 @@ func (u *Unpacker) getPaths(asset api.DockerLayerAsset) (string, string, string,
 
 func (u *Unpacker) save(
 	ctx context.Context,
+	rootFs root.Fs,
 	asset api.DockerLayerAsset,
 	meta api.ReleaseMetadata,
 	doWithProgress func(ch chan interface{}, logger log.Logger) error,
@@ -111,6 +117,7 @@ func (u *Unpacker) save(
 	return func() error {
 		return errors.Wrapf(
 			u.DockerSaver.Execute(
+				rootFs,
 				asset.DockerAsset,
 				meta,
 				doWithProgress,
@@ -122,15 +129,17 @@ func (u *Unpacker) save(
 	}
 }
 
-func (u *Unpacker) unpack(src string, dest string) func() error {
+func (u *Unpacker) unpack(rootFs root.Fs, src string, dest string) func() error {
 	return func() error {
-		return errors.Wrapf(u.Tar.Open(src, dest), "untar %s to %s", src, dest)
+		rootPathedSrc := path.Join(rootFs.RootPath, src)
+		rootPathedDest := path.Join(rootFs.RootPath, dest)
+		return errors.Wrapf(u.Tar.Open(rootPathedSrc, rootPathedDest), "untar %s to %s", rootPathedSrc, rootPathedDest)
 	}
 }
 
-func (u *Unpacker) mkdirall(basePath string) func() error {
+func (u *Unpacker) mkdirall(rootFs root.Fs, basePath string) func() error {
 	return func() error {
-		return errors.Wrapf(u.FS.MkdirAll(basePath, 0755), "mkdirall %s", basePath)
+		return errors.Wrapf(rootFs.MkdirAll(basePath, 0755), "mkdirall %s", basePath)
 	}
 }
 

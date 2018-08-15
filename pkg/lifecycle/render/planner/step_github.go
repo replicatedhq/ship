@@ -3,9 +3,11 @@ package planner
 import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 )
 
 func (p *CLIPlanner) githubStep(
+	rootFs root.Fs,
 	asset api.GitHubAsset,
 	configGroups []libyaml.ConfigGroup,
 	meta api.ReleaseMetadata,
@@ -14,6 +16,6 @@ func (p *CLIPlanner) githubStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.GitHub.Execute(asset, configGroups, meta, templateContext),
+		Execute:     p.GitHub.Execute(rootFs, asset, configGroups, meta, templateContext),
 	}
 }

@@ -3,6 +3,8 @@ package state
 import (
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-test/deep"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -87,7 +89,7 @@ func TestLoadConfig(t *testing.T) {
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			if test.contents != "" {
-				err := fs.WriteFile(".ship/state.json", []byte(test.contents), 0777)
+				err := fs.WriteFile(constants.StatePath, []byte(test.contents), 0777)
 				req.NoError(err, "write existing state")
 			}
 

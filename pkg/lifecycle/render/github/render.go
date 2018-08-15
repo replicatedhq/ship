@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
@@ -18,6 +19,7 @@ import (
 // Renderer is something that can render a helm asset as part of a planner.Plan
 type Renderer interface {
 	Execute(
+		rootFs root.Fs,
 		asset api.GitHubAsset,
 		configGroups []libyaml.ConfigGroup,
 		meta api.ReleaseMetadata,
@@ -48,6 +50,7 @@ func NewRenderer(
 
 // refactored from planner.plan but I neeeeed tests
 func (r *LocalRenderer) Execute(
+	rootFs root.Fs,
 	asset api.GitHubAsset,
 	configGroups []libyaml.ConfigGroup,
 	meta api.ReleaseMetadata,
@@ -58,9 +61,9 @@ func (r *LocalRenderer) Execute(
 
 		debug.Log("event", "execute")
 		basePath := filepath.Dir(asset.Dest)
-		debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", basePath)
-		if err := r.Fs.MkdirAll(basePath, 0755); err != nil {
-			debug.Log("event", "mkdirall.fail", "err", err, "dest", asset.Dest, "basePath", basePath)
+		debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", asset.Dest, "basePath", basePath)
+		if err := rootFs.MkdirAll(basePath, 0755); err != nil {
+			debug.Log("event", "mkdirall.fail", "err", err, "root", rootFs.RootPath, "dest", asset.Dest, "basePath", basePath)
 			return errors.Wrapf(err, "write directory to %s", asset.Dest)
 		}
 
@@ -101,14 +104,14 @@ func (r *LocalRenderer) Execute(
 			filePath := filepath.Join(asset.Dest, file.Path)
 
 			basePath := filepath.Dir(filePath)
-			debug.Log("event", "mkdirall.attempt", "dest", filePath, "basePath", basePath)
-			if err := r.Fs.MkdirAll(basePath, 0755); err != nil {
-				debug.Log("event", "mkdirall.fail", "err", err, "dest", filePath, "basePath", basePath)
+			debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
+			if err := rootFs.MkdirAll(basePath, 0755); err != nil {
+				debug.Log("event", "mkdirall.fail", "err", err, "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
 				return errors.Wrapf(err, "write directory to %s", filePath)
 			}
 
 			mode := os.FileMode(0644) // TODO: how to get mode info from github?
-			if err := r.Fs.WriteFile(filePath, []byte(built), mode); err != nil {
+			if err := rootFs.WriteFile(filePath, []byte(built), mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", filePath)
 			}
