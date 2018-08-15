@@ -166,7 +166,10 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 		defer close(runResultCh)
 		var err error
 		// *wince* dex do this better
-		if viper.GetBool("navcycle") {
+		if viper.GetBool("headless") {
+			err = s.Runner.Run(ctx, release)
+			s.Daemon.AllStepsDone(ctx)
+		} else if viper.GetBool("navcycle") {
 			s.Daemon.EnsureStarted(ctx, release)
 			err = s.Daemon.AwaitShutdown()
 		} else {
