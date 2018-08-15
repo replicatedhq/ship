@@ -8,7 +8,7 @@ const RenderActions = ({ actions, handleAction, isLoading }) => (
           <button
             key={index}
             className={`btn ${action.buttonType}`}
-            onClick={() => handleAction(action)}
+            onClick={() => handleAction(action, true)}
             disabled={isLoading}>{isLoading ? action.loadingText : action.text}
           </button>
         );

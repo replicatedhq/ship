@@ -19,6 +19,7 @@ export function receiveFileContent(content, path) {
 
 export function getFileContent(payload) {
   return async (dispatch) => {
+    console.log("what it dooo");
     let response;
     dispatch(loadingData("fileContent", true));
     try {
@@ -66,6 +67,7 @@ export function saveKustomizeOverlay(payload) {
         return;
       }
       await response.json();
+      dispatch(getFileContent(payload.path));
       dispatch(loadingData("saveKustomize", false));
     } catch (error) {
       dispatch(loadingData("saveKustomize", false));

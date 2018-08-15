@@ -11,14 +11,10 @@ export default class StepBuildingAssets extends React.Component {
     autoBind(this);
   }
 
-  componentDidUpdate() {
-    if (this.props.finished && this.props.location.pathname === "/render") {
-      this.props.handleAction();
-    }
-  }
-
   componentDidMount() {
-    this.props.startPoll();
+    if (this.props.location.pathname === "/render") {
+      this.props.startPoll();
+    }
   }
 
   render() {

@@ -57,10 +57,6 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.patch !== lastProps.patch) {
       this.setState({ patch: this.props.patch });
     }
-
-    if (this.props.finished && this.props.location.pathname === "/kustomize") {
-      this.props.handleAction();
-    }
   }
 
   componentDidMount() {
@@ -120,6 +116,7 @@ export default class KustomizeOverlay extends React.Component {
       actions,
       startPoll,
     } = this.props;
+
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
       startPoll();
@@ -148,6 +145,7 @@ export default class KustomizeOverlay extends React.Component {
   async handleKustomizeSave(closeOverlay) {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
+    this.setState({ patch: contents });
     const payload = {
       path: selectedFile,
       contents,
