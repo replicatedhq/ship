@@ -51,7 +51,8 @@ func (r *Resolver) ResolveRelease(ctx context.Context, target string) (*api.Rele
 func (r *Resolver) resolveChart(ctx context.Context, target string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 	r.ui.Info("Detected helm application")
-	helmChartMetadata, err := r.ResolveChartMetadata(context.Background(), target)
+	// TODO provide values here
+	helmChartMetadata, err := r.ResolveChartMetadata(context.Background(), target, "", "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve helm metadata for %s", target)
 	}

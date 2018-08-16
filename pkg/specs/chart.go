@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
@@ -230,14 +231,26 @@ func (g *GithubClient) downloadAndExtractFiles(ctx context.Context, owner string
 	return nil
 }
 
-func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
+func (r *Resolver) ResolveChartMetadata(ctx context.Context, path, chartRepoURL, chartVersion string) (api.HelmChartMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartMetadata"))
 
 	debug.Log("phase", "fetch-readme", "for", path)
 	var md api.HelmChartMetadata
-	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
-	if err != nil {
-		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
+	if strings.Contains(path, "github.com") {
+		err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
+		}
+	} else {
+		// fetch using 'helm fetch'
+		out, err := helm.Init("")
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "initialize helm to fetch chart: %s", out)
+		}
+		out, err = helm.FetchUnpack(path, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "")
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "fetch chart with helm: %s", out)
+		}
 	}
 
 	debug.Log("phase", "save-chart-url", "url", path)

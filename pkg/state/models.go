@@ -14,6 +14,8 @@ type State interface {
 	CurrentKustomizeOverlay(filename string) string
 	CurrentHelmValues() string
 	CurrentChartURL() string
+	CurrentChartRepoURL() string
+	CurrentChartVersion() string
 	Versioned() VersionedState
 }
 
@@ -28,6 +30,8 @@ func (Empty) CurrentKustomizeOverlay(string) string { return "" }
 func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
 func (Empty) CurrentHelmValues() string             { return "" }
 func (Empty) CurrentChartURL() string               { return "" }
+func (Empty) CurrentChartRepoURL() string           { return "" }
+func (Empty) CurrentChartVersion() string           { return "" }
 func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
 
 type V0 map[string]interface{}
@@ -37,6 +41,8 @@ func (v V0) CurrentKustomize() *Kustomize          { return nil }
 func (v V0) CurrentKustomizeOverlay(string) string { return "" }
 func (v V0) CurrentHelmValues() string             { return "" }
 func (v V0) CurrentChartURL() string               { return "" }
+func (v V0) CurrentChartRepoURL() string           { return "" }
+func (v V0) CurrentChartVersion() string           { return "" }
 func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
 
 type VersionedState struct {
@@ -44,13 +50,15 @@ type VersionedState struct {
 }
 
 type V1 struct {
-	Config     map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
-	Terraform  interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
-	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
-	Kustomize  *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
-	ChartURL   string                 `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
-	ContentSHA string                 `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
-	Lifecycle  *Lifeycle              `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+	Config       map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
+	Terraform    interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	HelmValues   string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
+	Kustomize    *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
+	ChartURL     string                 `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+	ChartRepoURL string                 `json:"ChartRepoURL,omitempty" yaml:"ChartRepoURL,omitempty" hcl:"ChartRepoURL,omitempty"`
+	ChartVersion string                 `json:"ChartVersion,omitempty" yaml:"ChartVersion,omitempty" hcl:"ChartVersion,omitempty"`
+	ContentSHA   string                 `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
+	Lifecycle    *Lifeycle              `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}
@@ -144,6 +152,14 @@ func (u VersionedState) CurrentHelmValues() string {
 
 func (u VersionedState) CurrentChartURL() string {
 	return u.V1.ChartURL
+}
+
+func (u VersionedState) CurrentChartRepoURL() string {
+	return u.V1.ChartRepoURL
+}
+
+func (u VersionedState) CurrentChartVersion() string {
+	return u.V1.ChartVersion
 }
 
 func (v VersionedState) Versioned() VersionedState {
