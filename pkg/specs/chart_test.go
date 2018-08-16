@@ -81,7 +81,8 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithPrefix)
+				err := gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithPrefix)
+				Expect(err).NotTo(HaveOccurred())
 
 				readme, err := gitClient.fs.ReadFile(path.Join(constants.KustomizeHelmPath, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
@@ -109,7 +110,9 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithoutPrefix)
+				err := gitClient.GetChartAndReadmeContents(context.Background(), validGitURLWithoutPrefix)
+				Expect(err).NotTo(HaveOccurred())
+
 				readme, err := gitClient.fs.ReadFile(path.Join(constants.KustomizeHelmPath, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
 				chart, err := gitClient.fs.ReadFile(path.Join(constants.KustomizeHelmPath, "Chart.yaml"))
@@ -123,6 +126,22 @@ var _ = Describe("GithubClient", func() {
 				Expect(string(chart)).To(Equal("bar"))
 				Expect(string(deployment)).To(Equal("deployment"))
 				Expect(string(service)).To(Equal("service"))
+			})
+		})
+
+		Context("With a non-github url", func() {
+			It("should return an error", func() {
+				nonGithubURL := "gitlab.com/o/r"
+				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+				gitClient := GithubClient{
+					client: client,
+					fs:     mockFs,
+					logger: log.NewNopLogger(),
+				}
+
+				err := gitClient.GetChartAndReadmeContents(context.Background(), nonGithubURL)
+				Expect(err).NotTo(BeNil())
+				Expect(err.Error()).To(Equal("http://gitlab.com/o/r is not a Github URL"))
 			})
 		})
 	})
@@ -171,7 +190,7 @@ var _ = Describe("GithubClient", func() {
 				Expect(err.Error()).To(Equal("github.com: unable to decode github url"))
 			})
 
-			It("should failed to decode a url with a path", func() {
+			It("should fail to decode a url with a path", func() {
 				chartPath := "github.com/o"
 				_, _, _, _, err := decodeGitHubURL(chartPath)
 				Expect(err).NotTo(BeNil())
@@ -182,7 +201,7 @@ var _ = Describe("GithubClient", func() {
 
 	Describe("calculateContentSHA", func() {
 		Context("With multiple files", func() {
-			It("should calculate the same sha, mulitple times", func() {
+			It("should calculate the same sha, multiple times", func() {
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
 				mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
