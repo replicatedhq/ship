@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
+
 	"github.com/spf13/viper"
 
 	"reflect"
@@ -29,48 +31,22 @@ import (
 
 func TestForkTemplater(t *testing.T) {
 	tests := []struct {
-		name            string
-		describe        string
-		helmForkEnv     []string
-		expectError     string
-		helmOpts        []string
-		helmValues      map[string]interface{}
-		templateContext map[string]interface{}
-		channelName     string
+		name                string
+		describe            string
+		helmForkEnv         []string
+		expectError         string
+		helmOpts            []string
+		helmValues          map[string]interface{}
+		expectedHelmValues  []string
+		templateContext     map[string]interface{}
+		channelName         string
+		expectedChannelName string
 	}{
-		{
-			name:     "helm crashes",
-			describe: "ensure that we bubble up an informative error if the forked process crashes",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-				"CRASHING_HELM_ERROR=I am helm and I crashed",
-			},
-			expectError: `execute helm: exit status 1: stdout: "I am helm and I crashed"; stderr: "";`,
-		},
-		{
-			//
-			name:     "helm bad args",
-			describe: "this is more of a negative test of our exec-mocking framework -- to make sure that we can properly validate that proper args were passed",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-				// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
-				"EXPECT_HELM_ARGV=--foo|bar|--output-dir|fake",
-			},
-			expectError: fmt.Sprintf(
-				"execute helm: exit status 2: stdout: \"\"; stderr: \"expected args [--foo bar --output-dir fake], got args [template /tmp/chartroot --output-dir %s --name frobnitz]; FAIL\";",
-				constants.RenderedHelmTempPath,
-			),
-		},
 		{
 			name:     "helm test proper args",
 			describe: "test that helm is invoked with the proper args. The subprocess will fail if its not called with the args set in EXPECT_HELM_ARGV",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
-				"EXPECT_HELM_ARGV=" +
-					"template|" +
-					"/tmp/chartroot|" +
-					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
-					"--name|frobnitz",
 			},
 			expectError: "",
 		},
@@ -79,12 +55,6 @@ func TestForkTemplater(t *testing.T) {
 			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
-				"EXPECT_HELM_ARGV=" +
-					"template|" +
-					"/tmp/chartroot|" +
-					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
-					"--name|frobnitz|" +
-					"--set|service.clusterIP=10.3.9.2",
 			},
 			expectError: "",
 			helmOpts:    []string{"--set", "service.clusterIP=10.3.9.2"},
@@ -94,45 +64,34 @@ func TestForkTemplater(t *testing.T) {
 			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
-				"EXPECT_HELM_ARGV=" +
-					"template|" +
-					"/tmp/chartroot|" +
-					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
-					"--name|frobnitz|" +
-					"--set|service.clusterIP=10.3.9.2",
 			},
 			expectError: "",
 			helmValues: map[string]interface{}{
 				"service.clusterIP": "10.3.9.2",
+			},
+			expectedHelmValues: []string{
+				"--set", "service.clusterIP=10.3.9.2",
 			},
 		},
 		{
 			name: "helm replaces spacial characters in ",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
-				"EXPECT_HELM_ARGV=" +
-					"template|" +
-					"/tmp/chartroot|" +
-					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
-					"--name|1-2-3---------frobnitz|" +
-					"--set|service.clusterIP=10.3.9.2",
 			},
 			expectError: "",
 			helmValues: map[string]interface{}{
 				"service.clusterIP": "10.3.9.2",
 			},
-			channelName: "1.2.3-$#(%*)@-frobnitz",
+			expectedHelmValues: []string{
+				"--set", "service.clusterIP=10.3.9.2",
+			},
+			channelName:         "1.2.3-$#(%*)@-frobnitz",
+			expectedChannelName: "1-2-3---------frobnitz",
 		},
 		{
 			name: "helm templates values from context",
 			helmForkEnv: []string{
 				"GOTEST_SUBPROCESS_MOCK=1",
-				"EXPECT_HELM_ARGV=" +
-					"template|" +
-					"/tmp/chartroot|" +
-					"--output-dir|" + constants.RenderedHelmTempPath + "|" +
-					"--name|1-2-3---------frobnitz|" +
-					"--set|service.clusterIP=10.3.9.2",
 			},
 			expectError: "",
 			helmValues: map[string]interface{}{
@@ -141,7 +100,11 @@ func TestForkTemplater(t *testing.T) {
 			templateContext: map[string]interface{}{
 				"cluster_ip": "10.3.9.2",
 			},
-			channelName: "1.2.3-$#(%*)@-frobnitz",
+			expectedHelmValues: []string{
+				"--set", "service.clusterIP=10.3.9.2",
+			},
+			channelName:         "1.2.3-$#(%*)@-frobnitz",
+			expectedChannelName: "1-2-3---------frobnitz",
 		},
 	}
 	for _, test := range tests {
@@ -151,12 +114,14 @@ func TestForkTemplater(t *testing.T) {
 			mc := gomock.NewController(t)
 			testLogger := &logger.TestLogger{T: t}
 			mockState := state.NewMockManager(mc)
+			mockCommands := helm.NewMockCommands(mc)
 			tpl := &ForkTemplater{
 				Helm: func() *exec.Cmd {
 					cmd := exec.Command(os.Args[0], "-test.run=TestMockHelm")
 					cmd.Env = append(os.Environ(), test.helmForkEnv...)
 					return cmd
 				},
+				Commands:       mockCommands,
 				Logger:         testLogger,
 				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
@@ -172,13 +137,32 @@ func TestForkTemplater(t *testing.T) {
 			}, nil)
 
 			channelName := "Frobnitz"
+			expectedChannelName := "frobnitz"
 			if test.channelName != "" {
 				channelName = test.channelName
 			}
+			if test.expectedChannelName != "" {
+				expectedChannelName = test.expectedChannelName
+			}
+			fmt.Println("channelName", channelName)
 
 			if test.templateContext == nil {
 				test.templateContext = map[string]interface{}{}
 			}
+
+			chartRoot := "/tmp/chartroot"
+			optionAndValuesArgs := append(
+				test.helmOpts,
+				test.expectedHelmValues...,
+			)
+			templateArgs := append(
+				[]string{
+					"--output-dir", constants.RenderedHelmTempPath,
+					"--name", expectedChannelName,
+				},
+				optionAndValuesArgs...,
+			)
+			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
 
 			err := tpl.Template(
 				"/tmp/chartroot",
@@ -192,7 +176,8 @@ func TestForkTemplater(t *testing.T) {
 					},
 					HelmOpts: test.helmOpts,
 					Values:   test.helmValues,
-				}, api.ReleaseMetadata{
+				},
+				api.ReleaseMetadata{
 					Semver:      "1.0.0",
 					ChannelName: channelName,
 				},
