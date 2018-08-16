@@ -174,7 +174,7 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_ref",
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_fetch",
     "merge": {
       "description": "Configuration for indicating a chart hosted somewhere that would be accessible to the `helm fetch` function."
     },
@@ -185,19 +185,19 @@
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_ref.properties.chart_ref",
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_fetch.properties.chart_ref",
     "merge": {
       "description": "`chart URL | repo/chartname` as would be passed to `helm fetch`"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_ref.properties.repo_url",
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_fetch.properties.repo_url",
     "merge": {
       "description": "repository URL as would be passed to `helm fetch` with the `--repo` flag"
     }
   },
   {
-    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_ref.properties.version",
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.helm_fetch.properties.version",
     "merge": {
       "description": "version as would be passed to `helm fetch` with the `--version` flag"
     }

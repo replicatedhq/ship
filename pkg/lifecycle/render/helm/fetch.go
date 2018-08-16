@@ -68,7 +68,7 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
-	} else if asset.HelmRef != nil {
+	} else if asset.HelmFetch != nil {
 		checkoutDir, err := f.FS.TempDir("", "helmchart")
 		if err != nil {
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
@@ -79,7 +79,7 @@ func (f *ClientFetcher) FetchChart(
 			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
 		}
 
-		outstring, err = helm.Fetch(asset.HelmRef.ChartRef, asset.HelmRef.RepoURL, asset.HelmRef.Version, checkoutDir, "")
+		outstring, err = helm.Fetch(asset.HelmFetch.ChartRef, asset.HelmFetch.RepoURL, asset.HelmFetch.Version, checkoutDir, "")
 
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))

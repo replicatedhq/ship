@@ -1,4 +1,4 @@
-# nginx helm chart rendering example, using k8s.io/helm/docs/examples/nginx
+# mysql helm chart rendering example, using stable/mysql version 0.8.3
 ---
 assets:
   v1:
@@ -6,11 +6,12 @@ assets:
       contents: |
         this exists to create the charts directory
         it should be removed when that bug is resolved
+        see https://github.com/replicatedhq/ship/issues/373
       dest: ./charts/mkdir.sh
       mode: 0777
   - helm:
       dest: charts/rendered
-      helm_ref:
+      helm_fetch:
         chart_ref: stable/mysql
         version: "0.8.3"
 config: {}

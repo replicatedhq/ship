@@ -80,8 +80,8 @@ type HelmAsset struct {
 	HelmOpts    []string               `json:"helm_opts" yaml:"helm_opts" hcl:"helm_opts"`
 	// GitHub references a github asset from which to pull the chart
 	GitHub *GitHubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
-	// HelmRef pulls a chart as Helm would
-	HelmRef *HelmRef `json:"helm_ref,omitempty" yaml:"helm_ref,omitempty" hcl:"helm_ref,omitempty"`
+	// HelmFetch pulls a chart as 'helm fetch' would
+	HelmFetch *HelmFetch `json:"helm_fetch,omitempty" yaml:"helm_fetch,omitempty" hcl:"helm_fetch,omitempty"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 }
@@ -92,7 +92,7 @@ type LocalHelmOpts struct {
 	ChartRoot string `json:"chart_root" yaml:"chart_root" hcl:"chart_root"`
 }
 
-type HelmRef struct {
+type HelmFetch struct {
 	ChartRef string `json:"chart_ref" yaml:"chart_ref" hcl:"chart_ref"`
 	RepoURL  string `json:"repo_url" yaml:"repo_url" hcl:"repo_url"`
 	Version  string `json:"version" yaml:"version" hcl:"version"`

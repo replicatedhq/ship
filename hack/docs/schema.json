@@ -416,14 +416,7 @@
                       "path"
                     ]
                   },
-                  "helm_opts": {
-                    "description": "Additional options as would be passed to `helm template`",
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "helm_ref": {
+                  "helm_fetch": {
                     "description": "Configuration for indicating a chart hosted somewhere that would be accessible to the `helm fetch` function.",
                     "type": "object",
                     "properties": {
@@ -443,6 +436,13 @@
                     "required": [
                       "chart_ref"
                     ]
+                  },
+                  "helm_opts": {
+                    "description": "Additional options as would be passed to `helm template`",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "local": {
                     "description": "Configuration for indicating an already existing source chart to render from.",
