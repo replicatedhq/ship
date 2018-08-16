@@ -19,7 +19,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
@@ -45,6 +44,7 @@ var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 // and creating the chart in place
 type ForkTemplater struct {
 	Helm           func() *exec.Cmd
+	Commands       Commands
 	Logger         log.Logger
 	FS             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
@@ -117,8 +117,7 @@ func (f *ForkTemplater) Template(
 		}
 	}
 
-	templateCommand := helm.NewTemplateCmd(chartRoot, templateArgs)
-	if err := templateCommand.Execute(); err != nil {
+	if err := f.Commands.Template(chartRoot, templateArgs); err != nil {
 		debug.Log("event", "helm.template.err")
 		return errors.Wrap(err, "execute helm")
 	}
@@ -288,6 +287,7 @@ func (f *ForkTemplater) helmInitClient(chartRoot string) error {
 
 // NewTemplater returns a configured Templater. For now we just always fork
 func NewTemplater(
+	commands Commands,
 	logger log.Logger,
 	fs afero.Afero,
 	builderBuilder *templates.BuilderBuilder,
@@ -298,6 +298,7 @@ func NewTemplater(
 		Helm: func() *exec.Cmd {
 			return exec.Command("/usr/local/bin/helm")
 		},
+		Commands:       commands,
 		Logger:         logger,
 		FS:             fs,
 		BuilderBuilder: builderBuilder,
