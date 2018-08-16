@@ -2,7 +2,6 @@ package helm
 
 import (
 	"fmt"
-	"os/exec"
 	"path"
 	"strings"
 
@@ -40,10 +39,9 @@ type Templater interface {
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 
-// ForkTemplater implements Templater by forking out to an embedded helm binary
-// and creating the chart in place
-type ForkTemplater struct {
-	Helm           func() *exec.Cmd
+// LocalTemplater implements Templater by using the Commands interface
+// from pkg/helm and creating the chart in place
+type LocalTemplater struct {
 	Commands       Commands
 	Logger         log.Logger
 	FS             afero.Afero
@@ -53,7 +51,7 @@ type ForkTemplater struct {
 	process        process.Process
 }
 
-func (f *ForkTemplater) Template(
+func (f *LocalTemplater) Template(
 	chartRoot string,
 	rootFs root.Fs,
 	asset api.HelmAsset,
@@ -98,12 +96,13 @@ func (f *ForkTemplater) Template(
 	}
 	templateArgs = append(templateArgs, args...)
 
-	err = f.helmInitClient(chartRoot)
-	if err != nil {
+	debug.Log("event", "helm.init")
+	if err := f.Commands.Init(); err != nil {
 		return errors.Wrap(err, "init helm client")
 	}
 
-	err = f.helmDependencyUpdate(chartRoot)
+	debug.Log("event", "helm.dependency.update")
+	err = f.Commands.DependencyUpdate(chartRoot)
 	if err != nil {
 		return errors.Wrap(err, "update helm dependencies")
 	}
@@ -117,6 +116,7 @@ func (f *ForkTemplater) Template(
 		}
 	}
 
+	debug.Log("event", "helm.template")
 	if err := f.Commands.Template(chartRoot, templateArgs); err != nil {
 		debug.Log("event", "helm.template.err")
 		return errors.Wrap(err, "execute helm")
@@ -179,7 +179,7 @@ func (f *ForkTemplater) Template(
 	return nil
 }
 
-func (f *ForkTemplater) tryRemoveRenderedHelmPath() error {
+func (f *LocalTemplater) tryRemoveRenderedHelmPath() error {
 	debug := level.Debug(log.With(f.Logger, "method", "tryRemoveRenderedHelmPath"))
 
 	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
@@ -190,7 +190,7 @@ func (f *ForkTemplater) tryRemoveRenderedHelmPath() error {
 	return nil
 }
 
-func (f *ForkTemplater) appendHelmValues(
+func (f *LocalTemplater) appendHelmValues(
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 	asset api.HelmAsset,
@@ -238,53 +238,6 @@ func appendHelmValue(
 	return args, nil
 }
 
-func (f *ForkTemplater) helmDependencyUpdate(chartRoot string) error {
-	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm", "render.step", "helm.dependencyUpdate"))
-	cmd := f.Helm()
-	cmd.Args = append(cmd.Args,
-		"dependency",
-		"update",
-		chartRoot,
-	)
-
-	debug.Log("event", "helm.update", "args", fmt.Sprintf("%v", cmd.Args))
-
-	stdout, stderr, err := f.process.Fork(cmd)
-
-	if err != nil {
-		debug.Log("event", "cmd.err")
-		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return errors.Errorf(`execute helm dependency update: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
-		}
-		return errors.Wrap(err, "execute helm dependency update")
-	}
-
-	return nil
-}
-
-func (f *ForkTemplater) helmInitClient(chartRoot string) error {
-	debug := level.Debug(log.With(f.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "helm"))
-	cmd := f.Helm()
-	cmd.Args = append(cmd.Args,
-		"init",
-		"--client-only",
-	)
-
-	debug.Log("event", "helm.initClient", "args", fmt.Sprintf("%v", cmd.Args))
-
-	stdout, stderr, err := f.process.Fork(cmd)
-
-	if err != nil {
-		debug.Log("event", "cmd.err")
-		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return errors.Errorf(`execute helm dependency update: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
-		}
-		return errors.Wrap(err, "execute helm dependency update")
-	}
-
-	return nil
-}
-
 // NewTemplater returns a configured Templater. For now we just always fork
 func NewTemplater(
 	commands Commands,
@@ -294,10 +247,7 @@ func NewTemplater(
 	viper *viper.Viper,
 	stateManager state.Manager,
 ) Templater {
-	return &ForkTemplater{
-		Helm: func() *exec.Cmd {
-			return exec.Command("/usr/local/bin/helm")
-		},
+	return &LocalTemplater{
 		Commands:       commands,
 		Logger:         logger,
 		FS:             fs,

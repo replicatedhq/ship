@@ -1,17 +1,11 @@
 package helm
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
 	"testing"
 
 	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
 
 	"github.com/spf13/viper"
-
-	"reflect"
-	"strings"
 
 	"path"
 
@@ -33,7 +27,6 @@ func TestForkTemplater(t *testing.T) {
 	tests := []struct {
 		name                string
 		describe            string
-		helmForkEnv         []string
 		expectError         string
 		helmOpts            []string
 		helmValues          map[string]interface{}
@@ -43,28 +36,19 @@ func TestForkTemplater(t *testing.T) {
 		expectedChannelName string
 	}{
 		{
-			name:     "helm test proper args",
-			describe: "test that helm is invoked with the proper args. The subprocess will fail if its not called with the args set in EXPECT_HELM_ARGV",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-			},
+			name:        "helm test proper args",
+			describe:    "test that helm is invoked with the proper args. The subprocess will fail if its not called with the args set in EXPECT_HELM_ARGV",
 			expectError: "",
 		},
 		{
-			name:     "helm with set value",
-			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-			},
+			name:        "helm with set value",
+			describe:    "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
 			expectError: "",
 			helmOpts:    []string{"--set", "service.clusterIP=10.3.9.2"},
 		},
 		{
-			name:     "helm values from asset value",
-			describe: "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-			},
+			name:        "helm values from asset value",
+			describe:    "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
 			expectError: "",
 			helmValues: map[string]interface{}{
 				"service.clusterIP": "10.3.9.2",
@@ -74,10 +58,7 @@ func TestForkTemplater(t *testing.T) {
 			},
 		},
 		{
-			name: "helm replaces spacial characters in ",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-			},
+			name:        "helm replaces spacial characters in ",
 			expectError: "",
 			helmValues: map[string]interface{}{
 				"service.clusterIP": "10.3.9.2",
@@ -89,10 +70,7 @@ func TestForkTemplater(t *testing.T) {
 			expectedChannelName: "1-2-3---------frobnitz",
 		},
 		{
-			name: "helm templates values from context",
-			helmForkEnv: []string{
-				"GOTEST_SUBPROCESS_MOCK=1",
-			},
+			name:        "helm templates values from context",
 			expectError: "",
 			helmValues: map[string]interface{}{
 				"service.clusterIP": "{{repl ConfigOption \"cluster_ip\"}}",
@@ -115,12 +93,7 @@ func TestForkTemplater(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			mockState := state.NewMockManager(mc)
 			mockCommands := helm.NewMockCommands(mc)
-			tpl := &ForkTemplater{
-				Helm: func() *exec.Cmd {
-					cmd := exec.Command(os.Args[0], "-test.run=TestMockHelm")
-					cmd.Env = append(os.Environ(), test.helmForkEnv...)
-					return cmd
-				},
+			tpl := &LocalTemplater{
 				Commands:       mockCommands,
 				Logger:         testLogger,
 				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
@@ -161,6 +134,8 @@ func TestForkTemplater(t *testing.T) {
 				},
 				optionAndValuesArgs...,
 			)
+			mockCommands.EXPECT().Init().Return(nil)
+			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
 			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
 
 			err := tpl.Template(
@@ -194,48 +169,6 @@ func TestForkTemplater(t *testing.T) {
 
 		})
 	}
-}
-
-// thanks andrewG / hashifolks
-func TestMockHelm(t *testing.T) {
-	// this test does nothing when run normally, only when
-	// invoked by other tests. Those tests should set this
-	// env var in order to get the behavior
-	if os.Getenv("GOTEST_SUBPROCESS_MOCK") == "" {
-		return
-	}
-
-	receivedArgs := os.Args[2:]
-	expectInit := []string{"init", "--client-only"}
-	expectUpdate := []string{"dependency", "update", "/tmp/chartroot"}
-	if reflect.DeepEqual(receivedArgs, expectInit) {
-		// we good, these are exepcted calls, and we just need to test one type of forking
-		os.Exit(0)
-	}
-
-	if reflect.DeepEqual(receivedArgs, expectUpdate) {
-		// we good, these are exepcted calls
-		os.Exit(0)
-	}
-
-	if os.Getenv("CRASHING_HELM_ERROR") != "" {
-		fmt.Fprintf(os.Stdout, os.Getenv("CRASHING_HELM_ERROR"))
-		os.Exit(1)
-	}
-
-	if os.Getenv("EXPECT_HELM_ARGV") != "" {
-		// this is janky, but works for our purposes, use pipe | for separator, since its unlikely to be in argv
-		expectedArgs := strings.Split(os.Getenv("EXPECT_HELM_ARGV"), "|")
-
-		fmt.Fprintf(os.Stderr, "expected args %v, got args %v", expectedArgs, receivedArgs)
-		if !reflect.DeepEqual(receivedArgs, expectedArgs) {
-			fmt.Fprint(os.Stderr, "; FAIL")
-			os.Exit(2)
-		}
-
-		os.Exit(0)
-	}
-
 }
 
 func TestTryRemoveRenderedHelmPath(t *testing.T) {
@@ -276,7 +209,7 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 			req.True(successfulMkdirAll)
 			req.NoError(err)
 
-			ft := &ForkTemplater{
+			ft := &LocalTemplater{
 				FS:     fakeFS,
 				Logger: testLogger,
 			}
