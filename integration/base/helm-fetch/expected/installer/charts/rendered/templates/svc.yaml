@@ -1,0 +1,19 @@
+##---
+# Source: mysql/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ship-mysql
+  labels:
+    app: ship-mysql
+    chart: "mysql-0.8.3"
+    release: "ship"
+    heritage: "Tiller"
+spec:
+  type: ClusterIP
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: mysql
+  selector:
+    app: ship-mysql
