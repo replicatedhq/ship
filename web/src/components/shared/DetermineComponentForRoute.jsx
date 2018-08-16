@@ -2,6 +2,7 @@ import React from "react";
 import { withRouter } from "react-router-dom";
 import autoBind from "react-autobind";
 import find from "lodash/find";
+import findIndex from "lodash/findIndex";
 import indexOf from "lodash/indexOf";
 
 import Loader from "./Loader";
@@ -20,8 +21,7 @@ class DetermineComponentForRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      startPoll: false,
-      finished: false,
+      maxPollReached: false,
     };
     autoBind(this);
   }
@@ -38,34 +38,73 @@ class DetermineComponentForRoute extends React.Component {
     const pollStartedButNotFinished = !this.state.finished && this.state.startPoll;
     if(parsedDetail.status === "success" && pollStartedButNotFinished) {
       this.setState({ finished: true, startPoll: false }, () => {
-        clearInterval(this.interval);
+        this.stopPoll();
       });
     }
   }
 
-  async handleAction(action) {
-    const currRoute = find(this.props.routes, ["id", this.props.routeId]);
-    const currIndex = indexOf(this.props.routes, currRoute);
-    const nextRoute = this.props.routes[currIndex + 1];
-    if(action) {
-      await this.props.finalizeStep({action}).then(() => {
-        this.props.history.push(`/${nextRoute.id}`);
-      });
-    } else {
-      this.props.history.push(`/${nextRoute.id}`);
+  async handleAction(action, gotoNext) {
+    await this.props.finalizeStep({action});
+    if (gotoNext) {
+      this.gotoRoute();
     }
   }
 
-  startPoll(routeId) {
-    if (!this.state.startPoll) {
-      this.setState({ startPoll: true, finished: false });
-      const { finished } = this.state;
+  gotoRoute(route) {
+    let nextRoute = route;
+
+    if (!nextRoute) {
+      const currRoute = find(this.props.routes, ["id", this.props.routeId]);
+      const currIndex = indexOf(this.props.routes, currRoute);
+      nextRoute = this.props.routes[currIndex + 1];
+    }
+    this.props.history.push(`/${nextRoute.id}`);
+  }
+
+  async getCurrentStep(stepId) {
+    const apiEndpoint = window.env.API_ENDPOINT;
+    const url = `${apiEndpoint}/navcycle/step/${stepId}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+    const body = await response.json();
+    return body;
+  }
+
+  async skipKustomize() {
+    const kustomizeStepIndex = findIndex(this.props.routes, { phase: "kustomize" });
+    const kustomizeStep = this.props.routes[kustomizeStepIndex];
+    const stepAfterKustomize = this.props.routes[kustomizeStepIndex + 1];
+
+    const { actions } = await this.getCurrentStep(kustomizeStep.id);
+    this.handleAction(actions[0]);
+    this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
+  }
+
+  async startPoll(routeId, cb) {
+    let finished = false;
+
+    if (!this.interval) {
       this.interval = setInterval(() => {
-        if (!finished) {
-          this.props.getContentForStep(routeId);
+        if (finished) {
+          clearInterval(this.interval);
+          cb();
+        } else {
+          this.getCurrentStep(routeId).then(({ progress }) => {
+            const { detail } = progress;
+            const parsedDetail = JSON.parse(detail);
+            finished = parsedDetail.status === "success";
+          });
         }
       }, 1000);
     }
+  }
+
+  stopPoll() {
+    clearInterval(this.interval);
   }
 
   renderStep(phase) {
@@ -102,7 +141,8 @@ class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets
-          startPoll={() => this.startPoll(this.props.routeId)}
+          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
+          routeId={this.props.routeId}
           finished={this.state.finished}
           handleAction={this.handleAction}
           location={location}
@@ -141,12 +181,13 @@ class DetermineComponentForRoute extends React.Component {
         <KustomizeEmpty
           actions={actions}
           handleAction={this.handleAction}
+          skipKustomize={this.skipKustomize}
         />
       );
     case "kustomize":
       return (
         <KustomizeOverlay
-          startPoll={() => this.startPoll(this.props.routeId)}
+          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
           finished={this.state.finished}
           location={location}
           actions={actions}

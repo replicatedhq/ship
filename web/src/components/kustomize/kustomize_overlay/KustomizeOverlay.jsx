@@ -57,10 +57,6 @@ export default class KustomizeOverlay extends React.Component {
     if (this.props.patch !== lastProps.patch) {
       this.setState({ patch: this.props.patch });
     }
-
-    if (this.props.finished && this.props.location.pathname === "/kustomize") {
-      this.props.handleAction();
-    }
   }
 
   componentDidMount() {
@@ -120,6 +116,7 @@ export default class KustomizeOverlay extends React.Component {
       actions,
       startPoll,
     } = this.props;
+
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
       startPoll();
@@ -148,6 +145,7 @@ export default class KustomizeOverlay extends React.Component {
   async handleKustomizeSave(closeOverlay) {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
+    this.setState({ patch: contents });
     const payload = {
       path: selectedFile,
       contents,
@@ -250,10 +248,10 @@ export default class KustomizeOverlay extends React.Component {
                                 <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
                                   <span className="icon clickable u-overlayViewIcon"></span>
                                 </div>
-                                :
-                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
-                                  <span className="icon clickable u-overlayCreateIcon"></span>
-                                </div>
+                                : fileToView && !fileToView.isSupported ? null :
+                                  <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
+                                    <span className="icon clickable u-overlayCreateIcon"></span>
+                                  </div>
                               )
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>

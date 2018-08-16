@@ -1,14 +1,19 @@
 package daemon
 
 import (
+	"bytes"
 	"net/http"
 
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
@@ -81,6 +86,28 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 	c.JSON(200, map[string]string{"status": "success"})
 }
 
+// TODO(Robert): duped logic in filetree
+func isSupported(file []byte) bool {
+	var out unstructured.Unstructured
+
+	fileJSON, err := yaml.YAMLToJSON(file)
+	if err != nil {
+		return false
+	}
+
+	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(fileJSON), 1024)
+	if err := decoder.Decode(&out); err != nil {
+		return false
+	}
+
+	r := resource.NewResourceFromUnstruct(out)
+	if r.GetKind() == "CustomResourceDefinition" {
+		return false
+	}
+
+	return true
+}
+
 func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeGetFile"))
 	debug.Log()
@@ -97,8 +124,9 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	}
 
 	type Response struct {
-		Base    string `json:"base"`
-		Overlay string `json:"overlay"`
+		Base        string `json:"base"`
+		IsSupported bool   `json:"isSupported"`
+		Overlay     string `json:"overlay"`
 	}
 
 	step, ok := d.getKustomizeStepOrAbort(c) // todo this should fetch by step ID
@@ -121,8 +149,9 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	}
 
 	c.JSON(200, Response{
-		Base:    base,
-		Overlay: savedState.CurrentKustomizeOverlay(request.Path),
+		Base:        base,
+		Overlay:     savedState.CurrentKustomizeOverlay(request.Path),
+		IsSupported: isSupported([]byte(base)),
 	})
 }
 

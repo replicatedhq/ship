@@ -66,6 +66,7 @@ export function saveKustomizeOverlay(payload) {
         return;
       }
       await response.json();
+      dispatch(getFileContent(payload.path));
       dispatch(loadingData("saveKustomize", false));
     } catch (error) {
       dispatch(loadingData("saveKustomize", false));

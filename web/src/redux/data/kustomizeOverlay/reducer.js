@@ -8,11 +8,13 @@ const kustomizeState = {
 
 function updateFileContents(currState, data) {
   const nextFiles = currState.fileContents;
-  let newObj = {};
-  newObj.baseContent = data.content.base;
-  newObj.overlayContent = data.content.overlay;
-  newObj.key = data.path;
-  nextFiles.unshift(newObj); // add to front of array so uniqBy will keep newest version
+  const transformed = {
+    baseContent: data.content.base,
+    overlayContent: data.content.overlay,
+    key: data.path,
+    isSupported: data.content.isSupported,
+  }
+  nextFiles.unshift(transformed); // add to front of array so uniqBy will keep newest version
   return uniqBy(nextFiles, "key");
 }
 

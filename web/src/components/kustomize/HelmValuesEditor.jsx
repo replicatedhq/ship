@@ -96,7 +96,7 @@ export default class HelmValuesEditor extends React.Component {
     } else {
       submitAction = find(actions, ["sort", 1]);
     }
-    this.props.handleAction(submitAction);
+    this.props.handleAction(submitAction, true);
   }
 
   onValuesSaved() {
