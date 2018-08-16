@@ -52,7 +52,7 @@ func TestDI(t *testing.T) {
 
 			req := require.New(t)
 
-			container, err := buildInjector()
+			container, err := buildInjector(viper.GetViper())
 			req.NoError(err)
 
 			err = container.Invoke(func(s *Ship) error {

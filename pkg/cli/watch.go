@@ -10,6 +10,7 @@ import (
 	_ "github.com/kubernetes-sigs/kustomize/pkg/resmap"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func Watch() *cobra.Command {
@@ -20,7 +21,7 @@ func Watch() *cobra.Command {
 change has been published. The watch command will return with an exit code
 of 0 when there's an update available.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			s, err := ship.Get()
+			s, err := ship.Get(viper.GetViper())
 			if err != nil {
 				return err
 			}

@@ -18,19 +18,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Selector selects a spec from the Vendor's releases and channels.
-// See pkg/cli/root.go for some more info on which are required and why.
-type Selector struct {
-	// required
-	CustomerID string
-
-	// optional
-	ReleaseSemver  string
-	ReleaseID      string
-	ChannelID      string
-	InstallationID string
-}
-
 // A Resolver resolves specs
 type Resolver struct {
 	Logger               log.Logger
@@ -42,8 +29,9 @@ type Resolver struct {
 	SetChannelName       string
 	RunbookReleaseSemver string
 	SetChannelIcon       string
-	HelmChartGitPath     string
 	ui                   cli.Ui
+
+	Viper *viper.Viper
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -66,19 +54,19 @@ func NewResolver(
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
-		HelmChartGitPath:     v.GetString("chart"),
+		Viper:                v,
 		ui:                   ui,
 	}
 }
 
-// ResolveRelease uses the passed config options to get specs from pg.replicated.com or
+// ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local runbook if so configured
-func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.Release, error) {
+func (r *Resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
 	var specYAML []byte
 	var err error
 	var release *ShipRelease
 
-	debug := level.Debug(log.With(r.Logger, "method", "ResolveRelease"))
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveAppRelease"))
 
 	if r.Runbook != "" {
 		release, err = r.resolveRunbookRelease()
@@ -86,10 +74,10 @@ func (r *Resolver) ResolveRelease(ctx context.Context, selector Selector) (*api.
 			return nil, errors.Wrapf(err, "resolve runbook from %s", r.Runbook)
 		}
 	} else {
-		release, err = r.resolveCloudRelease(selector.CustomerID, selector.InstallationID, selector.ReleaseSemver)
+		release, err = r.resolveCloudRelease(selector)
 		debug.Log("spec.resolve", "spec", specYAML, "err", err)
 		if err != nil {
-			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector.CustomerID)
+			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector)
 		}
 	}
 
@@ -132,12 +120,12 @@ func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
 	}, nil
 }
 
-func (r *Resolver) resolveCloudRelease(customerID, installationID, semver string) (*ShipRelease, error) {
+func (r *Resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
 	client := r.Client
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
-	release, err := client.GetRelease(customerID, installationID, semver)
+	release, err := client.GetRelease(selector)
 	if err != nil {
 		return nil, err
 	}

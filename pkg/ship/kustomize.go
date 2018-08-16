@@ -153,6 +153,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	defer s.Shutdown(cancelFunc)
 
 	if s.Viper.GetString("raw") != "" {
+
 		release := s.fakeKustomizeRawRelease()
 		return s.execute(ctx, release, nil, true)
 	}
@@ -181,34 +182,13 @@ Continuing will delete this state, would you like to continue? There is no undo.
 		}
 	}
 
-	helmChartPath := s.Viper.GetString("chart")
-	s.UI.Info("Downloading from " + helmChartPath + " ...")
-	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath)
+	release, err := s.Resolver.ResolveRelease(ctx, s.Viper.GetString("target"))
 	if err != nil {
-		return errors.Wrapf(err, "resolve helm metadata for %s", helmChartPath)
-	}
+		return errors.Wrap(err, "resolve release")
 
-	// serialize the ChartURL to disk. First step in creating a state file
-	s.State.SerializeChartURL(helmChartPath)
-
-	debug.Log("event", "check upstream release")
-	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
-	}
-
-	debug.Log("event", "build helm release")
-	release := &api.Release{
-		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
-		},
-		Spec: spec,
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-
-	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
-
 	return s.execute(ctx, release, nil, true)
 }
 

@@ -20,10 +20,11 @@ func Init() *cobra.Command {
 		Long: `Build and deploy kustomize configured helm charts to be integrated
 with a gitops style workflow.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			v := viper.GetViper()
 			if len(args) != 0 {
-				viper.Set("chart", args[0])
+				v.Set("target", args[0])
 			}
-			s, err := ship.Get()
+			s, err := ship.Get(v)
 			if err != nil {
 				return err
 			}

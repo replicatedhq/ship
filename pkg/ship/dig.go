@@ -1,8 +1,6 @@
 package ship
 
 import (
-	"context"
-
 	"github.com/replicatedhq/ship/pkg/patch"
 
 	"time"
@@ -48,12 +46,12 @@ import (
 	"go.uber.org/dig"
 )
 
-func buildInjector() (*dig.Container, error) {
+func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 	providers := []interface{}{
 
+		provide(v),
 		clock,
-		viper.GetViper,
 		logger.FromViper,
 		ui.FromViper,
 		fs.NewBaseFilesystem,
@@ -72,8 +70,7 @@ func buildInjector() (*dig.Container, error) {
 		planner.NewFactory,
 		specs.NewResolver,
 		specs.NewGraphqlClient,
-		specs.NewGithubClient,
-		lifecycle.NewRunner,
+		specs.NewGithubClient, lifecycle.NewRunner,
 
 		inline.NewRenderer,
 
@@ -192,12 +189,12 @@ func navcycleProviders() []interface{} {
 	}
 }
 
-func Get() (*Ship, error) {
+func Get(v *viper.Viper) (*Ship, error) {
 	// who injects the injectors?
-	debug := log.With(level.Debug(logger.FromViper(viper.GetViper())), "component", "injector", "phase", "instance.get")
+	debug := log.With(level.Debug(logger.FromViper(v)), "component", "injector", "phase", "instance.get")
 
 	debug.Log("event", "injector.build")
-	injector, err := buildInjector()
+	injector, err := buildInjector(v)
 	if err != nil {
 		debug.Log("event", "injector.build.fail", "error", err)
 		return nil, errors.Wrap(err, "build injector")
@@ -219,19 +216,15 @@ func Get() (*Ship, error) {
 	return ship, nil
 }
 
-func RunE(ctx context.Context) error {
-	viper.Set("is-app", true)
-	s, err := Get()
-	if err != nil {
-		return err
-	}
-	s.ExecuteAndMaybeExit(ctx)
-	return nil
-}
-
 func clock() func() time.Time {
 	clock := func() time.Time {
 		return time.Now()
 	}
 	return clock
+}
+
+func provide(v *viper.Viper) func() *viper.Viper {
+	return func() *viper.Viper {
+		return v
+	}
 }

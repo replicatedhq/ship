@@ -128,6 +128,7 @@ type callInfo struct {
 	username string
 	password string
 	request  GraphQLRequest
+	upstream string
 }
 
 // ToReleaseMeta linter
@@ -186,18 +187,19 @@ func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
 }
 
 // GetRelease gets a payload from the graphql server
-func (c *GraphQLClient) GetRelease(customerID, installationID, semver string) (*ShipRelease, error) {
+func (c *GraphQLClient) GetRelease(selector *Selector) (*ShipRelease, error) {
 	requestObj := GraphQLRequest{
 		Query: getAppspecQuery,
 		Variables: map[string]string{
-			"semver": semver,
+			"semver": selector.ReleaseSemver,
 		},
 	}
 
 	ci := callInfo{
-		username: customerID,
-		password: installationID,
+		username: selector.CustomerID,
+		password: selector.InstallationID,
 		request:  requestObj,
+		upstream: selector.Upstream,
 	}
 
 	shipResponse := &GQLGetReleaseResponse{}
@@ -264,7 +266,11 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
 	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", ci.username, ci.password)))
 
-	graphQLRequest, err := http.NewRequest(http.MethodPost, c.GQLServer.String(), bodyReader)
+	gqlServer := c.GQLServer.String()
+	if ci.upstream != "" {
+		gqlServer = ci.upstream
+	}
+	graphQLRequest, err := http.NewRequest(http.MethodPost, gqlServer, bodyReader)
 
 	graphQLRequest.Header = map[string][]string{
 		"Authorization": {"Basic " + authString},

@@ -72,14 +72,20 @@ func CompareDir(expected, actual string) (bool, error) {
 			continue
 		} else {
 			// compare expectedFile contents
-			expectedContents, err := ioutil.ReadFile(expectedFilePath)
+			expectedContentsBytes, err := ioutil.ReadFile(expectedFilePath)
 			Expect(err).NotTo(HaveOccurred())
-			actualContents, err := ioutil.ReadFile(actualFilePath)
+			actualContentsBytes, err := ioutil.ReadFile(actualFilePath)
 			Expect(err).NotTo(HaveOccurred())
 
+			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
+			expectedContents := strings.TrimRight(string(expectedContentsBytes), "\n")
+			actualContents := strings.TrimRight(string(actualContentsBytes), "\n")
+
+
+
 			diff := difflib.UnifiedDiff{
-				A:        difflib.SplitLines(string(expectedContents)),
-				B:        difflib.SplitLines(string(actualContents)),
+				A:        difflib.SplitLines(expectedContents),
+				B:        difflib.SplitLines(actualContents),
 				FromFile: "expected contents",
 				ToFile:   "actual contents",
 				Context:  3,
