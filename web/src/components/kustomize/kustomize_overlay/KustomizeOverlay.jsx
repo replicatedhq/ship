@@ -40,9 +40,10 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   componentDidUpdate(lastProps, lastState) {
+    const { currentStep } = this.props;
     this.rebuildTooltip();
     if (this.props.currentStep !== lastProps.currentStep && !isEmpty(this.props.currentStep)) {
-      this.setFileTree();
+      this.setFileTree(currentStep);
     }
     if (this.props.fileContents !== lastProps.fileContents && !isEmpty(this.props.fileContents)) {
       this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
@@ -60,8 +61,9 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.currentStep && !isEmpty(this.props.currentStep)) {
-      this.setFileTree();
+    const { currentStep } = this.props;
+    if (currentStep && !isEmpty(currentStep)) {
+      this.setFileTree(currentStep);
     }
     if (this.props.fileContents && !isEmpty(this.props.fileContents)) {
       this.setState({ fileContents: keyBy(this.props.fileContents, "key") });
@@ -157,6 +159,8 @@ export default class KustomizeOverlay extends React.Component {
     };
 
     await this.props.saveKustomizeOverlay(payload).catch();
+    const { currentStep } = await this.props.getCurrentNavcycleStep(this.props.routeId);
+    this.setFileTree(currentStep);
     await this.props.applyPatch(applyPayload).catch();
 
     if (closeOverlay) {
@@ -183,8 +187,7 @@ export default class KustomizeOverlay extends React.Component {
     ReactTooltip.hide();
   }
 
-  setFileTree() {
-    const { kustomize } = this.props.currentStep;
+  setFileTree({ kustomize }) {
     if (!kustomize.tree) return;
     const sortedTree = sortBy(kustomize.tree.children, (dir) => {
       dir.children ? dir.children.length : 0
@@ -210,7 +213,6 @@ export default class KustomizeOverlay extends React.Component {
     const fileToView = find(this.state.fileContents, ["key", selectedFile]);
     const showOverlay = patch.length;
 
-    console.log("this.props.modified", this.props);
     return (
       <div className="flex flex1">
         <div className="u-minHeight--full u-minWidth--full flex-column flex1 u-position--relative">
