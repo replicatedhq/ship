@@ -159,7 +159,7 @@ export default class KustomizeOverlay extends React.Component {
     };
 
     await this.props.saveKustomizeOverlay(payload).catch();
-    const { currentStep } = await this.props.getCurrentNavcycleStep(this.props.routeId);
+    const { currentStep } = await this.props.getCurrentStep(this.props.routeId);
     this.setFileTree(currentStep);
     await this.props.applyPatch(applyPayload).catch();
 
