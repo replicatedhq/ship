@@ -3,6 +3,7 @@ package kustomize
 import (
 	"context"
 	"os"
+	"strings"
 
 	"time"
 
@@ -197,7 +198,7 @@ func (l *Kustomizer) WriteBase(step api.Kustomize) error {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			if filepath.Ext(targetPath) == ".yaml" {
+			if filepath.Ext(targetPath) == ".yaml" && !strings.HasSuffix(targetPath, "kustomization.yaml") {
 				relativePath, err := filepath.Rel(step.BasePath, targetPath)
 				if err != nil {
 					debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
