@@ -3,7 +3,6 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -237,7 +236,8 @@ func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource stri
 }
 
 // TODO(Robert): Mostly a copy of writeBase in kustomize package, but for writing a temporary kustomization yaml
-// with a single base resource to which the patch is being applied.
+// with a single base resource to which the patch is being applied. Needs refactor and testing around
+// matching the targetPath and resource.
 func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string) error {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "writeTempKustomization"))
 
@@ -255,7 +255,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 				debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
-			fmt.Println(targetPath)
+
 			if targetPath == resource {
 				tempBaseKustomization.Resources = append(tempBaseKustomization.Resources, relativePath)
 			}

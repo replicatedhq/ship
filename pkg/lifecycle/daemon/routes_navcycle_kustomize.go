@@ -189,7 +189,6 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	step, ok := d.getKustomizeStepOrAbort(c)
 	if !ok {
 		level.Error(d.Logger).Log("event", "get kustomize step")
-		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 		return
 	}
 
