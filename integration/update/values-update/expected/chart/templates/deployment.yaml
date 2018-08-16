@@ -4,6 +4,7 @@ metadata:
   name: deployment
   labels:
     app: my-app
+    spam: eggs
     chart: {{ .Chart.Name }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -24,7 +25,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}

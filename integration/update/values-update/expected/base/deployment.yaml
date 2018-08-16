@@ -6,6 +6,7 @@ metadata:
   name: deployment
   labels:
     app: my-app
+    spam: eggs
     chart: values-update
     release: values-update
     heritage: Tiller
@@ -14,17 +15,19 @@ spec:
   selector:
     matchLabels:
       app: my-app
+      spam: eggs
       release: values-update
   template:
     metadata:
       labels:
         app: my-app
+        spam: eggs
         release: values-update
     spec:
       containers:
         - name: values-update
           image: "nginx:stable"
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - name: http
               containerPort: 80
