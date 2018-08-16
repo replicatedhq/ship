@@ -109,6 +109,11 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
 		Templater
 	mockgen \
+		-destination pkg/test-mocks/helm/commands_mock.go \
+		-package helm \
+		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
+		Commands
+	mockgen \
 		-destination pkg/test-mocks/helm/renderer_mock.go \
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
