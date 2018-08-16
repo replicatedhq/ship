@@ -2,7 +2,7 @@ import React from "react";
 import { mount } from "enzyme";
 import { AceEditorHOC } from "./AceEditorHOC";
 
-const validYaml = `
+const testYaml = `
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,14 +20,24 @@ spec:
 `;
 
 describe("AceEditorHOC", () => {
-    describe("provided a valid yaml", () => {
+    describe("provided a valid yaml that is supported", () => {
         const wrapper = mount(<AceEditorHOC fileToView={{ baseContent: "" }} />);
         it("creates markers for all values", () => {
             wrapper.setProps({
-                fileToView: { baseContent: validYaml },
+                fileToView: { baseContent: testYaml, isSupported: true },
             });
             const markers = wrapper.state().markers;
             expect(markers).toHaveLength(9);
+        });
+    });
+    describe("provided an unsupported yaml", () => {
+        const wrapper = mount(<AceEditorHOC fileToView={{ baseContent: "" }} />);
+        it("creates markers for all values", () => {
+            wrapper.setProps({
+                fileToView: { baseContent: testYaml, isSupported: false },
+            });
+            const markers = wrapper.state().markers;
+            expect(markers).toHaveLength(0);
         });
     });
 });
