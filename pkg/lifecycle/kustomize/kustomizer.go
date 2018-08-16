@@ -58,7 +58,7 @@ func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, st
 	})
 	debug.Log("event", "step.pushed")
 
-	if err := l.WriteBase(step); err != nil {
+	if err := l.writeBase(step); err != nil {
 		return errors.Wrap(err, "write base kustomization")
 	}
 
@@ -187,7 +187,7 @@ func (l *Kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []strin
 	return nil
 }
 
-func (l *Kustomizer) WriteBase(step api.Kustomize) error {
+func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
 	baseKustomization := ktypes.Kustomization{}

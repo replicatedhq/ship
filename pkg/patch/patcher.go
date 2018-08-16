@@ -3,6 +3,8 @@ package patch
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,7 +26,7 @@ import (
 type Patcher interface {
 	CreateTwoWayMergePatch(string, string) ([]byte, error)
 	MergePatches([]byte, []byte) ([]byte, error)
-	ApplyPatch(string) ([]byte, error)
+	ApplyPatch(string, api.Kustomize, string) ([]byte, error)
 }
 
 type ShipPatcher struct {
@@ -183,9 +186,15 @@ func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error
 	return patch, nil
 }
 
-func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
+func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
 	defer p.applyPatchCleanup()
+
+	debug.Log("event", "writeFile.tempBaseKustomizationYaml")
+	if err := p.writeTempKustomization(step, resource); err != nil {
+		return nil, errors.Wrap(err, "create temp base kustomization yaml")
+	}
+	defer p.deleteTempKustomization(step)
 
 	debug.Log("event", "mkdir.tempApplyOverlayPath")
 	if err := p.FS.MkdirAll(constants.TempApplyOverlayPath, 0755); err != nil {
@@ -225,6 +234,68 @@ func (p *ShipPatcher) ApplyPatch(patch string) ([]byte, error) {
 	}
 
 	return merged, nil
+}
+
+// TODO(Robert): Mostly a copy of writeBase in kustomize package, but for writing a temporary kustomization yaml
+// with a single base resource to which the patch is being applied.
+func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string) error {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "writeTempKustomization"))
+
+	tempBaseKustomization := k8stypes.Kustomization{}
+	if err := p.FS.Walk(
+		step.BasePath,
+		func(targetPath string, info os.FileInfo, err error) error {
+			if err != nil {
+				debug.Log("event", "walk.fail", "path", targetPath)
+				return errors.Wrap(err, "failed to walk path")
+			}
+
+			relativePath, err := filepath.Rel(step.BasePath, targetPath)
+			if err != nil {
+				debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
+				return errors.Wrap(err, "failed to get relative path")
+			}
+			fmt.Println(targetPath)
+			if targetPath == resource {
+				tempBaseKustomization.Resources = append(tempBaseKustomization.Resources, relativePath)
+			}
+			return nil
+		},
+	); err != nil {
+		return err
+	}
+
+	if len(tempBaseKustomization.Resources) == 0 {
+		level.Error(p.Logger).Log("event", "unable to find", "resource", resource)
+		return errors.New("Temp base directory is empty - base resource not found")
+	}
+
+	marshalled, err := yaml.Marshal(tempBaseKustomization)
+	if err != nil {
+		return errors.Wrap(err, "marshal base kustomization.yaml")
+	}
+
+	// write base kustomization
+	name := path.Join(step.BasePath, "kustomization.yaml")
+	err = p.FS.WriteFile(name, []byte(marshalled), 0666)
+	if err != nil {
+		return errors.Wrapf(err, "write file %s", name)
+	}
+	return nil
+}
+
+func (p *ShipPatcher) deleteTempKustomization(step api.Kustomize) error {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "deleteTempKustomization"))
+
+	baseKustomizationPath := path.Join(step.BasePath, "kustomization.yaml")
+
+	debug.Log("event", "remove.tempKustomizationYaml")
+	err := p.FS.Remove(baseKustomizationPath)
+	if err != nil {
+		return errors.Wrap(err, "remove temp base kustomization.yaml")
+	}
+
+	return nil
 }
 
 func (p *ShipPatcher) applyPatchCleanup() {

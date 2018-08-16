@@ -28,8 +28,13 @@ export function kustomizeData(state = kustomizeState, action) {
   case constants.RECEIVE_PATCH:
     const { patch } = action.payload;
     return Object.assign({}, state, {
-      patch
-    })
+      patch,
+    });
+  case constants.RECEIVE_MODIFIED:
+    const { modified } = action.payload;
+    return Object.assign({}, state, {
+      modified,
+    });
   default:
     return state;
   }

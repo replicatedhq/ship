@@ -5,6 +5,7 @@ const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_FILE_CONTENT: "RECEIVE_FILE_CONTENT",
   RECEIVE_PATCH: "RECEIVE_PATCH",
+  RECEIVE_MODIFIED: "RECEIVE_MODIFIED",
 };
 
 export function receiveFileContent(content, path) {
@@ -129,6 +130,36 @@ export function generatePatch(payload) {
     } catch (error) {
       console.log(error)
       return;
+    }
+  };
+}
+
+export function applyPatch(payload) {
+  return async (dispatch) => {
+    try {
+      const url = `${apiEndpoint}/kustomize/apply`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const { modified } = await response.json();
+      dispatch(receiveModified(modified));
+    } catch (error) {
+      console.log(error)
+      return;
+    }
+  };
+}
+
+export function receiveModified(modified) {
+  return {
+    type: constants.RECEIVE_MODIFIED,
+    payload: {
+      modified,
     }
   };
 }

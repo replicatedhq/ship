@@ -174,7 +174,8 @@ func (d *NavcycleRoutes) kustomizeFinalize(c *gin.Context) {
 func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "applyPatch"))
 	type Request struct {
-		Patch string `json:"patch"`
+		Resource string `json:"resource"`
+		Patch    string `json:"patch"`
 	}
 	var request Request
 
@@ -184,7 +185,15 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
-	modified, err := d.Patcher.ApplyPatch(request.Patch)
+	debug.Log("event", "getKustomizationStep")
+	step, ok := d.getKustomizeStepOrAbort(c)
+	if !ok {
+		level.Error(d.Logger).Log("event", "get kustomize step")
+		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+		return
+	}
+
+	modified, err := d.Patcher.ApplyPatch(request.Patch, *step.Kustomize, request.Resource)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))

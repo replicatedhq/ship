@@ -281,8 +281,8 @@ func Test_kustomizer_writeBase(t *testing.T) {
 				Daemon: mockDaemon,
 			}
 
-			if err := l.WriteBase(mockStep); (err != nil) != tt.wantErr {
-				t.Errorf("kustomizer.WriteBase() error = %v, wantErr %v", err, tt.wantErr)
+			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
+				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				basePathDest := path.Join(mockStep.BasePath, "kustomization.yaml")
 				fileBytes, err := l.FS.ReadFile(basePathDest)

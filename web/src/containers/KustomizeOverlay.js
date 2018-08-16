@@ -9,6 +9,7 @@ import {
   saveKustomizeOverlay,
   finalizeKustomizeOverlay,
   generatePatch,
+  applyPatch,
 } from "../redux/data/kustomizeOverlay/actions";
 
 const KustomizeOverlay = connect(
@@ -20,6 +21,7 @@ const KustomizeOverlay = connect(
     fileContents: state.data.kustomizeOverlay.kustomizeData.fileContents,
     dataLoading: state.ui.main.loading,
     patch: state.data.kustomizeOverlay.kustomizeData.patch,
+    modified: state.data.kustomizeOverlay.kustomizeData.modified,
   }),
   dispatch => ({
     getCurrentStep(loaderType) { return dispatch(getCurrentStep(loaderType)); },
@@ -29,6 +31,7 @@ const KustomizeOverlay = connect(
     finalizeKustomizeOverlay() { return dispatch(finalizeKustomizeOverlay()); },
     loadingData(key, isLoading) { return dispatch(loadingData(key, isLoading)); },
     generatePatch(payload) { return dispatch(generatePatch(payload)); },
+    applyPatch(payload) { return dispatch(applyPatch(payload)); },
   }),
 )(realKustomizeOverlay);
 

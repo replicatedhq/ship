@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 )
 
@@ -90,7 +91,7 @@ var _ = Describe("ShipPatcher", func() {
 				expectModified, err := ioutil.ReadFile(path.Join("modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(string(patch))
+				modified, err := shipPatcher.ApplyPatch(string(patch), api.Kustomize{BasePath: "base"}, "base/deployment.yaml")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
