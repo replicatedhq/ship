@@ -87,6 +87,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		helm.NewRenderer,
 		helm.NewFetcher,
 		helm.NewTemplater,
+		helm.NewCommands,
 
 		web.NewStep,
 

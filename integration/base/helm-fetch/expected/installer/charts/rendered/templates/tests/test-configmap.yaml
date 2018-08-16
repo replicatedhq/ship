@@ -1,0 +1,14 @@
+##---
+# Source: mysql/templates/tests/test-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ship-mysql-test
+  labels:
+    app: ship-mysql
+    chart: "mysql-0.8.3"
+    heritage: "Tiller"
+    release: "ship"
+data:
+  run.sh: |-
+

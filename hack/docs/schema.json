@@ -416,6 +416,27 @@
                       "path"
                     ]
                   },
+                  "helm_fetch": {
+                    "description": "Configuration for indicating a chart hosted somewhere that would be accessible to the `helm fetch` function.",
+                    "type": "object",
+                    "properties": {
+                      "chart_ref": {
+                        "description": "`chart URL | repo/chartname` as would be passed to `helm fetch`",
+                        "type": "string"
+                      },
+                      "repo_url": {
+                        "description": "repository URL as would be passed to `helm fetch` with the `--repo` flag",
+                        "type": "string"
+                      },
+                      "version": {
+                        "description": "version as would be passed to `helm fetch` with the `--version` flag",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "chart_ref"
+                    ]
+                  },
                   "helm_opts": {
                     "description": "Additional options as would be passed to `helm template`",
                     "type": "array",
@@ -862,6 +883,9 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "root": {
+                    "type": "string"
                   }
                 },
                 "required": []

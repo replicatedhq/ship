@@ -79,7 +79,9 @@ type HelmAsset struct {
 	Values      map[string]interface{} `json:"values" yaml:"values" hcl:"values"`
 	HelmOpts    []string               `json:"helm_opts" yaml:"helm_opts" hcl:"helm_opts"`
 	// GitHub references a github asset from which to pull the chart
-	GitHub *GitHubAsset `json:"github" yaml:"github" hcl:"github"`
+	GitHub *GitHubAsset `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
+	// HelmFetch pulls a chart as 'helm fetch' would
+	HelmFetch *HelmFetch `json:"helm_fetch,omitempty" yaml:"helm_fetch,omitempty" hcl:"helm_fetch,omitempty"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 }
@@ -88,6 +90,12 @@ type HelmAsset struct {
 // using other assets that are already present at `ChartRoot`
 type LocalHelmOpts struct {
 	ChartRoot string `json:"chart_root" yaml:"chart_root" hcl:"chart_root"`
+}
+
+type HelmFetch struct {
+	ChartRef string `json:"chart_ref" yaml:"chart_ref" hcl:"chart_ref"`
+	RepoURL  string `json:"repo_url" yaml:"repo_url" hcl:"repo_url"`
+	Version  string `json:"version" yaml:"version" hcl:"version"`
 }
 
 // TerraformAsset
