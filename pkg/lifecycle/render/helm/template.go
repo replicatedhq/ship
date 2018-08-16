@@ -123,7 +123,7 @@ func (f *LocalTemplater) Template(
 	}
 
 	// In app mode, copy the first found directory in RenderedHelmTempPath to dest
-	// TODO: Unify branching logic when `Fork` is removed
+	// TODO: Unify branching logic
 	if f.Viper.GetBool("is-app") {
 		files, err := f.FS.ReadDir(constants.RenderedHelmTempPath)
 		if err != nil {
