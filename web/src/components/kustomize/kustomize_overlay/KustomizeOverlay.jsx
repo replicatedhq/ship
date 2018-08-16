@@ -70,7 +70,24 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  toggleDiff() {
+  async handleApplyPatch() {
+    const { selectedFile, fileTreeBasePath } = this.state;
+    const contents = this.aceEditorOverlay.editor.getValue();
+
+    const applyPayload = {
+      resource: `${fileTreeBasePath}${selectedFile}`,
+      patch: contents,
+    };
+    await this.props.applyPatch(applyPayload).catch();
+  }
+
+  async toggleDiff() {
+    const { patch, modified } = this.props;
+    const hasPatchButNoModified = patch.length > 0 && modified.length === 0;
+    if (hasPatchButNoModified) {
+      await this.handleApplyPatch().catch();
+    }
+
     this.setState({ viewDiff: !this.state.viewDiff });
   }
 
@@ -145,7 +162,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async handleKustomizeSave(closeOverlay) {
-    const { selectedFile, fileTreeBasePath } = this.state;
+    const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
     this.setState({ patch: contents });
 
@@ -153,15 +170,11 @@ export default class KustomizeOverlay extends React.Component {
       path: selectedFile,
       contents,
     };
-    const applyPayload = {
-      resource: `${fileTreeBasePath}${selectedFile}`,
-      patch: contents,
-    };
 
+    await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
     const { currentStep } = await this.props.getCurrentStep(this.props.routeId);
     this.setFileTree(currentStep);
-    await this.props.applyPatch(applyPayload).catch();
 
     if (closeOverlay) {
       this.setState({ patch: ""});
@@ -197,6 +210,10 @@ export default class KustomizeOverlay extends React.Component {
       fileTree: sortedTree,
       fileTreeBasePath: basePath
     });
+  }
+
+  setAceEditor(editor) {
+    this.aceEditorOverlay = editor;
   }
 
   render() {
@@ -289,7 +306,7 @@ export default class KustomizeOverlay extends React.Component {
                       {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.handleKustomizeSave(true)}></span>}
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Save &amp; close</ReactTooltip>
                       <AceEditor
-                        ref={(editor) => { this.aceEditorOverlay = editor }}
+                        ref={this.setAceEditor}
                         mode="yaml"
                         theme="chrome"
                         className="flex1 flex"
