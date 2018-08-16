@@ -10,19 +10,17 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
-
-	"path"
-
-	"github.com/google/go-github/github"
-	"github.com/replicatedhq/ship/pkg/api"
 	"gopkg.in/yaml.v2"
 )
 
@@ -137,6 +135,10 @@ func (g *GithubClient) GetChartAndReadmeContents(ctx context.Context, chartURLSt
 	chartURL, err := url.Parse(chartURLString)
 	if err != nil {
 		return err
+	}
+
+	if !strings.Contains(chartURL.Host, "github.com") {
+		return errors.New(fmt.Sprintf("%s is not a Github URL", chartURLString))
 	}
 
 	owner, repo, branch, path, err := decodeGitHubURL(chartURL.Path)
