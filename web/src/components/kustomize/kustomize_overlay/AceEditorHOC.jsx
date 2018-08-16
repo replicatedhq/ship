@@ -59,12 +59,10 @@ export class AceEditorHOC extends React.Component {
 
     if (activeMarker.length > 0) {
       const matchingMarker = activeMarker[0];
-      if (matchingMarker.mapping.value) {
-        let tree = yaml.safeLoad(fileToView.baseContent);
-        const modifiedTree = set(tree, matchingMarker.path, PATCH_TOKEN);
-        const dirtybaseContent = yaml.safeDump(modifiedTree);
-        this.props.handleGeneratePatch(dirtybaseContent);
-      }
+      let tree = yaml.safeLoad(fileToView.baseContent);
+      const modifiedTree = set(tree, matchingMarker.path, PATCH_TOKEN);
+      const dirtybaseContent = yaml.safeDump(modifiedTree);
+      this.props.handleGeneratePatch(dirtybaseContent);
     }
   }
 
@@ -122,7 +120,7 @@ export class AceEditorHOC extends React.Component {
             endRow: endRow + 1,
             className: "marker-highlight-null",
             mapping,
-            path,
+            path: [...path, key.value],
           }
           return markers.push(nullMarker);
         }
