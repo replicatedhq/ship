@@ -21,9 +21,8 @@ export class AceEditorHOC extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { fileToView } = this.props;
-    console.log("file", fileToView);
     if (fileToView !== prevProps.fileToView) {
-      if (fileToView.baseContent) {
+      if (fileToView.baseContent && fileToView.isSupported) {
         const markers = this.createMarkers(fileToView);
         this.setState({ markers });
       }

@@ -248,10 +248,10 @@ export default class KustomizeOverlay extends React.Component {
                                 <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
                                   <span className="icon clickable u-overlayViewIcon"></span>
                                 </div>
-                                :
-                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
-                                  <span className="icon clickable u-overlayCreateIcon"></span>
-                                </div>
+                                : fileToView && !fileToView.isSupported ? null :
+                                  <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
+                                    <span className="icon clickable u-overlayCreateIcon"></span>
+                                  </div>
                               )
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>

@@ -19,7 +19,6 @@ export function receiveFileContent(content, path) {
 
 export function getFileContent(payload) {
   return async (dispatch) => {
-    console.log("what it dooo");
     let response;
     dispatch(loadingData("fileContent", true));
     try {
