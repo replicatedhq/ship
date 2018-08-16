@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
@@ -82,24 +83,20 @@ func (f *ForkTemplater) Template(
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
-	// initialize command
-	cmd := f.Helm()
-	cmd.Args = append(
-		cmd.Args,
-		"template", chartRoot,
+	templateArgs := []string{
 		"--output-dir", constants.RenderedHelmTempPath,
 		"--name", releaseName,
-	)
+	}
 
 	if asset.HelmOpts != nil {
-		cmd.Args = append(cmd.Args, asset.HelmOpts...)
+		templateArgs = append(templateArgs, asset.HelmOpts...)
 	}
 
 	args, err := f.appendHelmValues(configGroups, templateContext, asset)
 	if err != nil {
 		return errors.Wrap(err, "build helm values")
 	}
-	cmd.Args = append(cmd.Args, args...)
+	templateArgs = append(templateArgs, args...)
 
 	err = f.helmInitClient(chartRoot)
 	if err != nil {
@@ -120,12 +117,9 @@ func (f *ForkTemplater) Template(
 		}
 	}
 
-	stdout, stderr, err := f.process.Fork(cmd)
-	if err != nil {
-		debug.Log("event", "cmd.err")
-		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
-		}
+	templateCommand := helm.NewTemplateCmd(chartRoot, templateArgs)
+	if err := templateCommand.Execute(); err != nil {
+		debug.Log("event", "helm.template.err")
 		return errors.Wrap(err, "execute helm")
 	}
 
