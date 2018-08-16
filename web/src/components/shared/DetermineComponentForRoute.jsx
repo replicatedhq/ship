@@ -188,6 +188,8 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <KustomizeOverlay
           startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
+          getCurrentStep={this.getCurrentStep}
+          routeId={this.props.routeId}
           finished={this.state.finished}
           location={location}
           actions={actions}

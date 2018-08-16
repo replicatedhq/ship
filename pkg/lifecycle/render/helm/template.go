@@ -44,6 +44,7 @@ var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 // and creating the chart in place
 type ForkTemplater struct {
 	Helm           func() *exec.Cmd
+	Commands       Commands
 	Logger         log.Logger
 	FS             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
@@ -82,24 +83,20 @@ func (f *ForkTemplater) Template(
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
-	// initialize command
-	cmd := f.Helm()
-	cmd.Args = append(
-		cmd.Args,
-		"template", chartRoot,
+	templateArgs := []string{
 		"--output-dir", constants.RenderedHelmTempPath,
 		"--name", releaseName,
-	)
+	}
 
 	if asset.HelmOpts != nil {
-		cmd.Args = append(cmd.Args, asset.HelmOpts...)
+		templateArgs = append(templateArgs, asset.HelmOpts...)
 	}
 
 	args, err := f.appendHelmValues(configGroups, templateContext, asset)
 	if err != nil {
 		return errors.Wrap(err, "build helm values")
 	}
-	cmd.Args = append(cmd.Args, args...)
+	templateArgs = append(templateArgs, args...)
 
 	err = f.helmInitClient(chartRoot)
 	if err != nil {
@@ -120,12 +117,8 @@ func (f *ForkTemplater) Template(
 		}
 	}
 
-	stdout, stderr, err := f.process.Fork(cmd)
-	if err != nil {
-		debug.Log("event", "cmd.err")
-		if exitError, ok := err.(*exec.ExitError); ok && !exitError.Success() {
-			return errors.Errorf(`execute helm: %s: stdout: "%s"; stderr: "%s";`, exitError.Error(), stdout, stderr)
-		}
+	if err := f.Commands.Template(chartRoot, templateArgs); err != nil {
+		debug.Log("event", "helm.template.err")
 		return errors.Wrap(err, "execute helm")
 	}
 
@@ -294,6 +287,7 @@ func (f *ForkTemplater) helmInitClient(chartRoot string) error {
 
 // NewTemplater returns a configured Templater. For now we just always fork
 func NewTemplater(
+	commands Commands,
 	logger log.Logger,
 	fs afero.Afero,
 	builderBuilder *templates.BuilderBuilder,
@@ -304,6 +298,7 @@ func NewTemplater(
 		Helm: func() *exec.Cmd {
 			return exec.Command("/usr/local/bin/helm")
 		},
+		Commands:       commands,
 		Logger:         logger,
 		FS:             fs,
 		BuilderBuilder: builderBuilder,

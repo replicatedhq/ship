@@ -1,16 +1,16 @@
 package helm
 
 import (
-	"path"
-
 	"context"
+	"fmt"
+	"path"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	_ "github.com/replicatedhq/ship/pkg/helm"
+	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/spf13/afero"
@@ -68,6 +68,35 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
+	} else if asset.HelmFetch != nil {
+		checkoutDir, err := f.FS.TempDir("", "helmchart")
+		if err != nil {
+			return "", errors.Wrap(err, "get chart checkout tmpdir")
+		}
+
+		outstring, err := helm.Init("")
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
+		}
+
+		outstring, err = helm.Fetch(asset.HelmFetch.ChartRef, asset.HelmFetch.RepoURL, asset.HelmFetch.Version, checkoutDir, "")
+
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))
+		}
+
+		// find the path that the chart was fetched to
+		files, err := f.FS.ReadDir(checkoutDir)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to read fetched chart dir")
+		}
+
+		firstFoundFile := files[0]
+		if !firstFoundFile.IsDir() {
+			return "", errors.New(fmt.Sprintf("unable to find fetched chart, found file %s instead", firstFoundFile.Name()))
+		}
+
+		return path.Join(checkoutDir, firstFoundFile.Name()), nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
