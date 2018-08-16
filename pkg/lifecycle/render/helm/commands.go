@@ -12,7 +12,7 @@ type Commands interface {
 type helmCommands struct{}
 
 func (h *helmCommands) Template(chartName string, args []string) error {
-	templateCommand := helm.NewTemplateCmd(chartName, args)
+	templateCommand := helm.NewTemplateCmd(append([]string{chartName}, args...))
 	return templateCommand.Execute()
 }
 
