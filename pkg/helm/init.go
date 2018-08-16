@@ -16,7 +16,7 @@ limitations under the License.
 
 /*
 This file was edited by Replicated in 2018 to remove some functionality and to expose `helm init` as a function.
-Among other things, clientOnly has been set as the default (and only) option. and the cli interface code has been removed.
+Among other things, clientOnly has been set as the default (and only) option, and the cli interface code has been removed.
 */
 
 package helm
@@ -29,6 +29,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	"k8s.io/helm/cmd/helm/installer"
@@ -89,6 +90,12 @@ func Init(home string) (string, error) {
 
 	if home != "" {
 		toInit.home = helmpath.Home(home)
+	} else {
+		path, err := helmHome()
+		if err != nil {
+			return "", errors.Wrap(err, "unable to find home directory")
+		}
+		toInit.home = helmpath.Home(path)
 	}
 
 	err := toInit.run()

@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -76,22 +74,29 @@ func (f *ClientFetcher) FetchChart(
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
 
-		helmHomeDir, err := helmHome()
-		if err != nil {
-			return "", errors.Wrap(err, "get home directory")
-		}
-
-		outstring, err := helm.Init(helmHomeDir)
+		outstring, err := helm.Init("")
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
 		}
 
-		outstring, err = helm.Fetch(asset.HelmRef.ChartRef, asset.HelmRef.RepoURL, asset.HelmRef.Version, checkoutDir, helmHomeDir)
+		outstring, err = helm.Fetch(asset.HelmRef.ChartRef, asset.HelmRef.RepoURL, asset.HelmRef.Version, checkoutDir, "")
 
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))
 		}
-		return path.Join(checkoutDir, "mysql"), nil
+
+		// find the path that the chart was fetched to
+		files, err := f.FS.ReadDir(checkoutDir)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to read fetched chart dir")
+		}
+
+		firstFoundFile := files[0]
+		if !firstFoundFile.IsDir() {
+			return "", errors.New(fmt.Sprintf("unable to find fetched chart, found file %s instead", firstFoundFile.Name()))
+		}
+
+		return path.Join(checkoutDir, firstFoundFile.Name()), nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
@@ -109,13 +114,4 @@ func NewFetcher(
 		GitHub: github,
 		FS:     fs,
 	}
-}
-
-func helmHome() (string, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, ".helm"), nil
 }

@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
@@ -74,6 +75,12 @@ func Fetch(chartRef, repoURL, version, dest, home string) (string, error) {
 
 	if home != "" {
 		toFetch.home = helmpath.Home(home)
+	} else {
+		path, err := helmHome()
+		if err != nil {
+			return "", errors.Wrap(err, "unable to find home directory")
+		}
+		toFetch.home = helmpath.Home(path)
 	}
 
 	err := toFetch.run()

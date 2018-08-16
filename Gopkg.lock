@@ -715,6 +715,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:c7354463195544b1ab3c1f1fadb41430947f5d28dfbf2cdbd38268c5717a5a03"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "58046073cbffe2f25d425fe1331102f55cf719de"
+
+[[projects]]
+  branch = "master"
   digest = "1:e68cd472b96cdf7c9f6971ac41bcc1d4d3b23d67c2a31d2399446e295bc88ae9"
   name = "github.com/mitchellh/go-wordwrap"
   packages = ["."]
@@ -1516,7 +1524,7 @@
   version = "kubernetes-1.10.6"
 
 [[projects]]
-  digest = "1:2b32533ad45f70636628082c516117021087755d372f450900de37a869f65066"
+  digest = "1:de973e51e8b7b0e2ea844d8a5fa293a23247052e05f0daebdbaa4f54abc97e77"
   name = "k8s.io/helm"
   packages = [
     "cmd/helm/installer",
@@ -1791,6 +1799,7 @@
     "github.com/mcuadros/go-jsonschema-generator",
     "github.com/mholt/archiver",
     "github.com/mitchellh/cli",
+    "github.com/mitchellh/go-homedir",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/pkg/errors",

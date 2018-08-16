@@ -24,11 +24,13 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/mitchellh/go-homedir"
 	"google.golang.org/grpc/status"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm/environment"
@@ -182,7 +184,7 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
-//readFile load a file from the local directory or a remote file with a url.
+// readFile load a file from the local directory or a remote file with a url.
 func readFile(filePath string) ([]byte, error) {
 	u, _ := url.Parse(filePath)
 	p := getter.All(settings)
@@ -217,4 +219,13 @@ func prettyError(err error) error {
 	}
 	// Else return the original error.
 	return err
+}
+
+func helmHome() (string, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, ".helm"), nil
 }
