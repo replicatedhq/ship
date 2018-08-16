@@ -19,6 +19,7 @@ limitations under the License.
 package helm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -324,4 +325,11 @@ func ensureDirectoryForFile(file string) error {
 	}
 
 	return os.MkdirAll(baseDir, defaultDirectoryPermission)
+}
+
+// NewTemplateCmd returns `helm template` as a cobra command
+func NewTemplateCmd(chartName string, args []string) *cobra.Command {
+	command := newTemplateCmd(new(bytes.Buffer))
+	command.SetArgs(append([]string{chartName}, args...))
+	return command
 }
