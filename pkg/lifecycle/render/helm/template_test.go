@@ -144,7 +144,6 @@ func TestForkTemplater(t *testing.T) {
 			if test.expectedChannelName != "" {
 				expectedChannelName = test.expectedChannelName
 			}
-			fmt.Println("channelName", channelName)
 
 			if test.templateContext == nil {
 				test.templateContext = map[string]interface{}{}
