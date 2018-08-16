@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: values-update
-          image: "nginx:stable"
+          image: "nginx:latest"
           imagePullPolicy: Never
           ports:
             - name: http

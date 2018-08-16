@@ -113,3 +113,21 @@ func TestLoadConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestHelmValue(t *testing.T) {
+	tests := []struct {
+		name          string
+		inputValues   string
+		defaultValues string
+		wantValues    string
+	}{
+		{
+			name: "line 1",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+		})
+	}
+}
