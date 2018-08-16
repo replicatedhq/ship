@@ -143,14 +143,22 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async handleKustomizeSave(closeOverlay) {
-    const { selectedFile } = this.state;
+    const { selectedFile, fileTreeBasePath } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
     this.setState({ patch: contents });
+
     const payload = {
       path: selectedFile,
       contents,
-    }
+    };
+    const applyPayload = {
+      resource: `${fileTreeBasePath}${selectedFile}`,
+      patch: contents,
+    };
+
     await this.props.saveKustomizeOverlay(payload).catch();
+    await this.props.applyPatch(applyPayload).catch();
+
     if (closeOverlay) {
       this.setState({ patch: ""});
     }
@@ -202,6 +210,7 @@ export default class KustomizeOverlay extends React.Component {
     const fileToView = find(this.state.fileContents, ["key", selectedFile]);
     const showOverlay = patch.length;
 
+    console.log("this.props.modified", this.props);
     return (
       <div className="flex flex1">
         <div className="u-minHeight--full u-minWidth--full flex-column flex1 u-position--relative">
@@ -308,7 +317,7 @@ export default class KustomizeOverlay extends React.Component {
                         diffTitle="Diff YAML"
                         diffSubCopy="Here you can see the diff of the base YAML, and the finalized version with the overlay applied."
                         original={fileToView.baseContent}
-                        updated={patch}
+                        updated={this.props.modified}
                       />
                     }
                   </div>

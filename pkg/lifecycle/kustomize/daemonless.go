@@ -33,6 +33,12 @@ func NewDaemonlessKustomizer(
 func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "execute"))
 
+	debug.Log("event", "write.base.kustomization.yaml")
+	err := l.writeBase(step)
+	if err != nil {
+		return errors.Wrap(err, "write base kustomization")
+	}
+
 	current, err := l.State.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "load state")
