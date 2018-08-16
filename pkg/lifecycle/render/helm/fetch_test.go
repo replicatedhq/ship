@@ -68,7 +68,7 @@ func TestFetch(t *testing.T) {
 							if !ok {
 								return false
 							}
-							return strings.HasPrefix(githubAsset.Dest, "/tmp/helmchart")
+							return strings.Contains(githubAsset.Dest, "/helmchart")
 
 						},
 					},
@@ -77,7 +77,7 @@ func TestFetch(t *testing.T) {
 					map[string]interface{}{},
 				).Return(func(ctx context.Context) error { return nil })
 			},
-			expect:      "/tmp/helmchart",
+			expect:      "/helmchart",
 			expectError: "",
 		},
 	}
@@ -118,7 +118,7 @@ func TestFetch(t *testing.T) {
 			}
 
 			req.True(
-				strings.HasPrefix(dest, test.expect),
+				strings.Contains(dest, test.expect),
 				"expected %s to have prefix %s",
 				dest,
 				test.expect,
