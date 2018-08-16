@@ -328,8 +328,8 @@ func ensureDirectoryForFile(file string) error {
 }
 
 // NewTemplateCmd returns `helm template` as a cobra command
-func NewTemplateCmd(chartName string, args []string) *cobra.Command {
+func NewTemplateCmd(args []string) *cobra.Command {
 	command := newTemplateCmd(new(bytes.Buffer))
-	command.SetArgs(append([]string{chartName}, args...))
+	command.SetArgs(args)
 	return command
 }

@@ -4,18 +4,6 @@ ENV GOPATH=/go
 
 RUN apk update && apk add ca-certificates curl git
 
-ENV HELM_VERSION=v2.9.1
-ENV HELM_URL=https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
-ENV HELM_TGZ=helm-v2.9.1-linux-amd64.tar.gz
-ENV HELM=linux-amd64/helm
-ENV HELM_SHA256SUM=56ae2d5d08c68d6e7400d462d6ed10c929effac929fedce18d2636a9b4e166ba
-
-RUN curl -fsSLO "${HELM_URL}" \
-    && echo "${HELM_SHA256SUM}  ${HELM_TGZ}" | sha256sum -c - \
-    && tar xvf "$HELM_TGZ" \
-    && mv "$HELM" "/usr/local/bin/helm-${HELM_VERSION}" \
-    && ln -s "/usr/local/bin/helm-${HELM_VERSION}" /usr/local/bin/helm
-
 ENV TERRAFORM_VERSION=0.11.7
 ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
@@ -50,7 +38,6 @@ FROM alpine
 ENV GOPATH=/go
 WORKDIR /test
 
-COPY --from=build-step /usr/local/bin/helm /usr/local/bin/helm
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
