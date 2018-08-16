@@ -70,19 +70,20 @@ func (f *LocalTemplater) Template(
 			"description", asset.Description,
 		),
 	)
-	debug.Log("event", "mkdirall.attempt", "helmtempdir", constants.RenderedHelmTempPath, "dest", asset.Dest)
-	if err := f.FS.MkdirAll(constants.RenderedHelmTempPath, 0755); err != nil {
+
+	debug.Log("event", "mkdirall.attempt")
+	if err := rootFs.MkdirAll(constants.RenderedHelmTempPath, 0755); err != nil {
 		debug.Log("event", "mkdirall.fail", "err", err, "helmtempdir", constants.RenderedHelmTempPath)
-		return errors.Wrapf(err, "write tmp directory to %s", constants.RenderedHelmTempPath)
+		return errors.Wrapf(err, "write tmp directory to %s", path.Join(rootFs.RootPath, constants.RenderedHelmTempPath))
 	}
-	defer f.FS.RemoveAll(constants.RenderedHelmTempPath)
+	defer rootFs.RemoveAll(constants.RenderedHelmTempPath)
 
 	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ReleaseName()))
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
 	templateArgs := []string{
-		"--output-dir", constants.RenderedHelmTempPath,
+		"--output-dir", path.Join(rootFs.RootPath, constants.RenderedHelmTempPath),
 		"--name", releaseName,
 	}
 
@@ -122,72 +123,11 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "execute helm")
 	}
 
-	// In app mode, copy the first found directory in RenderedHelmTempPath to dest
-	// TODO: Unify branching logic
-	if f.Viper.GetBool("is-app") {
-		files, err := f.FS.ReadDir(constants.RenderedHelmTempPath)
-		if err != nil {
-			return errors.Wrap(err, "failed to read templates dir")
-		}
-
-		firstFoundFile := files[0]
-		if !firstFoundFile.IsDir() {
-			return errors.New(fmt.Sprintf("unable to find rendered chart, found file %s instead", firstFoundFile.Name()))
-		}
-
-		renderedChartDir := path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name())
-		destDir := path.Join(rootFs.RootPath, asset.Dest)
-		if err := f.FS.Rename(renderedChartDir, destDir); err != nil {
-			return errors.Wrap(err, "failed to move rendered chart dir")
-		}
-
-		return nil
-	}
-
-	subChartsDirName := "charts"
-	tempRenderedChartDir := path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name)
-	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
-	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
-
-	if err := f.tryRemoveRenderedHelmPath(); err != nil {
-		return errors.Wrap(err, "removeAll failed while trying to remove rendered Helm values base dir")
-	}
-
-	debug.Log("event", "rename")
-	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
-		if err := f.FS.Rename(tempRenderedChartTemplatesDir, asset.Dest); err != nil {
-			return errors.Wrap(err, "failed to rename templates dir")
-		}
-	} else {
-		debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir, "message", "Folder does not exist")
-	}
-
-	if subChartsExist, err := f.FS.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
-		if err := f.FS.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
-			return errors.Wrap(err, "failed to rename subcharts dir")
-		}
-	} else {
-		debug.Log("event", "rename", "folder", tempRenderedSubChartsDir, "message", "Folder does not exist")
-	}
-
-	debug.Log("event", "temphelmvalues.remove", "path", constants.TempHelmValuesPath)
-	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
-		return errors.Wrap(err, "removeAll failed while trying to remove Helm values tmp dir")
-	}
-
-	// todo link up stdout/stderr debug logs
-	return nil
-}
-
-func (f *LocalTemplater) tryRemoveRenderedHelmPath() error {
-	debug := level.Debug(log.With(f.Logger, "method", "tryRemoveRenderedHelmPath"))
-
-	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+	tempRenderedChartDir, err := f.getTempRenderedChartDirectoryName(rootFs, meta)
+	if err != nil {
 		return err
 	}
-	debug.Log("event", "renderedHelmPath.remove", "path", constants.RenderedHelmPath)
-
-	return nil
+	return f.cleanUpAndOutputRenderedFiles(rootFs, asset, tempRenderedChartDir)
 }
 
 func (f *LocalTemplater) appendHelmValues(
@@ -236,6 +176,79 @@ func appendHelmValue(
 	args = append(args, "--set")
 	args = append(args, fmt.Sprintf("%s=%s", key, renderedValue))
 	return args, nil
+}
+
+func (f *LocalTemplater) getTempRenderedChartDirectoryName(rootFs root.Fs, meta api.ReleaseMetadata) (string, error) {
+	if meta.HelmChartMetadata.Name != "" {
+		return path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name), nil
+	}
+
+	files, err := rootFs.ReadDir(constants.RenderedHelmTempPath)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read templates dir")
+	}
+
+	if len(files) == 0 {
+		return "", errors.New("No files found in templates dir")
+	}
+
+	firstFoundFile := files[0]
+	if !firstFoundFile.IsDir() {
+		return "", errors.New(fmt.Sprintf("unable to find rendered chart, found file %s instead", firstFoundFile.Name()))
+	}
+
+	return path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name()), nil
+}
+
+func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
+	rootFs root.Fs,
+	asset api.HelmAsset,
+	tempRenderedChartDir string,
+) error {
+	debug := level.Debug(log.With(f.Logger, "method", "cleanUpAndOutputRenderedFiles"))
+
+	subChartsDirName := "charts"
+	templatesDirName := "templates"
+	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, templatesDirName)
+	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
+
+	debug.Log("event", "removeall", "path", constants.RenderedHelmPath)
+	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+		debug.Log("event", "removeall.fail", "path", constants.RenderedHelmPath)
+		return errors.Wrap(err, "failed to remove rendered Helm values base dir")
+	}
+
+	debug.Log("event", "mkdirall", "path", asset.Dest)
+	if err := rootFs.MkdirAll(asset.Dest, 0755); err != nil {
+		debug.Log("event", "mkdirall.fail", "path", asset.Dest)
+		return errors.Wrap(err, "failed to make asset destination base directory")
+	}
+
+	debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir)
+	if templatesDirExists, err := rootFs.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
+		if err := rootFs.Rename(tempRenderedChartTemplatesDir, path.Join(asset.Dest, templatesDirName)); err != nil {
+			return errors.Wrap(err, "failed to rename templates dir")
+		}
+	} else {
+		debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir, "message", "Folder does not exist")
+	}
+
+	debug.Log("event", "rename", "folder", tempRenderedSubChartsDir)
+	if subChartsExist, err := rootFs.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
+		if err := rootFs.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
+			return errors.Wrap(err, "failed to rename subcharts dir")
+		}
+	} else {
+		debug.Log("event", "rename", "folder", tempRenderedSubChartsDir, "message", "Folder does not exist")
+	}
+
+	debug.Log("event", "removeall", "path", constants.TempHelmValuesPath)
+	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
+		debug.Log("event", "removeall.fail", "path", constants.TempHelmValuesPath)
+		return errors.Wrap(err, "failed to remove Helm values tmp dir")
+	}
+
+	return nil
 }
 
 // NewTemplater returns a configured Templater. For now we just always fork

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestForkTemplater(t *testing.T) {
+func TestLocalTemplater(t *testing.T) {
 	tests := []struct {
 		name                string
 		describe            string
@@ -93,10 +93,12 @@ func TestForkTemplater(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			mockState := state.NewMockManager(mc)
 			mockCommands := helm.NewMockCommands(mc)
+			memMapFs := afero.MemMapFs{}
+			mockFs := afero.Afero{Fs: &memMapFs}
 			tpl := &LocalTemplater{
 				Commands:       mockCommands,
 				Logger:         testLogger,
-				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
+				FS:             mockFs,
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 				Viper:          viper.New(),
 				StateManager:   mockState,
@@ -141,7 +143,7 @@ func TestForkTemplater(t *testing.T) {
 			err := tpl.Template(
 				"/tmp/chartroot",
 				root.Fs{
-					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					Afero:    mockFs,
 					RootPath: "",
 				},
 				api.HelmAsset{
@@ -154,6 +156,9 @@ func TestForkTemplater(t *testing.T) {
 				api.ReleaseMetadata{
 					Semver:      "1.0.0",
 					ChannelName: channelName,
+					HelmChartMetadata: api.HelmChartMetadata{
+						Name: expectedChannelName,
+					},
 				},
 				[]libyaml.ConfigGroup{},
 				test.templateContext,
@@ -214,7 +219,7 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			removeErr := ft.tryRemoveRenderedHelmPath()
+			removeErr := ft.FS.RemoveAll(constants.RenderedHelmPath)
 
 			if test.expectError {
 				req.Error(removeErr)
