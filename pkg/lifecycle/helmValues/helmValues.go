@@ -62,21 +62,10 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 		return errors.Wrap(err, "load state")
 	}
 
-	currentValues := currentState.Versioned().CurrentHelmValues()
-	if currentValues == "" {
-		chartDefaultValues, err := h.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
-		if err != nil {
-			return errors.Wrap(err, "read file values.yaml")
-		}
-		currentValues = string(chartDefaultValues)
-	} else {
-		// todo merge with chart defaults, for now just use the current ones
-	}
-
 	h.Daemon.SetProgress(daemontypes.StringProgress("helmValues", "generating installable application manifests"))
 
 	h.Daemon.PushHelmValuesStep(ctx, daemontypes.HelmValues{
-		Values: currentValues,
+		Values: currentState.CurrentHelmValues(),
 	}, daemon.HelmValuesActions())
 	debug.Log("event", "step.pushed")
 
