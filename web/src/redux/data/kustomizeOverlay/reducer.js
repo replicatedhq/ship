@@ -4,6 +4,7 @@ import uniqBy from "lodash/uniqBy";
 const kustomizeState = {
   fileContents: [],
   patch: "",
+  modified: "",
 };
 
 function updateFileContents(currState, data) {
