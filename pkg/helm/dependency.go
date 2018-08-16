@@ -18,6 +18,7 @@ limitations under the License.
 package helm
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -275,4 +276,11 @@ func (l *dependencyListCmd) printMissing(reqs *chartutil.Requirements) {
 		}
 	}
 
+}
+
+// NewDependencyCmd returns `helm dependency` as a cobra command
+func NewDependencyCmd(args []string) *cobra.Command {
+	command := newDependencyCmd(new(bytes.Buffer))
+	command.SetArgs(args)
+	return command
 }
