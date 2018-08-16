@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"context"
 	"strings"
+
+	"context"
 
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
@@ -19,7 +20,12 @@ func App() *cobra.Command {
 		Short: "Download and configure a licensed third party application",
 		Long:  `Download and configure a third party application using a supplied customer id.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return ship.RunE(context.Background())
+			viper.Set("is-app", true)
+			s, err := ship.Get(viper.GetViper())
+			if err != nil {
+				return err
+			}
+			return s.ExecuteAndMaybeExit(context.Background())
 		},
 	}
 

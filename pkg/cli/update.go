@@ -24,7 +24,7 @@ func Update() *cobra.Command {
 				viper.Set("headless", true)
 			}
 
-			s, err := ship.Get()
+			s, err := ship.Get(viper.GetViper())
 			if err != nil {
 				return err
 			}

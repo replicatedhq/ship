@@ -21,12 +21,6 @@ ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}
 ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
 
-RUN curl -fsSLO "${TERRAFORM_URL}" \
-	&& echo "${TERRAFORM_SHA256SUM}  ${TERRAFORM_ZIP}" | sha256sum -c - \
-	&& unzip "$TERRAFORM_ZIP" \
-	&& mv "terraform" "/usr/local/bin/terraform-${TERRAFORM_VERSION}" \
-	&& ln -s "/usr/local/bin/terraform-${TERRAFORM_VERSION}" /usr/local/bin/terraform \
-	&& rm "$TERRAFORM_ZIP"
 
 ENV KUBECTL_VERSION=v1.11.1
 ENV KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl

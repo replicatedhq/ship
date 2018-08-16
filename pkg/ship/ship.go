@@ -35,8 +35,6 @@ type Ship struct {
 
 	CustomerID     string
 	ReleaseSemver  string
-	ReleaseID      string
-	ChannelID      string
 	InstallationID string
 	PlanOnly       bool
 
@@ -69,9 +67,7 @@ func NewShip(
 		APIPort:        v.GetInt("api-port"),
 		Headless:       v.GetBool("headless"),
 		CustomerID:     v.GetString("customer-id"),
-		ReleaseID:      v.GetString("release-id"),
 		ReleaseSemver:  v.GetString("release-semver"),
-		ChannelID:      v.GetString("channel-id"),
 		InstallationID: v.GetString("installation-id"),
 		Runbook:        flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 
@@ -105,10 +101,12 @@ func (s *Ship) Shutdown(cancelFunc context.CancelFunc) {
 }
 
 // ExecuteAndMaybeExit runs ship to completion, and os.Exit()'s if it fails
-func (s *Ship) ExecuteAndMaybeExit(ctx context.Context) {
+func (s *Ship) ExecuteAndMaybeExit(ctx context.Context) error {
 	if err := s.Execute(ctx); err != nil {
 		s.ExitWithError(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Ship) Execute(ctx context.Context) error {
@@ -147,11 +145,9 @@ func (s *Ship) Execute(ctx context.Context) error {
 	selector := &specs.Selector{
 		CustomerID:     s.CustomerID,
 		ReleaseSemver:  s.ReleaseSemver,
-		ReleaseID:      s.ReleaseID,
-		ChannelID:      s.ChannelID,
 		InstallationID: s.InstallationID,
 	}
-	release, err := s.Resolver.ResolveRelease(ctx, *selector)
+	release, err := s.Resolver.ResolveAppRelease(ctx, selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
@@ -217,7 +213,10 @@ func (s *Ship) ExitWithError(err error) {
 
 	// TODO this should probably be part of lifecycle
 	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
-	os.Exit(1)
+	// we want to avoid exiting in certain integration testing scenarios
+	if !s.Viper.GetBool("no-os-exit") {
+		os.Exit(1)
+	}
 }
 
 func (s *Ship) ExitWithWarn(err error) {

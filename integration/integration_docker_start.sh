@@ -14,3 +14,8 @@ echo "START UPDATE TESTS"
 ./update.test
 echo "END UPDATE TESTS"
 
+cd ../init_app
+echo "START INIT_APP TESTS"
+./init_app.test
+echo "END UPDATE TESTS"
+
