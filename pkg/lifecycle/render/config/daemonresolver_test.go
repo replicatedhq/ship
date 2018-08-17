@@ -139,6 +139,9 @@ func TestDaemonResolver(t *testing.T) {
 					UI:             cli.NewMockUi(),
 					OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
 				},
+				NavcycleRoutes: &daemon.NavcycleRoutes{
+					Shutdown: make(chan interface{}),
+				},
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())

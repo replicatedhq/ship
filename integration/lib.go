@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/pmezard/go-difflib/difflib"
+	"encoding/json"
 )
 
 // files and directories with non-deterministic output
@@ -78,10 +79,24 @@ func CompareDir(expected, actual string) (bool, error) {
 			actualContentsBytes, err := ioutil.ReadFile(actualFilePath)
 			Expect(err).NotTo(HaveOccurred())
 
+
+			// another hack for ease of testing -- pretty print json before comparing so diffs
+			// are easier to read
+			if strings.HasSuffix(actualFilePath, ".json") {
+				var obj interface{}
+				err = json.Unmarshal(expectedContentsBytes, &obj)
+				Expect(err).NotTo(HaveOccurred())
+				expectedContentsBytes, err = json.MarshalIndent(obj, "", "  ")
+
+				obj = nil
+				err = json.Unmarshal(actualContentsBytes, &obj)
+				Expect(err).NotTo(HaveOccurred())
+				actualContentsBytes, err = json.MarshalIndent(obj, "", "  ")
+			}
+
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
 			expectedContents := strings.TrimRight(string(expectedContentsBytes), "\n")
 			actualContents := strings.TrimRight(string(actualContentsBytes), "\n")
-
 
 
 			diff := difflib.UnifiedDiff{

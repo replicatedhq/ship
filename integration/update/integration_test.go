@@ -19,6 +19,7 @@ import (
 
 type TestMetadata struct {
 	Args []string `yaml:"args"`
+	Skip bool     `yaml:"skip"`
 
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -91,6 +92,10 @@ var _ = Describe("basic", func() {
 				}, 20)
 
 				It("Should output files matching those expected when running in update mode", func() {
+					if testMetadata.Skip {
+						return
+					}
+
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)

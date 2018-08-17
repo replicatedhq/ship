@@ -23,12 +23,18 @@ func (h *helmCommands) DependencyUpdate(chartRoot string) error {
 		"update",
 		chartRoot,
 	}
-	dependencyCommand := helm.NewDependencyCmd(dependencyArgs)
+	dependencyCommand, err := helm.NewDependencyCmd(dependencyArgs)
+	if err != nil {
+		return err
+	}
 	return dependencyCommand.Execute()
 }
 
 func (h *helmCommands) Template(chartName string, args []string) error {
-	templateCommand := helm.NewTemplateCmd(append([]string{chartName}, args...))
+	templateCommand, err := helm.NewTemplateCmd(append([]string{chartName}, args...))
+	if err != nil {
+		return err
+	}
 	return templateCommand.Execute()
 }
 

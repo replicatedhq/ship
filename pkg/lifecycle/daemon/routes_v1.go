@@ -10,6 +10,8 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/constants"
 
+	"path"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -137,8 +139,15 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		return
 	}
 
+	chartDefaultValues, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	if err != nil {
+
+		level.Error(d.Logger).Log("event", "values.readDefault.fail")
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "read file values.yaml"))
+	}
+
 	debug.Log("event", "serialize")
-	err := d.StateManager.SerializeHelmValues(request.Values)
+	err = d.StateManager.SerializeHelmValues(request.Values, string(chartDefaultValues))
 	if err != nil {
 		debug.Log("event", "seralize.fail", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))

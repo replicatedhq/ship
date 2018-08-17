@@ -130,10 +130,16 @@ jobs:
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
-          command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
+            fi
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
-          command: docker push replicated/ship:unstable
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              docker push replicated/ship:unstable
+            fi
 
   deploy_integration:
     docker:
@@ -145,7 +151,10 @@ jobs:
       - run: make build_ship_integration_test
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
-          command: docker push replicated/ship-e2e-test:latest
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              docker push replicated/ship-e2e-test:latest
+            fi
 
   deploy:
     docker:
@@ -161,7 +170,10 @@ jobs:
       - run: docker pull alpine:latest # make sure it's fresh
       - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
-          command: curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+            fi
       # todo drop a release-api message to bump a version in the DB
 
 workflows:
@@ -240,4 +252,3 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
-

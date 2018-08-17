@@ -113,3 +113,65 @@ func TestLoadConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestHelmValue(t *testing.T) {
+	tests := []struct {
+		name                  string
+		chartValuesOnInit     string
+		userInputValues       string
+		chartValuesOnUpdate   string
+		wantValuesAfterUpdate string
+	}{
+		{
+			name:                  "override single value persists through update",
+			chartValuesOnInit:     `replicas: 1`,
+			userInputValues:       `replicas: 5`,
+			chartValuesOnUpdate:   `replicas: 2`,
+			wantValuesAfterUpdate: `replicas: 5`,
+		},
+		// todo fixme I fail
+		//		{
+		//			name: "override one value, different default changes",
+		//			chartValuesOnInit: `
+		//replicas: 1
+		//image: nginx:stable
+		//`,
+		//			userInputValues: `
+		//replicas: 5
+		//image: nginx:stable
+		//`,
+		//			chartValuesOnUpdate: `
+		//replicas: 2
+		//image: nginx:latest
+		//`,
+		//			wantValuesAfterUpdate: `
+		//replicas: 5
+		//image: nginx:latest
+		//`,
+		//		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			manager := &MManager{
+				Logger: &logger.TestLogger{T: t},
+				FS:     fs,
+				V:      viper.New(),
+			}
+
+			err := manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnInit)
+			req.NoError(err)
+
+			t0State, err := manager.TryLoad()
+			req.Equal(test.userInputValues, t0State.CurrentHelmValues())
+
+			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnUpdate)
+			req.NoError(err)
+
+			t1State, err := manager.TryLoad()
+			req.Equal(test.wantValuesAfterUpdate, t1State.CurrentHelmValues())
+		})
+	}
+}

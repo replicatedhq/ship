@@ -108,15 +108,15 @@ func (mr *MockManagerMockRecorder) SerializeContentSHA(arg0 interface{}) *gomock
 }
 
 // SerializeHelmValues mocks base method
-func (m *MockManager) SerializeHelmValues(arg0 string) error {
-	ret := m.ctrl.Call(m, "SerializeHelmValues", arg0)
+func (m *MockManager) SerializeHelmValues(arg0, arg1 string) error {
+	ret := m.ctrl.Call(m, "SerializeHelmValues", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SerializeHelmValues indicates an expected call of SerializeHelmValues
-func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0)
+func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0, arg1)
 }
 
 // TryLoad mocks base method

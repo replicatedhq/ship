@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -24,6 +25,7 @@ type NavcycleRoutes struct {
 	StateManager state.Manager
 	StepExecutor V2Executor
 	Fs           afero.Afero
+	Shutdown     chan interface{}
 
 	StepProgress *daemontypes.ProgressMap
 
@@ -47,6 +49,7 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	v1.GET("/navcycle", d.getNavcycle)
 	v1.GET("/navcycle/step/:step", d.getStep)
 	v1.POST("/navcycle/step/:step", d.completeStep)
+	v1.POST("/shutdown", d.shutdown)
 
 	v1.POST("/kustomize/file", d.kustomizeGetFile)
 	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
@@ -54,6 +57,16 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	v1.POST("/kustomize/patch", d.createOrMergePatch)
 	v1.DELETE("/kustomize/patch", d.deletePatch)
 	v1.POST("/kustomize/apply", d.applyPatch)
+}
+
+func (d *NavcycleRoutes) shutdown(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "method", "shutdown"))
+
+	debug.Log("event", "shutdownFromUI")
+	d.Shutdown <- nil
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "shutdown",
+	})
 }
 
 // returns false if aborted
