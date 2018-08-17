@@ -12,6 +12,7 @@ import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
+import ConfigOnly from "../../containers/ConfigOnly";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
@@ -143,6 +144,10 @@ class DetermineComponentForRoute extends React.Component {
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
+      );
+    case "config":
+      return (
+        <ConfigOnly />
       );
     case "stream":
       return (

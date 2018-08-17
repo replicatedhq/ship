@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import isEmpty from "lodash/isEmpty";
 import NavBar from "../../containers/Navbar";
-import ConfigOnly from "../../containers/ConfigOnly";
 
 import Loader from "./Loader";
 import StepNumbers from "./StepNumbers";
@@ -50,7 +49,6 @@ export default class RouteDecider extends React.Component {
                   {isOnRoot ? null : <StepNumbers steps={routes} />}
                   <div className="flex-1-auto flex-column u-overflow--auto">
                     <Switch>
-                      <Route exact path="/application-settings" component={ConfigOnly} />
                       {routes && routes.map((route) => (
                         <Route
                           exact

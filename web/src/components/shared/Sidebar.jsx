@@ -34,7 +34,7 @@ export default class Sidebar extends React.Component {
     if (configOnly) {
       return [{
         id: 0,
-        linkTo: `/application-settings`,
+        linkTo: "/config",
         label: "Application settings",
         position: "top",
         subItems: this.buildSubItems(this.props.appSettingsFieldsList)
@@ -43,7 +43,7 @@ export default class Sidebar extends React.Component {
     } else {
       return [{
         id: 0,
-        linkTo: `/application-settings`,
+        linkTo: "/config",
         label: "Application settings",
         position: "top",
         subItems: this.buildSubItems(this.props.appSettingsFieldsList)

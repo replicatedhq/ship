@@ -34,7 +34,6 @@ export default class ConfigOnly extends React.Component {
 
   componentDidMount() {
     this.props.getChannel();
-    this.props.getCurrentStep();
     if (!this.props.settingsFieldsList.length) {
       this.props.getApplicationSettings({item_values: null});
     }
@@ -191,6 +190,7 @@ export default class ConfigOnly extends React.Component {
       settingsFieldsList
     } = this.props;
     const { toastDetails } = this.state;
+
     return (
       <Layout configOnly={true}>
         <ErrorBoundary>

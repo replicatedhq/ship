@@ -63,6 +63,7 @@ type Step struct {
 	HelmValues     *HelmValues     `json:"helmValues,omitempty"`
 	Kustomize      *Kustomize      `json:"kustomize,omitempty"`
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty"`
+	Config         *Config         `json:"config,omitempty"`
 }
 
 // hack hack hack, I don't even know what to call this one
@@ -88,6 +89,8 @@ func NewStep(apiStep api.Step) Step {
 		}
 	} else if apiStep.KustomizeIntro != nil {
 		step.KustomizeIntro = &KustomizeIntro{}
+	} else if apiStep.Config != nil {
+		step.Config = &Config{}
 	}
 	return step
 
@@ -135,4 +138,7 @@ type Kustomize struct {
 }
 
 type KustomizeIntro struct {
+}
+
+type Config struct {
 }
