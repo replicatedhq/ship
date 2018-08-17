@@ -140,6 +140,11 @@ func TestLocalTemplater(t *testing.T) {
 			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
 			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
 
+			mockFolderPathToCreate := path.Join(constants.RenderedHelmTempPath, expectedChannelName, "templates")
+			if err := mockFs.MkdirAll(mockFolderPathToCreate, 0755); err != nil {
+				req.Error(err, "failed to make temp dir")
+			}
+
 			err := tpl.Template(
 				"/tmp/chartroot",
 				root.Fs{
