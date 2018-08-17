@@ -7,7 +7,7 @@ import { getHelmChartMetadata } from "../redux/data/kustomizeSettings/actions";
 const HelmChartInfo = connect(
   state => ({
     dataLoading: state.ui.main.loading,
-    helmChartMetadata: state.data.kustomizeSettings.helmChartMetadata,
+    shipAppMetadata: state.data.kustomizeSettings.shipAppMetadata,
     actions: state.data.determineSteps.stepsData.actions,
   }),
   dispatch => ({

@@ -1,6 +1,6 @@
 import { combineReducers } from "redux";
-import { helmChartMetadata } from "./reducer";
+import { shipAppMetadata } from "./reducer";
 
 export default combineReducers({
-  helmChartMetadata,
+  shipAppMetadata,
 });

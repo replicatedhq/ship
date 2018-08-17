@@ -175,7 +175,7 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <StepHelmIntro
           actions={actions}
-          helmChartMetadata={this.props.helmChartMetadata}
+          shipAppMetadata={this.props.shipAppMetadata}
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
@@ -186,7 +186,7 @@ class DetermineComponentForRoute extends React.Component {
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
           isNewRouter={this.props.isNewRouter}
-          helmChartMetadata={this.props.helmChartMetadata}
+          shipAppMetadata={this.props.shipAppMetadata}
           actions={actions}
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}

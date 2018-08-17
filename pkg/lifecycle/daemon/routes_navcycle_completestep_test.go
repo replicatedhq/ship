@@ -156,7 +156,7 @@ func TestV2CompleteStep(t *testing.T) {
 			POST: "/api/v1/navcycle/step/make-the-things",
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
-			WaitForCleanup: func() <-chan time.Time { return time.After(60 * time.Millisecond) },
+			WaitForCleanup: func() <-chan time.Time { return time.After(120 * time.Millisecond) },
 			OnExecute: func(d *NavcycleRoutes, step api.Step) error {
 				d.StepProgress.Store("make-the-things", daemontypes.StringProgress("unittest", "workin on it"))
 				time.Sleep(60 * time.Millisecond)

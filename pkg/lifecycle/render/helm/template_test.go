@@ -154,6 +154,9 @@ func TestForkTemplater(t *testing.T) {
 				api.ReleaseMetadata{
 					Semver:      "1.0.0",
 					ChannelName: channelName,
+					ShipAppMetadata: api.ShipAppMetadata{
+						Name: expectedChannelName,
+					},
 				},
 				[]libyaml.ConfigGroup{},
 				test.templateContext,
@@ -181,7 +184,7 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 		{
 			name:        "base exists",
 			describe:    "ensure base is removed and removeAll doesn't error",
-			baseDir:     constants.RenderedHelmPath,
+			baseDir:     constants.KustomizeBasePath,
 			expectError: false,
 		},
 		{
@@ -219,7 +222,7 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 			if test.expectError {
 				req.Error(removeErr)
 			} else {
-				if dirExists, existErr := ft.FS.DirExists(constants.RenderedHelmPath); dirExists {
+				if dirExists, existErr := ft.FS.DirExists(constants.KustomizeBasePath); dirExists {
 					req.NoError(existErr)
 					// if dir exists, we expect tryRemoveRenderedHelmPath to have err'd
 					req.Error(removeErr)

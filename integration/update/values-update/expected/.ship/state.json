@@ -11,7 +11,7 @@
           }
         }
       },
-      "chartURL": "github.com/replicatedhq/test-charts/values-update",
+      "upstream": "github.com/replicatedhq/test-charts/values-update",
       "contentSHA": "0dff27ff75463c7d4a4a98833c754fd1dde2a76bdbead597939ad80bdb8b5e67",
       "lifecycle": {
         "stepsCompleted": {

@@ -29,7 +29,7 @@ type Manager interface {
 	TryLoad() (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
-	SerializeChartURL(URL string) error
+	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
 	SaveHelmOpts(url, version string) error
 	Save(v VersionedState) error
@@ -63,19 +63,20 @@ func NewManager(
 	}
 }
 
-// SerializeChartURL is used by `ship init` to serialize a state file with ChartURL to disk
-func (m *MManager) SerializeChartURL(URL string) error {
-	debug := level.Debug(log.With(m.Logger, "method", "SerializeChartURL"))
+// SerializeUpstream is used by `ship init` to serialize a state file with ChartURL to disk
+func (m *MManager) SerializeUpstream(upstream string) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeUpstream"))
 
-	debug.Log("event", "tryLoadState")
-	currentState, err := m.TryLoad()
+	current, err := m.TryLoad()
 	if err != nil {
-		return errors.Wrap(err, "try load state")
+		return errors.Wrap(err, "load state")
 	}
-	versionedState := currentState.Versioned()
-	versionedState.V1.ChartURL = URL
+	debug.Log("event", "generateUpstreamURLState")
 
-	return m.serializeAndWriteState(versionedState)
+	toSerialize := current.Versioned()
+	toSerialize.V1.Upstream = upstream
+
+	return m.serializeAndWriteState(toSerialize)
 }
 
 // SerializeContentSHA writes the contentSHA to the state file
@@ -229,13 +230,6 @@ func (m *MManager) tryLoadFromFile() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(m.Logger).Log(
-		"event", "state.unmarshal",
-		"type", "versioned",
-		"source", "file",
-		"value", fmt.Sprintf("%+v", state),
-	)
-
 	if state.V1 != nil {
 		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
 		return state, nil
@@ -297,14 +291,15 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (m *MManager) serializeAndWriteState(state VersionedState) error {
-	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
+	debug := level.Debug(log.With(m.Logger, "method", "serializeAndWriteState"))
+	state = state.migrateDeprecatedFields()
 
 	stateFrom := m.V.GetString("state-from")
 	if stateFrom == "" {
 		stateFrom = "file"
 	}
 
-	debug.Log("event", "serializeAndWriteState", "stateFrom", stateFrom)
+	debug.Log("stateFrom", stateFrom)
 
 	switch stateFrom {
 	case "file":
@@ -318,6 +313,7 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 }
 
 func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
+
 	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")

@@ -1,1 +1,17 @@
-{"v1":{"config":null,"helmValues":"replicaCount: 2\nimage:\n  repository: nginx\n  tag: stable\n\n","kustomize":{"overlays":{"ship":{"patches":{"/deployment.yaml":"apiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  labels:\n    app: my-app\n    chart: values-update\n    heritage: Tiller\n    release: values-update\n  name: deployment\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: values-update\n      containers:\n      - imagePullPolicy: IfNotPresent\n        name: values-update\n"}}}},"chartURL":"github.com/replicatedhq/test-charts/values-static","contentSHA":"77129bbe0cc210b60ae3a2a5775f79a7888d444a2081e6e4f190ebaf2a8da53d","lifecycle":{"stepsCompleted":{"intro":true,"kustomize":true,"kustomize-intro":true,"outro":true,"render":true,"values":true}}}}
+{
+  "v1": {
+    "config": null,
+    "helmValues": "replicaCount: 2\nimage:\n  repository: nginx\n  tag: stable\n\n",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "patches": {
+            "/deployment.yaml": "apiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  labels:\n    app: my-app\n    chart: values-update\n    heritage: Tiller\n    release: values-update\n  name: deployment\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: values-update\n      containers:\n      - imagePullPolicy: IfNotPresent\n        name: values-update\n"
+          }
+        }
+      }
+    },
+    "upstream": "github.com/replicatedhq/test-charts/values-static",
+    "contentSHA": "77129bbe0cc210b60ae3a2a5775f79a7888d444a2081e6e4f190ebaf2a8da53d"
+  }
+}

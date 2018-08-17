@@ -191,7 +191,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					ChartURL: "abc123",
+					Upstream: "abc123",
 				},
 			},
 		},
@@ -205,7 +205,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					ChartURL:     "abc123",
+					Upstream:     "abc123",
 					ChartRepoURL: "abc123_",
 				},
 			},
@@ -220,7 +220,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					ChartURL: "xyz789",
+					Upstream: "xyz789",
 				},
 			},
 		},
@@ -237,7 +237,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 			err := m.serializeAndWriteState(tt.before)
 			req.NoError(err)
 
-			err = m.SerializeChartURL(tt.URL)
+			err = m.SerializeUpstream(tt.URL)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeChartURL() error = %v", err)
 			} else {
@@ -441,7 +441,7 @@ func TestMManager_SaveHelmOpts(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					ChartURL:     "abc123_",
+					Upstream:     "abc123_",
 					ChartRepoURL: "abc123",
 					ChartVersion: "123abc",
 				},
@@ -460,7 +460,7 @@ func TestMManager_SaveHelmOpts(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					ChartURL:     "abc123",
+					Upstream:     "abc123",
 					ChartRepoURL: "xyz789",
 					ChartVersion: "789xyz",
 				},

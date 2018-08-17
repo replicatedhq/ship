@@ -35,6 +35,7 @@ func FromViper(v *viper.Viper) log.Logger {
 	globalLogger = withLevel(globalLogger, v.GetString("log-level"))
 	globalLogger = log.With(globalLogger, "caller", fullPathCaller)
 	golog.SetOutput(log.NewStdlibAdapter(level.Debug(globalLogger)))
+
 	return globalLogger
 }
 
