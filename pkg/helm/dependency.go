@@ -29,6 +29,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/helm/pkg/chartutil"
+	"k8s.io/helm/pkg/helm/helmpath"
 )
 
 const dependencyDesc = `
@@ -279,8 +280,13 @@ func (l *dependencyListCmd) printMissing(reqs *chartutil.Requirements) {
 }
 
 // NewDependencyCmd returns `helm dependency` as a cobra command
-func NewDependencyCmd(args []string) *cobra.Command {
+func NewDependencyCmd(args []string) (*cobra.Command, error) {
 	command := newDependencyCmd(new(bytes.Buffer))
+	helmHome, err := helmHome()
+	if err != nil {
+		return nil, err
+	}
+	settings.Home = helmpath.Home(helmHome)
 	command.SetArgs(args)
-	return command
+	return command, nil
 }
