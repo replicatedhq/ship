@@ -7,7 +7,6 @@ import indexOf from "lodash/indexOf";
 
 import Loader from "./Loader";
 import StepMessage from "./StepMessage";
-import StepDone from "./StepDone";
 import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
@@ -15,6 +14,8 @@ import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 
 import "../../scss/components/shared/DetermineStep.scss";
+
+const apiEndpoint = window.env.API_ENDPOINT;
 
 class DetermineComponentForRoute extends React.Component {
 
@@ -58,11 +59,26 @@ class DetermineComponentForRoute extends React.Component {
       const currIndex = indexOf(this.props.routes, currRoute);
       nextRoute = this.props.routes[currIndex + 1];
     }
+
+    if (!nextRoute) {
+      this.handleShutdown();
+    }
     this.props.history.push(`/${nextRoute.id}`);
   }
 
+  async handleShutdown() {
+    const url = `${apiEndpoint}/shutdown`;
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+
+    this.props.history.push("/done");
+  }
+
   async getCurrentStep(stepId) {
-    const apiEndpoint = window.env.API_ENDPOINT;
     const url = `${apiEndpoint}/navcycle/step/${stepId}`;
     const response = await fetch(url, {
       method: "GET",
@@ -115,7 +131,7 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <div className="flex1 flex-column justifyContent--center alignItems--center">
           <p className="u-fontSize--large u-fontWeight--medium u-color--tundora u-marginBottom--20">Whoa there, you're getting a little ahead of yourself. There are steps that need to be completed before you can be here.</p>
-          <button className="btn primary" onClick={() => { this.props.history.push(`/${this.props.routes[0].id}`)}}>Take me back</button>
+          <button className="btn primary" onClick={this.props.history.goBack}>Take me back</button>
         </div>
       )
     case "message":
@@ -199,10 +215,6 @@ class DetermineComponentForRoute extends React.Component {
           currentStep={currentStep}
           dataLoading={this.props.dataLoading}
         />
-      );
-    case "done":
-      return (
-        <StepDone />
       );
     default:
       return (

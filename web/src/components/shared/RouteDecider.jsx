@@ -7,6 +7,7 @@ import ConfigOnly from "../../containers/ConfigOnly";
 import Loader from "./Loader";
 import StepNumbers from "./StepNumbers";
 import DetermineComponentForRoute from "../../containers/DetermineComponentForRoute";
+import StepDone from "./StepDone";
 
 export default class RouteDecider extends React.Component {
 
@@ -58,6 +59,7 @@ export default class RouteDecider extends React.Component {
                         />
                       ))}
                       <Route exact path="/" component={() => <div className="flex1 flex-column justifyContent--center alignItems--center"><Loader size="60" /></div> } />
+                      <Route exact path="/done" component={() =>  <StepDone />} />
                     </Switch>
                   </div>
                 </div>

@@ -101,6 +101,9 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	case <-ctx.Done():
 		level.Error(d.Logger).Log("event", "shutdown", "reason", "context", "err", ctx.Err())
 		return ctx.Err()
+	case <-d.NavcycleRoutes.Shutdown:
+		debug.Log("event", "shutdown.requested")
+		return nil
 	}
 }
 
