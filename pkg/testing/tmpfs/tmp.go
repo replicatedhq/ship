@@ -12,7 +12,7 @@ import (
 
 func Tmpdir(t *testing.T) (string, func()) {
 	req := require.New(t)
-	d, err := ioutil.TempDir("/tmp", "gotest")
+	d, err := ioutil.TempDir("", "gotest")
 	req.NoError(err)
 
 	return d, func() {
