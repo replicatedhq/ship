@@ -147,7 +147,10 @@ class DetermineComponentForRoute extends React.Component {
       );
     case "config":
       return (
-        <ConfigOnly />
+        <ConfigOnly
+          actions={actions}
+          handleAction={this.handleAction}
+        />
       );
     case "stream":
       return (

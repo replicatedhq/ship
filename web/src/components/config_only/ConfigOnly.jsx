@@ -126,22 +126,30 @@ export default class ConfigOnly extends React.Component {
   }
 
   onConfigSaved() {
-    let nextState = {};
-    nextState.toastDetails = {
-      showToast: true,
-      title: "All changes have been saved.",
-      type: "default",
-      opts: {
-        showCancelButton: true,
-        confirmButtonText: "Continue to next step",
-        confirmAction: async () => {
-          await this.props.finalizeApplicationSettings(this.state.itemData, false)
-            .then(() => {
-              this.props.history.push("/");
-            })
-        }
-      }
-    }
+    const {
+      actions,
+      handleAction,
+      finalizeApplicationSettings,
+    } = this.props;
+    const configAction = actions[0];
+    const { text } = configAction;
+
+    const nextState = {
+      toastDetails: {
+        showToast: true,
+        title: "All changes have been saved.",
+        type: "default",
+        opts: {
+          showCancelButton: true,
+          confirmButtonText: text,
+          confirmAction: async () => {
+            await finalizeApplicationSettings(this.state.itemData, false).catch();
+            await handleAction(configAction, true);
+          },
+        },
+      },
+    };
+
     this.setState(nextState);
   }
 

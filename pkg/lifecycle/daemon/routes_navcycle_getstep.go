@@ -195,8 +195,8 @@ func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action 
 		return []daemontypes.Action{
 			{
 				ButtonType:  "primary",
-				Text:        "Save Changes",
-				LoadingText: "Saving Changes",
+				Text:        "Continue to next step",
+				LoadingText: "Continue to next step",
 				OnClick: daemontypes.ActionRequest{
 					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",

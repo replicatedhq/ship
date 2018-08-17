@@ -9,6 +9,14 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 )
 
+type ConfigOption struct {
+	Name       string   `json:"name"`
+	Value      string   `json:"value"`
+	Data       string   `json:"data"`
+	MultiValue []string `json:"multi_value"`
+	MultiData  []string `json:"multi_data"`
+}
+
 func (d *NavcycleRoutes) postAppConfigLive(release *api.Release) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "handler", "postAppConfigLive"))
@@ -63,8 +71,6 @@ func (d *NavcycleRoutes) finalizeAppConfig(release *api.Release) gin.HandlerFunc
 	return func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "handler", "finalizeAppConfig"))
 		d.putAppConfig(release)(c)
-		debug.Log("event", "configSaved.send.start")
-		d.ConfigSaved <- nil
 		debug.Log("event", "configSaved.send.complete")
 	}
 }
