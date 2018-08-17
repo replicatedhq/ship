@@ -1,13 +1,13 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "basic.fullname" . -}}
+{{- $fullName := include "stable-mysql.fullname" . -}}
 {{- $ingressPath := .Values.ingress.path -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: {{ template "basic.name" . }}
-    chart: {{ template "basic.chart" . }}
+    app: {{ template "stable-mysql.name" . }}
+    chart: {{ template "stable-mysql.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 {{- with .Values.ingress.annotations }}

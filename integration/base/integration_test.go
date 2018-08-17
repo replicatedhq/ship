@@ -34,7 +34,7 @@ func TestCore(t *testing.T) {
 	RunSpecs(t, "integration")
 }
 
-var _ = Describe("basic", func() {
+var _ = Describe("stable-mysql", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)

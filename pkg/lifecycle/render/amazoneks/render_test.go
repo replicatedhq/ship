@@ -407,7 +407,7 @@ locals {
 `,
 		},
 		{
-			name: "basic vpc",
+			name: "stable-mysql vpc",
 			asset: api.EKSAsset{
 				CreatedVPC: &amazoneks.EKSCreatedVPC{
 					VPCCIDR:        "10.0.0.0/16",
@@ -526,7 +526,7 @@ locals {
 `,
 		},
 		{
-			name: "basic vpc",
+			name: "stable-mysql vpc",
 			asset: api.EKSAsset{
 				ExistingVPC: &amazoneks.EKSExistingVPC{
 					VPCID:          "vpcid",

@@ -1,13 +1,13 @@
 ##---
-# Source: basic/templates/service.yaml
+# Source: stable-mysql/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: basic
+  name: stable-mysql
   labels:
-    app: basic
-    chart: basic-0.1.0
-    release: basic
+    app: stable-mysql
+    chart: stable-mysql-0.1.0
+    release: stable-mysql
     heritage: Tiller
 spec:
   type: ClusterIP
@@ -17,5 +17,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: basic
-    release: basic
+    app: stable-mysql
+    release: stable-mysql

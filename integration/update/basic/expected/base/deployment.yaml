@@ -1,28 +1,28 @@
 ##---
-# Source: basic/templates/deployment.yaml
+# Source: stable-mysql/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: basic
+  name: stable-mysql
   labels:
-    app: basic
-    chart: basic-0.1.0
-    release: basic
+    app: stable-mysql
+    chart: stable-mysql-0.1.0
+    release: stable-mysql
     heritage: Tiller
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: basic
-      release: basic
+      app: stable-mysql
+      release: stable-mysql
   template:
     metadata:
       labels:
-        app: basic
-        release: basic
+        app: stable-mysql
+        release: stable-mysql
     spec:
       containers:
-        - name: basic
+        - name: stable-mysql
           image: "nginx:stable"
           imagePullPolicy: IfNotPresent
           ports:

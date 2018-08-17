@@ -373,7 +373,7 @@ func TestValidateConfigItem(t *testing.T) {
 				Name:      "alpha",
 				ErrorCode: "MISSING_REQUIRED_VALUE",
 			},
-			Name: "basic fail",
+			Name: "stable-mysql fail",
 		},
 		{
 			Config: &libyaml.ConfigItem{
@@ -386,7 +386,7 @@ func TestValidateConfigItem(t *testing.T) {
 			},
 
 			ExpectedValue: (*ValidationError)(nil),
-			Name:          "basic pass",
+			Name:          "stable-mysql pass",
 		},
 		{
 			Config: &libyaml.ConfigItem{

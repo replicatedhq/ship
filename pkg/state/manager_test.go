@@ -184,7 +184,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 		expected VersionedState
 	}{
 		{
-			name: "basic test",
+			name: "stable-mysql test",
 			URL:  "abc123",
 			before: VersionedState{
 				V1: &V1{},
@@ -261,7 +261,7 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 		expected   VersionedState
 	}{
 		{
-			name:       "basic test",
+			name:       "stable-mysql test",
 			ContentSHA: "abc123",
 			before: VersionedState{
 				V1: &V1{},
@@ -339,7 +339,7 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		expected     VersionedState
 	}{
 		{
-			name:       "basic test",
+			name:       "stable-mysql test",
 			HelmValues: "abc123",
 			before: VersionedState{
 				V1: &V1{},
@@ -417,7 +417,7 @@ func TestMManager_SaveHelmOpts(t *testing.T) {
 		expected    VersionedState
 	}{
 		{
-			name:        "basic test",
+			name:        "stable-mysql test",
 			HelmURL:     "abc123",
 			HelmVersion: "123abc",
 			before: VersionedState{

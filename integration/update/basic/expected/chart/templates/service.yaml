@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "basic.fullname" . }}
+  name: {{ template "stable-mysql.fullname" . }}
   labels:
-    app: {{ template "basic.name" . }}
-    chart: {{ template "basic.chart" . }}
+    app: {{ template "stable-mysql.name" . }}
+    chart: {{ template "stable-mysql.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
@@ -15,5 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ template "basic.name" . }}
+    app: {{ template "stable-mysql.name" . }}
     release: {{ .Release.Name }}

@@ -1,5 +1,5 @@
 name: nginx
-description: A basic NGINX HTTP server
+description: A stable-mysql NGINX HTTP server
 version: 0.1.0
 kubeVersion: ">=1.2.0"
 keywords:
