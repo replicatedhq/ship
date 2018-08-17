@@ -1,0 +1,2 @@
+chart: "stable/mysql"
+version: "0.8.1"
