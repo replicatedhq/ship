@@ -110,7 +110,10 @@ func (k *Kustomize) Ship() Overlay {
 }
 
 func (u VersionedState) CurrentKustomize() *Kustomize {
-	return u.V1.Kustomize
+	if u.V1 != nil {
+		return u.V1.Kustomize
+	}
+	return nil
 }
 
 func (u VersionedState) CurrentKustomizeOverlay(filename string) string {
@@ -147,19 +150,31 @@ func (u VersionedState) CurrentConfig() map[string]interface{} {
 }
 
 func (u VersionedState) CurrentHelmValues() string {
-	return u.V1.HelmValues
+	if u.V1 != nil {
+		return u.V1.HelmValues
+	}
+	return ""
 }
 
 func (u VersionedState) CurrentChartURL() string {
-	return u.V1.ChartURL
+	if u.V1 != nil {
+		return u.V1.ChartURL
+	}
+	return ""
 }
 
 func (u VersionedState) CurrentChartRepoURL() string {
-	return u.V1.ChartRepoURL
+	if u.V1 != nil {
+		return u.V1.ChartRepoURL
+	}
+	return ""
 }
 
 func (u VersionedState) CurrentChartVersion() string {
-	return u.V1.ChartVersion
+	if u.V1 != nil {
+		return u.V1.ChartVersion
+	}
+	return ""
 }
 
 func (v VersionedState) Versioned() VersionedState {

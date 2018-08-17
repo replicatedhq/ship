@@ -52,24 +52,34 @@ func (r *Resolver) resolveChart(ctx context.Context, target string) (*api.Releas
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 	r.ui.Info("Detected helm application")
 
-	chartRepoURL := r.Viper.GetString("chartRepoURL")
-	chartVersion := r.Viper.GetString("chartVersion")
+	chartRepoURL := r.Viper.GetString("chart-repo-url")
+	chartVersion := r.Viper.GetString("chart-version")
 	helmChartMetadata, err := r.ResolveChartMetadata(context.Background(), target, chartRepoURL, chartVersion)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve helm metadata for %s", target)
 	}
+
 	// serialize the ChartURL to disk. First step in creating a state file
 	r.StateManager.SerializeChartURL(target)
+
+	// persist helm options
+	err = r.StateManager.SaveHelmOpts(chartRepoURL, chartVersion)
+	if err != nil {
+		return nil, errors.Wrap(err, "write helm opts")
+	}
+
 	debug.Log("event", "check upstream release")
 	spec, err := r.ResolveChartReleaseSpec(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
 	}
+
 	debug.Log("event", "build helm release")
 	err = r.StateManager.SerializeContentSHA(helmChartMetadata.ContentSHA)
 	if err != nil {
 		return nil, errors.Wrap(err, "write content sha")
 	}
+
 	return &api.Release{
 		Metadata: api.ReleaseMetadata{
 			HelmChartMetadata: helmChartMetadata,

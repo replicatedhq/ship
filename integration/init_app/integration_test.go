@@ -5,22 +5,22 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
-	"gopkg.in/yaml.v2"
-	"net/url"
+	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/viper"
-	"time"
-	"strings"
-	"github.com/replicatedhq/ship/pkg/e2e"
+	"gopkg.in/yaml.v2"
 )
 
 type TestMetadata struct {
@@ -31,7 +31,7 @@ type TestMetadata struct {
 	Flavor         string `yaml:"flavor"`
 	DisableOnline  bool   `yaml:"disable_online"`
 
-	//debugging
+	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
@@ -135,7 +135,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
-					//compare the files in the temporary directory with those in the "expected" directory
+					// compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
@@ -151,7 +151,7 @@ func createRelease(
 	testInputPath string,
 	testMetadata TestMetadata,
 	channelName string,
-	) string {
+) string {
 	endpointURL, err := url.Parse(vendorEndpoint)
 	Expect(err).NotTo(HaveOccurred())
 	vendorClient := &e2e.GraphQLClient{

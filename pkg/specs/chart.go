@@ -248,7 +248,7 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path, chartRepoURL,
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "initialize helm to fetch chart: %s", out)
 		}
-		out, err = util.FetchUnpack(path, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "", r.FS)
+		out, err = r.fetchUnpack(path, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "")
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "fetch chart with helm: %s", out)
 		}
@@ -369,4 +369,49 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	}
 
 	return owner, repo, branch, path, nil
+}
+
+// FetchUnpack fetches and unpacks the chart into a temp directory, then copies the contents of the chart folder to
+// the destination dir.
+// TODO figure out how to copy files from host into afero filesystem for testing, or how to force helm to fetch into afero
+func (r *Resolver) fetchUnpack(chartRef, repoURL, version, dest, home string) (string, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "fetchUnpack"))
+	fs := afero.Afero{Fs: afero.NewOsFs()}
+
+	tmpDest, err := fs.TempDir(constants.ShipPath, "helm-fetch-unpack")
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
+	}
+	defer fs.RemoveAll(tmpDest)
+
+	// TODO: figure out how to get files into aferoFs here
+	out, err := helm.Fetch(chartRef, repoURL, version, tmpDest, home)
+	if err != nil {
+		return out, err
+	}
+
+	subdir, err := util.FindOnlySubdir(tmpDest, fs)
+	if err != nil {
+		return "", errors.Wrap(err, "find chart subdir")
+	}
+
+	// check if the destination directory exists - if it does, remove it
+	debug.Log("event", "checkExists", "path", constants.KustomizeHelmPath)
+	saveDirExists, err := fs.Exists(dest)
+	if err != nil {
+		return "", errors.Wrapf(err, "check %s exists", dest)
+	}
+
+	if saveDirExists {
+		debug.Log("event", "removeAll", "path", constants.KustomizeHelmPath)
+		err := fs.RemoveAll(dest)
+		if err != nil {
+			return "", errors.Wrapf(err, "remove %s", dest)
+		}
+	}
+
+	// rename that folder to move it to the destination directory
+	err = fs.Rename(subdir, dest)
+
+	return "", err
 }
