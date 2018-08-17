@@ -7,7 +7,7 @@ import NavItem from "./NavItem";
 import "../../scss/components/shared/NavBar.scss";
 import shipLogo from "../../assets/images/ship-logo.png";
 
-class NavBar extends React.Component {
+export class NavBar extends React.Component {
 
   constructor() {
     super();
@@ -87,23 +87,26 @@ class NavBar extends React.Component {
     };
   }
 
-  componentDidUpdate(lastProps) {
-    if (this.props.phase !== lastProps.phase && this.props.phase !== "loading") {
-      if (this.props.isKustomizeFlow || this.props.isKustomize) {
-        this.setState({ 
-          navDetails: {
-            name: this.props.helmChartMetadata.name,
-            icon: this.props.helmChartMetadata.icon,
-          } 
-        });
-      } else {
-        this.setState({ 
-          navDetails: {
-            name: this.props.channelDetails.channelName,
-            icon: this.props.channelDetails.icon,
-          } 
-        });
-      }
+  componentDidUpdate() {
+    const { helmChartMetadata, channelDetails } = this.props;
+    const { navDetails } = this.state;
+
+    if (helmChartMetadata.name && helmChartMetadata.name !== navDetails.name) {
+      this.setState({
+        navDetails: {
+          name: helmChartMetadata.name,
+          icon: helmChartMetadata.icon,
+        },
+      });
+    }
+
+    if (channelDetails.channelName && channelDetails.channelName !== navDetails.name) {
+      this.setState({
+        navDetails: {
+          name: channelDetails.channelName,
+          icon: channelDetails.icon,
+        }
+      });
     }
   }
 
@@ -115,7 +118,7 @@ class NavBar extends React.Component {
         ? window.location.pathname
         : "",
     );
-    
+
     const itemsArr = [];
     itemsArr.push(this.getNavItems);
     // build items
