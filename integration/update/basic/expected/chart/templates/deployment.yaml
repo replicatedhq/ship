@@ -1,22 +1,22 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "stable-mysql.fullname" . }}
+  name: {{ template "basic.fullname" . }}
   labels:
-    app: {{ template "stable-mysql.name" . }}
-    chart: {{ template "stable-mysql.chart" . }}
+    app: {{ template "basic.name" . }}
+    chart: {{ template "basic.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "stable-mysql.name" . }}
+      app: {{ template "basic.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "stable-mysql.name" . }}
+        app: {{ template "basic.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:

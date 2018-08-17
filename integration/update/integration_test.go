@@ -30,7 +30,7 @@ func TestKustomize(t *testing.T) {
 	RunSpecs(t, "integration")
 }
 
-var _ = Describe("stable-mysql", func() {
+var _ = Describe("basic", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
