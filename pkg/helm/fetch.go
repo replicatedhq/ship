@@ -25,7 +25,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/chartutil"
@@ -57,41 +56,6 @@ type fetchCmd struct {
 	out io.Writer
 
 	home helmpath.Home // helm home directory
-}
-
-// FetchUnpack fetches and unpacks the chart into a temp directory, then copies the contents of the chart folder to
-// the destination dir. This is an original function and was not included in the helm code.
-func FetchUnpack(chartRef, repoURL, version, dest, home string) (string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", errors.Wrap(err, "unable to find the current working directory")
-	}
-
-	tmpDest, err := ioutil.TempDir(wd, "helm-fetch-unpack")
-	if err != nil {
-		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
-	}
-	defer os.RemoveAll(tmpDest)
-
-	out, err := Fetch(chartRef, repoURL, version, tmpDest, home)
-	if err != nil {
-		return out, err
-	}
-
-	// find the path that the chart was fetched to
-	files, err := ioutil.ReadDir(tmpDest)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to read fetched chart dir")
-	}
-
-	firstFoundFile := files[0]
-	if !firstFoundFile.IsDir() {
-		return "", errors.New(fmt.Sprintf("unable to find fetched chart, found file %s instead", firstFoundFile.Name()))
-	}
-
-	// rename that folder to move it to the destination directory
-	err = os.Rename(filepath.Join(tmpDest, firstFoundFile.Name()), dest)
-	return "", err
 }
 
 func Fetch(chartRef, repoURL, version, dest, home string) (string, error) {

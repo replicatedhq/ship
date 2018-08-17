@@ -21,6 +21,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helm"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
@@ -247,7 +248,7 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path, chartRepoURL,
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "initialize helm to fetch chart: %s", out)
 		}
-		out, err = helm.FetchUnpack(path, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "")
+		out, err = util.FetchUnpack(path, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "", r.FS)
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "fetch chart with helm: %s", out)
 		}
