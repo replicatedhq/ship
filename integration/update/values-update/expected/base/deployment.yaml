@@ -1,0 +1,42 @@
+##---
+# Source: values-update/templates/deployment.yaml
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: deployment
+  labels:
+    app: my-app
+    spam: eggs
+    chart: values-update
+    release: values-update
+    heritage: Tiller
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: my-app
+      spam: eggs
+      release: values-update
+  template:
+    metadata:
+      labels:
+        app: my-app
+        spam: eggs
+        release: values-update
+    spec:
+      containers:
+        - name: values-update
+          image: "nginx:latest"
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http

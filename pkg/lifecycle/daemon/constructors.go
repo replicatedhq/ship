@@ -56,6 +56,7 @@ func NewV2Router(
 		Logger:       logger,
 		StateManager: stateManager,
 		Planner:      planners,
+		Shutdown:     make(chan interface{}),
 
 		Messenger:      messenger,
 		HelmIntro:      helmIntro,

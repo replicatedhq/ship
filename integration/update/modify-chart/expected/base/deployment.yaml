@@ -10,7 +10,7 @@ metadata:
     release: modify-chart
     heritage: Tiller
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: modify-chart

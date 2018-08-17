@@ -4,14 +4,18 @@ import (
 	"context"
 	"strings"
 
+	"path"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/afero"
 )
 
 var _ daemontypes.Daemon = &HeadlessDaemon{}
@@ -21,6 +25,7 @@ type HeadlessDaemon struct {
 	Logger         log.Logger
 	UI             cli.Ui
 	ConfigRenderer *resolve.APIConfigRenderer
+	FS             afero.Afero
 	ResolvedConfig map[string]interface{}
 }
 
@@ -33,12 +38,14 @@ func NewHeadlessDaemon(
 	logger log.Logger,
 	renderer *resolve.APIConfigRenderer,
 	stateManager state.Manager,
+	fs afero.Afero,
 ) daemontypes.Daemon {
 	return &HeadlessDaemon{
 		StateManager:   stateManager,
 		Logger:         logger,
 		UI:             ui,
 		ConfigRenderer: renderer,
+		FS:             fs,
 	}
 }
 
@@ -65,10 +72,14 @@ func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues daem
 
 func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues string) error {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "HeadlessSaveHelmValues"))
-	err := d.StateManager.SerializeHelmValues(helmValues)
+	chartDefaultValues, err := d.FS.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	if err != nil {
+		return errors.Wrap(err, "load chart defaults")
+	}
+	err = d.StateManager.SerializeHelmValues(helmValues, string(chartDefaultValues))
 	if err != nil {
 		warn.Log("event", "headless save helm values fail", "err", err)
-		return err
+		return errors.Wrap(err, "write new values")
 	}
 
 	return nil

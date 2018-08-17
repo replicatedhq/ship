@@ -112,7 +112,7 @@ func TestDaemonAPI(t *testing.T) {
 		},
 	}
 
-	daemon, port, daemonCancelFunc, err := initTestDaemon(t, release, nil)
+	daemon, port, daemonCancelFunc, err := initTestDaemon(t, release, &NavcycleRoutes{Shutdown: make(chan interface{})})
 	defer daemonCancelFunc()
 	require.New(t).NoError(err)
 

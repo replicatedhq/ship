@@ -6,6 +6,8 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/constants"
 
+	"encoding/json"
+
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -602,7 +604,12 @@ func TestHeadlessDaemon(t *testing.T) {
 				updatedState, err := fakeFS.ReadFile(constants.StatePath)
 				req.NoError(err)
 
-				req.Equal(updatedState, test.ExpectedValue)
+				var obj interface{}
+				err = json.Unmarshal(test.ExpectedValue, &obj)
+				req.NoError(err)
+				pretty, err := json.MarshalIndent(obj, "", "  ")
+				req.NoError(err)
+				req.Equal(updatedState, pretty)
 			}
 		})
 	}
