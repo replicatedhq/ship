@@ -61,7 +61,7 @@ class DetermineComponentForRoute extends React.Component {
     }
 
     if (!nextRoute) {
-      this.handleShutdown();
+      return this.handleShutdown();
     }
     this.props.history.push(`/${nextRoute.id}`);
   }

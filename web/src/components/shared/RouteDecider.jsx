@@ -34,6 +34,7 @@ export default class RouteDecider extends React.Component {
   render() {
     const { routes } = this.props;
     const isOnRoot = window.location.pathname === "/";
+
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">
         <BrowserRouter>
@@ -45,8 +46,8 @@ export default class RouteDecider extends React.Component {
                 </div>
                 :
                 <div className="u-minHeight--full u-minWidth--full flex-column flex1">
-                  {isOnRoot ? null : <NavBar hideLinks={true} />}
-                  {isOnRoot ? null : <StepNumbers steps={this.props.routes} />}
+                  {isOnRoot ? null : <NavBar hideLinks={true} routes={routes} />}
+                  {isOnRoot ? null : <StepNumbers steps={routes} />}
                   <div className="flex-1-auto flex-column u-overflow--auto">
                     <Switch>
                       <Route exact path="/application-settings" component={ConfigOnly} />
