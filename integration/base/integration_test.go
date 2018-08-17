@@ -61,7 +61,7 @@ var _ = Describe("basic", func() {
 
 				BeforeEach(func() {
 					// create a temporary directory within this directory to compare files with
-					testOutputPath, err = ioutil.TempDir(testPath, "test")
+					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
 					os.Chdir(testOutputPath)
 

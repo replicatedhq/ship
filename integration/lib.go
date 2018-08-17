@@ -7,9 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"encoding/json"
+
 	. "github.com/onsi/gomega"
 	"github.com/pmezard/go-difflib/difflib"
-	"encoding/json"
 )
 
 // files and directories with non-deterministic output
@@ -18,6 +19,7 @@ var skipFiles = []string{
 	"installer/terraform/plan",
 	"installer/terraform/terraform.tfstate",
 	"installer/charts/rendered/templates/secrets.yaml",
+	"base/secrets.yaml",
 }
 
 func skipCheck(filepath string) bool {
@@ -79,7 +81,6 @@ func CompareDir(expected, actual string) (bool, error) {
 			actualContentsBytes, err := ioutil.ReadFile(actualFilePath)
 			Expect(err).NotTo(HaveOccurred())
 
-
 			// another hack for ease of testing -- pretty print json before comparing so diffs
 			// are easier to read
 			if strings.HasSuffix(actualFilePath, ".json") {
@@ -97,7 +98,6 @@ func CompareDir(expected, actual string) (bool, error) {
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
 			expectedContents := strings.TrimRight(string(expectedContentsBytes), "\n")
 			actualContents := strings.TrimRight(string(actualContentsBytes), "\n")
-
 
 			diff := difflib.UnifiedDiff{
 				A:        difflib.SplitLines(expectedContents),

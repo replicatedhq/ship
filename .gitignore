@@ -7,7 +7,7 @@ e2e-retraced/retraced-post.sh
 /installer/
 /installer.bak/
 /.ship/
-integration/*/test*
+integration/*/_test_*
 
 /.state/
 /chart/
