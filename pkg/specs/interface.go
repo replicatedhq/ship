@@ -50,7 +50,6 @@ func (r *Resolver) ResolveRelease(ctx context.Context, target string) (*api.Rele
 
 func (r *Resolver) resolveChart(ctx context.Context, target string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
-	r.ui.Info("Detected helm application")
 
 	chartRepoURL := r.Viper.GetString("chart-repo-url")
 	chartVersion := r.Viper.GetString("chart-version")
