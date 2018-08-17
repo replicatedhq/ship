@@ -4,11 +4,11 @@ apiVersion: "rbac.authorization.k8s.io/v1"
 kind: ClusterRole
 metadata:
   labels:
-    app: "datadog-datadog"
+    app: "ship-datadog"
     chart: "datadog-1.0.1"
     heritage: "Tiller"
-    release: "datadog"
-  name: datadog-datadog
+    release: "ship"
+  name: ship-datadog
 rules:
 - apiGroups:
   - ""

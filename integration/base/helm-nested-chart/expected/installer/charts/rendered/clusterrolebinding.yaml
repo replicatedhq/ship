@@ -4,16 +4,16 @@ apiVersion: "rbac.authorization.k8s.io/v1"
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app: "datadog-datadog"
+    app: "ship-datadog"
     chart: "datadog-1.0.1"
-    release: "datadog"
+    release: "ship"
     heritage: "Tiller"
-  name: datadog-datadog
+  name: ship-datadog
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: datadog-datadog
+  name: ship-datadog
 subjects:
   - kind: ServiceAccount
-    name: datadog-datadog
+    name: ship-datadog
     namespace: default

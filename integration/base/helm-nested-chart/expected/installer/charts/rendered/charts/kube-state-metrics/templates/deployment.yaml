@@ -3,11 +3,11 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: datadog-kube-state-metrics
+  name: ship-kube-state-metrics
   labels:
     app: kube-state-metrics
-    chart: "kube-state-metrics-0.8.1"
-    release: "datadog"
+    chart: "kube-state-metrics-0.8.0"
+    release: "ship"
     heritage: "Tiller"
 spec:
   replicas: 1
@@ -15,9 +15,9 @@ spec:
     metadata:
       labels:
         app: kube-state-metrics
-        release: "datadog"
+        release: "ship"
     spec:
-      serviceAccountName: datadog-kube-state-metrics
+      serviceAccountName: ship-kube-state-metrics
       containers:
       - name: kube-state-metrics
         args:
@@ -74,7 +74,7 @@ spec:
 
 
         imagePullPolicy: IfNotPresent
-        image: "quay.io/coreos/kube-state-metrics:v1.3.1"
+        image: "k8s.gcr.io/kube-state-metrics:v1.3.1"
         ports:
         - containerPort: 8080
         readinessProbe:

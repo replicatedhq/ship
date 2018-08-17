@@ -5,15 +5,15 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: kube-state-metrics
-    chart: kube-state-metrics-0.8.1
+    chart: kube-state-metrics-0.8.0
     heritage: Tiller
-    release: datadog
-  name: datadog-kube-state-metrics
+    release: ship
+  name: ship-kube-state-metrics
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: datadog-kube-state-metrics
+  name: ship-kube-state-metrics
 subjects:
 - kind: ServiceAccount
-  name: datadog-kube-state-metrics
+  name: ship-kube-state-metrics
   namespace: default
