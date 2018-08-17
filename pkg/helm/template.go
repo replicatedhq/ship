@@ -35,6 +35,7 @@ import (
 
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/engine"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	util "k8s.io/helm/pkg/releaseutil"
@@ -328,8 +329,13 @@ func ensureDirectoryForFile(file string) error {
 }
 
 // NewTemplateCmd returns `helm template` as a cobra command
-func NewTemplateCmd(args []string) *cobra.Command {
+func NewTemplateCmd(args []string) (*cobra.Command, error) {
 	command := newTemplateCmd(new(bytes.Buffer))
+	helmHome, err := helmHome()
+	if err != nil {
+		return nil, err
+	}
+	settings.Home = helmpath.Home(helmHome)
 	command.SetArgs(args)
-	return command
+	return command, nil
 }
