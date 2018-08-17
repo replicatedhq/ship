@@ -20,20 +20,13 @@ func (f *Fs) TempDir(prefix, name string) (string, error) {
 }
 
 // NewRootFS initializes a Fs struct with a base path of root
-func NewRootFS(root string) Fs {
+func NewRootFS(fs afero.Afero, root string) Fs {
 	if root == "" {
 		root = constants.InstallerPrefixPath
 	}
-
-	var fs afero.Fs
-	if root == "." {
-		fs = afero.NewOsFs()
-	} else {
-		fs = afero.NewBasePathFs(afero.NewOsFs(), root)
-	}
 	return Fs{
 		Afero: afero.Afero{
-			Fs: fs,
+			Fs: afero.NewBasePathFs(fs.Fs, root),
 		},
 		RootPath: root,
 	}
