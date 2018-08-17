@@ -313,7 +313,7 @@ func writeToFile(outputDir string, name string, data string) error {
 		return err
 	}
 
-	fmt.Printf("wrote %s\n", outfileName)
+	//fmt.Printf("wrote %s\n", outfileName)
 	return nil
 }
 
