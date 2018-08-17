@@ -221,20 +221,15 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 		return errors.Wrap(err, "failed to make asset destination base directory")
 	}
 
-	debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir)
 	if templatesDirExists, err := rootFs.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
+		debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
 		files, err := rootFs.ReadDir(tempRenderedChartTemplatesDir)
 		if err != nil {
-			// log here
-			return err
+			debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
+			return errors.Wrap(err, "failed to read temp rendered charts folder")
 		}
 		for _, file := range files {
 			originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
-			// relativePath, err := filepath.Rel(tempRenderedChartTemplatesDir, file.Name())
-			// if err != nil {
-			// 	debug.Log("event", "relativepath.fail", "base", tempRenderedChartTemplatesDir, "target", originalPath)
-			// 	return errors.Wrap(err, "failed to get relative path")
-			// }
 			renderedPath := path.Join(asset.Dest, file.Name())
 			if err := rootFs.Rename(originalPath, renderedPath); err != nil {
 				fileType := "file"
@@ -245,7 +240,7 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 			}
 		}
 	} else {
-		debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir, "message", "Folder does not exist")
+		return errors.Wrap(err, "unable to find tmp rendered chart")
 	}
 
 	debug.Log("event", "removeall", "path", constants.TempHelmValuesPath)
