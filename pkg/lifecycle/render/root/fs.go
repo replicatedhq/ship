@@ -16,9 +16,16 @@ func NewRootFS(root string) Fs {
 	if root == "" {
 		root = constants.InstallerPrefixPath
 	}
+
+	var fs afero.Fs
+	if root == "." {
+		fs = afero.NewOsFs()
+	} else {
+		fs = afero.NewBasePathFs(afero.NewOsFs(), root)
+	}
 	return Fs{
 		Afero: afero.Afero{
-			Fs: afero.NewBasePathFs(afero.NewOsFs(), root),
+			Fs: fs,
 		},
 		RootPath: root,
 	}

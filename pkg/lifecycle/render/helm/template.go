@@ -207,10 +207,7 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 ) error {
 	debug := level.Debug(log.With(f.Logger, "method", "cleanUpAndOutputRenderedFiles"))
 
-	subChartsDirName := "charts"
-	templatesDirName := "templates"
-	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, templatesDirName)
-	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
+	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 
 	debug.Log("event", "removeall", "path", constants.RenderedHelmPath)
 	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
@@ -226,20 +223,29 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 
 	debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir)
 	if templatesDirExists, err := rootFs.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
-		if err := rootFs.Rename(tempRenderedChartTemplatesDir, path.Join(asset.Dest, templatesDirName)); err != nil {
-			return errors.Wrap(err, "failed to rename templates dir")
+		files, err := rootFs.ReadDir(tempRenderedChartTemplatesDir)
+		if err != nil {
+			// log here
+			return err
+		}
+		for _, file := range files {
+			originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
+			// relativePath, err := filepath.Rel(tempRenderedChartTemplatesDir, file.Name())
+			// if err != nil {
+			// 	debug.Log("event", "relativepath.fail", "base", tempRenderedChartTemplatesDir, "target", originalPath)
+			// 	return errors.Wrap(err, "failed to get relative path")
+			// }
+			renderedPath := path.Join(asset.Dest, file.Name())
+			if err := rootFs.Rename(originalPath, renderedPath); err != nil {
+				fileType := "file"
+				if file.IsDir() {
+					fileType = "directory"
+				}
+				return errors.Wrapf(err, "failed to rename %s at path %s", fileType, originalPath)
+			}
 		}
 	} else {
 		debug.Log("event", "rename", "folder", tempRenderedChartTemplatesDir, "message", "Folder does not exist")
-	}
-
-	debug.Log("event", "rename", "folder", tempRenderedSubChartsDir)
-	if subChartsExist, err := rootFs.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
-		if err := rootFs.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
-			return errors.Wrap(err, "failed to rename subcharts dir")
-		}
-	} else {
-		debug.Log("event", "rename", "folder", tempRenderedSubChartsDir, "message", "Folder does not exist")
 	}
 
 	debug.Log("event", "removeall", "path", constants.TempHelmValuesPath)
