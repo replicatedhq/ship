@@ -1,0 +1,17 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: my-app
+    chart: values-update
+    heritage: Tiller
+    release: values-update
+  name: deployment
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: values-update
+      containers:
+      - imagePullPolicy: IfNotPresent
+        name: values-update

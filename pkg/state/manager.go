@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +20,7 @@ import (
 )
 
 type Manager interface {
-	SerializeHelmValues(values string) error
+	SerializeHelmValues(values string, defaults string) error
 	SerializeConfig(
 		assets []api.Asset,
 		meta api.ReleaseMetadata,
@@ -37,9 +38,10 @@ var _ Manager = &MManager{}
 
 // MManager is the saved output of a plan run to load on future runs
 type MManager struct {
-	Logger log.Logger
-	FS     afero.Afero
-	V      *viper.Viper
+	Logger  log.Logger
+	FS      afero.Afero
+	V       *viper.Viper
+	Patcher patch.Patcher
 }
 
 func (m *MManager) Save(v VersionedState) error {
@@ -50,11 +52,13 @@ func NewManager(
 	logger log.Logger,
 	fs afero.Afero,
 	v *viper.Viper,
+	patcher patch.Patcher,
 ) Manager {
 	return &MManager{
-		Logger: logger,
-		FS:     fs,
-		V:      v,
+		Logger:  logger,
+		FS:      fs,
+		V:       v,
+		Patcher: patcher,
 	}
 }
 
@@ -84,7 +88,7 @@ func (m *MManager) SerializeContentSHA(contentSHA string) error {
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
-func (m *MManager) SerializeHelmValues(values string) error {
+func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "tryLoadState")
@@ -294,7 +298,7 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 	state.V1.ChartURL = state.CurrentChartURL()
 
-	serialized, err := json.Marshal(state)
+	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
 	}

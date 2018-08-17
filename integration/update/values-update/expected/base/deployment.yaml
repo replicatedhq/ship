@@ -1,30 +1,33 @@
 ##---
-# Source: basic/templates/deployment.yaml
+# Source: values-update/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: basic
+  name: deployment
   labels:
-    app: basic
-    chart: basic-0.1.0
-    release: basic
+    app: my-app
+    spam: eggs
+    chart: values-update
+    release: values-update
     heritage: Tiller
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: basic
-      release: basic
+      app: my-app
+      spam: eggs
+      release: values-update
   template:
     metadata:
       labels:
-        app: basic
-        release: basic
+        app: my-app
+        spam: eggs
+        release: values-update
     spec:
       containers:
-        - name: basic
-          image: "nginx:stable"
-          imagePullPolicy: IfNotPresent
+        - name: values-update
+          image: "nginx:latest"
+          imagePullPolicy: Never
           ports:
             - name: http
               containerPort: 80
@@ -37,6 +40,3 @@ spec:
             httpGet:
               path: /
               port: http
-          resources:
-            {}
-            

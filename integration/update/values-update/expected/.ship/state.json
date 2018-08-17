@@ -1,0 +1,27 @@
+{
+    "v1": {
+      "config": {},
+      "helmValues": "replicaCount: 5\nimage:\n  repository: nginx\n  tag: stable\n\n",
+      "kustomize": {
+        "overlays": {
+          "ship": {
+            "patches": {
+              "/deployment.yaml": "apiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  labels:\n    app: my-app\n    chart: values-update\n    heritage: Tiller\n    release: values-update\n  name: deployment\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: values-update\n      containers:\n      - imagePullPolicy: IfNotPresent\n        name: values-update\n"
+            }
+          }
+        }
+      },
+      "chartURL": "github.com/replicatedhq/test-charts/values-update",
+      "contentSHA": "0dff27ff75463c7d4a4a98833c754fd1dde2a76bdbead597939ad80bdb8b5e67",
+      "lifecycle": {
+        "stepsCompleted": {
+          "intro": true,
+          "kustomize": true,
+          "kustomize-intro": true,
+          "outro": true,
+          "render": true,
+          "values": true
+        }
+      }
+    }
+  }
