@@ -236,7 +236,7 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, path, chartRepoURL,
 
 	debug.Log("phase", "fetch-readme", "for", path)
 	var md api.HelmChartMetadata
-	if strings.Contains(path, "github.com") {
+	if strings.Contains(path, "github.com") && chartRepoURL == "" && chartVersion == "" {
 		err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)

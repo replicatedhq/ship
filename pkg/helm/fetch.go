@@ -60,9 +60,14 @@ type fetchCmd struct {
 }
 
 // FetchUnpack fetches and unpacks the chart into a temp directory, then copies the contents of the chart folder to
-// the destination dir
+// the destination dir. This is an original function and was not included in the helm code.
 func FetchUnpack(chartRef, repoURL, version, dest, home string) (string, error) {
-	tmpDest, err := ioutil.TempDir("", "helm-fetch-unpack")
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", errors.Wrap(err, "unable to find the current working directory")
+	}
+
+	tmpDest, err := ioutil.TempDir(wd, "helm-fetch-unpack")
 	if err != nil {
 		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
 	}
