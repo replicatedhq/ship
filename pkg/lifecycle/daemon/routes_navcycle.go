@@ -60,6 +60,9 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "method", "shutdown"))
+
+	debug.Log("event", "shutdownFromUI")
 	d.Shutdown <- nil
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"status": "shutdown",

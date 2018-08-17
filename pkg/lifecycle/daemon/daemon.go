@@ -78,8 +78,12 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 
 	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
 	if !d.Viper.GetBool("no-open") {
-		err := d.OpenWebConsole(d.UI, openUrl)
-		debug.Log("event", "console.open.fail.ignore", "err", err)
+		go func() {
+			err := d.OpenWebConsole(d.UI, openUrl)
+			if err != nil {
+				debug.Log("event", "console.open.fail.ignore", "err", err)
+			}
+		}()
 	} else {
 		d.UI.Info(fmt.Sprintf(
 			"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
@@ -101,8 +105,9 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	case <-ctx.Done():
 		level.Error(d.Logger).Log("event", "shutdown", "reason", "context", "err", ctx.Err())
 		return ctx.Err()
-	case <-d.NavcycleRoutes.Shutdown:
-		debug.Log("event", "shutdown.requested")
+	case _, shouldContinue := <-d.NavcycleRoutes.Shutdown:
+		debug.Log("event", "shutdown.requested", "shouldContinue", shouldContinue)
+		d.UI.Output("Shutting down...")
 		return nil
 	}
 }
