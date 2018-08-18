@@ -17,5 +17,9 @@ echo "END UPDATE TESTS"
 cd ../init_app
 echo "START INIT_APP TESTS"
 ./init_app.test
-echo "END UPDATE TESTS"
+echo "END INIT_APP TESTS"
 
+cd ../init_chart
+echo "START INIT_CHART TESTS"
+./init_chart.test
+echo "END INIT_CHART TESTS"
