@@ -1,4 +1,4 @@
-package integration
+package base
 
 import (
 	"bytes"
@@ -18,19 +18,20 @@ import (
 )
 
 type TestMetadata struct {
-	Args []string `yaml:"args"`
-	Skip bool     `yaml:"skip"`
+	Chart   string `yaml:"chart"`
+	Version string `yaml:"version"`
+	RepoURL string `yaml:"repo_url"`
 
-	//debugging
+	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
-func TestKustomize(t *testing.T) {
+func TestInitReplicatedApp(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "integration")
 }
 
-var _ = Describe("basic", func() {
+var _ = Describe("ship init with 'helm fetch'", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -49,9 +50,8 @@ var _ = Describe("basic", func() {
 
 	for _, file := range files {
 		if file.IsDir() {
-			Context(fmt.Sprintf("When the spec in %q is run", file.Name()), func() {
+			When(fmt.Sprintf("the spec in %q is run", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
-				testInputPath := path.Join(testPath, "input")
 				var testOutputPath string
 				var testMetadata TestMetadata
 
@@ -59,27 +59,11 @@ var _ = Describe("basic", func() {
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
-
-					// create `/test/.ship/state.json` and copy in the input state file before the test runs
-					err := os.Mkdir(path.Join(testOutputPath, ".ship"), 0777)
-					Expect(err).NotTo(HaveOccurred())
-					outputStateFile := path.Join(testOutputPath, ".ship/state.json")
-
-					// read .ship/state.json from input state file
-					stateFile, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/state.json"))
-					Expect(err).NotTo(HaveOccurred())
-
-					// the test needs to execute in the same directory throughout the lifecycle of `ship update`
-					testInputPath = testOutputPath
-
-					// copy .ship/state.json from testInputPath to testOutputPath
-					err = ioutil.WriteFile(outputStateFile, stateFile, 0777)
-					Expect(err).NotTo(HaveOccurred())
-
 					os.Chdir(testOutputPath)
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
+
 				}, 20)
 
 				AfterEach(func() {
@@ -91,25 +75,24 @@ var _ = Describe("basic", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when running in update mode", func() {
-					if testMetadata.Skip {
-						return
-					}
-
+				It("Should output files matching those expected when communicating with the graphql api", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					args := []string{
-						"update",
+					cmd.SetArgs(append([]string{
+						"init",
+						testMetadata.Chart,
 						"--headless",
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
-					}
-					args = append(args, testMetadata.Args...)
-					cmd.SetArgs(args)
+						"--log-level=off",
+						"--chart-version",
+						testMetadata.Version,
+						"--chart-repo-url",
+						testMetadata.RepoURL,
+					}))
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
-					//compare the files in the temporary directory with those in the "expected" directory
+					// compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())

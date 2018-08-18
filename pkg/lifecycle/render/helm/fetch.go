@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 )
 
@@ -86,17 +87,12 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		// find the path that the chart was fetched to
-		files, err := f.FS.ReadDir(checkoutDir)
+		chartDir, err := util.FindOnlySubdir(checkoutDir, f.FS)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to read fetched chart dir")
+			return "", errors.Wrap(err, "failed to find chart dir")
 		}
 
-		firstFoundFile := files[0]
-		if !firstFoundFile.IsDir() {
-			return "", errors.New(fmt.Sprintf("unable to find fetched chart, found file %s instead", firstFoundFile.Name()))
-		}
-
-		return path.Join(checkoutDir, firstFoundFile.Name()), nil
+		return chartDir, nil
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")

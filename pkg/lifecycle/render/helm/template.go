@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"regexp"
 
@@ -183,21 +184,7 @@ func (f *LocalTemplater) getTempRenderedChartDirectoryName(rootFs root.Fs, meta 
 		return path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name), nil
 	}
 
-	files, err := rootFs.ReadDir(constants.RenderedHelmTempPath)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to read templates dir")
-	}
-
-	if len(files) == 0 {
-		return "", errors.New("No files found in templates dir")
-	}
-
-	firstFoundFile := files[0]
-	if !firstFoundFile.IsDir() {
-		return "", errors.New(fmt.Sprintf("unable to find rendered chart, found file %s instead", firstFoundFile.Name()))
-	}
-
-	return path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name()), nil
+	return util.FindOnlySubdir(constants.RenderedHelmTempPath, afero.Afero{Fs: rootFs.Fs})
 }
 
 func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
