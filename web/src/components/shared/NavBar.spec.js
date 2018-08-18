@@ -9,20 +9,25 @@ const mockRouterProps = {
   },
 }
 
+const initProps = {
+  helmChartMetadata: {
+    name: "",
+    icon: "",
+  },
+  channelDetails: {
+    name: "",
+    icon: "",
+  },
+  routes: [],
+};
+
 describe("NavBar", () => {
   describe("provided helmChartMetadata", () => {
     const wrapper = mount(
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
         <NavBar
           {...mockRouterProps}
-          helmChartMetadata={{
-            name: "",
-            icon: "",
-          }}
-          channelDetails={{
-            name: "",
-            icon: "",
-          }}
+          {...initProps}
         />
       </MemoryRouter>
     );
@@ -50,14 +55,7 @@ describe("NavBar", () => {
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
         <NavBar
           {...mockRouterProps}
-          helmChartMetadata={{
-            name: "",
-            icon: "",
-          }}
-          channelDetails={{
-            name: "",
-            icon: "",
-          }}
+          {...initProps}
         />
       </MemoryRouter>
     );

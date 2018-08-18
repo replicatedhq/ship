@@ -192,8 +192,6 @@ class DetermineComponentForRoute extends React.Component {
   render() {
     const { phase, dataLoading } = this.props;
     const isLoadingStep = phase === "loading";
-    console.log("isLoadingStep", isLoadingStep);
-    console.log("dataLoading", dataLoading);
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
