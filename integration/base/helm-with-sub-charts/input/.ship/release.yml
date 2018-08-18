@@ -5,6 +5,7 @@ assets:
         dest: charts/rendered
         helm_fetch:
           chart_ref: stable/datadog
+          version: "1.0.1"
 config: {}
 lifecycle:
   v1:
