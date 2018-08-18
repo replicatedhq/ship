@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
@@ -75,12 +76,12 @@ func (f *ClientFetcher) FetchChart(
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
 
-		outstring, err := helm.Init("")
+		outstring, err := helm.Init(constants.TempHelmHomePath)
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
 		}
 
-		outstring, err = helm.Fetch(asset.HelmFetch.ChartRef, asset.HelmFetch.RepoURL, asset.HelmFetch.Version, checkoutDir, "")
+		outstring, err = helm.Fetch(asset.HelmFetch.ChartRef, asset.HelmFetch.RepoURL, asset.HelmFetch.Version, checkoutDir, constants.TempHelmHomePath)
 
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))
