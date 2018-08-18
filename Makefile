@@ -1,4 +1,4 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
 
 
 SHELL := /bin/bash -o pipefail
@@ -282,6 +282,14 @@ dev-embed-ui:
 	  -prefix .state/tmp/ \
 	  -debug \
 	  .state/tmp/dist/...
+
+clean-ship:
+	rm -rf chart/
+	rm -rf installer/
+	rm -rf installer.bak/
+	rm -rf overlays/
+	rm -rf base/
+	rm -rf .ship/
 
 clean:
 	rm -rf .state

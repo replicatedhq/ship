@@ -1,0 +1,7 @@
+resources:
+- deployment.yaml
+- pvc.yaml
+- secrets.yaml
+- svc.yaml
+- tests/test-configmap.yaml
+- tests/test.yaml

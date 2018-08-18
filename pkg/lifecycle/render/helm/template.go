@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"regexp"
 
@@ -125,17 +126,11 @@ func (f *LocalTemplater) Template(
 	// In app mode, copy the first found directory in RenderedHelmTempPath to dest
 	// TODO: Unify branching logic
 	if f.Viper.GetBool("is-app") {
-		files, err := f.FS.ReadDir(constants.RenderedHelmTempPath)
+		renderedChartDir, err := util.FindOnlySubdir(constants.RenderedHelmTempPath, f.FS)
 		if err != nil {
-			return errors.Wrap(err, "failed to read templates dir")
+			return errors.Wrap(err, "failed to find rendered chart dir")
 		}
 
-		firstFoundFile := files[0]
-		if !firstFoundFile.IsDir() {
-			return errors.New(fmt.Sprintf("unable to find rendered chart, found file %s instead", firstFoundFile.Name()))
-		}
-
-		renderedChartDir := path.Join(constants.RenderedHelmTempPath, firstFoundFile.Name())
 		destDir := path.Join(rootFs.RootPath, asset.Dest)
 		if err := f.FS.Rename(renderedChartDir, destDir); err != nil {
 			return errors.Wrap(err, "failed to move rendered chart dir")

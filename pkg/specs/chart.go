@@ -20,6 +20,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/helm"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
@@ -230,18 +232,32 @@ func (g *GithubClient) downloadAndExtractFiles(ctx context.Context, owner string
 	return nil
 }
 
-func (r *Resolver) ResolveChartMetadata(ctx context.Context, path string) (api.HelmChartMetadata, error) {
-	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartMetadata"))
+func (r *Resolver) ResolveChartMetadata(ctx context.Context, upstream, chartRepoURL, chartVersion string) (api.HelmChartMetadata, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveChartMetadata", "upstream", upstream))
 
-	debug.Log("phase", "fetch-readme", "for", path)
+	debug.Log("phase", "fetch-readme", "for", upstream)
 	var md api.HelmChartMetadata
-	err := r.GithubClient.GetChartAndReadmeContents(ctx, path)
-	if err != nil {
-		return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", path)
+	if strings.Contains(upstream, "github.com") && chartRepoURL == "" && chartVersion == "" {
+		debug.Log("event", "fetch.withGitHub")
+		err := r.GithubClient.GetChartAndReadmeContents(ctx, upstream)
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "get chart and read me at %s", upstream)
+		}
+	} else {
+		debug.Log("event", "fetch.withHelm")
+		// fetch using 'helm fetch'
+		out, err := helm.Init("")
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "initialize helm to fetch chart: %s", out)
+		}
+		out, err = r.fetchUnpack(upstream, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "")
+		if err != nil {
+			return api.HelmChartMetadata{}, errors.Wrapf(err, "fetch chart with helm: %s", out)
+		}
 	}
 
-	debug.Log("phase", "save-chart-url", "url", path)
-	md.URL = path
+	debug.Log("phase", "save-chart-url", "url", upstream)
+	md.URL = upstream
 
 	debug.Log("phase", "calculate-sha", "for", constants.KustomizeHelmPath)
 	contentSHA, err := r.calculateContentSHA(constants.KustomizeHelmPath)
@@ -355,4 +371,53 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	}
 
 	return owner, repo, branch, path, nil
+}
+
+// FetchUnpack fetches and unpacks the chart into a temp directory, then copies the contents of the chart folder to
+// the destination dir.
+// TODO figure out how to copy files from host into afero filesystem for testing, or how to force helm to fetch into afero
+func (r *Resolver) fetchUnpack(chartRef, repoURL, version, dest, home string) (string, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "fetchUnpack"))
+
+	err := r.FS.MkdirAll(constants.ShipPath, 0775)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create ship directory")
+	}
+
+	tmpDest, err := r.FS.TempDir(constants.ShipPath, "helm-fetch-unpack")
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
+	}
+	defer r.FS.RemoveAll(tmpDest)
+
+	// TODO: figure out how to get files into aferoFs here
+	out, err := helm.Fetch(chartRef, repoURL, version, tmpDest, home)
+	if err != nil {
+		return out, err
+	}
+
+	subdir, err := util.FindOnlySubdir(tmpDest, r.FS)
+	if err != nil {
+		return "", errors.Wrap(err, "find chart subdir")
+	}
+
+	// check if the destination directory exists - if it does, remove it
+	debug.Log("event", "checkExists", "path", constants.KustomizeHelmPath)
+	saveDirExists, err := r.FS.Exists(dest)
+	if err != nil {
+		return "", errors.Wrapf(err, "check %s exists", dest)
+	}
+
+	if saveDirExists {
+		debug.Log("event", "removeAll", "path", constants.KustomizeHelmPath)
+		err := r.FS.RemoveAll(dest)
+		if err != nil {
+			return "", errors.Wrapf(err, "remove %s", dest)
+		}
+	}
+
+	// rename that folder to move it to the destination directory
+	err = r.FS.Rename(subdir, dest)
+
+	return "", err
 }

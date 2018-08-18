@@ -77,7 +77,7 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	debug.Log("event", "fetch latest chart")
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+helmChartPath))
-	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath, existingState.CurrentChartRepoURL(), existingState.CurrentChartVersion())
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 	}
@@ -133,7 +133,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 		}
 
 		debug.Log("event", "fetch latest chart")
-		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), string(helmChartPath))
+		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath, existingState.CurrentChartRepoURL(), existingState.CurrentChartVersion())
 		if err != nil {
 			return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 		}
