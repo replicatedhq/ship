@@ -379,7 +379,11 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 func (r *Resolver) fetchUnpack(chartRef, repoURL, version, dest, home string) (string, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "fetchUnpack"))
 
-	r.FS.MkdirAll(constants.ShipPath, 0775)
+	err := r.FS.MkdirAll(constants.ShipPath, 0775)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create ship directory")
+	}
+
 	tmpDest, err := r.FS.TempDir(constants.ShipPath, "helm-fetch-unpack")
 	if err != nil {
 		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
