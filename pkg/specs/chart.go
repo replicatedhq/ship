@@ -396,7 +396,7 @@ func (r *Resolver) fetchUnpack(chartRef, repoURL, version, dest, home string) (s
 		return out, err
 	}
 
-	subdir, err := util.FindOnlySubdir(tmpDest, r.FS)
+	subdir, err := util.FindOnlySubdir(tmpDest, r.FS.Fs)
 	if err != nil {
 		return "", errors.Wrap(err, "find chart subdir")
 	}

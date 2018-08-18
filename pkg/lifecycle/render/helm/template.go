@@ -184,7 +184,7 @@ func (f *LocalTemplater) getTempRenderedChartDirectoryName(rootFs root.Fs, meta 
 		return path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name), nil
 	}
 
-	return util.FindOnlySubdir(constants.RenderedHelmTempPath, afero.Afero{Fs: rootFs.Fs})
+	return util.FindOnlySubdir(constants.RenderedHelmTempPath, rootFs.Fs)
 }
 
 func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
