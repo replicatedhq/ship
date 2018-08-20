@@ -87,7 +87,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		if helmValues != "" {
 			step.HelmValues.Values = helmValues
 		} else {
-			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 			if err != nil {
 				return nil, errors.Wrap(err, "read file values.yaml")
 			}

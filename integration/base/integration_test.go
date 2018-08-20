@@ -31,10 +31,10 @@ type TestMetadata struct {
 
 func TestShipApp(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ship app ...")
+	RunSpecs(t, "ship app")
 }
 
-var _ = Describe("ship app ...", func() {
+var _ = Describe("ship app", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)

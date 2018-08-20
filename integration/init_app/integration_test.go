@@ -109,15 +109,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					isStaging := strings.Contains(customerEndpoint, "staging")
-					initTarget := "replicated.app/some-cool-ci-tool"
+					upstream := "replicated.app/some-cool-ci-tool"
 					if isStaging {
-						initTarget = "staging.replicated.app/some-cool-ci-tool"
+						upstream = "staging.replicated.app/some-cool-ci-tool"
 					}
 
 					// this should probably be url encoded but whatever
-					initTarget = fmt.Sprintf(
+					upstream = fmt.Sprintf(
 						"%s?installation_id=%s&customer_id=%s",
-						initTarget,
+						upstream,
 						installationID,
 						testMetadata.CustomerID,
 					)
@@ -127,7 +127,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					cmd.SetOutput(buf)
 					cmd.SetArgs(append([]string{
 						"init",
-						initTarget,
+						upstream,
 						"--headless",
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--log-level=off",

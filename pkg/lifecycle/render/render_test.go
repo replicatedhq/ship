@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
@@ -107,13 +108,13 @@ func TestBacksUpExisting(t *testing.T) {
 		expect   []string
 	}{
 		{
-			name:     "first",
+			name:     "empty",
 			target:   "/tmp/installer",
 			existing: []string{},
 			expect:   []string{},
 		},
 		{
-			name:   "first",
+			name:   "backs up file",
 			target: "/tmp/installer",
 			existing: []string{
 				"/tmp/installer",
@@ -134,6 +135,7 @@ func TestBacksUpExisting(t *testing.T) {
 				Now: func() time.Time {
 					return time.Unix(12345, 0)
 				},
+				UI: &cli.MockUi{},
 			}
 
 			for _, filename := range test.existing {

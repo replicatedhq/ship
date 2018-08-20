@@ -206,7 +206,7 @@ func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource stri
 	}
 
 	debug.Log("event", "relPath")
-	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.RenderedHelmPath)
+	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.KustomizeBasePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find relative path")
 	}

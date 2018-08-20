@@ -1,6 +1,6 @@
 import { constants } from "./actions";
 
-const helmChartMetadataState = {
+const shipAppMetadataState = {
   name: "",
   version: "",
   release: "",
@@ -12,7 +12,7 @@ const helmChartMetadataState = {
   errorMessage: ""
 };
 
-export function helmChartMetadata(state = helmChartMetadataState, action) {
+export function shipAppMetadata(state = shipAppMetadataState, action) {
   switch (action.type) {
   case constants.RECEIVE_HELM_CHART_METADATA:
     return Object.assign({}, state, {

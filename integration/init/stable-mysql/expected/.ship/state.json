@@ -1,0 +1,8 @@
+{
+  "v1": {
+    "config": {},
+    "upstream": "stable/mysql",
+    "ChartVersion": "0.8.1",
+    "contentSHA": "58d9ac4317f420275e1e05f1144eeadbfdcdeff373762625d58001a42e013092"
+  }
+}

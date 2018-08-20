@@ -5,8 +5,8 @@ import RenderActions from "../shared/RenderActions";
 import "../../scss/components/kustomize/HelmChartInfo.scss";
 import "../../scss/components/shared/DetermineStep.scss";
 
-const HelmChartInfo = ({ helmChartMetadata, actions, handleAction, isLoading}) => {
-  const { readme, version } = helmChartMetadata;
+const HelmChartInfo = ({ shipAppMetadata, actions, handleAction, isLoading}) => {
+  const { readme, version } = shipAppMetadata;
   return (
     <div className="HelmChartInfo--wrapper flex-column flex1 u-position--relative">
       <div className="flex flex1 u-marginBottom--normal u-paddingLeft--15">

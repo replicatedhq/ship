@@ -45,6 +45,18 @@ func (mr *MockCommandsMockRecorder) DependencyUpdate(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependencyUpdate", reflect.TypeOf((*MockCommands)(nil).DependencyUpdate), arg0)
 }
 
+// Fetch mocks base method
+func (m *MockCommands) Fetch(arg0, arg1, arg2, arg3, arg4 string) error {
+	ret := m.ctrl.Call(m, "Fetch", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Fetch indicates an expected call of Fetch
+func (mr *MockCommandsMockRecorder) Fetch(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockCommands)(nil).Fetch), arg0, arg1, arg2, arg3, arg4)
+}
+
 // Init mocks base method
 func (m *MockCommands) Init() error {
 	ret := m.ctrl.Call(m, "Init")
