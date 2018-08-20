@@ -147,6 +147,9 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		debug.Log("event", "step.resolve", "type", "kustomizeIntro")
 		err := d.KustomizeIntro.Execute(context.Background(), d.Release, *step.KustomizeIntro)
 		return errors.Wrap(err, "execute kustomize intro step")
+	} else if step.Config != nil {
+		debug.Log("event", "step.resolve", "type", "config")
+		return nil
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

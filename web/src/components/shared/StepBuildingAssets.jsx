@@ -12,8 +12,15 @@ export default class StepBuildingAssets extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.location.pathname === "/render") {
-      this.props.startPoll();
+    const {
+      startPoll,
+      routeId,
+      gotoRoute,
+      location,
+    } = this.props;
+
+    if (location.pathname === "/render") {
+      startPoll(routeId, gotoRoute);
     }
   }
 

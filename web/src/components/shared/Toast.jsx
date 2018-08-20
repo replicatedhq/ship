@@ -3,7 +3,7 @@ import autoBind from "react-autobind";
 
 import "../../scss/components/shared/Toast.scss";
 
-export default class SidebarItem extends React.Component {
+export default class Toast extends React.Component {
   constructor() {
     super();
     autoBind(this);

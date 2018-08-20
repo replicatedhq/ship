@@ -28,34 +28,34 @@ export function settingsData(state = applicationSettingsState, action) {
   case constants.RECEIVE_APPLICATION_SETTINGS:
     const resBody = Object.assign({}, action.payload.Groups);
     const orderedFields = sortBy(resBody, "position");
-    const fields = keyBy(orderedFields, "name");
+    const settingsFields = keyBy(orderedFields, "name");
 
-    let subItemsArr = [];
-    map(fields, (field) => {
+    const appSidebarSubItems = map(settingsFields, (field) => {
       if (!isAtLeastOneItemVisible(field)) return;
-      const label = field.title === "" ?  Utilities.toTitleCase(field.name.replace("-", " ")) : field.title;
-      const obj = {
-        id: field.name,
-        label: label
-      }
-      subItemsArr.push(obj);
+      const { title, name } = field;
+      const label = title === "" ?  Utilities.toTitleCase(name.replace("-", " ")) : title;
+
+      return {
+        id: name,
+        label,
+      };
     });
 
     return Object.assign({}, state, {
-      settingsFields: fields,
-      settingsFieldsList: map(fields, "name"),
+      settingsFields,
+      settingsFieldsList: map(settingsFields, "name"),
       version: action.payload.Version,
-      appSidebarSubItems: subItemsArr
+      appSidebarSubItems,
     });
   case constants.SET_CONFIG_ERRORS:
     const errors = Object.assign({}, action.payload);
-    let errorsArr = [];
-    map(errors, (error) => {
-      const errObj = {
-        message: error.message,
-        fieldName: error.name
+
+    const errorsArr = map(errors, (error) => {
+      const { message, name} = error;
+      return {
+        message,
+        fieldName: name,
       };
-      errorsArr.push(errObj);
     });
 
     return Object.assign({}, state, {

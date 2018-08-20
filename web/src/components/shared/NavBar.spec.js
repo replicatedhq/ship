@@ -9,20 +9,25 @@ const mockRouterProps = {
   },
 }
 
+const initProps = {
+  shipAppMetadata: {
+    name: "",
+    icon: "",
+  },
+  channelDetails: {
+    name: "",
+    icon: "",
+  },
+  routes: [],
+};
+
 describe("NavBar", () => {
   describe("provided shipAppMetadata", () => {
     const wrapper = mount(
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
         <NavBar
           {...mockRouterProps}
-          shipAppMetadata={{
-            name: "",
-            icon: "",
-          }}
-          channelDetails={{
-            name: "",
-            icon: "",
-          }}
+          {...initProps}
         />
       </MemoryRouter>
     );
@@ -50,14 +55,7 @@ describe("NavBar", () => {
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
         <NavBar
           {...mockRouterProps}
-          shipAppMetadata={{
-            name: "",
-            icon: "",
-          }}
-          channelDetails={{
-            name: "",
-            icon: "",
-          }}
+          {...initProps}
         />
       </MemoryRouter>
     );
