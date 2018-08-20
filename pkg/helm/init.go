@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -88,17 +89,19 @@ func Init(home string) (string, error) {
 		out: bufWriter,
 	}
 
+	var path string
+	var err error
 	if home != "" {
-		toInit.home = helmpath.Home(home)
+		path, err = filepath.Abs(home)
 	} else {
-		path, err := helmHome()
-		if err != nil {
-			return "", errors.Wrap(err, "unable to find home directory")
-		}
-		toInit.home = helmpath.Home(path)
+		path, err = helmHome()
 	}
+	if err != nil {
+		return "", errors.Wrap(err, "unable to find home directory")
+	}
+	toInit.home = helmpath.Home(path)
 
-	err := toInit.run()
+	err = toInit.run()
 	return buf.String(), err
 }
 
