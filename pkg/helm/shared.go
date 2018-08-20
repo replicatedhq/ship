@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -219,5 +220,5 @@ func prettyError(err error) error {
 }
 
 func helmHome() (string, error) {
-	return constants.InternalTempHelmHome, nil
+	return filepath.Abs(constants.InternalTempHelmHome)
 }
