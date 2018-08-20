@@ -184,7 +184,7 @@ func (f *LocalTemplater) getTempRenderedChartDirectoryName(rootFs root.Fs, meta 
 		return path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name), nil
 	}
 
-	return util.FindOnlySubdir(constants.RenderedHelmTempPath, rootFs.Fs)
+	return util.FindOnlySubdir(constants.RenderedHelmTempPath, rootFs.Afero)
 }
 
 func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(

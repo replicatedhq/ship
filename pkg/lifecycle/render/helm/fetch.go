@@ -87,7 +87,7 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		// find the path that the chart was fetched to
-		chartDir, err := util.FindOnlySubdir(checkoutDir, f.FS.Fs)
+		chartDir, err := util.FindOnlySubdir(checkoutDir, f.FS)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to find chart dir")
 		}
