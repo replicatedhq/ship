@@ -40,6 +40,7 @@ shell:
 		-v `pwd`/out:/out \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/replicatedhq/ship \
+		--name ship \
 		ship
 
 githooks:

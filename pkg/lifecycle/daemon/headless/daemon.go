@@ -2,9 +2,8 @@ package headless
 
 import (
 	"context"
-	"strings"
-
 	"path"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -65,18 +64,25 @@ func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, daemontypes.HelmIntr
 
 func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues daemontypes.HelmValues, actions []daemontypes.Action) {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "PushHelmValuesStep"))
-	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values); err != nil {
+
+	defaultValues := helmValues.DefaultValues
+	if defaultValues == "" {
+		v, err := d.FS.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
+		if err != nil {
+			warn.Log("event", "push helm values fail while reading defaults", "err", err)
+		} else {
+			defaultValues = string(v)
+		}
+	}
+
+	if err := d.HeadlessSaveHelmValues(ctx, helmValues.Values, defaultValues); err != nil {
 		warn.Log("event", "push helm values step fail", "err", err)
 	}
 }
 
-func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues string) error {
+func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues, defaultValues string) error {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "HeadlessSaveHelmValues"))
-	chartDefaultValues, err := d.FS.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
-	if err != nil {
-		return errors.Wrap(err, "load chart defaults")
-	}
-	err = d.StateManager.SerializeHelmValues(helmValues, string(chartDefaultValues))
+	err := d.StateManager.SerializeHelmValues(helmValues, defaultValues)
 	if err != nil {
 		warn.Log("event", "headless save helm values fail", "err", err)
 		return errors.Wrap(err, "write new values")

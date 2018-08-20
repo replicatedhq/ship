@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
@@ -106,16 +107,22 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 	}
 
 	if step.HelmValues != nil {
-		helmValues := currentState.CurrentHelmValues()
-		if helmValues != "" {
-			step.HelmValues.Values = helmValues
-		} else {
-			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
-			if err != nil {
-				return nil, errors.Wrap(err, "read file values.yaml")
-			}
-			step.HelmValues.Values = string(valuesFileContents)
+		userValues := currentState.CurrentHelmValues()
+		defaultValues := currentState.CurrentHelmValuesDefaults()
+
+		valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
+		if err != nil {
+			return nil, errors.Wrap(err, "read file values.yaml")
 		}
+		vendorValues := string(valuesFileContents)
+
+		mergedValues, err := helm.MergeHelmValues(defaultValues, userValues, vendorValues)
+		if err != nil {
+			return nil, errors.Wrap(err, "merge values")
+		}
+
+		step.HelmValues.Values = mergedValues
+		step.HelmValues.DefaultValues = vendorValues
 	}
 
 	result := &daemontypes.StepResponse{

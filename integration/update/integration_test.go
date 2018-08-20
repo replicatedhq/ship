@@ -113,6 +113,8 @@ var _ = Describe("ship update", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					//compare the files in the temporary directory with those in the "expected" directory
+					// TODO: text based comparison of state files is brittle becuase helm values are being merged.
+					// they should really be compared using the versioned state object
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
