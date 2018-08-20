@@ -21,7 +21,7 @@ const HelmChartInfo = ({ shipAppMetadata, actions, handleAction, isLoading}) => 
           { readme }
         </Markdown>
       </div>
-      <div className="action container u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+      <div className="actions-wrapper u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
         <RenderActions actions={actions} handleAction={handleAction} isLoading={isLoading} />
       </div>
     </div>

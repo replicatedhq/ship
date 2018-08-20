@@ -178,6 +178,7 @@ class DetermineComponentForRoute extends React.Component {
           finalizeStep={this.props.finalizeStep}
           handleAction={this.handleAction}
           currentStep={currentStep}
+          skipKustomize={this.skipKustomize}
           dataLoading={this.props.dataLoading}
         />
       );
@@ -196,7 +197,7 @@ class DetermineComponentForRoute extends React.Component {
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
-          <div className="flex-1-auto flex-column u-overflow--auto container u-paddingTop--30">
+          <div className="flex-1-auto flex-column u-overflow--auto">
             {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />

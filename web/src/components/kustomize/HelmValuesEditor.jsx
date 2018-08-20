@@ -209,11 +209,11 @@ export default class HelmValuesEditor extends React.Component {
               <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
             </div>
           </div>
-          <div className="action container u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+          <div className="actions-wrapper u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
             <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--30 u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
             <div className="flex flex-auto alignItems--center">
               <p
-                className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-cursor--pointer"
+                className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
                 onClick={() => { this.handleSkip() }}>
                 Skip this step
               </p>
