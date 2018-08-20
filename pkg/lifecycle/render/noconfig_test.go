@@ -7,6 +7,8 @@ import (
 
 	"time"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
 
 	"github.com/go-kit/kit/log"
@@ -60,16 +62,14 @@ func TestRenderNoConfig(t *testing.T) {
 				mockState.EXPECT().TryLoad().Return(state.V0(test.ViperConfig), nil)
 
 				p.EXPECT().
-					Build("testdir", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
+					Build(constants.InstallerPrefixPath, test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
 					Return(planner.Plan{}, nil)
 
 				p.EXPECT().
 					Execute(ctx, planner.Plan{}).
 					Return(nil)
 
-				err := renderer.Execute(ctx, release, &api.Render{
-					Root: "testdir",
-				})
+				err := renderer.Execute(ctx, release, &api.Render{})
 				assert.NoError(t, err)
 			}()
 		})

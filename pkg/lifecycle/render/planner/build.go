@@ -25,8 +25,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 	defer p.Status.ClearProgress()
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 
-	debug.Log("renderRoot", renderRoot)
-	rootFs := root.NewRootFS(p.Fs, renderRoot)
+	rootFs := root.NewRootFS(renderRoot)
 
 	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
 	if err != nil {

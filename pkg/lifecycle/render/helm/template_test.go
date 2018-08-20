@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLocalTemplater(t *testing.T) {
+func TestForkTemplater(t *testing.T) {
 	tests := []struct {
 		name                string
 		describe            string
@@ -93,12 +93,10 @@ func TestLocalTemplater(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			mockState := state.NewMockManager(mc)
 			mockCommands := helm.NewMockCommands(mc)
-			memMapFs := afero.MemMapFs{}
-			mockFs := afero.Afero{Fs: &memMapFs}
 			tpl := &LocalTemplater{
 				Commands:       mockCommands,
 				Logger:         testLogger,
-				FS:             mockFs,
+				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 				Viper:          viper.New(),
 				StateManager:   mockState,
@@ -140,13 +138,10 @@ func TestLocalTemplater(t *testing.T) {
 			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
 			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
 
-			mockFolderPathToCreate := path.Join(constants.RenderedHelmTempPath, expectedChannelName, "templates")
-			req.NoError(mockFs.MkdirAll(mockFolderPathToCreate, 0755))
-
 			err := tpl.Template(
 				"/tmp/chartroot",
 				root.Fs{
-					Afero:    mockFs,
+					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
 					RootPath: "",
 				},
 				api.HelmAsset{
@@ -159,9 +154,6 @@ func TestLocalTemplater(t *testing.T) {
 				api.ReleaseMetadata{
 					Semver:      "1.0.0",
 					ChannelName: channelName,
-					HelmChartMetadata: api.HelmChartMetadata{
-						Name: expectedChannelName,
-					},
 				},
 				[]libyaml.ConfigGroup{},
 				test.templateContext,
@@ -222,7 +214,7 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			removeErr := ft.FS.RemoveAll(constants.RenderedHelmPath)
+			removeErr := ft.tryRemoveRenderedHelmPath()
 
 			if test.expectError {
 				req.Error(removeErr)

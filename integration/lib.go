@@ -18,7 +18,7 @@ var skipFiles = []string{
 	"installer/terraform/.terraform/plugins",
 	"installer/terraform/plan",
 	"installer/terraform/terraform.tfstate",
-	"installer/charts/rendered/secrets.yaml",
+	"installer/charts/rendered/templates/secrets.yaml",
 	"base/secrets.yaml",
 	".ship/.helm",
 }
