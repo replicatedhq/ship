@@ -13,7 +13,6 @@ import (
 )
 
 // FindOnlySubdir finds the only subdirectory of a directory.
-// TODO make this work like the description says
 func FindOnlySubdir(dir string, fs afero.Afero) (string, error) {
 	subDirExists := false
 
