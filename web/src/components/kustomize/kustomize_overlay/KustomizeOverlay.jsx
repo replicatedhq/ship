@@ -70,10 +70,24 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  toggleDiff() {
-    if (!this.state.viewDiff) {
-      this.fetchAppliedOverlay();
+  async handleApplyPatch() {
+    const { selectedFile, fileTreeBasePath } = this.state;
+    const contents = this.aceEditorOverlay.editor.getValue();
+
+    const applyPayload = {
+      resource: `${fileTreeBasePath}${selectedFile}`,
+      patch: contents,
+    };
+    await this.props.applyPatch(applyPayload).catch();
+  }
+
+  async toggleDiff() {
+    const { patch, modified } = this.props;
+    const hasPatchButNoModified = patch.length > 0 && modified.length === 0;
+    if (hasPatchButNoModified) {
+      await this.handleApplyPatch().catch();
     }
+
     this.setState({ viewDiff: !this.state.viewDiff });
   }
 
@@ -121,11 +135,12 @@ export default class KustomizeOverlay extends React.Component {
       actions,
       startPoll,
       routeId,
+      pollCallback
     } = this.props;
 
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
-      startPoll(routeId);
+      startPoll(routeId, pollCallback);
     } else {
       await finalizeKustomizeOverlay()
         .then(() => {

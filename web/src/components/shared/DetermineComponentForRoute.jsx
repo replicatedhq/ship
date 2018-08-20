@@ -170,6 +170,7 @@ class DetermineComponentForRoute extends React.Component {
         <KustomizeOverlay
           startPoll={this.startPoll}
           getCurrentStep={this.getCurrentStep}
+          pollCallback={this.gotoRoute}
           routeId={this.props.routeId}
           actions={actions}
           isNavcycle={true}
