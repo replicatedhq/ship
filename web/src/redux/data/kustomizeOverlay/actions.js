@@ -125,7 +125,10 @@ export function generatePatch(payload) {
         },
         body: JSON.stringify(payload)
       });
-      const { patch } = await response.json();
+      let { patch } = await response.json();
+      if (!response.ok) {
+        patch = payload.current;
+      }
       dispatch(receivePatch(patch));
     } catch (error) {
       console.log(error)
