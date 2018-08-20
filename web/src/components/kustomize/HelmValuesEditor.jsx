@@ -176,44 +176,46 @@ export default class HelmValuesEditor extends React.Component {
 
     return (
       <ErrorBoundary>
-        <div className="flex-column flex1 HelmValues--wrapper">
+        <div className="flex-column flex1 HelmValues--wrapper u-paddingTop--30">
           <Toast toast={toastDetails} onCancel={this.cancelToast} />
-          <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
+          <div className="flex-column flex-1-auto u-overflow--auto container">
+            <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
             /{name}/
-            <span className="u-color--tuna u-fontWeight--bold">values.yaml</span>
-          </p>
-          <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
-          <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full u-overflow--hidden u-marginBottom--20">
-            <div className="flex1 flex-column u-width--half">
-              <AceEditor
-                mode="yaml"
-                theme="chrome"
-                className={`${readOnly ? "disabled-ace-editor ace-chrome" : ""}`}
-                readOnly={readOnly}
-                onChange={this.onSpecChange}
-                markers={this.state.specErrorMarkers}
-                value={specValue}
-                height="100%"
-                width="100%"
-                editorProps={{
-                  $blockScrolling: Infinity,
-                  useSoftTabs: true,
-                  tabSize: 2,
-                }}
-                setOptions={{
-                  scrollPastEnd: true
-                }}
-              />
-            </div>
-            <div className={`flex-auto flex-column console-wrapper u-width--third ${!this.state.showConsole ? "visible" : ""}`}>
-              <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
+              <span className="u-color--tuna u-fontWeight--bold">values.yaml</span>
+            </p>
+            <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
+            <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
+              <div className="flex1 flex-column u-width--half">
+                <AceEditor
+                  mode="yaml"
+                  theme="chrome"
+                  className={`${readOnly ? "disabled-ace-editor ace-chrome" : ""}`}
+                  readOnly={readOnly}
+                  onChange={this.onSpecChange}
+                  markers={this.state.specErrorMarkers}
+                  value={specValue}
+                  height="100%"
+                  width="100%"
+                  editorProps={{
+                    $blockScrolling: Infinity,
+                    useSoftTabs: true,
+                    tabSize: 2,
+                  }}
+                  setOptions={{
+                    scrollPastEnd: true
+                  }}
+                />
+              </div>
+              <div className={`flex-auto flex-column console-wrapper u-width--third ${!this.state.showConsole ? "visible" : ""}`}>
+                <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
+              </div>
             </div>
           </div>
-          <div className="actions-wrapper u-width--full u-marginTop--30 flex flex1 justifyContent--flexEnd u-position--fixed u-bottom--0 u-right--0 u-left--0">
+          <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
             <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--30 u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
             <div className="flex flex-auto alignItems--center">
               <p
-                className="u-color--astral u-fontSize--normal u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
+                className="u-color--astral u-fontSize--small u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
                 onClick={() => { this.handleSkip() }}>
                 Skip this step
               </p>
@@ -225,6 +227,7 @@ export default class HelmValuesEditor extends React.Component {
               </button>
             </div>
           </div>
+
         </div>
       </ErrorBoundary>
     );
