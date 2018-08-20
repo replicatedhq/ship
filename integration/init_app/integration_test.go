@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -19,9 +20,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/cli"
 	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/replicatedhq/ship/pkg/logger"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
-	"github.com/spf13/afero"
 )
 
 type TestMetadata struct {
@@ -88,7 +89,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// if a token is provided, try to ensure the release matches what we have here in the repo
 
 					if vendorToken != "" {
-						channelName := fmt.Sprintf("integration replicated.app %s", file.Name())
+						channelName := fmt.Sprintf("integration replicated.app %s", filepath.Base(testPath))
 						installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName)
 					}
 					close(done)

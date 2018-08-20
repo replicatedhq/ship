@@ -58,6 +58,9 @@ func (m *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
 			Meta:  release.Metadata,
 			Viper: m.Viper,
 		},
+		templates.ShipContext{
+			Logger: m.Logger,
+		},
 	)
 	return builder
 }
