@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
 
 	"strings"
@@ -36,7 +37,11 @@ func RootCmd() *cobra.Command {
 			return os.MkdirAll(constants.ShipPathInternalTmp, 0755)
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-			return os.RemoveAll(constants.ShipPathInternalTmp)
+			var multiErr *multierror.Error
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
+			// if we got here, it means we finished successfully, so remove the internal debug log file
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalLog))
+			return multiErr.ErrorOrNil()
 		},
 	}
 	cobra.OnInitialize(initConfig)
