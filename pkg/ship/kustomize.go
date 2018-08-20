@@ -81,6 +81,9 @@ func (s *Ship) Update(ctx context.Context) error {
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+upstreamURL))
 
 	release, err := s.Resolver.ResolveRelease(ctx, upstreamURL)
+	if err != nil {
+		return errors.Wrapf(err, "resolve helm chart metadata for %s", upstreamURL)
+	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
@@ -169,7 +172,6 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	release, err := s.Resolver.ResolveRelease(ctx, s.Viper.GetString("target"))
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
-
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
