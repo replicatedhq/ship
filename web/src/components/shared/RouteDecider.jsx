@@ -33,6 +33,7 @@ export default class RouteDecider extends React.Component {
   render() {
     const { routes } = this.props;
     const isOnRoot = window.location.pathname === "/";
+    const isDone = window.location.pathname === "/done";
 
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">
@@ -46,7 +47,7 @@ export default class RouteDecider extends React.Component {
                 :
                 <div className="u-minHeight--full u-minWidth--full flex-column flex1">
                   {isOnRoot ? null : <NavBar hideLinks={true} routes={routes} />}
-                  {isOnRoot ? null : <StepNumbers steps={routes} />}
+                  {isOnRoot || isDone ? null : <StepNumbers steps={routes} />}
                   <div className="flex-1-auto flex-column u-overflow--auto">
                     <Switch>
                       {routes && routes.map((route) => (
