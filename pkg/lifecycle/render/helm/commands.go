@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helm"
 )
 
@@ -11,10 +12,12 @@ type Commands interface {
 	Template(chartName string, args []string) error
 }
 
-type helmCommands struct{}
+type helmCommands struct {
+	Home string
+}
 
 func (h *helmCommands) Init() error {
-	_, err := helm.Init("")
+	_, err := helm.Init(constants.TempHelmHomePath)
 	return err
 }
 

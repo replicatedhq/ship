@@ -20,6 +20,7 @@ var skipFiles = []string{
 	"installer/terraform/terraform.tfstate",
 	"installer/charts/rendered/templates/secrets.yaml",
 	"base/secrets.yaml",
+	".ship/.helm",
 }
 
 func skipCheck(filepath string) bool {
