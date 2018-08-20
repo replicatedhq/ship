@@ -8,7 +8,8 @@ export const constants = {
   RECEIVE_ROUTES: "RECEIVE_ROUTES",
   SET_PHASE: "SET_PHASE",
   SET_PROGRESS: "SET_PROGRESS",
-  POLLING: "POLLING"
+  POLLING: "POLLING",
+  SHUTDOWN_APP: "SHUTDOWN_APP",
 };
 
 export function receiveRoutes(routes) {
@@ -37,6 +38,12 @@ export function setProgress(progress) {
     type: constants.SET_PROGRESS,
     payload: progress,
   };
+}
+
+export function shutdownApp() {
+  return {
+    type: constants.SHUTDOWN_APP
+  }
 }
 
 export function getRoutes() {

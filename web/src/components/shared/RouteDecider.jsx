@@ -31,9 +31,8 @@ export default class RouteDecider extends React.Component {
   }
 
   render() {
-    const { routes } = this.props;
+    const { routes, isDone } = this.props;
     const isOnRoot = window.location.pathname === "/";
-    const isDone = window.location.pathname === "/done";
 
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">

@@ -62,17 +62,15 @@ class DetermineComponentForRoute extends React.Component {
         "Accept": "application/json",
       },
     });
-
+    await this.props.shutdownApp();
     this.props.history.push("/done");
   }
 
   async skipKustomize() {
-    const { routes } = this.props;
+    const { routes, actions } = this.props;
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-
-    const { actions } = await this.getCurrentStep(kustomizeStep.id);
     this.handleAction(actions[0]);
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
