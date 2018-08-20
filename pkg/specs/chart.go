@@ -246,11 +246,11 @@ func (r *Resolver) ResolveChartMetadata(ctx context.Context, upstream, chartRepo
 	} else {
 		debug.Log("event", "fetch.withHelm")
 		// fetch using 'helm fetch'
-		out, err := helm.Init("")
+		out, err := helm.Init(constants.TempHelmHomePath)
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "initialize helm to fetch chart: %s", out)
 		}
-		out, err = r.fetchUnpack(upstream, chartRepoURL, chartVersion, constants.KustomizeHelmPath, "")
+		out, err = r.fetchUnpack(upstream, chartRepoURL, chartVersion, constants.KustomizeHelmPath, constants.TempHelmHomePath)
 		if err != nil {
 			return api.HelmChartMetadata{}, errors.Wrapf(err, "fetch chart with helm: %s", out)
 		}

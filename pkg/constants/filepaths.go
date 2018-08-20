@@ -29,3 +29,6 @@ const TempHelmValuesPath = "chart/tmp"
 
 // TempApplyOverlayPath is the folder path used to apply patch
 const TempApplyOverlayPath = "overlays/tmp-apply"
+
+// TempHelmHomePath is the path helm will use as its home directory
+const TempHelmHomePath = ".ship/.helm"

@@ -37,7 +37,7 @@ type TestMetadata struct {
 
 func TestInitReplicatedApp(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "integration")
+	RunSpecs(t, "ship init replicated.app")
 }
 
 var _ = Describe("ship init replicated.app/...", func() {
