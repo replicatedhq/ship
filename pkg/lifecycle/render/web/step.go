@@ -119,6 +119,9 @@ func (p *DefaultStep) buildAsset(
 			Meta:  meta,
 			Viper: p.Viper,
 		},
+		templates.ShipContext{
+			Logger: p.Logger,
+		},
 	)
 
 	builtURL, err := builder.String(asset.URL)

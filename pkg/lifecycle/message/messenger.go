@@ -17,6 +17,9 @@ func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) templates.Builder
 			Meta:  meta,
 			Viper: m.Viper,
 		},
+		templates.ShipContext{
+			Logger: m.Logger,
+		},
 	)
 	return builder
 }
