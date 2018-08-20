@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
@@ -21,7 +22,7 @@ func FindOnlySubdir(dir string, fs afero.Afero) (string, error) {
 		return "", errors.Wrap(err, "failed to read dir")
 	}
 
-	subDir := files[0]
+	var subDir os.FileInfo
 
 	if len(files) == 0 {
 		return "", errors.Errorf("no files found in %s", dir)
