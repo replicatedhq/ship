@@ -195,12 +195,13 @@ export default class ConfigOnly extends React.Component {
     const {
       dataLoading,
       settingsFields,
-      settingsFieldsList
+      settingsFieldsList,
+      routeId,
     } = this.props;
     const { toastDetails } = this.state;
 
     return (
-      <Layout configOnly={true}>
+      <Layout configOnly={true} configRouteId={routeId}>
         <ErrorBoundary>
           <div className="flex-column flex1">
             <div className="flex-column flex1 u-overflow--hidden u-position--relative">

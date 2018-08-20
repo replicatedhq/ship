@@ -32,9 +32,10 @@ export default class Sidebar extends React.Component {
 
   getSidebarItems(configOnly) {
     if (configOnly) {
+      const { configRouteId } = this.props;
       return [{
         id: 0,
-        linkTo: "/config",
+        linkTo: `/${configRouteId}`,
         label: "Application settings",
         position: "top",
         subItems: this.buildSubItems(this.props.appSettingsFieldsList)

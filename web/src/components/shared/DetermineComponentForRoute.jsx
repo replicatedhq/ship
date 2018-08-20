@@ -109,6 +109,7 @@ class DetermineComponentForRoute extends React.Component {
         <ConfigOnly
           actions={actions}
           handleAction={this.handleAction}
+          routeId={this.props.routeId}
         />
       );
     case "stream":
