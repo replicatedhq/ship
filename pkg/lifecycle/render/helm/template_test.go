@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestForkTemplater(t *testing.T) {
+func TestLocalTemplater(t *testing.T) {
 	tests := []struct {
 		name                string
 		describe            string
@@ -93,10 +93,12 @@ func TestForkTemplater(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			mockState := state.NewMockManager(mc)
 			mockCommands := helm.NewMockCommands(mc)
+			memMapFs := afero.MemMapFs{}
+			mockFs := afero.Afero{Fs: &memMapFs}
 			tpl := &LocalTemplater{
 				Commands:       mockCommands,
 				Logger:         testLogger,
-				FS:             afero.Afero{Fs: afero.NewMemMapFs()},
+				FS:             mockFs,
 				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
 				Viper:          viper.New(),
 				StateManager:   mockState,
@@ -138,10 +140,13 @@ func TestForkTemplater(t *testing.T) {
 			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
 			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
 
+			mockFolderPathToCreate := path.Join(constants.RenderedHelmTempPath, expectedChannelName, "templates")
+			req.NoError(mockFs.MkdirAll(mockFolderPathToCreate, 0755))
+
 			err := tpl.Template(
 				"/tmp/chartroot",
 				root.Fs{
-					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
+					Afero:    mockFs,
 					RootPath: "",
 				},
 				api.HelmAsset{
@@ -174,7 +179,7 @@ func TestForkTemplater(t *testing.T) {
 	}
 }
 
-func TestTryRemoveRenderedHelmPath(t *testing.T) {
+func TestTryRemoveKustomizeBasePath(t *testing.T) {
 	tests := []struct {
 		name        string
 		describe    string
@@ -217,17 +222,17 @@ func TestTryRemoveRenderedHelmPath(t *testing.T) {
 				Logger: testLogger,
 			}
 
-			removeErr := ft.tryRemoveRenderedHelmPath()
+			removeErr := ft.FS.RemoveAll(constants.KustomizeBasePath)
 
 			if test.expectError {
 				req.Error(removeErr)
 			} else {
 				if dirExists, existErr := ft.FS.DirExists(constants.KustomizeBasePath); dirExists {
 					req.NoError(existErr)
-					// if dir exists, we expect tryRemoveRenderedHelmPath to have err'd
+					// if dir exists, we expect tryRemoveKustomizeBasePath to have err'd
 					req.Error(removeErr)
 				} else {
-					// if dir does not exist, we expect tryRemoveRenderedHelmPath to have succeeded without err'ing
+					// if dir does not exist, we expect tryRemoveKustomizeBasePath to have succeeded without err'ing
 					req.NoError(removeErr)
 				}
 			}
