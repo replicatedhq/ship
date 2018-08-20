@@ -134,11 +134,12 @@ export default class KustomizeOverlay extends React.Component {
       isNavcycle,
       actions,
       startPoll,
+      routeId,
     } = this.props;
 
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
-      startPoll();
+      startPoll(routeId);
     } else {
       await finalizeKustomizeOverlay()
         .then(() => {
@@ -155,7 +156,7 @@ export default class KustomizeOverlay extends React.Component {
       opts: {
         showCancelButton: true,
         confirmButtonText: "Finalize overlays",
-        confirmAction: () => this.handleFinalize()
+        confirmAction: this.handleFinalize,
       }
     }
     this.setState({ toastDetails });
