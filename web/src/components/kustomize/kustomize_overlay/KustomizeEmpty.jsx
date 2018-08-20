@@ -51,7 +51,7 @@ export default class KustomizeEmpty extends React.Component {
             <p className="u-marginTop--20 u-fontSize--normal u-fontWeight--medium u-lineHeight--more">If you’re ready to deploy your YAML simply <span onClick={this.props.skipKustomize} className="u-color--astral u-textDecoration--underlineOnHover">click here</span>.</p>
           </div>
         </div>
-        <div className="actions-wrapper container u-width--full flex flex1 justifyContent--flexEnd">
+        <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
           <RenderActions actions={actions} handleAction={handleAction} />
         </div>
       </div>
