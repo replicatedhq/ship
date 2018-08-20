@@ -31,7 +31,7 @@
   }
 }
 
-.u-closeOverlayIcon {
+.icon.u-closeOverlayIcon {
   position: absolute;
   z-index: 2;
   left: -50px;
@@ -43,6 +43,14 @@
   &:hover {
     filter: drop-shadow(0 0 2px rgba(0,0,0,0.35));
   }
+}
+
+.empty-file-wrapper {
+  margin: 20px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px dashed #DFDFDF;
+  background-color: #f8f8f8;
 }
 
 .EmmptyState--wrapper {

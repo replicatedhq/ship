@@ -36,7 +36,7 @@ export default class StepBuildingAssets extends React.Component {
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
         { progressDetail && progressDetail.status === "success" ?
-          <div className="success">
+          <div className="progress-detail-success">
             <span className="icon u-smallCheckWhite"></span>
           </div> :
           <Loader size="60" />
