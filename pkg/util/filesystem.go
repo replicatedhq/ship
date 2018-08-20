@@ -11,14 +11,32 @@ import (
 // FindOnlySubdir finds the only subdirectory of a directory.
 // TODO make this work like the description says
 func FindOnlySubdir(dir string, fs afero.Afero) (string, error) {
+	subDirExists := false
+	firstSubDirIndex := 0
+
 	files, err := fs.ReadDir(dir)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to read dir")
 	}
 
-	firstFoundFile := files[0]
-	if !firstFoundFile.IsDir() {
-		return "", errors.New(fmt.Sprintf("unable to find subdirectory, found file %s instead", firstFoundFile.Name()))
+	if len(files) == 0 {
+		return "", errors.New(fmt.Sprintf("no files found in %s", dir))
 	}
-	return filepath.Join(dir, firstFoundFile.Name()), nil
+
+	for idx, file := range files {
+		if file.IsDir() {
+			if !subDirExists {
+				subDirExists = true
+				firstSubDirIndex = idx
+			} else {
+				return "", errors.New(fmt.Sprintf("multiple subdirs found in %s", dir))
+			}
+		}
+	}
+
+	if subDirExists {
+		return filepath.Join(dir, files[firstSubDirIndex].Name()), nil
+	}
+
+	return "", errors.New("unable to find a subdirectory")
 }
