@@ -161,6 +161,8 @@ gradient: "purpleToPink"
 
 ${specTypes[specType].description || ""}
 
+${specTypes[specType].extended_description || ""}
+
 `;
 }
 
