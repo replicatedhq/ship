@@ -65,7 +65,7 @@ export function getRoutes() {
   };
 }
 
-async function fetchContentForStep(stepId) {
+export async function fetchContentForStep(stepId) {
   const url = `${apiEndpoint}/navcycle/step/${stepId}`;
   const response = await fetch(url, {
     method: "GET",
@@ -81,22 +81,22 @@ export function pollContentForStep(stepId, cb) {
   return async(dispatch) => {
     dispatch(polling(true));
 
-    let finished = false;
     const intervalId = setInterval(async() => {
+      const body = await fetchContentForStep(stepId)
+      dispatch(setProgress(body.progress));
+
+      const { progress } = body;
+      const { detail } = progress;
+      const parsedDetail = JSON.parse(detail);
+      const finished = parsedDetail.status === "success";
       if (finished) {
         dispatch(polling(false));
         clearInterval(intervalId);
-        cb();
-      } else {
-        const body = await fetchContentForStep(stepId)
-        dispatch(setProgress(body.progress));
-
-        const { progress } = body;
-        const { detail } = progress;
-        const parsedDetail = JSON.parse(detail);
-        finished = parsedDetail.status === "success";
+        return cb();
       }
     }, 1000);
+
+    return;
   };
 }
 

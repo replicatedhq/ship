@@ -3,6 +3,7 @@
   "plugins": [
     "transform-object-rest-spread",
     "react-hot-loader/babel",
-    "transform-class-properties"
+    "transform-class-properties",
+    "rewire"
   ]
 }
