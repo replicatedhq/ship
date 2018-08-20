@@ -17,7 +17,9 @@ const (
 
 var (
 	// ShipPathInternalTmp is a temporary folder that will get cleaned up on exit
-	ShipPathInternalTmp = path.Join(".ship", "tmp")
+	ShipPathInternalTmp = path.Join(ShipPathInternal, "tmp")
+	// ShipPathInternalTmp is a temporary folder that will get cleaned up on exit
+	ShipPathInternalLog = path.Join(ShipPathInternal, "debug.log")
 	// InternalTempHelmHome is the path to a helm home directory
 	InternalTempHelmHome = path.Join(ShipPathInternalTmp, ".helm")
 	// StatePath is the default state file path

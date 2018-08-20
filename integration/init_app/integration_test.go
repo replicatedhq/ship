@@ -21,6 +21,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
+	"github.com/spf13/afero"
 )
 
 type TestMetadata struct {
@@ -157,7 +158,10 @@ func createRelease(
 	vendorClient := &e2e.GraphQLClient{
 		GQLServer: endpointURL,
 		Token:     vendorToken,
-		Logger:    logger.FromViper(viper.GetViper()),
+		Logger: logger.New(
+			viper.GetViper(),
+			afero.Afero{Fs: afero.NewMemMapFs()},
+		),
 	}
 	releaseContents, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/release.yml"))
 	Expect(err).NotTo(HaveOccurred())
