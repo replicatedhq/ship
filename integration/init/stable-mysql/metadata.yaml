@@ -1,0 +1,5 @@
+upstream: "stable/mysql"
+args:
+  - --chart-version=0.8.1
+
+

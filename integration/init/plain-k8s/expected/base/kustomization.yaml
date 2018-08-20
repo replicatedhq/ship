@@ -1,0 +1,7 @@
+resources:
+- frontend-deployment.yaml
+- frontend-service.yaml
+- redis-master-deployment.yaml
+- redis-master-service.yaml
+- redis-slave-deployment.yaml
+- redis-slave-service.yaml

@@ -63,6 +63,8 @@ _mockgen:
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
 	mkdir -p pkg/test-mocks/state
+	mkdir -p pkg/test-mocks/apptype
+	mkdir -p pkg/test-mocks/replicatedapp
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -158,6 +160,16 @@ _mockgen:
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
 		Renderer
+	mockgen \
+		-destination pkg/test-mocks/apptype/determine_type_mock.go \
+		-package apptype \
+		github.com/replicatedhq/ship/pkg/specs/apptype \
+		Inspector
+	mockgen \
+		-destination pkg/test-mocks/replicatedapp/resolve_replicated_app.go \
+		-package replicatedapp \
+		github.com/replicatedhq/ship/pkg/specs/replicatedapp \
+		Resolver
 
 mockgen: _mockgen fmt
 

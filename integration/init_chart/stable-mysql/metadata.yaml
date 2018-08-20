@@ -1,3 +1,0 @@
-chart: "stable/mysql"
-version: "0.8.1"
-skip_cleanup: false

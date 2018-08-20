@@ -172,7 +172,7 @@ export default class HelmValuesEditor extends React.Component {
       values,
       readme,
       name
-    } = this.props.helmChartMetadata;
+    } = this.props.shipAppMetadata;
 
     return (
       <ErrorBoundary>

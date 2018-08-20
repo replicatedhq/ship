@@ -98,6 +98,7 @@ func (f *LocalTemplater) Template(
 	templateArgs = append(templateArgs, args...)
 
 	debug.Log("event", "helm.init")
+	// todo fix
 	if err := f.Commands.Init(); err != nil {
 		return errors.Wrap(err, "init helm client")
 	}
@@ -140,7 +141,7 @@ func (f *LocalTemplater) Template(
 	}
 
 	subChartsDirName := "charts"
-	tempRenderedChartDir := path.Join(constants.RenderedHelmTempPath, meta.HelmChartMetadata.Name)
+	tempRenderedChartDir := path.Join(constants.RenderedHelmTempPath, meta.ShipAppMetadata.Name)
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
@@ -177,10 +178,10 @@ func (f *LocalTemplater) Template(
 func (f *LocalTemplater) tryRemoveRenderedHelmPath() error {
 	debug := level.Debug(log.With(f.Logger, "method", "tryRemoveRenderedHelmPath"))
 
-	if err := f.FS.RemoveAll(constants.RenderedHelmPath); err != nil {
+	if err := f.FS.RemoveAll(constants.KustomizeBasePath); err != nil {
 		return err
 	}
-	debug.Log("event", "renderedHelmPath.remove", "path", constants.RenderedHelmPath)
+	debug.Log("event", "renderedHelmPath.remove", "path", constants.KustomizeBasePath)
 
 	return nil
 }
@@ -263,7 +264,7 @@ func writeStateHelmValuesToChartTmpdir(logger log.Logger, manager state.Manager,
 	}
 	helmValues := editState.CurrentHelmValues()
 	if helmValues == "" {
-		defaultValuesShippedWithChart := filepath.Join(constants.KustomizeHelmPath, "values.yaml")
+		defaultValuesShippedWithChart := filepath.Join(constants.HelmChartPath, "values.yaml")
 		bytes, err := fs.ReadFile(defaultValuesShippedWithChart)
 		if err != nil {
 			return errors.Wrapf(err, "read helm values from %s", defaultValuesShippedWithChart)

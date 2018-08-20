@@ -219,5 +219,5 @@ func prettyError(err error) error {
 }
 
 func helmHome() (string, error) {
-	return constants.TempHelmHomePath, nil
+	return constants.InternalTempHelmHome, nil
 }

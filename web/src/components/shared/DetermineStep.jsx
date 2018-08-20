@@ -67,7 +67,7 @@ export default class DetermineStep extends React.Component {
       return (
         <StepHelmIntro 
           actions={actions}
-          helmChartMetadata={this.props.helmChartMetadata} 
+          shipAppMetadata={this.props.shipAppMetadata}
           handleAction={this.handleAction} 
           isLoading={this.props.dataLoading.submitActionLoading} 
         />
@@ -77,7 +77,7 @@ export default class DetermineStep extends React.Component {
         <StepHelmValues
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
-          helmChartMetadata={this.props.helmChartMetadata} 
+          shipAppMetadata={this.props.shipAppMetadata}
           actions={actions} 
           handleAction={this.handleAction} 
           isLoading={this.props.dataLoading.submitActionLoading}
