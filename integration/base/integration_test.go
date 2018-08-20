@@ -29,12 +29,12 @@ type TestMetadata struct {
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
-func TestCore(t *testing.T) {
+func TestShipApp(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "integration")
+	RunSpecs(t, "ship app ...")
 }
 
-var _ = Describe("basic", func() {
+var _ = Describe("ship app ...", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)

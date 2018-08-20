@@ -26,9 +26,9 @@ type TestMetadata struct {
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
-func TestInitReplicatedApp(t *testing.T) {
+func TestInitChartWithHelmFetch(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "integration")
+	RunSpecs(t, "ship init <chart> with helm fetch")
 }
 
 var _ = Describe("ship init with 'helm fetch'", func() {
