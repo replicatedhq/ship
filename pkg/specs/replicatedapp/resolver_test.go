@@ -1,27 +1,18 @@
-package specs
+package replicatedapp
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/replicatedhq/ship/pkg/constants"
-
-	"github.com/go-kit/kit/log"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPersistSpec(t *testing.T) {
 
-	r := &Resolver{
+	r := &resolver{
 		FS: afero.Afero{Fs: afero.NewMemMapFs()},
-		StateManager: &state.MManager{
-			Logger: log.NewNopLogger(),
-			FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-			V:      viper.New(),
-		},
 	}
 
 	req := require.New(t)

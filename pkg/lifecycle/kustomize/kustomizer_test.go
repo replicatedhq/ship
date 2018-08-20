@@ -102,7 +102,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 
 func Test_kustomizer_writeOverlay(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.RenderedHelmPath,
+		BasePath: constants.KustomizeBasePath,
 		Dest:     path.Join("overlays", "ship"),
 	}
 
@@ -167,7 +167,7 @@ patches:
 
 func Test_kustomizer_writeBase(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.RenderedHelmPath,
+		BasePath: constants.KustomizeBasePath,
 		Dest:     path.Join("overlays", "ship"),
 	}
 
@@ -185,7 +185,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			fields: fields{
 				GetFS: func() (afero.Afero, error) {
 					fs := afero.Afero{Fs: afero.NewMemMapFs()}
-					err := fs.Mkdir(constants.RenderedHelmPath, 0777)
+					err := fs.Mkdir(constants.KustomizeBasePath, 0777)
 					if err != nil {
 						return afero.Afero{}, err
 					}
@@ -199,14 +199,14 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			fields: fields{
 				GetFS: func() (afero.Afero, error) {
 					fs := afero.Afero{Fs: afero.NewMemMapFs()}
-					if err := fs.Mkdir(constants.RenderedHelmPath, 0777); err != nil {
+					if err := fs.Mkdir(constants.KustomizeBasePath, 0777); err != nil {
 						return afero.Afero{}, err
 					}
 
 					files := []string{"a.yaml", "b.yaml", "c.yaml"}
 					for _, file := range files {
 						if err := fs.WriteFile(
-							path.Join(constants.RenderedHelmPath, file),
+							path.Join(constants.KustomizeBasePath, file),
 							[]byte{},
 							0777,
 						); err != nil {
@@ -229,7 +229,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 				GetFS: func() (afero.Afero, error) {
 					fs := afero.Afero{Fs: afero.NewMemMapFs()}
 					nestedChartPath := path.Join(
-						constants.RenderedHelmPath,
+						constants.KustomizeBasePath,
 						"charts/kube-stats-metrics/templates",
 					)
 					if err := fs.MkdirAll(nestedChartPath, 0777); err != nil {
@@ -243,7 +243,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					}
 					for _, file := range files {
 						if err := fs.WriteFile(
-							path.Join(constants.RenderedHelmPath, file),
+							path.Join(constants.KustomizeBasePath, file),
 							[]byte{},
 							0777,
 						); err != nil {
@@ -356,11 +356,11 @@ patches:
 			mockState := state2.NewMockManager(mc)
 
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			err := mockFS.Mkdir(constants.RenderedHelmPath, 0777)
+			err := mockFS.Mkdir(constants.KustomizeBasePath, 0777)
 			req.NoError(err)
 
 			err = mockFS.WriteFile(
-				path.Join(constants.RenderedHelmPath, "deployment.yaml"),
+				path.Join(constants.KustomizeBasePath, "deployment.yaml"),
 				[]byte{},
 				0666,
 			)
@@ -374,7 +374,7 @@ patches:
 
 			mockDaemon.EXPECT().EnsureStarted(ctx, &release)
 			mockDaemon.EXPECT().PushKustomizeStep(ctx, daemontypes.Kustomize{
-				BasePath: constants.RenderedHelmPath,
+				BasePath: constants.KustomizeBasePath,
 			})
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
@@ -394,7 +394,7 @@ patches:
 				ctx,
 				&release,
 				api.Kustomize{
-					BasePath: constants.RenderedHelmPath,
+					BasePath: constants.KustomizeBasePath,
 					Dest:     "overlays/ship",
 				},
 			)

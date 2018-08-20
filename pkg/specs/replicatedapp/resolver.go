@@ -1,4 +1,4 @@
-package specs
+package replicatedapp
 
 import (
 	"context"
@@ -7,61 +7,58 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
 
-// A Resolver resolves specs
-type Resolver struct {
+type resolver struct {
 	Logger               log.Logger
 	Client               *GraphQLClient
-	GithubClient         *GithubClient
-	StateManager         state.Manager
 	FS                   afero.Afero
 	Runbook              string
 	SetChannelName       string
 	RunbookReleaseSemver string
 	SetChannelIcon       string
-	ui                   cli.Ui
-
-	Viper *viper.Viper
 }
 
-// NewResolver builds a resolver from a Viper instance
-func NewResolver(
+// NewAppResolver builds a resolver from a Viper instance
+func NewAppResolver(
 	v *viper.Viper,
 	logger log.Logger,
 	fs afero.Afero,
 	graphql *GraphQLClient,
-	githubClient *GithubClient,
-	stateManager state.Manager,
-	ui cli.Ui,
-) *Resolver {
-	return &Resolver{
+) Resolver {
+	return &resolver{
 		Logger:               logger,
 		Client:               graphql,
-		GithubClient:         githubClient,
-		StateManager:         stateManager,
 		FS:                   fs,
 		Runbook:              flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
-		Viper:                v,
-		ui:                   ui,
 	}
+}
+
+type Resolver interface {
+	ResolveAppRelease(
+		ctx context.Context,
+		selector *Selector,
+	) (*api.Release, error)
+	RegisterInstall(
+		ctx context.Context,
+		selector Selector,
+		release *api.Release,
+	) error
 }
 
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local runbook if so configured
-func (r *Resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
+func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
 	var specYAML []byte
 	var err error
 	var release *ShipRelease
@@ -97,7 +94,7 @@ func (r *Resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 	return result, nil
 }
 
-func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
+func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
 	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
@@ -120,7 +117,7 @@ func (r *Resolver) resolveRunbookRelease() (*ShipRelease, error) {
 	}, nil
 }
 
-func (r *Resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error) {
+func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
 	client := r.Client
@@ -139,7 +136,7 @@ func (r *Resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error)
 }
 
 // persistSpec persists last-used YAML to disk at .ship/release.yml
-func (r *Resolver) persistSpec(specYAML []byte) error {
+func (r *resolver) persistSpec(specYAML []byte) error {
 	if err := r.FS.MkdirAll(filepath.Dir(constants.ReleasePath), 0700); err != nil {
 		return errors.Wrap(err, "mkdir yaml")
 	}
@@ -150,7 +147,7 @@ func (r *Resolver) persistSpec(specYAML []byte) error {
 	return nil
 }
 
-func (r *Resolver) RegisterInstall(ctx context.Context, selector Selector, release *api.Release) error {
+func (r *resolver) RegisterInstall(ctx context.Context, selector Selector, release *api.Release) error {
 	if r.Runbook != "" {
 		return nil
 	}

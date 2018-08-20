@@ -13,7 +13,9 @@ type State interface {
 	CurrentKustomize() *Kustomize
 	CurrentKustomizeOverlay(filename string) string
 	CurrentHelmValues() string
-	CurrentChartURL() string
+	CurrentChartRepoURL() string
+	CurrentChartVersion() string
+	Upstream() string
 	Versioned() VersionedState
 }
 
@@ -27,7 +29,9 @@ func (Empty) CurrentKustomize() *Kustomize          { return nil }
 func (Empty) CurrentKustomizeOverlay(string) string { return "" }
 func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
 func (Empty) CurrentHelmValues() string             { return "" }
-func (Empty) CurrentChartURL() string               { return "" }
+func (Empty) CurrentChartRepoURL() string           { return "" }
+func (Empty) CurrentChartVersion() string           { return "" }
+func (Empty) Upstream() string                      { return "" }
 func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
 
 type V0 map[string]interface{}
@@ -36,7 +40,9 @@ func (v V0) CurrentConfig() map[string]interface{} { return v }
 func (v V0) CurrentKustomize() *Kustomize          { return nil }
 func (v V0) CurrentKustomizeOverlay(string) string { return "" }
 func (v V0) CurrentHelmValues() string             { return "" }
-func (v V0) CurrentChartURL() string               { return "" }
+func (v V0) CurrentChartRepoURL() string           { return "" }
+func (v V0) CurrentChartVersion() string           { return "" }
+func (v V0) Upstream() string                      { return "" }
 func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
 
 type VersionedState struct {
@@ -48,9 +54,13 @@ type V1 struct {
 	Terraform  interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	HelmValues string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	Kustomize  *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
-	ChartURL   string                 `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
-	ContentSHA string                 `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
-	Lifecycle  *Lifeycle              `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+	Upstream   string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
+	//deprecated in favor of upstream
+	ChartURL     string    `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+	ChartRepoURL string    `json:"ChartRepoURL,omitempty" yaml:"ChartRepoURL,omitempty" hcl:"ChartRepoURL,omitempty"`
+	ChartVersion string    `json:"ChartVersion,omitempty" yaml:"ChartVersion,omitempty" hcl:"ChartVersion,omitempty"`
+	ContentSHA   string    `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
+	Lifecycle    *Lifeycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}
@@ -101,20 +111,23 @@ func (k *Kustomize) Ship() Overlay {
 	return Overlay{}
 }
 
-func (u VersionedState) CurrentKustomize() *Kustomize {
-	return u.V1.Kustomize
+func (v VersionedState) CurrentKustomize() *Kustomize {
+	if v.V1 != nil {
+		return v.V1.Kustomize
+	}
+	return nil
 }
 
-func (u VersionedState) CurrentKustomizeOverlay(filename string) string {
-	if u.V1.Kustomize == nil {
+func (v VersionedState) CurrentKustomizeOverlay(filename string) string {
+	if v.V1.Kustomize == nil {
 		return ""
 	}
 
-	if u.V1.Kustomize.Overlays == nil {
+	if v.V1.Kustomize.Overlays == nil {
 		return ""
 	}
 
-	overlay, ok := u.V1.Kustomize.Overlays["ship"]
+	overlay, ok := v.V1.Kustomize.Overlays["ship"]
 	if !ok {
 		return ""
 	}
@@ -131,19 +144,42 @@ func (u VersionedState) CurrentKustomizeOverlay(filename string) string {
 	return ""
 }
 
-func (u VersionedState) CurrentConfig() map[string]interface{} {
-	if u.V1 != nil && u.V1.Config != nil {
-		return u.V1.Config
+func (v VersionedState) CurrentConfig() map[string]interface{} {
+	if v.V1 != nil && v.V1.Config != nil {
+		return v.V1.Config
 	}
 	return make(map[string]interface{})
 }
 
-func (u VersionedState) CurrentHelmValues() string {
-	return u.V1.HelmValues
+func (v VersionedState) CurrentHelmValues() string {
+	if v.V1 != nil {
+		return v.V1.HelmValues
+	}
+	return ""
 }
 
-func (u VersionedState) CurrentChartURL() string {
-	return u.V1.ChartURL
+func (v VersionedState) CurrentChartRepoURL() string {
+	if v.V1 != nil {
+		return v.V1.ChartRepoURL
+	}
+	return ""
+}
+
+func (v VersionedState) CurrentChartVersion() string {
+	if v.V1 != nil {
+		return v.V1.ChartVersion
+	}
+	return ""
+}
+
+func (v VersionedState) Upstream() string {
+	if v.V1 != nil {
+		if v.V1.Upstream != "" {
+			return v.V1.Upstream
+		}
+		return v.V1.ChartURL
+	}
+	return ""
 }
 
 func (v VersionedState) Versioned() VersionedState {
@@ -152,5 +188,13 @@ func (v VersionedState) Versioned() VersionedState {
 
 func (v VersionedState) WithCompletedStep(step api.Step) VersionedState {
 	v.V1.Lifecycle = v.V1.Lifecycle.WithCompletedStep(step)
+	return v
+}
+
+func (v VersionedState) migrateDeprecatedFields() VersionedState {
+	if v.V1 != nil {
+		v.V1.Upstream = v.Upstream()
+		v.V1.ChartURL = ""
+	}
 	return v
 }

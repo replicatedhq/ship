@@ -1,4 +1,4 @@
-package specs
+package replicatedapp
 
 import (
 	"net/url"
@@ -39,7 +39,7 @@ func TestUnmarshalSelector(t *testing.T) {
 			req := require.New(t)
 			parsed, err := url.Parse(test.url)
 			req.NoError(err)
-			actual := (&Selector{}).unmarshalFrom(parsed)
+			actual := (&Selector{}).UnmarshalFrom(parsed)
 			req.Equal(test.want, actual)
 		})
 	}

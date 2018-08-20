@@ -1,0 +1,18 @@
+##---
+# Source: mysql/templates/pvc.yaml
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+    chart: "mysql-0.8.1"
+    release: "mysql"
+    heritage: "Tiller"
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"

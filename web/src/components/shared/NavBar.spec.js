@@ -10,7 +10,7 @@ const mockRouterProps = {
 }
 
 const initProps = {
-  helmChartMetadata: {
+  shipAppMetadata: {
     name: "",
     icon: "",
   },
@@ -22,7 +22,7 @@ const initProps = {
 };
 
 describe("NavBar", () => {
-  describe("provided helmChartMetadata", () => {
+  describe("provided shipAppMetadata", () => {
     const wrapper = mount(
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
         <NavBar
@@ -31,13 +31,13 @@ describe("NavBar", () => {
         />
       </MemoryRouter>
     );
-      it("sets navDetails via helmChartMetadata", () => {
+      it("sets navDetails via shipAppMetadata", () => {
         wrapper.setProps({
           children: React.cloneElement(
             wrapper.props().children,
             {
               ...mockRouterProps,
-              helmChartMetadata: {
+              shipAppMetadata: {
                 name: "testHelm",
                 icon: "testHelmIcon",
               },

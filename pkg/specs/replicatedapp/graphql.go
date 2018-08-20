@@ -1,4 +1,4 @@
-package specs
+package replicatedapp
 
 import (
 	"bytes"

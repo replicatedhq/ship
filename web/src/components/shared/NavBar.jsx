@@ -88,14 +88,14 @@ export class NavBar extends React.Component {
   }
 
   componentDidUpdate() {
-    const { helmChartMetadata, channelDetails } = this.props;
+    const { shipAppMetadata, channelDetails } = this.props;
     const { navDetails } = this.state;
 
-    if (helmChartMetadata.name && helmChartMetadata.name !== navDetails.name) {
+    if (shipAppMetadata.name && shipAppMetadata.name !== navDetails.name) {
       this.setState({
         navDetails: {
-          name: helmChartMetadata.name,
-          icon: helmChartMetadata.icon,
+          name: shipAppMetadata.name,
+          icon: shipAppMetadata.icon,
         },
       });
     }

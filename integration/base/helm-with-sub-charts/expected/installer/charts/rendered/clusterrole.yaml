@@ -1,0 +1,38 @@
+##---
+# Source: datadog/templates/clusterrole.yaml
+apiVersion: "rbac.authorization.k8s.io/v1"
+kind: ClusterRole
+metadata:
+  labels:
+    app: "ship-datadog"
+    chart: "datadog-1.0.1"
+    heritage: "Tiller"
+    release: "ship"
+  name: ship-datadog
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - events
+  - endpoints
+  - pods
+  - nodes
+  - componentstatuses
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - "/version"
+  - "/healthz"
+  verbs:
+  - get
+- apiGroups:  # Kubelet connectivity
+  - ""
+  resources:
+  - nodes/metrics
+  - nodes/spec
+  - nodes/proxy
+  verbs:
+  - get

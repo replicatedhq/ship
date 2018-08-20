@@ -1,4 +1,4 @@
-package specs
+package replicatedapp
 
 import (
 	"net/url"
@@ -30,7 +30,7 @@ func (s *Selector) String() string {
 }
 
 // this is kinda janky
-func (s *Selector) unmarshalFrom(url *url.URL) *Selector {
+func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 	for key, values := range url.Query() {
 		switch key {
 		case "customer_id":

@@ -3,11 +3,10 @@ package state
 import (
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-test/deep"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -172,6 +171,325 @@ func TestHelmValue(t *testing.T) {
 
 			t1State, err := manager.TryLoad()
 			req.Equal(test.wantValuesAfterUpdate, t1State.CurrentHelmValues())
+		})
+	}
+}
+
+func TestMManager_SerializeChartURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		URL      string
+		wantErr  bool
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name: "basic test",
+			URL:  "abc123",
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+				},
+			},
+		},
+		{
+			name: "no wipe",
+			URL:  "abc123",
+			before: VersionedState{
+				V1: &V1{
+					ChartRepoURL: "abc123_",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream:     "abc123",
+					ChartRepoURL: "abc123_",
+				},
+			},
+		},
+		{
+			name: "no wipe, but still override",
+			URL:  "xyz789",
+			before: VersionedState{
+				V1: &V1{
+					ChartURL: "abc123",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "xyz789",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SerializeUpstream(tt.URL)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeChartURL() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_SerializeContentSHA(t *testing.T) {
+	tests := []struct {
+		name       string
+		ContentSHA string
+		wantErr    bool
+		before     VersionedState
+		expected   VersionedState
+	}{
+		{
+			name:       "basic test",
+			ContentSHA: "abc123",
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					ContentSHA: "abc123",
+				},
+			},
+		},
+		{
+			name:       "no wipe",
+			ContentSHA: "abc123",
+			before: VersionedState{
+				V1: &V1{
+					ChartRepoURL: "abc123_",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					ContentSHA:   "abc123",
+					ChartRepoURL: "abc123_",
+				},
+			},
+		},
+		{
+			name:       "no wipe, but still override",
+			ContentSHA: "xyz789",
+			before: VersionedState{
+				V1: &V1{
+					ContentSHA: "abc123",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					ContentSHA: "xyz789",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SerializeContentSHA(tt.ContentSHA)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeContentSHA() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_SerializeHelmValues(t *testing.T) {
+	tests := []struct {
+		name         string
+		HelmValues   string
+		HelmDefaults string // is discarded by the function
+		wantErr      bool
+		before       VersionedState
+		expected     VersionedState
+	}{
+		{
+			name:       "basic test",
+			HelmValues: "abc123",
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					HelmValues: "abc123",
+				},
+			},
+		},
+		{
+			name:       "no wipe",
+			HelmValues: "abc123",
+			before: VersionedState{
+				V1: &V1{
+					ChartRepoURL: "abc123_",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					HelmValues:   "abc123",
+					ChartRepoURL: "abc123_",
+				},
+			},
+		},
+		{
+			name:       "no wipe, but still override",
+			HelmValues: "xyz789",
+			before: VersionedState{
+				V1: &V1{
+					HelmValues: "abc123",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					HelmValues: "xyz789",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SerializeHelmValues(tt.HelmValues, tt.HelmDefaults)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeHelmValues() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_SaveHelmOpts(t *testing.T) {
+	tests := []struct {
+		name        string
+		HelmURL     string
+		HelmVersion string
+		wantErr     bool
+		before      VersionedState
+		expected    VersionedState
+	}{
+		{
+			name:        "basic test",
+			HelmURL:     "abc123",
+			HelmVersion: "123abc",
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					ChartRepoURL: "abc123",
+					ChartVersion: "123abc",
+				},
+			},
+		},
+		{
+			name:        "no wipe",
+			HelmURL:     "abc123",
+			HelmVersion: "123abc",
+			before: VersionedState{
+				V1: &V1{
+					ChartURL: "abc123_",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream:     "abc123_",
+					ChartRepoURL: "abc123",
+					ChartVersion: "123abc",
+				},
+			},
+		},
+		{
+			name:        "no wipe, but still override",
+			HelmURL:     "xyz789",
+			HelmVersion: "789xyz",
+			before: VersionedState{
+				V1: &V1{
+					ChartURL:     "abc123",
+					ChartRepoURL: "abc123",
+					ChartVersion: "123abc",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream:     "abc123",
+					ChartRepoURL: "xyz789",
+					ChartVersion: "789xyz",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SaveHelmOpts(tt.HelmURL, tt.HelmVersion)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeHelmOpts() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
 		})
 	}
 }

@@ -39,6 +39,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
+	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/ui"
@@ -60,6 +63,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		patch.NewShipPatcher,
 		specs.NewIDPatcher,
+		apptype.NewInspector,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
@@ -69,8 +73,10 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		state.NewManager,
 		planner.NewFactory,
 		specs.NewResolver,
-		specs.NewGraphqlClient,
-		specs.NewGithubClient, lifecycle.NewRunner,
+		replicatedapp.NewGraphqlClient,
+		replicatedapp.NewAppResolver,
+		githubclient.NewGithubClient,
+		lifecycle.NewRunner,
 
 		inline.NewRenderer,
 

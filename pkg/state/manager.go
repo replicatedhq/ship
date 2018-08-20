@@ -29,8 +29,9 @@ type Manager interface {
 	TryLoad() (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
-	SerializeChartURL(URL string) error
+	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
+	SaveHelmOpts(url, version string) error
 	Save(v VersionedState) error
 }
 
@@ -62,14 +63,20 @@ func NewManager(
 	}
 }
 
-// SerializeChartURL is used by `ship init` to serialize a state file with ChartURL to disk
-func (s *MManager) SerializeChartURL(URL string) error {
-	debug := level.Debug(log.With(s.Logger, "method", "SerializeChartURL"))
+// SerializeUpstream is used by `ship init` to serialize a state file with ChartURL to disk
+func (m *MManager) SerializeUpstream(upstream string) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeUpstream"))
 
-	debug.Log("event", "generateChartURLState")
-	toSerialize := VersionedState{V1: &V1{ChartURL: URL}}
+	current, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+	debug.Log("event", "generateUpstreamURLState")
 
-	return s.serializeAndWriteState(toSerialize)
+	toSerialize := current.Versioned()
+	toSerialize.V1.Upstream = upstream
+
+	return m.serializeAndWriteState(toSerialize)
 }
 
 // SerializeContentSHA writes the contentSHA to the state file
@@ -223,13 +230,6 @@ func (m *MManager) tryLoadFromFile() (State, error) {
 		return nil, errors.Wrap(err, "unmarshal state")
 	}
 
-	level.Debug(m.Logger).Log(
-		"event", "state.unmarshal",
-		"type", "versioned",
-		"source", "file",
-		"value", fmt.Sprintf("%+v", state),
-	)
-
 	if state.V1 != nil {
 		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
 		return state, nil
@@ -259,6 +259,22 @@ func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	return nil
 }
 
+func (m *MManager) SaveHelmOpts(url, version string) error {
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.ChartRepoURL = url
+	versionedState.V1.ChartVersion = version
+
+	if err := m.serializeAndWriteState(versionedState); err != nil {
+		return errors.Wrap(err, "write state")
+	}
+
+	return nil
+}
+
 // RemoveStateFile will attempt to remove the state file from disk
 func (m *MManager) RemoveStateFile() error {
 	statePath := m.V.GetString("state-file")
@@ -275,14 +291,15 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (m *MManager) serializeAndWriteState(state VersionedState) error {
-	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
+	debug := level.Debug(log.With(m.Logger, "method", "serializeAndWriteState"))
+	state = state.migrateDeprecatedFields()
 
 	stateFrom := m.V.GetString("state-from")
 	if stateFrom == "" {
 		stateFrom = "file"
 	}
 
-	debug.Log("event", "serializeAndWriteState", "stateFrom", stateFrom)
+	debug.Log("stateFrom", stateFrom)
 
 	switch stateFrom {
 	case "file":
@@ -296,7 +313,6 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 }
 
 func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
-	state.V1.ChartURL = state.CurrentChartURL()
 
 	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
@@ -317,8 +333,6 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 }
 
 func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
-	state.V1.ChartURL = state.CurrentChartURL()
-
 	serialized, err := json.Marshal(state)
 	if err != nil {
 		return errors.Wrap(err, "serialize state")

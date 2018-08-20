@@ -9,7 +9,7 @@ const DetermineComponentForRoute = connect(
   state => ({
     dataLoading: state.ui.main.loading,
     currentStep: state.data.determineSteps.stepsData.step,
-    helmChartMetadata: state.data.kustomizeSettings.helmChartMetadata,
+    shipAppMetadata: state.data.kustomizeSettings.shipAppMetadata,
     actions: state.data.determineSteps.stepsData.actions,
     phase: state.data.determineSteps.stepsData.phase,
     progress: state.data.determineSteps.stepsData.progress,

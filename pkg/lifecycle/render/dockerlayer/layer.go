@@ -87,14 +87,14 @@ func (u *Unpacker) Execute(
 func (u *Unpacker) getPaths(asset api.DockerLayerAsset, rootFs root.Fs) (string, string, string, string, error) {
 	fail := func(err error) (string, string, string, string, error) { return "", "", "", "", err }
 
-	saveDir, err := rootFs.TempDir("", "dockerlayer")
+	saveDir, err := rootFs.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(errors.Wrap(err, "get image save tmpdir"))
 	}
 
 	savePath := path.Join(saveDir, "image.tar")
 
-	firstPassUnpackPath, err := rootFs.TempDir("", "dockerlayer")
+	firstPassUnpackPath, err := rootFs.TempDir("/tmp", "dockerlayer")
 	if err != nil {
 		return fail(errors.Wrap(err, "get unpack tmpdir"))
 	}

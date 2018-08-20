@@ -97,7 +97,7 @@ func (d *V1Routes) getHelmMetadata(release *api.Release) gin.HandlerFunc {
 	debug.Log("event", "response.metadata")
 	return func(c *gin.Context) {
 		c.JSON(200, map[string]interface{}{
-			"metadata": release.Metadata.HelmChartMetadata,
+			"metadata": release.Metadata.ShipAppMetadata,
 		})
 	}
 }
@@ -116,7 +116,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	}
 
 	debug.Log("event", "validate")
-	linter := support.Linter{ChartDir: constants.KustomizeHelmPath}
+	linter := support.Linter{ChartDir: constants.HelmChartPath}
 	rules.Templates(&linter, []byte(request.Values), "", false)
 
 	if len(linter.Messages) > 0 {
@@ -135,7 +135,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		return
 	}
 
-	chartDefaultValues, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	chartDefaultValues, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 	if err != nil {
 
 		level.Error(d.Logger).Log("event", "values.readDefault.fail")

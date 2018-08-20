@@ -26,19 +26,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/mitchellh/go-homedir"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"google.golang.org/grpc/status"
+	yaml "gopkg.in/yaml.v2"
 	"k8s.io/helm/pkg/chartutil"
+	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/proto/hapi/chart"
-
-	yaml "gopkg.in/yaml.v2"
-	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/strvals"
 )
 
@@ -222,10 +220,5 @@ func prettyError(err error) error {
 }
 
 func helmHome() (string, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, ".helm"), nil
+	return filepath.Abs(constants.InternalTempHelmHome)
 }

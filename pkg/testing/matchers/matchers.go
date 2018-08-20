@@ -34,3 +34,17 @@ func (s *Is) String() string {
 func (s *Is) Matches(x interface{}) bool {
 	return s.Test(x)
 }
+
+var _ gomock.Matcher = &Contains{}
+
+type Contains struct {
+	Value string
+}
+
+func (s *Contains) String() string {
+	return fmt.Sprintf("contains %s", s.Value)
+}
+func (s *Contains) Matches(x interface{}) bool {
+	str := fmt.Sprintf("%v", x)
+	return strings.Contains(str, s.Value)
+}

@@ -1,4 +1,4 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
 
 
 SHELL := /bin/bash -o pipefail
@@ -63,6 +63,8 @@ _mockgen:
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
 	mkdir -p pkg/test-mocks/state
+	mkdir -p pkg/test-mocks/apptype
+	mkdir -p pkg/test-mocks/replicatedapp
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -158,6 +160,16 @@ _mockgen:
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
 		Renderer
+	mockgen \
+		-destination pkg/test-mocks/apptype/determine_type_mock.go \
+		-package apptype \
+		github.com/replicatedhq/ship/pkg/specs/apptype \
+		Inspector
+	mockgen \
+		-destination pkg/test-mocks/replicatedapp/resolve_replicated_app.go \
+		-package replicatedapp \
+		github.com/replicatedhq/ship/pkg/specs/replicatedapp \
+		Resolver
 
 mockgen: _mockgen fmt
 
@@ -282,6 +294,14 @@ dev-embed-ui:
 	  -prefix .state/tmp/ \
 	  -debug \
 	  .state/tmp/dist/...
+
+clean-ship:
+	rm -rf chart/
+	rm -rf installer/
+	rm -rf installer.bak/
+	rm -rf overlays/
+	rm -rf base/
+	rm -rf .ship/
 
 clean:
 	rm -rf .state
