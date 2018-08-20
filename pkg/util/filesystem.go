@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
@@ -39,4 +42,26 @@ func FindOnlySubdir(dir string, fs afero.Afero) (string, error) {
 	}
 
 	return "", errors.New("unable to find a subdirectory")
+}
+
+func BackupIfPresent(fs afero.Afero, basePath string, logger log.Logger, ui cli.Ui) error {
+	exists, err := fs.Exists(basePath)
+	if err != nil {
+		return errors.Wrapf(err, "check file exists")
+	}
+	if !exists {
+		return nil
+	}
+
+	backupDest := fmt.Sprintf("%s.bak", basePath)
+	ui.Warn(fmt.Sprintf("WARNING found directory %s, backing up to %s", basePath, backupDest))
+
+	level.Info(logger).Log("step.type", "render", "event", "unpackTarget.backup.remove", "src", basePath, "dest", backupDest)
+	if err := fs.RemoveAll(backupDest); err != nil {
+		return errors.Wrapf(err, "backup existing dir %s to %s: remove existing %s", basePath, backupDest, backupDest)
+	}
+	if err := fs.Rename(basePath, backupDest); err != nil {
+		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
+	}
+	return nil
 }

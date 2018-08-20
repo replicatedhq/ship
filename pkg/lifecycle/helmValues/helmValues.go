@@ -55,7 +55,7 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
 
-	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.HelmChartPath, "values.yaml"))
 
 	currentState, err := h.StateManager.TryLoad()
 	if err != nil {
@@ -109,7 +109,7 @@ func resolveStateHelmValues(logger log.Logger, manager state.Manager, fs afero.A
 	}
 	helmValues := editState.CurrentHelmValues()
 	if helmValues == "" {
-		path := filepath.Join(constants.KustomizeHelmPath, "values.yaml")
+		path := filepath.Join(constants.HelmChartPath, "values.yaml")
 		bytes, err := fs.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "read helm values from %s", constants.TempHelmValuesPath)

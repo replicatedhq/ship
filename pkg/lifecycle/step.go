@@ -46,7 +46,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		err := s.Kustomizer.Execute(ctx, release, *step.Kustomize)
 		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
 		return errors.Wrap(err, "execute kustomize step")
-	} else if step.HelmIntro != nil && release.Metadata.HelmChartMetadata.Readme != "" {
+	} else if step.HelmIntro != nil && release.Metadata.ShipAppMetadata.Readme != "" {
 		debug.Log("event", "step.helmIntro", "type", "helmIntro")
 		err := s.HelmIntro.Execute(ctx, release, step.HelmIntro)
 		debug.Log("event", "step.complete", "type", "helmIntro", "err", err)
