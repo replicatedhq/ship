@@ -2,7 +2,8 @@ import { constants } from "./actions";
 
 const routesDataState = {
   routes: [],
-  isKustomizeFlow: false
+  isKustomizeFlow: false,
+  isDone: false
 };
 
 export function routesData(state = routesDataState, action) {
@@ -18,6 +19,10 @@ export function routesData(state = routesDataState, action) {
     return Object.assign({}, state, {
       routes: action.payload,
       isKustomizeFlow: isKustomize
+    });
+  case constants.SHUTDOWN_APP:
+    return Object.assign({}, state, {
+      isDone: true
     });
   default:
     return state;

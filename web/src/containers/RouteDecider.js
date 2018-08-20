@@ -8,6 +8,7 @@ const RouteDecider = connect(
   state => ({
     dataLoading: state.ui.main.loading,
     routes: state.data.appRoutes.routesData.routes,
+    isDone: state.data.appRoutes.routesData.isDone,
   }),
   dispatch => ({
     getRoutes() { return dispatch(getRoutes()); },
