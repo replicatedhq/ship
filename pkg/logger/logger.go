@@ -5,38 +5,68 @@ import (
 	golog "log"
 	"os"
 
-	"sync"
+	"path"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-stack/stack"
+	"github.com/hashicorp/go-multierror"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
-var (
-	fullPathCaller = pathCaller(3)
-	globalLogger   log.Logger
-	logMtx         sync.Mutex
-)
+type compositeLogger struct {
+	loggers []log.Logger
+}
 
-// FromViper builds a logger from env using viper
-func FromViper(v *viper.Viper) log.Logger {
+func (c *compositeLogger) Log(keyvals ...interface{}) error {
+	var multiErr *multierror.Error
+	for _, logger := range c.loggers {
+		multiErr = multierror.Append(multiErr, logger.Log(keyvals...))
+	}
+	return multiErr.ErrorOrNil()
+}
 
-	// one at a time plz
-	logMtx.Lock()
-	defer logMtx.Unlock()
+// New builds a logger from env using viper
+func New(v *viper.Viper, fs afero.Afero) log.Logger {
 
-	if globalLogger != nil {
-		return globalLogger
+	fullPathCaller := pathCaller(3)
+	var stdoutLogger log.Logger
+	stdoutLogger = withFormat(viper.GetString("log-format"))
+	stdoutLogger = log.With(stdoutLogger, "ts", log.DefaultTimestampUTC)
+	stdoutLogger = log.With(stdoutLogger, "caller", fullPathCaller)
+	stdoutLogger = withLevel(stdoutLogger, v.GetString("log-level"))
+
+	debugLogFile := path.Join(constants.ShipPathInternalLog)
+	var debugLogger log.Logger
+	err := fs.RemoveAll(debugLogFile)
+	if err != nil {
+		level.Warn(stdoutLogger).Log("msg", "failed to remove existing debug log file", "path", debugLogFile, "error", err)
+		golog.SetOutput(log.NewStdlibAdapter(level.Debug(stdoutLogger)))
+		return stdoutLogger
+	}
+	debugLogWriter, err := fs.Create(debugLogFile)
+	if err != nil {
+		level.Warn(stdoutLogger).Log("msg", "failed to initialize debug log file", "path", debugLogFile, "error", err)
+		golog.SetOutput(log.NewStdlibAdapter(level.Debug(stdoutLogger)))
+		return stdoutLogger
 	}
 
-	globalLogger = withFormat(viper.GetString("log-format"))
-	globalLogger = log.With(globalLogger, "ts", log.DefaultTimestampUTC)
-	globalLogger = withLevel(globalLogger, v.GetString("log-level"))
-	globalLogger = log.With(globalLogger, "caller", fullPathCaller)
-	golog.SetOutput(log.NewStdlibAdapter(level.Debug(globalLogger)))
+	debugLogger = log.NewJSONLogger(debugLogWriter)
+	debugLogger = log.With(debugLogger, "ts", log.DefaultTimestampUTC)
+	debugLogger = log.With(debugLogger, "caller", fullPathCaller)
+	debugLogger = withLevel(debugLogger, "debug")
 
-	return globalLogger
+	realLogger := &compositeLogger{
+		loggers: []log.Logger{
+			stdoutLogger,
+			debugLogger,
+		},
+	}
+
+	golog.SetOutput(log.NewStdlibAdapter(level.Debug(realLogger)))
+	return realLogger
 }
 
 func withFormat(format string) log.Logger {

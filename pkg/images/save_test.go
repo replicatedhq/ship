@@ -12,12 +12,9 @@ import (
 
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 
-	"github.com/replicatedhq/ship/pkg/logger"
-	"github.com/spf13/viper"
-
 	"github.com/docker/docker/api/types"
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	logger2 "github.com/replicatedhq/ship/pkg/testing/logger"
 )
 
 func Test_buildDestinationParams(t *testing.T) {
@@ -89,7 +86,7 @@ func TestCLISaver_pushImage(t *testing.T) {
 		{
 			name: "Success",
 			fields: fields{
-				Logger: log.With(level.Debug(logger.FromViper(viper.GetViper()))),
+				Logger: &logger2.TestLogger{T: t},
 			},
 			args: args{
 				ctx:        context.Background(),
