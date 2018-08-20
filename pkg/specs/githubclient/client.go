@@ -102,9 +102,17 @@ func (g *GithubClient) downloadAndExtractFiles(
 
 	tarReader := tar.NewReader(uncompressedStream)
 
+	basePathFound := false
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
+			if !basePathFound {
+				branchString := branch
+				if branchString == "" {
+					branchString = "master"
+				}
+				return errors.Errorf("Path %s in %s/%s on branch %s not found", basePath, owner, repo, branchString)
+			}
 			break
 		}
 
@@ -118,6 +126,7 @@ func (g *GithubClient) downloadAndExtractFiles(
 			if !strings.HasPrefix(dirName, basePath) {
 				continue
 			}
+			basePathFound = true
 
 			dirName = strings.TrimPrefix(dirName, basePath)
 			if err := g.fs.MkdirAll(filepath.Join(filePath, dirName), 0755); err != nil {
@@ -128,6 +137,8 @@ func (g *GithubClient) downloadAndExtractFiles(
 			if !strings.HasPrefix(fileName, basePath) {
 				continue
 			}
+			basePathFound = true
+
 			fileName = strings.TrimPrefix(fileName, basePath)
 			outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
 			if err != nil {
