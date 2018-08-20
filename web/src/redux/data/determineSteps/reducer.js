@@ -7,7 +7,8 @@ const stepsDataState = {
   progress: {},
   stepError: "",
   actions: [],
-  kustomizeFlow: false
+  kustomizeFlow: false,
+  isPolling: false,
 };
 
 export function stepsData(state = stepsDataState, action) {
@@ -20,7 +21,7 @@ export function stepsData(state = stepsDataState, action) {
       phase: action.payload.phase,
       progress: action.payload.progress || action.payload.status,
       actions: action.payload.actions,
-      kustomizeFlow: isKustomize
+      kustomizeFlow: isKustomize,
     });
   case phaseConstants.SET_PHASE:
     return Object.assign({}, state, {
@@ -30,6 +31,16 @@ export function stepsData(state = stepsDataState, action) {
     return Object.assign({}, state, {
       stepError: action.payload
     });
+  case phaseConstants.SET_PROGRESS:
+    return {
+      ...state,
+      progress: action.payload,
+    };
+  case phaseConstants.POLLING:
+    return {
+      ...state,
+      isPolling: action.payload,
+    };
   default:
     return state;
   }

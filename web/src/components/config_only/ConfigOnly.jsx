@@ -34,7 +34,6 @@ export default class ConfigOnly extends React.Component {
 
   componentDidMount() {
     this.props.getChannel();
-    this.props.getCurrentStep();
     if (!this.props.settingsFieldsList.length) {
       this.props.getApplicationSettings({item_values: null});
     }
@@ -127,22 +126,30 @@ export default class ConfigOnly extends React.Component {
   }
 
   onConfigSaved() {
-    let nextState = {};
-    nextState.toastDetails = {
-      showToast: true,
-      title: "All changes have been saved.",
-      type: "default",
-      opts: {
-        showCancelButton: true,
-        confirmButtonText: "Continue to next step",
-        confirmAction: async () => {
-          await this.props.finalizeApplicationSettings(this.state.itemData, false)
-            .then(() => {
-              this.props.history.push("/");
-            })
-        }
-      }
-    }
+    const {
+      actions,
+      handleAction,
+      finalizeApplicationSettings,
+    } = this.props;
+    const configAction = actions[0];
+    const { text } = configAction;
+
+    const nextState = {
+      toastDetails: {
+        showToast: true,
+        title: "All changes have been saved.",
+        type: "default",
+        opts: {
+          showCancelButton: true,
+          confirmButtonText: text,
+          confirmAction: async () => {
+            await finalizeApplicationSettings(this.state.itemData, false).catch();
+            await handleAction(configAction, true);
+          },
+        },
+      },
+    };
+
     this.setState(nextState);
   }
 
@@ -188,11 +195,13 @@ export default class ConfigOnly extends React.Component {
     const {
       dataLoading,
       settingsFields,
-      settingsFieldsList
+      settingsFieldsList,
+      routeId,
     } = this.props;
     const { toastDetails } = this.state;
+
     return (
-      <Layout configOnly={true}>
+      <Layout configOnly={true} configRouteId={routeId}>
         <ErrorBoundary>
           <div className="flex-column flex1">
             <div className="flex-column flex1 u-overflow--hidden u-position--relative">

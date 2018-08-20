@@ -63,10 +63,6 @@ type V1Routes struct {
 
 func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	v1 := g.Group("/api/v1")
-	conf := v1.Group("/config")
-	conf.POST("live", d.postAppConfigLive(release))
-	conf.PUT("", d.putAppConfig(release))
-	conf.PUT("finalize", d.finalizeAppConfig(release))
 
 	life := v1.Group("/lifecycle")
 	life.GET("current", d.getCurrentStep)

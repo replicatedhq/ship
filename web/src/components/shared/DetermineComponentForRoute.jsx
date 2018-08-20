@@ -12,6 +12,7 @@ import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
+import ConfigOnly from "../../containers/ConfigOnly";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
@@ -31,19 +32,6 @@ class DetermineComponentForRoute extends React.Component {
     this.props.getContentForStep(this.props.routeId);
   }
 
-  componentDidUpdate() {
-    const { progress = {} } = this.props;
-    const { detail = "{}" } = progress;
-    const parsedDetail = JSON.parse(detail);
-
-    const pollStartedButNotFinished = !this.state.finished && this.state.startPoll;
-    if(parsedDetail.status === "success" && pollStartedButNotFinished) {
-      this.setState({ finished: true, startPoll: false }, () => {
-        this.stopPoll();
-      });
-    }
-  }
-
   async handleAction(action, gotoNext) {
     await this.props.finalizeStep({action});
     if (gotoNext) {
@@ -61,7 +49,7 @@ class DetermineComponentForRoute extends React.Component {
     }
 
     if (!nextRoute) {
-      this.handleShutdown();
+      return this.handleShutdown();
     }
     this.props.history.push(`/${nextRoute.id}`);
   }
@@ -78,22 +66,11 @@ class DetermineComponentForRoute extends React.Component {
     this.props.history.push("/done");
   }
 
-  async getCurrentStep(stepId) {
-    const url = `${apiEndpoint}/navcycle/step/${stepId}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
-    });
-    const body = await response.json();
-    return body;
-  }
-
   async skipKustomize() {
-    const kustomizeStepIndex = findIndex(this.props.routes, { phase: "kustomize" });
-    const kustomizeStep = this.props.routes[kustomizeStepIndex];
-    const stepAfterKustomize = this.props.routes[kustomizeStepIndex + 1];
+    const { routes } = this.props;
+    const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
+    const kustomizeStep = routes[kustomizeStepIndex];
+    const stepAfterKustomize = routes[kustomizeStepIndex + 1];
 
     const { actions } = await this.getCurrentStep(kustomizeStep.id);
     this.handleAction(actions[0]);
@@ -101,26 +78,9 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   async startPoll(routeId, cb) {
-    let finished = false;
-
-    if (!this.interval) {
-      this.interval = setInterval(() => {
-        if (finished) {
-          clearInterval(this.interval);
-          cb();
-        } else {
-          this.getCurrentStep(routeId).then(({ progress }) => {
-            const { detail } = progress;
-            const parsedDetail = JSON.parse(detail);
-            finished = parsedDetail.status === "success";
-          });
-        }
-      }, 1000);
+    if (!this.props.isPolling) {
+      this.props.pollContentForStep(routeId, cb);
     }
-  }
-
-  stopPoll() {
-    clearInterval(this.interval);
   }
 
   renderStep(phase) {
@@ -144,6 +104,14 @@ class DetermineComponentForRoute extends React.Component {
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
+    case "config":
+      return (
+        <ConfigOnly
+          actions={actions}
+          handleAction={this.handleAction}
+          routeId={this.props.routeId}
+        />
+      );
     case "stream":
       return (
         <StepMessage
@@ -157,10 +125,9 @@ class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets
-          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
+          startPoll={this.startPoll}
           routeId={this.props.routeId}
-          finished={this.state.finished}
-          handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
         />
@@ -203,11 +170,9 @@ class DetermineComponentForRoute extends React.Component {
     case "kustomize":
       return (
         <KustomizeOverlay
-          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
+          startPoll={this.startPoll}
           getCurrentStep={this.getCurrentStep}
           routeId={this.props.routeId}
-          finished={this.state.finished}
-          location={location}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}
