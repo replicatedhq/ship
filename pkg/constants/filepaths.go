@@ -19,7 +19,7 @@ const ReleasePath = ".ship/release.yml"
 const KustomizeHelmPath = "chart"
 
 // RenderedHelmTempPath is the path where the `helm template` command writes to
-const RenderedHelmTempPath = ".ship/tmp-rendered"
+const RenderedHelmTempPath = "tmp-rendered"
 
 // RenderedHelmPath is the path where rendered Helm charts are written to
 const RenderedHelmPath = "base"
