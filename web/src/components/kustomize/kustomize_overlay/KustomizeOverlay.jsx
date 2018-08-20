@@ -163,13 +163,6 @@ export default class KustomizeOverlay extends React.Component {
     this.setState({ toastDetails });
   }
 
-  async fetchAppliedOverlay() {
-    const payload = {
-      patch: this.state.patch
-    };
-    await this.props.fetchAppliedOverlay(payload)
-  }
-
   async handleKustomizeSave(closeOverlay) {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
@@ -297,7 +290,11 @@ export default class KustomizeOverlay extends React.Component {
                                 overlayOpen={showOverlay}
                               />
                             </div>
-                            : null }
+                            :
+                            <div className="flex1 flex-column empty-file-wrapper alignItems--center justifyContent--center">
+                              <p className="u-fontSize--small u-fontWeight--medium u-color--dustyGray">No file selected.</p>
+                            </div>
+                          }
                         </div>
                     }
                   </div>

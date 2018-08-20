@@ -6,7 +6,6 @@ import { getHelmChartMetadata } from "../redux/data/kustomizeSettings/actions";
 import {
   getFileContent,
   saveKustomizeOverlay,
-  fetchAppliedOverlay,
   finalizeKustomizeOverlay,
   generatePatch,
   applyPatch,
@@ -27,7 +26,6 @@ const KustomizeOverlay = connect(
     getFileContent(payload) { return dispatch(getFileContent(payload)); },
     getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
     saveKustomizeOverlay(payload) { return dispatch(saveKustomizeOverlay(payload)); },
-    fetchAppliedOverlay(payload) { return dispatch(fetchAppliedOverlay(payload)); },
     finalizeKustomizeOverlay() { return dispatch(finalizeKustomizeOverlay()); },
     loadingData(key, isLoading) { return dispatch(loadingData(key, isLoading)); },
     generatePatch(payload) { return dispatch(generatePatch(payload)); },

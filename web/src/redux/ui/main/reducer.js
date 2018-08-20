@@ -8,7 +8,6 @@ const loadingState = {
   submitActionLoading: false,
   fileContentLoading: false,
   saveKustomizeLoading: false,
-  fetchAppliedOverlayLoading: false,
 };
 
 export function loading(state = loadingState, action = {}) {
