@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -124,7 +123,6 @@ var _ = Describe("ShipPatcher", func() {
 				modified, err := shipPatcher.ModifyField(string(originalFile), pathToModify)
 				Expect(err).NotTo(HaveOccurred())
 
-				fmt.Println("modified", string(modified))
 				Expect(string(modified)).To(Equal(string(expectModified)))
 			}
 		})

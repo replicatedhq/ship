@@ -352,7 +352,7 @@ func (p *ShipPatcher) modifyField(original interface{}, current []string, path [
 			return nil, errors.New("error asserting map")
 		}
 		for key, value := range typedOriginal {
-			modifiedValue, err := p.modifyField(value, append(current, string(key)), path)
+			modifiedValue, err := p.modifyField(value, append(current, key), path)
 			if err != nil {
 				return nil, err
 			}
@@ -374,11 +374,11 @@ func (p *ShipPatcher) modifyField(original interface{}, current []string, path [
 		}
 		return modifiedSlice, nil
 	default:
-		if len(path) == len(current) {
-			if reflect.DeepEqual(path, current) {
-				return PATCH_TOKEN, nil
+		for idx := range path {
+			if current[idx] != path[idx] {
+				return original, nil
 			}
 		}
-		return original, nil
+		return PATCH_TOKEN, nil
 	}
 }
