@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -70,6 +69,9 @@ var _ = Describe("ShipPatcher", func() {
 				original, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "patch.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
+				expectPatch, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "modified.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+
 				err = os.Chdir(path.Join(mergeTestCasesFolder, mergeTestDir.Name()))
 				Expect(err).NotTo(HaveOccurred())
 
@@ -79,13 +81,11 @@ var _ = Describe("ShipPatcher", func() {
 					api.Kustomize{BasePath: "base"},
 					"base/deployment.yaml",
 				)
-
 				Expect(err).NotTo(HaveOccurred())
 
-				fmt.Println("PATCH BOI", string(patch))
-				// expectPatch, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "patch.yaml"))
-				// Expect(patch).To(Equal(expectPatch))
+				Expect(string(patch)).To(Equal(string(expectPatch)))
 			}
+			Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 		})
 	})
 	Describe("ApplyPatch", func() {
@@ -108,7 +108,7 @@ var _ = Describe("ShipPatcher", func() {
 
 				Expect(modified).To(Equal(expectModified))
 			}
-			os.Chdir("../../")
+			Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 		})
 	})
 	Describe("ModifyField", func() {
