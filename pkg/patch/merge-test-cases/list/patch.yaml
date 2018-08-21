@@ -1,21 +1,29 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: the-deployment
+  labels:
+    app: mysql
+    chart: mysql-0.9.3
+    heritage: Tiller
+    release: mysql
+  name: mysql
 spec:
   template:
     spec:
       $setElementOrder/containers:
-      - name: the-container
+      - name: mysql
       containers:
-      - $setElementOrder/ports:
-        - containerPort: 1111
-        - containerPort: 8081
-        - containerPort: 8082
-        image: monopole/NEWIMAGE:1
-        name: the-container
-        ports:
-        - containerPort: 1111
-          name: test
+      - $setElementOrder/env:
+        - name: dexter
+        - name: MYSQL_PASSWORD
+        - name: MYSQL_USER
+        - name: MYSQL_DATABASE
+        env:
+        - name: dexter
+          valueFrom:
+            secretKeyRef:
+              key: mysql-root-password
+              name: mysql
         - $patch: delete
-          containerPort: 8080
+          name: MYSQL_ROOT_PASSWORD
+        name: mysql

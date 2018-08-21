@@ -60,6 +60,7 @@ var _ = Describe("ShipPatcher", func() {
 	Describe("MergePatches", func() {
 		mergePatchPathMap := map[string][]string{
 			"basic": []string{"spec", "template", "spec", "containers", "0", "name"},
+			"list":  []string{"spec", "template", "spec", "containers", "0", "env", "2", "value"},
 		}
 		It("Creates a single patch with the effect of both given patches", func() {
 			mergeTestDirs, err := ioutil.ReadDir(path.Join(mergeTestCasesFolder))
@@ -82,10 +83,9 @@ var _ = Describe("ShipPatcher", func() {
 					"base/deployment.yaml",
 				)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(string(patch)).To(Equal(string(expectPatch)))
+				Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 			}
-			Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 		})
 	})
 	Describe("ApplyPatch", func() {
@@ -107,8 +107,8 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
+				Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 			}
-			Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 		})
 	})
 	Describe("ModifyField", func() {
