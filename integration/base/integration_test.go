@@ -60,6 +60,7 @@ var _ = Describe("ship app", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
+					os.Setenv("NO_OS_EXIT", "1")
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())

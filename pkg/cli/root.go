@@ -34,7 +34,11 @@ func RootCmd() *cobra.Command {
 		// I think its okay to use real OS filesystem commands instead of afero here,
 		// since I think cobra lives outside the scope of dig injection/unit testing.
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return os.MkdirAll(constants.ShipPathInternalTmp, 0755)
+			var multiErr *multierror.Error
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
+			multiErr = multierror.Append(os.MkdirAll(constants.ShipPathInternalTmp, 0755))
+			return multiErr.ErrorOrNil()
+
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			var multiErr *multierror.Error

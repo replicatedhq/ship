@@ -54,19 +54,19 @@ func TestResolver_ResolveRelease(t *testing.T) {
 				inOrder = appType.EXPECT().
 					DetermineApplicationType(ctx, "github.com/helm/charts/stable/x5").
 					DoAndReturn(func(context.Context, string) (string, string, error) {
-						err := mockFs.MkdirAll("chart", 0755)
+						err := mockFs.MkdirAll("fake-tmp", 0755)
 						req.NoError(err)
-						err = mockFs.WriteFile(path.Join("chart", "README.md"), []byte("its the readme"), 0666)
+						err = mockFs.WriteFile(path.Join("fake-tmp", "README.md"), []byte("its the readme"), 0666)
 						req.NoError(err)
 
-						err = mockFs.WriteFile(path.Join("chart", "Chart.yaml"), []byte(`
+						err = mockFs.WriteFile(path.Join("fake-tmp", "Chart.yaml"), []byte(`
 ---
 version: 0.1.0
 name: i know what the x5 is
 icon: https://kfbr.392/x5.png
 `), 0666)
 						req.NoError(err)
-						return "helm", "chart", nil
+						return "helm", "fake-tmp", nil
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
@@ -144,11 +144,11 @@ icon: https://kfbr.392/x5.png
 				inOrder = appType.EXPECT().
 					DetermineApplicationType(ctx, "github.com/replicatedhq/test-charts/plain-k8s").
 					DoAndReturn(func(context.Context, string) (string, string, error) {
-						err := mockFs.MkdirAll("base", 0755)
+						err := mockFs.MkdirAll("fake-tmp", 0755)
 						req.NoError(err)
-						err = mockFs.WriteFile(path.Join("base", "README.md"), []byte("its the readme"), 0644)
+						err = mockFs.WriteFile(path.Join("fake-tmp", "README.md"), []byte("its the readme"), 0644)
 						req.NoError(err)
-						return "k8s", "base", nil
+						return "k8s", "fake-tmp", nil
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
@@ -177,7 +177,14 @@ icon: https://kfbr.392/x5.png
 			appType := apptype.NewMockInspector(mc)
 			mockState := state.NewMockManager(mc)
 			mockAppResolver := replicatedapp.NewMockResolver(mc)
-			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			// need a real FS because afero.Rename on a memMapFs doesn't copy directories recursively
+			fs := afero.Afero{Fs: afero.NewOsFs()}
+			tmpdir, err := fs.TempDir("./", test.name)
+			req.NoError(err)
+			defer fs.RemoveAll(tmpdir)
+
+			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
 			resolver := &Resolver{
 				Logger:           log.NewNopLogger(),
 				StateManager:     mockState,
