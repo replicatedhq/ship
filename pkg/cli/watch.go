@@ -14,6 +14,7 @@ import (
 )
 
 func Watch() *cobra.Command {
+	v := viper.GetViper()
 	cmd := &cobra.Command{
 		Use:   "watch",
 		Short: "Watch an upstream for updates",
@@ -21,7 +22,7 @@ func Watch() *cobra.Command {
 change has been published. The watch command will return with an exit code
 of 0 when there's an update available.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			s, err := ship.Get(viper.GetViper())
+			s, err := ship.Get(v)
 			if err != nil {
 				return err
 			}
@@ -32,6 +33,9 @@ of 0 when there's an update available.`,
 	}
 
 	cmd.Flags().DurationP("interval", "", time.Duration(time.Minute*15), "interval to wait between cycles polling for updates")
+
+	v.BindPFlags(cmd.PersistentFlags())
+	v.BindPFlags(cmd.Flags())
 
 	return cmd
 }

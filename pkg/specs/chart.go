@@ -148,7 +148,7 @@ to deploy the overlaid assets to your cluster.
 func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string) (*api.ShipAppMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveHelmMetadata"))
 
-	baseMetadata, err := r.resolveBaseMetadata(upstream, localPath)
+	baseMetadata, err := r.ResolveBaseMetadata(upstream, localPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve base metadata")
 	}
@@ -177,8 +177,8 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 	return baseMetadata, nil
 }
 
-// resolveBaseMetadata resolves URL, ContentSHA, and Readme for the resource
-func (r *Resolver) resolveBaseMetadata(upstream string, localPath string) (*api.ShipAppMetadata, error) {
+// ResolveBaseMetadata resolves URL, ContentSHA, and Readme for the resource
+func (r *Resolver) ResolveBaseMetadata(upstream string, localPath string) (*api.ShipAppMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveBaseMetaData"))
 	var md api.ShipAppMetadata
 	md.URL = upstream

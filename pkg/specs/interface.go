@@ -9,7 +9,9 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
+	"github.com/replicatedhq/ship/pkg/util"
 )
 
 // A resolver turns a target string into a release.
@@ -38,12 +40,27 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	r.ui.Info(fmt.Sprintf("Detected application type %s", applicationType))
 
 	switch applicationType {
+
 	case "helm":
-		defaultRelease := DefaultHelmRelease(localPath)
-		return r.resolveRelease(ctx, upstream, localPath, &defaultRelease)
+		defaultRelease := DefaultHelmRelease(constants.HelmChartPath)
+		return r.resolveRelease(
+			ctx,
+			upstream,
+			localPath,
+			constants.HelmChartPath,
+			&defaultRelease,
+		)
+
 	case "k8s":
-		defaultRelease := DefaultRawRelease(localPath)
-		return r.resolveRelease(ctx, upstream, localPath, &defaultRelease)
+		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
+		return r.resolveRelease(
+			ctx,
+			upstream,
+			localPath,
+			constants.KustomizeBasePath,
+			&defaultRelease,
+		)
+
 	case "replicated.app":
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
 		return r.AppResolver.ResolveAppRelease(ctx, selector)
@@ -56,19 +73,29 @@ func (r *Resolver) resolveRelease(
 	ctx context.Context,
 	upstream,
 	localPath string,
+	destPath string,
 	defaultSpec *api.Spec,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
-	metadata, err := r.resolveMetadata(context.Background(), upstream, localPath)
+	err := util.BackupIfPresent(r.FS, destPath, debug, r.ui)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve metadata for %s", localPath)
+		return nil, errors.Wrapf(err, "backup %s", destPath)
+	}
+	err = r.FS.Rename(localPath, destPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
+	}
+
+	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
 	}
 
 	debug.Log("event", "check upstream for ship.yaml")
-	spec, err := r.maybeGetShipYAML(ctx, localPath)
+	spec, err := r.maybeGetShipYAML(ctx, destPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", localPath)
+		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", destPath)
 	}
 
 	if spec == nil {
