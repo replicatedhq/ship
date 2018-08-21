@@ -23,6 +23,7 @@ const (
 	createTestCasesFolder = "create-test-cases"
 	mergeTestCasesFolder  = "merge-test-cases"
 	applyTestCasesFolder  = "apply-test-cases"
+	modifyTestCasesFolder = "modify-test-cases"
 )
 
 var shipPatcher *ShipPatcher
@@ -95,6 +96,34 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
+			}
+			os.Chdir("../../")
+		})
+	})
+	Describe("ModifyField", func() {
+		modifyFieldPathMap := map[string][]string{
+			"basic":  []string{"spec", "template", "spec", "containers", "0", "name"},
+			"list":   []string{"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
+			"nested": []string{"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
+		}
+		It("Modifies a single field in yaml with PATCH_TOKEN", func() {
+			modifyTestDirs, err := ioutil.ReadDir(path.Join(modifyTestCasesFolder))
+			Expect(err).NotTo(HaveOccurred())
+
+			for _, modifyTestDir := range modifyTestDirs {
+				originalFile, err := ioutil.ReadFile(path.Join(modifyTestCasesFolder, modifyTestDir.Name(), "original.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+
+				expectModified, err := ioutil.ReadFile(path.Join(modifyTestCasesFolder, modifyTestDir.Name(), "modified.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+
+				pathToModify, ok := modifyFieldPathMap[modifyTestDir.Name()]
+				Expect(ok).To(BeTrue())
+
+				modified, err := shipPatcher.ModifyField(string(originalFile), pathToModify)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(string(modified)).To(Equal(string(expectModified)))
 			}
 		})
 	})
