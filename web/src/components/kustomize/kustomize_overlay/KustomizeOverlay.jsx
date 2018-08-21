@@ -11,7 +11,6 @@ import find from "lodash/find";
 
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
-import Toast from "../../shared/Toast";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 import DiffEditor from "../../shared/DiffEditor";
 
@@ -30,11 +29,9 @@ export default class KustomizeOverlay extends React.Component {
       fileLoadErr: false,
       fileLoadErrMessage: "",
       viewDiff: false,
-      toastDetails: {
-        opts: {}
-      },
       markers: [],
       patch: "",
+      savingFinalize: false
     };
     autoBind(this);
   }
@@ -103,27 +100,12 @@ export default class KustomizeOverlay extends React.Component {
 
   async setSelectedFile(path) {
     this.setState({ selectedFile: path });
-    if (this.state.toastDetails.showToast) {
-      this.cancelToast();
-    }
     await this.props.getFileContent(path).then(() => {
       // set state with new file content
       this.setState({
         fileContents: keyBy(this.props.fileContents, "key"),
       });
     });
-  }
-
-  cancelToast() {
-    let nextState = {};
-    nextState.toastDetails = {
-      showToast: false,
-      title: "",
-      subText: "",
-      type: "",
-      opts: {}
-    };
-    this.setState(nextState)
   }
 
   async handleFinalize() {
@@ -137,37 +119,29 @@ export default class KustomizeOverlay extends React.Component {
       routeId,
       pollCallback
     } = this.props;
-
+    
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
       startPoll(routeId, pollCallback);
     } else {
       await finalizeKustomizeOverlay()
         .then(() => {
+          this.setState({ savingFinalize: false });
           history.push("/");
         }).catch();
     }
   }
 
-  onKustomizeSaved() {
-    const toastDetails = {
-      showToast: true,
-      title: "Overlay has been saved.",
-      type: "success",
-      opts: {
-        showCancelButton: true,
-        confirmButtonText: "Finalize overlays",
-        confirmAction: this.handleFinalize,
-      }
-    }
-    this.setState({ toastDetails });
+  async discardOverlay() {
+    await this.deleteOverlay(this.state.selectedFile);
+    this.setState({ patch: "" });
   }
 
   async deleteOverlay(path) {
     await this.props.deleteOverlay(path);
   }
 
-  async handleKustomizeSave(closeOverlay) {
+  async handleKustomizeSave(finalize) {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
     this.setState({ patch: contents });
@@ -180,10 +154,10 @@ export default class KustomizeOverlay extends React.Component {
     await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
     await this.props.getCurrentStep();
-    if (closeOverlay) {
-      this.setState({ patch: ""});
+    if (finalize) {
+      this.setState({ savingFinalize: true });
+      this.handleFinalize();
     }
-    this.onKustomizeSaved();
   }
 
   async handleGeneratePatch(path) {
@@ -228,8 +202,8 @@ export default class KustomizeOverlay extends React.Component {
       selectedFile,
       fileLoadErr,
       fileLoadErrMessage,
-      toastDetails,
       patch,
+      savingFinalize
     } = this.state;
     const fileToView = find(this.state.fileContents, ["key", selectedFile]);
     const showOverlay = patch.length;
@@ -259,7 +233,6 @@ export default class KustomizeOverlay extends React.Component {
               </div>
             </div>
             <div className="flex-column flex1 u-height--auto u-overflow--hidden LayoutContent-wrapper u-position--relative">
-              <Toast toast={toastDetails} onCancel={this.cancelToast} />
               <div className="flex flex1 u-position--relative">
 
                 <div className={`flex-column flex1 ${showOverlay && "u-paddingRight--15"}`}>
@@ -316,8 +289,8 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.handleKustomizeSave(true)}></span>}
-                      <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Save &amp; close</ReactTooltip>
+                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={this.discardOverlay}></span>}
+                      <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
                         mode="yaml"
@@ -361,10 +334,14 @@ export default class KustomizeOverlay extends React.Component {
                   <p className="u-margin--none u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
                 </div>
                 <div className="flex1 flex alignItems--center justifyContent--flexEnd">
-                  <p
-                    className="u-color--astral u-fontSize--small u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
-                    onClick={this.props.skipKustomize}>Skip Kustomize</p>
-                  <button type="button" disabled={dataLoading.saveKustomizeLoading || selectedFile === ""} onClick={() => this.handleKustomizeSave(false)} className="btn primary">{dataLoading.saveKustomizeLoading ? "Saving overlay"  : "Save overlay"}</button>
+                  {selectedFile === "" ? 
+                    <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
+                    :
+                    <div className="flex">
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn primary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                    </div>
+                  }
                 </div>
               </div>
 
