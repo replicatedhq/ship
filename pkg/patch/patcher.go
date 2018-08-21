@@ -142,7 +142,7 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte,
 }
 
 func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error) {
-	// debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "mergePatches"))
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "mergePatches"))
 
 	// debug.Log("event", "createKubeResource.originalFile")
 	// currentResource, err := p.newKubernetesResource(currentPatch)
@@ -188,21 +188,25 @@ func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kust
 
 	// return patch, nil
 
+	debug.Log("event", "applyPatch")
 	modified, err := p.ApplyPatch(string(original), step, resource)
 	if err != nil {
 		return nil, errors.Wrap(err, "apply patch")
 	}
 
+	debug.Log("event", "modifyField")
 	dirtied, err := p.ModifyField(string(modified), path)
 	if err != nil {
 		return nil, errors.Wrap(err, "dirty modified")
 	}
 
+	debug.Log("event", "readOriginal")
 	originalYaml, err := p.FS.ReadFile(resource)
 	if err != nil {
 		return nil, errors.Wrap(err, "read original yaml")
 	}
 
+	debug.Log("event", "createNewPatch")
 	finalPatch, err := p.CreateTwoWayMergePatch(string(originalYaml), string(dirtied))
 	if err != nil {
 		return nil, errors.Wrap(err, "create patch")

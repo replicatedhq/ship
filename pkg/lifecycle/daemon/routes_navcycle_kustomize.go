@@ -206,9 +206,11 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMergePatch"))
 	type Request struct {
-		Original string `json:"original"`
-		Modified string `json:"modified"`
-		Current  string `json:"current"`
+		Original string   `json:"original"`
+		Modified string   `json:"modified"`
+		Current  string   `json:"current"`
+		Path     []string `json:"path"`
+		Resource string   `json:"resource"`
 	}
 	var request Request
 
@@ -238,7 +240,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	if request.Current != "" {
-		out, err := d.Patcher.MergePatches([]byte(request.Current), patch)
+		out, err := d.Patcher.MergePatches([]byte(request.Current), request.Path, *step.Kustomize, request.Resource)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
 			c.AbortWithError(500, errors.New("internal_server_error"))

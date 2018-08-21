@@ -59,10 +59,12 @@ export class AceEditorHOC extends React.Component {
 
     if (activeMarker.length > 0) {
       const matchingMarker = activeMarker[0];
+      const { path } = matchingMarker;
+
       let tree = yaml.safeLoad(fileToView.baseContent);
       const modifiedTree = set(tree, matchingMarker.path, PATCH_TOKEN);
       const dirtybaseContent = yaml.safeDump(modifiedTree);
-      this.props.handleGeneratePatch(dirtybaseContent);
+      this.props.handleGeneratePatch(dirtybaseContent, path);
     }
   }
 

@@ -182,14 +182,20 @@ export default class KustomizeOverlay extends React.Component {
     this.onKustomizeSaved();
   }
 
-  async handleGeneratePatch(dirtyContent) {
+  async handleGeneratePatch(dirtyContent, path) {
     const current = this.aceEditorOverlay.editor.getValue();
-    const { selectedFile } = this.state;
+    const { selectedFile, fileTreeBasePath } = this.state;
     const payload = {
       original: selectedFile,
       modified: dirtyContent,
       current,
+      path,
     };
+
+    if (current) {
+      payload.resource = `${fileTreeBasePath}${selectedFile}`;
+      payload.path = path;
+    }
     await this.props.generatePatch(payload);
     this.aceEditorOverlay.editor.find(PATCH_TOKEN);
   }
