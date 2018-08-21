@@ -39,6 +39,10 @@ class DetermineComponentForRoute extends React.Component {
     }
   }
 
+  getContentForStep() {
+    this.props.getContentForStep(this.props.routeId);
+  }
+
   gotoRoute(route) {
     let nextRoute = route;
 
@@ -169,7 +173,7 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <KustomizeOverlay
           startPoll={this.startPoll}
-          getCurrentStep={this.getCurrentStep}
+          getCurrentStep={this.getContentForStep}
           pollCallback={this.gotoRoute}
           routeId={this.props.routeId}
           actions={actions}
@@ -197,7 +201,7 @@ class DetermineComponentForRoute extends React.Component {
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
           <div className="flex-1-auto flex-column u-overflow--auto">
-            {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
+            {(isLoadingStep || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />
               </div>

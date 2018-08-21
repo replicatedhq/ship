@@ -866,7 +866,7 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.config",
     "merge": {
-      "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section",
+      "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section.",
       "examples": [
         {}
       ]

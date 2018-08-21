@@ -95,17 +95,16 @@ func (r *inspector) DetermineApplicationType(
 	}
 
 	debug.Log("event", "helm.fetch")
-	helmCmdOutput, err := r.fetchUnpackChartWithLibHelm(
+	localPath, err = r.fetchUnpackChartWithLibHelm(
 		upstream,
 		chartRepoURL,
 		chartVersion,
-		"chart",
 		constants.InternalTempHelmHome,
 	)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "fetch chart with helm: %s", helmCmdOutput)
+		return "", "", errors.Wrapf(err, "fetch chart")
 	}
-	return "helm", "chart", nil
+	return "helm", localPath, nil
 }
 
 func (r *inspector) determineTypeFromGithubContents(
@@ -117,37 +116,26 @@ func (r *inspector) determineTypeFromGithubContents(
 	err error,
 ) {
 	debug := level.Debug(r.logger)
-	savePath := path.Join(constants.ShipPathInternal, "tmp-repo")
+	savePath := path.Join(constants.ShipPathInternalTmp, "tmp-repo")
 	err = r.github.GetRepoContent(ctx, upstream, savePath)
 	if err != nil {
 		return "", "", errors.Wrap(err, "fetch repo contents")
 	}
-	defer r.fs.RemoveAll(savePath)
 	// if there's a Chart.yaml, assume its a chart
 	isChart, err := r.fs.Exists(path.Join(savePath, "Chart.yaml"))
 	if err != nil {
 		return "", "", errors.Wrap(err, "check for Chart.yaml")
 	}
+	debug.Log("event", "isChart.check", "isChart", isChart)
 
 	if isChart {
-		destination := constants.HelmChartPath
-		err := util.BackupIfPresent(r.fs, destination, debug, r.ui)
-		if err != nil {
-			return "", "", errors.Wrapf(err, "try backup %s", destination)
-		}
-		err = r.fs.Rename(savePath, destination)
 		if err != nil {
 			return "", "", errors.Wrapf(err, "copy %s to chart/", savePath)
 		}
-		return "helm", destination, nil
+		return "helm", savePath, nil
 	}
 
-	util.BackupIfPresent(r.fs, constants.KustomizeBasePath, debug, r.ui)
-	err = r.fs.Rename(savePath, constants.KustomizeBasePath)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "copy %s to k8s/", savePath)
-	}
-	return "k8s", constants.KustomizeBasePath, nil
+	return "k8s", savePath, nil
 }
 
 // fetchUnpackChartWithLibHelm fetches and unpacks the chart into a temp directory, then copies the contents of the chart folder to
@@ -157,26 +145,21 @@ func (r *inspector) fetchUnpackChartWithLibHelm(
 	chartRef,
 	repoURL,
 	version,
-	dest,
 	home string,
-) (helmOutput string, err error) {
+) (localPath string, err error) {
 	debug := level.Debug(log.With(r.logger, "method", "fetchUnpackChartWithLibHelm"))
 
-	err = r.fs.MkdirAll(constants.ShipPathInternal, 0775)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to create ship directory")
-	}
-
-	tmpDest, err := r.fs.TempDir(constants.ShipPathInternal, "helm-fetch-unpack")
+	debug.Log("event", "helm.unpack")
+	tmpDest, err := r.fs.TempDir(constants.ShipPathInternalTmp, "helm-fetch-unpack")
 	if err != nil {
 		return "", errors.Wrap(err, "unable to create temporary directory to unpack to")
 	}
-	defer r.fs.RemoveAll(tmpDest)
 
 	// TODO: figure out how to get files into aferoFs here
-	helmOutput, err = helm.Fetch(chartRef, repoURL, version, tmpDest, home)
+	debug.Log("event", "helm.fetch")
+	helmOutput, err := helm.Fetch(chartRef, repoURL, version, tmpDest, home)
 	if err != nil {
-		return helmOutput, err
+		return "", errors.Wrapf(err, "helm fetch: %", helmOutput)
 	}
 
 	subdir, err := util.FindOnlySubdir(tmpDest, r.fs)
@@ -184,26 +167,5 @@ func (r *inspector) fetchUnpackChartWithLibHelm(
 		return "", errors.Wrap(err, "find chart subdir")
 	}
 
-	// check if the destination directory exists - if it does, remove it
-	debug.Log("event", "checkExists", "path", dest)
-	saveDirExists, err := r.fs.Exists(dest)
-	if err != nil {
-		return "", errors.Wrapf(err, "check %s exists", dest)
-	}
-
-	if saveDirExists {
-		debug.Log("event", "removeAll", "path", dest)
-		err := r.fs.RemoveAll(dest)
-		if err != nil {
-			return "", errors.Wrapf(err, "remove %s", dest)
-		}
-	}
-
-	// rename that folder to move it to the destination directory
-	err = r.fs.Rename(subdir, dest)
-	if err != nil {
-		return "", errors.Wrapf(err, "rename %s to %s", subdir, dest)
-	}
-
-	return "", nil
+	return subdir, nil
 }

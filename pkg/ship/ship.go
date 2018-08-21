@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -40,14 +41,15 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon      daemontypes.Daemon
-	Resolver    *specs.Resolver
-	AppResolver replicatedapp.Resolver
-	Runbook     string
-	UI          cli.Ui
-	State       state.Manager
-	IDPatcher   *specs.IDPatcher
-	FS          afero.Afero
+	Daemon           daemontypes.Daemon
+	Resolver         *specs.Resolver
+	AppTypeInspector apptype.Inspector
+	AppResolver      replicatedapp.Resolver
+	Runbook          string
+	UI               cli.Ui
+	State            state.Manager
+	IDPatcher        *specs.IDPatcher
+	FS               afero.Afero
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
@@ -65,6 +67,7 @@ func NewShip(
 	stateManager state.Manager,
 	patcher *specs.IDPatcher,
 	fs afero.Afero,
+	inspector apptype.Inspector,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -77,16 +80,17 @@ func NewShip(
 
 		KustomizeRaw: v.GetString("raw"),
 
-		Viper:       v,
-		Logger:      logger,
-		Resolver:    resolver,
-		AppResolver: appresolver,
-		Daemon:      daemon,
-		UI:          ui,
-		Runner:      runner,
-		State:       stateManager,
-		IDPatcher:   patcher,
-		FS:          fs,
+		Viper:            v,
+		Logger:           logger,
+		Resolver:         resolver,
+		AppResolver:      appresolver,
+		AppTypeInspector: inspector,
+		Daemon:           daemon,
+		UI:               ui,
+		Runner:           runner,
+		State:            stateManager,
+		IDPatcher:        patcher,
+		FS:               fs,
 	}, nil
 }
 

@@ -1,6 +1,6 @@
 export const ASSETS_INDEX_DOC = `---
 categories:
-- ship-assets
+- ship-api-assets
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application assets 
 index: docs
@@ -13,13 +13,12 @@ gradient: "purpleToPink"
 
 ## Ship Assets
 
-This is the reference documenation for Ship assets. To get started with Ship, head on over to [Shipping a Helm Application](/guides/helm-application/)
-
+Ship Assets are files rendered during the [render](/api/ship-lifecycle/render) lifecycle step.
 `;
 
 export const LIFECYCLE_INDEX_DOC = `---
 categories:
-- ship-lifecycle
+- ship-api-lifecycle
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application lifecycle 
 index: docs
@@ -32,13 +31,13 @@ gradient: "purpleToPink"
 
 ## Ship Lifecycle
 
-This is the reference documenation for Ship lifecycle. To get started with Ship, head on over to [Shipping a Helm Application](/guides/helm-application/)
+Ship lifecycle steps define the steps that a Ship application will proceed through.
 
 `;
 
 export const CONFIG_INDEX_DOC = `---
 categories:
-- ship-config
+- ship-api-config
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application configuration options 
 index: docs
@@ -51,7 +50,5 @@ gradient: "purpleToPink"
 
 ## Ship Config
 
-This is the reference documenation for Ship config. To get started with Ship, head on over to [Shipping a Helm Application](/guides/helm-application/).  The configuration options API is identical to that used for applications managed by
-Replicated's scheduler suite, and the documentation can be found at [Config Screen YAML
-](/docs/config-screen/config-yaml/).
+This is the reference documentation for Ship config. It has unfortunately not yet been created. It is largely shared with the Replicated config described [here](https://help.replicated.com/docs/config-screen/config-yaml/).
 `;

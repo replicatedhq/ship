@@ -55,7 +55,7 @@ func BackupIfPresent(fs afero.Afero, basePath string, logger log.Logger, ui cli.
 	}
 
 	backupDest := fmt.Sprintf("%s.bak", basePath)
-	ui.Warn(fmt.Sprintf("WARNING found directory %s, backing up to %s", basePath, backupDest))
+	ui.Warn(fmt.Sprintf("WARNING found directory %q, backing up to %q", basePath, backupDest))
 
 	level.Info(logger).Log("step.type", "render", "event", "unpackTarget.backup.remove", "src", basePath, "dest", backupDest)
 	if err := fs.RemoveAll(backupDest); err != nil {
