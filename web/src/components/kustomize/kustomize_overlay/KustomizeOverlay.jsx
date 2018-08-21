@@ -107,7 +107,7 @@ export default class KustomizeOverlay extends React.Component {
       this.cancelToast();
     }
     await this.props.getFileContent(path).then(() => {
-      // set state with new file content and set the overlayContent from new file content on the file the user wants to view
+      // set state with new file content
       this.setState({
         fileContents: keyBy(this.props.fileContents, "key"),
       });
@@ -163,11 +163,8 @@ export default class KustomizeOverlay extends React.Component {
     this.setState({ toastDetails });
   }
 
-  async fetchAppliedOverlay() {
-    const payload = {
-      patch: this.state.patch
-    };
-    await this.props.fetchAppliedOverlay(payload)
+  async deleteOverlay(path) {
+    await this.props.deleteOverlay(path);
   }
 
   async handleKustomizeSave(closeOverlay) {
@@ -182,7 +179,7 @@ export default class KustomizeOverlay extends React.Component {
 
     await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
-    await this.setSelectedFile(selectedFile);
+    await this.props.getCurrentStep();
     if (closeOverlay) {
       this.setState({ patch: ""});
     }
@@ -212,10 +209,10 @@ export default class KustomizeOverlay extends React.Component {
     const sortedTree = sortBy(kustomize.tree.children, (dir) => {
       dir.children ? dir.children.length : 0
     });
-    const basePath = kustomize.basePath.substr(kustomize.basePath.lastIndexOf("/") + 1);
+
     this.setState({
       fileTree: sortedTree,
-      fileTreeBasePath: basePath
+      fileTreeBasePath: kustomize.basePath
     });
   }
 
@@ -227,7 +224,6 @@ export default class KustomizeOverlay extends React.Component {
     const { dataLoading } = this.props;
     const {
       fileTree,
-      fileTreeBasePath,
       selectedFile,
       fileLoadErr,
       fileLoadErrMessage,
@@ -243,16 +239,21 @@ export default class KustomizeOverlay extends React.Component {
           <div className="flex flex1 u-minHeight--full u-height--full">
             <div className="flex-column flex1 Sidebar-wrapper u-overflow--hidden">
               <div className="flex-column flex1">
-                <div className={`flex1 dirtree-wrapper flex-column u-overflow-hidden u-background--biscay ${this.props.isFullscreen ? "fs-mode" : ""}`}>
-                  <div className="u-overflow--auto dirtree">
-                    <FileTree
-                      files={fileTree}
-                      basePath={fileTreeBasePath}
-                      isRoot={true}
-                      handleFileSelect={(path) => this.setSelectedFile(path)}
-                      selectedFile={this.state.selectedFile}
-                    />
-                  </div>
+                <div className="flex1 dirtree-wrapper flex-column u-overflow-hidden u-background--biscay">
+                  {fileTree.map((tree, i) => (
+                    <div className={`u-overflow--auto FileTree-wrapper dirtree ${i > 0 ? "flex-auto has-border": "flex-0-auto"}`} key={i}>
+                      <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
+                      <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
+                      <FileTree
+                        files={tree.children}
+                        basePath={tree.name}
+                        handleFileSelect={(path) => this.setSelectedFile(path)}
+                        handleDeleteOverlay={(path) => this.deleteOverlay(path)}
+                        selectedFile={this.state.selectedFile}
+                        isOverlayTree={tree.name === "overlays"}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

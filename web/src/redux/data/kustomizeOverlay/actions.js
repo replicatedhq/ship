@@ -77,29 +77,28 @@ export function saveKustomizeOverlay(payload) {
   };
 }
 
-export function fetchAppliedOverlay(payload) {
+export function deleteOverlay(path) {
   return async (dispatch) => {
     let response;
-    dispatch(loadingData("fetchAppliedOverlay", true));
+    dispatch(loadingData("deleteOverlay", true));
     try {
-      const url = `${apiEndpoint}/kustomize/apply`;
+      const url = `${apiEndpoint}/kustomize/patch?path=${path}`;
       response = await fetch(url, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        }
       });
       if (!response.ok) {
-        dispatch(loadingData("fetchAppliedOverlay", false));
+        dispatch(loadingData("deleteOverlay", false));
         return;
       }
       await response.json();
-      dispatch(loadingData("fetchAppliedOverlay", false));
+      dispatch(loadingData("deleteOverlay", false));
       console.log(response)
     } catch (error) {
-      dispatch(loadingData("fetchAppliedOverlay", false));
+      dispatch(loadingData("deleteOverlay", false));
       console.log(error)
       return;
     }
