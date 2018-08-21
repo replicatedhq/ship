@@ -1,5 +1,5 @@
 .AceEditor--wrapper.helm-values {
-    margin-bottom: 100px;
+    margin-bottom: 30px;
     overflow: auto;
     border: 1px solid #C4C8CA;
     border-radius: 4px;
@@ -18,11 +18,3 @@
       right: auto;
     }
   }
-
-.HelmValues--wrapper .action {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  background: #fff;
-  z-index: 10;
-  border-top: solid 1px #DFDFDF;
-}

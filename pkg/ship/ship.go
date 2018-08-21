@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
-
-	"os/signal"
-	"syscall"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -92,7 +91,9 @@ func NewShip(
 }
 
 func (s *Ship) Shutdown(cancelFunc context.CancelFunc) {
+	// remove the temp dir -- if we're exiting with an error, then cobra wont get a chance to clean up
 	s.FS.RemoveAll(constants.ShipPathInternalTmp)
+
 	// need to pause beforce canceling the context, because we need
 	// the daemon to stay up for a few seconds so the UI can know its
 	// time to show the "You're all done" page
@@ -205,38 +206,4 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 	case result := <-runResultCh:
 		return result
 	}
-}
-
-// ExitWithError should be called by the parent cobra commands if something goes wrong.
-func (s *Ship) ExitWithError(err error) {
-	if s.Viper.GetString("log-level") == "debug" {
-		s.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
-	} else {
-		s.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
-	}
-	s.UI.Output("")
-
-	time.Sleep(100 * time.Millisecond)
-
-	// TODO this should probably be part of lifecycle
-	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
-	// we want to avoid exiting in certain integration testing scenarios
-	if !s.Viper.GetBool("no-os-exit") {
-		os.Exit(1)
-	}
-}
-
-func (s *Ship) ExitWithWarn(err error) {
-	if s.Viper.GetString("log-level") == "debug" {
-		s.UI.Warn(fmt.Sprintf("%+v", err))
-	} else {
-		s.UI.Warn(fmt.Sprintf("%v", err))
-	}
-	s.UI.Output("")
-
-	time.Sleep(100 * time.Millisecond)
-
-	// TODO this should probably be part of lifecycle
-	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
-	os.Exit(1)
 }

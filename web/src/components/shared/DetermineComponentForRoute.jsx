@@ -62,17 +62,15 @@ class DetermineComponentForRoute extends React.Component {
         "Accept": "application/json",
       },
     });
-
+    await this.props.shutdownApp();
     this.props.history.push("/done");
   }
 
   async skipKustomize() {
-    const { routes } = this.props;
+    const { routes, actions } = this.props;
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-
-    const { actions } = await this.getCurrentStep(kustomizeStep.id);
     this.handleAction(actions[0]);
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
@@ -172,12 +170,14 @@ class DetermineComponentForRoute extends React.Component {
         <KustomizeOverlay
           startPoll={this.startPoll}
           getCurrentStep={this.getCurrentStep}
+          pollCallback={this.gotoRoute}
           routeId={this.props.routeId}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}
           handleAction={this.handleAction}
           currentStep={currentStep}
+          skipKustomize={this.skipKustomize}
           dataLoading={this.props.dataLoading}
         />
       );
@@ -196,7 +196,7 @@ class DetermineComponentForRoute extends React.Component {
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
-          <div className="flex-1-auto flex-column u-overflow--auto container u-paddingTop--30">
+          <div className="flex-1-auto flex-column u-overflow--auto">
             {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />

@@ -91,6 +91,9 @@ func (p *DefaultStep) Execute(
 				Meta:  meta,
 				Viper: p.Viper,
 			},
+			templates.ShipContext{
+				Logger: p.Logger,
+			},
 		)
 		builtDest, err := builder.String(dest)
 		if err != nil {

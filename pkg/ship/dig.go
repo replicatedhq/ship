@@ -55,7 +55,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		provide(v),
 		clock,
-		logger.FromViper,
+		logger.New,
 		ui.FromViper,
 		fs.NewBaseFilesystem,
 		daemon.WebUIFactoryFactory,
@@ -198,7 +198,7 @@ func navcycleProviders() []interface{} {
 
 func Get(v *viper.Viper) (*Ship, error) {
 	// who injects the injectors?
-	debug := log.With(level.Debug(logger.FromViper(v)), "component", "injector", "phase", "instance.get")
+	debug := log.With(level.Debug(logger.New(v, fs.NewBaseFilesystem())), "component", "injector", "phase", "instance.get")
 
 	debug.Log("event", "injector.build")
 	injector, err := buildInjector(v)
