@@ -713,7 +713,7 @@
             "type": "object",
             "properties": {
               "config": {
-                "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section",
+                "description": "A `config` step will present the user with a screen to customize options as defined in your top-level `config` section.",
                 "examples": [
                   {}
                 ],
