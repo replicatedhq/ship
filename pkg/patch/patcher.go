@@ -30,6 +30,7 @@ type Patcher interface {
 	CreateTwoWayMergePatch(string, string) ([]byte, error)
 	MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error)
 	ApplyPatch(string, api.Kustomize, string) ([]byte, error)
+	ModifyField(original string, path []string) ([]byte, error)
 }
 
 type ShipPatcher struct {

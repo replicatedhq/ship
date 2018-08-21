@@ -208,7 +208,6 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMergePatch"))
 	type Request struct {
 		Original string        `json:"original"`
-		Modified string        `json:"modified"`
 		Current  string        `json:"current"`
 		Path     []interface{} `json:"path"`
 		Resource string        `json:"resource"`
@@ -246,8 +245,14 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
+	modified, err := d.Patcher.ModifyField(original, stringPath)
+	if err != nil {
+		level.Error(d.Logger).Log("event", "modify field", "err", err)
+		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
 	debug.Log("event", "patcher.CreatePatch")
-	patch, err := d.Patcher.CreateTwoWayMergePatch(original, request.Modified)
+	patch, err := d.Patcher.CreateTwoWayMergePatch(original, string(modified))
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
