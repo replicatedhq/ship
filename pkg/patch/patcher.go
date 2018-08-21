@@ -145,50 +145,6 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte,
 func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "mergePatches"))
 
-	// debug.Log("event", "createKubeResource.originalFile")
-	// currentResource, err := p.newKubernetesResource(currentPatch)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "create kube resource with original json")
-	// }
-
-	// debug.Log("event", "createKubeResource.originalFile")
-	// newResource, err := p.newKubernetesResource(newPatch)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "create kube resource with original json")
-	// }
-
-	// debug.Log("event", "createNewScheme.originalFile")
-	// versionedObj, err := scheme.Scheme.New(currentResource.Id().Gvk())
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "create new scheme based on kube resource")
-	// }
-
-	// debug.Log("event", "newPatchMeta")
-	// lookupPatchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObj)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "create new patch meta")
-	// }
-
-	// debug.Log("event", "mergeStrategicMergeMapPatch")
-	// outJSON, err := strategicpatch.MergeStrategicMergeMapPatchUsingLookupPatchMeta(lookupPatchMeta, currentResource.Object, newResource.Object)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "merging patches")
-	// }
-
-	// debug.Log("event", "marshal.mergedPatches")
-	// out, err := json.Marshal(outJSON)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "unmarshal merged patch")
-	// }
-
-	// debug.Log("event", "json.to.yaml")
-	// patch, err := yaml.JSONToYAML(out)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "convert json to yaml")
-	// }
-
-	// return patch, nil
-
 	debug.Log("event", "applyPatch")
 	modified, err := p.ApplyPatch(string(original), step, resource)
 	if err != nil {
