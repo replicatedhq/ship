@@ -3,7 +3,28 @@
 }
 
 .dirtree {
-  padding: 12px 20px;
+  padding: 16px 20px;
+}
+
+.FileTree-wrapper li .u-deleteOverlayIcon {
+  position: absolute;
+  right: 0;
+  z-index: 4;
+}
+
+.FileTree-wrapper.has-border {
+  position: relative;
+
+  &::before {
+    content: "";
+    display: block;
+    width: calc(100% - 40px);
+    height: 1px;
+    background-color: rgba(#ffffff, 0.4);
+    left: 20px;
+    top: 0;
+    position: absolute;
+  }
 }
 
 .file-contents-wrapper {
