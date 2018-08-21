@@ -134,11 +134,13 @@ export default class KustomizeOverlay extends React.Component {
       isNavcycle,
       actions,
       startPoll,
+      routeId,
+      pollCallback
     } = this.props;
 
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
-      startPoll();
+      startPoll(routeId, pollCallback);
     } else {
       await finalizeKustomizeOverlay()
         .then(() => {
@@ -155,7 +157,7 @@ export default class KustomizeOverlay extends React.Component {
       opts: {
         showCancelButton: true,
         confirmButtonText: "Finalize overlays",
-        confirmAction: () => this.handleFinalize()
+        confirmAction: this.handleFinalize,
       }
     }
     this.setState({ toastDetails });
@@ -173,9 +175,7 @@ export default class KustomizeOverlay extends React.Component {
 
     await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
-    const { currentStep } = await this.props.getCurrentStep(this.props.routeId);
-    this.setFileTree(currentStep);
-
+    await this.setSelectedFile(selectedFile);
     if (closeOverlay) {
       this.setState({ patch: ""});
     }
@@ -273,7 +273,7 @@ export default class KustomizeOverlay extends React.Component {
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
                               (fileToView && fileToView.overlayContent.length ?
-                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: fileToView.overlayContent })}>
+                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: this.props.patch })}>
                                   <span className="icon clickable u-overlayViewIcon"></span>
                                 </div>
                                 : fileToView && !fileToView.isSupported ? null :
@@ -290,7 +290,11 @@ export default class KustomizeOverlay extends React.Component {
                                 overlayOpen={showOverlay}
                               />
                             </div>
-                            : null }
+                            :
+                            <div className="flex1 flex-column empty-file-wrapper alignItems--center justifyContent--center">
+                              <p className="u-fontSize--small u-fontWeight--medium u-color--dustyGray">No file selected.</p>
+                            </div>
+                          }
                         </div>
                     }
                   </div>
@@ -347,8 +351,11 @@ export default class KustomizeOverlay extends React.Component {
                 <div className="flex1 flex-column flex-verticalCenter">
                   <p className="u-margin--none u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
                 </div>
-                <div className="flex1 flex justifyContent--flexEnd">
-                  <button type="button" disabled={dataLoading.saveKustomizeLoading} onClick={() => this.handleKustomizeSave(false)} className={`btn primary ${selectedFile === "" ? "u-visibility--hidden" : ""}`}>{dataLoading.saveKustomizeLoading ? "Saving overlay"  : "Save overlay"}</button>
+                <div className="flex1 flex alignItems--center justifyContent--flexEnd">
+                  <p
+                    className="u-color--astral u-fontSize--small u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
+                    onClick={this.props.skipKustomize}>Skip Kustomize</p>
+                  <button type="button" disabled={dataLoading.saveKustomizeLoading || selectedFile === ""} onClick={() => this.handleKustomizeSave(false)} className="btn primary">{dataLoading.saveKustomizeLoading ? "Saving overlay"  : "Save overlay"}</button>
                 </div>
               </div>
 

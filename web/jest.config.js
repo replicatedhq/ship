@@ -29,5 +29,10 @@ module.exports = {
       "jsx",
       "node",
       "mjs"
-    ]
+    ],
+    "globals": {
+      "env": {
+        "API_ENDPOINT": ""
+      }
+    }
   }

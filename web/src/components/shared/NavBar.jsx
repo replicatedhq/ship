@@ -88,14 +88,14 @@ export class NavBar extends React.Component {
   }
 
   componentDidUpdate() {
-    const { helmChartMetadata, channelDetails } = this.props;
+    const { shipAppMetadata, channelDetails } = this.props;
     const { navDetails } = this.state;
 
-    if (helmChartMetadata.name && helmChartMetadata.name !== navDetails.name) {
+    if (shipAppMetadata.name && shipAppMetadata.name !== navDetails.name) {
       this.setState({
         navDetails: {
-          name: helmChartMetadata.name,
-          icon: helmChartMetadata.icon,
+          name: shipAppMetadata.name,
+          icon: shipAppMetadata.icon,
         },
       });
     }
@@ -111,7 +111,7 @@ export class NavBar extends React.Component {
   }
 
   render() {
-    const { className } = this.props;
+    const { className, routes } = this.props;
     const { navDetails } = this.state;
     const isPathActive = this.isActive(
       typeof window === "object"
@@ -141,6 +141,9 @@ export class NavBar extends React.Component {
     const rightItems = headerItems.filter(item => item.position === "right");
     const leftItems = headerItems.filter(item => item.position === "left");
 
+    const [ firstRoute = {} ] = routes;
+    const { id: firstRouteId } = firstRoute;
+
     return (
       <div className={`NavBarWrapper flex flex-auto ${className || ""}`}>
         <div className="container flex flex1">
@@ -149,7 +152,7 @@ export class NavBar extends React.Component {
               <div className="flex flex-auto">
                 <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
                   <div className="HeaderLogo">
-                    <Link to="/" tabIndex="-1">
+                    <Link to={`/${firstRouteId}`} tabIndex="-1">
                       <img src={navDetails.icon ? navDetails.icon : shipLogo} className="logo" />
                     </Link>
                   </div>

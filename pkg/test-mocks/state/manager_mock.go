@@ -83,18 +83,6 @@ func (mr *MockManagerMockRecorder) SaveKustomize(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveKustomize", reflect.TypeOf((*MockManager)(nil).SaveKustomize), arg0)
 }
 
-// SerializeChartURL mocks base method
-func (m *MockManager) SerializeChartURL(arg0 string) error {
-	ret := m.ctrl.Call(m, "SerializeChartURL", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SerializeChartURL indicates an expected call of SerializeChartURL
-func (mr *MockManagerMockRecorder) SerializeChartURL(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeChartURL", reflect.TypeOf((*MockManager)(nil).SerializeChartURL), arg0)
-}
-
 // SerializeConfig mocks base method
 func (m *MockManager) SerializeConfig(arg0 []api.Asset, arg1 api.ReleaseMetadata, arg2 map[string]interface{}) error {
 	ret := m.ctrl.Call(m, "SerializeConfig", arg0, arg1, arg2)
@@ -129,6 +117,18 @@ func (m *MockManager) SerializeHelmValues(arg0, arg1 string) error {
 // SerializeHelmValues indicates an expected call of SerializeHelmValues
 func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0, arg1)
+}
+
+// SerializeUpstream mocks base method
+func (m *MockManager) SerializeUpstream(arg0 string) error {
+	ret := m.ctrl.Call(m, "SerializeUpstream", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeUpstream indicates an expected call of SerializeUpstream
+func (mr *MockManagerMockRecorder) SerializeUpstream(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeUpstream", reflect.TypeOf((*MockManager)(nil).SerializeUpstream), arg0)
 }
 
 // TryLoad mocks base method

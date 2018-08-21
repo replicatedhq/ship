@@ -6,7 +6,10 @@ const apiEndpoint = window.env.API_ENDPOINT;
 
 export const constants = {
   RECEIVE_ROUTES: "RECEIVE_ROUTES",
-  SET_PHASE: "SET_PHASE"
+  SET_PHASE: "SET_PHASE",
+  SET_PROGRESS: "SET_PROGRESS",
+  POLLING: "POLLING",
+  SHUTDOWN_APP: "SHUTDOWN_APP",
 };
 
 export function receiveRoutes(routes) {
@@ -20,6 +23,26 @@ export function setPhase(phase) {
   return {
     type: constants.SET_PHASE,
     payload: phase
+  }
+}
+
+export function polling(isPolling) {
+  return {
+    type: constants.POLLING,
+    payload: isPolling,
+  };
+}
+
+export function setProgress(progress) {
+  return {
+    type: constants.SET_PROGRESS,
+    payload: progress,
+  };
+}
+
+export function shutdownApp() {
+  return {
+    type: constants.SHUTDOWN_APP
   }
 }
 
@@ -46,6 +69,41 @@ export function getRoutes() {
       console.log(error);
       return;
     }
+  };
+}
+
+export async function fetchContentForStep(stepId) {
+  const url = `${apiEndpoint}/navcycle/step/${stepId}`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+  const body = await response.json();
+  return body;
+}
+
+export function pollContentForStep(stepId, cb) {
+  return async(dispatch) => {
+    dispatch(polling(true));
+
+    const intervalId = setInterval(async() => {
+      const body = await fetchContentForStep(stepId)
+      dispatch(setProgress(body.progress));
+
+      const { progress } = body;
+      const { detail } = progress;
+      const parsedDetail = JSON.parse(detail);
+      const finished = parsedDetail.status === "success";
+      if (finished) {
+        dispatch(polling(false));
+        clearInterval(intervalId);
+        return cb();
+      }
+    }, 1000);
+
+    return;
   };
 }
 

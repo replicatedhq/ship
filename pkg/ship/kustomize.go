@@ -2,20 +2,21 @@ package ship
 
 import (
 	"context"
-	"path"
 	"time"
 
 	"strings"
 
-	"path/filepath"
+	"os"
+
+	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
@@ -55,51 +56,36 @@ func (s *Ship) stateFileExists(ctx context.Context) bool {
 
 func (s *Ship) Update(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "update"))
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer s.Shutdown(cancelFunc)
 
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 	// does a state already exist
 	existingState, err := s.State.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}
 
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
-
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
 		return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 	}
 
-	debug.Log("event", "read.chartURL")
-	helmChartPath := existingState.CurrentChartURL()
-	if helmChartPath == "" {
-		return errors.New(`No helm chart URL found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+	debug.Log("event", "read.upstream")
+	upstreamURL := existingState.Upstream()
+	if upstreamURL == "" {
+		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, s.Viper.GetString("state-file")))
 	}
 
 	debug.Log("event", "fetch latest chart")
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+helmChartPath))
-	helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath, existingState.CurrentChartRepoURL(), existingState.CurrentChartVersion())
-	if err != nil {
-		return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
-	}
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+upstreamURL))
 
-	spec, err := s.Resolver.ResolveChartReleaseSpec(ctx)
+	release, err := s.Resolver.ResolveRelease(ctx, upstreamURL)
 	if err != nil {
-		return errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
-	}
-
-	debug.Log("event", "build helm release")
-	release := &api.Release{
-		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
-		},
-		Spec: spec,
+		return errors.Wrapf(err, "resolve helm chart metadata for %s", upstreamURL)
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-
-	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
-
-	s.State.SerializeContentSHA(helmChartMetadata.ContentSHA)
 
 	return s.execute(ctx, release, nil, true)
 }
@@ -120,8 +106,9 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.New(`No state found, please run "ship init"`)
 		}
 
-		debug.Log("event", "read.chartURL")
-		helmChartPath := existingState.CurrentChartURL()
+		debug.Log("event", "read.upstream")
+
+		helmChartPath := existingState.Upstream()
 		if helmChartPath == "" {
 			return errors.New(`No current chart url found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
@@ -133,12 +120,12 @@ func (s *Ship) Watch(ctx context.Context) error {
 		}
 
 		debug.Log("event", "fetch latest chart")
-		helmChartMetadata, err := s.Resolver.ResolveChartMetadata(context.Background(), helmChartPath, existingState.CurrentChartRepoURL(), existingState.CurrentChartVersion())
+		release, err := s.Resolver.ResolveRelease(context.Background(), string(helmChartPath))
 		if err != nil {
 			return errors.Wrapf(err, "resolve helm chart metadata for %s", helmChartPath)
 		}
 
-		if helmChartMetadata.ContentSHA != existingState.Versioned().V1.ContentSHA {
+		if release.Metadata.ShipAppMetadata.ContentSHA != existingState.Versioned().V1.ContentSHA {
 			debug.Log("event", "new sha")
 			return nil
 		}
@@ -159,7 +146,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// does a state file exist on disk?
-	if s.stateFileExists(ctx) && !s.Viper.GetBool("rm-state") {
+	if s.stateFileExists(ctx) && os.Getenv("RM_STATE") != "" {
 		debug.Log("event", "state.exists")
 
 		useUpdate, err := s.UI.Ask(`
@@ -185,7 +172,6 @@ Continuing will delete this state, would you like to continue? There is no undo.
 	release, err := s.Resolver.ResolveRelease(ctx, s.Viper.GetString("target"))
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
-
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
@@ -193,50 +179,7 @@ Continuing will delete this state, would you like to continue? There is no undo.
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
-	release := &api.Release{
-		Spec: api.Spec{
-			Assets: api.Assets{
-				V1: []api.Asset{},
-			},
-			Config: api.Config{
-				V1: []libyaml.ConfigGroup{},
-			},
-			Lifecycle: api.Lifecycle{
-				V1: []api.Step{
-					{
-						KustomizeIntro: &api.KustomizeIntro{
-							StepShared: api.StepShared{
-								ID: "kustomize-intro",
-							},
-						},
-					},
-					{
-						Kustomize: &api.Kustomize{
-							BasePath: s.KustomizeRaw,
-							Dest:     path.Join("overlays", "ship"),
-							StepShared: api.StepShared{
-								ID:          "kustomize",
-								Invalidates: []string{"diff"},
-							},
-						},
-					},
-					{
-						Message: &api.Message{
-							StepShared: api.StepShared{
-								ID: "outro",
-							},
-							Contents: `
-Assets are ready to deploy. You can run
-
-    kustomize build overlays/ship | kubectl apply -f -
-
-to deploy the overlaid assets to your cluster.
-						`},
-					},
-				},
-			},
-		},
+	return &api.Release{
+		Spec: specs.DefaultRawRelease(s.KustomizeRaw),
 	}
-
-	return release
 }

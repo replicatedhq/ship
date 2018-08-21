@@ -72,7 +72,7 @@ func (d *HeadlessDaemon) PushHelmValuesStep(ctx context.Context, helmValues daem
 
 func (d *HeadlessDaemon) HeadlessSaveHelmValues(ctx context.Context, helmValues string) error {
 	warn := level.Warn(log.With(d.Logger, "struct", "HeadlessDaemon", "method", "HeadlessSaveHelmValues"))
-	chartDefaultValues, err := d.FS.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+	chartDefaultValues, err := d.FS.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 	if err != nil {
 		return errors.Wrap(err, "load chart defaults")
 	}

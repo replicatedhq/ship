@@ -116,7 +116,7 @@ jobs:
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
           $GOPATH/bin/ginkgo -p -stream integration/init_app
-          $GOPATH/bin/ginkgo -p -stream integration/init_chart
+          $GOPATH/bin/ginkgo -p -stream integration/init
 
   deploy_unstable:
     docker:
