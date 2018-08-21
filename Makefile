@@ -237,11 +237,7 @@ bin/ship: $(FULLSRC)
 
 # tests base "ship" cli
 integration-test:
-	ginkgo -p -stream integration/base
-
-# tests "ship kustomize"
-integration-test-update:
-	ginkgo -p -stream integration/update
+	ginkgo -p -stream -r integration
 
 goreleaser: .state/goreleaser
 

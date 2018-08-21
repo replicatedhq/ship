@@ -6,8 +6,6 @@ import (
 
 	"strings"
 
-	"os"
-
 	"fmt"
 
 	"github.com/go-kit/kit/log"
@@ -146,13 +144,15 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	// does a state file exist on disk?
-	if s.stateFileExists(ctx) && os.Getenv("RM_STATE") != "" {
+	if s.stateFileExists(ctx) {
 		debug.Log("event", "state.exists")
 
-		useUpdate, err := s.UI.Ask(`
+		s.UI.Warn(`
 An existing .ship directory was found. If you are trying to update this application, run "ship update".
-Continuing will delete this state, would you like to continue? There is no undo. (y/N)
-`)
+Continuing will delete this state, would you like to continue? There is no undo.`)
+
+		useUpdate, err := s.UI.Ask(`
+	Start from scratch? (y/N): `)
 		if err != nil {
 			return err
 		}
