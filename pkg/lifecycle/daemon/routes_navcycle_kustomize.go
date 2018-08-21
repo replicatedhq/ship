@@ -70,6 +70,12 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 		}
 	}
 
+	if kustomize.Overlays["ship"].Patches == nil {
+		kustomize.Overlays["ship"] = state.Overlay{
+			Patches: make(map[string]string),
+		}
+	}
+
 	kustomize.Overlays["ship"].Patches[request.Path] = request.Contents
 
 	debug.Log("event", "newstate.save")
@@ -291,6 +297,12 @@ func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
 
 	debug.Log("event", "deletePatch", "path", pathQueryParam)
 	delete(shipOverlay.Patches, pathQueryParam)
+
+	if shipOverlay.Patches == nil {
+		kustomize.Overlays["ship"] = state.Overlay{
+			Patches: make(map[string]string),
+		}
+	}
 
 	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
 		level.Error(d.Logger).Log("event", "patch does not exist")
