@@ -105,7 +105,7 @@ var _ = Describe("ShipPatcher", func() {
 		modifyFieldPathMap := map[string][]string{
 			"basic":  []string{"spec", "template", "spec", "containers", "0", "name"},
 			"list":   []string{"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
-			"nested": []string{"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom"},
+			"nested": []string{"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
 		}
 		It("Modifies a single field in yaml with PATCH_TOKEN", func() {
 			modifyTestDirs, err := ioutil.ReadDir(path.Join(modifyTestCasesFolder))
