@@ -1,4 +1,5 @@
 import React from "react";
+import Modal from "react-modal";
 import autoBind from "react-autobind";
 import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
@@ -31,9 +32,18 @@ export default class KustomizeOverlay extends React.Component {
       viewDiff: false,
       markers: [],
       patch: "",
-      savingFinalize: false
+      savingFinalize: false,
+      displayConfirmModal: false,
+      overlayToDelete: "",
     };
     autoBind(this);
+  }
+
+  toggleModal(overlayPath) {
+    this.setState({
+      displayConfirmModal: !this.state.displayConfirmModal,
+      overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath
+    });
   }
 
   componentDidUpdate(lastProps, lastState) {
@@ -134,10 +144,13 @@ export default class KustomizeOverlay extends React.Component {
 
   async discardOverlay() {
     const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
-    if (file.overlayContent.length) {
+    if (file.overlayContent && file.overlayContent.length) {
       await this.deleteOverlay(this.state.selectedFile);
     }
-    this.setState({ patch: "" });
+    this.setState({
+      patch: "",
+      displayConfirmModal: false
+    });
   }
 
   async deleteOverlay(path) {
@@ -226,7 +239,7 @@ export default class KustomizeOverlay extends React.Component {
                         files={tree.children}
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
-                        handleDeleteOverlay={(path) => this.deleteOverlay(path)}
+                        handleDeleteOverlay={(path) => this.toggleModal(path)}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
                       />
@@ -286,7 +299,7 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={this.discardOverlay}></span>}
+                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span>}
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
@@ -345,6 +358,26 @@ export default class KustomizeOverlay extends React.Component {
             </div>
           </div>
         </div>
+        <Modal
+          isOpen={this.state.displayConfirmModal}
+          onRequestClose={this.toggleModal}
+          shouldReturnFocusAfterClose={false}
+          ariaHideApp={false}
+          contentLabel="Modal"
+          className="Modal DefaultSize"
+        >
+          <div className="Modal-header">
+            <p>Are you sure you want to discard this overlay?</p>
+          </div>
+          <div className="flex flex-column u-modalPadding">
+            <p className="u-fontSize--large u-fontWeight--normal u-color--dustyGray u-lineHeight--more">It will not be applied to the kustomization.yaml file that is generated for you.</p>
+            <div className="flex justifyContent--flexEnd u-marginTop--20">
+              <button className="btn secondary u-marginRight--10" onClick={() => this.toggleModal("")}>Cancel</button>
+              <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard overlay</button>
+            </div>
+          </div>
+            
+        </Modal>
       </div>
     );
   }

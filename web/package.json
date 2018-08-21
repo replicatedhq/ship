@@ -96,6 +96,7 @@
     "react-ace": "^6.1.4",
     "react-document-title": "^2.0.3",
     "react-markdown": "^3.3.4",
+    "react-modal": "^3.5.1",
     "react-monaco-editor": "^0.17.2",
     "react-router-hash-link": "^1.2.0",
     "react-tooltip": "^3.6.1",
