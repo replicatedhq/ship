@@ -133,7 +133,10 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async discardOverlay() {
-    await this.deleteOverlay(this.state.selectedFile);
+    const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
+    if (file.overlayContent.length) {
+      await this.deleteOverlay(this.state.selectedFile);
+    }
     this.setState({ patch: "" });
   }
 
@@ -254,17 +257,11 @@ export default class KustomizeOverlay extends React.Component {
                           { selectedFile !== "" ?
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
-                              (fileToView && fileToView.overlayContent.length ?
-                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={() => this.setState({ patch: this.props.patch })}>
-                                  <span className="icon clickable u-overlayViewIcon"></span>
-                                </div>
-                                : fileToView && !fileToView.isSupported ? null :
-                                  <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
-                                    <span className="icon clickable u-overlayCreateIcon"></span>
-                                  </div>
-                              )
+                              <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
+                                <span className="icon clickable u-overlayCreateIcon"></span>
+                              </div>
                               }
-                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">{fileToView && fileToView.overlayContent.length ? "View" : "Create"} overlay</ReactTooltip>
+                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
                               <AceEditorHOC
                                 handleGeneratePatch={this.handleGeneratePatch}
                                 fileToView={fileToView}
