@@ -3,6 +3,7 @@ package daemon
 import (
 	"bytes"
 	"net/http"
+	"strconv"
 
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
@@ -206,11 +207,11 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "createOrMergePatch"))
 	type Request struct {
-		Original string   `json:"original"`
-		Modified string   `json:"modified"`
-		Current  string   `json:"current"`
-		Path     []string `json:"path"`
-		Resource string   `json:"resource"`
+		Original string        `json:"original"`
+		Modified string        `json:"modified"`
+		Current  string        `json:"current"`
+		Path     []interface{} `json:"path"`
+		Resource string        `json:"resource"`
 	}
 	var request Request
 
@@ -218,6 +219,19 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+	}
+
+	var stringPath []string
+	for _, value := range request.Path {
+		switch value.(type) {
+		case float64:
+			stringPath = append(stringPath, strconv.FormatFloat(value.(float64), 'f', 0, 64))
+		case string:
+			stringPath = append(stringPath, value.(string))
+		default:
+			level.Error(d.Logger).Log("event", "invalid path provided")
+			c.AbortWithError(500, errors.New("internal_server_error"))
+		}
 	}
 
 	step, ok := d.getKustomizeStepOrAbort(c)
@@ -240,7 +254,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	if request.Current != "" {
-		out, err := d.Patcher.MergePatches([]byte(request.Current), request.Path, *step.Kustomize, request.Resource)
+		out, err := d.Patcher.MergePatches([]byte(request.Current), stringPath, *step.Kustomize, request.Resource)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
 			c.AbortWithError(500, errors.New("internal_server_error"))
