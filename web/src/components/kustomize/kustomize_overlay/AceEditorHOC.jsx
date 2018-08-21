@@ -154,7 +154,7 @@ export class AceEditorHOC extends React.Component {
         ref={(editor) => { this.aceEditorBase = editor }}
         mode="yaml"
         theme="chrome"
-        className="flex1 flex disabled-ace-editor ace-chrome"
+        className="flex1 flex"
         readOnly={true}
         value={fileToView && fileToView.baseContent || ""}
         height="100%"
