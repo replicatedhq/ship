@@ -76,7 +76,7 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: DefaultHelmRelease("chart"),
+				Spec: DefaultHelmRelease(".ship/tmp/chart"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:    "0.1.0",
@@ -185,6 +185,9 @@ icon: https://kfbr.392/x5.png
 			defer fs.RemoveAll(tmpdir)
 
 			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
+			// its chrooted to a temp dir, but this needs to exist
+			err = mockFs.MkdirAll(".ship/tmp/", 0755)
+
 			resolver := &Resolver{
 				Logger:           log.NewNopLogger(),
 				StateManager:     mockState,

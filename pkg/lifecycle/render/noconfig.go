@@ -58,9 +58,16 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	debug.Log("event", "backup.start")
-	err = r.backupIfPresent(constants.InstallerPrefixPath)
-	if err != nil {
-		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+
+	if step.Root == "" {
+		step.Root = constants.InstallerPrefixPath
+	}
+
+	if step.Root != "." {
+		err = r.backupIfPresent(step.Root)
+		if err != nil {
+			return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+		}
 	}
 
 	debug.Log("event", "execute.plan")

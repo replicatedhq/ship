@@ -22,6 +22,7 @@ func TestFetch(t *testing.T) {
 	tests := []struct {
 		name        string
 		asset       api.HelmAsset
+		renderRoot  string
 		expect      string
 		mockExpect  func(t *testing.T, gh *github.MockRenderer)
 		expectError string
@@ -33,7 +34,7 @@ func TestFetch(t *testing.T) {
 				GitHub: nil,
 			},
 			expect:      "",
-			expectError: "only 'local' and 'github' chart rendering is supported",
+			expectError: "only 'local', 'github' and 'helm_fetch' chart rendering is supported",
 		},
 		{
 			name: "local returns location",
@@ -57,9 +58,16 @@ func TestFetch(t *testing.T) {
 			},
 			mockExpect: func(t *testing.T, gh *github.MockRenderer) {
 				gh.EXPECT().Execute(
-					root.Fs{
-						Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
-						RootPath: "",
+					&matchers.Is{
+						Describe: "is rootFs with empty root path",
+						Test: func(rootFs interface{}) bool {
+							fs, ok := rootFs.(root.Fs)
+							if !ok {
+								return false
+							}
+							return fs.RootPath == "."
+
+						},
 					},
 					&matchers.Is{
 						Describe: "is github asset and has dest overriden",
@@ -68,8 +76,50 @@ func TestFetch(t *testing.T) {
 							if !ok {
 								return false
 							}
-							return strings.Contains(githubAsset.Dest, "/helmchart")
+							return strings.HasPrefix(githubAsset.Dest, ".ship/tmp/helmchart")
 
+						},
+					},
+					[]libyaml.ConfigGroup{},
+					api.ReleaseMetadata{},
+					map[string]interface{}{},
+				).Return(func(ctx context.Context) error { return nil })
+			},
+			expect:      "/helmchart",
+			expectError: "",
+		},
+		{
+			name:       "github fetches from github with '' root, event though rootFs has installer/",
+			renderRoot: "installer/",
+			asset: api.HelmAsset{
+				GitHub: &api.GitHubAsset{
+					Ref:    "",
+					Repo:   "",
+					Path:   "",
+					Source: "",
+				},
+			},
+			mockExpect: func(t *testing.T, gh *github.MockRenderer) {
+				gh.EXPECT().Execute(
+					&matchers.Is{
+						Describe: "is rootFs with empty root path",
+						Test: func(rootFs interface{}) bool {
+							fs, ok := rootFs.(root.Fs)
+							if !ok {
+								return false
+							}
+							return fs.RootPath == "."
+
+						},
+					},
+					&matchers.Is{
+						Describe: "is github asset and has dest overriden",
+						Test: func(asset interface{}) bool {
+							githubAsset, ok := asset.(api.GitHubAsset)
+							if !ok {
+								return false
+							}
+							return strings.HasPrefix(githubAsset.Dest, ".ship/tmp/helmchart")
 						},
 					},
 					[]libyaml.ConfigGroup{},
@@ -100,10 +150,6 @@ func TestFetch(t *testing.T) {
 
 			dest, err := fetcher.FetchChart(
 				context.Background(),
-				root.Fs{
-					Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
-					RootPath: "",
-				},
 				test.asset,
 				api.ReleaseMetadata{},
 				[]libyaml.ConfigGroup{},

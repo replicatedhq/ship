@@ -11,10 +11,12 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
+func (s *Ship) UpdateAndMaybeExit(ctx context.Context) error {
 	if err := s.Update(ctx); err != nil {
 		s.ExitWithError(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Ship) Update(ctx context.Context) error {

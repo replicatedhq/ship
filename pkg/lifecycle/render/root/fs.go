@@ -12,7 +12,7 @@ type Fs struct {
 	RootPath string
 }
 
-func (f *Fs) TempDir(prefix, name string) (string, error) {
+func (f Fs) TempDir(prefix, name string) (string, error) {
 	if prefix == "" {
 		return "", errors.New("rootfs does not support using system default temp dirs")
 	}

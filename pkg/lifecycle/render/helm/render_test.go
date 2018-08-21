@@ -67,7 +67,7 @@ func TestRender(t *testing.T) {
 			ctx := context.Background()
 
 			mockFetcher.EXPECT().
-				FetchChart(ctx, rootFs, asset, metadata, configGroups, templateContext).
+				FetchChart(ctx, asset, metadata, configGroups, templateContext).
 				Return(test.fetchPath, test.fetchErr)
 
 			if test.fetchErr == nil {
