@@ -349,7 +349,7 @@ export default class KustomizeOverlay extends React.Component {
                     :
                     <div className="flex">
                       <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn primary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
                     </div>
                   }
                 </div>
