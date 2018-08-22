@@ -27,7 +27,7 @@ const (
 type Loader interface {
 	LoadTree(root string) (*Node, error)
 	// someday this should return an overlay too
-	LoadFile(root string, path string) (string, error)
+	LoadFile(root string, path string) ([]byte, error)
 }
 
 // NewLoader builds an aferoLoader, used with dig
@@ -105,14 +105,14 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 }
 
 // todo move this to a new struct or something
-func (a *aferoLoader) LoadFile(root string, file string) (string, error) {
+func (a *aferoLoader) LoadFile(root string, file string) ([]byte, error) {
 	fs := afero.Afero{Fs: afero.NewBasePathFs(a.FS, root)}
 	contents, err := fs.ReadFile(file)
 	if err != nil {
-		return "", errors.Wrap(err, "read file")
+		return []byte{}, errors.Wrap(err, "read file")
 	}
 
-	return string(contents), nil
+	return contents, nil
 }
 
 func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo) (Node, error) {

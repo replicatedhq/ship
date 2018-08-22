@@ -49,7 +49,7 @@ var _ = Describe("ShipPatcher", func() {
 				modified, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				patch, err := shipPatcher.CreateTwoWayMergePatch(string(original), string(modified))
+				patch, err := shipPatcher.CreateTwoWayMergePatch(original, modified)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectPatch, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "patch.yaml"))
@@ -103,7 +103,7 @@ var _ = Describe("ShipPatcher", func() {
 				expectModified, err := ioutil.ReadFile(path.Join("modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(string(patch), api.Kustomize{BasePath: "base"}, "base/deployment.yaml")
+				modified, err := shipPatcher.ApplyPatch(patch, api.Kustomize{BasePath: "base"}, "base/deployment.yaml")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
@@ -131,7 +131,7 @@ var _ = Describe("ShipPatcher", func() {
 				pathToModify, ok := modifyFieldPathMap[modifyTestDir.Name()]
 				Expect(ok).To(BeTrue())
 
-				modified, err := shipPatcher.ModifyField(string(originalFile), pathToModify)
+				modified, err := shipPatcher.ModifyField(originalFile, pathToModify)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(modified)).To(Equal(string(expectModified)))
