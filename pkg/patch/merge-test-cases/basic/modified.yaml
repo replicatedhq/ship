@@ -6,15 +6,31 @@ spec:
   template:
     spec:
       $setElementOrder/containers:
-      - name: the-container
+      - name: TO_BE_MODIFIED
       containers:
-      - $setElementOrder/ports:
-        - containerPort: 1111
-        - containerPort: 8081
-        - containerPort: 8082
-        name: the-container
+      - command:
+        - /hello
+        - --port=8080
+        - --enableRiskyFeature=$(ENABLE_RISKY)
+        env:
+        - name: ALT_GREETING
+          valueFrom:
+            configMapKeyRef:
+              key: altGreeting
+              name: the-map
+        - name: ENABLE_RISKY
+          valueFrom:
+            configMapKeyRef:
+              key: enableRisky
+              name: the-map
+        image: monopole/NEWIMAGE:1
+        name: TO_BE_MODIFIED
         ports:
         - containerPort: 1111
           name: test
-        - $patch: delete
-          containerPort: 8080
+        - containerPort: 8081
+          name: test2
+        - containerPort: 8082
+          name: test3
+      - $patch: delete
+        name: the-container

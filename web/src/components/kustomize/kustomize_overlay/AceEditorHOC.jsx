@@ -1,10 +1,8 @@
 import React from "react";
 import ace from "brace";
 import AceEditor from "react-ace";
-import * as yaml from "js-yaml";
 import * as ast from "yaml-ast-parser";
 import find from "lodash/find";
-import set from "lodash/set";
 
 const { addListener, removeListener } = ace.acequire("ace/lib/event");
 
@@ -54,15 +52,13 @@ export class AceEditorHOC extends React.Component {
   )
 
   addToOverlay = () => {
-    const { fileToView } = this.props;
+    const { handleGeneratePatch } = this.props;
     const { activeMarker } = this.state;
 
     if (activeMarker.length > 0) {
       const matchingMarker = activeMarker[0];
-      let tree = yaml.safeLoad(fileToView.baseContent);
-      const modifiedTree = set(tree, matchingMarker.path, PATCH_TOKEN);
-      const dirtybaseContent = yaml.safeDump(modifiedTree);
-      this.props.handleGeneratePatch(dirtybaseContent);
+      const { path } = matchingMarker;
+      handleGeneratePatch(path);
     }
   }
 
@@ -158,7 +154,7 @@ export class AceEditorHOC extends React.Component {
         ref={(editor) => { this.aceEditorBase = editor }}
         mode="yaml"
         theme="chrome"
-        className="flex1 flex disabled-ace-editor ace-chrome"
+        className="flex1 flex"
         readOnly={true}
         value={fileToView && fileToView.baseContent || ""}
         height="100%"

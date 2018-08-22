@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql
+    chart: mysql-0.9.3
+    heritage: Tiller
+    release: mysql
+  name: mysql
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: mysql
+      containers:
+      - $setElementOrder/env:
+        - name: dexter
+        - name: MYSQL_PASSWORD
+        - name: MYSQL_USER
+        - name: MYSQL_DATABASE
+        env:
+        - name: dexter
+          valueFrom:
+            secretKeyRef:
+              key: mysql-root-password
+              name: mysql
+        - name: MYSQL_USER
+          value: TO_BE_MODIFIED
+        - $patch: delete
+          name: MYSQL_ROOT_PASSWORD
+        name: mysql

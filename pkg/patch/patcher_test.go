@@ -58,22 +58,33 @@ var _ = Describe("ShipPatcher", func() {
 		})
 	})
 	Describe("MergePatches", func() {
+		mergePatchPathMap := map[string][]string{
+			"basic": []string{"spec", "template", "spec", "containers", "0", "name"},
+			"list":  []string{"spec", "template", "spec", "containers", "0", "env", "2", "value"},
+		}
 		It("Creates a single patch with the effect of both given patches", func() {
 			mergeTestDirs, err := ioutil.ReadDir(path.Join(mergeTestCasesFolder))
 			Expect(err).NotTo(HaveOccurred())
 
 			for _, mergeTestDir := range mergeTestDirs {
-				original, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "original.yaml"))
+				original, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "patch.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "modified.yaml"))
+				expectPatch, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				patch, err := shipPatcher.MergePatches(original, modified)
+				err = os.Chdir(path.Join(mergeTestCasesFolder, mergeTestDir.Name()))
 				Expect(err).NotTo(HaveOccurred())
 
-				expectPatch, err := ioutil.ReadFile(path.Join(mergeTestCasesFolder, mergeTestDir.Name(), "patch.yaml"))
-				Expect(patch).To(Equal(expectPatch))
+				patch, err := shipPatcher.MergePatches(
+					original,
+					mergePatchPathMap[mergeTestDir.Name()],
+					api.Kustomize{BasePath: "base"},
+					"base/deployment.yaml",
+				)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(patch)).To(Equal(string(expectPatch)))
+				Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 			}
 		})
 	})
@@ -96,8 +107,8 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
+				Expect(os.Chdir("../..")).NotTo(HaveOccurred())
 			}
-			os.Chdir("../../")
 		})
 	})
 	Describe("ModifyField", func() {
