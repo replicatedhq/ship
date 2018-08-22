@@ -4,7 +4,6 @@ import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
 import AceEditor from "react-ace";
 import ErrorBoundary from "../../ErrorBoundary";
-import Toast from "../shared/Toast";
 import get from "lodash/get";
 import find from "lodash/find";
 
@@ -24,10 +23,8 @@ export default class HelmValuesEditor extends React.Component {
       initialSpecValue: "",
       helmLintErrors: [],
       saving: false,
+      saveFinal: false,
       unsavedChanges: false,
-      toastDetails: {
-        opts: {}
-      }
     }
     autoBind(this);
   }
@@ -76,42 +73,11 @@ export default class HelmValuesEditor extends React.Component {
     });
   }
 
-  cancelToast() {
-    let nextState = {};
-    nextState.toastDetails = {
-      showToast: false,
-      title: "",
-      subText: "",
-      type: "default",
-      opts: {}
-    };
-    this.setState(nextState)
-  }
-
   handleContinue() {
-    const { actions, isNewRouter } = this.props;
+    const { actions } = this.props;
     let submitAction;
-    if (isNewRouter) {
-      submitAction = find(actions, ["buttonType", "popover"]);
-    } else {
-      submitAction = find(actions, ["sort", 1]);
-    }
+    submitAction = find(actions, ["buttonType", "popover"]);
     this.props.handleAction(submitAction, true);
-  }
-
-  onValuesSaved() {
-    let nextState = {};
-    nextState.toastDetails = {
-      showToast: true,
-      title: "All changes have been saved.",
-      type: "default",
-      opts: {
-        showCancelButton: true,
-        confirmButtonText: "Continue to next step",
-        confirmAction: () => { this.handleContinue(); }
-      }
-    }
-    this.setState(nextState);
   }
 
   handleSkip() {
@@ -135,13 +101,13 @@ export default class HelmValuesEditor extends React.Component {
       })
   }
 
-  handleSaveValues() {
+  handleSaveValues(finalize) {
     const { specValue } = this.state;
     const payload = {
       values: specValue
     }
-    if(payload.values !== "") {
-      this.setState({ saving: true, helmLintErrors: [] });
+    if (payload.values !== "") {
+      this.setState({ saving: true, saveFinal: finalize, helmLintErrors: [] });
       this.props.saveValues(payload)
         .then(({ errors }) => {
           if (errors) {
@@ -151,7 +117,13 @@ export default class HelmValuesEditor extends React.Component {
             });
           }
           this.setState({ saving: false, savedYaml: true });
-          this.onValuesSaved();
+          if (finalize) {
+            this.handleContinue();
+            return;
+          }
+          setTimeout(() => {
+            this.setState({ savedYaml: false });
+          }, 3000)
         })
         .catch((err) => {
           // TODO: better handling
@@ -164,8 +136,10 @@ export default class HelmValuesEditor extends React.Component {
     const {
       readOnly,
       specValue,
+      initialSpecValue,
       saving,
-      toastDetails,
+      saveFinal,
+      savedYaml,
       helmLintErrors,
     } = this.state;
     const {
@@ -177,7 +151,6 @@ export default class HelmValuesEditor extends React.Component {
     return (
       <ErrorBoundary>
         <div className="flex-column flex1 HelmValues--wrapper u-paddingTop--30">
-          <Toast toast={toastDetails} onCancel={this.cancelToast} />
           <div className="flex-column flex-1-auto u-overflow--auto container">
             <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
             /{name}/
@@ -212,19 +185,23 @@ export default class HelmValuesEditor extends React.Component {
             </div>
           </div>
           <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
-            <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--30 u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
+            <div className="flex-column flex-verticalCenter">
+              {helmLintErrors.length ?
+                <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
+                : null}
+              {savedYaml ?
+                <p className="u-color--vidaLoca u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">Values saved</p>
+                : null}
+            </div>
             <div className="flex flex-auto alignItems--center">
-              <p
-                className="u-color--astral u-fontSize--small u-fontWeight--medium u-marginRight--20 u-textDecoration--underlineOnHover"
-                onClick={() => { this.handleSkip() }}>
-                Skip this step
-              </p>
-              <button
-                className="btn primary"
-                onClick={() => this.handleSaveValues()}
-                disabled={saving}>
-                {saving ? "Saving" : "Save values"}
-              </button>
+              {initialSpecValue === specValue ?
+                <button className="btn primary" onClick={() => { this.handleSkip() }}>Continue</button>
+                :
+                <div className="flex">
+                  <button className="btn primary u-marginRight--normal" onClick={() => this.handleSaveValues(false)} disabled={saving || saveFinal}>{saving ? "Saving" : "Save values"}</button>
+                  <button className="btn secondary" onClick={() => this.handleSaveValues(true)} disabled={saving || saveFinal}>{saveFinal ? "Saving values" : "Save & continue"}</button>
+                </div>
+              }
             </div>
           </div>
 
