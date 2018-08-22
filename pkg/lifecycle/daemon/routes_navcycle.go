@@ -36,6 +36,7 @@ type NavcycleRoutes struct {
 	Kustomizer     lifecycle.Kustomizer
 	KustomizeIntro lifecycle.KustomizeIntro
 	Renderer       lifecycle.Renderer
+	Terraformer    lifecycle.Terraformer
 	Planner        planner.Planner
 	Patcher        patch.Patcher
 	ConfigRenderer *resolve.APIConfigRenderer

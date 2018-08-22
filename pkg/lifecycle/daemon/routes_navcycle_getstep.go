@@ -27,11 +27,14 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				return
 			}
 
-			if step.Render == nil {
-				d.hydrateAndSend(daemontypes.NewStep(step), c)
-			} else {
+			if step.Render != nil {
 				d.hackMaybeRunRenderOnGET(debug, c, step)
+			} else if step.Terraform != nil {
+				d.hackMaybeRunTerraformOnGET(debug, c, step)
+			} else {
+				d.hydrateAndSend(daemontypes.NewStep(step), c)
 			}
+
 			return
 		}
 	}
@@ -49,6 +52,25 @@ func (d *NavcycleRoutes) hackMaybeRunRenderOnGET(debug log.Logger, c *gin.Contex
 	// ideally (maybe?) this can happen on the FE, as soon as render page loads, FE does a POST
 	//
 	// we check if its in the map, for now only run render if its never been run, or if its already done
+	state, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "load state"))
+		return
+	}
+	_, renderAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
+	progress, ok := d.StepProgress.Load(step.Shared().ID)
+	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !renderAlreadyComplete
+	if shouldRender {
+		d.completeStep(c)
+	} else {
+		d.hydrateAndSend(daemontypes.NewStep(step), c)
+	}
+	return
+}
+
+func (d *NavcycleRoutes) hackMaybeRunTerraformOnGET(debug log.Logger, c *gin.Context, step api.Step) {
+	debug.Log("event", "renderStep.get", "msg", "(hack) starting terraform on GET request")
+
 	state, err := d.StateManager.TryLoad()
 	if err != nil {
 		c.AbortWithError(500, errors.Wrap(err, "load state"))

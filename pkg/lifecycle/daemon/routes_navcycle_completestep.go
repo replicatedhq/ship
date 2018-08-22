@@ -105,7 +105,7 @@ func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, st
 
 type V2Executor func(d *NavcycleRoutes, step api.Step) error
 
-// temprorary home for a copy of pkg/lifecycle.StepExecutor while
+// temporary home for a copy of pkg/lifecycle.StepExecutor while
 // we re-implement each lifecycle step to not need a handle on a daemon (or something)
 func (d *NavcycleRoutes) execute(step api.Step) error {
 	debug := level.Debug(log.With(d.Logger, "method", "execute"))
@@ -150,6 +150,11 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 	} else if step.Config != nil {
 		debug.Log("event", "step.resolve", "type", "config")
 		return nil
+	} else if step.Terraform != nil {
+		debug.Log("event", "step.resolve", "type", "terraform")
+		terraformer := d.Terraformer.WithStatusReceiver(statusReceiver)
+		err := terraformer.Execute(context.Background(), *d.Release, *step.Terraform)
+		return errors.Wrap(err, "execute terraform step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

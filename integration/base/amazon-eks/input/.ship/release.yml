@@ -54,7 +54,9 @@ config: {}
 lifecycle:
   v1:
     - message:
-       contents: "hi"
+        contents: "hi"
     - render: {}
+    - terraform:
+        path: "empty/"
     - message:
-       contents: "bye"
+        contents: "bye"

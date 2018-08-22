@@ -3,6 +3,7 @@ package terraform
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os/exec"
 	"path"
@@ -15,33 +16,27 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
-	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/spf13/viper"
 )
 
-const tfSep = "------------------------------------------------------------------------"
-const tfNoChanges = "No changes. Infrastructure is up-to-date."
-
-type ForkTerraformer struct {
+type DaemonlessTerraformer struct {
 	Logger        log.Logger
-	Daemon        daemontypes.Daemon
 	PlanConfirmer tfplan.PlanConfirmer
 	Terraform     func(string) *exec.Cmd
+	Status        daemontypes.StatusReceiver
 	Viper         *viper.Viper
 	dir           string
 }
 
-func NewTerraformer(
+func NewDaemonlessTerraformer(
 	logger log.Logger,
-	daemon daemontypes.Daemon,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
 ) lifecycle.Terraformer {
-	return &ForkTerraformer{
+	return &DaemonlessTerraformer{
 		Logger:        logger,
-		Daemon:        daemon,
 		PlanConfirmer: planner,
 		Terraform: func(cmdPath string) *exec.Cmd {
 			cmd := exec.Command("terraform")
@@ -52,18 +47,20 @@ func NewTerraformer(
 	}
 }
 
-// WithStatusReceiver is a no-op for the Terraformer implementation using Daemon
-func (t *ForkTerraformer) WithStatusReceiver(status daemontypes.StatusReceiver) lifecycle.Terraformer {
-	return &ForkTerraformer{
+func (t *DaemonlessTerraformer) WithStatusReceiver(
+	receiver daemontypes.StatusReceiver,
+) lifecycle.Terraformer {
+	return &DaemonlessTerraformer{
 		Logger:        t.Logger,
-		Daemon:        t.Daemon,
 		PlanConfirmer: t.PlanConfirmer,
 		Terraform:     t.Terraform,
 		Viper:         t.Viper,
+
+		Status: receiver,
 	}
 }
 
-func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
 	t.dir = step.Path
 
 	if err := t.init(); err != nil {
@@ -93,45 +90,48 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	applyMsgs := make(chan daemontypes.Message, 20)
 
 	// returns when the applyMsgs channel closes
-	go t.Daemon.PushStreamStep(ctx, applyMsgs)
+	go t.Status.PushStreamStep(ctx, applyMsgs)
 
 	// blocks until all of stdout/stderr has been sent on applyMsgs channel
 	html, err := t.apply(applyMsgs)
-	close(applyMsgs)
-	if err != nil {
-		t.Daemon.PushMessageStep(
-			ctx,
-			daemontypes.Message{
-				Contents:    html,
-				TrustedHTML: true,
-				Level:       "error",
-			},
-			failedApplyActions(),
-		)
-		retry := <-t.Daemon.TerraformConfirmedChan()
-		t.Daemon.CleanPreviousStep()
-		if retry {
-			return t.Execute(ctx, release, step)
-		}
-		return errors.Wrap(err, "apply")
-	}
+	fmt.Println("html", html)
 
-	if !viper.GetBool("terraform-yes") {
-		t.Daemon.PushMessageStep(
-			ctx,
-			daemontypes.Message{
-				Contents:    html,
-				TrustedHTML: true,
-			},
-			daemon.MessageActions(),
-		)
-		<-t.Daemon.MessageConfirmedChan()
-	}
+	close(applyMsgs)
+	// TODO(Robert)
+	// if err != nil {
+	// 	t.Daemon.PushMessageStep(
+	// 		ctx,
+	// 		daemontypes.Message{
+	// 			Contents:    html,
+	// 			TrustedHTML: true,
+	// 			Level:       "error",
+	// 		},
+	// 		failedApplyActions(),
+	// 	)
+	// 	retry := <-t.Daemon.TerraformConfirmedChan()
+	// 	t.Daemon.CleanPreviousStep()
+	// 	if retry {
+	// 		return t.Execute(ctx, release, step)
+	// 	}
+	// 	return errors.Wrap(err, "apply")
+	// }
+
+	// if !viper.GetBool("terraform-yes") {
+	// 	t.Daemon.PushMessageStep(
+	// 		ctx,
+	// 		daemontypes.Message{
+	// 			Contents:    html,
+	// 			TrustedHTML: true,
+	// 		},
+	// 		daemon.MessageActions(),
+	// 	)
+	// 	<-t.Daemon.MessageConfirmedChan()
+	// }
 
 	return nil
 }
 
-func (t *ForkTerraformer) init() error {
+func (t *DaemonlessTerraformer) init() error {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
 	cmd := t.Terraform(t.dir)
@@ -151,7 +151,7 @@ func (t *ForkTerraformer) init() error {
 }
 
 // plan returns a human readable plan and a changes-required flag
-func (t *ForkTerraformer) plan() (string, bool, error) {
+func (t *DaemonlessTerraformer) plan() (string, bool, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 
@@ -188,7 +188,7 @@ func (t *ForkTerraformer) plan() (string, bool, error) {
 }
 
 // apply returns the full stdout and stderr rendered as HTML
-func (t *ForkTerraformer) apply(msgs chan<- daemontypes.Message) (string, error) {
+func (t *DaemonlessTerraformer) apply(msgs chan<- daemontypes.Message) (string, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
 	cmd := t.Terraform(t.dir)
@@ -262,18 +262,4 @@ func (t *ForkTerraformer) apply(msgs chan<- daemontypes.Message) (string, error)
 	err = cmd.Wait()
 
 	return ansiToHTML(accm), errors.Wrap(err, "command wait")
-}
-
-func failedApplyActions() []daemontypes.Action {
-	return []daemontypes.Action{
-		{
-			ButtonType:  "primary",
-			Text:        "Retry",
-			LoadingText: "Retrying",
-			OnClick: daemontypes.ActionRequest{
-				URI:    "/terraform/apply",
-				Method: "POST",
-			},
-		},
-	}
 }
