@@ -1,4 +1,4 @@
 customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 release_version: "1.0.1-SNAPSHOT"
 
-skip_cleanup: true
+skip_cleanup: false

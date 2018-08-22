@@ -12,7 +12,7 @@ assets:
         repo: replicatedhq/test-charts
         path: template-functions
         dest: ./github
-        source: private
+        source: public
         ref: ad1e78d13c33fae7a7ce22ed19920945ceea23e9
 config:
   v1:
