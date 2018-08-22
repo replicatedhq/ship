@@ -14,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // Renderer is something that can render a helm asset as part of a planner.Plan
@@ -34,16 +35,19 @@ type LocalRenderer struct {
 	Logger         log.Logger
 	Fs             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
+	Viper          *viper.Viper
 }
 
 func NewRenderer(
 	logger log.Logger,
 	fs afero.Afero,
+	viper *viper.Viper,
 	builderBuilder *templates.BuilderBuilder,
 ) Renderer {
 	return &LocalRenderer{
 		Logger:         logger,
 		Fs:             fs,
+		Viper:          viper,
 		BuilderBuilder: builderBuilder,
 	}
 }
@@ -88,6 +92,13 @@ func (r *LocalRenderer) Execute(
 		builder := r.BuilderBuilder.NewBuilder(
 			r.BuilderBuilder.NewStaticContext(),
 			configCtx,
+			&templates.InstallationContext{
+				Meta:  meta,
+				Viper: r.Viper,
+			},
+			templates.ShipContext{
+				Logger: r.Logger,
+			},
 		)
 
 		for _, file := range files {
