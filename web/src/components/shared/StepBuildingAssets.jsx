@@ -1,10 +1,23 @@
 import React from "react";
+import PropTypes from "prop-types";
 import autoBind from "react-autobind";
-import { Utilities } from "../../utilities/utilities";
 import { Line } from "rc-progress";
+
+import { Utilities } from "../../utilities/utilities";
 import Loader from "./Loader";
 
 export default class StepBuildingAssets extends React.Component {
+  static propTypes = {
+    location: PropTypes.shape({
+      pathname: PropTypes.string,
+    }).isRequired,
+    routeId: PropTypes.string.isRequired,
+    startPoll: PropTypes.func.isRequired,
+    status: PropTypes.shape({
+      type: PropTypes.string,
+      detail: PropTypes.string,
+    }).isRequired,
+  }
 
   constructor(props) {
     super(props);
@@ -31,7 +44,6 @@ export default class StepBuildingAssets extends React.Component {
     let percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
     if (percent > 100) {
       percent = 100;
-
     }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">

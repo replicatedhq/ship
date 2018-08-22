@@ -27,11 +27,14 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				return
 			}
 
-			if step.Render == nil {
-				d.hydrateAndSend(daemontypes.NewStep(step), c)
-			} else {
+			if step.Render != nil {
 				d.hackMaybeRunRenderOnGET(debug, c, step)
+			} else if step.Terraform != nil {
+				d.hackMaybeRunTerraformOnGET(debug, c, step)
+			} else {
+				d.hydrateAndSend(daemontypes.NewStep(step), c)
 			}
+
 			return
 		}
 	}
@@ -57,6 +60,26 @@ func (d *NavcycleRoutes) hackMaybeRunRenderOnGET(debug log.Logger, c *gin.Contex
 	_, renderAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
 	progress, ok := d.StepProgress.Load(step.Shared().ID)
 	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !renderAlreadyComplete
+	if shouldRender {
+		d.completeStep(c)
+	} else {
+		d.hydrateAndSend(daemontypes.NewStep(step), c)
+	}
+	return
+}
+
+// TODO(Robert): Needs to be moved to FE
+func (d *NavcycleRoutes) hackMaybeRunTerraformOnGET(debug log.Logger, c *gin.Context, step api.Step) {
+	debug.Log("event", "renderStep.get", "msg", "(hack) starting terraform on GET request")
+
+	state, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "load state"))
+		return
+	}
+	_, terraformAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
+	progress, ok := d.StepProgress.Load(step.Shared().ID)
+	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !terraformAlreadyComplete
 	if shouldRender {
 		d.completeStep(c)
 	} else {

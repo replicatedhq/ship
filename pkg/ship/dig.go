@@ -67,8 +67,6 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
-		terraform2.NewTerraformer,
-		tfplan.NewPlanner,
 
 		state.NewManager,
 		planner.NewFactory,
@@ -157,6 +155,8 @@ func headlessProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		terraform2.NewTerraformer,
+		tfplan.NewPlanner,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -172,6 +172,8 @@ func headedProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		terraform2.NewTerraformer,
+		tfplan.NewPlanner,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -190,6 +192,8 @@ func navcycleProviders() []interface{} {
 		kustomize.NewDaemonlessKustomizer,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
+		terraform2.NewDaemonlessTerraformer,
+		tfplan.NewDaemonlessPlanner,
 		// fake, we override it, this is janky, use a factory dex
 		func() daemontypes.StatusReceiver { return &statusonly.StatusReceiver{} },
 		daemon.NewV2Router,
