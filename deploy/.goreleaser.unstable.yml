@@ -24,7 +24,7 @@ builds:
   hooks: {}
 archive:
   format: tar.gz
-  name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}-unstable'
+  name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}-alpha'
   files:
   - licence*
   - LICENCE*
@@ -38,6 +38,6 @@ dockers:
   - image: replicated/ship
     dockerfile: deploy/Dockerfile
     tag_templates:
-      - "unstable"
+      - "alpha"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
