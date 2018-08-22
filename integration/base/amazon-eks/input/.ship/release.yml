@@ -54,7 +54,7 @@ config: {}
 lifecycle:
   v1:
     - message:
-        contents: "hi"
+       contents: "hi"
     - render: {}
     - message:
-        contents: "bye"
+       contents: "bye"

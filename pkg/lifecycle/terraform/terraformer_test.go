@@ -123,7 +123,7 @@ func TestTerraformer(t *testing.T) {
 			if test.expectConfirmPlan {
 				mockPlanner.
 					EXPECT().
-					ConfirmPlan(gomock.Any(), test.expectPlan, gomock.Any()).
+					ConfirmPlan(gomock.Any(), test.expectPlan, gomock.Any(), gomock.Any()).
 					Return(test.expectApply, nil)
 			}
 
@@ -166,6 +166,7 @@ func TestTerraformer(t *testing.T) {
 				context.Background(),
 				api.Release{},
 				api.Terraform{},
+				make(chan bool),
 			)
 
 			if test.expectError {
