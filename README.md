@@ -45,12 +45,12 @@ docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/m
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.14.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.13.3/ship_0.13.3_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.14.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.13.3/ship_0.13.3_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 After ship is installed, run it with:
