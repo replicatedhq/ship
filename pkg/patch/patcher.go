@@ -27,9 +27,10 @@ import (
 const PATCH_TOKEN = "TO_BE_MODIFIED"
 
 type Patcher interface {
-	CreateTwoWayMergePatch(string, string) ([]byte, error)
-	MergePatches([]byte, []byte) ([]byte, error)
-	ApplyPatch(string, api.Kustomize, string) ([]byte, error)
+	CreateTwoWayMergePatch(original, modified []byte) ([]byte, error)
+	MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error)
+	ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error)
+	ModifyField(original []byte, path []string) ([]byte, error)
 }
 
 type ShipPatcher struct {
@@ -97,17 +98,17 @@ func (p *ShipPatcher) writeHeaderToPatch(originalJSON, patchJSON []byte) ([]byte
 	return modifiedPatch, nil
 }
 
-func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte, error) {
+func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "createTwoWayMergePatch"))
 
 	debug.Log("event", "convert.original")
-	originalJSON, err := yaml.YAMLToJSON([]byte(original))
+	originalJSON, err := yaml.YAMLToJSON(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "convert original file to json")
 	}
 
 	debug.Log("event", "convert.modified")
-	modifiedJSON, err := yaml.YAMLToJSON([]byte(modified))
+	modifiedJSON, err := yaml.YAMLToJSON(modified)
 	if err != nil {
 		return nil, errors.Wrap(err, "convert modified file to json")
 	}
@@ -141,55 +142,37 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte,
 	return patch, nil
 }
 
-func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error) {
+func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "mergePatches"))
 
-	debug.Log("event", "createKubeResource.originalFile")
-	currentResource, err := p.newKubernetesResource(currentPatch)
+	debug.Log("event", "applyPatch")
+	modified, err := p.ApplyPatch(original, step, resource)
 	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
+		return nil, errors.Wrap(err, "apply patch")
 	}
 
-	debug.Log("event", "createKubeResource.originalFile")
-	newResource, err := p.newKubernetesResource(newPatch)
+	debug.Log("event", "modifyField")
+	dirtied, err := p.ModifyField(modified, path)
 	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
+		return nil, errors.Wrap(err, "dirty modified")
 	}
 
-	debug.Log("event", "createNewScheme.originalFile")
-	versionedObj, err := scheme.Scheme.New(currentResource.Id().Gvk())
+	debug.Log("event", "readOriginal")
+	originalYaml, err := p.FS.ReadFile(resource)
 	if err != nil {
-		return nil, errors.Wrap(err, "create new scheme based on kube resource")
+		return nil, errors.Wrap(err, "read original yaml")
 	}
 
-	debug.Log("event", "newPatchMeta")
-	lookupPatchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObj)
+	debug.Log("event", "createNewPatch")
+	finalPatch, err := p.CreateTwoWayMergePatch(originalYaml, dirtied)
 	if err != nil {
-		return nil, errors.Wrap(err, "create new patch meta")
+		return nil, errors.Wrap(err, "create patch")
 	}
 
-	debug.Log("event", "mergeStrategicMergeMapPatch")
-	outJSON, err := strategicpatch.MergeStrategicMergeMapPatchUsingLookupPatchMeta(lookupPatchMeta, currentResource.Object, newResource.Object)
-	if err != nil {
-		return nil, errors.Wrap(err, "merging patches")
-	}
-
-	debug.Log("event", "marshal.mergedPatches")
-	out, err := json.Marshal(outJSON)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshal merged patch")
-	}
-
-	debug.Log("event", "json.to.yaml")
-	patch, err := yaml.JSONToYAML(out)
-	if err != nil {
-		return nil, errors.Wrap(err, "convert json to yaml")
-	}
-
-	return patch, nil
+	return finalPatch, nil
 }
 
-func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource string) ([]byte, error) {
+func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
 	defer p.applyPatchCleanup()
 
@@ -205,7 +188,7 @@ func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource stri
 	}
 
 	debug.Log("event", "writeFile.tempPatch")
-	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), []byte(patch), 0755); err != nil {
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), patch, 0755); err != nil {
 		return nil, errors.Wrap(err, "write temp patch overlay")
 	}
 
@@ -312,15 +295,15 @@ func (p *ShipPatcher) applyPatchCleanup() {
 	}
 }
 
-func (p *ShipPatcher) ModifyField(original string, path []string) ([]byte, error) {
+func (p *ShipPatcher) ModifyField(original []byte, path []string) ([]byte, error) {
 	originalMap := map[string]interface{}{}
 
-	originalJSON, err := yaml.YAMLToJSON([]byte(original))
+	originalJSON, err := yaml.YAMLToJSON(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "original yaml to json")
 	}
 
-	if err := json.Unmarshal([]byte(originalJSON), &originalMap); err != nil {
+	if err := json.Unmarshal(originalJSON, &originalMap); err != nil {
 		return nil, errors.Wrap(err, "unmarshal original yaml")
 	}
 

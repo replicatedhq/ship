@@ -1,5 +1,6 @@
 import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
+import { getContentForStep } from "../appRoutes/actions";
 
 const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
@@ -96,7 +97,9 @@ export function deleteOverlay(path) {
       }
       await response.json();
       dispatch(loadingData("deleteOverlay", false));
-      console.log(response)
+      dispatch(receivePatch(""));
+      dispatch(getFileContent(path));
+      dispatch(getContentForStep("kustomize"));
     } catch (error) {
       dispatch(loadingData("deleteOverlay", false));
       console.log(error)
