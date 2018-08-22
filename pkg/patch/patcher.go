@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
+	"strconv"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
@@ -22,10 +24,13 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+const PATCH_TOKEN = "TO_BE_MODIFIED"
+
 type Patcher interface {
-	CreateTwoWayMergePatch(string, string) ([]byte, error)
-	MergePatches([]byte, []byte) ([]byte, error)
-	ApplyPatch(string, api.Kustomize, string) ([]byte, error)
+	CreateTwoWayMergePatch(original, modified []byte) ([]byte, error)
+	MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error)
+	ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error)
+	ModifyField(original []byte, path []string) ([]byte, error)
 }
 
 type ShipPatcher struct {
@@ -93,17 +98,17 @@ func (p *ShipPatcher) writeHeaderToPatch(originalJSON, patchJSON []byte) ([]byte
 	return modifiedPatch, nil
 }
 
-func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte, error) {
+func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "createTwoWayMergePatch"))
 
 	debug.Log("event", "convert.original")
-	originalJSON, err := yaml.YAMLToJSON([]byte(original))
+	originalJSON, err := yaml.YAMLToJSON(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "convert original file to json")
 	}
 
 	debug.Log("event", "convert.modified")
-	modifiedJSON, err := yaml.YAMLToJSON([]byte(modified))
+	modifiedJSON, err := yaml.YAMLToJSON(modified)
 	if err != nil {
 		return nil, errors.Wrap(err, "convert modified file to json")
 	}
@@ -137,55 +142,37 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified string) ([]byte,
 	return patch, nil
 }
 
-func (p *ShipPatcher) MergePatches(currentPatch, newPatch []byte) ([]byte, error) {
+func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "mergePatches"))
 
-	debug.Log("event", "createKubeResource.originalFile")
-	currentResource, err := p.newKubernetesResource(currentPatch)
+	debug.Log("event", "applyPatch")
+	modified, err := p.ApplyPatch(original, step, resource)
 	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
+		return nil, errors.Wrap(err, "apply patch")
 	}
 
-	debug.Log("event", "createKubeResource.originalFile")
-	newResource, err := p.newKubernetesResource(newPatch)
+	debug.Log("event", "modifyField")
+	dirtied, err := p.ModifyField(modified, path)
 	if err != nil {
-		return nil, errors.Wrap(err, "create kube resource with original json")
+		return nil, errors.Wrap(err, "dirty modified")
 	}
 
-	debug.Log("event", "createNewScheme.originalFile")
-	versionedObj, err := scheme.Scheme.New(currentResource.Id().Gvk())
+	debug.Log("event", "readOriginal")
+	originalYaml, err := p.FS.ReadFile(resource)
 	if err != nil {
-		return nil, errors.Wrap(err, "create new scheme based on kube resource")
+		return nil, errors.Wrap(err, "read original yaml")
 	}
 
-	debug.Log("event", "newPatchMeta")
-	lookupPatchMeta, err := strategicpatch.NewPatchMetaFromStruct(versionedObj)
+	debug.Log("event", "createNewPatch")
+	finalPatch, err := p.CreateTwoWayMergePatch(originalYaml, dirtied)
 	if err != nil {
-		return nil, errors.Wrap(err, "create new patch meta")
+		return nil, errors.Wrap(err, "create patch")
 	}
 
-	debug.Log("event", "mergeStrategicMergeMapPatch")
-	outJSON, err := strategicpatch.MergeStrategicMergeMapPatchUsingLookupPatchMeta(lookupPatchMeta, currentResource.Object, newResource.Object)
-	if err != nil {
-		return nil, errors.Wrap(err, "merging patches")
-	}
-
-	debug.Log("event", "marshal.mergedPatches")
-	out, err := json.Marshal(outJSON)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshal merged patch")
-	}
-
-	debug.Log("event", "json.to.yaml")
-	patch, err := yaml.JSONToYAML(out)
-	if err != nil {
-		return nil, errors.Wrap(err, "convert json to yaml")
-	}
-
-	return patch, nil
+	return finalPatch, nil
 }
 
-func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource string) ([]byte, error) {
+func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
 	defer p.applyPatchCleanup()
 
@@ -201,12 +188,12 @@ func (p *ShipPatcher) ApplyPatch(patch string, step api.Kustomize, resource stri
 	}
 
 	debug.Log("event", "writeFile.tempPatch")
-	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), []byte(patch), 0755); err != nil {
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), patch, 0755); err != nil {
 		return nil, errors.Wrap(err, "write temp patch overlay")
 	}
 
 	debug.Log("event", "relPath")
-	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.RenderedHelmPath)
+	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, constants.KustomizeBasePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find relative path")
 	}
@@ -305,5 +292,76 @@ func (p *ShipPatcher) applyPatchCleanup() {
 	err := p.FS.RemoveAll(constants.TempApplyOverlayPath)
 	if err != nil {
 		level.Error(log.With(p.Logger, "clean up"))
+	}
+}
+
+func (p *ShipPatcher) ModifyField(original []byte, path []string) ([]byte, error) {
+	originalMap := map[string]interface{}{}
+
+	originalJSON, err := yaml.YAMLToJSON(original)
+	if err != nil {
+		return nil, errors.Wrap(err, "original yaml to json")
+	}
+
+	if err := json.Unmarshal(originalJSON, &originalMap); err != nil {
+		return nil, errors.Wrap(err, "unmarshal original yaml")
+	}
+
+	modified, err := p.modifyField(originalMap, []string{}, path)
+	if err != nil {
+		return nil, errors.Wrap(err, "error modifying value")
+	}
+
+	modifiedJSON, err := json.Marshal(modified)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal modified json")
+	}
+
+	modifiedYAML, err := yaml.JSONToYAML(modifiedJSON)
+	if err != nil {
+		return nil, errors.Wrap(err, "modified json to yaml")
+	}
+
+	return modifiedYAML, nil
+}
+
+func (p *ShipPatcher) modifyField(original interface{}, current []string, path []string) (interface{}, error) {
+	originalType := reflect.TypeOf(original)
+	switch originalType.Kind() {
+	case reflect.Map:
+		typedOriginal, ok := original.(map[string]interface{})
+		modifiedMap := make(map[string]interface{})
+		if !ok {
+			return nil, errors.New("error asserting map")
+		}
+		for key, value := range typedOriginal {
+			modifiedValue, err := p.modifyField(value, append(current, key), path)
+			if err != nil {
+				return nil, err
+			}
+			modifiedMap[key] = modifiedValue
+		}
+		return modifiedMap, nil
+	case reflect.Slice:
+		typedOriginal, ok := original.([]interface{})
+		modifiedSlice := make([]interface{}, len(typedOriginal))
+		if !ok {
+			return nil, errors.New("error asserting slice")
+		}
+		for key, value := range typedOriginal {
+			modifiedValue, err := p.modifyField(value, append(current, strconv.Itoa(key)), path)
+			if err != nil {
+				return nil, err
+			}
+			modifiedSlice[key] = modifiedValue
+		}
+		return modifiedSlice, nil
+	default:
+		for idx := range path {
+			if current[idx] != path[idx] {
+				return original, nil
+			}
+		}
+		return PATCH_TOKEN, nil
 	}
 }

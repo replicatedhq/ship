@@ -1,5 +1,6 @@
 import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
+import { getContentForStep } from "../appRoutes/actions";
 
 const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
@@ -77,6 +78,36 @@ export function saveKustomizeOverlay(payload) {
   };
 }
 
+export function deleteOverlay(path) {
+  return async (dispatch) => {
+    let response;
+    dispatch(loadingData("deleteOverlay", true));
+    try {
+      const url = `${apiEndpoint}/kustomize/patch?path=${path}`;
+      response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) {
+        dispatch(loadingData("deleteOverlay", false));
+        return;
+      }
+      await response.json();
+      dispatch(loadingData("deleteOverlay", false));
+      dispatch(receivePatch(""));
+      dispatch(getFileContent(path));
+      dispatch(getContentForStep("kustomize"));
+    } catch (error) {
+      dispatch(loadingData("deleteOverlay", false));
+      console.log(error)
+      return;
+    }
+  };
+}
+
 export function finalizeKustomizeOverlay() {
   return async (dispatch) => {
     let response;
@@ -125,7 +156,10 @@ export function generatePatch(payload) {
         },
         body: JSON.stringify(payload)
       });
-      const { patch } = await response.json();
+      let { patch } = await response.json();
+      if (!response.ok) {
+        patch = payload.current;
+      }
       dispatch(receivePatch(patch));
     } catch (error) {
       console.log(error)

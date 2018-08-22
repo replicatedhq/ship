@@ -12,6 +12,7 @@ import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
+import ConfigOnly from "../../containers/ConfigOnly";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
@@ -31,24 +32,15 @@ class DetermineComponentForRoute extends React.Component {
     this.props.getContentForStep(this.props.routeId);
   }
 
-  componentDidUpdate() {
-    const { progress = {} } = this.props;
-    const { detail = "{}" } = progress;
-    const parsedDetail = JSON.parse(detail);
-
-    const pollStartedButNotFinished = !this.state.finished && this.state.startPoll;
-    if(parsedDetail.status === "success" && pollStartedButNotFinished) {
-      this.setState({ finished: true, startPoll: false }, () => {
-        this.stopPoll();
-      });
-    }
-  }
-
   async handleAction(action, gotoNext) {
     await this.props.finalizeStep({action});
     if (gotoNext) {
       this.gotoRoute();
     }
+  }
+
+  getContentForStep() {
+    this.props.getContentForStep(this.props.routeId);
   }
 
   gotoRoute(route) {
@@ -61,7 +53,7 @@ class DetermineComponentForRoute extends React.Component {
     }
 
     if (!nextRoute) {
-      this.handleShutdown();
+      return this.handleShutdown();
     }
     this.props.history.push(`/${nextRoute.id}`);
   }
@@ -74,53 +66,23 @@ class DetermineComponentForRoute extends React.Component {
         "Accept": "application/json",
       },
     });
-
+    await this.props.shutdownApp();
     this.props.history.push("/done");
   }
 
-  async getCurrentStep(stepId) {
-    const url = `${apiEndpoint}/navcycle/step/${stepId}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
-    });
-    const body = await response.json();
-    return body;
-  }
-
   async skipKustomize() {
-    const kustomizeStepIndex = findIndex(this.props.routes, { phase: "kustomize" });
-    const kustomizeStep = this.props.routes[kustomizeStepIndex];
-    const stepAfterKustomize = this.props.routes[kustomizeStepIndex + 1];
-
-    const { actions } = await this.getCurrentStep(kustomizeStep.id);
+    const { routes, actions } = this.props;
+    const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
+    const kustomizeStep = routes[kustomizeStepIndex];
+    const stepAfterKustomize = routes[kustomizeStepIndex + 1];
     this.handleAction(actions[0]);
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
 
   async startPoll(routeId, cb) {
-    let finished = false;
-
-    if (!this.interval) {
-      this.interval = setInterval(() => {
-        if (finished) {
-          clearInterval(this.interval);
-          cb();
-        } else {
-          this.getCurrentStep(routeId).then(({ progress }) => {
-            const { detail } = progress;
-            const parsedDetail = JSON.parse(detail);
-            finished = parsedDetail.status === "success";
-          });
-        }
-      }, 1000);
+    if (!this.props.isPolling) {
+      this.props.pollContentForStep(routeId, cb);
     }
-  }
-
-  stopPoll() {
-    clearInterval(this.interval);
   }
 
   renderStep(phase) {
@@ -144,6 +106,14 @@ class DetermineComponentForRoute extends React.Component {
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
+    case "config":
+      return (
+        <ConfigOnly
+          actions={actions}
+          handleAction={this.handleAction}
+          routeId={this.props.routeId}
+        />
+      );
     case "stream":
       return (
         <StepMessage
@@ -157,10 +127,9 @@ class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets
-          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
+          startPoll={this.startPoll}
           routeId={this.props.routeId}
-          finished={this.state.finished}
-          handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
         />
@@ -175,7 +144,7 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <StepHelmIntro
           actions={actions}
-          helmChartMetadata={this.props.helmChartMetadata}
+          shipAppMetadata={this.props.shipAppMetadata}
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
@@ -185,8 +154,7 @@ class DetermineComponentForRoute extends React.Component {
         <StepHelmValues
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
-          isNewRouter={this.props.isNewRouter}
-          helmChartMetadata={this.props.helmChartMetadata}
+          shipAppMetadata={this.props.shipAppMetadata}
           actions={actions}
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
@@ -203,16 +171,16 @@ class DetermineComponentForRoute extends React.Component {
     case "kustomize":
       return (
         <KustomizeOverlay
-          startPoll={() => this.startPoll(this.props.routeId, this.gotoRoute)}
-          getCurrentStep={this.getCurrentStep}
+          startPoll={this.startPoll}
+          getCurrentStep={this.getContentForStep}
+          pollCallback={this.gotoRoute}
           routeId={this.props.routeId}
-          finished={this.state.finished}
-          location={location}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}
           handleAction={this.handleAction}
           currentStep={currentStep}
+          skipKustomize={this.skipKustomize}
           dataLoading={this.props.dataLoading}
         />
       );
@@ -231,8 +199,8 @@ class DetermineComponentForRoute extends React.Component {
     return (
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
-          <div className="flex-1-auto flex-column u-overflow--auto container u-paddingTop--30">
-            {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
+          <div className="flex-1-auto flex-column u-overflow--auto">
+            {(isLoadingStep || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />
               </div>

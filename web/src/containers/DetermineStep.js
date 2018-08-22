@@ -9,7 +9,7 @@ const DetermineStep = connect(
   state => ({
     dataLoading: state.ui.main.loading,
     currentStep: state.data.determineSteps.stepsData.step,
-    helmChartMetadata: state.data.kustomizeSettings.helmChartMetadata,
+    shipAppMetadata: state.data.kustomizeSettings.shipAppMetadata,
     phase: state.data.determineSteps.stepsData.phase,
     actions: state.data.determineSteps.stepsData.actions,
     progress: state.data.determineSteps.stepsData.progress,

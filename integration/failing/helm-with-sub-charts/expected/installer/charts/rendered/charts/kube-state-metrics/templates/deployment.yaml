@@ -1,0 +1,89 @@
+##---
+# Source: datadog/charts/kube-state-metrics/templates/deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ship-kube-state-metrics
+  labels:
+    app: kube-state-metrics
+    chart: "kube-state-metrics-0.8.0"
+    release: "ship"
+    heritage: "Tiller"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kube-state-metrics
+        release: "ship"
+    spec:
+      serviceAccountName: ship-kube-state-metrics
+      containers:
+      - name: kube-state-metrics
+        args:
+
+        - --collectors=cronjobs
+
+
+        - --collectors=daemonsets
+
+
+        - --collectors=deployments
+
+
+        - --collectors=endpoints
+
+
+        - --collectors=horizontalpodautoscalers
+
+
+        - --collectors=jobs
+
+
+        - --collectors=limitranges
+
+
+        - --collectors=namespaces
+
+
+        - --collectors=nodes
+
+
+        - --collectors=persistentvolumeclaims
+
+
+        - --collectors=persistentvolumes
+
+
+        - --collectors=pods
+
+
+        - --collectors=replicasets
+
+
+        - --collectors=replicationcontrollers
+
+
+        - --collectors=resourcequotas
+
+
+        - --collectors=services
+
+
+        - --collectors=statefulsets
+
+
+        imagePullPolicy: IfNotPresent
+        image: "k8s.gcr.io/kube-state-metrics:v1.3.1"
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+            null
+            
+

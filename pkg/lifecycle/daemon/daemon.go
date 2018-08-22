@@ -58,6 +58,7 @@ func (d *ShipDaemon) EnsureStarted(ctx context.Context, release *api.Release) ch
 func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	debug := level.Debug(log.With(d.Logger, "method", "serve"))
 	config := cors.DefaultConfig()
+	config.AllowMethods = append(config.AllowMethods, "DELETE")
 	config.AllowAllOrigins = true
 
 	g := gin.New()

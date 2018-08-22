@@ -82,8 +82,8 @@ func TestUnpackLayer(t *testing.T) {
 				})
 
 				if test.dockerError == nil {
-					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, &matchers.StartsWith{Value: "/tmp/dockerlayer"}).Return(nil)
-					archiver.EXPECT().Open(&matchers.StartsWith{Value: "/tmp/dockerlayer"}, asset.Dest).Return(nil)
+					archiver.EXPECT().Open(&matchers.Contains{Value: "/dockerlayer"}, &matchers.Contains{Value: "/dockerlayer"}).Return(nil)
+					archiver.EXPECT().Open(&matchers.Contains{Value: "/dockerlayer"}, asset.Dest).Return(nil)
 				}
 
 				rootFs := root.Fs{

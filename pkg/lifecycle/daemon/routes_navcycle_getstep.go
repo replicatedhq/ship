@@ -87,7 +87,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		if helmValues != "" {
 			step.HelmValues.Values = helmValues
 		} else {
-			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.KustomizeHelmPath, "values.yaml"))
+			valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 			if err != nil {
 				return nil, errors.Wrap(err, "read file values.yaml")
 			}
@@ -184,6 +184,19 @@ func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action 
 				ButtonType:  "primary",
 				Text:        "Finalize Overlays",
 				LoadingText: "Finalizing Overlays",
+				OnClick: daemontypes.ActionRequest{
+					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
+					Method: "POST",
+					Body:   "",
+				},
+			},
+		}
+	} else if step.Config != nil {
+		return []daemontypes.Action{
+			{
+				ButtonType:  "primary",
+				Text:        "Continue to next step",
+				LoadingText: "Continue to next step",
 				OnClick: daemontypes.ActionRequest{
 					URI:    fmt.Sprintf("/navcycle/step/%s", step.Source.Shared().ID),
 					Method: "POST",

@@ -11,6 +11,6 @@
         }
       }
     },
-    "chartURL": "github.com/replicatedhq/test-charts/modify-chart"
+    "upstream": "github.com/replicatedhq/test-charts/modify-chart"
   }
 }

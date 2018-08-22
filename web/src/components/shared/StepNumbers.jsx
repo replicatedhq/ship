@@ -96,7 +96,7 @@ class StepNumbers extends React.Component {
       this.determineCurrentStep(step.id); // Is this the current step, if so set to active
       return (
         <div key={`${step.id}-${i}`} id={step.id} className={`flex-auto u-cursor--pointer flex step-number ${step.isActive ? "is-active" : ""} ${step.isComplete ? "is-complete" : ""}`} onClick={() => this.goToStep(i)}>
-          <span className="number flex-column flex-verticalCenter alignItems--center">{step.isComplete ? <span className="icon u-smallCheckWhite"></span> : i + 1}</span>
+          <span className="number flex-column flex-verticalCenter alignItems--center">{step.isComplete ? <span className="icon clickable u-smallCheckWhite"></span> : i + 1}</span>
         </div>
       )
     });

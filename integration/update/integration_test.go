@@ -25,12 +25,12 @@ type TestMetadata struct {
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
-func TestKustomize(t *testing.T) {
+func TestShipUpdate(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "integration")
+	RunSpecs(t, "ship update")
 }
 
-var _ = Describe("basic", func() {
+var _ = Describe("ship update", func() {
 	dockerClient, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -56,6 +56,7 @@ var _ = Describe("basic", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
+					os.Setenv("NO_OS_EXIT", "1")
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())

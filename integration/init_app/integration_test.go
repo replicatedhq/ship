@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/cli"
 	"github.com/replicatedhq/ship/pkg/e2e"
 	"github.com/replicatedhq/ship/pkg/logger"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
@@ -37,7 +39,7 @@ type TestMetadata struct {
 
 func TestInitReplicatedApp(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "integration")
+	RunSpecs(t, "ship init replicated.app")
 }
 
 var _ = Describe("ship init replicated.app/...", func() {
@@ -76,6 +78,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}
 
 				BeforeEach(func(done chan<- interface{}) {
+					os.Setenv("NO_OS_EXIT", "1")
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
@@ -85,13 +88,13 @@ var _ = Describe("ship init replicated.app/...", func() {
 					testMetadata = readMetadata(testPath)
 
 					// if a token is provided, try to ensure the release matches what we have here in the repo
-
-					if vendorToken != "" {
-						channelName := fmt.Sprintf("integration replicated.app %s", file.Name())
-						installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName)
+					if vendorToken == "" {
+						Fail("Please set SHIP_INTEGRATION_VENDOR_TOKEN to run the init_app test suite")
 					}
-					close(done)
 
+					channelName := fmt.Sprintf("integration replicated.app %s", filepath.Base(testPath))
+					installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName)
+					close(done)
 				}, 20)
 
 				AfterEach(func() {
@@ -109,15 +112,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					isStaging := strings.Contains(customerEndpoint, "staging")
-					initTarget := "replicated.app/some-cool-ci-tool"
+					upstream := "replicated.app/some-cool-ci-tool"
 					if isStaging {
-						initTarget = "staging.replicated.app/some-cool-ci-tool"
+						upstream = "staging.replicated.app/some-cool-ci-tool"
 					}
 
 					// this should probably be url encoded but whatever
-					initTarget = fmt.Sprintf(
+					upstream = fmt.Sprintf(
 						"%s?installation_id=%s&customer_id=%s",
-						initTarget,
+						upstream,
 						installationID,
 						testMetadata.CustomerID,
 					)
@@ -127,7 +130,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					cmd.SetOutput(buf)
 					cmd.SetArgs(append([]string{
 						"init",
-						initTarget,
+						upstream,
 						"--headless",
 						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--log-level=off",
@@ -157,7 +160,10 @@ func createRelease(
 	vendorClient := &e2e.GraphQLClient{
 		GQLServer: endpointURL,
 		Token:     vendorToken,
-		Logger:    logger.FromViper(viper.GetViper()),
+		Logger: logger.New(
+			viper.GetViper(),
+			afero.Afero{Fs: afero.NewMemMapFs()},
+		),
 	}
 	releaseContents, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/release.yml"))
 	Expect(err).NotTo(HaveOccurred())

@@ -48,9 +48,14 @@ copy-to-help-center:
 	: To Copy to Help center, run the following command:
 	:
 	:    make pipeline
-	:    cp assets/* [path/to/help/center]/content/api/ship-assets/
-	:    cp lifecycle/* [path/to/help/center]/content/api/ship-lifecycle/
-	:    cp config/* [path/to/help/center]/content/api/ship-config/
+	:    cp assets/* [path/to/ship-www]/content/api/ship-assets/
+	:    cp lifecycle/* [path/to/ship-www]/content/api/ship-lifecycle/
+	:    cp config/* [path/to/ship-www]/content/api/ship-config/
+
+copy-to-help-center-gopath:
+	cp assets/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-assets/
+	cp lifecycle/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-lifecycle/
+	cp config/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-config/
 
 copy-replicated-lint:
 	: To Copy to replicated lint, run the following command:

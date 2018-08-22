@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -37,6 +38,10 @@ type NavcycleRoutes struct {
 	Renderer       lifecycle.Renderer
 	Planner        planner.Planner
 	Patcher        patch.Patcher
+	ConfigRenderer *resolve.APIConfigRenderer
+
+	ConfigSaved   chan interface{}
+	CurrentConfig map[string]interface{}
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
@@ -51,12 +56,18 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	v1.POST("/navcycle/step/:step", d.completeStep)
 	v1.POST("/shutdown", d.shutdown)
 
-	v1.POST("/kustomize/file", d.kustomizeGetFile)
-	v1.POST("/kustomize/save", d.kustomizeSaveOverlay)
-	v1.POST("/kustomize/finalize", d.kustomizeFinalize)
-	v1.POST("/kustomize/patch", d.createOrMergePatch)
-	v1.DELETE("/kustomize/patch", d.deletePatch)
-	v1.POST("/kustomize/apply", d.applyPatch)
+	kustom := v1.Group("/kustomize")
+	kustom.POST("file", d.kustomizeGetFile)
+	kustom.POST("save", d.kustomizeSaveOverlay)
+	kustom.POST("finalize", d.kustomizeFinalize)
+	kustom.POST("patch", d.createOrMergePatch)
+	kustom.DELETE("patch", d.deletePatch)
+	kustom.POST("apply", d.applyPatch)
+
+	conf := v1.Group("/config")
+	conf.POST("live", d.postAppConfigLive(release))
+	conf.PUT("", d.putAppConfig(release))
+	conf.PUT("finalize", d.finalizeAppConfig(release))
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {

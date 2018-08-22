@@ -72,6 +72,9 @@ func (r *LocalRenderer) Execute(
 				Meta:  meta,
 				Viper: r.Viper,
 			},
+			templates.ShipContext{
+				Logger: r.Logger,
+			},
 		)
 
 		built, err := builder.String(asset.Contents)

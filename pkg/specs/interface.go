@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"path/filepath"
-	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
+	"github.com/replicatedhq/ship/pkg/util"
 )
 
 // A resolver turns a target string into a release.
@@ -20,85 +20,94 @@ import (
 //
 //   github.com/helm/charts/stable/nginx-ingress
 //   replicated.app/cool-ci-tool?customer_id=...&installation_id=...
-//   file:///home/bob/apps/ship.yml
-//   file:///home/luke/my-charts/deathstar_destroyer
-func (r *Resolver) ResolveRelease(ctx context.Context, target string) (*api.Release, error) {
+//   file:///home/bob/apps/ship.yaml
+//   file:///home/luke/my-charts/proton-torpedoes
+func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "ResolveRelease")
-	parsed, err := url.Parse(target)
+	parsed, err := url.Parse(upstream)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parse url %s", target)
+		return nil, errors.Wrapf(err, "parse url %s", upstream)
 
 	}
-	r.ui.Info(fmt.Sprintf("Reading %s ...", target))
-	// todo fetch it
+	r.ui.Info(fmt.Sprintf("Reading %s ...", upstream))
 
 	r.ui.Info("Determining application type ...")
-	applicationType := r.determineApplicationType(target)
+	applicationType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	if err != nil {
+		return nil, errors.Wrapf(err, "determine type of %s", upstream)
+	}
 	debug.Log("event", "applicationType.resolve", "type", applicationType)
 	r.ui.Info(fmt.Sprintf("Detected application type %s", applicationType))
 
 	switch applicationType {
+
 	case "helm":
-		return r.resolveChart(ctx, target)
+		defaultRelease := DefaultHelmRelease(constants.HelmChartPath)
+		return r.resolveRelease(
+			ctx,
+			upstream,
+			localPath,
+			constants.HelmChartPath,
+			&defaultRelease,
+		)
+
+	case "k8s":
+		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
+		return r.resolveRelease(
+			ctx,
+			upstream,
+			localPath,
+			constants.KustomizeBasePath,
+			&defaultRelease,
+		)
+
 	case "replicated.app":
-		selector := (&Selector{}).unmarshalFrom(parsed)
-		return r.ResolveAppRelease(ctx, selector)
+		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
+		return r.AppResolver.ResolveAppRelease(ctx, selector)
 	}
 
-	return nil, errors.Errorf("unknown application type %q for target %q", applicationType, target)
+	return nil, errors.Errorf("unknown application type %q for upstream %q", applicationType, upstream)
 }
 
-func (r *Resolver) resolveChart(ctx context.Context, target string) (*api.Release, error) {
+func (r *Resolver) resolveRelease(
+	ctx context.Context,
+	upstream,
+	localPath string,
+	destPath string,
+	defaultSpec *api.Spec,
+) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
-	chartRepoURL := r.Viper.GetString("chart-repo-url")
-	chartVersion := r.Viper.GetString("chart-version")
-	helmChartMetadata, err := r.ResolveChartMetadata(context.Background(), target, chartRepoURL, chartVersion)
+	err := util.BackupIfPresent(r.FS, destPath, debug, r.ui)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve helm metadata for %s", target)
+		return nil, errors.Wrapf(err, "backup %s", destPath)
+	}
+	err = r.FS.Rename(localPath, destPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
 	}
 
-	// serialize the ChartURL to disk. First step in creating a state file
-	r.StateManager.SerializeChartURL(target)
-
-	// persist helm options
-	err = r.StateManager.SaveHelmOpts(chartRepoURL, chartVersion)
+	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "write helm opts")
+		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
 	}
 
-	debug.Log("event", "check upstream release")
-	spec, err := r.ResolveChartReleaseSpec(ctx)
+	debug.Log("event", "check upstream for ship.yaml")
+	spec, err := r.maybeGetShipYAML(ctx, destPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve chart release for %s", filepath.Join(constants.KustomizeHelmPath, "ship.yaml"))
+		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", destPath)
 	}
 
-	debug.Log("event", "build helm release")
-	err = r.StateManager.SerializeContentSHA(helmChartMetadata.ContentSHA)
-	if err != nil {
-		return nil, errors.Wrap(err, "write content sha")
+	if spec == nil {
+		debug.Log("event", "no helm release")
+		r.ui.Info("ship.yaml not found in upstream, generating default lifecycle for application ...")
+		spec = defaultSpec
 	}
 
 	return &api.Release{
 		Metadata: api.ReleaseMetadata{
-			HelmChartMetadata: helmChartMetadata,
+			ShipAppMetadata: *metadata,
 		},
-		Spec: spec,
+		Spec: *spec,
 	}, nil
-}
-
-func (r *Resolver) determineApplicationType(target string) string {
-	// hack hack hack
-	isReplicatedApp := strings.HasPrefix(target, "replicated.app") ||
-		strings.HasPrefix(target, "staging.replicated.app") ||
-		strings.HasPrefix(target, "local.replicated.app")
-
-	applicationType := "helm"
-	if isReplicatedApp {
-		applicationType = "replicated.app"
-
-	}
-
-	// todo more types
-	return applicationType
 }

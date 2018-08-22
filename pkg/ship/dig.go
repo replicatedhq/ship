@@ -39,6 +39,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
+	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/ui"
@@ -52,7 +55,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		provide(v),
 		clock,
-		logger.FromViper,
+		logger.New,
 		ui.FromViper,
 		fs.NewBaseFilesystem,
 		daemon.WebUIFactoryFactory,
@@ -60,6 +63,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		patch.NewShipPatcher,
 		specs.NewIDPatcher,
+		apptype.NewInspector,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
@@ -69,8 +73,10 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		state.NewManager,
 		planner.NewFactory,
 		specs.NewResolver,
-		specs.NewGraphqlClient,
-		specs.NewGithubClient, lifecycle.NewRunner,
+		replicatedapp.NewGraphqlClient,
+		replicatedapp.NewAppResolver,
+		githubclient.NewGithubClient,
+		lifecycle.NewRunner,
 
 		inline.NewRenderer,
 
@@ -192,7 +198,7 @@ func navcycleProviders() []interface{} {
 
 func Get(v *viper.Viper) (*Ship, error) {
 	// who injects the injectors?
-	debug := log.With(level.Debug(logger.FromViper(v)), "component", "injector", "phase", "instance.get")
+	debug := log.With(level.Debug(logger.New(v, fs.NewBaseFilesystem())), "component", "injector", "phase", "instance.get")
 
 	debug.Log("event", "injector.build")
 	injector, err := buildInjector(v)

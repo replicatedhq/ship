@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
 
 	"strings"
@@ -29,6 +30,22 @@ func RootCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 			os.Exit(1)
+		},
+		// I think its okay to use real OS filesystem commands instead of afero here,
+		// since I think cobra lives outside the scope of dig injection/unit testing.
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var multiErr *multierror.Error
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
+			multiErr = multierror.Append(os.MkdirAll(constants.ShipPathInternalTmp, 0755))
+			return multiErr.ErrorOrNil()
+
+		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			var multiErr *multierror.Error
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
+			// if we got here, it means we finished successfully, so remove the internal debug log file
+			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalLog))
+			return multiErr.ErrorOrNil()
 		},
 	}
 	cobra.OnInitialize(initConfig)

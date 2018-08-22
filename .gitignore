@@ -11,5 +11,7 @@ integration/*/_test_*
 
 /.state/
 /chart/
+/chart.bak/
 /overlays/
 /base/
+/base.bak/

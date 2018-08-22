@@ -2,7 +2,6 @@ package helm
 
 import (
 	"context"
-	"fmt"
 	"path"
 
 	"github.com/go-kit/kit/log"
@@ -10,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/helm"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/util"
@@ -32,9 +31,10 @@ type ChartFetcher interface {
 
 // ClientFetcher is a ChartFetcher that does all the pulling/cloning client side
 type ClientFetcher struct {
-	Logger log.Logger
-	GitHub github.Renderer
-	FS     afero.Afero
+	Logger       log.Logger
+	GitHub       github.Renderer
+	FS           afero.Afero
+	HelmCommands Commands
 }
 
 func (f *ClientFetcher) FetchChart(
@@ -75,15 +75,20 @@ func (f *ClientFetcher) FetchChart(
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
 
-		outstring, err := helm.Init("")
+		err = f.HelmCommands.Init()
 		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("helm init failed, output %q", outstring))
+			return "", errors.Wrap(err, "init helm")
 		}
 
-		outstring, err = helm.Fetch(asset.HelmFetch.ChartRef, asset.HelmFetch.RepoURL, asset.HelmFetch.Version, checkoutDir, "")
-
+		err = f.HelmCommands.Fetch(
+			asset.HelmFetch.ChartRef,
+			asset.HelmFetch.RepoURL,
+			asset.HelmFetch.Version,
+			checkoutDir,
+			constants.InternalTempHelmHome,
+		)
 		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("helm fetch failed, output %q", outstring))
+			return "", errors.Wrap(err, "helm fetch")
 		}
 
 		// find the path that the chart was fetched to
@@ -104,10 +109,12 @@ func NewFetcher(
 	logger log.Logger,
 	github github.Renderer,
 	fs afero.Afero,
+	helmCommands Commands,
 ) ChartFetcher {
 	return &ClientFetcher{
-		Logger: logger,
-		GitHub: github,
-		FS:     fs,
+		Logger:       logger,
+		GitHub:       github,
+		FS:           fs,
+		HelmCommands: helmCommands,
 	}
 }

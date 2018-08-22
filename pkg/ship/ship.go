@@ -4,23 +4,26 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
-
-	"os/signal"
-	"syscall"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/version"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -38,13 +41,15 @@ type Ship struct {
 	InstallationID string
 	PlanOnly       bool
 
-	Daemon    daemontypes.Daemon
-	Resolver  *specs.Resolver
-	Runbook   string
-	Client    *specs.GraphQLClient
-	UI        cli.Ui
-	State     state.Manager
-	IDPatcher *specs.IDPatcher
+	Daemon           daemontypes.Daemon
+	Resolver         *specs.Resolver
+	AppTypeInspector apptype.Inspector
+	AppResolver      replicatedapp.Resolver
+	Runbook          string
+	UI               cli.Ui
+	State            state.Manager
+	IDPatcher        *specs.IDPatcher
+	FS               afero.Afero
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
@@ -56,11 +61,13 @@ func NewShip(
 	v *viper.Viper,
 	daemon daemontypes.Daemon,
 	resolver *specs.Resolver,
-	graphql *specs.GraphQLClient,
+	appresolver replicatedapp.Resolver,
 	runner *lifecycle.Runner,
 	ui cli.Ui,
 	stateManager state.Manager,
 	patcher *specs.IDPatcher,
+	fs afero.Afero,
+	inspector apptype.Inspector,
 ) (*Ship, error) {
 
 	return &Ship{
@@ -73,26 +80,31 @@ func NewShip(
 
 		KustomizeRaw: v.GetString("raw"),
 
-		Viper:     v,
-		Logger:    logger,
-		Resolver:  resolver,
-		Client:    graphql,
-		Daemon:    daemon,
-		UI:        ui,
-		Runner:    runner,
-		State:     stateManager,
-		IDPatcher: patcher,
+		Viper:            v,
+		Logger:           logger,
+		Resolver:         resolver,
+		AppResolver:      appresolver,
+		AppTypeInspector: inspector,
+		Daemon:           daemon,
+		UI:               ui,
+		Runner:           runner,
+		State:            stateManager,
+		IDPatcher:        patcher,
+		FS:               fs,
 	}, nil
 }
 
 func (s *Ship) Shutdown(cancelFunc context.CancelFunc) {
+	// remove the temp dir -- if we're exiting with an error, then cobra wont get a chance to clean up
+	s.FS.RemoveAll(constants.ShipPathInternalTmp)
+
 	// need to pause beforce canceling the context, because we need
 	// the daemon to stay up for a few seconds so the UI can know its
 	// time to show the "You're all done" page
 	level.Info(s.Logger).Log("event", "shutdown.prePause", "waitTime", "1s")
 	time.Sleep(1 * time.Second)
 
-	// now shut it all down, give things 5 seconds to clean up
+	// now shut it all down, give things 1 second to clean up
 	level.Info(s.Logger).Log("event", "shutdown.commence", "waitTime", "1s")
 	cancelFunc()
 	time.Sleep(1 * time.Second)
@@ -142,12 +154,12 @@ func (s *Ship) Execute(ctx context.Context) error {
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
-	selector := &specs.Selector{
+	selector := &replicatedapp.Selector{
 		CustomerID:     s.CustomerID,
 		ReleaseSemver:  s.ReleaseSemver,
 		InstallationID: s.InstallationID,
 	}
-	release, err := s.Resolver.ResolveAppRelease(ctx, selector)
+	release, err := s.AppResolver.ResolveAppRelease(ctx, selector)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}
@@ -156,7 +168,7 @@ func (s *Ship) Execute(ctx context.Context) error {
 	return s.execute(ctx, release, selector, false)
 }
 
-func (s *Ship) execute(ctx context.Context, release *api.Release, selector *specs.Selector, isKustomize bool) error {
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector, isKustomize bool) error {
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
@@ -180,7 +192,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 		}
 
 		if err == nil && !isKustomize && selector != nil {
-			_ = s.Resolver.RegisterInstall(ctx, *selector, release)
+			_ = s.AppResolver.RegisterInstall(ctx, *selector, release)
 		}
 		runResultCh <- err
 	}()
@@ -198,38 +210,4 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *spec
 	case result := <-runResultCh:
 		return result
 	}
-}
-
-// ExitWithError should be called by the parent cobra commands if something goes wrong.
-func (s *Ship) ExitWithError(err error) {
-	if s.Viper.GetString("log-level") == "debug" {
-		s.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
-	} else {
-		s.UI.Error(fmt.Sprintf("There was an unexpected error! %v", err))
-	}
-	s.UI.Output("")
-
-	time.Sleep(100 * time.Millisecond)
-
-	// TODO this should probably be part of lifecycle
-	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
-	// we want to avoid exiting in certain integration testing scenarios
-	if !s.Viper.GetBool("no-os-exit") {
-		os.Exit(1)
-	}
-}
-
-func (s *Ship) ExitWithWarn(err error) {
-	if s.Viper.GetString("log-level") == "debug" {
-		s.UI.Warn(fmt.Sprintf("%+v", err))
-	} else {
-		s.UI.Warn(fmt.Sprintf("%v", err))
-	}
-	s.UI.Output("")
-
-	time.Sleep(100 * time.Millisecond)
-
-	// TODO this should probably be part of lifecycle
-	s.UI.Info("There was an error configuring the application. Please re-run with --log-level=debug and include the output in any support inquiries.")
-	os.Exit(1)
 }

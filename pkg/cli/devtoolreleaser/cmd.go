@@ -9,6 +9,7 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/fs"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,7 +27,7 @@ func Cmd() *cobra.Command {
 
 			releaser := &Releaser{
 				viper:  vip,
-				logger: logger.FromViper(vip),
+				logger: logger.New(vip, fs.NewBaseFilesystem()),
 				ui: &cli.ColoredUi{
 					OutputColor: cli.UiColorNone,
 					ErrorColor:  cli.UiColorRed,
