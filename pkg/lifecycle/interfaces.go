@@ -22,7 +22,7 @@ type Renderer interface {
 }
 
 type Terraformer interface {
-	Execute(ctx context.Context, release api.Release, step api.Terraform) error
+	Execute(ctx context.Context, release api.Release, step api.Terraform, confirmChan chan bool) error
 	WithStatusReceiver(receiver daemontypes.StatusReceiver) Terraformer
 }
 

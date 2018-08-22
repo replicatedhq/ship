@@ -72,10 +72,6 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	mesg.POST("confirm", d.postConfirmMessage)
 	mesg.GET("get", d.getCurrentMessage)
 
-	tf := v1.Group("/terraform")
-	tf.POST("apply", d.terraformApply)
-	tf.POST("skip", d.terraformSkip)
-
 	v1.GET("/channel", d.getChannel(release))
 
 	v1.GET("/helm-metadata", d.getHelmMetadata(release))

@@ -56,7 +56,5 @@ lifecycle:
     - message:
         contents: "hi"
     - render: {}
-    - terraform:
-        path: "empty/"
     - message:
         contents: "bye"

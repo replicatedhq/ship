@@ -63,7 +63,7 @@ func (t *ForkTerraformer) WithStatusReceiver(status daemontypes.StatusReceiver) 
 	}
 }
 
-func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, terraformConfirmedChan chan bool) error {
 	t.dir = step.Path
 
 	if err := t.init(); err != nil {
@@ -79,7 +79,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	}
 
 	if !viper.GetBool("terraform-yes") {
-		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
+		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release, terraformConfirmedChan)
 		if err != nil {
 			return errors.Wrap(err, "confirm plan")
 		}
@@ -111,7 +111,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		retry := <-t.Daemon.TerraformConfirmedChan()
 		t.Daemon.CleanPreviousStep()
 		if retry {
-			return t.Execute(ctx, release, step)
+			return t.Execute(ctx, release, step, terraformConfirmedChan)
 		}
 		return errors.Wrap(err, "apply")
 	}

@@ -89,20 +89,31 @@ export function pollContentForStep(stepId, cb) {
     dispatch(polling(true));
 
     const intervalId = setInterval(async() => {
-      const body = await fetchContentForStep(stepId)
+      const body = await fetchContentForStep(stepId).catch(() => {
+        dispatch(polling(false));
+        clearInterval(intervalId);
+        return;
+      });
       dispatch(setProgress(body.progress));
 
       const { progress } = body;
       const { detail } = progress;
       const parsedDetail = JSON.parse(detail);
-      const finished = parsedDetail.status === "success";
-      if (finished) {
+
+      const finishedStatus = parsedDetail.status === "success";
+      const errorStatus = parsedDetail.status === "error";
+
+      if (finishedStatus) {
         dispatch(polling(false));
         clearInterval(intervalId);
         return cb();
       }
+      if (errorStatus) {
+        dispatch(polling(false));
+        clearInterval(intervalId);
+        return;
+      }
     }, 1000);
-
     return;
   };
 }

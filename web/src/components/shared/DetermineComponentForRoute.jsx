@@ -10,6 +10,7 @@ import StepMessage from "./StepMessage";
 import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
+import StepTerraform from "./StepTerraform";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
@@ -86,7 +87,14 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   renderStep(phase) {
-    const { currentStep, progress, actions, location } = this.props;
+    const {
+      currentStep,
+      progress,
+      actions,
+      location,
+      routeId,
+    } = this.props;
+
     if (!phase || !phase.length) return null;
     switch (phase) {
     case "requirementNotMet":
@@ -128,16 +136,20 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <StepBuildingAssets
           startPoll={this.startPoll}
-          routeId={this.props.routeId}
+          routeId={routeId}
           gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
         />
       );
-    case "terraform.prepare":
+    case "terraform":
       return (
-        <StepBuildingAssets
-          stepId={this.props.routeId}
+        <StepTerraform
+          routeId={routeId}
+          startPoll={this.startPoll}
+          location={location}
+          status={progress || currentStep.status}
+          handleAction={this.handleAction}
         />
       );
     case "helm-intro":

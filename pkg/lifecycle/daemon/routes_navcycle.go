@@ -41,8 +41,9 @@ type NavcycleRoutes struct {
 	Patcher        patch.Patcher
 	ConfigRenderer *resolve.APIConfigRenderer
 
-	ConfigSaved   chan interface{}
-	CurrentConfig map[string]interface{}
+	ConfigSaved        chan interface{}
+	TerraformConfirmed chan bool
+	CurrentConfig      map[string]interface{}
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
@@ -69,6 +70,10 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	conf.POST("live", d.postAppConfigLive(release))
 	conf.PUT("", d.putAppConfig(release))
 	conf.PUT("finalize", d.finalizeAppConfig(release))
+
+	terr := v1.Group("/terraform")
+	terr.POST("apply", d.terraformApply)
+	terr.POST("skip", d.terraformApply)
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {

@@ -12,6 +12,7 @@ type StatusReceiver interface {
 	ClearProgress()
 	PushStreamStep(context.Context, <-chan Message)
 	SetStepName(context.Context, string)
+	PushMessageStep(context.Context, Message, []Action)
 }
 
 // Daemon is a sort of UI interface. Some implementations start an API to
@@ -23,7 +24,6 @@ type StatusReceiver interface {
 type Daemon interface {
 	StatusReceiver
 
-	PushMessageStep(context.Context, Message, []Action)
 	EnsureStarted(context.Context, *api.Release) chan error
 	PushRenderStep(context.Context, Render)
 	PushHelmIntroStep(context.Context, HelmIntro, []Action)

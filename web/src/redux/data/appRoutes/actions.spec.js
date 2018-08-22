@@ -14,13 +14,13 @@ describe("appRoutes actions", () => {
       });
 
       const mockFetchContentForStep = jest.fn();
-      mockFetchContentForStep.mockReturnValue({
+      mockFetchContentForStep.mockImplementation(() => Promise.resolve({
         progress: {
           detail: JSON.stringify({
             status: "success",
           }),
         },
-      });
+      }));
       RewireAPI.__set__("fetchContentForStep", mockFetchContentForStep);
 
       const mockCb = jest.fn().mockImplementation(() => done());

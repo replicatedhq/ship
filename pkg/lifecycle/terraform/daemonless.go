@@ -48,19 +48,19 @@ func NewDaemonlessTerraformer(
 }
 
 func (t *DaemonlessTerraformer) WithStatusReceiver(
-	receiver daemontypes.StatusReceiver,
+	statusReceiver daemontypes.StatusReceiver,
 ) lifecycle.Terraformer {
 	return &DaemonlessTerraformer{
 		Logger:        t.Logger,
-		PlanConfirmer: t.PlanConfirmer,
+		PlanConfirmer: t.PlanConfirmer.WithStatusReceiver(statusReceiver),
 		Terraform:     t.Terraform,
 		Viper:         t.Viper,
 
-		Status: receiver,
+		Status: statusReceiver,
 	}
 }
 
-func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform) error {
+func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, confirmedChan chan bool) error {
 	t.dir = step.Path
 
 	if err := t.init(); err != nil {
@@ -76,7 +76,7 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	}
 
 	if !viper.GetBool("terraform-yes") {
-		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release)
+		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release, confirmedChan)
 		if err != nil {
 			return errors.Wrap(err, "confirm plan")
 		}
@@ -97,7 +97,7 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	fmt.Println("html", html)
 
 	close(applyMsgs)
-	// TODO(Robert)
+	// TODO(Robert): WIP
 	// if err != nil {
 	// 	t.Daemon.PushMessageStep(
 	// 		ctx,
