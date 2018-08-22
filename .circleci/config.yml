@@ -139,7 +139,7 @@ jobs:
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
-              docker push replicated/ship:unstable
+              docker push replicated/ship:alpha
             fi
 
   deploy_integration:
