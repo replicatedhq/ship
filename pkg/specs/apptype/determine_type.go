@@ -2,11 +2,14 @@ package apptype
 
 import (
 	"context"
+	"fmt"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/hashicorp/go-getter"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -58,6 +61,33 @@ type inspector struct {
 	ui     cli.Ui
 }
 
+func isGoGettable(path string) bool {
+	_, err := getter.Detect(path, "", getter.Detectors)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+var githubTreeRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/]+)/([^/]+)/tree/([^/]+)/?(.*)`)
+
+// if this path is a github path of the form `github.com/OWNER/REPO/tree/REF/SUBDIR`, change it to the go-getter form
+// of `github.com/OWNER/REPO?ref=REF//SUBDIR`
+// otherwise return the unmodified path
+func untreeGithub(path string) string {
+	matches := githubTreeRegex.FindStringSubmatch(path)
+	if matches == nil || len(matches) < 5 {
+		return path
+	}
+
+	owner := matches[1]
+	repo := matches[2]
+	ref := matches[3]
+	subdir := matches[4]
+
+	return fmt.Sprintf("github.com/%s/%s?ref=%s//%s", owner, repo, ref, subdir)
+}
+
 func (r *inspector) DetermineApplicationType(
 	ctx context.Context,
 	upstream string,
@@ -72,11 +102,10 @@ func (r *inspector) DetermineApplicationType(
 		return "replicated.app", "", nil
 	}
 
-	// "sure"
-	isGithub := strings.HasPrefix(strings.TrimLeft(upstream, "htps:/"), "github.com/")
-
-	if isGithub {
-		return r.determineTypeFromGithubContents(ctx, upstream)
+	upstream = untreeGithub(upstream)
+	if isGoGettable(upstream) {
+		// get with go-getter
+		return r.determineTypeFromContents(ctx, upstream)
 	}
 
 	// otherwise we're fetching the chart with `helm fetch`
@@ -107,7 +136,7 @@ func (r *inspector) DetermineApplicationType(
 	return "helm", localPath, nil
 }
 
-func (r *inspector) determineTypeFromGithubContents(
+func (r *inspector) determineTypeFromContents(
 	ctx context.Context,
 	upstream string,
 ) (
@@ -117,9 +146,9 @@ func (r *inspector) determineTypeFromGithubContents(
 ) {
 	debug := level.Debug(r.logger)
 	savePath := path.Join(constants.ShipPathInternalTmp, "tmp-repo")
-	err = r.github.GetRepoContent(ctx, upstream, savePath)
+	err = getter.GetAny(savePath, upstream)
 	if err != nil {
-		return "", "", errors.Wrap(err, "fetch repo contents")
+		return "", "", errors.Wrap(err, "fetch contents with go-getter")
 	}
 	// if there's a Chart.yaml, assume its a chart
 	isChart, err := r.fs.Exists(path.Join(savePath, "Chart.yaml"))
@@ -159,7 +188,7 @@ func (r *inspector) fetchUnpackChartWithLibHelm(
 	debug.Log("event", "helm.fetch")
 	helmOutput, err := helm.Fetch(chartRef, repoURL, version, tmpDest, home)
 	if err != nil {
-		return "", errors.Wrapf(err, "helm fetch: %", helmOutput)
+		return "", errors.Wrapf(err, "helm fetch: %s", helmOutput)
 	}
 
 	subdir, err := util.FindOnlySubdir(tmpDest, r.fs)
