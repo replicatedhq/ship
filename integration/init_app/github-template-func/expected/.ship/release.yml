@@ -1,0 +1,30 @@
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "installing nothing"
+          echo "semver: {{repl Installation "semver" }}"
+        dest: ./scripts/install.sh
+        mode: 0777
+    - github:
+        repo: replicatedhq/test-charts
+        path: template-functions
+        dest: ./github
+        source: private
+        ref: ad1e78d13c33fae7a7ce22ed19920945ceea23e9
+config:
+  v1:
+    - name: option_group
+      title: Test Option
+      description: testing testing 123
+      items:
+      - name: option
+        type: text
+        value: abc123
+
+lifecycle:
+  v1:
+    - config: {}
+    - render: {}
