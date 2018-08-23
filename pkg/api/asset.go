@@ -83,8 +83,15 @@ type HelmAsset struct {
 	// HelmFetch pulls a chart as 'helm fetch' would
 	HelmFetch *HelmFetch `json:"helm_fetch,omitempty" yaml:"helm_fetch,omitempty" hcl:"helm_fetch,omitempty"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
-	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
+	Local      *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
+	ValuesFrom *ValuesFrom    `json:"values_from,omitempty" yaml:"values_from,omitempty" hcl:"values_from,omitempty"`
 }
+
+type ValuesFrom struct {
+	Lifecycle *ValuesFromLifecycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+}
+
+type ValuesFromLifecycle struct{}
 
 // LocalHelmOpts specifies a helm chart that should be templated
 // using other assets that are already present at `ChartRoot`

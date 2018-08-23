@@ -25,8 +25,7 @@ with a gitops style workflow.`,
 				return err
 			}
 
-			s.InitAndMaybeExit(context.Background())
-			return nil
+			return s.InitAndMaybeExit(context.Background())
 		},
 	}
 

@@ -1,34 +1,33 @@
+##---
+# Source: values-update/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: deployment
   labels:
     app: my-app
-    spam: eggs
-    chart: {{ .Chart.Name }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    chart: values-update
+    release: integration-replicated-app-helm-github
+    heritage: Tiller
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       app: my-app
-      spam: eggs
-      release: {{ .Release.Name }}
+      release: integration-replicated-app-helm-github
   template:
     metadata:
       labels:
         app: my-app
-        spam: eggs
-        release: {{ .Release.Name }}
+        release: integration-replicated-app-helm-github
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: Never
+        - name: values-update
+          image: "nginx:stable"
+          imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: {{ .Values.containerPort }}
+              containerPort: 80
               protocol: TCP
           livenessProbe:
             httpGet:

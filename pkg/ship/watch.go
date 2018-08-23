@@ -11,10 +11,12 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (s *Ship) WatchAndExit(ctx context.Context) {
+func (s *Ship) WatchAndExit(ctx context.Context) error {
 	if err := s.Watch(ctx); err != nil {
 		s.ExitWithError(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Ship) Watch(ctx context.Context) error {

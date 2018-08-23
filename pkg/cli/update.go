@@ -29,8 +29,7 @@ func Update() *cobra.Command {
 				return err
 			}
 
-			s.UpdateAndMaybeExit(context.Background())
-			return nil
+			return s.UpdateAndMaybeExit(context.Background())
 		},
 	}
 

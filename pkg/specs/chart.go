@@ -29,9 +29,8 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 						Local: &api.LocalHelmOpts{
 							ChartRoot: chartPath,
 						},
-						HelmOpts: []string{
-							"--values",
-							path.Join(constants.TempHelmValuesPath, "values.yaml"),
+						ValuesFrom: &api.ValuesFrom{
+							Lifecycle: &api.ValuesFromLifecycle{},
 						},
 					},
 				},

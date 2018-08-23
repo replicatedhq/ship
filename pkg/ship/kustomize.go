@@ -15,13 +15,15 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (s *Ship) InitAndMaybeExit(ctx context.Context) {
+func (s *Ship) InitAndMaybeExit(ctx context.Context) error {
 	if err := s.Init(ctx); err != nil {
 		if err.Error() == constants.ShouldUseUpdate {
 			s.ExitWithWarn(err)
 		}
 		s.ExitWithError(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Ship) stateFileExists(ctx context.Context) bool {
@@ -52,7 +54,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.stateFileExists(ctx) {
 		if err := s.promptToRemoveState(); err != nil {
 			debug.Log("event", "state.remove.prompt.fail")
-			return errors.Wrap(err, "prompt to remove state")
+			return err
 		}
 	}
 
@@ -74,11 +76,11 @@ func (s *Ship) promptToRemoveState() error {
 		}
 	} else {
 		s.UI.Warn(`
-		An existing .ship directory was found. If you are trying to update this application, run "ship update".
-		Continuing will delete this state, would you like to continue? There is no undo.`)
+An existing .ship directory was found. If you are trying to update this application, run "ship update".
+Continuing will delete this state, would you like to continue? There is no undo.`)
 
 		useUpdate, err := s.UI.Ask(`
-			Start from scratch? (y/N): `)
+    Start from scratch? (y/N): `)
 		if err != nil {
 			return err
 		}

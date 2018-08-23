@@ -1,0 +1,14 @@
+---
+assets:
+  v1:
+  - helm:
+      dest: charts/rendered
+      github:
+        repo: replicatedhq/test-charts
+        ref: ff4868c3329dca771f773b36afe0451b773eff3f
+        path: values-static
+        source: public
+config: {}
+lifecycle:
+  v1:
+  - render: {}
