@@ -135,7 +135,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 }
 
 // validateValuesOrAbort checks the user-inputted helm values and will abort/bad request
-// if invalid. Returns "false" if the request was not aborted
+// if invalid. Returns "false" if the request was aborted
 func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesRequest) (ok bool) {
 	debug := level.Debug(log.With(d.Logger, "handler", "validateValuesOrAbort"))
 
