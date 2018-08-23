@@ -251,6 +251,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
+	debug.Log("event", "patcher.modifyField")
 	modified, err := d.Patcher.ModifyField(original, stringPath)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "modify field", "err", err)

@@ -296,27 +296,34 @@ func (p *ShipPatcher) applyPatchCleanup() {
 }
 
 func (p *ShipPatcher) ModifyField(original []byte, path []string) ([]byte, error) {
+	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "modifyField"))
+
 	originalMap := map[string]interface{}{}
 
+	debug.Log("event", "convert original yaml to json")
 	originalJSON, err := yaml.YAMLToJSON(original)
 	if err != nil {
 		return nil, errors.Wrap(err, "original yaml to json")
 	}
 
+	debug.Log("event", "unmarshal original yaml")
 	if err := json.Unmarshal(originalJSON, &originalMap); err != nil {
 		return nil, errors.Wrap(err, "unmarshal original yaml")
 	}
 
+	debug.Log("event", "modify field")
 	modified, err := p.modifyField(originalMap, []string{}, path)
 	if err != nil {
 		return nil, errors.Wrap(err, "error modifying value")
 	}
 
+	debug.Log("event", "marshal modified")
 	modifiedJSON, err := json.Marshal(modified)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal modified json")
 	}
 
+	debug.Log("event", "convert modified yaml to json")
 	modifiedYAML, err := yaml.JSONToYAML(modifiedJSON)
 	if err != nil {
 		return nil, errors.Wrap(err, "modified json to yaml")
@@ -327,6 +334,9 @@ func (p *ShipPatcher) ModifyField(original []byte, path []string) ([]byte, error
 
 func (p *ShipPatcher) modifyField(original interface{}, current []string, path []string) (interface{}, error) {
 	originalType := reflect.TypeOf(original)
+	if original == nil {
+		return nil, nil
+	}
 	switch originalType.Kind() {
 	case reflect.Map:
 		typedOriginal, ok := original.(map[string]interface{})
