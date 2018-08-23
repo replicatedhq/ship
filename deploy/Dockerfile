@@ -2,6 +2,7 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates curl && update-ca-certificates
 COPY ship /ship
 ENV IN_CONTAINER 1
+ENV NO_OPEN 1
 
 ENV TERRAFORM_VERSION=0.11.7
 ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
