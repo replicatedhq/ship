@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/lint/rules"
 	"k8s.io/helm/pkg/lint/support"
 
@@ -98,13 +99,14 @@ func (d *V1Routes) getHelmMetadata(release *api.Release) gin.HandlerFunc {
 	}
 }
 
+type SaveValuesRequest struct {
+	Values string `json:"values"`
+}
+
 func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "saveHelmValues"))
 	defer d.locker(debug)()
-	type Request struct {
-		Values string `json:"values"`
-	}
-	var request Request
+	var request SaveValuesRequest
 
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
@@ -112,22 +114,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	}
 
 	debug.Log("event", "validate")
-	linter := support.Linter{ChartDir: constants.HelmChartPath}
-	rules.Templates(&linter, []byte(request.Values), "", false)
-
-	if len(linter.Messages) > 0 {
-		var formattedErrors []string
-		for _, message := range linter.Messages {
-			formattedErrors = append(formattedErrors, message.Error())
-		}
-
-		debug.Log(
-			"event", "validate.fail",
-			"errors", fmt.Sprintf("%+v", formattedErrors),
-		)
-		c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"errors": formattedErrors,
-		})
+	if ok := d.validateValuesOrAbort(c, request); !ok {
 		return
 	}
 
@@ -145,6 +132,42 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 	}
 	c.String(http.StatusOK, "")
+}
+
+// validateValuesOrAbort checks the user-inputted helm values and will abort/bad request
+// if invalid. Returns "false" if the request was aborted
+func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesRequest) (ok bool) {
+	debug := level.Debug(log.With(d.Logger, "handler", "validateValuesOrAbort"))
+
+	fail := func(errors []string) bool {
+		debug.Log(
+			"event", "validate.fail",
+			"errors", fmt.Sprintf("%+v", errors),
+		)
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"errors": errors,
+		})
+		return false
+	}
+
+	// check we can read it (essentially a yaml validation)
+	_, err := chartutil.ReadValues([]byte(request.Values))
+	if err != nil {
+		return fail([]string{err.Error()})
+	}
+
+	// check that template functions like "required" are satisfied
+	linter := support.Linter{ChartDir: constants.HelmChartPath}
+	rules.Templates(&linter, []byte(request.Values), "", false)
+	if len(linter.Messages) > 0 {
+		var formattedErrors []string
+		for _, message := range linter.Messages {
+			formattedErrors = append(formattedErrors, message.Error())
+		}
+		return fail(formattedErrors)
+
+	}
+	return true
 }
 
 func (d *V1Routes) getChannel(release *api.Release) gin.HandlerFunc {
