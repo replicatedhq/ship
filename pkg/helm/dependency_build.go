@@ -13,7 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*This file was edited by Replicated in 2018 to expose `helm dependency build` as a function.*/
+/*This file was edited by Replicated in 2018 to
+  - expose `helm dependency build` as a function
+  - silence the error output from the cobra command.
+*/
 
 package helm
 
