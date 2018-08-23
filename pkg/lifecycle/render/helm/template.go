@@ -35,7 +35,7 @@ type Templater interface {
 	) error
 }
 
-// NewTemplater returns a configured Templater. For now we just always fork
+// NewTemplater returns a configured Templater that uses vendored libhelm to execute templating/etc
 func NewTemplater(
 	commands Commands,
 	logger log.Logger,
@@ -135,7 +135,7 @@ func (f *LocalTemplater) Template(
 
 	}
 
-	if len(asset.Values) != 0 {
+	if len(asset.Values) > 0 {
 		args, err := f.appendHelmValues(configGroups, templateContext, asset)
 		if err != nil {
 			return errors.Wrap(err, "build helm values")
