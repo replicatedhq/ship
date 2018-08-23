@@ -107,7 +107,7 @@ export default class HelmValuesEditor extends React.Component {
       values: specValue
     }
     if (payload.values !== "") {
-      this.setState({ saving: true, saveFinal: finalize, helmLintErrors: [] });
+      this.setState({ saving: true, savedYaml: false, saveFinal: finalize, helmLintErrors: [] });
       this.props.saveValues(payload)
         .then(({ errors }) => {
           if (errors) {
@@ -119,11 +119,13 @@ export default class HelmValuesEditor extends React.Component {
           this.setState({ saving: false, savedYaml: true });
           if (finalize) {
             this.handleContinue();
-            return;
+          } else {
+            setTimeout(() => {
+              if (this.helmEditor) {
+                this.setState({ savedYaml: false });
+              }
+            }, 3000);
           }
-          setTimeout(() => {
-            this.setState({ savedYaml: false });
-          }, 3000)
         })
         .catch((err) => {
           // TODO: better handling
@@ -160,6 +162,7 @@ export default class HelmValuesEditor extends React.Component {
             <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
               <div className="flex1 flex-column u-width--half">
                 <AceEditor
+                  ref={(editor) => { this.helmEditor = editor }}
                   mode="yaml"
                   theme="chrome"
                   className={`${readOnly ? "disabled-ace-editor ace-chrome" : ""}`}
