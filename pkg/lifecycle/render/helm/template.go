@@ -3,6 +3,7 @@ package helm
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -286,19 +287,42 @@ func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath s
 		return errors.Wrap(err, "try load state")
 	}
 	helmValues := editState.CurrentHelmValues()
+	defaultHelmValues := editState.CurrentHelmValuesDefaults()
+
+	defaultValuesShippedWithChartBytes, err := f.FS.ReadFile(filepath.Join(constants.HelmChartPath, "values.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "read helm values from %s", filepath.Join(constants.HelmChartPath, "values.yaml"))
+	}
+	defaultValuesShippedWithChart := string(defaultValuesShippedWithChartBytes)
+
 	if helmValues == "" {
-		debug.Log("event", "stateValues.empty", "default", defaultValuesPath)
-		bytes, err := f.FS.ReadFile(defaultValuesPath)
-		if err != nil {
-			return errors.Wrapf(err, "read default helm values from %s", defaultValuesPath)
-		}
-		helmValues = string(bytes)
+		debug.Log("event", "values.load", "message", "No helm values in state; using values shipped with chart.")
+		helmValues = defaultValuesShippedWithChart
+	}
+	if defaultHelmValues == "" {
+		debug.Log("event", "values.load", "message", "No default helm values in state; using helm values from state.")
+		defaultHelmValues = defaultValuesShippedWithChart
 	}
 
+	mergedValues, err := MergeHelmValues(defaultHelmValues, helmValues, defaultValuesShippedWithChart)
+	if err != nil {
+		return errors.Wrap(err, "merge helm values")
+	}
+
+	err = f.FS.MkdirAll(constants.TempHelmValuesPath, 0700)
+	if err != nil {
+		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
+	}
 	debug.Log("event", "writeTempValuesYaml", "dest", dest)
-	err = f.FS.WriteFile(dest, []byte(helmValues), 0644)
+	err = f.FS.WriteFile(dest, []byte(mergedValues), 0644)
 	if err != nil {
 		return errors.Wrapf(err, "write values.yaml to %s", dest)
 	}
+
+	err = f.StateManager.SerializeHelmValues(mergedValues, string(defaultValuesShippedWithChartBytes))
+	if err != nil {
+		return errors.Wrapf(err, "serialize helm values to state")
+	}
+
 	return nil
 }

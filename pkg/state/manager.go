@@ -105,6 +105,7 @@ func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.HelmValues = values
+	versionedState.V1.HelmValuesDefaults = defaults
 
 	return m.serializeAndWriteState(versionedState)
 }

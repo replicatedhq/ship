@@ -129,7 +129,8 @@ type HelmIntro struct {
 }
 
 type HelmValues struct {
-	Values string `json:"values"`
+	Values        string `json:"values"`
+	DefaultValues string `json:"defaultValues"`
 }
 
 type Kustomize struct {
