@@ -129,7 +129,7 @@ export default class KustomizeOverlay extends React.Component {
       routeId,
       pollCallback
     } = this.props;
-    
+
     if (isNavcycle) {
       await finalizeStep({ action: actions[0] });
       startPoll(routeId, pollCallback);
@@ -143,10 +143,8 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   async discardOverlay() {
-    const file = find(this.props.fileContents, ["key", this.state.selectedFile]);
-    if (file.overlayContent && file.overlayContent.length) {
-      await this.deleteOverlay(this.state.selectedFile);
-    }
+    const { overlayToDelete } = this.state;
+    await this.deleteOverlay(overlayToDelete);
     this.setState({
       patch: "",
       displayConfirmModal: false
@@ -239,7 +237,7 @@ export default class KustomizeOverlay extends React.Component {
                         files={tree.children}
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
-                        handleDeleteOverlay={(path) => this.toggleModal(path)}
+                        handleDeleteOverlay={this.toggleModal}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
                       />
@@ -344,7 +342,7 @@ export default class KustomizeOverlay extends React.Component {
                   <p className="u-margin--none u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
                 </div>
                 <div className="flex1 flex alignItems--center justifyContent--flexEnd">
-                  {selectedFile === "" ? 
+                  {selectedFile === "" ?
                     <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                     :
                     <div className="flex">
@@ -376,7 +374,7 @@ export default class KustomizeOverlay extends React.Component {
               <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard overlay</button>
             </div>
           </div>
-            
+
         </Modal>
       </div>
     );
