@@ -78,7 +78,7 @@ func (r *Resolver) resolveRelease(
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
-	err := util.BackupIfPresent(r.FS, destPath, debug, r.ui)
+	err := util.BailIfPresent(r.FS, destPath, debug)
 	if err != nil {
 		return nil, errors.Wrapf(err, "backup %s", destPath)
 	}

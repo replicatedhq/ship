@@ -14,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"go.uber.org/dig"
 )
@@ -64,9 +65,9 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	if step.Root != "." {
-		err = r.backupIfPresent(step.Root)
+		err = util.BailIfPresent(r.Fs, step.Root, r.Logger)
 		if err != nil {
-			return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+			return errors.Wrapf(err, "check for existing install directory %s", step.Root)
 		}
 	}
 

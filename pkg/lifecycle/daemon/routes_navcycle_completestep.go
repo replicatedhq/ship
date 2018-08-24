@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
 func (d *NavcycleRoutes) completeStep(c *gin.Context) {
@@ -44,7 +46,8 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 
 		errChan := make(chan error)
 		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-			"status": "working",
+			"status":  "working",
+			"message": "working",
 		}))
 		go func() {
 			errChan <- d.StepExecutor(d, step)
@@ -64,11 +67,15 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
 	err := d.awaitAsyncStep(errChan, debug, step)
 	if err != nil {
+
 		debug.Log("event", "execute.fail", "err", err)
-		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-			"status": "error",
-			"error":  err.Error(),
-		}))
+
+		progress := daemontypes.JSONProgress("v2router", map[string]interface{}{
+			"status":  "error",
+			"message": fmt.Sprintf(`%v`, warnings.StripStackIfWarning(err)),
+		})
+
+		d.StepProgress.Store(stepID, progress)
 		return
 	}
 	newState := state.Versioned().WithCompletedStep(step)
@@ -79,7 +86,8 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 	}
 
 	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-		"status": "success",
+		"status":  "success",
+		"message": "Step completed successfully.",
 	}))
 }
 

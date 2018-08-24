@@ -39,19 +39,24 @@ export default class StepBuildingAssets extends React.Component {
 
   render() {
     const { status = {} } = this.props;
+    console.log(status);
     const isJSON = status.type === "json";
-    const progressDetail = isJSON ? JSON.parse(status.detail).progressDetail : null;
+    const parsed = isJSON ? JSON.parse(status.detail) : null;
+    console.log(parsed);
+    const isError = parsed && parsed.status === "error";
+    const isSuccess = parsed && parsed.status === "success";
+    const progressDetail = parsed ? JSON.parse(status.detail).progressDetail : null;
     let percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
     if (percent > 100) {
       percent = 100;
     }
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
-        { progressDetail && progressDetail.status === "success" ?
-          <div className="progress-detail-success">
-            <span className="icon u-smallCheckWhite"></span>
-          </div> :
-          <Loader size="60" />
+        { isSuccess ?
+          <div className="progress-detail-success"></div> :
+          isError ?
+            <div className="progress-detail-error"></div> :
+            <Loader size="60" />
         }
         {status.source === "render" ?
           <div>
@@ -64,7 +69,7 @@ export default class StepBuildingAssets extends React.Component {
             {isJSON ?
               <div>
                 <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">
-                  {JSON.parse(status.detail).status} {progressDetail && <span>{percent > 0 ? `${percent}%` : ""}</span>}
+                  <code>{JSON.parse(status.detail).message}</code> {progressDetail && <span>{percent > 0 ? `${percent}%` : ""}</span>}
                 </p>
                 {!progressDetail ? null :
                   <div className="u-marginTop--20">

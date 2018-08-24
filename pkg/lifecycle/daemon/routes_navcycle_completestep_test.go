@@ -96,7 +96,7 @@ func TestV2CompleteStep(t *testing.T) {
 					"source": "v2router",
 					"type":   "json",
 					"level":  "info",
-					"detail": `{"status":"working"}`,
+					"detail": `{"message":"working","status":"working"}`,
 				},
 			},
 			ExpectState: &matchers.Is{

@@ -231,12 +231,17 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
-	debug.Log("event", "removeall", "path", constants.KustomizeBasePath) // todo fail if this exists
-	if err := f.FS.RemoveAll(constants.KustomizeBasePath); err != nil {
-		debug.Log("event", "removeall.fail", "path", constants.KustomizeBasePath)
-		return errors.Wrap(err, "failed to remove rendered Helm values base dir")
+	if f.Viper.GetBool("rm-asset-dest") {
+		debug.Log("event", "baseDir.rm", "path", asset.Dest)
+		if err := f.FS.RemoveAll(asset.Dest); err != nil {
+			return errors.Wrapf(err, "rm asset dest, remove %s", asset.Dest)
+		}
 	}
 
+	debug.Log("event", "bailIfPresent", "path", asset.Dest)
+	if err := util.BailIfPresent(f.FS, asset.Dest, f.Logger); err != nil {
+		return err
+	}
 	debug.Log("event", "mkdirall", "path", asset.Dest)
 
 	if err := rootFs.MkdirAll(asset.Dest, 0755); err != nil {

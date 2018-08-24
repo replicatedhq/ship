@@ -7,11 +7,18 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
 // ExitWithError can be called if something goes wrong to print some friendly output
 func (s *Ship) ExitWithError(err error) {
+	if warnings.IsWarning(err) {
+		s.ExitWithWarn(err)
+		return
+	}
+
 	if s.Viper.GetString("log-level") == "debug" {
 		s.UI.Error(fmt.Sprintf("There was an unexpected error! %+v", err))
 	} else {
@@ -29,7 +36,7 @@ func (s *Ship) ExitWithError(err error) {
 
 // ExitWithWarn can be called if something goes wrong to print some friendly output
 func (s *Ship) ExitWithWarn(err error) {
-	s.UI.Warn(fmt.Sprintf("%v", err))
+	s.UI.Warn(fmt.Sprintf("%v", errors.Cause(err)))
 	os.Exit(1)
 }
 
