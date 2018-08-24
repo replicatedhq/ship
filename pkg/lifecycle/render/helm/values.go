@@ -10,11 +10,17 @@ import (
 )
 
 // Merges user edited values from state file and vendor values from upstream Helm repo.
-// base is the originl config from state
+// base is the original config from state
 // user is the modified config from state
 // vendor is the new config from current chart
 // Value priotities: user, vendor, base
 func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error) {
+	// First time merge is performed, there are no user values.  We are shortcutting this
+	// in order to preserve original file formatting and comments
+	if userValues == "" {
+		return vendorValues, nil
+	}
+
 	base := map[string]interface{}{}
 	user := map[string]interface{}{}
 	vendor := map[string]interface{}{}

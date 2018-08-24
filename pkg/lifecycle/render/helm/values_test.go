@@ -35,8 +35,8 @@ func TestMergeHelmValues(t *testing.T) {
 			name:     "merge, vendor values only",
 			base:     "",
 			user:     "",
-			vendor:   "key1: 1\nkey2: a\n",
-			expected: "key1: 1\nkey2: a\n",
+			vendor:   "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
+			expected: "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
 		},
 		{
 			name: "merge, vendor and user values",
