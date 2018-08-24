@@ -226,7 +226,7 @@ func TestResolveConfigValuesMap(t *testing.T) {
 				Viper:          v,
 				BuilderBuilder: builderBuilder,
 			}
-			output, err := renderer.resolveConfigValuesMap(test.input, groups)
+			output, err := renderer.resolveConfigValuesMap(api.ReleaseMetadata{}, test.input, groups)
 			req.NoError(err)
 
 			req.Equal(test.results, output)

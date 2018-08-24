@@ -52,20 +52,6 @@ func (bb *BuilderBuilder) NewConfigContext(
 	return configCtx, nil
 }
 
-// NewConfigContext will return a new config context, initialized with the app config.
-// Once we have state (for upgrades) it should be a parameter here.
-// deprecated -- use BuilderBuilder
-func NewConfigContext(
-	logger log.Logger,
-	configGroups []libyaml.ConfigGroup,
-	templateContext map[string]interface{},
-) (*ConfigCtx, error) {
-	// Get a static context to render static template functions
-
-	builderBuilder := NewBuilderBuilder(logger)
-	return builderBuilder.NewConfigContext(configGroups, templateContext)
-}
-
 // ConfigCtx is the context for builder functions before the application has started.
 type ConfigCtx struct {
 	ItemValues map[string]interface{}

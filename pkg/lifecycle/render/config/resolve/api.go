@@ -109,27 +109,26 @@ func deepCopyMap(original map[string]interface{}) (map[string]interface{}, error
 }
 
 // given a set of input values ('liveValues') and the config ('configGroups') returns a map of configItem names to values, with all config option template functions resolved
-func (r *APIConfigRenderer) resolveConfigValuesMap(liveValues map[string]interface{}, configGroups []libyaml.ConfigGroup) (map[string]interface{}, error) {
+func (r *APIConfigRenderer) resolveConfigValuesMap(
+	meta api.ReleaseMetadata,
+	liveValues map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) (map[string]interface{}, error) {
 	// make a deep copy of the live values map
 	updatedValues, err := deepCopyMap(liveValues)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "deep copy live values")
 	}
 
-	configCtx, err := r.BuilderBuilder.NewConfigContext(
+	//recalculate builder with new values
+	builder, err := r.BuilderBuilder.FullBuilder(
+		meta,
 		configGroups,
 		updatedValues,
 	)
-
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "init builder")
 	}
-
-	staticCtx := r.BuilderBuilder.NewStaticContext()
-	builder := r.BuilderBuilder.NewBuilder(
-		r.BuilderBuilder.NewStaticContext(),
-		configCtx,
-	)
 
 	configItemsByName := make(map[string]*libyaml.ConfigItem)
 	for _, configGroup := range configGroups {
@@ -173,19 +172,14 @@ func (r *APIConfigRenderer) resolveConfigValuesMap(liveValues map[string]interfa
 		}
 
 		//recalculate builder with new values
-		newConfigCtx, err := r.BuilderBuilder.NewConfigContext(
+		builder, err = r.BuilderBuilder.FullBuilder(
+			meta,
 			configGroups,
 			updatedValues,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "re-init builder")
 		}
-
-		builder = r.BuilderBuilder.NewBuilder(
-			staticCtx,
-			newConfigCtx,
-		)
-
 		headNodes, err = deps.GetHeadNodes()
 	}
 	if err != nil {
@@ -222,13 +216,13 @@ func (r *APIConfigRenderer) ResolveConfig(
 		}
 	}
 
-	updatedValues, err := r.resolveConfigValuesMap(combinedState, configCopy)
+	updatedValues, err := r.resolveConfigValuesMap(release.Metadata, combinedState, configCopy)
 
 	if err != nil {
 		return resolvedConfig, errors.Wrap(err, "resolve configCopy values map")
 	}
 
-	builder, err := r.newBuilder(ctx, release, updatedValues)
+	builder, err := r.BuilderBuilder.FullBuilder(release.Metadata, resolvedConfig, updatedValues)
 	if err != nil {
 		return resolvedConfig, errors.Wrap(err, "initialize tpl builder")
 	}

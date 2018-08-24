@@ -57,7 +57,7 @@ func TestDockerStep(t *testing.T) {
 			saver := mocksaver.NewMockImageSaver(mc)
 			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
-			bb := templates.NewBuilderBuilder(testLogger)
+			bb := templates.NewBuilderBuilder(testLogger, v)
 			ctx := context.Background()
 
 			step := &DefaultStep{

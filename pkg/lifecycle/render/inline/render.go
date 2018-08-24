@@ -60,22 +60,10 @@ func (r *LocalRenderer) Execute(
 	return func(ctx context.Context) error {
 		debug.Log("event", "execute")
 
-		configCtx, err := templates.NewConfigContext(r.Logger, configGroups, templateContext)
+		builder, err := r.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
 		if err != nil {
-			return errors.Wrap(err, "getting config context")
+			return errors.Wrap(err, "init builder")
 		}
-
-		builder := r.BuilderBuilder.NewBuilder(
-			r.BuilderBuilder.NewStaticContext(),
-			configCtx,
-			&templates.InstallationContext{
-				Meta:  meta,
-				Viper: r.Viper,
-			},
-			templates.ShipContext{
-				Logger: r.Logger,
-			},
-		)
 
 		built, err := builder.String(asset.Contents)
 		if err != nil {
