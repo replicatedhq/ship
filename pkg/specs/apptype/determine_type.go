@@ -15,7 +15,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helm"
 	helm2 "github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
@@ -33,7 +32,6 @@ type Inspector interface {
 
 func NewInspector(
 	logger log.Logger,
-	gh *githubclient.GithubClient,
 	fs afero.Afero,
 	v *viper.Viper,
 	stateManager state.Manager,
@@ -42,7 +40,6 @@ func NewInspector(
 ) Inspector {
 	return &inspector{
 		logger: logger,
-		github: gh,
 		fs:     fs,
 		viper:  v,
 		state:  stateManager,
@@ -53,7 +50,6 @@ func NewInspector(
 
 type inspector struct {
 	logger log.Logger
-	github *githubclient.GithubClient
 	fs     afero.Afero
 	viper  *viper.Viper
 	state  state.Manager
