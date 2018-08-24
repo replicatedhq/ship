@@ -302,10 +302,6 @@ func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath s
 	}
 	defaultValuesShippedWithChart := string(defaultValuesShippedWithChartBytes)
 
-	if helmValues == "" {
-		debug.Log("event", "values.load", "message", "No helm values in state; using values shipped with chart.")
-		helmValues = defaultValuesShippedWithChart
-	}
 	if defaultHelmValues == "" {
 		debug.Log("event", "values.load", "message", "No default helm values in state; using helm values from state.")
 		defaultHelmValues = defaultValuesShippedWithChart
