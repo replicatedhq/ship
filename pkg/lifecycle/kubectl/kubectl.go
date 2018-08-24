@@ -18,29 +18,32 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/templates"
-	"github.com/spf13/viper"
 )
 
 type ForkKubectl struct {
-	Logger log.Logger
-	Daemon daemontypes.Daemon
-	Viper  *viper.Viper
+	Logger         log.Logger
+	Daemon         daemontypes.Daemon
+	BuilderBuilder *templates.BuilderBuilder
 }
 
 func NewKubectl(
 	logger log.Logger,
 	daemon daemontypes.Daemon,
-	viper *viper.Viper,
+	builderBuilder *templates.BuilderBuilder,
 ) lifecycle.KubectlApply {
 	return &ForkKubectl{
-		Logger: logger,
-		Daemon: daemon,
-		Viper:  viper,
+		Logger:         logger,
+		Daemon:         daemon,
+		BuilderBuilder: builderBuilder,
 	}
 }
 
 func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply) error {
-	builder := k.getBuilder(release.Metadata)
+	builder, err := k.BuilderBuilder.BaseBuilder(release.Metadata)
+	if err != nil {
+		return errors.Wrap(err, "get builder")
+	}
+
 	builtPath, _ := builder.String(step.Path)
 	builtKubePath, _ := builder.String(step.Kubeconfig)
 
@@ -98,7 +101,7 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 		}
 	}()
 
-	err := cmd.Run()
+	err = cmd.Run()
 
 	doneCh <- struct{}{}
 	wg.Wait()
@@ -154,24 +157,4 @@ func (k *ForkKubectl) awaitMessageConfirmed(ctx context.Context, daemonExitedCha
 			debug.Log("waitingFor", "kubectl.message.confirmed")
 		}
 	}
-}
-
-func (k *ForkKubectl) getBuilder(meta api.ReleaseMetadata) templates.Builder {
-	builderBuilder := templates.NewBuilderBuilder(k.Logger)
-
-	builder := builderBuilder.NewBuilder(
-		builderBuilder.NewStaticContext(),
-		&templates.InstallationContext{
-			Meta:  meta,
-			Viper: k.Viper,
-		},
-		templates.ConfigCtx{
-			ItemValues: k.Daemon.GetCurrentConfig(),
-			Logger:     k.Logger,
-		},
-		templates.ShipContext{
-			Logger: k.Logger,
-		},
-	)
-	return builder
 }

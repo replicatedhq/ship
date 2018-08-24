@@ -137,7 +137,12 @@ func (f *LocalTemplater) Template(
 	}
 
 	if len(asset.Values) > 0 {
-		args, err := f.appendHelmValues(configGroups, templateContext, asset)
+		args, err := f.appendHelmValues(
+			meta,
+			configGroups,
+			templateContext,
+			asset,
+		)
 		if err != nil {
 			return errors.Wrap(err, "build helm values")
 		}
@@ -158,22 +163,24 @@ func (f *LocalTemplater) Template(
 }
 
 func (f *LocalTemplater) appendHelmValues(
+	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 	asset api.HelmAsset,
 ) ([]string, error) {
 	var cmdArgs []string
-	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
-	if err != nil {
-		return nil, errors.Wrap(err, "create config context")
-	}
-	builder := f.BuilderBuilder.NewBuilder(
-		f.BuilderBuilder.NewStaticContext(),
-		configCtx,
+	builder, err := f.BuilderBuilder.FullBuilder(
+		meta,
+		configGroups,
+		templateContext,
 	)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize template builder")
+	}
+
 	if asset.Values != nil {
 		for key, value := range asset.Values {
-			args, err := appendHelmValue(value, builder, cmdArgs, key)
+			args, err := appendHelmValue(value, *builder, cmdArgs, key)
 			if err != nil {
 				return nil, errors.Wrapf(err, "append helm value %s", key)
 			}

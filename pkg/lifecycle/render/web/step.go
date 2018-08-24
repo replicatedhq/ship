@@ -107,22 +107,11 @@ func (p *DefaultStep) buildAsset(
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 ) (*Built, error) {
-	configCtx, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
-	if err != nil {
-		return nil, errors.Wrap(err, "getting config context")
-	}
 
-	builder := p.BuilderBuilder.NewBuilder(
-		p.BuilderBuilder.NewStaticContext(),
-		configCtx,
-		&templates.InstallationContext{
-			Meta:  meta,
-			Viper: p.Viper,
-		},
-		templates.ShipContext{
-			Logger: p.Logger,
-		},
-	)
+	builder, err := p.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
+	if err != nil {
+		return nil, errors.Wrap(err, "init builder")
+	}
 
 	builtURL, err := builder.String(asset.URL)
 	if err != nil {

@@ -116,7 +116,7 @@ func TestLocalTemplater(t *testing.T) {
 				Commands:       mockCommands,
 				Logger:         testLogger,
 				FS:             mockFs,
-				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New()),
 				Viper:          viper.New(),
 				StateManager:   mockState,
 				process:        process.Process{Logger: testLogger},

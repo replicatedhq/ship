@@ -1,25 +1,16 @@
 package message
 
 import (
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
 
-func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) templates.Builder {
-	builder := m.BuilderBuilder.NewBuilder(
-		m.BuilderBuilder.NewStaticContext(),
-		builderContext{
-			logger: m.Logger,
-			viper:  m.Viper,
-			daemon: m.Daemon,
-		},
-		&templates.InstallationContext{
-			Meta:  meta,
-			Viper: m.Viper,
-		},
-		templates.ShipContext{
-			Logger: m.Logger,
-		},
+func (m *DaemonMessenger) getBuilder(meta api.ReleaseMetadata) (templates.Builder, error) {
+	builder, err := m.BuilderBuilder.FullBuilder(
+		meta,
+		[]libyaml.ConfigGroup{},
+		map[string]interface{}{},
 	)
-	return builder
+	return *builder, err
 }
