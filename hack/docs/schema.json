@@ -142,7 +142,7 @@
                     "type": "string"
                   },
                   "dest": {
-                    "description": "The path within `terraform/` to place the generated file. Defaults to `amazon_eks.tf`",
+                    "description": "The path within `installer/` to place the generated file. Defaults to `amazon_eks.tf`",
                     "type": "string"
                   },
                   "existing_vpc": {
@@ -348,6 +348,80 @@
                   "source"
                 ]
               },
+              "google_gke": {
+                "description": "An `google_gke` asset generates a terraform file that will create a Google GKE Cluster.",
+                "extended_description": "It also populates a template function `GoogleGKE` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectl_apply](/api/ship-lifecycle/lifecycle/kubectl_apply/) lifecycle step.",
+                "examples": [
+                  {
+                    "credentials": "ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAibXktcHJvamVjdCIsCiAgLi4uCn0K",
+                    "project": "my-project",
+                    "region": "us-east",
+                    "cluster_name": "cluster-with-all-options",
+                    "zone": "us-east1-b",
+                    "initial_node_count": "5",
+                    "machine_type": "n1-standard-4",
+                    "additional_zones": "us-east1-c,us-east1-d",
+                    "min_master_version": "1.10.6-gke.1"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "additional_zones": {
+                    "description": "A comma separated list of additional Google Compute Engine locations in which the cluster's nodes should be located. If additional zones are configured, the number of nodes specified in initial_node_count is created in all specified zones.",
+                    "type": "string"
+                  },
+                  "cluster_name": {
+                    "description": "The name of the cluster.",
+                    "type": "string"
+                  },
+                  "credentials": {
+                    "description": "Base64 encoded contents of a file that contains your service account private key in JSON format.",
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "The path within `installer/` to place the generated file. Defaults to `google_gke.tf`",
+                    "type": "string"
+                  },
+                  "initial_node_count": {
+                    "description": "The number of nodes to create in this cluster (not including the Kubernetes master). Defaults to 3.",
+                    "type": "string"
+                  },
+                  "machine_type": {
+                    "description": "The name of a Google Compute Engine machine type. Defaults to n1-standard-1.",
+                    "type": "string"
+                  },
+                  "min_master_version": {
+                    "description": "The minimum version of the master. GKE will auto-update the master to new versions, so this does not guarantee the current master version--use the read-only master_version field to obtain that. If unset, the cluster's version will be set by GKE to the version of the most recent official release (which is not necessarily the latest version).",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Ignored",
+                    "type": "integer"
+                  },
+                  "project": {
+                    "description": "The ID of the project to apply any resources to.",
+                    "type": "string"
+                  },
+                  "region": {
+                    "description": "The region to operate under, if not specified by a given resource.",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
+                  },
+                  "zone": {
+                    "description": "The zone that the master and the number of nodes specified in initial_node_count should be created in.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cluster_name"
+                ]
+              },
               "helm": {
                 "description": "A `helm` asset will template and render an existing helm chart. You can either reference an existing chart in a private or public github repo, or your installer runbook can include assets to drop an existing helm chart at `local.chart_root`.",
                 "examples": [
@@ -470,6 +544,14 @@
                           "number",
                           "boolean"
                         ]
+                      }
+                    }
+                  },
+                  "values_from": {
+                    "type": "object",
+                    "properties": {
+                      "lifecycle": {
+                        "type": "object"
                       }
                     }
                   },

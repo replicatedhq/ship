@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
@@ -70,7 +71,8 @@ func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 			GitHub:      planner.GitHub,
 			Terraform:   planner.Terraform,
 			Web:         planner.Web,
-			AWSEKS:      planner.AWSEKS,
+			AmazonEKS:   planner.AmazonEKS,
+			GoogleGKE:   planner.GoogleGKE,
 		}
 
 	})
@@ -108,7 +110,8 @@ type CLIPlanner struct {
 	Web         web.Renderer
 	GitHub      github.Renderer
 	Terraform   terraform.Renderer
-	AWSEKS      amazoneks.Renderer
+	AmazonEKS   amazoneks.Renderer
+	GoogleGKE   googlegke.Renderer
 }
 
 // Use a factory so we can create instances and override the StatusReceiver on those instances.
@@ -125,7 +128,8 @@ func NewFactory(
 	gh github.Renderer,
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
-	awseks amazoneks.Renderer,
+	amazonEKS amazoneks.Renderer,
+	googleGKE googlegke.Renderer,
 	status daemontypes.StatusReceiver,
 ) Planner {
 	return Factory(func() *CLIPlanner {
@@ -143,7 +147,8 @@ func NewFactory(
 			GitHub:      gh,
 			Terraform:   tf,
 			Web:         webRenderer,
-			AWSEKS:      awseks,
+			AmazonEKS:   amazonEKS,
+			GoogleGKE:   googleGKE,
 			Status:      status,
 		}
 	})

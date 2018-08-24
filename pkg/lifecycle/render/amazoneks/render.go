@@ -3,8 +3,8 @@ package amazoneks
 import (
 	"bytes"
 	"context"
-	"html/template"
 	"path"
+	"text/template"
 
 	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
@@ -27,7 +27,7 @@ type Renderer interface {
 	) func(ctx context.Context) error
 }
 
-// a LocalRenderer renders a terraform asset by writing generated terraform source code
+// LocalRenderer renders a terraform asset by writing generated terraform source code
 type LocalRenderer struct {
 	Logger log.Logger
 	Inline inline.Renderer

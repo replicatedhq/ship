@@ -1,0 +1,82 @@
+assets:
+  v1:
+    - google_gke:
+        dest: terraform/complex_cluster.tf
+        credentials: '{{repl ConfigOption "credentials" | Base64Encode}}'
+        project: '{{repl ConfigOption "project" }}'
+        region: '{{repl ConfigOption "region" }}'
+        cluster_name: '{{repl ConfigOption "cluster_name" }}'
+        zone: '{{repl ConfigOption "zone" }}'
+        initial_node_count: '{{repl ConfigOption "initial_node_count" }}'
+        machine_type: '{{repl ConfigOption "machine_type" }}'
+        additional_zones: '{{repl ConfigOption "additional_zones" }}'
+        min_master_version: 1.10.6-gke.1
+    - inline:
+        dest: install.sh
+        contents: |
+                  #!/bin/bash
+                  echo "run:"
+                  echo "terraform apply -f terraform/complex_cluster.tf"
+                  echo "kubectl apply -f kube.yaml --kubeconfig {{repl GoogleGKE "complex-cluster" }}"
+        mode: 0777
+    - inline:
+        dest: kube.yaml
+        contents: |
+                  this is not a valid kubernetes yaml
+        mode: 0777
+
+config:
+  v1:
+    - name: gke-cluster
+      title: GCP Settings
+      description: Project and credentials
+      items:
+      - name: credentials
+        title: Credentials
+        type: textarea
+        value: |-
+          {
+            "type": "service_account",
+            "project_id": "my-project",
+            ...
+          }
+      - name: project
+        title: Project
+        type: text
+        value: my-project
+      - name: region
+        title: Region
+        type: text
+        value: "us-east"
+    - name: gke-cluster
+      title: GKE Cluster
+      description: Information about your GKE cluster
+      items:
+      - name: cluster_name
+        title: Cluster Name
+        type: text
+        value: complex-cluster
+      - name: zone
+        title: Zone
+        type: text
+        value: us-east1-b
+      - name: initial_node_count
+        title: Initial Node Count
+        type: text
+        value: "5"
+      - name: machine_type
+        title: Machine Type
+        type: text
+        value: "n1-standard-4"
+      - name: additional_zones
+        title: Additional Zones
+        type: text
+        value: "us-east1-c,us-east1-d"
+
+lifecycle:
+  v1:
+    - message:
+       contents: "hi"
+    - render: {}
+    - message:
+       contents: "bye"

@@ -3,8 +3,8 @@ package amazoneks
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"testing"
+	"text/template"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
