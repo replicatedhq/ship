@@ -118,13 +118,22 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
 			if evaluatedWhen {
-				plan = append(plan, p.amazonElasticKubernetesServiceStep(rootFs, *asset.AmazonEKS, meta, templateContext, configGroups))
+				plan = append(plan, p.amazonEKSStep(rootFs, *asset.AmazonEKS, meta, templateContext, configGroups))
+			}
+		} else if asset.GoogleGKE != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.GoogleGKE.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+			p.logAssetResolve(debug, evaluatedWhen, "google kubernetes cluster")
+			if evaluatedWhen {
+				plan = append(plan, p.googleGKEStep(rootFs, *asset.GoogleGKE, meta, templateContext, configGroups))
 			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform amazon_eks]",
+					"[inline docker helm dockerlayer github terraform amazon_eks google_gke]",
 			)
 		}
 	}
@@ -230,7 +239,7 @@ func (p *CLIPlanner) terraformStep(
 	}
 }
 
-func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
+func (p *CLIPlanner) amazonEKSStep(
 	rootFs root.Fs,
 	asset api.EKSAsset,
 	meta api.ReleaseMetadata,
@@ -240,7 +249,21 @@ func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.AWSEKS.Execute(rootFs, asset, meta, templateContext, configGroups),
+		Execute:     p.AmazonEKS.Execute(rootFs, asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) googleGKEStep(
+	rootFs root.Fs,
+	asset api.GKEAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.GoogleGKE.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 

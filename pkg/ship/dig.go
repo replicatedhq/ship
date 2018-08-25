@@ -30,6 +30,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
@@ -98,6 +99,8 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		terraform.NewRenderer,
 
 		amazoneks.NewRenderer,
+
+		googlegke.NewRenderer,
 
 		kubectl.NewKubectl,
 

@@ -7,6 +7,7 @@ import (
 )
 
 var amazonEKSPaths map[string]string
+var googleGKEPaths map[string]string
 
 // ShipContext is the context for builder functions that depend on what assets have been created.
 type ShipContext struct {
@@ -25,6 +26,7 @@ func (bb *BuilderBuilder) NewShipContext() (*ShipContext, error) {
 func (ctx ShipContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
 		"AmazonEKS": ctx.amazonEKS,
+		"GoogleGKE": ctx.googleGKE,
 	}
 }
 
@@ -39,4 +41,17 @@ func AddAmazonEKSPath(name string, path string) {
 		amazonEKSPaths = make(map[string]string)
 	}
 	amazonEKSPaths[name] = path
+}
+
+// googleGKE returns the path within the InstallerPrefixPath that the kubeconfig for the named cluster can be found at
+func (ctx ShipContext) googleGKE(name string) string {
+	return googleGKEPaths[name]
+}
+
+// AddGoogleGKEPath adds a kubeconfig path to the cache
+func AddGoogleGKEPath(name string, path string) {
+	if googleGKEPaths == nil {
+		googleGKEPaths = make(map[string]string)
+	}
+	googleGKEPaths[name] = path
 }
