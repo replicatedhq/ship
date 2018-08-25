@@ -14,7 +14,8 @@ func Init() *cobra.Command {
 		Use:   "init [CHART]",
 		Short: "Build and deploy kustomize configured helm charts",
 		Long: `Build and deploy kustomize configured helm charts to be integrated
-with a gitops style workflow.`,
+with a gitops style workflow. 
+'CHART' can be a GitHub repo URL, a HashiCorp go-getter compatible ref, or a 'helm fetch' compatible ref.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := viper.GetViper()
 			if len(args) != 0 {
