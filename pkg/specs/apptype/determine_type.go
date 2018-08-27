@@ -132,6 +132,7 @@ func (r *inspector) DetermineApplicationType(
 	return "helm", localPath, nil
 }
 
+// TODO figure out how to copy files from host into afero filesystem for testing, or how to force go-getter to fetch into afero
 func (r *inspector) determineTypeFromContents(
 	ctx context.Context,
 	upstream string,
@@ -146,6 +147,20 @@ func (r *inspector) determineTypeFromContents(
 	if err != nil {
 		return "", "", errors.Wrap(err, "fetch contents with go-getter")
 	}
+
+	// if there is a `.git` directory, remove it - it's dynamic and will break the content hash used by `ship update`
+	gitPresent, err := r.fs.Exists(path.Join(savePath, ".git"))
+	if err != nil {
+		return "", "", errors.Wrap(err, "check for .git directory")
+	}
+	if gitPresent {
+		err := r.fs.RemoveAll(path.Join(savePath, ".git"))
+		if err != nil {
+			return "", "", errors.Wrap(err, "remove .git directory")
+		}
+	}
+	debug.Log("event", "gitPresent.check", "gitPresent", gitPresent)
+
 	// if there's a Chart.yaml, assume its a chart
 	isChart, err := r.fs.Exists(path.Join(savePath, "Chart.yaml"))
 	if err != nil {
@@ -154,9 +169,6 @@ func (r *inspector) determineTypeFromContents(
 	debug.Log("event", "isChart.check", "isChart", isChart)
 
 	if isChart {
-		if err != nil {
-			return "", "", errors.Wrapf(err, "copy %s to chart/", savePath)
-		}
 		return "helm", savePath, nil
 	}
 

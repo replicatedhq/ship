@@ -1,0 +1,32 @@
+
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "installing nothing"
+          echo "config option: {{repl ConfigOption "test_option" }}"
+        dest: ./scripts/install.sh
+        mode: 0777
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "tested nothing"
+        dest: ./scripts/test.sh
+        mode: 0777
+
+config:
+  v1:
+    - name: test_options
+      title: Test Options
+      description: testing testing 123
+      items:
+      - name: test_option
+        title: Test Option
+        type: text
+
+lifecycle:
+  v1:
+    - render: {}
+  
