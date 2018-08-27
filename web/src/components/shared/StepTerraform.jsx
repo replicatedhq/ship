@@ -15,6 +15,7 @@ export default class StepPreparingTerraform extends React.Component {
     }).isRequired,
     routeId: PropTypes.string.isRequired,
     startPoll: PropTypes.func.isRequired,
+    gotoRoute: PropTypes.func.isRequired,
     status: PropTypes.shape({
       type: PropTypes.string,
       detail: PropTypes.string,
@@ -83,6 +84,17 @@ export default class StepPreparingTerraform extends React.Component {
     }
   }
 
+  handleAction(action) {
+    const {
+      handleAction,
+      startPoll,
+      routeId,
+      gotoRoute,
+    } = this.props;
+    handleAction(action, false);
+    startPoll(routeId, gotoRoute);
+  }
+
   render() {
     const {
       isJSON,
@@ -93,7 +105,6 @@ export default class StepPreparingTerraform extends React.Component {
       actions,
       error,
     } = this.parseStatus();
-    const { handleAction } = this.props;
 
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
@@ -119,7 +130,7 @@ export default class StepPreparingTerraform extends React.Component {
           <StepMessage
             message={message}
             actions={actions}
-            handleAction={handleAction}
+            handleAction={this.handleAction}
           />
           : null
         }

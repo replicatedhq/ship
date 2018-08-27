@@ -30,7 +30,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   async handleAction(action, gotoNext) {
@@ -41,7 +42,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   getContentForStep() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   gotoRoute(route) {
@@ -150,6 +152,7 @@ class DetermineComponentForRoute extends React.Component {
           location={location}
           status={progress || currentStep.status}
           handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
         />
       );
     case "helm-intro":
