@@ -90,12 +90,22 @@ func Test_untreeGithub(t *testing.T) {
 		{
 			name: "github repo with no tree",
 			path: "https://github.com/replicatedhq/ship",
-			want: "https://github.com/replicatedhq/ship",
+			want: "github.com/replicatedhq/ship?ref=master//",
 		},
 		{
 			name: "github repo with no tree with www",
 			path: "https://www.github.com/replicatedhq/ship",
-			want: "https://www.github.com/replicatedhq/ship",
+			want: "github.com/replicatedhq/ship?ref=master//",
+		},
+		{
+			name: "github repo with no tree with subdir",
+			path: "https://github.com/replicatedhq/ship/pkg/specs",
+			want: "github.com/replicatedhq/ship?ref=master//pkg/specs",
+		},
+		{
+			name: "github repo with no https or tree with subdir",
+			path: "github.com/replicatedhq/ship/pkg/specs",
+			want: "github.com/replicatedhq/ship?ref=master//pkg/specs",
 		},
 		{
 			name: "bitbucket repo",
