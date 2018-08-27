@@ -334,7 +334,7 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 }
 
 func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
-	serialized, err := json.Marshal(state)
+	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
