@@ -10,16 +10,13 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
 func (s *Ship) InitAndMaybeExit(ctx context.Context) error {
 	if err := s.Init(ctx); err != nil {
-		if err.Error() == constants.ShouldUseUpdate {
-			s.ExitWithWarn(err)
-		}
 		s.ExitWithError(err)
 		return err
 	}
@@ -86,14 +83,14 @@ Continuing will delete this state, would you like to continue? There is no undo.
 		}
 		useUpdate = strings.ToLower(strings.Trim(useUpdate, " \r\n"))
 
-		if strings.Compare(useUpdate, "y") == 0 {
+		if useUpdate == "y" {
 			// remove state.json and start from scratch
 			if err := s.State.RemoveStateFile(); err != nil {
 				return errors.Wrap(err, "remove existing state")
 			}
 		} else {
 			// exit and use 'ship update'
-			return errors.New(constants.ShouldUseUpdate)
+			return warnings.WarnShouldUseUpdate
 		}
 	}
 	return nil

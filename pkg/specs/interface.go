@@ -78,7 +78,14 @@ func (r *Resolver) resolveRelease(
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
-	err := util.BackupIfPresent(r.FS, destPath, debug, r.ui)
+	if r.Viper.GetBool("rm-asset-dest") {
+		err := r.FS.RemoveAll(destPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "remove asset dest %s", destPath)
+		}
+	}
+
+	err := util.BailIfPresent(r.FS, destPath, debug)
 	if err != nil {
 		return nil, errors.Wrapf(err, "backup %s", destPath)
 	}

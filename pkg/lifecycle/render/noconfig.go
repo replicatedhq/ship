@@ -14,7 +14,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
@@ -32,6 +34,7 @@ type noconfigrenderer struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	StatusReceiver daemontypes.StatusReceiver
+	Viper          *viper.Viper
 	Now            func() time.Time
 }
 
@@ -63,10 +66,17 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 		step.Root = constants.InstallerPrefixPath
 	}
 
-	if step.Root != "." {
-		err = r.backupIfPresent(step.Root)
+	if r.Viper.GetBool("rm-asset-dest") {
+		err := r.Fs.RemoveAll(step.Root)
 		if err != nil {
-			return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+			return errors.Wrapf(err, "remove asset dest %s", step.Root)
+		}
+	}
+
+	if step.Root != "." {
+		err = util.BailIfPresent(r.Fs, step.Root, r.Logger)
+		if err != nil {
+			return errors.Wrapf(err, "check for existing install directory %s", step.Root)
 		}
 	}
 

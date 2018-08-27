@@ -2,9 +2,8 @@ package specs
 
 import (
 	"context"
-	"testing"
-
 	"path"
+	"testing"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
@@ -15,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -193,6 +193,7 @@ icon: https://kfbr.392/x5.png
 				StateManager:     mockState,
 				FS:               mockFs,
 				AppResolver:      mockAppResolver,
+				Viper:            viper.New(),
 				ui:               mockUI,
 				appTypeInspector: appType,
 				shaSummer:        test.shaSummer,

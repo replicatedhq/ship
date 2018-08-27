@@ -10,8 +10,5 @@ e2e-retraced/retraced-post.sh
 integration/*/_test_*
 
 /.state/
-/chart/
-/chart.bak/
 /overlays/
 /base/
-/base.bak/
