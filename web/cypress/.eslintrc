@@ -1,0 +1,6 @@
+{
+    "extends": "../",
+    "globals": {
+        "mocha": true
+    }
+}
