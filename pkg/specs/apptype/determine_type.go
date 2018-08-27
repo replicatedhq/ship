@@ -169,9 +169,6 @@ func (r *inspector) determineTypeFromContents(
 	debug.Log("event", "isChart.check", "isChart", isChart)
 
 	if isChart {
-		if err != nil {
-			return "", "", errors.Wrapf(err, "copy %s to chart/", savePath)
-		}
 		return "helm", savePath, nil
 	}
 
