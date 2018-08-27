@@ -107,7 +107,7 @@ export function pollContentForStep(stepId, cb) {
       if (finishedStatus) {
         dispatch(polling(false));
         clearInterval(intervalId);
-        setTimeout(cb, 500);
+        return cb();
       }
       if (errorStatus || messageStatus) {
         dispatch(polling(false));
