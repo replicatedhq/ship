@@ -77,21 +77,33 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when communicating with the graphql api", func() {
-					cmd := cli.RootCmd()
+				It("Files should match those expected when running 'ship init' and when running 'ship update'", func() {
+					initcmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
-					cmd.SetOutput(buf)
-					cmd.SetArgs(append([]string{
+					initcmd.SetOutput(buf)
+					initcmd.SetArgs(append([]string{
 						"init",
 						testMetadata.Upstream,
 						"--headless",
 						"--log-level=off",
 					}, testMetadata.Args...))
-					err := cmd.Execute()
+					err := initcmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
 					// compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(result).To(BeTrue())
+
+					// ship update should run successfully and produce the same output
+					updatecmd := cli.RootCmd()
+					updatecmd.SetOutput(buf)
+					updatecmd.SetArgs([]string{"update"})
+					err = updatecmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
+
+					// compare the files in the temporary directory with those in the "expected" directory
+					result, err = integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
