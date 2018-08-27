@@ -65,23 +65,33 @@ func isGoGettable(path string) bool {
 	return true
 }
 
-var githubTreeRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/]+)/([^/]+)/tree/([^/]+)/?(.*)`)
+var githubTreeRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?=]+)/tree/([^/?=]+)/?(.*)$`)
+var githubRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?=]+)(/(.*))?$`)
 
-// if this path is a github path of the form `github.com/OWNER/REPO/tree/REF/SUBDIR`, change it to the go-getter form
-// of `github.com/OWNER/REPO?ref=REF//SUBDIR`
+// if this path is a github path of the form `github.com/OWNER/REPO/tree/REF/SUBDIR` or `github.com/OWNER/REPO/SUBDIR`,
+// change it to the go-getter form of `github.com/OWNER/REPO?ref=REF//SUBDIR` with a default ref of master
 // otherwise return the unmodified path
 func untreeGithub(path string) string {
+	var owner, repo, ref, subdir string
+
 	matches := githubTreeRegex.FindStringSubmatch(path)
-	if matches == nil || len(matches) < 5 {
-		return path
+	if matches != nil && len(matches) == 5 {
+		owner = matches[1]
+		repo = matches[2]
+		ref = matches[3]
+		subdir = matches[4]
+	} else if matches = githubRegex.FindStringSubmatch(path); matches != nil && len(matches) == 5 {
+		owner = matches[1]
+		repo = matches[2]
+		ref = "master"
+		subdir = matches[4]
 	}
 
-	owner := matches[1]
-	repo := matches[2]
-	ref := matches[3]
-	subdir := matches[4]
+	if owner != "" {
+		return fmt.Sprintf("github.com/%s/%s?ref=%s//%s", owner, repo, ref, subdir)
+	}
 
-	return fmt.Sprintf("github.com/%s/%s?ref=%s//%s", owner, repo, ref, subdir)
+	return path
 }
 
 func (r *inspector) DetermineApplicationType(
