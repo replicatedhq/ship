@@ -107,7 +107,7 @@ export function pollContentForStep(stepId, cb) {
       if (finishedStatus) {
         dispatch(polling(false));
         clearInterval(intervalId);
-        return cb();
+        setTimeout(cb, 500);
       }
       if (errorStatus || messageStatus) {
         dispatch(polling(false));
@@ -178,6 +178,23 @@ export function finalizeStep(payload) {
     } catch (error) {
       console.log(error);
       dispatch(loadingData("postConfirm", false));
+      return;
+    }
+  };
+}
+
+export function initializeStep(stepId) {
+  return async() => {
+    try {
+      const url = `${apiEndpoint}/navcycle/step/${stepId}`;
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return;
     }
   };

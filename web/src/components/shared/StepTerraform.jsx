@@ -16,10 +16,11 @@ export default class StepPreparingTerraform extends React.Component {
     routeId: PropTypes.string.isRequired,
     startPoll: PropTypes.func.isRequired,
     gotoRoute: PropTypes.func.isRequired,
+    initializeStep: PropTypes.func.isRequired,
     status: PropTypes.shape({
       type: PropTypes.string,
       detail: PropTypes.string,
-    }).isRequired,
+    }),
     handleAction: PropTypes.func,
   }
 
@@ -34,9 +35,11 @@ export default class StepPreparingTerraform extends React.Component {
       routeId,
       gotoRoute,
       location,
+      initializeStep,
     } = this.props;
 
     if (location.pathname === "/terraform") {
+      initializeStep(routeId);
       startPoll(routeId, gotoRoute);
     }
   }
@@ -72,6 +75,7 @@ export default class StepPreparingTerraform extends React.Component {
       }
     }
 
+    // TODO(Robert): for now, this is a catch all for using the progress status to determine the phase
     if (parsedDetailStatus !== "error") {
       const percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
       const clampedPercent = clamp(percent, 0, 100);
@@ -80,6 +84,7 @@ export default class StepPreparingTerraform extends React.Component {
         status: parsedDetailStatus,
         percent: clampedPercent,
         progressDetail,
+        message,
       }
     }
   }
@@ -120,6 +125,9 @@ export default class StepPreparingTerraform extends React.Component {
                     </div>
                   </div>
                 }
+                {!message ? null :
+                  <StepMessage message={message} />
+                }
               </div>
               :
               <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{status}</p>
@@ -137,6 +145,12 @@ export default class StepPreparingTerraform extends React.Component {
         {status === "error" ?
           <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{error}</p>
           : null
+        }
+        {status === "success" ?
+          <React.Fragment>
+            <div className="progress-detail-success"></div>
+            <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
+          </React.Fragment> : null
         }
       </div>
     );

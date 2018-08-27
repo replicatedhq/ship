@@ -95,6 +95,7 @@ class DetermineComponentForRoute extends React.Component {
       actions,
       location,
       routeId,
+      initializeStep,
     } = this.props;
 
     if (!phase || !phase.length) return null;
@@ -142,6 +143,7 @@ class DetermineComponentForRoute extends React.Component {
           gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
+          initializeStep={initializeStep}
         />
       );
     case "terraform":
@@ -153,6 +155,7 @@ class DetermineComponentForRoute extends React.Component {
           status={progress || currentStep.status}
           handleAction={this.handleAction}
           gotoRoute={this.gotoRoute}
+          initializeStep={initializeStep}
         />
       );
     case "helm-intro":
