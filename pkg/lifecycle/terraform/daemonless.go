@@ -106,8 +106,6 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 			failedApplyActions(),
 		)
 		retry := <-confirmedChan
-		// TODO(Robert): WIP
-		// t.Status.CleanPreviousStep()
 		if retry {
 			return t.Execute(ctx, release, step, confirmedChan)
 		}
