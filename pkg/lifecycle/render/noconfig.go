@@ -90,6 +90,7 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 
 func (r *noconfigrenderer) WithStatusReceiver(receiver daemontypes.StatusReceiver) lifecycle.Renderer {
 	return &noconfigrenderer{
+		Viper:          r.Viper,
 		Logger:         r.Logger,
 		Planner:        r.Planner,
 		StateManager:   r.StateManager,
@@ -102,6 +103,7 @@ func (r *noconfigrenderer) WithStatusReceiver(receiver daemontypes.StatusReceive
 
 func (r *noconfigrenderer) WithPlanner(planner planner.Planner) lifecycle.Renderer {
 	return &noconfigrenderer{
+		Viper:          r.Viper,
 		Logger:         r.Logger,
 		Planner:        planner,
 		StateManager:   r.StateManager,
