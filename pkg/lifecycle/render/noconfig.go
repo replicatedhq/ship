@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
@@ -33,6 +34,7 @@ type noconfigrenderer struct {
 	Fs             afero.Afero
 	UI             cli.Ui
 	StatusReceiver daemontypes.StatusReceiver
+	Viper          *viper.Viper
 	Now            func() time.Time
 }
 
@@ -62,6 +64,13 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 
 	if step.Root == "" {
 		step.Root = constants.InstallerPrefixPath
+	}
+
+	if r.Viper.GetBool("rm-asset-dest") {
+		err := r.Fs.RemoveAll(step.Root)
+		if err != nil {
+			return errors.Wrapf(err, "remove asset dest %s", step.Root)
+		}
 	}
 
 	if step.Root != "." {
