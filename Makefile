@@ -278,6 +278,11 @@ ci-build-ui-dev:
 test_CI:
 	$(MAKE) -C web test_CI
 
+cypress:
+	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
+	CHART_URL=github.com/sourcegraph/deploy-sourcegraph \
+	sh web/cypress/ship_init_local.sh
+
 # this shouldn't ever have to be run, but leaving here for
 # posterity on how the go-bindatafs "dev" file was generated
 # before we marked it as ignored. the goal here is to

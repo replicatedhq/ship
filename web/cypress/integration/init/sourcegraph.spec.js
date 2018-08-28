@@ -19,6 +19,7 @@ describe("Ship Init Sourcegraph", () => {
         cy.get(".actions-wrapper p.u-color--chestnut").should("contain", "[ERROR]")
       });
     });
+
     context("required Helm values entered", () => {
       it("successfully saves Helm values", () => {
         const downArrowsToRequiredHelmValue = buildRepeatKeyString("{downarrow}", 258);
