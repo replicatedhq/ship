@@ -14,8 +14,6 @@ type State interface {
 	CurrentKustomizeOverlay(filename string) string
 	CurrentHelmValues() string
 	CurrentHelmValuesDefaults() string
-	CurrentChartRepoURL() string
-	CurrentChartVersion() string
 	Upstream() string
 	Versioned() VersionedState
 }
@@ -31,8 +29,6 @@ func (Empty) CurrentKustomizeOverlay(string) string { return "" }
 func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
 func (Empty) CurrentHelmValues() string             { return "" }
 func (Empty) CurrentHelmValuesDefaults() string     { return "" }
-func (Empty) CurrentChartRepoURL() string           { return "" }
-func (Empty) CurrentChartVersion() string           { return "" }
 func (Empty) Upstream() string                      { return "" }
 func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
 
@@ -43,8 +39,6 @@ func (v V0) CurrentKustomize() *Kustomize          { return nil }
 func (v V0) CurrentKustomizeOverlay(string) string { return "" }
 func (v V0) CurrentHelmValues() string             { return "" }
 func (v V0) CurrentHelmValuesDefaults() string     { return "" }
-func (v V0) CurrentChartRepoURL() string           { return "" }
-func (v V0) CurrentChartVersion() string           { return "" }
 func (v V0) Upstream() string                      { return "" }
 func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
 
@@ -162,20 +156,9 @@ func (v VersionedState) CurrentHelmValues() string {
 	return ""
 }
 
-func (u VersionedState) CurrentHelmValuesDefaults() string {
-	return u.V1.HelmValuesDefaults
-}
-
-func (v VersionedState) CurrentChartRepoURL() string {
+func (v VersionedState) CurrentHelmValuesDefaults() string {
 	if v.V1 != nil {
-		return v.V1.ChartRepoURL
-	}
-	return ""
-}
-
-func (v VersionedState) CurrentChartVersion() string {
-	if v.V1 != nil {
-		return v.V1.ChartVersion
+		return v.V1.HelmValuesDefaults
 	}
 	return ""
 }
