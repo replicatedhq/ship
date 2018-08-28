@@ -44,6 +44,7 @@ export default class StepBuildingAssets extends React.Component {
     const { status = {} } = this.props;
     const isJSON = status.type === "json";
     const parsed = isJSON ? JSON.parse(status.detail) : null;
+    const message = parsed ? JSON.parse(status.detail).message : "";
     const isError = parsed && parsed.status === "error";
     const isSuccess = parsed && parsed.status === "success";
     const progressDetail = parsed ? JSON.parse(status.detail).progressDetail : null;
@@ -52,11 +53,11 @@ export default class StepBuildingAssets extends React.Component {
       percent = 100;
     }
     return (
-      <div className="flex1 flex-column justifyContent--center alignItems--center">
+      <div className="flex1 flex-column justifyContent--center alignItems--center StepBuildingAssets-wrapper">
         { isSuccess ?
-          <div className="progress-detail-success"></div> :
+          <div className="icon progress-detail-success"></div> :
           isError ?
-            <div className="progress-detail-error"></div> :
+            <div className="icon progress-detail-error"></div> :
             <Loader size="60" />
         }
         {status.source === "render" ?
@@ -69,8 +70,9 @@ export default class StepBuildingAssets extends React.Component {
           <div>
             {isJSON ?
               <div>
-                <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">
-                  <code>{JSON.parse(status.detail).message}</code> {progressDetail && <span>{percent > 0 ? `${percent}%` : ""}</span>}
+                <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--20 u-lineHeight--more u-textAlign--center">
+                  {message.length > 500 ?
+                    <span>There was an unexpected error! Please check <code className="language-bash">.ship/debug.log</code> for more details</span> : message} {progressDetail && <span>{percent > 0 ? `${percent}%` : ""}</span>}
                 </p>
                 {!progressDetail ? null :
                   <div className="u-marginTop--20">
