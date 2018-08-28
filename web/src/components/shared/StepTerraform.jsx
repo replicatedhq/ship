@@ -148,7 +148,7 @@ export default class StepPreparingTerraform extends React.Component {
         }
         {status === "success" ?
           <React.Fragment>
-            <div className="progress-detail-success"></div>
+            <div className="icon progress-detail-success"></div>
             <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
           </React.Fragment> : null
         }

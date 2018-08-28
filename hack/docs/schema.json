@@ -353,7 +353,7 @@
                 "extended_description": "It also populates a template function `GoogleGKE` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectl_apply](/api/ship-lifecycle/lifecycle/kubectl_apply/) lifecycle step.",
                 "examples": [
                   {
-                    "credentials": "ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAibXktcHJvamVjdCIsCiAgLi4uCn0K",
+                    "credentials": "<BASE64 ENCODED STRING>",
                     "project": "my-project",
                     "region": "us-east",
                     "cluster_name": "cluster-with-all-options",
@@ -871,8 +871,13 @@
                 ]
               },
               "kustomize": {
-                "description": "",
-                "examples": [],
+                "description": "Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
+                "examples": [
+                  {
+                    "base_path": "./k8s/base",
+                    "dest": "./k8s/overlays/production"
+                  }
+                ],
                 "type": "object",
                 "properties": {
                   "base_path": {
