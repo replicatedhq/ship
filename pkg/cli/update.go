@@ -34,6 +34,7 @@ func Update() *cobra.Command {
 	}
 
 	cmd.Flags().BoolP("headed", "", false, "run ship update in headed mode")
+	cmd.Flags().Bool("rm-asset-dest", true, "Always remove asset destinations if already present")
 
 	viper.BindPFlags(cmd.Flags())
 	viper.AutomaticEnv()

@@ -13,10 +13,11 @@ export default class StepBuildingAssets extends React.Component {
     }).isRequired,
     routeId: PropTypes.string.isRequired,
     startPoll: PropTypes.func.isRequired,
+    initializeStep: PropTypes.func.isRequired,
     status: PropTypes.shape({
       type: PropTypes.string,
       detail: PropTypes.string,
-    }).isRequired,
+    }),
   }
 
   constructor(props) {
@@ -30,9 +31,11 @@ export default class StepBuildingAssets extends React.Component {
       routeId,
       gotoRoute,
       location,
+      initializeStep,
     } = this.props;
 
     if (location.pathname === "/render") {
+      initializeStep(routeId);
       startPoll(routeId, gotoRoute);
     }
   }

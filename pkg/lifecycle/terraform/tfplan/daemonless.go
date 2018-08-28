@@ -2,6 +2,7 @@ package tfplan
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -44,6 +45,18 @@ func (d *DaemonlessPlanner) ConfirmPlan(
 		planActions(),
 	)
 
-	shouldApply := <-confirmedChan
-	return shouldApply, nil
+	return d.awaitMessageConfirmed(ctx, confirmedChan)
+}
+
+func (d *DaemonlessPlanner) awaitMessageConfirmed(ctx context.Context, confirmedChan chan bool) (bool, error) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemonlessplanner", "method", "awaitMessageConfirmed"))
+
+	for {
+		select {
+		case shouldApply := <-confirmedChan:
+			return shouldApply, nil
+		case <-time.After(10 * time.Second):
+			debug.Log("waitingFor", "message.confirmed")
+		}
+	}
 }
