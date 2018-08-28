@@ -45,7 +45,14 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 		}
 
 		debug.Log("event", "check.stepAlreadyComplete")
-		_, stepAlreadyComplete := currentState.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
+		lifecycle := currentState.Versioned().V1.Lifecycle
+		if lifecycle == nil {
+			lifecycle = &state.Lifeycle{
+				StepsCompleted: make(map[string]interface{}),
+			}
+		}
+		_, stepAlreadyComplete := lifecycle.StepsCompleted[step.Shared().ID]
+
 		progress, ok := d.StepProgress.Load(step.Shared().ID)
 		shouldExecute := !ok || progress.Detail == `{"status":"success"}` && !stepAlreadyComplete
 
