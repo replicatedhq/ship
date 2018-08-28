@@ -1,5 +1,3 @@
-upstream: "stable/mysql"
-args:
-  - --chart-version=0.8.1
+upstream: "https://github.com/helm/charts/tree/dabdba3b2843d82ac7f9c176cb21575626dd1680/stable/mysql"
 
 

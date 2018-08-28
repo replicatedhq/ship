@@ -31,7 +31,6 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
-	SaveHelmOpts(url, version string) error
 	Save(v VersionedState) error
 }
 
@@ -252,22 +251,6 @@ func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.Kustomize = kustomize
-
-	if err := m.serializeAndWriteState(versionedState); err != nil {
-		return errors.Wrap(err, "write state")
-	}
-
-	return nil
-}
-
-func (m *MManager) SaveHelmOpts(url, version string) error {
-	currentState, err := m.TryLoad()
-	if err != nil {
-		return errors.Wrapf(err, "load state")
-	}
-	versionedState := currentState.Versioned()
-	versionedState.V1.ChartRepoURL = url
-	versionedState.V1.ChartVersion = version
 
 	if err := m.serializeAndWriteState(versionedState); err != nil {
 		return errors.Wrap(err, "write state")
