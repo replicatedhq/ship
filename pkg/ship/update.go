@@ -24,6 +24,8 @@ func (s *Ship) Update(ctx context.Context) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
 
+	s.Viper.Set("rm-asset-dest", true)
+
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 	// does a state already exist
 	existingState, err := s.State.TryLoad()
