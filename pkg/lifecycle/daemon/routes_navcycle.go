@@ -148,7 +148,7 @@ func (d *NavcycleRoutes) errRequired(required string, c *gin.Context) {
 	})
 }
 
-func (d *NavcycleRoutes) errNotFond(c *gin.Context) {
+func (d *NavcycleRoutes) errNotFound(c *gin.Context) {
 	c.JSON(404, map[string]interface{}{
 		"currentStep": map[string]interface{}{
 			"notFound": map[string]interface{}{},

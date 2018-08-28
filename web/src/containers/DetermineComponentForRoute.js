@@ -2,7 +2,13 @@ import { connect } from "react-redux";
 import realDetermineComponentForRoute from "../components/shared/DetermineComponentForRoute";
 
 import { getChannel } from "../redux/data/channelSettings/actions";
-import { getContentForStep, pollContentForStep, finalizeStep, shutdownApp } from "../redux/data/appRoutes/actions";
+import {
+  getContentForStep,
+  pollContentForStep,
+  finalizeStep,
+  shutdownApp,
+  initializeStep,
+} from "../redux/data/appRoutes/actions";
 import { getHelmChartMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
 
 const DetermineComponentForRoute = connect(
@@ -22,7 +28,8 @@ const DetermineComponentForRoute = connect(
     getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
     saveHelmChartValues(payload) { return dispatch(saveHelmChartValues(payload)) },
     finalizeStep(action) { return dispatch(finalizeStep(action)); },
-    shutdownApp() { return dispatch(shutdownApp()); }
+    shutdownApp() { return dispatch(shutdownApp()); },
+    initializeStep(stepId) { return dispatch(initializeStep(stepId)) },
   }),
 )(realDetermineComponentForRoute);
 

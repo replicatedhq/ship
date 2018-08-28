@@ -39,7 +39,10 @@ func (d *StatusReceiver) PushStreamStep(ctx context.Context, messages <-chan dae
 		debug.Log("event", "ctx.Done", "err", ctx.Err())
 	case msg := <-messages:
 		debug.Log("event", "message.receive", "contents", fmt.Sprintf("%.32s", msg.Contents))
-		d.OnProgress(daemontypes.MessageProgress(d.Name, msg))
+		d.OnProgress(daemontypes.JSONProgress(d.Name, map[string]interface{}{
+			"status":  "working",
+			"message": msg,
+		}))
 	}
 }
 
