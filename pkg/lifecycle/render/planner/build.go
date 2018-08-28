@@ -129,11 +129,20 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			if evaluatedWhen {
 				plan = append(plan, p.googleGKEStep(rootFs, *asset.GoogleGKE, meta, templateContext, configGroups))
 			}
+		} else if asset.AzureAKS != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.AzureAKS.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+			p.logAssetResolve(debug, evaluatedWhen, "azure kubernetes cluster")
+			if evaluatedWhen {
+				plan = append(plan, p.azureAKSStep(rootFs, *asset.AzureAKS, meta, templateContext, configGroups))
+			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform amazon_eks google_gke]",
+					"[inline docker helm dockerlayer github terraform amazon_eks google_gke azure_aks]",
 			)
 		}
 	}
@@ -264,6 +273,20 @@ func (p *CLIPlanner) googleGKEStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.GoogleGKE.Execute(rootFs, asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) azureAKSStep(
+	rootFs root.Fs,
+	asset api.AKSAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.AzureAKS.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 
