@@ -946,8 +946,12 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.kustomize",
     "merge": {
-      "description": "",
+      "description": "Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
       "examples": [
+        {
+          "base_path": "./k8s/base",
+          "dest": "./k8s/overlays/production"
+        }
       ]
     },
     "replace": {
