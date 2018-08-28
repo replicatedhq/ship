@@ -1,10 +1,10 @@
-package apptype
+package gogetter
 
 import (
 	"testing"
 )
 
-func Test_isGoGettable(t *testing.T) {
+func TestIsGoGettable(t *testing.T) {
 	tests := []struct {
 		name string
 		path string
@@ -34,14 +34,14 @@ func Test_isGoGettable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isGoGettable(tt.path); got != tt.want {
+			if got := IsGoGettable(tt.path); got != tt.want {
 				t.Errorf("isGoGettable(%s) = %v, want %v", tt.path, got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_untreeGithub(t *testing.T) {
+func TestUntreeGithub(t *testing.T) {
 	tests := []struct {
 		name string
 		path string
@@ -61,6 +61,16 @@ func Test_untreeGithub(t *testing.T) {
 			name: "random nonsense",
 			path: "a string of random nonsense",
 			want: "a string of random nonsense",
+		},
+		{
+			name: "bitbucket repo",
+			path: "bitbucket.org/ww/goautoneg",
+			want: "bitbucket.org/ww/goautoneg",
+		},
+		{
+			name: "already configured go-getter string",
+			path: "github.com/replicatedhq/ship?ref=master//pkg/specs",
+			want: "github.com/replicatedhq/ship?ref=master//pkg/specs",
 		},
 		{
 			name: "mocked github url with tree",
@@ -107,20 +117,10 @@ func Test_untreeGithub(t *testing.T) {
 			path: "github.com/replicatedhq/ship/pkg/specs",
 			want: "github.com/replicatedhq/ship?ref=master//pkg/specs",
 		},
-		{
-			name: "bitbucket repo",
-			path: "bitbucket.org/ww/goautoneg",
-			want: "bitbucket.org/ww/goautoneg",
-		},
-		{
-			name: "already configured go-getter string",
-			path: "github.com/replicatedhq/ship?ref=master//pkg/specs",
-			want: "github.com/replicatedhq/ship?ref=master//pkg/specs",
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := untreeGithub(tt.path); got != tt.want {
+			if got := UntreeGithub(tt.path); got != tt.want {
 				t.Errorf("untreeGithub(%s) = %v, want %v", tt.path, got, tt.want)
 			}
 		})
