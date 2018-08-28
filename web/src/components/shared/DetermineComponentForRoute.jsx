@@ -30,7 +30,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   async handleAction(action, gotoNext) {
@@ -41,7 +42,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   getContentForStep() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   gotoRoute(route) {
@@ -93,6 +95,7 @@ class DetermineComponentForRoute extends React.Component {
       actions,
       location,
       routeId,
+      initializeStep,
     } = this.props;
 
     if (!phase || !phase.length) return null;
@@ -140,6 +143,7 @@ class DetermineComponentForRoute extends React.Component {
           gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
+          initializeStep={initializeStep}
         />
       );
     case "terraform":
@@ -150,6 +154,8 @@ class DetermineComponentForRoute extends React.Component {
           location={location}
           status={progress || currentStep.status}
           handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
+          initializeStep={initializeStep}
         />
       );
     case "helm-intro":

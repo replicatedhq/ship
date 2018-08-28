@@ -55,10 +55,11 @@ func NewV2Router(
 	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
-		Logger:       logger,
-		StateManager: stateManager,
-		Planner:      planners,
-		Shutdown:     make(chan interface{}),
+		Logger:             logger,
+		StateManager:       stateManager,
+		Planner:            planners,
+		Shutdown:           make(chan interface{}),
+		TerraformConfirmed: make(chan bool, 1),
 
 		Messenger:      messenger,
 		HelmIntro:      helmIntro,

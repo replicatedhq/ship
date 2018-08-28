@@ -9,6 +9,8 @@ const mockProps = {
   },
   routeId: "",
   startPoll: jest.fn(),
+  gotoRoute: jest.fn(),
+  initializeStep: jest.fn(),
 };
 
 describe("StepTerraform", () => {

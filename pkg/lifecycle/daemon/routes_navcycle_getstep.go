@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
@@ -28,68 +27,16 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				return
 			}
 
-			if step.Render != nil {
-				d.hackMaybeRunRenderOnGET(debug, c, step)
-			} else if step.Terraform != nil {
-				d.hackMaybeRunTerraformOnGET(debug, c, step)
-			} else {
-				d.hydrateAndSend(daemontypes.NewStep(step), c)
-			}
-
+			d.hydrateAndSend(daemontypes.NewStep(step), c)
 			return
 		}
 	}
 
-	d.errNotFond(c)
-}
-
-func (d *NavcycleRoutes) hackMaybeRunRenderOnGET(debug log.Logger, c *gin.Context, step api.Step) {
-	debug.Log("event", "renderStep.get", "msg", "(hack) starting render on GET request")
-	// HACK HACK HACK because dex can't redux
-	//
-	// on get render, automatically treat it like a POST to the render step,
-	// that is, start rendering, let the UI poll for status.
-	//
-	// ideally (maybe?) this can happen on the FE, as soon as render page loads, FE does a POST
-	//
-	// we check if its in the map, for now only run render if its never been run, or if its already done
-	state, err := d.StateManager.TryLoad()
-	if err != nil {
-		c.AbortWithError(500, errors.Wrap(err, "load state"))
-		return
-	}
-	_, renderAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
-	progress, ok := d.StepProgress.Load(step.Shared().ID)
-	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !renderAlreadyComplete
-	if shouldRender {
-		d.completeStep(c)
-	} else {
-		d.hydrateAndSend(daemontypes.NewStep(step), c)
-	}
-	return
-}
-
-// TODO(Robert): Needs to be moved to FE
-func (d *NavcycleRoutes) hackMaybeRunTerraformOnGET(debug log.Logger, c *gin.Context, step api.Step) {
-	debug.Log("event", "renderStep.get", "msg", "(hack) starting terraform on GET request")
-
-	state, err := d.StateManager.TryLoad()
-	if err != nil {
-		c.AbortWithError(500, errors.Wrap(err, "load state"))
-		return
-	}
-	_, terraformAlreadyComplete := state.Versioned().V1.Lifecycle.StepsCompleted[step.Shared().ID]
-	progress, ok := d.StepProgress.Load(step.Shared().ID)
-	shouldRender := !ok || progress.Detail == `{"status":"success"}` && !terraformAlreadyComplete
-	if shouldRender {
-		d.completeStep(c)
-	} else {
-		d.hydrateAndSend(daemontypes.NewStep(step), c)
-	}
-	return
+	d.errNotFound(c)
 }
 
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
+	debug := level.Debug(log.With(d.Logger, "method", "hydrateStep"))
 
 	if step.Kustomize != nil {
 		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath)
@@ -130,6 +77,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		Phase:       step.Source.ShortName(),
 	}
 
+	debug.Log("event", "load.progress")
 	if progress, ok := d.StepProgress.Load(step.Source.Shared().ID); ok {
 		result.Progress = &progress
 	}

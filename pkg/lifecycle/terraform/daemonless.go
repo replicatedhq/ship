@@ -3,7 +3,6 @@ package terraform
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"os/exec"
 	"path"
@@ -94,39 +93,36 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 
 	// blocks until all of stdout/stderr has been sent on applyMsgs channel
 	html, err := t.apply(applyMsgs)
-	fmt.Println("html", html)
 
 	close(applyMsgs)
-	// TODO(Robert): WIP
-	// if err != nil {
-	// 	t.Daemon.PushMessageStep(
-	// 		ctx,
-	// 		daemontypes.Message{
-	// 			Contents:    html,
-	// 			TrustedHTML: true,
-	// 			Level:       "error",
-	// 		},
-	// 		failedApplyActions(),
-	// 	)
-	// 	retry := <-t.Daemon.TerraformConfirmedChan()
-	// 	t.Daemon.CleanPreviousStep()
-	// 	if retry {
-	// 		return t.Execute(ctx, release, step)
-	// 	}
-	// 	return errors.Wrap(err, "apply")
-	// }
+	if err != nil {
+		t.Status.PushMessageStep(
+			ctx,
+			daemontypes.Message{
+				Contents:    html,
+				TrustedHTML: true,
+				Level:       "error",
+			},
+			failedApplyActions(),
+		)
+		retry := <-confirmedChan
+		if retry {
+			return t.Execute(ctx, release, step, confirmedChan)
+		}
+		return errors.Wrap(err, "apply")
+	}
 
-	// if !viper.GetBool("terraform-yes") {
-	// 	t.Daemon.PushMessageStep(
-	// 		ctx,
-	// 		daemontypes.Message{
-	// 			Contents:    html,
-	// 			TrustedHTML: true,
-	// 		},
-	// 		daemon.MessageActions(),
-	// 	)
-	// 	<-t.Daemon.MessageConfirmedChan()
-	// }
+	if !viper.GetBool("terraform-yes") {
+		t.Status.PushMessageStep(
+			ctx,
+			daemontypes.Message{
+				Contents:    html,
+				TrustedHTML: true,
+			},
+			finishMessageActions(),
+		)
+		<-confirmedChan
+	}
 
 	return nil
 }
@@ -262,4 +258,18 @@ func (t *DaemonlessTerraformer) apply(msgs chan<- daemontypes.Message) (string, 
 	err = cmd.Wait()
 
 	return ansiToHTML(accm), errors.Wrap(err, "command wait")
+}
+
+func finishMessageActions() []daemontypes.Action {
+	return []daemontypes.Action{
+		{
+			ButtonType:  "primary",
+			Text:        "Confirm",
+			LoadingText: "Confirming",
+			OnClick: daemontypes.ActionRequest{
+				URI:    "/terraform/apply",
+				Method: "POST",
+			},
+		},
+	}
 }

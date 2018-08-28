@@ -98,17 +98,18 @@ export function pollContentForStep(stepId, cb) {
 
       const { progress } = body;
       const { detail } = progress;
-      const parsedDetail = JSON.parse(detail);
+      const { status: parsedDetailStatus } = JSON.parse(detail);
 
-      const finishedStatus = parsedDetail.status === "success";
-      const errorStatus = parsedDetail.status === "error";
+      const finishedStatus = parsedDetailStatus === "success";
+      const messageStatus = parsedDetailStatus === "message";
+      const errorStatus = parsedDetailStatus === "error";
 
       if (finishedStatus) {
         dispatch(polling(false));
         clearInterval(intervalId);
         return cb();
       }
-      if (errorStatus) {
+      if (errorStatus || messageStatus) {
         dispatch(polling(false));
         clearInterval(intervalId);
         return;
@@ -177,6 +178,23 @@ export function finalizeStep(payload) {
     } catch (error) {
       console.log(error);
       dispatch(loadingData("postConfirm", false));
+      return;
+    }
+  };
+}
+
+export function initializeStep(stepId) {
+  return async() => {
+    try {
+      const url = `${apiEndpoint}/navcycle/step/${stepId}`;
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return;
     }
   };
