@@ -355,7 +355,6 @@ func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
 	}
 
 	secret.Data[m.V.GetString("secret-key")] = serialized
-	secret.Data["marc"] = []byte("Asdasd")
 	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "serializeAndWriteStateSecret", "name", secret.Name, "key", m.V.GetString("secret-key"))
