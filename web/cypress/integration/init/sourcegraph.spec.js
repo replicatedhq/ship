@@ -4,6 +4,7 @@ describe("Ship Init Sourcegraph", () => {
   before(() => {
     cy.visit(Cypress.env("HOST"));
   })
+
   context("intro", () => {
     it("allows navigation to the Helm step", () => {
       cy.get(".btn").click();
@@ -45,7 +46,6 @@ describe("Ship Init Sourcegraph", () => {
   context("kustomize", () => {
     context("valid line clicked in editor", () => {
       it("generates a stubbed overlay", () => {
-        cy.visit(Cypress.env("HOST") + "/kustomize");
         cy.get(":nth-child(3) > .u-marginLeft--normal > :nth-child(2)").click()
         cy.get(".file-contents-wrapper > #brace-editor > .ace_scroller > .ace_content > .ace_text-layer > :nth-child(13)").as("replicaKey")
         cy.get("@replicaKey").trigger("mousemove", { force: true })
