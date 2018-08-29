@@ -39,12 +39,6 @@ Polls an upstream source, blocking until any change has been published.  Use for
 # Installation
 There are two ways you can get started with Ship:
 
-## Running in docker
-To run ship in docker:
-```shell
-docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
-```
-
 ## Installing locally
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
@@ -62,6 +56,14 @@ After ship is installed, run it with:
 ```shell
 ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
+
+## Running in docker
+To run ship in docker:
+```shell
+docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
+```
+
+Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker..
 
 # Demo
 insert cool animation here showing ship
