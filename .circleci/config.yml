@@ -213,6 +213,7 @@ workflows:
       - test_ui
       - integration
       - test
+      - e2e-init
 
       # only run this on forks, to make sure webpack is compiling
       - build_dev_ui:
@@ -230,6 +231,7 @@ workflows:
           - integration
           - build_ui
           - test_ui
+          - e2e-init
           filters:
             branches:
               only: /master/
