@@ -9,33 +9,36 @@ Ship
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
-Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of [Helm](https://helm.sh/) charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using [Kustomize](https://kustomize.io/)), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications.
+Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
 
-Ship includes first-class support for [Helm](https://helm.sh/) charts, and automates the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
+The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts. This is possible because of how the three operating modes of Ship evoke, store and apply Kustomizations made by the cluster operator.
 
-# Features
-- Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
-- Headless mode supports automated pipelines
-- Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
-- Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller
-- Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
-- Configuration workflow `ship.yml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
-
-# Operating modes
+# Three operating modes
 
 ## ship init
 Prepares a new application for deployment. Use for:
 - Generating initial config (state.json) for an application
 - Creating and managing [Kustomize](https://kustomize.io/) overlays to be applied before deployment
 
+## ship watch
+Polls an upstream source, blocking until any change has been published.  Use for:
+- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+
 ## ship update
 Updates an existing application by merging the latest release with the local state and overlays. Use for:
 - Preparing an update to be deployed to a third party application
 - Automating the update process to start from a continuous integration (CI) service
 
-## ship watch
-Polls an upstream source, blocking until any change has been published.  Use for:
-- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+# Features
+Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications.
+
+- Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
+- Headless mode supports automated pipelines
+- Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
+- Observe upstream repos for changes & therefore triggering update processes.
+- Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller
+- Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
+- Configuration workflow `ship.yml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
 
 # Installation
 There are two ways you can get started with Ship:
