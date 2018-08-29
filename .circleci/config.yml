@@ -96,9 +96,8 @@ jobs:
           docker_layer_caching: true
       - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
       - run: |
-          mkdir /tmp/.X11-unix
-          sudo chmod 1777 /tmp/.X11-unix
-          sudo chown root /tmp/.X11-unix/
+          rm /tmp/.X11-unix/X1
+          rm /tmp/.X1
           docker run --net=host -it replicatedhq/ship-cypress:latest
 
   integration:
