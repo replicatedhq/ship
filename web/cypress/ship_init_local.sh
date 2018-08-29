@@ -6,10 +6,10 @@ HOST=${CYPRESS_HOST:-"localhost:8080"}
 rm -rf web/cypress/test
 mkdir -p web/cypress/test
 
-pushd web/cypress/test
+cd web/cypress/test
 ../../../bin/ship init $CHART_URL --no-open &
 SHIP_PID=$!
-popd
+cd ../../..
 
 trap "kill -2 $SHIP_PID 2> /dev/null" EXIT SIGHUP
 
