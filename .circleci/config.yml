@@ -86,8 +86,7 @@ jobs:
           key: v1-dependencies-{{ checksum "web/package.json" }}
 
   e2e-init:
-    docker:
-      - image: cypress/browsers
+    machine: true
     working_directory: ~/repo
     steps:
       - checkout
