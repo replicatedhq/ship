@@ -1,0 +1,7 @@
+{
+  "v1": {
+    "config": {},
+    "upstream": "github.com/replicatedhq/test-charts?ref=3427d6997bd150c60caa00ba0298fdfe17e3ed04//plain-k8s",
+    "contentSHA": "7d52a28c5b78539223c3548c2ee677b8b9d624f178e3aac1a15c0097f4e7cb62"
+  }
+}

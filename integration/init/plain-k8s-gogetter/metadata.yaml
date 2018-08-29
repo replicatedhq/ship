@@ -1,0 +1,3 @@
+upstream: "github.com/replicatedhq/test-charts?ref=3427d6997bd150c60caa00ba0298fdfe17e3ed04//plain-k8s"
+args: []
+skip_cleanup: false
