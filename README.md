@@ -1,8 +1,8 @@
 Ship
 =======
 
-[![Test Coverage](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/test_coverage)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/test_coverage)
-[![Maintainability](https://api.codeclimate.com/v1/badges/7e19355b20109fd50ada/maintainability)](https://codeclimate.com/repos/5b217b8b536ddc029d005c48/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/a00869c41469d016a3c8/test_coverage)](https://codeclimate.com/github/replicatedhq/ship/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a00869c41469d016a3c8/maintainability)](https://codeclimate.com/github/replicatedhq/ship/maintainability)
 [![CircleCI](https://circleci.com/gh/replicatedhq/ship.svg?style=svg&circle-token=471765bf5ec85ede48fcf02ea6a886dc6c5a73f1)](https://circleci.com/gh/replicatedhq/ship)
 [![Docker Image](https://images.microbadger.com/badges/image/replicated/ship.svg)](https://microbadger.com/images/replicated/ship)
 
