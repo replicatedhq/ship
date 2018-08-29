@@ -67,6 +67,9 @@ docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/m
 Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
 
 
+## Ship Modes
+![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow-png)
+
 # CI/CD Integration
 Once you've prepared an application using `ship init`, the deployable application assets can be generated, using any version of the application, by running:
 
