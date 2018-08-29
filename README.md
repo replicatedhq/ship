@@ -14,11 +14,12 @@ Ship enables the operation of third-party applications through modern software d
 Ship is launching with first-class support for [Helm](https://helm.sh/) charts designed at automating the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
 
 # Features
-- Web based "admin console" to provide initial configuration of [Helm](https://helm.sh/) values and create [Kustomize](https://kustomize.io/) overlays
-- Ability to run with or without the admin console to support running in headless and automated pipelines
-- Merge [Helm](https://helm.sh/) charts with override values and then with custom overlays using [Kustomize](https://kustomize.io/)
+- Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
+- Headless mode supports automated pipelines
+- Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
 - Deploy [Helm](https://helm.sh/) charts without Tiller to a Kubernetes cluster
 - Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
+- Ship configuration workflows can be saved as "ship.yml" files to include in [Helm](https://helm.sh/) chart repos, to customize the initial Ship init experience
 
 # Operating modes
 
