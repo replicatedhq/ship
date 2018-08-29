@@ -17,3 +17,10 @@ There are a few steps to get local development set up with Cypress and Ship.
 
 ## Run Full Test Suite
 From the base directory, run `make cypress` to run all tests. This is the same command that continuous integration runs.
+
+## Run in Docker
+From the root directory of the project:
+```sh
+docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
+docker run --net=host -it replicatedhq/ship-cypress:latest
+```
