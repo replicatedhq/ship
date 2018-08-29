@@ -9,7 +9,7 @@ Ship
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
-Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. GitOps). Ship is a command line and UI that prepares workflows to enable deploying and updating of Helm charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using Kustomize), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
+Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of Helm charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using Kustomize), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
 
 Ship is launching with first-class support for Helm charts designed at automating the "last-mile" of custom configuration via Kustomize.
 
@@ -18,7 +18,7 @@ Ship is launching with first-class support for Helm charts designed at automatin
 - Ability to run with or without the admin console to support running in headless and automated pipelines
 - Merge Helm charts with override values and then with custom overlays using Kustomize
 - Deploy Helm charts without tiller to a Kubernetes cluster
-- Enables GitOps workflows to update third party applications
+- Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
 
 # Operating modes
 
