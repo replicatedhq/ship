@@ -11,7 +11,9 @@ Ship
 
 Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
 
-The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts. This is possible because of how the three operating modes of Ship evoke, store and apply Kustomizations made by the cluster operator.
+The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. 
+With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts. 
+This is possible because of how the three operating modes of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
 # Three operating modes
 
@@ -80,7 +82,8 @@ Once you've prepared an application using `ship init`, the deployable applicatio
 ship update
 ```
 
-The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`. This will apply an update to the base directory.
+The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. 
+A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`. This will apply an update to the base directory.
 
 # Community
 
