@@ -106,8 +106,7 @@ jobs:
           key: v1-deps-{{ .Branch }}-{{ checksum "web/package.json" }}
           paths:
             - ~/.cache  ## cache both yarn and Cypress!
-      - run: |
-          make cypress
+      - run: make cypress
       - store_artifacts:
           path: web/cypress/videos
       - store_artifacts:
@@ -258,7 +257,7 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
-      - e2e_init:
+      - e2e-init:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
