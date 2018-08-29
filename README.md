@@ -32,6 +32,10 @@ Updates an existing application by merging the latest release with the local sta
 - Preparing an update to be deployed to a third party application
 - Automating the update process to start from a continuous integration (CI) service
 
+## ship watch
+Polls an upstream source, blocking until any change has been published.  Use for:
+- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+
 # Installation
 There are two ways you can get started with Ship:
 
