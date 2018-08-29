@@ -11,7 +11,7 @@ Ship
 
 Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of [Helm](https://helm.sh/) charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using [Kustomize](https://kustomize.io/)), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
 
-Ship is launching with first-class support for [Helm](https://helm.sh/) charts designed at automating the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
+Ship includes first-class support for [Helm](https://helm.sh/) charts, and automates the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
 
 # Features
 - Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
