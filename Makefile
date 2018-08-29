@@ -278,7 +278,7 @@ ci-build-ui-dev:
 test_CI:
 	$(MAKE) -C web test_CI
 
-cypress:
+cypress: embed-ui bin/ship
 	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
 	CHART_URL=github.com/sourcegraph/deploy-sourcegraph \
 	sh web/cypress/ship_init_local.sh
