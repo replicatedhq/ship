@@ -115,8 +115,10 @@ jobs:
           sudo $GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
-          $GOPATH/bin/ginkgo -p -stream integration/init_app
           $GOPATH/bin/ginkgo -p -stream integration/init
+          if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
+            $GOPATH/bin/ginkgo -p -stream integration/init_app
+          fi
 
   deploy_unstable:
     docker:
