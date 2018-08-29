@@ -18,7 +18,7 @@ WORKDIR /go/src/github.com/replicatedhq/ship/web
 RUN CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
 
 WORKDIR /go/src/github.com/replicatedhq/ship
-RUN make build
+RUN make build-ci
 
 
 FROM cypress/browsers:chrome67
