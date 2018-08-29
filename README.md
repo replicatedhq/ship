@@ -9,48 +9,47 @@ Ship
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
-Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. GitOps). Ship is a command line and UI that prepares workflows to enable deploying and updating of Helm charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using Kustomize), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
+Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of [Helm](https://helm.sh/) charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using [Kustomize](https://kustomize.io/)), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
 
-Ship is launching with first-class support for Helm charts designed at automating the "last-mile" of custom configuration via Kustomize.
+Ship includes first-class support for [Helm](https://helm.sh/) charts, and automates the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
 
 # Features
-- Web based "admin console" to provide initial configuration of Helm values and create Kustomize overlays
-- Ability to run with or without the admin console to support running in headless and automated pipelines
-- Merge Helm charts with override values and then with custom overlays using Kustomize
-- Deploy Helm charts without tiller to a Kubernetes cluster
-- Enables GitOps workflows to update third party applications
+- Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
+- Headless mode supports automated pipelines
+- Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
+- Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller 
+- Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
+- Configuration workflow `ship.yml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
 
 # Operating modes
 
 ## ship init
 Prepares a new application for deployment. Use for:
 - Generating initial config (state.json) for an application
-- Creating and managing Kustomize overlays to be applied before deployment
+- Creating and managing [Kustomize](https://kustomize.io/) overlays to be applied before deployment
 
 ## ship update
 Updates an existing application by merging the latest release with the local state and overlays. Use for:
 - Preparing an update to be deployed to a third party application
 - Automating the update process to start from a continuous integration (CI) service
 
+## ship watch
+Polls an upstream source, blocking until any change has been published.  Use for:
+- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+
 # Installation
 There are two ways you can get started with Ship:
-
-## Running in docker
-To run ship in docker:
-```shell
-docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
-```
 
 ## Installing locally
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.13.3/ship_0.13.3_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.14.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.13.3/ship_0.13.3_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.14.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 After ship is installed, run it with:
@@ -58,6 +57,14 @@ After ship is installed, run it with:
 ```shell
 ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
+
+## Running in Docker
+To run ship in Docker:
+```shell
+docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
+```
+
+Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
 
 # Demo
 insert cool animation here showing ship
