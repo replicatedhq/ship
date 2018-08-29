@@ -267,7 +267,7 @@ mark-ui-gitignored:
 embed-ui: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 
 
-ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
+ci-embed-ui: mark-ui-gitignored ci-build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
 	$(MAKE) -C web build_ship
 
