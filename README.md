@@ -63,7 +63,7 @@ To run ship in docker:
 docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
 
-Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker..
+Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
 
 # Demo
 insert cool animation here showing ship
