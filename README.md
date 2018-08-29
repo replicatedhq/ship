@@ -77,7 +77,7 @@ Once you've prepared an application using `ship init`, the deployable applicatio
 ship update
 ```
 
-The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. A simple, starting workflow could be to run `ship watch && ship update` after copmleting `ship init`. This will apply an updates to the base directory.
+The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`. This will apply an update to the base directory.
 
 # Community
 
