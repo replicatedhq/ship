@@ -86,11 +86,14 @@ jobs:
           key: v1-dependencies-{{ checksum "web/package.json" }}
 
   e2e-init:
+    docker:
+      - image: circleci/node-jessie-browsers
     machine:
-      docker_layer_caching: true
     working_directory: ~/repo
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
       - run: docker run --net=host -it replicatedhq/ship-cypress:latest
 

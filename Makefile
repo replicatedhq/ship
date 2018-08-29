@@ -227,6 +227,8 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 
 build: fmt embed-ui test bin/ship
 
+build-ci: ci-embed-ui bin/ship
+
 bin/ship: $(FULLSRC)
 	go build \
 		${LDFLAGS} \
