@@ -85,6 +85,34 @@ jobs:
             - web/node_modules
           key: v1-dependencies-{{ checksum "web/package.json" }}
 
+  e2e-init:
+    docker:
+      - image: cypress/browsers
+    working_directory: ~/repo
+    environment:
+      CYPRESS_HOST: localhost:8080
+      CY_SPEC_PATH: web/cypress/integration/init/sourcegraph.spec.js
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-{{ .Branch }}-{{ checksum "web/package.json" }}
+            - v1-deps-{{ .Branch }}
+            - v1-deps
+      - run:
+          name: Install Dependencies
+          command: cd web; yarn install --frozen-lockfile
+      - save_cache:
+          key: v1-deps-{{ .Branch }}-{{ checksum "web/package.json" }}
+          paths:
+            - ~/.cache  ## cache both yarn and Cypress!
+      - run: |
+          make cypress
+      - store_artifacts:
+          path: web/cypress/videos
+      - store_artifacts:
+          path: web/cypress/screenshots
+
   integration:
     machine: true
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
