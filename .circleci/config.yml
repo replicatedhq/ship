@@ -19,7 +19,7 @@ jobs:
       - run: mkdir -p web/dist
       - run: |
           make build-deps citest
-          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+          if [ -n "CC_TEST_REPORTER_ID" ]; then
             make ci-upload-coverage
           fi
   build_dev_ui:

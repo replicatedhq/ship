@@ -45,17 +45,17 @@ pipeline-strict: deps prebuild build gen-schema merge-mutations validate markdow
 pipeline: deps prebuild build gen-schema merge-mutations markdown-assets
 
 copy-to-help-center:
-	: To Copy to Help center, run the following command:
+	: To copy to the Ship documentation site, run the following command:
 	:
 	:    make pipeline
-	:    cp assets/* [path/to/ship-www]/content/api/ship-assets/
-	:    cp lifecycle/* [path/to/ship-www]/content/api/ship-lifecycle/
-	:    cp config/* [path/to/ship-www]/content/api/ship-config/
+	:    cp assets/* [path/to/ship-www]/content/reference/assets/
+	:    cp lifecycle/* [path/to/ship-www]/content/reference/lifecycle/
+	:    cp config/* [path/to/ship-www]/content/reference/config/
 
 copy-to-help-center-gopath:
-	cp assets/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-assets/
-	cp lifecycle/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-lifecycle/
-	cp config/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-config/
+	cp assets/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/assets/
+	cp lifecycle/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/lifecycle/
+	cp config/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/config/
 
 copy-replicated-lint:
 	: To Copy to replicated lint, run the following command:
