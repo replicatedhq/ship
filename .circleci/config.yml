@@ -19,7 +19,7 @@ jobs:
       - run: mkdir -p web/dist
       - run: |
           make build-deps citest
-          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+          if [ -n "CC_TEST_REPORTER_ID" ]; then
             make ci-upload-coverage
           fi
   build_dev_ui:
@@ -115,8 +115,10 @@ jobs:
           sudo $GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
-          $GOPATH/bin/ginkgo -p -stream integration/init_app
           $GOPATH/bin/ginkgo -p -stream integration/init
+          if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
+            $GOPATH/bin/ginkgo -p -stream integration/init_app
+          fi
 
   deploy_unstable:
     docker:
