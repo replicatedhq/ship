@@ -9,7 +9,7 @@ Ship
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
-Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of [Helm](https://helm.sh/) charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using [Kustomize](https://kustomize.io/)), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications. 
+Ship enables the operation of third-party applications through modern software deployment pipelines (i.e. [GitOps](https://www.weave.works/blog/the-gitops-pipeline)). Ship is a command line and UI that prepares workflows to enable deploying and updating of [Helm](https://helm.sh/) charts, Kubernetes applications and other third-party software. Ship handles the process of merging custom settings (`state.json`) with custom overlays (using [Kustomize](https://kustomize.io/)), and preparing a deployable set of assets (an application). Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications.
 
 Ship includes first-class support for [Helm](https://helm.sh/) charts, and automates the "last-mile" of custom configuration via [Kustomize](https://kustomize.io/).
 
@@ -17,7 +17,7 @@ Ship includes first-class support for [Helm](https://helm.sh/) charts, and autom
 - Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
 - Headless mode supports automated pipelines
 - Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
-- Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller 
+- Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller
 - Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
 - Configuration workflow `ship.yml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
 
@@ -66,18 +66,18 @@ docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/m
 
 Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
 
-# Demo
-insert cool animation here showing ship
+
+## Ship Modes
+![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow-png)
 
 # CI/CD Integration
 Once you've prepared an application using `ship init`, the deployable application assets can be generated, using any version of the application, by running:
 
 ```shell
-ship update <path-to-chart> # github.com/kubernetes/charts/mysql
+ship update
 ```
 
-## Jenkins
-An [example Jenkins job](https://github.com/replicatedhq/ship/tree/master/examples/jenkins) is available that illustrates how to run `ship update` to receive updates to a third party application in a CI/CD process.
+The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. A simple, starting workflow could be to run `ship watch && ship update` after copmleting `ship init`. This will apply an updates to the base directory.
 
 # Community
 
