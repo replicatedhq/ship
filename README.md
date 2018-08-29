@@ -17,7 +17,7 @@ Ship is launching with first-class support for [Helm](https://helm.sh/) charts d
 - Web based "admin console" to provide initial configuration of [Helm](https://helm.sh/) values and create [Kustomize](https://kustomize.io/) overlays
 - Ability to run with or without the admin console to support running in headless and automated pipelines
 - Merge [Helm](https://helm.sh/) charts with override values and then with custom overlays using [Kustomize](https://kustomize.io/)
-- Deploy [Helm](https://helm.sh/) charts without tiller to a Kubernetes cluster
+- Deploy [Helm](https://helm.sh/) charts without Tiller to a Kubernetes cluster
 - Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
 
 # Operating modes
@@ -57,8 +57,8 @@ After ship is installed, run it with:
 ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
 
-## Running in docker
-To run ship in docker:
+## Running in Docker
+To run ship in Docker:
 ```shell
 docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
 ```
