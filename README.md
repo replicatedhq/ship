@@ -37,7 +37,7 @@ Ship is designed to provide first-time configuration UI and/or be used headless 
 - Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
 - Headless mode supports automated pipelines
 - Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
-- Observe upstream repos for changes & therefore triggering update processes.
+- Watch upstream repos for updates & sync changes to your local version.
 - Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller
 - Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
 - Configuration workflow `ship.yaml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
