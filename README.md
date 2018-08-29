@@ -40,7 +40,7 @@ Ship is designed to provide first-time configuration UI and/or be used headless 
 - Observe upstream repos for changes & therefore triggering update processes.
 - Deploy [Helm](https://helm.sh/) charts to a Kubernetes cluster without Tiller
 - Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
-- Configuration workflow `ship.yml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
+- Configuration workflow `ship.yaml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
 
 # Installation
 There are two ways you can get started with Ship:
