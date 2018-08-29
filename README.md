@@ -85,5 +85,5 @@ For questions about using Ship, there's a [Replicated Community](https://help.re
 
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
 
-For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md)
+For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md) 
 
