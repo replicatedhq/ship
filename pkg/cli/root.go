@@ -33,16 +33,16 @@ func RootCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			version.Init()
 			var multiErr *multierror.Error
-			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
-			multiErr = multierror.Append(os.MkdirAll(constants.ShipPathInternalTmp, 0755))
+			multiErr = multierror.Append(multiErr, os.RemoveAll(constants.ShipPathInternalTmp))
+			multiErr = multierror.Append(multiErr, os.MkdirAll(constants.ShipPathInternalTmp, 0755))
 			return multiErr.ErrorOrNil()
 
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			var multiErr *multierror.Error
-			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalTmp))
+			multiErr = multierror.Append(multiErr, os.RemoveAll(constants.ShipPathInternalTmp))
 			// if we got here, it means we finished successfully, so remove the internal debug log file
-			multiErr = multierror.Append(os.RemoveAll(constants.ShipPathInternalLog))
+			multiErr = multierror.Append(multiErr, os.RemoveAll(constants.ShipPathInternalLog))
 			return multiErr.ErrorOrNil()
 		},
 	}
