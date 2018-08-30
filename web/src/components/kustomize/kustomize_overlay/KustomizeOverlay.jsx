@@ -10,6 +10,7 @@ import pick from "lodash/pick";
 import keyBy from "lodash/keyBy";
 import find from "lodash/find";
 import defaultTo from "lodash/defaultTo";
+import debounce from "lodash/debounce";
 
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
@@ -210,6 +211,14 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay = editor;
   }
 
+  updateModifiedPatch = debounce((patch) => {
+    // We already circumvent React's lifecycle state system for updates
+    // Set the current patch state to the changed value to avoid
+    // React re-rendering the ACE Editor
+    this.state.patch = patch; // eslint-disable-line
+    this.handleApplyPatch()
+  }, 500);
+
   render() {
     const { dataLoading } = this.props;
     const {
@@ -317,6 +326,7 @@ export default class KustomizeOverlay extends React.Component {
                         setOptions={{
                           scrollPastEnd: false
                         }}
+                        onChange={this.updateModifiedPatch}
                       />
                     </div>
                   </div>
