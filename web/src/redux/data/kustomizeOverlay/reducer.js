@@ -26,15 +26,17 @@ export function kustomizeData(state = kustomizeState, action) {
     return Object.assign({}, state, {
       fileContents: updatedContents
     });
-  case constants.RECEIVE_PATCH:
+  case constants.RECEIVE_PATCH: {
     const { patch } = action.payload;
     return Object.assign({}, state, {
       patch,
     });
+  }
   case constants.RECEIVE_MODIFIED:
-    const { modified } = action.payload;
+    const { modified, patch } = action.payload;
     return Object.assign({}, state, {
       modified,
+      patch,
     });
   default:
     return state;

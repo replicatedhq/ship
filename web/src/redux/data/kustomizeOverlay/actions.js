@@ -181,7 +181,7 @@ export function applyPatch(payload) {
         body: JSON.stringify(payload)
       });
       const { modified } = await response.json();
-      dispatch(receiveModified(modified));
+      dispatch(receiveModified(modified, payload.patch));
     } catch (error) {
       console.log(error)
       return;
@@ -189,11 +189,12 @@ export function applyPatch(payload) {
   };
 }
 
-export function receiveModified(modified) {
+export function receiveModified(modified, patch) {
   return {
     type: constants.RECEIVE_MODIFIED,
     payload: {
       modified,
+      patch,
     }
   };
 }
