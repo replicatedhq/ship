@@ -46,11 +46,11 @@ export default class StepBuildingAssets extends React.Component {
   render() {
     const { status = {} } = this.props;
     const isJSON = status.type === "json";
-    const parsed = isJSON ? JSON.parse(status.detail) : null;
-    const message = parsed ? JSON.parse(status.detail).message : "";
+    const parsed = isJSON ? JSON.parse(status.detail) : {};
+    const message = parsed.message ? parsed.message : "";
     const isError = parsed && parsed.status === "error";
     const isSuccess = parsed && parsed.status === "success";
-    const progressDetail = parsed ? JSON.parse(status.detail).progressDetail : null;
+    const progressDetail = parsed.progressDetail ? parsed.progressDetail : null;
     let percent = progressDetail ? `${Utilities.calcPercent(progressDetail.current, progressDetail.total, 0)}` : 0;
     if (percent > 100) {
       percent = 100;
