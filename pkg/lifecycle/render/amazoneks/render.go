@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/go-kit/kit/log"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -109,81 +110,61 @@ func (r *LocalRenderer) Execute(
 
 func buildAsset(asset api.EKSAsset, builder *templates.Builder) (api.EKSAsset, error) {
 	var err error
+	var multiErr *multierror.Error
 
 	asset.ClusterName, err = builder.String(asset.ClusterName)
-	if err != nil {
-		return asset, errors.Wrap(err, "build cluster_name")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build cluster_name"))
+
 	asset.Region, err = builder.String(asset.Region)
-	if err != nil {
-		return asset, errors.Wrap(err, "build region")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build region"))
 
 	// build created vpc
 	if asset.CreatedVPC != nil {
 		asset.CreatedVPC.VPCCIDR, err = builder.String(asset.CreatedVPC.VPCCIDR)
-		if err != nil {
-			return asset, errors.Wrap(err, "build vpc_cidr")
-		}
+		multiErr = multierror.Append(multiErr, errors.Wrap(err, "build vpc_cidr"))
 
 		for idx, zone := range asset.CreatedVPC.Zones {
 			asset.CreatedVPC.Zones[idx], err = builder.String(zone)
-			if err != nil {
-				return asset, errors.Wrap(err, fmt.Sprintf("build vpc zone %d", idx))
-			}
+			multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build vpc zone %d", idx)))
 		}
 		for idx, subnet := range asset.CreatedVPC.PublicSubnets {
 			asset.CreatedVPC.PublicSubnets[idx], err = builder.String(subnet)
-			if err != nil {
-				return asset, errors.Wrap(err, fmt.Sprintf("build vpc public subnet %d", idx))
-			}
+			multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build vpc public subnet %d", idx)))
 		}
 		for idx, subnet := range asset.CreatedVPC.PrivateSubnets {
 			asset.CreatedVPC.PrivateSubnets[idx], err = builder.String(subnet)
-			if err != nil {
-				return asset, errors.Wrap(err, fmt.Sprintf("build vpc private subnet zone %d", idx))
-			}
+			multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build vpc private subnet zone %d", idx)))
 		}
 	}
 
 	// build existing vpc
 	if asset.ExistingVPC != nil {
 		asset.ExistingVPC.VPCID, err = builder.String(asset.ExistingVPC.VPCID)
-		if err != nil {
-			return asset, errors.Wrap(err, "build vpc_id")
-		}
+		multiErr = multierror.Append(multiErr, errors.Wrap(err, "build vpc_id"))
 
 		for idx, subnet := range asset.ExistingVPC.PublicSubnets {
 			asset.ExistingVPC.PublicSubnets[idx], err = builder.String(subnet)
-			if err != nil {
-				return asset, errors.Wrap(err, fmt.Sprintf("build vpc public subnet %d", idx))
-			}
+			multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build vpc public subnet %d", idx)))
 		}
 		for idx, subnet := range asset.ExistingVPC.PrivateSubnets {
 			asset.ExistingVPC.PrivateSubnets[idx], err = builder.String(subnet)
-			if err != nil {
-				return asset, errors.Wrap(err, fmt.Sprintf("build vpc private subnet zone %d", idx))
-			}
+			multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build vpc private subnet zone %d", idx)))
 		}
 	}
 
 	// build autoscaling groups
 	for idx, group := range asset.AutoscalingGroups {
 		asset.AutoscalingGroups[idx].Name, err = builder.String(group.Name)
-		if err != nil {
-			return asset, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d name", idx))
-		}
+		multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d name", idx)))
+
 		asset.AutoscalingGroups[idx].GroupSize, err = builder.String(group.GroupSize)
-		if err != nil {
-			return asset, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d group_size", idx))
-		}
+		multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d group_size", idx)))
+
 		asset.AutoscalingGroups[idx].MachineType, err = builder.String(group.MachineType)
-		if err != nil {
-			return asset, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d machine_type", idx))
-		}
+		multiErr = multierror.Append(multiErr, errors.Wrap(err, fmt.Sprintf("build autoscaling group %d machine_type", idx)))
 	}
 
-	return asset, nil
+	return asset, multiErr.ErrorOrNil()
 }
 
 func renderTerraformContents(asset api.EKSAsset) (string, error) {
