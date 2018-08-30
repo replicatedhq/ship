@@ -43,7 +43,7 @@ COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
 COPY --from=build-step $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml config.yml
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+RUN apk update && apk add ca-certificates git openssh && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /var/lib/registry
 
