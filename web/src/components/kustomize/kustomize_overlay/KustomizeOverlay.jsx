@@ -9,6 +9,7 @@ import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
 import keyBy from "lodash/keyBy";
 import find from "lodash/find";
+import defaultTo from "lodash/defaultTo";
 
 import FileTree from "./FileTree";
 import Loader from "../../shared/Loader";
@@ -217,9 +218,10 @@ export default class KustomizeOverlay extends React.Component {
       fileLoadErr,
       fileLoadErrMessage,
       patch,
-      savingFinalize
+      savingFinalize,
+      fileContents,
     } = this.state;
-    const fileToView = find(this.state.fileContents, ["key", selectedFile]);
+    const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
 
     return (
