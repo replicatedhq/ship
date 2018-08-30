@@ -32,12 +32,12 @@
                     "autoscaling_groups": [
                       {
                         "name": "group1",
-                        "group_size": 2,
+                        "group_size": "2",
                         "machine_type": "m5.large"
                       },
                       {
                         "name": "group2",
-                        "group_size": 1,
+                        "group_size": "1",
                         "machine_type": "t2.large"
                       }
                     ]
@@ -63,7 +63,7 @@
                     "autoscaling_groups": [
                       {
                         "name": "firstgroup",
-                        "group_size": 3,
+                        "group_size": "3",
                         "machine_type": "m5.large"
                       }
                     ]
@@ -79,7 +79,7 @@
                       "properties": {
                         "group_size": {
                           "description": "The number of instances to be included in the group",
-                          "type": "integer"
+                          "type": "string"
                         },
                         "machine_type": {
                           "description": "The AWS instance type to use within the group",

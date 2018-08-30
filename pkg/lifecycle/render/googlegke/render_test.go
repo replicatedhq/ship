@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -71,7 +70,7 @@ func TestRenderer(t *testing.T) {
 			v := viper.New()
 			bb := templates.NewBuilderBuilder(testLogger, v)
 			renderer := &LocalRenderer{
-				Logger:         &logger.TestLogger{T: t},
+				Logger:         testLogger,
 				BuilderBuilder: bb,
 				Inline:         mockInline,
 			}
@@ -238,14 +237,16 @@ func TestBuildAsset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
 			got, err := buildAsset(tt.args.asset, tt.args.builder)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("buildAsset() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if !tt.wantErr {
+				req.NoErrorf(err, "buildAsset() error = %v", err)
+			} else {
+				req.Error(err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("buildAsset() = %v, want %v", got, tt.want)
-			}
+
+			req.Equal(got, tt.want)
 		})
 	}
 }
