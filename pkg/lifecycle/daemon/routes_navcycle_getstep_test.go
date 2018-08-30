@@ -260,9 +260,10 @@ func TestV2GetStep(t *testing.T) {
 
 func TestHydrateActions(t *testing.T) {
 	tests := []struct {
-		name string
-		step daemontypes.Step
-		want []daemontypes.Action
+		name     string
+		progress map[string]daemontypes.Progress
+		step     daemontypes.Step
+		want     []daemontypes.Action
 	}{
 		{
 			name: "message",
@@ -331,6 +332,51 @@ func TestHydrateActions(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "completed step",
+			step: daemontypes.NewStep(api.Step{
+				KustomizeIntro: &api.KustomizeIntro{
+					StepShared: api.StepShared{
+						ID: "hola",
+					},
+				},
+			}),
+			progress: map[string]daemontypes.Progress{
+				"hola": daemontypes.JSONProgress("v2router", map[string]interface{}{
+					"status":  "success",
+					"message": "Step completed successfully.",
+				}),
+			},
+			want: []daemontypes.Action{
+				{
+					ButtonType:  "primary",
+					Text:        "Next",
+					LoadingText: "Next",
+					OnClick: daemontypes.ActionRequest{
+						URI:    "/navcycle/step/hola",
+						Method: "POST",
+						Body:   "",
+					},
+				},
+			},
+		},
+		{
+			name: "in progress step",
+			step: daemontypes.NewStep(api.Step{
+				KustomizeIntro: &api.KustomizeIntro{
+					StepShared: api.StepShared{
+						ID: "adios",
+					},
+				},
+			}),
+			progress: map[string]daemontypes.Progress{
+				"adios": daemontypes.JSONProgress("v2router", map[string]interface{}{
+					"status":  "working",
+					"message": "working",
+				}),
+			},
+			want: nil,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -338,6 +384,9 @@ func TestHydrateActions(t *testing.T) {
 
 			testLogger := &logger.TestLogger{T: t}
 			progressmap := &daemontypes.ProgressMap{}
+			for key, val := range test.progress {
+				progressmap.Store(key, val)
+			}
 
 			v2 := &NavcycleRoutes{
 				Logger:       testLogger,

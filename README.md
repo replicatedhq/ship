@@ -11,8 +11,8 @@ Ship
 
 Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](https://www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
 
-The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. 
-With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts. 
+The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications.
+With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts.
 This is possible because of how the three operating modes of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
 # Three operating modes
@@ -60,13 +60,13 @@ curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.14.0/ship_0.
 After ship is installed, run it with:
 
 ```shell
-ship init <path-to-chart> # github.com/kubernetes/charts/mysql
+ship init <path-to-chart> # github.com/helm/charts/stable/mysql
 ```
 
 ## Running in Docker
 To run ship in Docker:
 ```shell
-docker run replicated/ship init <path-to-chart> # github.com/kubernetes/charts/mysql
+docker run -p 8800:8800 replicated/ship init <path-to-chart> # github.com/helm/charts/stable/mysql
 ```
 
 Note, you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
@@ -82,8 +82,8 @@ Once you've prepared an application using `ship init`, the deployable applicatio
 ship update
 ```
 
-The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change. 
-A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`. 
+The `watch` command is designed to be a trigger for a CI/CD process by watching the upstream application for changes. Running `ship watch` will load the state file and periodically poll the upstream application and exit when it finds a change.
+A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`.
 This will apply an update to the base directory.
 
 # Community
@@ -92,5 +92,5 @@ For questions about using Ship, there's a [Replicated Community](https://help.re
 
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
 
-For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md) 
+For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md)
 
