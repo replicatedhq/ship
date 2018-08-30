@@ -91,8 +91,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action {
 	progress, hasProgress := d.StepProgress.Load(step.Source.Shared().ID)
 
-	/// JAAAANK
-	shouldSkipActions := hasProgress && progress.Detail != `{"status":"success"}`
+	shouldSkipActions := hasProgress && progress.Status() != "success"
 
 	if shouldSkipActions {
 		return nil
