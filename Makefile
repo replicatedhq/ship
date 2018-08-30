@@ -283,7 +283,7 @@ test_CI:
 
 cypress_base:
 	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
-	CHART_URL=github.com/sourcegraph/deploy-sourcegraph \
+	CHART_URL=github.com/sourcegraph/deploy-sourcegraph/tree/0e4d81d3c1f096c39d39b769a2bf736f5889af77 \
 	sh web/cypress/run_init_spec.sh
 
 cypress: build cypress_base
