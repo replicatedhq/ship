@@ -2,12 +2,12 @@ assets:
   v1:
     - amazon_eks:
         dest: new/new_vpc.tf
-        cluster_name: new-vpc-cluster
+        cluster_name: '{{repl ConfigOption "name_source" }}'
         region: "us-west-2"
         created_vpc:
-          vpc_cidr: "10.0.0.0/16"
+          vpc_cidr: '{{repl ConfigOption "cidr_source" }}'
           zones:
-            - us-west-2a
+            - '{{repl ConfigOption "zone_source" }}'
             - us-west-2b
           public_subnets:
             - "10.0.1.0/24"
@@ -18,7 +18,7 @@ assets:
         autoscaling_groups:
           - name: alpha
             group_size: 3
-            machine_type: m5.2xlarge
+            machine_type: '{{repl ConfigOption "machine_source" }}'
           - name: bravo
             group_size: 1
             machine_type: m5.4xlarge
@@ -28,7 +28,7 @@ assets:
                   #!/bin/bash
                   echo "run:"
                   echo "terraform apply -f new/new_vpc.tf"
-                  echo "kubectl apply -f kube.yaml --kubeconfig {{repl AmazonEKS "new-vpc-cluster" }}"
+                  echo "kubectl apply -f kube.yaml --kubeconfig {{repl AmazonEKS (ConfigOption "name_source") }}"
         mode: 0777
     - inline:
         dest: kube.yaml
@@ -36,7 +36,28 @@ assets:
                   this is not a valid kubernetes yaml
         mode: 0777
 
-config: {}
+config:
+  v1:
+  - name: template_sources
+    title: Template Function Sources
+    description: testing testing 123
+    items:
+    - name: name_source
+      title: Name Source
+      default: cluster-name-template
+      type: text
+    - name: cidr_source
+      title: CIDR Source
+      default: "10.0.0.0/16"
+      type: text
+    - name: zone_source
+      title: Zone Source
+      default: "us-west-2a"
+      type: text
+    - name: machine_source
+      title: Machine Source
+      default: m5.2xlarge
+      type: text
 
 lifecycle:
   v1:
