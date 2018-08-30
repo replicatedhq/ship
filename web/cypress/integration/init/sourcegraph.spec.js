@@ -29,15 +29,23 @@ describe("Ship Init Sourcegraph", () => {
           `${downArrowsToRequiredHelmValue}${rightArrowsToRequiredHelmValue}${backspacesToUncommentRequiredHelmValue}`,
           { force: true, delay: 0 }
         )
-        cy.get(".actions-wrapper > .flex > .btn").click()
+        cy.get(".primary").click()
+        cy.get(".u-color--vidaLoca").contains("Values saved")
       });
 
-      it("allows navigation to the Kustomize intro step", () => {
-        cy.get(".flex-auto.flex-column > .flex > .btn").click();
-        cy.location("pathname").should("eq", "/kustomize-intro")
+      it("allows navigation to the render step", () => {
+        cy.get(".secondary").click()
+        cy.location("pathname").should("eq", "/render")
       })
     });
+  });
+
+  context("render", () => {
+    it("allows navigation to the kustomize-intro step", () => {
+      cy.location("pathname").should("eq", "/kustomize-intro")
+    })
   })
+
   context("kustomize-intro", () => {
     it("allows navigation to the kustomize step", () => {
       cy.get(".btn").click();
@@ -63,11 +71,11 @@ describe("Ship Init Sourcegraph", () => {
 
       context("valid Kustomize overlay written", () => {
         it("allows the overlay to be saved", () => {
-          cy.get(".layout-footer-actions > .flex > .btn").click();
+          cy.get(".primary").click()
         });
 
         it("allows navigation to the overlay finalization step", () => {
-          cy.get(".flex-auto.flex-column > .flex > .btn").click();
+          cy.get(".secondary").click()
           cy.location("pathname").should("eq", "/outro")
         })
       })
