@@ -21,6 +21,19 @@ func (p Progress) String() string {
 	return fmt.Sprintf("Progress{%s %s %s %s}", p.Source, p.Type, p.Level, p.Detail)
 }
 
+// Status parses the status code within progress detail that is used by the FE to determine
+// progress phases within a step
+func (p Progress) Status() string {
+	if p.Detail != "" {
+		var statusDetail map[string]string
+		json.Unmarshal([]byte(p.Detail), &statusDetail)
+		if statusDetail["status"] != "" {
+			return statusDetail["status"]
+		}
+	}
+	return ""
+}
+
 func StringProgress(source, detail string) Progress {
 	return JSONProgress(source, map[string]interface{}{
 		"status": detail,
