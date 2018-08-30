@@ -17,7 +17,9 @@ type PlanConfirmer interface {
 		ctx context.Context,
 		formmatedTerraformPlan string,
 		release api.Release,
+		confirmedChan chan bool,
 	) (bool, error)
+	WithStatusReceiver(daemontypes.StatusReceiver) PlanConfirmer
 }
 
 func NewPlanner(
@@ -37,12 +39,18 @@ type DaemonPlanner struct {
 	Daemon daemontypes.Daemon
 }
 
+// WithStatusReceiver is a no-op for the daemon version of PlanConfirmer
+func (d *DaemonPlanner) WithStatusReceiver(daemontypes.StatusReceiver) PlanConfirmer {
+	return d
+}
+
 // ConfirmPlan presents the plan to the user.
 // returns true if the plan should be applied
 func (d *DaemonPlanner) ConfirmPlan(
 	ctx context.Context,
 	formmatedTerraformPlan string,
 	release api.Release,
+	confirmedChan chan bool,
 ) (bool, error) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemonplanner", "method", "plan"))
 

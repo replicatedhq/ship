@@ -11,16 +11,20 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (s *Ship) UpdateAndMaybeExit(ctx context.Context) {
+func (s *Ship) UpdateAndMaybeExit(ctx context.Context) error {
 	if err := s.Update(ctx); err != nil {
 		s.ExitWithError(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Ship) Update(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "update"))
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
+
+	s.Viper.Set("rm-asset-dest", true)
 
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 	// does a state already exist

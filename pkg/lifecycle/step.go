@@ -38,7 +38,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		return errors.Wrap(err, "execute render step")
 	} else if step.Terraform != nil {
 		debug.Log("event", "step.resolve", "type", "terraform")
-		err := s.Terraformer.Execute(ctx, *release, *step.Terraform)
+		err := s.Terraformer.Execute(ctx, *release, *step.Terraform, make(chan bool))
 		debug.Log("event", "step.complete", "type", "terraform", "err", err)
 		return errors.Wrap(err, "execute terraform step")
 	} else if step.Kustomize != nil {

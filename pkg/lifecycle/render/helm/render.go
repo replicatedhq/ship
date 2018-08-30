@@ -52,7 +52,6 @@ func (r *LocalRenderer) Execute(
 
 		chartLocation, err := r.Fetcher.FetchChart(
 			ctx,
-			rootFs,
 			asset,
 			meta,
 			configGroups,

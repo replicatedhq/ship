@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
 	"github.com/replicatedhq/ship/pkg/e2e"
@@ -39,6 +40,7 @@ type TestMetadata struct {
 
 func TestInitReplicatedApp(t *testing.T) {
 	RegisterFailHandler(Fail)
+	format.MaxDepth = 30
 	RunSpecs(t, "ship init replicated.app")
 }
 

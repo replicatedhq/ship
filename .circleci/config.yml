@@ -19,7 +19,7 @@ jobs:
       - run: mkdir -p web/dist
       - run: |
           make build-deps citest
-          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+          if [ -n "$CC_TEST_REPORTER_ID" ]; then
             make ci-upload-coverage
           fi
   build_dev_ui:
@@ -128,8 +128,10 @@ jobs:
           sudo $GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
-          $GOPATH/bin/ginkgo -p -stream integration/init_app
           $GOPATH/bin/ginkgo -p -stream integration/init
+          if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
+            $GOPATH/bin/ginkgo -p -stream integration/init_app
+          fi
 
   deploy_unstable:
     docker:
@@ -147,12 +149,8 @@ jobs:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
               curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
-            fi
-      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
-      - deploy:
-          command: |
-            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
-              docker push replicated/ship:unstable
+              docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+              docker push replicated/ship:alpha
             fi
 
   deploy_integration:
@@ -163,10 +161,10 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: make build_ship_integration_test
-      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               docker push replicated/ship-e2e-test:latest
             fi
 
@@ -182,10 +180,10 @@ jobs:
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
-      - run: docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+               docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
             fi
       # todo drop a release-api message to bump a version in the DB

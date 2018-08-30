@@ -27,8 +27,7 @@ of 0 when there's an update available.`,
 				return err
 			}
 
-			s.WatchAndExit(context.Background())
-			return nil
+			return s.WatchAndExit(context.Background())
 		},
 	}
 

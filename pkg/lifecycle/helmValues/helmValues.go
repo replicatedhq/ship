@@ -65,7 +65,8 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 	h.Daemon.SetProgress(daemontypes.StringProgress("helmValues", "generating installable application manifests"))
 
 	h.Daemon.PushHelmValuesStep(ctx, daemontypes.HelmValues{
-		Values: currentState.CurrentHelmValues(),
+		Values:        currentState.CurrentHelmValues(),
+		DefaultValues: currentState.CurrentHelmValuesDefaults(),
 	}, daemon.HelmValuesActions())
 	debug.Log("event", "step.pushed")
 
@@ -116,7 +117,7 @@ func resolveStateHelmValues(logger log.Logger, manager state.Manager, fs afero.A
 		}
 		helmValues = string(bytes)
 	}
-	debug.Log("event", "tryLoadState")
+
 	err = fs.MkdirAll(constants.TempHelmValuesPath, 0700)
 	if err != nil {
 		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)

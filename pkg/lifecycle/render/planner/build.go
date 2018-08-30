@@ -28,14 +28,10 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 	debug.Log("renderRoot", renderRoot)
 	rootFs := root.NewRootFS(p.Fs, renderRoot)
 
-	newConfigContext, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+	builder, err := p.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
 	if err != nil {
-		return nil, err
+		return Plan{}, errors.Wrap(err, "init builder")
 	}
-	builder := p.BuilderBuilder.NewBuilder(
-		p.BuilderBuilder.NewStaticContext(),
-		newConfigContext,
-	)
 
 	var plan Plan
 	for i, asset := range assets {
@@ -46,7 +42,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		p.Status.SetProgress(daemontypes.JSONProgress("build", progress))
 
 		if asset.Inline != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Inline.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Inline.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -56,7 +52,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.inlineStep(rootFs, *asset.Inline, configGroups, meta, templateContext))
 			}
 		} else if asset.Docker != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Docker.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Docker.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -66,7 +62,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.dockerStep(rootFs, *asset.Docker, meta, templateContext, configGroups))
 			}
 		} else if asset.Helm != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Helm.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -76,7 +72,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.helmStep(rootFs, *asset.Helm, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.DockerLayer.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.DockerLayer.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -86,7 +82,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.dockerLayerStep(rootFs, *asset.DockerLayer, meta, templateContext, configGroups))
 			}
 		} else if asset.Web != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Web.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Web.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -96,7 +92,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.webStep(rootFs, *asset.Web, meta, configGroups, templateContext))
 			}
 		} else if asset.GitHub != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.GitHub.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.GitHub.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -106,7 +102,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.githubStep(rootFs, *asset.GitHub, configGroups, meta, templateContext))
 			}
 		} else if asset.Terraform != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.Terraform.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Terraform.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
@@ -116,19 +112,28 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 				plan = append(plan, p.terraformStep(rootFs, *asset.Terraform, meta, templateContext, configGroups))
 			}
 		} else if asset.AmazonEKS != nil {
-			evaluatedWhen, err := p.evalAssetWhen(debug, builder, asset, asset.AmazonEKS.AssetShared.When)
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.AmazonEKS.AssetShared.When)
 			if err != nil {
 				return nil, err
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
 			if evaluatedWhen {
-				plan = append(plan, p.amazonElasticKubernetesServiceStep(rootFs, *asset.AmazonEKS, meta, templateContext, configGroups))
+				plan = append(plan, p.amazonEKSStep(rootFs, *asset.AmazonEKS, meta, templateContext, configGroups))
+			}
+		} else if asset.GoogleGKE != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.GoogleGKE.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+			p.logAssetResolve(debug, evaluatedWhen, "google kubernetes cluster")
+			if evaluatedWhen {
+				plan = append(plan, p.googleGKEStep(rootFs, *asset.GoogleGKE, meta, templateContext, configGroups))
 			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform amazon_eks]",
+					"[inline docker helm dockerlayer github terraform amazon_eks google_gke]",
 			)
 		}
 	}
@@ -234,7 +239,7 @@ func (p *CLIPlanner) terraformStep(
 	}
 }
 
-func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
+func (p *CLIPlanner) amazonEKSStep(
 	rootFs root.Fs,
 	asset api.EKSAsset,
 	meta api.ReleaseMetadata,
@@ -244,7 +249,21 @@ func (p *CLIPlanner) amazonElasticKubernetesServiceStep(
 	return Step{
 		Dest:        asset.Dest,
 		Description: asset.Description,
-		Execute:     p.AWSEKS.Execute(rootFs, asset, meta, templateContext, configGroups),
+		Execute:     p.AmazonEKS.Execute(rootFs, asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) googleGKEStep(
+	rootFs root.Fs,
+	asset api.GKEAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.GoogleGKE.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 

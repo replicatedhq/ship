@@ -13,7 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*This file was edited by Replicated in 2018 to expose `helm dependency update` as a function.*/
+/*This file was edited by Replicated in 2018 to
+  - expose `helm dependency update` as a function
+  - silence the error output from the cobra command.
+*/
 
 package helm
 
@@ -57,10 +60,12 @@ func newDependencyUpdateCmd(out io.Writer) *cobra.Command {
 	duc := &dependencyUpdateCmd{out: out}
 
 	cmd := &cobra.Command{
-		Use:     "update [flags] CHART",
-		Aliases: []string{"up"},
-		Short:   "update charts/ based on the contents of requirements.yaml",
-		Long:    dependencyUpDesc,
+		Use:           "update [flags] CHART",
+		Aliases:       []string{"up"},
+		Short:         "update charts/ based on the contents of requirements.yaml",
+		Long:          dependencyUpDesc,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cp := "."
 			if len(args) > 0 {

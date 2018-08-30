@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
+	"github.com/spf13/viper"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
@@ -40,6 +41,7 @@ func TestRenderNoConfig(t *testing.T) {
 			renderer := &noconfigrenderer{
 				Logger: log.NewNopLogger(),
 				Now:    time.Now,
+				Viper:  viper.New(),
 			}
 			renderer.Fs = mockFS
 			renderer.UI = mockUI

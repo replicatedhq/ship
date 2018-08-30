@@ -3,8 +3,8 @@ package amazoneks
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"testing"
+	"text/template"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
@@ -18,6 +18,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -128,7 +129,7 @@ func TestRenderer(t *testing.T) {
 }
 
 func getBuilder() templates.Builder {
-	builderBuilder := templates.NewBuilderBuilder(log.NewNopLogger())
+	builderBuilder := templates.NewBuilderBuilder(log.NewNopLogger(), viper.New())
 
 	builder := builderBuilder.NewBuilder(
 		&templates.ShipContext{},

@@ -31,7 +31,6 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
-	SaveHelmOpts(url, version string) error
 	Save(v VersionedState) error
 }
 
@@ -105,6 +104,7 @@ func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.HelmValues = values
+	versionedState.V1.HelmValuesDefaults = defaults
 
 	return m.serializeAndWriteState(versionedState)
 }
@@ -259,22 +259,6 @@ func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	return nil
 }
 
-func (m *MManager) SaveHelmOpts(url, version string) error {
-	currentState, err := m.TryLoad()
-	if err != nil {
-		return errors.Wrapf(err, "load state")
-	}
-	versionedState := currentState.Versioned()
-	versionedState.V1.ChartRepoURL = url
-	versionedState.V1.ChartVersion = version
-
-	if err := m.serializeAndWriteState(versionedState); err != nil {
-		return errors.Wrap(err, "write state")
-	}
-
-	return nil
-}
-
 // RemoveStateFile will attempt to remove the state file from disk
 func (m *MManager) RemoveStateFile() error {
 	statePath := m.V.GetString("state-file")
@@ -333,7 +317,7 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 }
 
 func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
-	serialized, err := json.Marshal(state)
+	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
 	}
@@ -354,7 +338,6 @@ func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
 	}
 
 	secret.Data[m.V.GetString("secret-key")] = serialized
-	secret.Data["marc"] = []byte("Asdasd")
 	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "serializeAndWriteStateSecret", "name", secret.Name, "key", m.V.GetString("secret-key"))

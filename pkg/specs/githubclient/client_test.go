@@ -53,7 +53,7 @@ var _ = Describe("GithubClient", func() {
 		io.Copy(w, dec)
 	})
 
-	Describe("GetRepoContent", func() {
+	Describe("GetFiles", func() {
 		Context("With a url prefixed with http(s)", func() {
 			It("should fetch and persist README.md and Chart.yaml", func() {
 				validGitURLWithPrefix := "http://www.github.com/o/r/"
@@ -64,7 +64,7 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetRepoContent(context.Background(), validGitURLWithPrefix, constants.HelmChartPath)
+				err := gitClient.GetFiles(context.Background(), validGitURLWithPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				readme, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "README.md"))
@@ -93,7 +93,7 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetRepoContent(context.Background(), validGitURLWithoutPrefix, constants.HelmChartPath)
+				err := gitClient.GetFiles(context.Background(), validGitURLWithoutPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
 				readme, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "README.md"))
@@ -122,7 +122,7 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetRepoContent(context.Background(), nonGithubURL, constants.HelmChartPath)
+				err := gitClient.GetFiles(context.Background(), nonGithubURL, constants.HelmChartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("http://gitlab.com/o/r is not a Github URL"))
 			})

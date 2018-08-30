@@ -4,7 +4,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
@@ -15,7 +14,6 @@ import (
 type Resolver struct {
 	Logger       log.Logger
 	Client       *replicatedapp.GraphQLClient
-	GithubClient *githubclient.GithubClient
 	StateManager state.Manager
 	FS           afero.Afero
 	AppResolver  replicatedapp.Resolver
@@ -34,7 +32,6 @@ func NewResolver(
 	logger log.Logger,
 	fs afero.Afero,
 	graphql *replicatedapp.GraphQLClient,
-	githubClient *githubclient.GithubClient,
 	stateManager state.Manager,
 	ui cli.Ui,
 	determiner apptype.Inspector,
@@ -43,7 +40,6 @@ func NewResolver(
 	return &Resolver{
 		Logger:           logger,
 		Client:           graphql,
-		GithubClient:     githubClient,
 		StateManager:     stateManager,
 		FS:               fs,
 		Viper:            v,

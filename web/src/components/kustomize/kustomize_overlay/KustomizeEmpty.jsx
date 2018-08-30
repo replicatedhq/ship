@@ -28,8 +28,8 @@ export default class KustomizeEmpty extends React.Component {
                 <div className="feature-block-wrapper">
                   <div className="feature-block">
                     <div className="icon u-setOverlayIcon"></div>
-                    <p className="title">Apply your overlays</p>
-                    <p>After selecting a base file. You can create an overlay for it. Overlays are essentially a collection of patches.</p>
+                    <p className="title">Create a patch</p>
+                    <p>After selecting a base file, you can select specific items that you want to customize to meet your needs.</p>
                   </div>
                 </div>
               </div>

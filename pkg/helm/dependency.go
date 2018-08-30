@@ -13,7 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*This file was edited by Replicated in 2018 to expose `helm dependency` as a function.*/
+/*This file was edited by Replicated in 2018 to
+  - expose `helm dependency` as a function
+  - silence the error output from the cobra command.
+*/
 
 package helm
 
@@ -115,10 +118,12 @@ func newDependencyListCmd(out io.Writer) *cobra.Command {
 	dlc := &dependencyListCmd{out: out}
 
 	cmd := &cobra.Command{
-		Use:     "list [flags] CHART",
-		Aliases: []string{"ls"},
-		Short:   "list the dependencies for the given chart",
-		Long:    dependencyListDesc,
+		Use:           "list [flags] CHART",
+		Aliases:       []string{"ls"},
+		Short:         "list the dependencies for the given chart",
+		Long:          dependencyListDesc,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cp := "."
 			if len(args) > 0 {

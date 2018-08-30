@@ -30,6 +30,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
@@ -40,7 +41,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -67,15 +67,12 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
-		terraform2.NewTerraformer,
-		tfplan.NewPlanner,
 
 		state.NewManager,
 		planner.NewFactory,
 		specs.NewResolver,
 		replicatedapp.NewGraphqlClient,
 		replicatedapp.NewAppResolver,
-		githubclient.NewGithubClient,
 		lifecycle.NewRunner,
 
 		inline.NewRenderer,
@@ -102,6 +99,8 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		terraform.NewRenderer,
 
 		amazoneks.NewRenderer,
+
+		googlegke.NewRenderer,
 
 		kubectl.NewKubectl,
 
@@ -157,6 +156,8 @@ func headlessProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		terraform2.NewTerraformer,
+		tfplan.NewPlanner,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -172,6 +173,8 @@ func headedProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		terraform2.NewTerraformer,
+		tfplan.NewPlanner,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -190,6 +193,8 @@ func navcycleProviders() []interface{} {
 		kustomize.NewDaemonlessKustomizer,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
+		terraform2.NewDaemonlessTerraformer,
+		tfplan.NewDaemonlessPlanner,
 		// fake, we override it, this is janky, use a factory dex
 		func() daemontypes.StatusReceiver { return &statusonly.StatusReceiver{} },
 		daemon.NewV2Router,

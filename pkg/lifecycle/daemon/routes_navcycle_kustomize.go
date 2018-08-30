@@ -156,9 +156,9 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	}
 
 	c.JSON(200, Response{
-		Base:        base,
+		Base:        string(base),
 		Overlay:     savedState.CurrentKustomizeOverlay(request.Path),
-		IsSupported: isSupported([]byte(base)),
+		IsSupported: isSupported(base),
 	})
 }
 
@@ -199,7 +199,7 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 		return
 	}
 
-	modified, err := d.Patcher.ApplyPatch(request.Patch, *step.Kustomize, request.Resource)
+	modified, err := d.Patcher.ApplyPatch([]byte(request.Patch), *step.Kustomize, request.Resource)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
@@ -251,6 +251,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
+	debug.Log("event", "patcher.modifyField")
 	modified, err := d.Patcher.ModifyField(original, stringPath)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "modify field", "err", err)
@@ -258,13 +259,13 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	debug.Log("event", "patcher.CreatePatch")
-	patch, err := d.Patcher.CreateTwoWayMergePatch(original, string(modified))
+	patch, err := d.Patcher.CreateTwoWayMergePatch(original, modified)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
 	}
 
-	if request.Current != "" {
+	if len(request.Current) > 0 {
 		out, err := d.Patcher.MergePatches([]byte(request.Current), stringPath, *step.Kustomize, request.Resource)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)

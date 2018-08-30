@@ -2,6 +2,7 @@
   "v1": {
     "config": null,
     "helmValues": "replicaCount: 5\nimage:\n  repository: nginx\n  tag: stable\n\n",
+    "helmValuesDefaults": "replicaCount: 3\nimage:\n  repository: nginx\n  tag: stable\n\ncontainerPort: 80\n",
     "kustomize": {
       "overlays": {
         "ship": {

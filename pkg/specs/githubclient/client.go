@@ -33,7 +33,7 @@ func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
 	}
 }
 
-func (g *GithubClient) GetRepoContent(
+func (g *GithubClient) GetFiles(
 	ctx context.Context,
 	upstream string,
 	destinationPath string,
@@ -84,12 +84,12 @@ func (g *GithubClient) downloadAndExtractFiles(
 	archiveOpts := &github.RepositoryContentGetOptions{
 		Ref: branch,
 	}
-	url, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
+	archiveLink, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
 	if err != nil {
 		return errors.Wrapf(err, "get archive link for owner - %s repo - %s", owner, repo)
 	}
 
-	resp, err := http.Get(url.String())
+	resp, err := http.Get(archiveLink.String())
 	if err != nil {
 		return errors.Wrapf(err, "downloading archive")
 	}

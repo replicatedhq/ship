@@ -130,7 +130,7 @@ func (l *Kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (re
 
 	for file, contents := range shipOverlay.Patches {
 		name := path.Join(destDir, file)
-		err := l.writePatch(name, destDir, contents)
+		err := l.writePatch(name, contents)
 		if err != nil {
 			debug.Log("event", "write", "name", name)
 			return []string{}, errors.Wrapf(err, "write %s", name)
@@ -145,11 +145,13 @@ func (l *Kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (re
 	return relativePatchPaths, nil
 }
 
-func (l *Kustomizer) writePatch(name string, destDir string, contents string) error {
+func (l *Kustomizer) writePatch(name string, contents string) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatch"))
 
+	destDir := filepath.Dir(name)
+
 	// make the dir
-	err := l.FS.MkdirAll(filepath.Dir(name), 0777)
+	err := l.FS.MkdirAll(destDir, 0777)
 	if err != nil {
 		debug.Log("event", "mkdir.fail", "dir", destDir)
 		return errors.Wrapf(err, "make dir %s", destDir)

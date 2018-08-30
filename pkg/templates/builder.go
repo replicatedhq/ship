@@ -12,6 +12,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/viper"
 )
 
@@ -30,10 +33,41 @@ type BuilderBuilder struct {
 	Viper  *viper.Viper
 }
 
-func NewBuilderBuilder(logger log.Logger) *BuilderBuilder {
+func NewBuilderBuilder(logger log.Logger, v *viper.Viper) *BuilderBuilder {
 	return &BuilderBuilder{
 		Logger: logger,
+		Viper:  v,
 	}
+}
+func (bb *BuilderBuilder) BaseBuilder(
+	meta api.ReleaseMetadata,
+) (*Builder, error) {
+	return bb.FullBuilder(
+		meta,
+		[]libyaml.ConfigGroup{},
+		map[string]interface{}{},
+	)
+}
+
+func (bb *BuilderBuilder) FullBuilder(
+	meta api.ReleaseMetadata,
+	configGroups []libyaml.ConfigGroup,
+	config map[string]interface{},
+) (*Builder, error) {
+	configCtx, err := bb.NewConfigContext(configGroups, config)
+	if err != nil {
+		return nil, errors.Wrap(err, "create config context for templating")
+	}
+	installationCtx := &InstallationContext{
+		Meta:  meta,
+		Viper: bb.Viper,
+	}
+	shipCtx := ShipContext{
+		Logger: bb.Logger,
+	}
+	builder := bb.NewBuilder(bb.NewStaticContext(), configCtx, installationCtx, shipCtx)
+
+	return &builder, nil
 }
 
 func (bb *BuilderBuilder) NewBuilder(ctxx ...Ctx) Builder {

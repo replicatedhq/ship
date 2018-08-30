@@ -9,11 +9,13 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/util/warnings"
 	"github.com/spf13/afero"
 )
 
 // FindOnlySubdir finds the only subdirectory of a directory.
 func FindOnlySubdir(dir string, fs afero.Afero) (string, error) {
+
 	subDirExists := false
 
 	files, err := fs.ReadDir(dir)
@@ -65,4 +67,18 @@ func BackupIfPresent(fs afero.Afero, basePath string, logger log.Logger, ui cli.
 		return errors.Wrapf(err, "backup existing dir %s to %s", basePath, backupDest)
 	}
 	return nil
+}
+
+// BailIfPresent returns an error if the path is present. Handy to prevent accidentally
+// blowing away directories on the workstation.
+func BailIfPresent(fs afero.Afero, basePath string, logger log.Logger) error {
+	exists, err := fs.Exists(basePath)
+	if err != nil {
+		return errors.Wrapf(err, "check file exists")
+	}
+	if !exists {
+		return nil
+	}
+	level.Debug(logger).Log("method", "BailIfPresent", "event", "target.present", "path", basePath)
+	return warnings.WarnShouldMoveDirectory(basePath)
 }

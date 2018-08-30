@@ -7,10 +7,6 @@ const (
 	InstallerPrefixPath = "installer"
 	// ShipPathInternal is the default folder path of Ship configuration
 	ShipPathInternal = ".ship"
-	// HelmChartPath is the path used to store Helm chart contents
-	HelmChartPath = "chart"
-	// RenderedHelmTempPath is the path where the `helm template` command writes to
-	RenderedHelmTempPath = "tmp-rendered"
 	// KustomizeBasePath is the path to which assets to be kustomized are written
 	KustomizeBasePath = "base"
 )
@@ -18,7 +14,7 @@ const (
 var (
 	// ShipPathInternalTmp is a temporary folder that will get cleaned up on exit
 	ShipPathInternalTmp = path.Join(ShipPathInternal, "tmp")
-	// ShipPathInternalTmp is a temporary folder that will get cleaned up on exit
+	// ShipPathInternalLog is a log file that will be preserved on failure for troubleshooting
 	ShipPathInternalLog = path.Join(ShipPathInternal, "debug.log")
 	// InternalTempHelmHome is the path to a helm home directory
 	InternalTempHelmHome = path.Join(ShipPathInternalTmp, ".helm")
@@ -30,4 +26,6 @@ var (
 	TempHelmValuesPath = path.Join(HelmChartPath, "tmp")
 	// TempApplyOverlayPath is the folder path used to apply patch
 	TempApplyOverlayPath = path.Join("overlays", "tmp-apply")
+	// HelmChartPath is the path used to store Helm chart contents
+	HelmChartPath = path.Join(ShipPathInternalTmp, "chart")
 )

@@ -45,7 +45,7 @@ func TestInlineRender(t *testing.T) {
 			req := require.New(t)
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger)
+			bb := templates.NewBuilderBuilder(testLogger, v)
 			rootFs := root.Fs{
 				Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
 				RootPath: "",

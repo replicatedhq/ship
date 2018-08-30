@@ -21,7 +21,6 @@ import (
 type ChartFetcher interface {
 	FetchChart(
 		ctx context.Context,
-		rootFs root.Fs,
 		asset api.HelmAsset,
 		meta api.ReleaseMetadata,
 		configGroups []libyaml.ConfigGroup,
@@ -39,7 +38,6 @@ type ClientFetcher struct {
 
 func (f *ClientFetcher) FetchChart(
 	ctx context.Context,
-	rootFs root.Fs,
 	asset api.HelmAsset,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
@@ -51,13 +49,14 @@ func (f *ClientFetcher) FetchChart(
 		debug.Log("event", "chart.fetch", "source", "local", "root", asset.Local.ChartRoot)
 		return asset.Local.ChartRoot, nil
 	} else if asset.GitHub != nil {
-		checkoutDir, err := f.FS.TempDir("", "helmchart")
+		checkoutDir, err := f.FS.TempDir(constants.ShipPathInternalTmp, "helmchart")
 		if err != nil {
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
 		asset.GitHub.Dest = checkoutDir
 		err = f.GitHub.Execute(
-			rootFs,
+			// just use the base FS, regardless of what renderRoot was specified, we're going to template+remove it
+			root.NewRootFS(f.FS, "."),
 			*asset.GitHub,
 			configGroups,
 			meta,
@@ -69,8 +68,8 @@ func (f *ClientFetcher) FetchChart(
 		}
 
 		return path.Join(checkoutDir, asset.GitHub.Path), nil
-	} else if asset.HelmFetch != nil {
-		checkoutDir, err := f.FS.TempDir("", "helmchart")
+	} else if asset.HelmFetch != nil { // TODO this branch could probably use a unittest
+		checkoutDir, err := f.FS.TempDir(constants.ShipPathInternalTmp, "helmchart")
 		if err != nil {
 			return "", errors.Wrap(err, "get chart checkout tmpdir")
 		}
@@ -101,7 +100,7 @@ func (f *ClientFetcher) FetchChart(
 	}
 
 	debug.Log("event", "chart.fetch.fail", "reason", "unsupported")
-	return "", errors.New("only 'local' and 'github' chart rendering is supported")
+	return "", errors.New("only 'local', 'github' and 'helm_fetch' chart rendering is supported")
 }
 
 // NewFetcher makes a new chart fetcher

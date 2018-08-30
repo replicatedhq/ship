@@ -1,13 +1,13 @@
 package helm
 
 import (
+	"path"
 	"testing"
 
 	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
+	"github.com/replicatedhq/ship/pkg/testing/matchers"
 
 	"github.com/spf13/viper"
-
-	"path"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
@@ -34,6 +34,8 @@ func TestLocalTemplater(t *testing.T) {
 		templateContext     map[string]interface{}
 		channelName         string
 		expectedChannelName string
+		expectHelmOpts      *matchers.Is
+		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
 	}{
 		{
 			name:        "helm test proper args",
@@ -45,6 +47,21 @@ func TestLocalTemplater(t *testing.T) {
 			describe:    "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
 			expectError: "",
 			helmOpts:    []string{"--set", "service.clusterIP=10.3.9.2"},
+		},
+		{
+			name:        "helm with subcharts",
+			describe:    "ensure any helm.helm_opts are forwarded down to the call to `helm template`",
+			expectError: "",
+			helmOpts:    []string{"--set", "service.clusterIP=10.3.9.2"},
+			ontemplate: func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error {
+				return func(chartRoot string, args []string) error {
+					mockFolderPathToCreate := path.Join(constants.ShipPathInternalTmp, "chartrendered", "frobnitz", "templates")
+					req.NoError(mockFs.MkdirAll(mockFolderPathToCreate, 0755))
+					mockChartsPathToCreate := path.Join(constants.ShipPathInternalTmp, "chartrendered", "frobnitz", "charts")
+					req.NoError(mockFs.MkdirAll(mockChartsPathToCreate, 0755))
+					return nil
+				}
+			},
 		},
 		{
 			name:        "helm values from asset value",
@@ -99,7 +116,7 @@ func TestLocalTemplater(t *testing.T) {
 				Commands:       mockCommands,
 				Logger:         testLogger,
 				FS:             mockFs,
-				BuilderBuilder: templates.NewBuilderBuilder(testLogger),
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New()),
 				Viper:          viper.New(),
 				StateManager:   mockState,
 				process:        process.Process{Logger: testLogger},
@@ -129,19 +146,27 @@ func TestLocalTemplater(t *testing.T) {
 				test.helmOpts,
 				test.expectedHelmValues...,
 			)
+
 			templateArgs := append(
 				[]string{
-					"--output-dir", constants.RenderedHelmTempPath,
+					"--output-dir", ".ship/tmp/chartrendered",
 					"--name", expectedChannelName,
 				},
 				optionAndValuesArgs...,
 			)
+
 			mockCommands.EXPECT().Init().Return(nil)
 			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
-			mockCommands.EXPECT().Template(chartRoot, templateArgs).Return(nil)
+			if test.ontemplate != nil {
+				mockCommands.EXPECT().Template(chartRoot, templateArgs).DoAndReturn(test.ontemplate(req, mockFs))
+			} else {
 
-			mockFolderPathToCreate := path.Join(constants.RenderedHelmTempPath, expectedChannelName, "templates")
-			req.NoError(mockFs.MkdirAll(mockFolderPathToCreate, 0755))
+				mockCommands.EXPECT().Template(chartRoot, templateArgs).DoAndReturn(func(rootDir string, args []string) error {
+					mockFolderPathToCreate := path.Join(constants.ShipPathInternalTmp, "chartrendered", expectedChannelName, "templates")
+					req.NoError(mockFs.MkdirAll(mockFolderPathToCreate, 0755))
+					return nil
+				})
+			}
 
 			err := tpl.Template(
 				"/tmp/chartroot",

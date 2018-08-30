@@ -10,15 +10,17 @@ import StepMessage from "./StepMessage";
 import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
+import StepTerraform from "./StepTerraform";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
+import { fetchContentForStep } from "../../redux/data/appRoutes/actions";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
 const apiEndpoint = window.env.API_ENDPOINT;
 
-class DetermineComponentForRoute extends React.Component {
+export class DetermineComponentForRoute extends React.Component {
 
   constructor(props) {
     super(props);
@@ -29,7 +31,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   async handleAction(action, gotoNext) {
@@ -40,7 +43,8 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   getContentForStep() {
-    this.props.getContentForStep(this.props.routeId);
+    const { getContentForStep, routeId } = this.props;
+    getContentForStep(routeId);
   }
 
   gotoRoute(route) {
@@ -71,11 +75,18 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   async skipKustomize() {
-    const { routes, actions } = this.props;
+    const {
+      actions: kustomizeIntroActions,
+      routes,
+    } = this.props;
+    this.handleAction(kustomizeIntroActions[0]);
+
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-    this.handleAction(actions[0]);
+    const { actions: kustomizeActions } = await fetchContentForStep(kustomizeStep.id);
+    this.handleAction(kustomizeActions[0]);
+
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
 
@@ -86,7 +97,15 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   renderStep(phase) {
-    const { currentStep, progress, actions, location } = this.props;
+    const {
+      currentStep,
+      progress,
+      actions,
+      location,
+      routeId,
+      initializeStep,
+    } = this.props;
+
     if (!phase || !phase.length) return null;
     switch (phase) {
     case "requirementNotMet":
@@ -128,16 +147,23 @@ class DetermineComponentForRoute extends React.Component {
       return (
         <StepBuildingAssets
           startPoll={this.startPoll}
-          routeId={this.props.routeId}
+          routeId={routeId}
           gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
+          initializeStep={initializeStep}
         />
       );
-    case "terraform.prepare":
+    case "terraform":
       return (
-        <StepBuildingAssets
-          stepId={this.props.routeId}
+        <StepTerraform
+          routeId={routeId}
+          startPoll={this.startPoll}
+          location={location}
+          status={progress || currentStep.status}
+          handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
+          initializeStep={initializeStep}
         />
       );
     case "helm-intro":
@@ -154,7 +180,6 @@ class DetermineComponentForRoute extends React.Component {
         <StepHelmValues
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
-          isNewRouter={this.props.isNewRouter}
           shipAppMetadata={this.props.shipAppMetadata}
           actions={actions}
           handleAction={this.handleAction}

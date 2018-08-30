@@ -38,7 +38,6 @@ export class NavBar extends React.Component {
 
   handleLogOut(e) {
     e.preventDefault();
-    console.log("log out here")
   }
 
   getNavItems() {

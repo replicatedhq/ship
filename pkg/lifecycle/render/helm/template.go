@@ -3,16 +3,14 @@ package helm
 import (
 	"fmt"
 	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/process"
 	"github.com/replicatedhq/ship/pkg/util"
-
-	"regexp"
-
-	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -36,6 +34,26 @@ type Templater interface {
 		configGroups []libyaml.ConfigGroup,
 		templateContext map[string]interface{},
 	) error
+}
+
+// NewTemplater returns a configured Templater that uses vendored libhelm to execute templating/etc
+func NewTemplater(
+	commands Commands,
+	logger log.Logger,
+	fs afero.Afero,
+	builderBuilder *templates.BuilderBuilder,
+	viper *viper.Viper,
+	stateManager state.Manager,
+) Templater {
+	return &LocalTemplater{
+		Commands:       commands,
+		Logger:         logger,
+		FS:             fs,
+		BuilderBuilder: builderBuilder,
+		Viper:          viper,
+		StateManager:   stateManager,
+		process:        process.Process{Logger: logger},
+	}
 }
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
@@ -73,18 +91,19 @@ func (f *LocalTemplater) Template(
 	)
 
 	debug.Log("event", "mkdirall.attempt")
-	if err := rootFs.MkdirAll(constants.RenderedHelmTempPath, 0755); err != nil {
-		debug.Log("event", "mkdirall.fail", "err", err, "helmtempdir", constants.RenderedHelmTempPath)
-		return errors.Wrapf(err, "write tmp directory to %s", path.Join(rootFs.RootPath, constants.RenderedHelmTempPath))
+	renderDest := path.Join(constants.ShipPathInternalTmp, "chartrendered")
+	err := f.FS.MkdirAll(renderDest, 0755)
+	if err != nil {
+		debug.Log("event", "mkdirall.fail", "err", err, "helmtempdir", renderDest)
+		return errors.Wrapf(err, "create tmp directory in %s", constants.ShipPathInternalTmp)
 	}
-	defer rootFs.RemoveAll(constants.RenderedHelmTempPath)
 
 	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ReleaseName()))
 	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 	debug.Log("event", "releasename.resolve", "releasename", releaseName)
 
 	templateArgs := []string{
-		"--output-dir", path.Join(rootFs.RootPath, constants.RenderedHelmTempPath),
+		"--output-dir", renderDest,
 		"--name", releaseName,
 	}
 
@@ -92,31 +111,42 @@ func (f *LocalTemplater) Template(
 		templateArgs = append(templateArgs, asset.HelmOpts...)
 	}
 
-	args, err := f.appendHelmValues(configGroups, templateContext, asset)
-	if err != nil {
-		return errors.Wrap(err, "build helm values")
-	}
-	templateArgs = append(templateArgs, args...)
-
 	debug.Log("event", "helm.init")
-	// todo fix
 	if err := f.Commands.Init(); err != nil {
 		return errors.Wrap(err, "init helm client")
 	}
 
 	debug.Log("event", "helm.dependency.update")
-	err = f.Commands.DependencyUpdate(chartRoot)
-	if err != nil {
+	if err := f.Commands.DependencyUpdate(chartRoot); err != nil {
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
-	if !viper.GetBool("is-app") {
-		// HACKKK for ship init
-
-		// todo move this, or refactor to share duped code from helmValues package
-		if err := writeStateHelmValuesToChartTmpdir(f.Logger, f.StateManager, f.FS); err != nil {
-			return errors.Wrapf(err, "copy state value to tmp directory", constants.RenderedHelmTempPath)
+	if asset.ValuesFrom != nil && asset.ValuesFrom.Lifecycle != nil {
+		tmpValuesPath := path.Join(constants.ShipPathInternalTmp, "values.yaml")
+		defaultValuesPath := path.Join(chartRoot, "values.yaml")
+		debug.Log("event", "writeTmpValues", "to", tmpValuesPath, "default", defaultValuesPath)
+		if err := f.writeStateHelmValuesTo(tmpValuesPath, defaultValuesPath); err != nil {
+			return errors.Wrapf(err, "copy state value to tmp directory", renderDest)
 		}
+
+		templateArgs = append(templateArgs,
+			"--values",
+			tmpValuesPath,
+		)
+
+	}
+
+	if len(asset.Values) > 0 {
+		args, err := f.appendHelmValues(
+			meta,
+			configGroups,
+			templateContext,
+			asset,
+		)
+		if err != nil {
+			return errors.Wrap(err, "build helm values")
+		}
+		templateArgs = append(templateArgs, args...)
 	}
 
 	debug.Log("event", "helm.template")
@@ -125,7 +155,7 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "execute helm")
 	}
 
-	tempRenderedChartDir, err := f.getTempRenderedChartDirectoryName(rootFs, meta)
+	tempRenderedChartDir, err := f.getTempRenderedChartDirectoryName(renderDest, meta)
 	if err != nil {
 		return err
 	}
@@ -133,22 +163,24 @@ func (f *LocalTemplater) Template(
 }
 
 func (f *LocalTemplater) appendHelmValues(
+	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
 	asset api.HelmAsset,
 ) ([]string, error) {
 	var cmdArgs []string
-	configCtx, err := f.BuilderBuilder.NewConfigContext(configGroups, templateContext)
-	if err != nil {
-		return nil, errors.Wrap(err, "create config context")
-	}
-	builder := f.BuilderBuilder.NewBuilder(
-		f.BuilderBuilder.NewStaticContext(),
-		configCtx,
+	builder, err := f.BuilderBuilder.FullBuilder(
+		meta,
+		configGroups,
+		templateContext,
 	)
+	if err != nil {
+		return nil, errors.Wrap(err, "initialize template builder")
+	}
+
 	if asset.Values != nil {
 		for key, value := range asset.Values {
-			args, err := appendHelmValue(value, builder, cmdArgs, key)
+			args, err := appendHelmValue(value, *builder, cmdArgs, key)
 			if err != nil {
 				return nil, errors.Wrapf(err, "append helm value %s", key)
 			}
@@ -180,12 +212,12 @@ func appendHelmValue(
 	return args, nil
 }
 
-func (f *LocalTemplater) getTempRenderedChartDirectoryName(rootFs root.Fs, meta api.ReleaseMetadata) (string, error) {
+func (f *LocalTemplater) getTempRenderedChartDirectoryName(renderRoot string, meta api.ReleaseMetadata) (string, error) {
 	if meta.ShipAppMetadata.Name != "" {
-		return path.Join(constants.RenderedHelmTempPath, meta.ShipAppMetadata.Name), nil
+		return path.Join(renderRoot, meta.ShipAppMetadata.Name), nil
 	}
 
-	return util.FindOnlySubdir(constants.RenderedHelmTempPath, rootFs.Afero)
+	return util.FindOnlySubdir(renderRoot, f.FS)
 }
 
 func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
@@ -199,38 +231,45 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
-	debug.Log("event", "removeall", "path", constants.KustomizeBasePath)
-	if err := f.FS.RemoveAll(constants.KustomizeBasePath); err != nil {
-		debug.Log("event", "removeall.fail", "path", constants.KustomizeBasePath)
-		return errors.Wrap(err, "failed to remove rendered Helm values base dir")
+	if f.Viper.GetBool("rm-asset-dest") {
+		debug.Log("event", "baseDir.rm", "path", asset.Dest)
+		if err := f.FS.RemoveAll(asset.Dest); err != nil {
+			return errors.Wrapf(err, "rm asset dest, remove %s", asset.Dest)
+		}
 	}
 
+	debug.Log("event", "bailIfPresent", "path", asset.Dest)
+	if err := util.BailIfPresent(f.FS, asset.Dest, f.Logger); err != nil {
+		return err
+	}
 	debug.Log("event", "mkdirall", "path", asset.Dest)
+
 	if err := rootFs.MkdirAll(asset.Dest, 0755); err != nil {
 		debug.Log("event", "mkdirall.fail", "path", asset.Dest)
 		return errors.Wrap(err, "failed to make asset destination base directory")
 	}
 
-	if templatesDirExists, err := rootFs.IsDir(tempRenderedChartTemplatesDir); err == nil && templatesDirExists {
-		debug.Log("event", "readdir", "folder", tempRenderedChartTemplatesDir)
-		files, err := rootFs.ReadDir(tempRenderedChartTemplatesDir)
-		if err != nil {
-			debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
-			return errors.Wrap(err, "failed to read temp rendered charts folder")
-		}
-		for _, file := range files {
-			originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
-			renderedPath := path.Join(asset.Dest, file.Name())
-			if err := rootFs.Rename(originalPath, renderedPath); err != nil {
-				fileType := "file"
-				if file.IsDir() {
-					fileType = "directory"
-				}
-				return errors.Wrapf(err, "failed to rename %s at path %s", fileType, originalPath)
-			}
-		}
-	} else {
+	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err != nil || !templatesDirExists {
 		return errors.Wrap(err, "unable to find tmp rendered chart")
+	}
+
+	debug.Log("event", "readdir", "folder", tempRenderedChartTemplatesDir)
+	files, err := f.FS.ReadDir(tempRenderedChartTemplatesDir)
+	if err != nil {
+		debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
+		return errors.Wrap(err, "failed to read temp rendered charts folder")
+	}
+
+	for _, file := range files {
+		originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
+		renderedPath := path.Join(rootFs.RootPath, asset.Dest, file.Name())
+		if err := f.FS.Rename(originalPath, renderedPath); err != nil {
+			fileType := "file"
+			if file.IsDir() {
+				fileType = "directory"
+			}
+			return errors.Wrapf(err, "failed to rename %s at path %s", fileType, originalPath)
+		}
 	}
 
 	if subChartsExist, err := rootFs.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
@@ -250,52 +289,48 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	return nil
 }
 
-// NewTemplater returns a configured Templater. For now we just always fork
-func NewTemplater(
-	commands Commands,
-	logger log.Logger,
-	fs afero.Afero,
-	builderBuilder *templates.BuilderBuilder,
-	viper *viper.Viper,
-	stateManager state.Manager,
-) Templater {
-	return &LocalTemplater{
-		Commands:       commands,
-		Logger:         logger,
-		FS:             fs,
-		BuilderBuilder: builderBuilder,
-		Viper:          viper,
-		StateManager:   stateManager,
-		process:        process.Process{Logger: logger},
-	}
-}
-
-// TODO duped from lifecycle/helmValues
-func writeStateHelmValuesToChartTmpdir(logger log.Logger, manager state.Manager, fs afero.Afero) error {
-	debug := level.Debug(log.With(logger, "step.type", "helmValues", "resolveHelmValues"))
+// dest should be a path to a file, and its parent directory should already exist
+// if there are no values in state, defaultValuesPath will be copied into dest
+func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath string) error {
+	debug := level.Debug(log.With(f.Logger, "step.type", "helmValues", "resolveHelmValues"))
 	debug.Log("event", "tryLoadState")
-	editState, err := manager.TryLoad()
+	editState, err := f.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
 	helmValues := editState.CurrentHelmValues()
-	if helmValues == "" {
-		defaultValuesShippedWithChart := filepath.Join(constants.HelmChartPath, "values.yaml")
-		bytes, err := fs.ReadFile(defaultValuesShippedWithChart)
-		if err != nil {
-			return errors.Wrapf(err, "read helm values from %s", defaultValuesShippedWithChart)
-		}
-		helmValues = string(bytes)
+	defaultHelmValues := editState.CurrentHelmValuesDefaults()
+
+	defaultValuesShippedWithChartBytes, err := f.FS.ReadFile(filepath.Join(constants.HelmChartPath, "values.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "read helm values from %s", filepath.Join(constants.HelmChartPath, "values.yaml"))
 	}
-	debug.Log("event", "tryLoadState")
-	err = fs.MkdirAll(constants.TempHelmValuesPath, 0700)
+	defaultValuesShippedWithChart := string(defaultValuesShippedWithChartBytes)
+
+	if defaultHelmValues == "" {
+		debug.Log("event", "values.load", "message", "No default helm values in state; using helm values from state.")
+		defaultHelmValues = defaultValuesShippedWithChart
+	}
+
+	mergedValues, err := MergeHelmValues(defaultHelmValues, helmValues, defaultValuesShippedWithChart)
+	if err != nil {
+		return errors.Wrap(err, "merge helm values")
+	}
+
+	err = f.FS.MkdirAll(constants.TempHelmValuesPath, 0700)
 	if err != nil {
 		return errors.Wrapf(err, "make dir %s", constants.TempHelmValuesPath)
 	}
-	debug.Log("event", "writeTempValuesYaml")
-	err = fs.WriteFile(path.Join(constants.TempHelmValuesPath, "values.yaml"), []byte(helmValues), 0644)
+	debug.Log("event", "writeTempValuesYaml", "dest", dest)
+	err = f.FS.WriteFile(dest, []byte(mergedValues), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "write values.yaml to %s", constants.TempHelmValuesPath)
+		return errors.Wrapf(err, "write values.yaml to %s", dest)
 	}
+
+	err = f.StateManager.SerializeHelmValues(mergedValues, string(defaultValuesShippedWithChartBytes))
+	if err != nil {
+		return errors.Wrapf(err, "serialize helm values to state")
+	}
+
 	return nil
 }

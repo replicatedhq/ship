@@ -14,13 +14,13 @@ type Assets struct {
 // AssetShared is attributes common to all assets
 type AssetShared struct {
 	// Dest is where this file should be output
-	Dest string `json:"dest" yaml:"dest" hcl:"dest"`
+	Dest string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
 	// Mode is where this file should be output
-	Mode os.FileMode `json:"mode" yaml:"mode" hcl:"mode"`
+	Mode os.FileMode `json:"mode,omitempty" yaml:"mode,omitempty" hcl:"mode,omitempty"`
 	// Description is an optional description
-	Description string `json:"description" yaml:"description" hcl:"description"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty" hcl:"description,omitempty"`
 	// When is an optional boolean to determine whether to pull asset
-	When string `json:"when" yaml:"when" hcl:"when"`
+	When string `json:"when,omitempty" yaml:"when,omitempty" hcl:"when,omitempty"`
 }
 
 // Asset is a spec to generate one or more deployment assets
@@ -33,6 +33,7 @@ type Asset struct {
 	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
 	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	AmazonEKS   *EKSAsset         `json:"amazon_eks,omitempty" yaml:"amazon_eks,omitempty" hcl:"amazon_eks,omitempty"`
+	GoogleGKE   *GKEAsset         `json:"google_gke,omitempty" yaml:"google_gke,omitempty" hcl:"google_gke,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -83,8 +84,15 @@ type HelmAsset struct {
 	// HelmFetch pulls a chart as 'helm fetch' would
 	HelmFetch *HelmFetch `json:"helm_fetch,omitempty" yaml:"helm_fetch,omitempty" hcl:"helm_fetch,omitempty"`
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
-	Local *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
+	Local      *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
+	ValuesFrom *ValuesFrom    `json:"values_from,omitempty" yaml:"values_from,omitempty" hcl:"values_from,omitempty"`
 }
+
+type ValuesFrom struct {
+	Lifecycle *ValuesFromLifecycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+}
+
+type ValuesFromLifecycle struct{}
 
 // LocalHelmOpts specifies a helm chart that should be templated
 // using other assets that are already present at `ChartRoot`
@@ -117,4 +125,25 @@ type EKSAsset struct {
 	CreatedVPC        *amazoneks.EKSCreatedVPC        `json:"created_vpc,omitempty" yaml:"created_vpc,omitempty" hcl:"created_vpc,omitempty"`
 	ExistingVPC       *amazoneks.EKSExistingVPC       `json:"existing_vpc,omitempty" yaml:"existing_vpc,omitempty" hcl:"existing_vpc,omitempty"`
 	AutoscalingGroups []amazoneks.EKSAutoscalingGroup `json:"autoscaling_groups,omitempty" yaml:"autoscaling_groups,omitempty" hcl:"autoscaling_groups,omitempty"`
+}
+
+// GKEAsset
+type GKEAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+
+	GCPProvider `json:",inline" yaml:",inline" hcl:",inline"`
+
+	// ClusterName required
+	ClusterName      string `json:"cluster_name" yaml:"cluster_name" hcl:"cluster_name"`
+	Zone             string `json:"zone,omitempty" yaml:"zone,omitempty" hcl:"zone,omitempty"`
+	InitialNodeCount string `json:"initial_node_count,omitempty" yaml:"initial_node_count,omitempty" hcl:"initial_node_count,omitempty"`
+	MachineType      string `json:"machine_type,omitempty" yaml:"machine_type,omitempty" hcl:"machine_type,omitempty"`
+	AdditionalZones  string `json:"additional_zones,omitempty" yaml:"additional_zones,omitempty" hcl:"additional_zones,omitempty"`
+	MinMasterVersion string `json:"min_master_version,omitempty" yaml:"min_master_version,omitempty" hcl:"min_master_version,omitempty"`
+}
+
+type GCPProvider struct {
+	Credentials string `json:"credentials,omitempty" yaml:"credentials,omitempty" hcl:"credentials,omitempty"`
+	Project     string `json:"project,omitempty" yaml:"project,omitempty" hcl:"project,omitempty"`
+	Region      string `json:"region,omitempty" yaml:"region,omitempty" hcl:"region,omitempty"`
 }

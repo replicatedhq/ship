@@ -1,0 +1,6 @@
+customer_id: "placeholder"
+installation_id: "placeholder"
+release_version: "placeholder"
+
+disable_online: true
+skip_cleanup: false

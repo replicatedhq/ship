@@ -14,7 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*This file was edited by Replicated in 2018 to expose `helm template` as a function.*/
+/*This file was edited by Replicated in 2018 to
+  - expose `helm template` as a function
+  - silence the error output from the cobra command.
+*/
 
 package helm
 
@@ -88,10 +91,12 @@ func newTemplateCmd(out io.Writer) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "template [flags] CHART",
-		Short: fmt.Sprintf("locally render templates"),
-		Long:  templateDesc,
-		RunE:  t.run,
+		Use:           "template [flags] CHART",
+		Short:         fmt.Sprintf("locally render templates"),
+		Long:          templateDesc,
+		SilenceErrors: true,
+		SilenceUsage:  true,
+		RunE:          t.run,
 	}
 
 	f := cmd.Flags()

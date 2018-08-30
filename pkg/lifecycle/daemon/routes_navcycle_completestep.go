@@ -2,10 +2,9 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 
 	"time"
-
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -15,6 +14,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
 func (d *NavcycleRoutes) completeStep(c *gin.Context) {
@@ -44,32 +44,54 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		errChan := make(chan error)
-		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-			"status": "working",
-		}))
-		go func() {
-			errChan <- d.StepExecutor(d, step)
-		}()
+		debug.Log("event", "check.stepAlreadyComplete")
+		lifecycle := currentState.Versioned().V1.Lifecycle
+		if lifecycle == nil {
+			lifecycle = &state.Lifeycle{
+				StepsCompleted: make(map[string]interface{}),
+			}
+		}
+		_, stepAlreadyComplete := lifecycle.StepsCompleted[step.Shared().ID]
 
-		// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
-		time.Sleep(10 * time.Millisecond)
+		progress, ok := d.StepProgress.Load(step.Shared().ID)
+		shouldExecute := !ok || progress.Detail == `{"status":"success"}` && !stepAlreadyComplete
+
+		debug.Log("shouldExecute", shouldExecute)
+		if shouldExecute {
+			errChan := make(chan error)
+			d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+				"status":  "working",
+				"message": "working",
+			}))
+			go func() {
+				errChan <- d.StepExecutor(d, step)
+			}()
+			// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
+			time.Sleep(10 * time.Millisecond)
+
+			d.hydrateAndSend(daemontypes.NewStep(step), c)
+			go d.handleAsync(errChan, debug, step, stepID, currentState)
+			return
+		}
 
 		d.hydrateAndSend(daemontypes.NewStep(step), c)
-		go d.handleAsync(errChan, debug, step, stepID, currentState)
 		return
 	}
-
-	d.errNotFond(c)
+	d.errNotFound(c)
 }
 
 func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
 	err := d.awaitAsyncStep(errChan, debug, step)
 	if err != nil {
+
 		debug.Log("event", "execute.fail", "err", err)
-		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-			"status": fmt.Sprintf("failed - %v", err),
-		}))
+
+		progress := daemontypes.JSONProgress("v2router", map[string]interface{}{
+			"status":  "error",
+			"message": fmt.Sprintf(`%v`, warnings.StripStackIfWarning(err)),
+		})
+
+		d.StepProgress.Store(stepID, progress)
 		return
 	}
 	newState := state.Versioned().WithCompletedStep(step)
@@ -80,7 +102,8 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 	}
 
 	d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-		"status": "success",
+		"status":  "success",
+		"message": "Step completed successfully.",
 	}))
 }
 
@@ -105,12 +128,13 @@ func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, st
 
 type V2Executor func(d *NavcycleRoutes, step api.Step) error
 
-// temprorary home for a copy of pkg/lifecycle.StepExecutor while
+// temporary home for a copy of pkg/lifecycle.StepExecutor while
 // we re-implement each lifecycle step to not need a handle on a daemon (or something)
 func (d *NavcycleRoutes) execute(step api.Step) error {
 	debug := level.Debug(log.With(d.Logger, "method", "execute"))
 
 	statusReceiver := &statusonly.StatusReceiver{
+		Logger: d.Logger,
 		OnProgress: func(progress daemontypes.Progress) {
 			d.StepProgress.Store(step.Shared().ID, progress)
 		},
@@ -150,6 +174,11 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 	} else if step.Config != nil {
 		debug.Log("event", "step.resolve", "type", "config")
 		return nil
+	} else if step.Terraform != nil {
+		debug.Log("event", "step.resolve", "type", "terraform")
+		terraformer := d.Terraformer.WithStatusReceiver(statusReceiver)
+		err := terraformer.Execute(context.Background(), *d.Release, *step.Terraform, d.TerraformConfirmed)
+		return errors.Wrap(err, "execute terraform step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

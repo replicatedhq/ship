@@ -27,7 +27,7 @@
     font-family: "Monaco", "Helvetica Neue", "Helvetica", sans-serif;
     background-color: #323232;
     border-radius: 4px;
-    line-height: 1.25;
+    line-height: 1.7;
     overflow-x: scroll;
   }
 }
@@ -44,10 +44,11 @@
   margin: 0 auto;
 }
 
-.progress-detail-success {
-  padding: 15px;
-  background: #65A61D;
-  border-radius: 30px;
+.StepBuildingAssets-wrapper {
+  max-width: 980px;
+  width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
 }
 
 .markdown-wrapper {

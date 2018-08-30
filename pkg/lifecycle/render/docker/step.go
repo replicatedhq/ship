@@ -79,22 +79,12 @@ func (p *DefaultStep) Execute(
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(p.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "docker", "dest", dest, "description", asset.Description))
 		debug.Log("event", "execute")
-		configCtx, err := p.BuilderBuilder.NewConfigContext(configGroups, templateContext)
+
+		builder, err := p.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
 		if err != nil {
-			return errors.Wrap(err, "create config context")
+			return errors.Wrap(err, "init builder")
 		}
 
-		builder := p.BuilderBuilder.NewBuilder(
-			p.BuilderBuilder.NewStaticContext(),
-			configCtx,
-			&templates.InstallationContext{
-				Meta:  meta,
-				Viper: p.Viper,
-			},
-			templates.ShipContext{
-				Logger: p.Logger,
-			},
-		)
 		builtDest, err := builder.String(dest)
 		if err != nil {
 			return errors.Wrap(err, "building dest")

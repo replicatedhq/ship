@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -31,7 +32,11 @@ func (m *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 
 	debug.Log("event", "step.execute", "step.level", step.Level)
 
-	builder := m.getBuilder(release)
+	builder, err := m.BuilderBuilder.BaseBuilder(release.Metadata)
+	if err != nil {
+		return errors.Wrap(err, "get builder")
+	}
+
 	built, _ := builder.String(step.Contents)
 
 	switch step.Level {
@@ -45,22 +50,4 @@ func (m *CLIMessenger) Execute(ctx context.Context, release *api.Release, step *
 		m.UI.Info(fmt.Sprintf("\n%s", built))
 	}
 	return nil
-}
-
-func (m *CLIMessenger) getBuilder(release *api.Release) templates.Builder {
-	builder := m.BuilderBuilder.NewBuilder(
-		m.BuilderBuilder.NewStaticContext(),
-		builderContext{
-			logger: m.Logger,
-			viper:  m.Viper,
-		},
-		&templates.InstallationContext{
-			Meta:  release.Metadata,
-			Viper: m.Viper,
-		},
-		templates.ShipContext{
-			Logger: m.Logger,
-		},
-	)
-	return builder
 }

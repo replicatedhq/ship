@@ -96,7 +96,7 @@ func TestV2CompleteStep(t *testing.T) {
 					"source": "v2router",
 					"type":   "json",
 					"level":  "info",
-					"detail": `{"status":"working"}`,
+					"detail": `{"message":"working","status":"working"}`,
 				},
 			},
 			ExpectState: &matchers.Is{
@@ -218,7 +218,9 @@ func TestV2CompleteStep(t *testing.T) {
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
 				V1: &state2.V1{
-					Lifecycle: test.State,
+					Lifecycle: &state2.Lifeycle{
+						StepsCompleted: make(map[string]interface{}),
+					},
 				},
 			}, nil).AnyTimes()
 
