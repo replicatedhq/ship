@@ -14,12 +14,13 @@ import StepTerraform from "./StepTerraform";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
+import { fetchContentForStep } from "../../redux/data/appRoutes/actions";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
 const apiEndpoint = window.env.API_ENDPOINT;
 
-class DetermineComponentForRoute extends React.Component {
+export class DetermineComponentForRoute extends React.Component {
 
   constructor(props) {
     super(props);
@@ -74,11 +75,18 @@ class DetermineComponentForRoute extends React.Component {
   }
 
   async skipKustomize() {
-    const { routes, actions } = this.props;
+    const {
+      actions: kustomizeIntroActions,
+      routes,
+    } = this.props;
+    this.handleAction(kustomizeIntroActions[0]);
+
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-    this.handleAction(actions[0]);
+    const { actions: kustomizeActions } = await fetchContentForStep(kustomizeStep.id);
+    this.handleAction(kustomizeActions[0]);
+
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
 

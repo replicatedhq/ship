@@ -36,7 +36,9 @@ export default class StepBuildingAssets extends React.Component {
 
     if (location.pathname === "/render") {
       initializeStep(routeId);
-      startPoll(routeId, gotoRoute);
+      startPoll(routeId, () => {
+        setTimeout(gotoRoute, 500);
+      });
     }
   }
 
