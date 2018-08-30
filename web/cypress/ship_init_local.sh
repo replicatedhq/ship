@@ -11,7 +11,9 @@ cd web/cypress/test
 SHIP_PID=$!
 cd ../../..
 
-trap "kill -2 $SHIP_PID 2> /dev/null" EXIT HUP
+# Always exit 0 in trap on EXIT, $SHIP_PID may not be found
+trap "kill -2 $SHIP_PID 2> /dev/null || exit 0" EXIT
+trap "kill -2 $SHIP_PID 2> /dev/null" HUP
 
 cd web
 CYPRESS_HOST="localhost:8800" npx cypress run --spec $CYPRESS_SPEC
