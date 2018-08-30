@@ -95,8 +95,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
-      - run: |
-          docker run -it replicatedhq/ship-cypress:latest
+      - run: docker run -it replicatedhq/ship-cypress:latest
 
   integration:
     machine: true

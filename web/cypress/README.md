@@ -3,7 +3,7 @@ Ship Cypress E2E Tests
 ## Local (Iterative) Development
 There are a few steps to get local development set up with Cypress and Ship.
 1. Make sure you are `cd`'d into the `web` directory.
-1. `npx cypress open`
+1. `HOST=localhost:8800 npx cypress open`
     - This command opens the Cypress UI, displaying all available tests,
 1. Before execution of a test, run the following command in a test folder:
    ```sh
@@ -16,11 +16,11 @@ There are a few steps to get local development set up with Cypress and Ship.
 1. Repeat steps 3 & 4 between executions.
 
 ## Run Full Test Suite
-From the base directory, run `make cypress` to run all tests. This is the same command that continuous integration runs.
+From the base directory, run `make cypress` to run all tests.
 
 ## Run in Docker
 From the root directory of the project:
 ```sh
 docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
-docker run --net=host -it replicatedhq/ship-cypress:latest
+docker run -it replicatedhq/ship-cypress:latest
 ```
