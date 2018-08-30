@@ -41,6 +41,7 @@ export default class StepPreparingTerraform extends React.Component {
     if (location.pathname === "/terraform") {
       initializeStep(routeId);
       startPoll(routeId, () => {
+        // Timeout to wait a little bit before transitioning to the next step
         setTimeout(gotoRoute, 500);
       });
     }
