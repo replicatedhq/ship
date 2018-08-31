@@ -15,6 +15,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
+	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 	"github.com/spf13/afero"
 )
 
@@ -66,7 +67,12 @@ func (g *GithubClient) GetFiles(
 		return errors.Wrap(err, "remove chart clone destination")
 	}
 
-	return g.downloadAndExtractFiles(ctx, owner, repo, branch, repoPath, destinationPath)
+	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, repoPath, destinationPath)
+	if err != nil {
+		return errors2.FetchFilesError{Message: err.Error()}
+	}
+
+	return nil
 }
 
 func (g *GithubClient) downloadAndExtractFiles(

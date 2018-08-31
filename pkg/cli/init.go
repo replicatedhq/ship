@@ -22,7 +22,7 @@ Upstream can be one of:
 
 - A path to Kubernetes manifests in a github repo [github.com/replicatedhq/test-charts/plain-k8s]
 - A path to a helm chart in a github repo         [github.com/helm/charts/stable/anchore-engine]
-- A path to a specific "ref" to a helm chart or 
+- A path to a specific "ref" to a helm chart or
   Kubernetes manifests in a github repo           [github.com/helm/charts/tree/abcdef123456/stable/anchore-engine]
 - A go-getter compatible URL
   (github.com/hashicorp/go-getter)              [git::gitlab.com/myrepo/mychart, ./local-charts/nginx-ingress, github.com/myrepo/mychart?ref=abcdef123456//my/path]
@@ -44,6 +44,7 @@ Upstream can be one of:
 	cmd.Flags().String("file", "", "File path to helm chart")
 
 	cmd.Flags().Bool("rm-asset-dest", false, "Always remove asset destinations if already present")
+	cmd.Flags().Int("retries", 3, "Number of times to retry retrieving upstream")
 
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
