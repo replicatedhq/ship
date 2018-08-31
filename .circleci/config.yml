@@ -98,7 +98,7 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "web/package.json" }}
           - v1-dependencies-
-      - run: cd web; RUN CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
+      - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
       - run: make build-ui
       - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
       - run: docker run -it replicatedhq/ship-cypress:latest
