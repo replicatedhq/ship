@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/util"
+	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 	"github.com/spf13/afero"
 )
 
@@ -25,7 +26,7 @@ func (g *GoGetter) GetFiles(ctx context.Context, upstream, savePath string) erro
 
 	err := getter.GetAny(savePath, upstream)
 	if err != nil {
-		return errors.Wrap(err, "fetch contents with go-getter")
+		return errors2.FetchFilesError{Message: err.Error()}
 	}
 
 	// if there is a `.git` directory, remove it - it's dynamic and will break the content hash used by `ship update`

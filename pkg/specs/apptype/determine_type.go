@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -15,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
+	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -71,6 +73,7 @@ func (r *inspector) DetermineApplicationType(
 
 	// TODO implement a way to choose which github method should be used
 
+	r.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
 	// use the integrated github client if the url is a github url and does not contain "//"
 	if util.IsGithubURL(upstream) {
 		githubClient := githubclient.NewGithubClient(r.fs, r.logger)
@@ -101,7 +104,33 @@ func (r *inspector) determineTypeFromContents(
 
 	err = fetcher.GetFiles(ctx, upstream, savePath)
 	if err != nil {
-		return "", "", err
+		if _, ok := err.(errors2.FetchFilesError); ok {
+			r.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
+
+			var retryError error
+			retries := r.viper.GetInt("retries")
+			hasSucceeded := false
+			for idx := 1; idx <= retries && !hasSucceeded; idx++ {
+				debug.Log("event", "retry.getFiles", "attempt", idx)
+				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
+
+				time.Sleep(time.Second * 5)
+				retryError = fetcher.GetFiles(ctx, upstream, savePath)
+
+				if retryError != nil {
+					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
+					level.Error(r.logger).Log("event", "getFiles", "err", retryError)
+				} else {
+					hasSucceeded = true
+				}
+			}
+
+			if !hasSucceeded {
+				return "", "", retryError
+			}
+		} else {
+			return "", "", err
+		}
 	}
 
 	// if there's a Chart.yaml, assume its a chart
