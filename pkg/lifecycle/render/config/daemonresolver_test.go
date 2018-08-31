@@ -137,7 +137,7 @@ func TestDaemonResolver(t *testing.T) {
 					Viper:  v,
 
 					UI:             cli.NewMockUi(),
-					OpenWebConsole: func(ui cli.Ui, s string) error { return nil },
+					OpenWebConsole: func(ui cli.Ui, s string, b bool) error { return nil },
 				},
 				NavcycleRoutes: &daemon.NavcycleRoutes{
 					Shutdown: make(chan interface{}),
