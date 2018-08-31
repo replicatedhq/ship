@@ -2,6 +2,8 @@
 cypress/screenshots
 cypress/videos
 .Trash-*
+# Ship output
+cypress/test
 
 # dependencies
 /node_modules

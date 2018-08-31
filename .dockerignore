@@ -1,1 +1,3 @@
-web
+web/node_modules
+Dockerfile
+web/cypress/Dockerfile

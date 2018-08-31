@@ -85,6 +85,28 @@ jobs:
             - web/node_modules
           key: v1-dependencies-{{ checksum "web/package.json" }}
 
+  e2e-init:
+    docker:
+      - image: circleci/node:8.11.4-stretch
+    machine:
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "web/package.json" }}
+          - v1-dependencies-
+      - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
+      - run: make build-ui-dev
+      - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
+      - run: docker run -it replicatedhq/ship-cypress:latest
+      - save_cache:
+          paths:
+            - web/node_modules
+          key: v1-dependencies-{{ checksum "web/package.json" }}
+
   integration:
     machine: true
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
@@ -184,6 +206,7 @@ workflows:
       - test_ui
       - integration
       - test
+      - e2e-init
 
       # only run this on forks, to make sure webpack is compiling
       - build_dev_ui:
@@ -201,6 +224,7 @@ workflows:
           - integration
           - build_ui
           - test_ui
+          - e2e-init
           filters:
             branches:
               only: /master/
@@ -228,6 +252,12 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
+      - e2e-init:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
       - integration:
           filters:
             tags:
@@ -244,6 +274,7 @@ workflows:
           requires:
           - test
           - integration
+          - e2e-init
           - build_ui
           - test_ui
           filters:

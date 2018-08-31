@@ -228,6 +228,10 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 
 build: fmt embed-ui test bin/ship
 
+build-ci: ci-embed-ui bin/ship
+
+build-ci-cypress: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go bin/ship
+
 bin/ship: $(FULLSRC)
 	go build \
 		${LDFLAGS} \
@@ -266,7 +270,7 @@ mark-ui-gitignored:
 embed-ui: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 
 
-ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
+ci-embed-ui: mark-ui-gitignored ci-build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
 	$(MAKE) -C web build_ship
 
@@ -278,6 +282,13 @@ ci-build-ui-dev:
 
 test_CI:
 	$(MAKE) -C web test_CI
+
+cypress_base:
+	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
+	CHART_URL=github.com/sourcegraph/deploy-sourcegraph/tree/0e4d81d3c1f096c39d39b769a2bf736f5889af77 \
+	sh web/cypress/run_init_spec.sh
+
+cypress: build cypress_base
 
 # this shouldn't ever have to be run, but leaving here for
 # posterity on how the go-bindatafs "dev" file was generated
