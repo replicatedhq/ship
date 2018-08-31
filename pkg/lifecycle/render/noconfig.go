@@ -66,14 +66,14 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 		step.Root = constants.InstallerPrefixPath
 	}
 
-	if r.Viper.GetBool("rm-asset-dest") {
-		err := r.Fs.RemoveAll(step.Root)
-		if err != nil {
-			return errors.Wrapf(err, "remove asset dest %s", step.Root)
+	if step.Root != "." && step.Root != "./" {
+		if r.Viper.GetBool("rm-asset-dest") {
+			err := r.Fs.RemoveAll(step.Root)
+			if err != nil {
+				return errors.Wrapf(err, "remove asset dest %s", step.Root)
+			}
 		}
-	}
 
-	if step.Root != "." {
 		err = util.BailIfPresent(r.Fs, step.Root, r.Logger)
 		if err != nil {
 			return errors.Wrapf(err, "check for existing install directory %s", step.Root)

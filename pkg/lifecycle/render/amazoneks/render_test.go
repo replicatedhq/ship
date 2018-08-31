@@ -69,10 +69,13 @@ func TestRenderer(t *testing.T) {
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			mockInline := inline.NewMockRenderer(mc)
-
+			testLogger := &logger.TestLogger{T: t}
+			v := viper.New()
+			bb := templates.NewBuilderBuilder(testLogger, v)
 			renderer := &LocalRenderer{
-				Logger: &logger.TestLogger{T: t},
-				Inline: mockInline,
+				Logger:         testLogger,
+				BuilderBuilder: bb,
+				Inline:         mockInline,
 			}
 
 			assetMatcher := &matchers.Is{
@@ -196,7 +199,7 @@ module "eks" {
 				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
-						GroupSize:   3,
+						GroupSize:   "3",
 						MachineType: "m5.large",
 					},
 				},
@@ -253,12 +256,12 @@ module "eks" {
 				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
-						GroupSize:   3,
+						GroupSize:   "3",
 						MachineType: "m5.large",
 					},
 					{
 						Name:        "twogroup",
-						GroupSize:   1,
+						GroupSize:   "1",
 						MachineType: "m5.xlarge",
 					},
 				},
@@ -638,7 +641,7 @@ module "eks" {
 				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
-						GroupSize:   3,
+						GroupSize:   "3",
 						MachineType: "m5.large",
 					},
 				},
@@ -713,12 +716,12 @@ module "eks" {
 				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
 					{
 						Name:        "onegroup",
-						GroupSize:   3,
+						GroupSize:   "3",
 						MachineType: "m5.large",
 					},
 					{
 						Name:        "twogroup",
-						GroupSize:   2,
+						GroupSize:   "2",
 						MachineType: "m4.large",
 					},
 				},
@@ -851,6 +854,156 @@ module "eks" {
 
 				t.Errorf("Test %s did not match, diff:\n%s", test.name, diffText)
 			}
+		})
+	}
+}
+
+func TestBuildAsset(t *testing.T) {
+	type args struct {
+		asset   api.EKSAsset
+		builder *templates.Builder
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    api.EKSAsset
+		wantErr bool
+	}{
+		{
+			name: "basic",
+			args: args{
+				asset: api.EKSAsset{
+					ClusterName: `{{repl "cluster_name_built"}}`,
+					Region:      `{{repl "region_built"}}`,
+				},
+				builder: &templates.Builder{},
+			},
+			want: api.EKSAsset{
+				ClusterName: "cluster_name_built",
+				Region:      "region_built",
+			},
+		},
+		{
+			name: "created vpc",
+			args: args{
+				asset: api.EKSAsset{
+					CreatedVPC: &amazoneks.EKSCreatedVPC{
+						VPCCIDR: `{{repl "vpc_cidr_built"}}`,
+						Zones: []string{
+							`{{repl "zone_0_built"}}`,
+							`{{repl "zone_1_built"}}`,
+						},
+						PublicSubnets: []string{
+							`{{repl "public_0_built"}}`,
+							`{{repl "public_1_built"}}`,
+						},
+						PrivateSubnets: []string{
+							`{{repl "private_0_built"}}`,
+							`{{repl "private_1_built"}}`,
+						},
+					},
+				},
+				builder: &templates.Builder{},
+			},
+			want: api.EKSAsset{
+				CreatedVPC: &amazoneks.EKSCreatedVPC{
+					VPCCIDR: "vpc_cidr_built",
+					Zones: []string{
+						"zone_0_built",
+						"zone_1_built",
+					},
+					PublicSubnets: []string{
+						"public_0_built",
+						"public_1_built",
+					},
+					PrivateSubnets: []string{
+						"private_0_built",
+						"private_1_built",
+					},
+				},
+			},
+		},
+		{
+			name: "existing vpc",
+			args: args{
+				asset: api.EKSAsset{
+					ExistingVPC: &amazoneks.EKSExistingVPC{
+						VPCID: `{{repl "vpc_id_built"}}`,
+						PublicSubnets: []string{
+							`{{repl "public_0_built"}}`,
+							`{{repl "public_1_built"}}`,
+						},
+						PrivateSubnets: []string{
+							`{{repl "private_0_built"}}`,
+							`{{repl "private_1_built"}}`,
+						},
+					},
+				},
+				builder: &templates.Builder{},
+			},
+			want: api.EKSAsset{
+				ExistingVPC: &amazoneks.EKSExistingVPC{
+					VPCID: "vpc_id_built",
+					PublicSubnets: []string{
+						"public_0_built",
+						"public_1_built",
+					},
+					PrivateSubnets: []string{
+						"private_0_built",
+						"private_1_built",
+					},
+				},
+			},
+		},
+		{
+			name: "multiple groups",
+			args: args{
+				asset: api.EKSAsset{
+					ClusterName: `{{repl "cluster_name_built"}}`,
+					AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
+						{
+							Name:        `{{repl "asg_0_name_built"}}`,
+							GroupSize:   `{{repl "asg_0_size_built"}}`,
+							MachineType: `{{repl "asg_0_type_built"}}`,
+						},
+						{
+							Name:        `{{repl "asg_1_name_built"}}`,
+							GroupSize:   `{{repl "asg_1_size_built"}}`,
+							MachineType: `{{repl "asg_1_type_built"}}`,
+						},
+					},
+				},
+				builder: &templates.Builder{},
+			},
+			want: api.EKSAsset{
+				ClusterName: "cluster_name_built",
+				AutoscalingGroups: []amazoneks.EKSAutoscalingGroup{
+					{
+						Name:        "asg_0_name_built",
+						GroupSize:   "asg_0_size_built",
+						MachineType: "asg_0_type_built",
+					},
+					{
+						Name:        "asg_1_name_built",
+						GroupSize:   "asg_1_size_built",
+						MachineType: "asg_1_type_built",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			got, err := buildAsset(tt.args.asset, tt.args.builder)
+			if !tt.wantErr {
+				req.NoErrorf(err, "buildAsset() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			req.Equal(got, tt.want)
 		})
 	}
 }

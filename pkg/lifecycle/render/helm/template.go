@@ -126,7 +126,7 @@ func (f *LocalTemplater) Template(
 		defaultValuesPath := path.Join(chartRoot, "values.yaml")
 		debug.Log("event", "writeTmpValues", "to", tmpValuesPath, "default", defaultValuesPath)
 		if err := f.writeStateHelmValuesTo(tmpValuesPath, defaultValuesPath); err != nil {
-			return errors.Wrapf(err, "copy state value to tmp directory", renderDest)
+			return errors.Wrapf(err, "copy state value to tmp directory %s", renderDest)
 		}
 
 		templateArgs = append(templateArgs,

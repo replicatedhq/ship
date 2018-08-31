@@ -81,7 +81,7 @@ provider "aws" {
 }
 
 variable "eks-cluster-name" {
-  default = "new-vpc-cluster"
+  default = "cluster-name-template"
   type    = "string"
 }
 
