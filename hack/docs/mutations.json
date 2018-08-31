@@ -273,6 +273,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.values_from",
+    "merge": {
+      "description": "values_from"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.helm.properties.when",
     "merge": {
       "description": "This asset will be included when 'when' is omitted or true"
@@ -955,7 +961,10 @@
       ]
     },
     "replace": {
-      "required": []
+      "required": [
+        "base_path",
+        "dest"
+      ]
     }
   },
 
@@ -979,8 +988,7 @@
       "kustomizeIntro",
       "helmIntro",
       "helmValues",
-      "kubectl_apply.properties.StepShared",
-      "helm.properties.values_from"
+      "kubectl_apply.properties.StepShared"
     ]
   }
 ]
