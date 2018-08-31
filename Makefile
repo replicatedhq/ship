@@ -230,6 +230,8 @@ build: fmt embed-ui test bin/ship
 
 build-ci: ci-embed-ui bin/ship
 
+build-ci-cypress: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go bin/ship
+
 bin/ship: $(FULLSRC)
 	go build \
 		${LDFLAGS} \
