@@ -548,6 +548,7 @@
                     }
                   },
                   "values_from": {
+                    "description": "values_from",
                     "type": "object",
                     "properties": {
                       "lifecycle": {
@@ -905,7 +906,10 @@
                     }
                   }
                 },
-                "required": []
+                "required": [
+                  "base_path",
+                  "dest"
+                ]
               },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
