@@ -1,12 +1,8 @@
 # Build Ship
 FROM avcosystems/golang-node as build-step
 ENV GOPATH=/go
-
 RUN apt-get install bzip2
-
 ADD . /go/src/github.com/replicatedhq/ship
-WORKDIR /go/src/github.com/replicatedhq/ship/web
-RUN CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
 WORKDIR /go/src/github.com/replicatedhq/ship
 RUN make build-ci-cypress
 
