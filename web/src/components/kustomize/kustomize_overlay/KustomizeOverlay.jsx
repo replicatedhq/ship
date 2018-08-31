@@ -241,7 +241,7 @@ export default class KustomizeOverlay extends React.Component {
               <div className="flex-column flex1">
                 <div className="flex1 dirtree-wrapper flex-column u-overflow-hidden u-background--biscay">
                   {fileTree.map((tree, i) => (
-                    <div className={`u-overflow--auto FileTree-wrapper dirtree ${i > 0 ? "flex-auto has-border": "flex-0-auto"}`} key={i}>
+                    <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border": "flex-0-auto"}`} key={i}>
                       <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
                       <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
                       <FileTree
@@ -359,7 +359,11 @@ export default class KustomizeOverlay extends React.Component {
                     :
                     <div className="flex">
                       <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                      {patch === "" ?
+                        <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
+                        :
+                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                      }
                     </div>
                   }
                 </div>
