@@ -17,10 +17,10 @@ assets:
             - "10.0.130.0/24"
         autoscaling_groups:
           - name: alpha
-            group_size: 3
+            group_size: "3"
             machine_type: '{{repl ConfigOption "machine_source" }}'
           - name: bravo
-            group_size: 1
+            group_size: "1"
             machine_type: m5.4xlarge
     - inline:
         dest: install.sh
