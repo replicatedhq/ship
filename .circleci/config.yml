@@ -147,6 +147,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: make build_ship_integration_test
+      - run: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then

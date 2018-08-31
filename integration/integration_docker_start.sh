@@ -2,7 +2,7 @@
 set -e
 
 # Suppress logs from Docker Registry
-$GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
+$GOPATH/bin/registry serve docker-registry.yaml > /dev/null 2>&1 &
 sleep 2
 cd base/
 ./base.test
