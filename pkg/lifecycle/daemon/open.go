@@ -24,6 +24,7 @@ func tryOpenWebConsole(ui cli.Ui, url string, autoOpen bool) error {
 				"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
 				url,
 			))
+			return nil
 		}
 	}
 
