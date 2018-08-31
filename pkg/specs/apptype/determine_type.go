@@ -58,14 +58,6 @@ type FileFetcher interface {
 	GetFiles(ctx context.Context, upstream, savePath string) error
 }
 
-type FileFetcherError struct {
-	message string
-}
-
-func (f FileFetcherError) Error() string {
-	return f.message
-}
-
 func (r *inspector) DetermineApplicationType(
 	ctx context.Context,
 	upstream string,
