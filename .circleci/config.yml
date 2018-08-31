@@ -108,11 +108,10 @@ jobs:
           sudo mv /tmp/go ${GOROOT}
       - run: $GO get github.com/onsi/ginkgo/ginkgo
       - run: $GO get github.com/docker/distribution/cmd/registry
-      - run: cp $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml config.yml
       - run: sudo ./hack/get_run_deps.sh
       - run: sudo mkdir -p /var/lib/registry
       - run: |
-          sudo $GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
           $GOPATH/bin/ginkgo -p -stream integration/init
