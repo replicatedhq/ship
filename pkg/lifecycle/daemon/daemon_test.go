@@ -45,7 +45,7 @@ func initTestDaemon(
 		Viper:            v,
 		UI:               cli.NewMockUi(),
 		MessageConfirmed: make(chan string, 1),
-		OpenWebConsole:   func(ui cli.Ui, s string) error { return nil },
+		OpenWebConsole:   func(ui cli.Ui, s string, b bool) error { return nil },
 	}
 
 	if v2 != nil {

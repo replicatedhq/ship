@@ -77,10 +77,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		errChan <- server.ListenAndServe()
 	}()
 
-	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
+	openURL := fmt.Sprintf("http://localhost:%d", apiPort)
 	if !d.Viper.GetBool("no-open") {
 		go func() {
-			err := d.OpenWebConsole(d.UI, openUrl)
+			autoOpen := d.Viper.GetBool("headed")
+			err := d.OpenWebConsole(d.UI, openURL, autoOpen)
 			if err != nil {
 				debug.Log("event", "console.open.fail.ignore", "err", err)
 			}
@@ -88,7 +89,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	} else {
 		d.UI.Info(fmt.Sprintf(
 			"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
-			openUrl,
+			openURL,
 		))
 	}
 
