@@ -109,7 +109,8 @@ func (r *inspector) determineTypeFromContents(
 
 			var retryError error
 			retries := r.viper.GetInt("retries")
-			for idx := 1; idx <= retries; idx++ {
+			hasSucceeded := false
+			for idx := 1; idx <= retries && !hasSucceeded; idx++ {
 				debug.Log("event", "retry.getFiles", "attempt", idx)
 				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
@@ -120,11 +121,16 @@ func (r *inspector) determineTypeFromContents(
 					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
 					level.Error(r.logger).Log("event", "getFiles", "err", retryError)
 				} else {
-					return "", "", nil
+					hasSucceeded = true
 				}
 			}
+
+			if !hasSucceeded {
+				return "", "", retryError
+			}
+		} else {
+			return "", "", err
 		}
-		return "", "", err
 	}
 
 	// if there's a Chart.yaml, assume its a chart
