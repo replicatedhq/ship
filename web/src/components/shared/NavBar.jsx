@@ -5,7 +5,8 @@ import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 import "../../scss/components/shared/NavBar.scss";
-import shipLogo from "../../assets/images/ship-logo.png";
+import { Fragment } from "react";
+import { get, isEmpty } from "lodash";
 
 export class NavBar extends React.Component {
 
@@ -15,7 +16,8 @@ export class NavBar extends React.Component {
       navDetails: {
         name: "",
         icon: ""
-      }
+      },
+      imageLoaded: false,
     };
     autoBind(this);
   }
@@ -90,28 +92,48 @@ export class NavBar extends React.Component {
     const { shipAppMetadata, channelDetails } = this.props;
     const { navDetails } = this.state;
 
+    let updatedState = {};
     if (shipAppMetadata.name && shipAppMetadata.name !== navDetails.name) {
-      this.setState({
+      updatedState = {
         navDetails: {
           name: shipAppMetadata.name,
           icon: shipAppMetadata.icon,
         },
-      });
+      };
     }
 
     if (channelDetails.channelName && channelDetails.channelName !== navDetails.name) {
-      this.setState({
+      updatedState = {
         navDetails: {
           name: channelDetails.channelName,
           icon: channelDetails.icon,
         }
-      });
+      };
+    }
+
+    const navIconUpdated = !isEmpty(get(updatedState, ["navDetails", "icon"], ""))
+    if (navIconUpdated) {
+      var image = new Image();
+      image.src = updatedState.navDetails.icon;
+
+      const setImageLoadedComplete = () => this.setState({ imageLoaded: true }, () => console.log("Image loaded"))
+      // Browser supports image.decode
+      if (image.decode) {
+        image.decode().then(setImageLoadedComplete)
+      } else {
+        // Fallback to normal image decode, may cause flickering
+        image.onload = setImageLoadedComplete
+      }
+    }
+
+    if (!isEmpty(updatedState)) {
+      this.setState(updatedState);
     }
   }
 
   render() {
     const { className, routes } = this.props;
-    const { navDetails } = this.state;
+    const { navDetails, imageLoaded } = this.state;
     const isPathActive = this.isActive(
       typeof window === "object"
         ? window.location.pathname
@@ -143,26 +165,32 @@ export class NavBar extends React.Component {
     const [ firstRoute = {} ] = routes;
     const { id: firstRouteId } = firstRoute;
 
+    const headerDetails = (
+      <Fragment>
+        <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
+          <div className="HeaderLogo">
+            <Link to={`/${firstRouteId}`} tabIndex="-1">
+              <img src={navDetails.icon} className="logo" />
+            </Link>
+          </div>
+        </div>
+        <div className="flex-column flex-auto HeaderName-wrapper">
+          {navDetails.name && navDetails.name.length ?
+            <div className="flex-column flex1 flex-verticalCenter u-position--relative">
+              <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
+            </div>
+            : null}
+        </div>
+      </Fragment>
+    );
+
     return (
       <div className={`NavBarWrapper flex flex-auto ${className || ""}`}>
         <div className="container flex flex1">
           <div className="flex1 justifyContent--flexStart alignItems--center">
             <div className="flex1 flex">
               <div className="flex flex-auto">
-                <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
-                  <div className="HeaderLogo">
-                    <Link to={`/${firstRouteId}`} tabIndex="-1">
-                      <img src={navDetails.icon ? navDetails.icon : shipLogo} className="logo" />
-                    </Link>
-                  </div>
-                </div>
-                <div className="flex-column flex-auto HeaderName-wrapper">
-                  {navDetails.name && navDetails.name.length ?
-                    <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-                      <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
-                    </div>
-                    : null}
-                </div>
+                {imageLoaded && headerDetails}
                 {this.props.hideLinks ? null :
                   <div className="flex flex-auto alignItems--center left-items">
                     {leftItems.map(renderItem)}
