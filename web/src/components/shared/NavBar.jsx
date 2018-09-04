@@ -1,11 +1,10 @@
-import * as React from "react";
+import React, { Fragment } from "react";
 import assign from "object-assign";
 import autoBind from "react-autobind";
 import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 import "../../scss/components/shared/NavBar.scss";
-import { Fragment } from "react";
 import { get, isEmpty } from "lodash";
 
 export class NavBar extends React.Component {
