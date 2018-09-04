@@ -23,8 +23,7 @@ const initProps = {
 
 describe("NavBar", () => {
   beforeAll(() => {
-    // Mocking Image.prototype.src to call the onload or onerror
-    // callbacks depending on the src passed to it
+    // Mocking Image.prototype.src to call onload immediately
     Object.defineProperty(global.Image.prototype, "src", {
       set() {
         this.onload()
