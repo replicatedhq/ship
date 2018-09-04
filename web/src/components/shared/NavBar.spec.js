@@ -22,6 +22,16 @@ const initProps = {
 };
 
 describe("NavBar", () => {
+  beforeAll(() => {
+    // Mocking Image.prototype.src to call the onload or onerror
+    // callbacks depending on the src passed to it
+    Object.defineProperty(global.Image.prototype, "src", {
+      set() {
+        this.onload()
+      },
+    });
+  });
+
   describe("provided shipAppMetadata", () => {
     const wrapper = mount(
       <MemoryRouter initialEntries={["/"]} initialIndex={0}>
@@ -31,7 +41,7 @@ describe("NavBar", () => {
         />
       </MemoryRouter>
     );
-      it("sets navDetails via shipAppMetadata", () => {
+      it("sets navDetails via shipAppMetadata", async () => {
         wrapper.setProps({
           children: React.cloneElement(
             wrapper.props().children,
@@ -44,6 +54,7 @@ describe("NavBar", () => {
             },
           ),
         });
+        await wrapper.update();
         const navBar = wrapper.find(NavBar).instance();
         const navDetails = navBar.state.navDetails;
         expect(navDetails.name).toEqual("testHelm");
@@ -59,7 +70,7 @@ describe("NavBar", () => {
         />
       </MemoryRouter>
     );
-      it("sets navDetails via channelDetails", () => {
+      it("sets navDetails via channelDetails", async () => {
         wrapper.setProps({
           children: React.cloneElement(
             wrapper.props().children,
@@ -72,6 +83,7 @@ describe("NavBar", () => {
             },
           ),
         });
+        await wrapper.update();
         const navBar = wrapper.find(NavBar).instance();
         const navDetails = navBar.state.navDetails;
         expect(navDetails.name).toEqual("testChannelDetails");
