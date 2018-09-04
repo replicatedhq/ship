@@ -88,6 +88,15 @@ export class NavBar extends React.Component {
     };
   }
 
+  preloadNavIconImage = (iconUrl) => new Promise(
+    (resolve, reject) => {
+      var image = new Image();
+      image.onload = resolve;
+      image.onerror = reject;
+      image.src = iconUrl;
+    }
+  )
+
   componentDidUpdate() {
     const { shipAppMetadata, channelDetails } = this.props;
     const { navDetails } = this.state;
@@ -113,21 +122,17 @@ export class NavBar extends React.Component {
 
     const navIconUpdated = !isEmpty(get(updatedState, ["navDetails", "icon"], ""))
     if (navIconUpdated) {
-      var image = new Image();
-      image.src = updatedState.navDetails.icon;
-
-      const setImageLoadedComplete = () => this.setState({ imageLoaded: true }, () => console.log("Image loaded"))
-      // Browser supports image.decode
-      if (image.decode) {
-        image.decode().then(setImageLoadedComplete)
-      } else {
-        // Fallback to normal image decode, may cause flickering
-        image.onload = setImageLoadedComplete
+      this.preloadNavIconImage(updatedState.navDetails.icon)
+        .then(() => {
+          this.setState({
+            ...updatedState,
+            imageLoaded: true,
+          })
+        })
+    } else {
+      if (!isEmpty(updatedState)) {
+        this.setState(updatedState);
       }
-    }
-
-    if (!isEmpty(updatedState)) {
-      this.setState(updatedState);
     }
   }
 
@@ -165,23 +170,24 @@ export class NavBar extends React.Component {
     const [ firstRoute = {} ] = routes;
     const { id: firstRouteId } = firstRoute;
 
-    const headerDetails = (
-      <Fragment>
-        <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
-          <div className="HeaderLogo">
-            <Link to={`/${firstRouteId}`} tabIndex="-1">
-              <img src={navDetails.icon} className="logo" />
-            </Link>
+    const headerLogo = (
+      <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
+        <div className="HeaderLogo">
+          <Link to={`/${firstRouteId}`} tabIndex="-1">
+            <img src={navDetails.icon} className="logo" />
+          </Link>
+        </div>
+      </div>
+    );
+
+    const headerName = (
+      <div className="flex-column flex-auto HeaderName-wrapper">
+        {navDetails.name && navDetails.name.length ?
+          <div className="flex-column flex1 flex-verticalCenter u-position--relative">
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
           </div>
-        </div>
-        <div className="flex-column flex-auto HeaderName-wrapper">
-          {navDetails.name && navDetails.name.length ?
-            <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-              <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
-            </div>
-            : null}
-        </div>
-      </Fragment>
+          : null}
+      </div>
     );
 
     return (
@@ -190,7 +196,16 @@ export class NavBar extends React.Component {
           <div className="flex1 justifyContent--flexStart alignItems--center">
             <div className="flex1 flex">
               <div className="flex flex-auto">
-                {imageLoaded && headerDetails}
+                {
+                  imageLoaded ?
+                    (
+                      <Fragment>
+                        {headerLogo}
+                        {headerName}
+                      </Fragment>
+                    ) :
+                    headerName
+                }
                 {this.props.hideLinks ? null :
                   <div className="flex flex-auto alignItems--center left-items">
                     {leftItems.map(renderItem)}
