@@ -1,6 +1,7 @@
 @import "../../variables/variables.scss";
 
 .NavBarWrapper {
+  min-height: 66px;
   width: 100%;
   padding: 0;
   background-color: $navbar-background;
@@ -107,5 +108,5 @@
 
 /* ≥ 1024px */
 @media screen and (min-width: 64em) {
-  
+
 }
