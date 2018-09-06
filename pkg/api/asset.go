@@ -62,6 +62,7 @@ type GitHubAsset struct {
 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
 	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+	StripPath   string `json:"strip_path" yaml:"strip_path" hcl:"strip_path"`
 }
 
 // WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
