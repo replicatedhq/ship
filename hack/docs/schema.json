@@ -308,15 +308,17 @@
                     "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
                     "path": "k8s-yamls/",
                     "dest": "./k8s/",
-                    "source": "private"
+                    "source": "private",
+                    "strip_path": ""
                   },
                   {
                     "repo": "github.com/replicatedhq/ship",
                     "ref": "master",
                     "path": "hack/docs/",
-                    "dest": "./docs/",
+                    "dest": "./docs{{repl Add 1 1}}/",
                     "source": "public",
-                    "mode": 644
+                    "mode": 644,
+                    "strip_path": "{{repl ParseBool \"true\"}}"
                   }
                 ],
                 "type": "object",
@@ -346,6 +348,10 @@
                   },
                   "source": {
                     "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                    "type": "string"
+                  },
+                  "strip_path": {
+                    "description": "If true, the github directory will not be included in the filepath of the generated files. For instance, when outputting all files within 'source/' in the repository to the 'dest/' directory, the file 'source/a/file.txt' would be placed at 'dest/source/a/file.txt' when this is false and 'dest/a/file.txt' when this is true.",
                     "type": "string"
                   },
                   "when": {

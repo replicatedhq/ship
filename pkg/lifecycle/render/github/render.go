@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -100,7 +101,10 @@ func (r *LocalRenderer) Execute(
 				return errors.Wrapf(err, "building %s", file.Path)
 			}
 
-			filePath := filepath.Join(asset.Dest, file.Path)
+			filePath, err := getDestPath(file.Path, asset, builder)
+			if err != nil {
+				return errors.Wrapf(err, "determining destination for %s", file.Path)
+			}
 
 			basePath := filepath.Dir(filePath)
 			debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
@@ -122,4 +126,30 @@ func (r *LocalRenderer) Execute(
 		}
 		return nil
 	}
+}
+
+func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Builder) (string, error) {
+	stripPath, err := builder.Bool(asset.StripPath, false)
+	if err != nil {
+		return "", errors.Wrapf(err, "parse boolean from %q", asset.StripPath)
+	}
+
+	destDir, err := builder.String(asset.Dest)
+	if err != nil {
+		return "", errors.Wrapf(err, "get destination directory from %q", asset.Dest)
+	}
+
+	if stripPath {
+		// remove asset.Path's directory from the beginning of githubPath
+		sourcePathDir := filepath.ToSlash(filepath.Dir(asset.Path)) + "/"
+		githubPath = strings.TrimPrefix(githubPath, sourcePathDir)
+
+		// handle cases where the source path was a dir but a trailing slash was not included
+		if !strings.HasSuffix(asset.Path, "/") {
+			sourcePathBase := filepath.Base(asset.Path) + "/"
+			githubPath = strings.TrimPrefix(githubPath, sourcePathBase)
+		}
+	}
+
+	return filepath.Join(destDir, githubPath), nil
 }
