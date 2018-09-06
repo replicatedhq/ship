@@ -246,7 +246,7 @@ func TestBuildAsset(t *testing.T) {
 				req.Error(err)
 			}
 
-			req.Equal(got, tt.want)
+			req.Equal(tt.want, got)
 		})
 	}
 }
