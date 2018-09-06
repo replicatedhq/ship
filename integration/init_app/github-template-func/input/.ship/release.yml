@@ -20,6 +20,13 @@ assets:
         dest: ./github-noslash
         source: public
         ref: ad1e78d13c33fae7a7ce22ed19920945ceea23e9
+    - github:
+        repo: replicatedhq/test-charts
+        path: template-functions
+        dest: ./github-stripped
+        strip_path: "{{repl ParseBool \"true\"}}"
+        source: public
+        ref: ad1e78d13c33fae7a7ce22ed19920945ceea23e9
 config:
   v1:
     - name: option_group
