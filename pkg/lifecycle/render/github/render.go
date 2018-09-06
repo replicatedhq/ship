@@ -110,6 +110,9 @@ func (r *LocalRenderer) Execute(
 			}
 
 			mode := os.FileMode(0644) // TODO: how to get mode info from github?
+			if asset.AssetShared.Mode != os.FileMode(0000) {
+				mode = asset.AssetShared.Mode
+			}
 			if err := rootFs.WriteFile(filePath, []byte(built), mode); err != nil {
 				debug.Log("event", "execute.fail", "err", err)
 				return errors.Wrapf(err, "Write inline asset to %s", filePath)
