@@ -309,6 +309,14 @@
                     "path": "k8s-yamls/",
                     "dest": "./k8s/",
                     "source": "private"
+                  },
+                  {
+                    "repo": "github.com/replicatedhq/ship",
+                    "ref": "master",
+                    "path": "hack/docs/",
+                    "dest": "./docs/",
+                    "source": "public",
+                    "mode": 644
                   }
                 ],
                 "type": "object",
@@ -319,6 +327,10 @@
                   "dest": {
                     "description": "Destination directory",
                     "type": "string"
+                  },
+                  "mode": {
+                    "description": "If present, overrides the file mode of all files included by this asset.",
+                    "type": "integer"
                   },
                   "path": {
                     "description": "Path in repo from which to pull file or directory",
