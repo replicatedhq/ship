@@ -5,6 +5,7 @@ Ship
 [![Maintainability](https://api.codeclimate.com/v1/badges/a00869c41469d016a3c8/maintainability)](https://codeclimate.com/github/replicatedhq/ship/maintainability)
 [![CircleCI](https://circleci.com/gh/replicatedhq/ship.svg?style=svg&circle-token=471765bf5ec85ede48fcf02ea6a886dc6c5a73f1)](https://circleci.com/gh/replicatedhq/ship)
 [![Docker Image](https://images.microbadger.com/badges/image/replicated/ship.svg)](https://microbadger.com/images/replicated/ship)
+[![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
