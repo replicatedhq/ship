@@ -22,7 +22,7 @@ type TestMetadata struct {
 	Args []string `yaml:"args"`
 	Skip bool     `yaml:"skip"`
 
-	//debugging
+	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
 
@@ -112,8 +112,8 @@ var _ = Describe("ship update", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
-					//compare the files in the temporary directory with those in the "expected" directory
-					// TODO: text based comparison of state files is brittle becuase helm values are being merged.
+					// compare the files in the temporary directory with those in the "expected" directory
+					// TODO: text based comparison of state files is brittle because helm values are being merged.
 					// they should really be compared using the versioned state object
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
 					Expect(err).NotTo(HaveOccurred())

@@ -53,14 +53,15 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				expectPatch, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "patch.yaml"))
+				Expect(err).NotTo(HaveOccurred())
 				Expect(string(patch)).To(Equal(string(expectPatch)))
 			}
 		})
 	})
 	Describe("MergePatches", func() {
 		mergePatchPathMap := map[string][]string{
-			"basic": []string{"spec", "template", "spec", "containers", "0", "name"},
-			"list":  []string{"spec", "template", "spec", "containers", "0", "env", "2", "value"},
+			"basic": {"spec", "template", "spec", "containers", "0", "name"},
+			"list":  {"spec", "template", "spec", "containers", "0", "env", "2", "value"},
 		}
 		It("Creates a single patch with the effect of both given patches", func() {
 			mergeTestDirs, err := ioutil.ReadDir(path.Join(mergeTestCasesFolder))
@@ -113,10 +114,10 @@ var _ = Describe("ShipPatcher", func() {
 	})
 	Describe("ModifyField", func() {
 		modifyFieldPathMap := map[string][]string{
-			"basic":  []string{"spec", "template", "spec", "containers", "0", "name"},
-			"list":   []string{"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
-			"nested": []string{"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
-			"nil":    []string{"spec", "template", "spec", "containers", "0", "volumeMounts", "1", "mountPath"},
+			"basic":  {"spec", "template", "spec", "containers", "0", "name"},
+			"list":   {"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
+			"nested": {"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
+			"nil":    {"spec", "template", "spec", "containers", "0", "volumeMounts", "1", "mountPath"},
 		}
 		It("Modifies a single field in yaml with PATCH_TOKEN", func() {
 			modifyTestDirs, err := ioutil.ReadDir(path.Join(modifyTestCasesFolder))

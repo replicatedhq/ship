@@ -13,7 +13,7 @@ import (
 // base is the original config from state
 // user is the modified config from state
 // vendor is the new config from current chart
-// Value priotities: user, vendor, base
+// Value priorities: user, vendor, base
 func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error) {
 	// First time merge is performed, there are no user values.  We are shortcutting this
 	// in order to preserve original file formatting and comments
@@ -45,7 +45,7 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 	return string(vals), nil
 }
 
-// Value priotities: user, vendor, base
+// Value priorities: user, vendor, base
 func deepMerge(base, user, vendor, merged map[string]interface{}) error {
 	allKeys := getAllKeys(base, user, vendor)
 	for _, k := range allKeys {
@@ -101,14 +101,14 @@ func deepMerge(base, user, vendor, merged map[string]interface{}) error {
 func getAllKeys(maps ...map[string]interface{}) []string {
 	allKeys := map[string]bool{}
 	for _, m := range maps {
-		for k, _ := range m {
+		for k := range m {
 			allKeys[k] = true
 		}
 	}
 
 	keys := make([]string, len(allKeys), len(allKeys))
 	i := 0
-	for k, _ := range allKeys {
+	for k := range allKeys {
 		keys[i] = k
 		i += 1
 	}
@@ -144,7 +144,7 @@ func valuesEqual(val1, val2 interface{}) (bool, error) {
 		return false, errors.Wrap(err, "array2 to checksums")
 	}
 
-	for k, _ := range arr1Checksums {
+	for k := range arr1Checksums {
 		_, ok := arr2Checksums[k]
 		if !ok {
 			return false, nil

@@ -164,12 +164,14 @@ func TestHelmValue(t *testing.T) {
 			req.NoError(err)
 
 			t0State, err := manager.TryLoad()
+			req.NoError(err)
 			req.Equal(test.userInputValues, t0State.CurrentHelmValues())
 
 			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnUpdate)
 			req.NoError(err)
 
 			t1State, err := manager.TryLoad()
+			req.NoError(err)
 			req.Equal(test.wantValuesAfterUpdate, t1State.CurrentHelmValues())
 		})
 	}

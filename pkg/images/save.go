@@ -51,7 +51,7 @@ type DestinationParams struct {
 
 var _ ImageSaver = &CLISaver{}
 
-// CLISaver implementes ImageSaver via a docker client
+// CLISaver implements ImageSaver via a docker client
 type CLISaver struct {
 	Logger log.Logger
 	client ImageManager
