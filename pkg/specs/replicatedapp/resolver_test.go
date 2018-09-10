@@ -22,5 +22,6 @@ func TestPersistSpec(t *testing.T) {
 	req.NoError(err)
 
 	persistedSpec, err := r.FS.ReadFile(constants.ReleasePath)
+	req.NoError(err)
 	req.True(reflect.DeepEqual(desiredSpec, persistedSpec))
 }

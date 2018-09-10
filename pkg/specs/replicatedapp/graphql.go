@@ -271,6 +271,9 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 		gqlServer = ci.upstream
 	}
 	graphQLRequest, err := http.NewRequest(http.MethodPost, gqlServer, bodyReader)
+	if err != nil {
+		return errors.Wrap(err, "create new request")
+	}
 
 	graphQLRequest.Header = map[string][]string{
 		"Authorization": {"Basic " + authString},

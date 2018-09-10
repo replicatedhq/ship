@@ -72,7 +72,7 @@ icon: https://kfbr.392/x5.png
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
-				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
+				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
 
 			},
 			expectRelease: &api.Release{
@@ -109,7 +109,7 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 
 				inOrder = mockUi.EXPECT().Info("Detected application type replicated.app").After(inOrder)
-				inOrder = mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
+				mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
 					CustomerID:     "12345",
 					InstallationID: "67890",
 				}).Return(&api.Release{
@@ -154,7 +154,7 @@ icon: https://kfbr.392/x5.png
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
-				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
+				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
 
 			},
 			expectRelease: &api.Release{
@@ -187,6 +187,7 @@ icon: https://kfbr.392/x5.png
 			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
 			// its chrooted to a temp dir, but this needs to exist
 			err = mockFs.MkdirAll(".ship/tmp/", 0755)
+			req.NoError(err)
 
 			resolver := &Resolver{
 				Logger:           log.NewNopLogger(),

@@ -75,7 +75,7 @@ func TestAferoLoader(t *testing.T) {
 				V1: &state.V1{
 					Kustomize: &state.Kustomize{
 						Overlays: map[string]state.Overlay{
-							"ship": state.Overlay{
+							"ship": {
 								Patches: testPatches,
 							},
 						},

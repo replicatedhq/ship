@@ -88,11 +88,13 @@ func CompareDir(expected, actual string) (bool, error) {
 				err = json.Unmarshal(expectedContentsBytes, &obj)
 				Expect(err).NotTo(HaveOccurred())
 				expectedContentsBytes, err = json.MarshalIndent(obj, "", "  ")
+				Expect(err).NotTo(HaveOccurred())
 
 				obj = nil
 				err = json.Unmarshal(actualContentsBytes, &obj)
 				Expect(err).NotTo(HaveOccurred())
 				actualContentsBytes, err = json.MarshalIndent(obj, "", "  ")
+				Expect(err).NotTo(HaveOccurred())
 			}
 
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)

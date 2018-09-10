@@ -81,7 +81,7 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	stateTemplateContext := make(map[string]interface{})
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			if valueNotOverridenByDefault(configItem, templateContext, previousState.CurrentConfig()) {
+			if valueNotOverriddenByDefault(configItem, templateContext, previousState.CurrentConfig()) {
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}
@@ -101,7 +101,7 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 	return nil
 }
 
-func valueNotOverridenByDefault(item *libyaml.ConfigItem, templateContext map[string]interface{}, savedState map[string]interface{}) bool {
+func valueNotOverriddenByDefault(item *libyaml.ConfigItem, templateContext map[string]interface{}, savedState map[string]interface{}) bool {
 	_, inSavedState := savedState[item.Name] // all values in savedState are non-default values
 
 	if templateContext[item.Name] == "" {
@@ -109,14 +109,14 @@ func valueNotOverridenByDefault(item *libyaml.ConfigItem, templateContext map[st
 			// manually set value: "" in state.json
 			return true
 		} else {
-			// value overriden by default == ""?
+			// value overridden by default == ""?
 			return item.Default != ""
 		}
 	} else if templateContext[item.Name] == item.Default {
 		// the provided value is manually set to the default value
 		return inSavedState
 	} else {
-		// non-empty value != default. cannot have been overriden by default
+		// non-empty value != default. cannot have been overridden by default
 		return true
 	}
 }
