@@ -57,11 +57,10 @@ export function submitAction(payload) {
   const { uri, method, body } = payload.action.onclick;
   return async (dispatch, getState) => {
     const { apiEndpoint } = getState();
-    let response;
     dispatch(loadingData("submitAction", true));
     try {
       const url = `${apiEndpoint}${uri}`;
-      response = await fetch(url, {
+      await fetch(url, {
         method,
         body,
         headers: {
@@ -69,9 +68,6 @@ export function submitAction(payload) {
           "Content-Type": "application/json"
         },
       });
-      if (!response.ok) {
-        dispatch(loadingData("submitAction", false));
-      }
       dispatch(loadingData("submitAction", false));
       dispatch(getCurrentStep());
     } catch (error) {
