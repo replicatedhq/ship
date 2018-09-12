@@ -1,0 +1,44 @@
+---
+assets:
+  v1:
+    - azure_aks:
+        tenant_id: '{{repl ConfigOption "azure_tenant_id" }}'
+        subscription_id: '{{repl ConfigOption "azure_subscription_id" }}'
+        service_principal_id: '{{repl ConfigOption "azure_service_principal_id" }}'
+        service_principal_secret: '{{repl ConfigOption "azure_service_principal_secret" }}'
+        resource_group_name: '{{repl ConfigOption "azure_resource_group_name" }}'
+        location: '{{repl ConfigOption "azure_location" }}'
+        cluster_name: "aksqa"
+        kubernetes_version: "1.11.2"
+        node_count: "1"
+        node_type: "Standard_D1_v2"
+
+config:
+  v1:
+    - name: Azure
+      title: Azure
+      description: Azure configuration and credentials
+      items:
+      - name: azure_tenant_id
+        title: Tenant ID
+        type: text
+      - name: azure_subscription_id
+        title: Subscription ID
+        type: text
+      - name: azure_service_principal_id
+        title: Service Principal ID
+        type: text
+      - name: azure_service_principal_secret
+        title: Service Principal Secret
+        type: password
+      - name: azure_resource_group_name
+        title: Resource Group
+        type: text
+      - name: azure_location
+        title: Resource Group Location
+        type: text
+
+lifecycle:
+  v1:
+    - config: {}
+    - render: {}

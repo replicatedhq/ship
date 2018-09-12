@@ -12,6 +12,7 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/azureaks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
@@ -73,6 +74,7 @@ func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 			Web:         planner.Web,
 			AmazonEKS:   planner.AmazonEKS,
 			GoogleGKE:   planner.GoogleGKE,
+			AzureAKS:    planner.AzureAKS,
 		}
 
 	})
@@ -112,6 +114,7 @@ type CLIPlanner struct {
 	Terraform   terraform.Renderer
 	AmazonEKS   amazoneks.Renderer
 	GoogleGKE   googlegke.Renderer
+	AzureAKS    azureaks.Renderer
 }
 
 // Use a factory so we can create instances and override the StatusReceiver on those instances.
@@ -130,6 +133,7 @@ func NewFactory(
 	webRenderer web.Renderer,
 	amazonEKS amazoneks.Renderer,
 	googleGKE googlegke.Renderer,
+	azureAKS azureaks.Renderer,
 	status daemontypes.StatusReceiver,
 ) Planner {
 	return Factory(func() *CLIPlanner {
@@ -149,6 +153,7 @@ func NewFactory(
 			Web:         webRenderer,
 			AmazonEKS:   amazonEKS,
 			GoogleGKE:   googleGKE,
+			AzureAKS:    azureAKS,
 			Status:      status,
 		}
 	})

@@ -25,6 +25,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/azureaks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
@@ -101,6 +102,8 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		amazoneks.NewRenderer,
 
 		googlegke.NewRenderer,
+
+		azureaks.NewRenderer,
 
 		kubectl.NewKubectl,
 

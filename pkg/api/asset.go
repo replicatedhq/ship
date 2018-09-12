@@ -34,6 +34,7 @@ type Asset struct {
 	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	AmazonEKS   *EKSAsset         `json:"amazon_eks,omitempty" yaml:"amazon_eks,omitempty" hcl:"amazon_eks,omitempty"`
 	GoogleGKE   *GKEAsset         `json:"google_gke,omitempty" yaml:"google_gke,omitempty" hcl:"google_gke,omitempty"`
+	AzureAKS    *AKSAsset         `json:"azure_aks,omitempty" yaml:"azure_aks,omitempty" hcl:"azure_aks,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -147,4 +148,26 @@ type GCPProvider struct {
 	Credentials string `json:"credentials,omitempty" yaml:"credentials,omitempty" hcl:"credentials,omitempty"`
 	Project     string `json:"project,omitempty" yaml:"project,omitempty" hcl:"project,omitempty"`
 	Region      string `json:"region,omitempty" yaml:"region,omitempty" hcl:"region,omitempty"`
+}
+
+// AKSAsset
+type AKSAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Azure       `json:",inline" yaml:",inline" hcl:",inline"`
+
+	ClusterName       string `json:"cluster_name" yaml:"cluster_name" hcl:"cluster_name"`
+	KubernetesVersion string `json:"kubernetes_version" yaml:"kubernetes_version" hcl:"kubernetes_version"`
+	PublicKey         string `json:"public_key" yaml:"public_key" hcl:"public_key"`
+	NodeCount         string `json:"node_count" yaml:"node_count" hcl:"node_count"`
+	NodeType          string `json:"node_type" yaml:"node_type" hcl:"node_type"`
+	DiskGB            string `json:"disk_gb" yaml:"disk_gb" hcl:"disk_gb"`
+}
+
+type Azure struct {
+	TenantID               string `json:"tenant_id" yaml:"tenant_id" hcl:"tenant_id"`
+	SubscriptionID         string `json:"subscription_id" yaml:"subscription_id" hcl:"subscription_id"`
+	ServicePrincipalID     string `json:"service_principal_id" yaml:"service_principal_id" hcl:"service_principal_id"`
+	ServicePrincipalSecret string `json:"service_principal_secret" yaml:"service_principal_secret" hcl:"service_principal_secret"`
+	ResourceGroupName      string `json:"resource_group_name" yaml:"resource_group_name" hcl:"resource_group_name"`
+	Location               string `json:"location" yaml:"location" hcl:"location"`
 }
