@@ -1,8 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import ShipV2Root from "./ShipV2Root";
-import { configStore } from "./redux";
+import ShipRoot from "./ShipV2Root";
+import { hot } from "react-hot-loader";
 
-configStore().then(() => {
-  ReactDOM.render((<ShipV2Root/>), document.getElementById("root"));
-});
+const ShipV2Root = hot(module)(ShipRoot)
+
+ReactDOM.render(
+  <ShipV2Root apiEndpoint={window.env.API_ENDPOINT} />,
+  document.getElementById("root")
+);

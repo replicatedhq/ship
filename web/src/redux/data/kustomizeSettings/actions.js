@@ -2,7 +2,6 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 //import { Utilities } from "../../../utilities/utilities";
 
-const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_HELM_CHART_METADATA: "RECEIVE_HELM_CHART_METADATA",
   SET_HELM_CHART_ERROR: "SET_HELM_CHART_ERROR"
@@ -23,7 +22,8 @@ export function setHelmChartError(error) {
 }
 
 export function getHelmChartMetadata(loaderType = "getHelmChartMetadata") {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData(loaderType, true));
     try {
@@ -54,7 +54,8 @@ export function getHelmChartMetadata(loaderType = "getHelmChartMetadata") {
 }
 
 export function saveHelmChartValues(payload, loaderType = "saveHelmChartValues") {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData(loaderType, true));
     const url = `${apiEndpoint}/helm-values`;

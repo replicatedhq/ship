@@ -2,7 +2,6 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 import { getContentForStep } from "../appRoutes/actions";
 
-const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_FILE_CONTENT: "RECEIVE_FILE_CONTENT",
   RECEIVE_PATCH: "RECEIVE_PATCH",
@@ -20,10 +19,11 @@ export function receiveFileContent(content, path) {
 }
 
 export function getFileContent(payload) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     let response;
     dispatch(loadingData("fileContent", true));
     try {
+      const { apiEndpoint } = getState();
       const url = `${apiEndpoint}/kustomize/file`;
       response = await fetch(url, {
         method: "POST",
@@ -50,7 +50,8 @@ export function getFileContent(payload) {
 }
 
 export function saveKustomizeOverlay(payload) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("saveKustomize", true));
     try {
@@ -79,7 +80,8 @@ export function saveKustomizeOverlay(payload) {
 }
 
 export function deleteOverlay(path) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("deleteOverlay", true));
     try {
@@ -109,7 +111,8 @@ export function deleteOverlay(path) {
 }
 
 export function finalizeKustomizeOverlay() {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("finalizeKustomize", true));
     try {
@@ -145,7 +148,8 @@ export function receivePatch(patch) {
 }
 
 export function generatePatch(payload) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     try {
       const url = `${apiEndpoint}/kustomize/patch`;
       const response = await fetch(url, {
@@ -169,7 +173,8 @@ export function generatePatch(payload) {
 }
 
 export function applyPatch(payload) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     try {
       const url = `${apiEndpoint}/kustomize/apply`;
       const response = await fetch(url, {

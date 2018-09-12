@@ -2,7 +2,6 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 import { Utilities } from "../../../utilities/utilities";
 
-const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_CURRENT_STEP: "RECEIVE_CURRENT_STEP",
   SET_STEP_ERROR: "SET_STEP_ERROR"
@@ -23,7 +22,8 @@ export function setStepError(message) {
 }
 
 export function getCurrentStep(loaderType = "getCurrentStep") {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData(loaderType, true));
     try {
@@ -55,12 +55,12 @@ export function getCurrentStep(loaderType = "getCurrentStep") {
 
 export function submitAction(payload) {
   const { uri, method, body } = payload.action.onclick;
-  return async (dispatch) => {
-    let response;
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     dispatch(loadingData("submitAction", true));
     try {
       const url = `${apiEndpoint}${uri}`;
-      response = await fetch(url, {
+      await fetch(url, {
         method,
         body,
         headers: {
@@ -68,9 +68,6 @@ export function submitAction(payload) {
           "Content-Type": "application/json"
         },
       });
-      if (!response.ok) {
-        dispatch(loadingData("submitAction", false));
-      }
       dispatch(loadingData("submitAction", false));
       dispatch(getCurrentStep());
     } catch (error) {

@@ -8,35 +8,32 @@ import UIReducers from "./ui";
 
 const tracker = createTracker();
 
-const appReducer = combineReducers({
-  data: DataReducers,
-  ui: UIReducers,
-});
-
-const rootReducer = (state, action) => {
-  if (action.type === "PURGE_ALL") {
-    state = undefined
-  }
-  return appReducer(state, action);
-};
-
 let store;
-export function configStore() {
-  const hasExtension = window.devToolsExtension;
-  return new Promise((resolve, reject) => {
-    try {
-      store = createStore(
-        rootReducer,
-        compose(
-          applyMiddleware(thunk, tracker),
-          hasExtension ? window.devToolsExtension() : f => f,
-        ),
-      );
-      resolve(store);
-    } catch (error) {
-      reject(error);
-    }
+
+export function configureStore(apiEndpoint) {
+  const appReducer = combineReducers({
+    data: DataReducers,
+    ui: UIReducers,
+    apiEndpoint: () => apiEndpoint
   });
+
+  const rootReducer = (state, action) => {
+    if (action.type === "PURGE_ALL") {
+      state = undefined
+    }
+    return appReducer(state, action);
+  };
+
+  const hasExtension = window.devToolsExtension;
+  store = createStore(
+    rootReducer,
+    compose(
+      applyMiddleware(thunk, tracker),
+      hasExtension ? window.devToolsExtension() : f => f,
+    ),
+  )
+
+  return store;
 }
 
 export function getStore() {
