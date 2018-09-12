@@ -1,7 +1,6 @@
 import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 
-const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_CHANNEL_DETAILS: "RECEIVE_CHANNEL_DETAILS"
 };
@@ -14,7 +13,8 @@ export function receiveChannelSettings(message) {
 }
 
 export function getChannel() {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("getChannel", true));
     try {

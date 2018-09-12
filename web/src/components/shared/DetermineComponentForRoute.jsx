@@ -18,8 +18,6 @@ import { fetchContentForStep } from "../../redux/data/appRoutes/actions";
 
 import "../../scss/components/shared/DetermineStep.scss";
 
-const apiEndpoint = window.env.API_ENDPOINT;
-
 export class DetermineComponentForRoute extends React.Component {
 
   constructor(props) {
@@ -63,7 +61,7 @@ export class DetermineComponentForRoute extends React.Component {
   }
 
   async handleShutdown() {
-    const url = `${apiEndpoint}/shutdown`;
+    const url = `${this.props.apiEndpoint}/shutdown`;
     await fetch(url, {
       method: "POST",
       headers: {

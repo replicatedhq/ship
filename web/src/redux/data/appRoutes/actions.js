@@ -2,8 +2,6 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 import { receiveCurrentStep } from "../determineSteps/actions";
 
-const apiEndpoint = window.env.API_ENDPOINT;
-
 export const constants = {
   RECEIVE_ROUTES: "RECEIVE_ROUTES",
   SET_PHASE: "SET_PHASE",
@@ -47,7 +45,8 @@ export function shutdownApp() {
 }
 
 export function getRoutes() {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("routes", true));
     try {
@@ -72,7 +71,7 @@ export function getRoutes() {
   };
 }
 
-export async function fetchContentForStep(stepId) {
+export async function fetchContentForStep(apiEndpoint, stepId) {
   const url = `${apiEndpoint}/navcycle/step/${stepId}`;
   const response = await fetch(url, {
     method: "GET",
@@ -85,11 +84,12 @@ export async function fetchContentForStep(stepId) {
 }
 
 export function pollContentForStep(stepId, cb) {
-  return async(dispatch) => {
+  return async(dispatch, getState) => {
     dispatch(polling(true));
 
+    const { apiEndpoint } = getState();
     const intervalId = setInterval(async() => {
-      const body = await fetchContentForStep(stepId).catch(() => {
+      const body = await fetchContentForStep(apiEndpoint, stepId).catch(() => {
         dispatch(polling(false));
         clearInterval(intervalId);
         return;
@@ -120,7 +120,9 @@ export function pollContentForStep(stepId, cb) {
 }
 
 export function getContentForStep(stepId) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
+
     let response;
     dispatch(loadingData("getCurrentStep", true));
     try {
@@ -157,7 +159,8 @@ export function getContentForStep(stepId) {
 
 export function finalizeStep(payload) {
   const { uri, method, body } = payload.action.onclick;
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData("submitAction", true));
     try {
@@ -184,7 +187,8 @@ export function finalizeStep(payload) {
 }
 
 export function initializeStep(stepId) {
-  return async() => {
+  return async(dispatch, getState) => {
+    const { apiEndpoint } = getState();
     try {
       const url = `${apiEndpoint}/navcycle/step/${stepId}`;
       await fetch(url, {

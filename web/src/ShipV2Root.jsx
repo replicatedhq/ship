@@ -1,21 +1,21 @@
 import React from "react";
 import { Provider } from "react-redux";
-import { hot } from "react-hot-loader";
-import { getStore } from "./redux";
 import RouteDecider from "./containers/RouteDecider";
 import AppWrapper from "./containers/AppWrapper";
 import "./scss/index.scss";
+import { configureStore } from "./redux";
+import PropTypes from "prop-types";
 
-class ShipRoot extends React.Component {
-  render() {
-    return (
-      <Provider store={getStore()}>
-        <AppWrapper>
-          <RouteDecider />
-        </AppWrapper>
-      </Provider>
-    );
-  }
+const ShipV2Root = ({ apiEndpoint }) => (
+  <Provider store={configureStore(apiEndpoint)}>
+    <AppWrapper>
+      <RouteDecider />
+    </AppWrapper>
+  </Provider>
+);
+
+ShipV2Root.propTypes = {
+  apiEndpoint: PropTypes.string.isRequired,
 }
 
-export default hot(module)(ShipRoot)
+export default ShipV2Root;

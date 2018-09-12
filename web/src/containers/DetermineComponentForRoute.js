@@ -20,6 +20,7 @@ const DetermineComponentForRoute = connect(
     phase: state.data.determineSteps.stepsData.phase,
     progress: state.data.determineSteps.stepsData.progress,
     isPolling: state.data.determineSteps.stepsData.isPolling,
+    apiEndpoint: state.apiEndpoint,
   }),
   dispatch => ({
     getChannel() { return dispatch(getChannel()); },

@@ -2,7 +2,6 @@ import "isomorphic-fetch";
 import { loadingData } from "../../ui/main/actions";
 import { Utilities } from "../../../utilities/utilities";
 
-const apiEndpoint = window.env.API_ENDPOINT;
 export const constants = {
   RECEIVE_APPLICATION_SETTINGS: "RECEIVE_APPLICATION_SETTINGS",
   SET_CONFIG_ERRORS: "SET_CONFIG_ERRORS"
@@ -23,8 +22,8 @@ export function setConfigErrors(error) {
 }
 
 export function getApplicationSettings(payload, shouldLoad = true) {
-  return async (dispatch) => {
-    // if (!appId) return;
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
     let response;
     if (shouldLoad) {
       dispatch(loadingData("appSettingsFields", true));
@@ -61,8 +60,10 @@ export function getApplicationSettings(payload, shouldLoad = true) {
 }
 
 export function saveApplicationSettings(payload, validate) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(loadingData("saveAppSettings", true));
+
+    const { apiEndpoint } = getState();
     let response;
     try {
       const url = `${apiEndpoint}/config`;
@@ -97,8 +98,10 @@ export function saveApplicationSettings(payload, validate) {
 }
 
 export function finalizeApplicationSettings(payload, validate) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(loadingData("finalizeAppSettings", true));
+
+    const { apiEndpoint } = getState();
     let response;
     try {
       const url = `${apiEndpoint}/config/finalize`;
@@ -131,8 +134,10 @@ export function finalizeApplicationSettings(payload, validate) {
 }
 
 export function setApplicationState(payload) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(loadingData("setAppState", true));
+
+    const { apiEndpoint } = getState();
     let response;
     try {
       const url = `${apiEndpoint}/state`;
