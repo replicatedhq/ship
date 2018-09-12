@@ -1,0 +1,23 @@
+{
+  "name": "ship-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@replicatedhq/react-scripts": "1.0.0",
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0"
+  },
+  "scripts": {
+    "start": "react-scripts-replicated start",
+    "build": "react-scripts-replicated build",
+    "test": "react-scripts-replicated test --env=jsdom",
+    "eject": "react-scripts-replicated eject"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.2",
+    "@types/node": "^10.9.4",
+    "@types/react": "^16.4.14",
+    "@types/react-dom": "^16.0.7",
+    "typescript": "^3.0.3"
+  }
+}
