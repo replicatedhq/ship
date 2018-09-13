@@ -31,13 +31,15 @@ export default {
       output: "dist/styles.css"
     }),
     url(),
-    resolve(),
-    typescript({
-      rollupCommonJSResolveHack: true
+    resolve({
+      preferBuiltins: true
     }),
     babel({
       exclude: 'node_modules/**',
       plugins: [ 'external-helpers' ]
+    }),
+    typescript({
+      rollupCommonJSResolveHack: true
     }),
     commonjs({
       namedExports: {
