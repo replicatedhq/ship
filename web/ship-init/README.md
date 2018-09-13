@@ -1,31 +1,17 @@
-# @replicatedhq/ship-init
+# Webpack library starter: webpack 4 + babel 6 + mocha + chai + typescript 2.9
 
-> 
+Originated from [here](https://github.com/pmunin/webpack-library-starter) and adapted for typescript
 
-[![NPM](https://img.shields.io/npm/v/@replicatedhq/ship-init.svg)](https://www.npmjs.com/package/@replicatedhq/ship-init) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+Webpack based boilerplate for producing libraries (Input: typescript/ES6, Output: universal library)
 
-## Install
+## What's different in this fork
 
-```bash
-npm install --save @replicatedhq/ship-init
-```
+* typescript modules supported, they can reference js modules and js modules can ref typescript
 
-## Usage
+## TODO
 
-```jsx
-import React, { Component } from 'react'
-
-import MyComponent from '@replicatedhq/ship-init'
-
-class Example extends Component {
-  render () {
-    return (
-      <MyComponent />
-    )
-  }
-}
-```
-
-## License
-
-Apache-2.0 © [replicatedhq](https://github.com/replicatedhq)
+* [ ] clean package.json dependencies
+* [ ] make test build have separate node_modules.js, like dev build
+* [ ] generated libs should have jsdoc comments in it
+* [x] create solution for typescript
+* [ ] generate typescript definitions correctly
