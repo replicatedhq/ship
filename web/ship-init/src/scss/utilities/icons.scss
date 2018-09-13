@@ -1,0 +1,79 @@
+/* Icon classes */
+
+.icon.u-closeIcon {
+  background-position: 0 0;
+  width: 14px;
+  height: 14px;
+
+  &:hover {
+    background-position: -16px 0;
+  }
+}
+
+.icon.u-smallCheckWhite {
+  background-position: -30px -29px;
+  width: 14px;
+  height: 13px;
+}
+
+.icon.u-deleteOverlayIcon {
+  background-position: -32px 0;
+  width: 12px;
+  height: 14px;
+}
+
+.icon.u-overlayCreateIcon {
+  background-position: 0 -60px;
+  width: 19px;
+  height: 19px;
+
+  &:hover {
+    background-position: 0 -82px;
+  }
+}
+
+.icon.u-overlayViewIcon {
+  background-position: -22px -59px;
+  width: 16px;
+  height: 20px;
+
+  &:hover {
+    background-position: -22px -81px;
+  }
+}
+
+.icon.u-closeOverlayIcon {
+  background-position: 0 -29px;
+  width: 28px;
+  height: 28px;
+}
+
+.icon.u-selectBaseIcon {
+  background-position: 0 -103px;
+  width: 120px;
+  height: 120px;
+}
+
+.icon.u-setOverlayIcon {
+  background-position: 0 -225px;
+  width: 120px;
+  height: 120px;
+}
+
+.icon.u-shipItIcon {
+  background-position: 0 -347px;
+  width: 120px;
+  height: 120px;
+}
+
+.icon.progress-detail-success {
+  background-position: 0 -469px;
+  width: 40px;
+  height: 40px;
+}
+
+.icon.progress-detail-error {
+  background-position: -42px -469px;
+  width: 40px;
+  height: 40px;
+}

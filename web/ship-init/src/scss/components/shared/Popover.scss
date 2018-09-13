@@ -1,0 +1,127 @@
+.Popover-wrapper {
+  display: none;
+  position: absolute;
+  width: auto;
+  z-index: 100;
+}
+.Popover-wrapper.is-active {
+  display: block;
+  z-index: 410;
+}
+.Popover-wrapper .Popover-content {
+  background-color: #ffffff; 
+  border: 1px solid #DFDFDF;
+  padding: 10px 0;
+  text-align: left;
+  border-radius: 4px;
+  box-shadow: 0 0 3px rgba(0,0,0,0.25);
+}
+.Popover-wrapper::after {
+  content: "";
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* bottom-right */
+.Popover-wrapper.popover-bottom-right {
+  padding-top: 8px;
+  right: 0;
+  right: -12px;
+  top: 100%;
+}
+.Popover-wrapper.popover-bottom-right::after {
+  width: 12px;
+  height: 12px;
+  left: 14px;
+  top: 4px;
+  background: #ffffff;
+  box-shadow: -1px -1px 0 #DFDFDF;
+  transform: rotate(45deg); 
+}
+
+/* bottom-left */
+.Popover-wrapper.popover-bottom-left {
+  padding-top: 8px;
+  left: 0;
+  right: -12px;
+  top: 100%;
+}
+.Popover-wrapper.popover-bottom-left::after {
+  width: 12px;
+  height: 12px;
+  right: 14px;
+  top: 4px;
+  background: #ffffff;
+  box-shadow: -1px -1px 0 #DFDFDF;
+  transform: rotate(45deg); 
+}
+
+/* top-left */
+.Popover-wrapper.popover-top-left {
+  padding-bottom: 8px;
+  left: auto;
+  right: -12px;
+  bottom: 100%;
+}
+.Popover-wrapper.popover-top-left::after {
+  width: 12px;
+  height: 12px;
+  right: 14px;
+  bottom: 4px;
+  background: #ffffff;
+  box-shadow: -1px -1px 0 #DFDFDF;
+  transform: rotate(-135deg); 
+}
+
+.PopoverItem {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+.PopoverItem .PopoverIcon {
+  margin-right: 8px;
+}
+.PopoverItem .PopoverLabel {
+  color: #323232;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  transition: color .2s;
+}
+.PopoverItem:not(.disabled-link):hover {
+  background-color: #F5F8FC;
+
+  .PopoverLabel {
+    color: #337AB7;
+  }
+}
+.PopoverItem.disabled-link {
+  cursor: not-allowed;
+
+  .PopoverIcon {
+    opacity: .5;
+  }
+  .PopoverTitle,
+  .PopoverSub {
+    color: #9B9B9B;
+  }
+}
+.PopoverItem .PopoverTitle {
+  user-select: none;
+}
+.PopoverItem .PopoverSub {
+  color: #9B9B9B;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-top: 6px;
+  user-select: none;
+}
+
+/* ≥ 1024px */
+@media screen and (min-width: 64em) {
+  .PopoverItem .PopoverLabel {
+    font-size: 16px;
+  }
+}
