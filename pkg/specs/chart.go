@@ -173,6 +173,10 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, err
 	}
 
+	if err := r.StateManager.SerializeMetadata(baseMetadata); err != nil {
+		return nil, errors.Wrap(err, "write metadata to state")
+	}
+
 	return baseMetadata, nil
 }
 

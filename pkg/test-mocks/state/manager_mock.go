@@ -107,6 +107,18 @@ func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0, arg1)
 }
 
+// SerializeMetadata mocks base method
+func (m *MockManager) SerializeMetadata(arg0 *api.ShipAppMetadata) error {
+	ret := m.ctrl.Call(m, "SerializeMetadata", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeMetadata indicates an expected call of SerializeMetadata
+func (mr *MockManagerMockRecorder) SerializeMetadata(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeMetadata", reflect.TypeOf((*MockManager)(nil).SerializeMetadata), arg0)
+}
+
 // SerializeUpstream mocks base method
 func (m *MockManager) SerializeUpstream(arg0 string) error {
 	ret := m.ctrl.Call(m, "SerializeUpstream", arg0)

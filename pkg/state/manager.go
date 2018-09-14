@@ -31,6 +31,7 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
+	SerializeMetadata(*api.ShipAppMetadata) error
 	Save(v VersionedState) error
 }
 
@@ -60,6 +61,26 @@ func NewManager(
 		V:       v,
 		Patcher: patcher,
 	}
+}
+
+// SerializeMetadata is used by `ship init` to serialize version, icon, and name to state file
+func (m *MManager) SerializeMetadata(metadata *api.ShipAppMetadata) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeMetadata"))
+
+	debug.Log("event", "tryLoadState")
+	current, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	versionedState := current.Versioned()
+	versionedState.V1.Metadata = map[string]string{
+		"version": metadata.Version,
+		"icon":    metadata.Icon,
+		"name":    metadata.Name,
+	}
+
+	return m.serializeAndWriteState(versionedState)
 }
 
 // SerializeUpstream is used by `ship init` to serialize a state file with ChartURL to disk
