@@ -14,7 +14,7 @@ clean:
 	rm -rf .state
 
 deps: .state/package
-	cd ../ship-init && \
+	cd ../init && \
 	yarn --pure-lockfile && \
 	yarn build && \
 	yarn link
