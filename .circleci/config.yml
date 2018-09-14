@@ -131,24 +131,20 @@ jobs:
               gunzip -c /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz | docker load;
               docker images;
             fi
-      - run: >-
-          docker build -t replicatedhq/ship-cypress:latest -f
-          ./web/app/cypress/Dockerfile .
-      - run: 'docker run -it replicatedhq/ship-cypress:latest'
       - run:
-          name: Save Docker layer cache
+          name: Build and save Docker layer cache
           command: >
-            mkdir -p /home/circleci/docker-caches
-
-            docker build \
-              -t replicatedhq/ship-cypress \
-              -f ./web/app/cypress/Dockerfile \
-              . \
+            mkdir -p /home/circleci/docker-caches docker build \
+              -t replicatedhq/ship-cypress:latest \
+              -f ./web/app/cypress/Dockerfile
+              \ .
+              | tee /dev/tty
               | grep '\-\-\->' \
               | grep -v 'Using cache' \
               | sed -e 's/[ >-]//g' > /tmp/layers.txt
             docker save $(cat /tmp/layers.txt) | gzip >
             /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz
+      - run: 'docker run -it replicatedhq/ship-cypress:latest'
       - save_cache:
           paths:
             - ~/.cache/yarn
