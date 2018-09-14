@@ -409,17 +409,17 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 	}
 }
 
-func TestMManager_SerializeMetadata(t *testing.T) {
+func TestMManager_SerializeShipMetadata(t *testing.T) {
 	tests := []struct {
 		name     string
-		Metadata *api.ShipAppMetadata
+		Metadata api.ShipAppMetadata
 		wantErr  bool
 		before   VersionedState
 		expected VersionedState
 	}{
 		{
 			name: "basic test",
-			Metadata: &api.ShipAppMetadata{
+			Metadata: api.ShipAppMetadata{
 				Version: "test version",
 				Icon:    "test icon",
 				Name:    "test name",
@@ -450,9 +450,9 @@ func TestMManager_SerializeMetadata(t *testing.T) {
 			err := m.serializeAndWriteState(tt.before)
 			req.NoError(err)
 
-			err = m.SerializeMetadata(tt.Metadata)
+			err = m.SerializeShipMetadata(tt.Metadata)
 			if !tt.wantErr {
-				req.NoError(err, "MManager.SerializeMetadata() error = %v", err)
+				req.NoError(err, "MManager.SerializeShipMetadata() error = %v", err)
 			} else {
 				req.Error(err)
 			}
