@@ -4,7 +4,7 @@ import * as React from "react";
 
 class App extends React.Component {
   render() {
-    return <Ship apiEndpoint="http://localhost:8800/api/v1" />;
+    return <Ship apiEndpoint={process.env.REACT_APP_API_ENDPOINT} />;
   }
 }
 
