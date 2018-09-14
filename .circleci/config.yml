@@ -184,9 +184,10 @@ workflows:
   version: 2
   unstable:
     jobs:
-      - test_ui
-      - integration
       - test
+      - integration
+      - test_ui
+      - build_ui
       - e2e-init
       - deploy_unstable:
           requires:
