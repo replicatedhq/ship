@@ -260,28 +260,22 @@ build_ship_integration_test:
 pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
-	  -prefix web/ \
-	  web/dist/...
+	  -prefix web/app \
+	  web/app/build/...
 
 mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
-embed-ui: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
 
 
 ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
-	$(MAKE) -C web build_ship
-
-build-ui-dev:
-	$(MAKE) -C web build_ship_dev
-
-ci-build-ui-dev:
-	$(MAKE) -C web build_ship_dev PROGRESS=
+	$(MAKE) -C web/app build_ship
 
 test_CI:
-	$(MAKE) -C web test_CI
+	$(MAKE) -C web/app test_CI
 
 cypress_base:
 	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
@@ -313,4 +307,4 @@ clean-ship:
 
 clean:
 	rm -rf .state
-	$(MAKE) -C web clean
+	$(MAKE) -C web/app clean
