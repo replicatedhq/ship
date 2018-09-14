@@ -45,6 +45,7 @@ type ShipAppMetadata struct {
 type ReleaseMetadata struct {
 	ReleaseID       string          `json:"releaseId" yaml:"releaseId" hcl:"releaseId" meta:"release-id"`
 	CustomerID      string          `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
+	InstallationID  string          `json:"installation" yaml:"installation" hcl:"installation" meta:"installation-id"`
 	ChannelID       string          `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
 	ChannelName     string          `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
 	ChannelIcon     string          `json:"channelIcon" yaml:"channelIcon" hcl:"channelIcon" meta:"channel-icon"`
