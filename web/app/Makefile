@@ -23,7 +23,7 @@ deps: .state/package
 serve_ship:
 	yarn start
 
-.state/build_ship: .state/package $(shell find src -type f)
+.state/build_ship: deps $(shell find src -type f)
 	rm -rf dist
 	rm -rf build
 	yarn build
