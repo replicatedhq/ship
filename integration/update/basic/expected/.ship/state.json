@@ -12,6 +12,11 @@
         }
       }
     },
+    "metadata": {
+      "icon": "",
+      "name": "basic",
+      "version": "0.1.0"
+    },
     "upstream": "github.com/replicatedhq/test-charts/basic",
     "contentSHA": "94d255c48a20929dbfbe341109a7ab86dae1ecfab3b8f01151bb36a2ebea7bbe"
   }

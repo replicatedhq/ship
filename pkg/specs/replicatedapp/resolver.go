@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -20,6 +21,7 @@ type resolver struct {
 	Logger               log.Logger
 	Client               *GraphQLClient
 	FS                   afero.Afero
+	StateManager         state.Manager
 	Runbook              string
 	SetChannelName       string
 	RunbookReleaseSemver string
@@ -32,6 +34,7 @@ func NewAppResolver(
 	logger log.Logger,
 	fs afero.Afero,
 	graphql *GraphQLClient,
+	stateManager state.Manager,
 ) Resolver {
 	return &resolver{
 		Logger:               logger,
@@ -41,6 +44,7 @@ func NewAppResolver(
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
+		StateManager:         stateManager,
 	}
 }
 
@@ -82,6 +86,11 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 		Metadata: release.ToReleaseMeta(),
 	}
 	result.Metadata.CustomerID = selector.CustomerID
+	result.Metadata.InstallationID = selector.InstallationID
+
+	if err := r.StateManager.SerializeAppMetadata(result.Metadata); err != nil {
+		return nil, errors.Wrap(err, "serialize app metadata")
+	}
 
 	if err := yaml.Unmarshal([]byte(release.Spec), &result.Spec); err != nil {
 		return nil, errors.Wrapf(err, "decode spec")

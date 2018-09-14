@@ -408,3 +408,59 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		})
 	}
 }
+
+func TestMManager_SerializeShipMetadata(t *testing.T) {
+	tests := []struct {
+		name     string
+		Metadata api.ShipAppMetadata
+		wantErr  bool
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name: "basic test",
+			Metadata: api.ShipAppMetadata{
+				Version: "test version",
+				Icon:    "test icon",
+				Name:    "test name",
+			},
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Metadata: map[string]string{
+						"version": "test version",
+						"icon":    "test icon",
+						"name":    "test name",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SerializeShipMetadata(tt.Metadata)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeShipMetadata() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}

@@ -71,6 +71,14 @@ icon: https://kfbr.392/x5.png
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
+				inOrder = mockState.EXPECT().SerializeShipMetadata(api.ShipAppMetadata{
+					Version:    "0.1.0",
+					Name:       "i know what the x5 is",
+					Icon:       "https://kfbr.392/x5.png",
+					Readme:     "its the readme",
+					ContentSHA: "abcdef1234567890",
+					URL:        "github.com/helm/charts/stable/x5",
+				}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
 
