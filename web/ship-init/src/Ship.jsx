@@ -14,6 +14,6 @@ export const Ship = ({ apiEndpoint }) => (
   </Provider>
 );
 
-ShipV2Root.propTypes = {
+Ship.propTypes = {
   apiEndpoint: PropTypes.string.isRequired,
 }

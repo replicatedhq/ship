@@ -4,7 +4,7 @@ PROGRESS := --progress
 SHELL := /bin/bash
 $SRC = $(shell find . -path "./node_modules" -prune -o -path "./dist" -prune -o \( -name "*.js" -o -name "*.jsx" -o -name "*.scss" -o -name "*.json" -o -name "*.svg" -o -name "*.png" \) -print)
 
-.state/package: package.json package-lock.json yarn.lock
+.state/package: package.json yarn.lock
 	yarn install
 	@mkdir -p .state
 	@touch .state/package
@@ -15,6 +15,11 @@ clean:
 	rm -rf .state
 
 deps: .state/package
+	cd ../ship-init && \
+	yarn --pure-lockfile && \
+	yarn build && \
+	yarn link
+	yarn link @replicatedhq/ship-init
 
 serve_config:
 	`yarn bin`/webpack-dev-server --config webpack.config.js --progress -w --debug --env configOnly --mode development

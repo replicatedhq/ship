@@ -5,15 +5,13 @@
   "author": "Replicated, Inc.",
   "license": "Apache-2.0",
   "repository": "replicatedhq/ship",
-  "main": "dist/ship-init.min.js",
+  "main": "dist/index.js",
   "config": {
     "cmd_webpack": "webpack --config .webpack/webpack.config.js"
   },
   "scripts": {
-    "webpack-no-env": "webpack --config .webpack/webpack.config.js",
-    "build": "npm run webpack-no-env -- --env prod",
-    "dev": "npm run webpack-no-env -- --progress --colors --env dev",
-    "start": "npm run webpack-no-env -- --progress --colors --env dev --watch"
+    "build": "webpack --config webpack.config.js --progress --colors",
+    "start": "npm run build -- --watch"
   },
   "dependencies": {
     "brace": "^0.11.1",
@@ -32,7 +30,7 @@
     "react-tooltip": "^3.6.1",
     "redux": "^3.7.2",
     "redux-segment": "^1.6.2",
-    "redux-thunk": "^2.2.0",
+    "redux-thunk": "2.2.0",
     "replicated-lint": "^0.12.12",
     "yaml-ast-parser": "^0.0.41"
   },
@@ -54,6 +52,7 @@
     "@types/webpack": "^4.4.0",
     "babel-eslint": "^9.0.0",
     "babel-loader": "^8.0.2",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-react-app": "^3.1.2",
     "chai": "^4.1.2",
     "css-loader": "^1.0.0",

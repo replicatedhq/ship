@@ -108,6 +108,10 @@
     classnames "^2.2.5"
     prop-types "^15.5.8"
 
+"@replicatedhq/ship-init@link:../ship":
+  version "0.0.0"
+  uid ""
+
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
