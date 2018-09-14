@@ -24,8 +24,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
-            - 'yarn-packages-v1-{{ .Branch }}-'
+            - >-
+              yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
+              "web/app/yarn.lock" }}
+            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
             - yarn-packages-v1-
       - run:
           name: Build UI
@@ -33,7 +35,10 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-          key: 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
+            - web/init/node_modules/.cache
+          key: >-
+            yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
+            "web/app/yarn.lock" }}
       - persist_to_workspace:
           root: ~/repo/web/app
           paths:
@@ -46,8 +51,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
-            - 'yarn-packages-v1-{{ .Branch }}-'
+            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
             - yarn-packages-v1-
       - run:
           name: test
@@ -55,7 +59,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-          key: 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
+          key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
   e2e-init:
     docker:
       - image: 'circleci/node:8.11.4-stretch'
@@ -67,8 +71,10 @@ jobs:
           docker_layer_caching: true
       - restore_cache:
           keys:
-            - 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
-            - 'yarn-packages-v1-{{ .Branch }}-'
+            - >-
+              yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
+              "web/app/yarn.lock" }}
+            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
             - yarn-packages-v1-
       - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
       - run: make build-ui
@@ -79,7 +85,10 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-          key: 'yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}'
+            - web/init/node_modules/.cache
+          key: >-
+            yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
+            "web/app/yarn.lock" }}
   integration:
     machine: true
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship

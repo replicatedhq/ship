@@ -6,12 +6,9 @@
   "license": "Apache-2.0",
   "repository": "replicatedhq/ship",
   "main": "dist/index.js",
-  "config": {
-    "cmd_webpack": "webpack --config .webpack/webpack.config.js"
-  },
   "scripts": {
-    "build": "webpack --config webpack.config.js --progress --colors",
-    "start": "npm run build -- --watch",
+    "build": "webpack --config webpack.config.js",
+    "start": "npm run build -- --progress --colors --watch",
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
