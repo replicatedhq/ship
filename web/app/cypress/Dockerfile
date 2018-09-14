@@ -17,8 +17,8 @@ RUN unzip -q cypress.zip -d /Cypress/3.1.0
 ENV CYPRESS_CACHE_FOLDER=/Cypress
 
 WORKDIR /repo
-ADD web/cypress.json /repo/web/cypress.json
-ADD web/cypress /repo/web/cypress
+ADD web/app/cypress.json /repo/web/app/cypress.json
+ADD web/app/cypress /repo/web/app/cypress
 ADD Makefile /repo/Makefile
 RUN CYPRESS_INSTALL_BINARY=0 CI=true npm i cypress@3.1.0
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/bin/ship /repo/bin/ship
