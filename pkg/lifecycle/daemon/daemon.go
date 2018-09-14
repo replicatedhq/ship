@@ -117,16 +117,16 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
-	g.Use(static.Serve("/", d.WebUIFactory("dist")))
+	g.Use(static.Serve("/", d.WebUIFactory("build")))
 	g.NoRoute(func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "handler", "NoRoute"))
 		debug.Log("event", "not found")
 		if c.Request.URL != nil {
 			path := c.Request.URL.Path
-			static.Serve(path, d.WebUIFactory("dist"))(c)
+			static.Serve(path, d.WebUIFactory("build"))(c)
 
 		}
-		static.Serve("/", d.WebUIFactory("dist"))(c)
+		static.Serve("/", d.WebUIFactory("build"))(c)
 	})
 
 	root.GET("/healthz", d.Healthz)
