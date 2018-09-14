@@ -35,6 +35,7 @@ build_ship: .state/build_ship
 test:
 	yarn test
 
-test_CI: deps
-	cd ../ship-init
+test_CI:
+	cd ../init
+	yarn --pure-lockfile
 	CI=1 yarn test
