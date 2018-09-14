@@ -36,6 +36,6 @@ test:
 	yarn test
 
 test_CI:
-	cd ../init
-	yarn --pure-lockfile
+	cd ../init && \
+	yarn --pure-lockfile && \
 	CI=1 yarn test
