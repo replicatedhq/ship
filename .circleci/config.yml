@@ -35,7 +35,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - web/init/node_modules/.cache
+            - web/app/node_modules
+            - web/init/node_modules
             - web/init/dist
           key: >-
             yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
@@ -151,7 +152,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - web/init/node_modules/.cache
+            - web/app/node_modules
+            - web/init/node_modules
             - web/init/dist
           key: >-
             yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
