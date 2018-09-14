@@ -1,9 +1,4 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
-cypress/screenshots
-cypress/videos
-.Trash-*
-# Ship output
-cypress/test
 
 # dependencies
 /node_modules
@@ -24,10 +19,3 @@ cypress/test
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-/dist
-
-.vscode/
-.idea/
-/node_modules
-/.state/
