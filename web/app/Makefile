@@ -23,12 +23,12 @@ deps: .state/package
 serve_ship:
 	yarn start
 
-.state/build_ship:	.state/package webpack* postcss* $(shell find src -type f)
-		rm -rf dist
-		rm -rf build
-		yarn build
-		@mkdir -p .state
-		@touch .state/build_ship
+.state/build_ship: .state/package $(shell find src -type f)
+	rm -rf dist
+	rm -rf build
+	yarn build
+	@mkdir -p .state
+	@touch .state/build_ship
 
 build_ship: .state/build_ship
 
