@@ -63,12 +63,41 @@ jobs:
   e2e-init:
     docker:
       - image: 'circleci/node:8.11.4-stretch'
-    machine: null
     working_directory: ~/repo
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
+      - run:
+          name: Check if there are newer base images on Docker Hub
+          command: >
+            BASE_IMAGE_NAMES=$(grep "^FROM" ./web/app/cypress/Dockerfile | cut
+            -d' ' -f2 | uniq)
+
+            cp ./web/app/cypress/Dockerfile docker-layer-caching-key.txt
+
+            for n in $BASE_IMAGE_NAMES; do
+
+              if grep -q ':' <<< "$n"; then
+                REPOSITORY=$(cut -d':' -f1 <<< "$n")
+                TAG=$(cut -d':' -f2 <<< "$n")
+              else
+                REPOSITORY=$n
+                TAG="latest"
+              fi
+
+              # If there is no slash in the repo name, it is an official image,
+              # we will need to prepend library/ to it
+              if ! grep -q '/' <<< "$REPOSITORY"; then
+                REPOSITORY="library/$REPOSITORY"
+              fi
+
+              # Source: https://stackoverflow.com/questions/41808763/how-to-determine-the-docker-image-id-for-a-tag-via-docker-hub-api
+              TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$REPOSITORY:pull" | jq -r .token)
+              IMAGE_DIGEST=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://index.docker.io/v2/$REPOSITORY/manifests/$TAG | jq -r .config.digest)
+
+              # Append the newfound IDs to form the key
+              echo $IMAGE_DIGEST >> docker-layer-caching-key.txt
+            done
       - restore_cache:
           keys:
             - >-
@@ -76,12 +105,48 @@ jobs:
               "web/app/yarn.lock" }}
             - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
             - yarn-packages-v1-
+            - >-
+              docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
+              checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock"
+              }}
+            - >-
+              docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
+              checksum "web/init/yarn.lock" }}
+            - 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
       - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
       - run: make build-ui
+      - run:
+          name: Load Docker layer cache
+          command: >
+            # credits to:
+            https://blog.jondh.me.uk/2018/04/strategies-for-docker-layer-caching-in-circleci/
+
+            set +o pipefail
+
+            if [ -f
+            /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz ];
+            then
+              gunzip -c /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz | docker load;
+              docker images;
+            fi
       - run: >-
           docker build -t replicatedhq/ship-cypress:latest -f
           ./web/app/cypress/Dockerfile .
       - run: 'docker run -it replicatedhq/ship-cypress:latest'
+      - run:
+          name: Save Docker layer cache
+          command: >
+            mkdir -p /home/circleci/docker-caches
+
+            docker build \
+              -t replicatedhq/ship-cypress:latest \
+              -f ./web/app/cypress/Dockerfile \
+              . \
+              | grep '\-\-\->' \
+              | grep -v 'Using cache' \
+              | sed -e 's/[ >-]//g' > /tmp/layers.txt
+            docker save $(cat /tmp/layers.txt) | gzip >
+            /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz
       - save_cache:
           paths:
             - ~/.cache/yarn
@@ -89,6 +154,26 @@ jobs:
           key: >-
             yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
             "web/app/yarn.lock" }}
+      - save_cache:
+          key: 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
+          paths:
+            - /home/circleci/docker-caches
+      - save_cache:
+          key: >-
+            docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
+            checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+          paths:
+            - /home/circleci/docker-caches
+      - save_cache:
+          key: >-
+            docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
+            checksum "web/init/yarn.lock" }}
+          paths:
+            - /home/circleci/docker-caches
+      - save_cache:
+          key: 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
+          paths:
+            - /home/circleci/docker-caches
   integration:
     machine: true
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
