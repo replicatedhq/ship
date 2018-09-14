@@ -35,5 +35,6 @@ build_ship: .state/build_ship
 test:
 	yarn test
 
-test_CI:
+test_CI: deps
+	cd ../ship-init
 	CI=1 yarn test
