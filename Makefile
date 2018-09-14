@@ -4,7 +4,7 @@
 SHELL := /bin/bash -o pipefail
 SRC = $(shell find . -name "*.go" ! -name "ui.bindatafs.go")
 FULLSRC = $(shell find . -name "*.go")
-UI = $(shell find web/dist -name "*.js")
+UI = $(shell find web/app/init/build -name "*.js")
 
 DOCKER_REPO ?= replicated
 
@@ -280,7 +280,7 @@ test_CI:
 cypress_base:
 	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
 	CHART_URL=github.com/sourcegraph/deploy-sourcegraph/tree/0e4d81d3c1f096c39d39b769a2bf736f5889af77 \
-	sh web/cypress/run_init_spec.sh
+	sh web/app/cypress/run_init_spec.sh
 
 cypress: build cypress_base
 
