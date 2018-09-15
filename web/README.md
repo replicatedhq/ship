@@ -3,8 +3,8 @@ Ship Web
 # Development
 To develop on the component and application simultaneously, you will need to run two commands in separate terminals.
 Here is an example from the `web` directory:
-1. cd app; yarn start
-2. cd init; yarn start
+1. `cd app; yarn start`
+2. `cd init; yarn start`
 
 # Organization
 The `web` directory of the Ship project contains 2 folders:

@@ -47,9 +47,9 @@ jobs:
           key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
       - persist_to_workspace:
-          root: ~/repo/web
+          root: ~/repo/web/app
           paths:
-            - dist
+            - build
 
   test_ui:
     docker:
