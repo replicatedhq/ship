@@ -142,13 +142,16 @@ jobs:
               .
 
             docker build \
-              -t replicatedhq/ship-cypress \
+              --cache-from=replicatedhq/ship-cypress:latest \
+              -t replicatedhq/ship-cypress:latest \
               -f ./web/app/cypress/Dockerfile \
               . \
               | tee /dev/tty \
               | grep '\-\-\->' \
               | grep -v 'Using cache' \
               | sed -e 's/[ >-]//g' > /tmp/layers.txt
+
+            cat /tmp/layers.txt
 
             docker save $(cat /tmp/layers.txt) | gzip >
             /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz
