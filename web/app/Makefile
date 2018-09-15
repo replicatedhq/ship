@@ -23,10 +23,11 @@ deps: .state/package
 	yarn link
 	yarn link @replicatedhq/ship-init
 
+# TODO: Dev builds should use --mode development
 deps-dev: .state/package
 	cd ../init && \
 	yarn --pure-lockfile && \
-	yarn build --mode development && \
+	yarn build && \
 	yarn link
 	yarn link @replicatedhq/ship-init
 
