@@ -30,9 +30,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
-          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
-          - yarn-packages-v1-
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+            - yarn-packages-v1-
 
       - run:
           name: Build UI
@@ -59,8 +59,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
-            - yarn-packages-v1-
+          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+          - yarn-packages-v1-
       - run:
           name: test
           command: make test_CI
@@ -79,6 +79,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
       - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
@@ -88,7 +89,10 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-          key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
+            - web/app/node_modules
+            - web/init/node_modules
+            - web/init/dist
+          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
   integration:
     machine: true
