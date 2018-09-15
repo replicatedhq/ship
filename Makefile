@@ -1,4 +1,4 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
 
 
 SHELL := /bin/bash -o pipefail
@@ -273,6 +273,9 @@ embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
 ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
 	$(MAKE) -C web/app build_ship
+
+build-ui-dev:
+	$(MAKE) -C web/app build_ship_dev
 
 test_CI:
 	$(MAKE) -C web/app test_CI

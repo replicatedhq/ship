@@ -1,16 +1,22 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
+
 experimental:
   notify:
     branches:
       only:
         - master
+
 jobs:
   test:
     docker:
-      - image: 'circleci/golang:1.10'
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
+      - run: mkdir -p web/dist
       - run: |
           make build-deps citest
           if [ -n "$CC_TEST_REPORTER_ID" ]; then
@@ -18,42 +24,42 @@ jobs:
           fi
   build_ui:
     docker:
-      - image: 'circleci/node:9'
+      - image: circleci/node:9
     working_directory: ~/repo
     steps:
       - checkout
       - restore_cache:
           keys:
-            - >-
-              yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
-              "web/app/yarn.lock" }}
-            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
-            - yarn-packages-v1-
+          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+          - yarn-packages-v1-
+
       - run:
           name: Build UI
           command: make build-ui
+
       - save_cache:
           paths:
             - ~/.cache/yarn
             - web/app/node_modules
             - web/init/node_modules
             - web/init/dist
-          key: >-
-            yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
-            "web/app/yarn.lock" }}
+          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+
       - persist_to_workspace:
-          root: ~/repo/web/app
+          root: ~/repo/web
           paths:
-            - build
+            - dist
+
   test_ui:
     docker:
-      - image: 'circleci/node:9'
+      - image: circleci/node:9
     working_directory: ~/repo
     steps:
       - checkout
       - restore_cache:
           keys:
-            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
       - run:
           name: test
@@ -62,129 +68,28 @@ jobs:
           paths:
             - ~/.cache/yarn
           key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
+
   e2e-init:
     docker:
-      - image: 'circleci/node:8.11.4-stretch'
+      - image: circleci/node:8.11.4-stretch
+    machine:
     working_directory: ~/repo
     steps:
       - checkout
       - setup_remote_docker
-      - run:
-          name: Check if there are newer base images on Docker Hub
-          command: >
-            BASE_IMAGE_NAMES=$(grep "^FROM" ./web/app/cypress/Dockerfile | cut
-            -d' ' -f2 | uniq)
-
-            cp ./web/app/cypress/Dockerfile docker-layer-caching-key.txt
-
-            for n in $BASE_IMAGE_NAMES; do
-
-              if grep -q ':' <<< "$n"; then
-                REPOSITORY=$(cut -d':' -f1 <<< "$n")
-                TAG=$(cut -d':' -f2 <<< "$n")
-              else
-                REPOSITORY=$n
-                TAG="latest"
-              fi
-
-              # If there is no slash in the repo name, it is an official image,
-              # we will need to prepend library/ to it
-              if ! grep -q '/' <<< "$REPOSITORY"; then
-                REPOSITORY="library/$REPOSITORY"
-              fi
-
-              # Source: https://stackoverflow.com/questions/41808763/how-to-determine-the-docker-image-id-for-a-tag-via-docker-hub-api
-              TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$REPOSITORY:pull" | jq -r .token)
-              IMAGE_DIGEST=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://index.docker.io/v2/$REPOSITORY/manifests/$TAG | jq -r .config.digest)
-
-              # Append the newfound IDs to form the key
-              echo $IMAGE_DIGEST >> docker-layer-caching-key.txt
-            done
       - restore_cache:
           keys:
-            - >-
-              yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
-              "web/app/yarn.lock" }}
-            - 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
-            - >-
-              docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
-              checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock"
-              }}
-            - >-
-              docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
-              checksum "web/init/yarn.lock" }}
-            - 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
       - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
-      - run: make build-ui
-      - run:
-          name: Load Docker layer cache
-          command: >
-            # credits to:
-            https://blog.jondh.me.uk/2018/04/strategies-for-docker-layer-caching-in-circleci/
-
-            set +o pipefail
-
-            if [ -f
-            /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz ];
-            then
-              gunzip -c /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz | docker load;
-              docker images;
-            fi
-      - run:
-          name: Build and save Docker layer cache
-          command: >
-            mkdir -p /home/circleci/docker-caches
-
-            docker build \
-              -t replicatedhq/ship-cypress:latest \
-              -f ./web/app/cypress/Dockerfile \
-              .
-
-            docker build \
-              --cache-from=replicatedhq/ship-cypress:latest \
-              -t replicatedhq/ship-cypress:latest \
-              -f ./web/app/cypress/Dockerfile \
-              . \
-              | tee /dev/tty \
-              | grep '\-\-\->' \
-              | grep -v 'Using cache' \
-              | sed -e 's/[ >-]//g' > /tmp/layers.txt
-
-            cat /tmp/layers.txt
-
-            docker save $(cat /tmp/layers.txt) | gzip >
-            /home/circleci/docker-caches/${CIRCLE_PROJECT_REPONAME}.tar.gz
-      - run: 'docker run -it replicatedhq/ship-cypress:latest'
+      - run: make build-ui-dev
+      - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
+      - run: docker run -it replicatedhq/ship-cypress:latest
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - web/app/node_modules
-            - web/init/node_modules
-            - web/init/dist
-          key: >-
-            yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum
-            "web/app/yarn.lock" }}
-      - save_cache:
-          key: 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
-          paths:
-            - /home/circleci/docker-caches
-      - save_cache:
-          key: >-
-            docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
-            checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
-          paths:
-            - /home/circleci/docker-caches
-      - save_cache:
-          key: >-
-            docker-layers-{{ checksum "docker-layer-caching-key.txt" }}-{{
-            checksum "web/init/yarn.lock" }}
-          paths:
-            - /home/circleci/docker-caches
-      - save_cache:
-          key: 'docker-layers-{{ checksum "docker-layer-caching-key.txt" }}'
-          paths:
-            - /home/circleci/docker-caches
+          key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
+
   integration:
     machine: true
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
@@ -194,45 +99,34 @@ jobs:
       GO: /usr/local/go/bin/go
     steps:
       - checkout
-      - run: >
-          export
-          GO_DOWNLOAD_URL=https://dl.google.com/go/go1.10.4.linux-amd64.tar.gz
-
+      - run: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.10.4.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
-
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
            # sudo apt update --fix-missing && apt upgrade -y
            # sudo apt install --no-install-recommends -y gcc
 
           wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
-
           echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
-
           tar -zxvf golang.tar.gz -C /tmp
-
           sudo rm -rf ${GOROOT}
-
           sudo mv /tmp/go ${GOROOT}
       - run: $GO get github.com/onsi/ginkgo/ginkgo
       - run: $GO get github.com/docker/distribution/cmd/registry
       - run: sudo ./hack/get_run_deps.sh
       - run: sudo mkdir -p /var/lib/registry
-      - run: >
-          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml >
-          /dev/null 2>&1 &
-
+      - run: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
-
           $GOPATH/bin/ginkgo -p -stream integration/update
-
           $GOPATH/bin/ginkgo -p -stream integration/init
-
           if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
             $GOPATH/bin/ginkgo -p -stream integration/init_app
           fi
+
   deploy_unstable:
     docker:
-      - image: 'circleci/golang:1.10'
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -241,7 +135,7 @@ jobs:
           at: /go/src/github.com/replicatedhq/ship/web
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
-      - run: 'docker pull alpine:latest'
+      - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
@@ -249,27 +143,26 @@ jobs:
               docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               docker push replicated/ship:alpha
             fi
+
   deploy_integration:
     docker:
-      - image: 'circleci/golang:1.10'
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
       - setup_remote_docker
       - run: make build_ship_integration_test
-      - run: >-
-          docker run -e SHIP_INTEGRATION_VENDOR_TOKEN --net="host" -it -v
-          /var/run/docker.sock:/var/run/docker.sock
-          replicated/ship-e2e-test:latest
+      - run: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
               docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               docker push replicated/ship-e2e-test:latest
             fi
+
   deploy:
     docker:
-      - image: 'circleci/golang:1.10'
+      - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -278,80 +171,86 @@ jobs:
           at: /go/src/github.com/replicatedhq/ship/web
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
-      - run: 'docker pull alpine:latest'
+      - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
                docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
             fi
+      # todo drop a release-api message to bump a version in the DB
+
 workflows:
   version: 2
+
+  # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
   unstable:
     jobs:
-      - test
-      - integration
       - test_ui
-      - build_ui
+      - integration
+      - test
       - e2e-init
+      - build_ui
       - deploy_unstable:
           requires:
-            - test
-            - integration
-            - build_ui
-            - test_ui
-            - e2e-init
+          - test
+          - integration
+          - build_ui
+          - test_ui
+          - e2e-init
           filters:
             branches:
               only: /master/
       - deploy_integration:
           requires:
-            - integration
-            - deploy_unstable
+          - integration
+          - deploy_unstable
           filters:
             branches:
               only: /master/
+
+  # Stable deploys the `alpha` and `latest` tags to dockerhub and github
   stable:
     jobs:
       - build_ui:
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
       - test_ui:
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
       - e2e-init:
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
       - integration:
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
       - test:
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
       - deploy:
           requires:
-            - test
-            - integration
-            - e2e-init
-            - build_ui
-            - test_ui
+          - test
+          - integration
+          - e2e-init
+          - build_ui
+          - test_ui
           filters:
             tags:
-              only: '/^v[0-9]+(\.[0-9]+)*(-.*)*/'
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
