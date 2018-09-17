@@ -4,7 +4,7 @@ SHELL := /bin/bash
 $SRC = $(shell find . -path "./node_modules" -prune -o -path "./build" -prune -o \( -name "*.js" -o -name "*.jsx" -o -name "*.scss" -o -name "*.json" -o -name "*.svg" -o -name "*.png" \) -print)
 
 .state/package: package.json yarn.lock
-	yarn install
+	if [[ -n "${CIRCLECI}" ]]; then CYPRESS_INSTALL_BINARY=0 yarn install; else yarn install; fi
 	@mkdir -p .state
 	@touch .state/package
 
