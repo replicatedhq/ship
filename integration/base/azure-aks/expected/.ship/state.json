@@ -8,7 +8,11 @@
       "azure_subscription_id": "e9570f00-dbe5-4d1d-aa67-0eb9463fd9ad",
       "azure_tenant_id": "affca702-704f-4a80-a90d-64e1381fb5f0"
     },
-    "metadata": null,
+    "metadata": {
+      "customerID": "placeholder",
+      "installationID": "placeholder",
+      "version": "placeholder"
+    },
     "lifecycle": {
       "stepsCompleted": {
         "config": true,

@@ -4,3 +4,4 @@ release_version: "placeholder"
 
 disable_online: true
 skip_cleanup: false
+no_state_file: true

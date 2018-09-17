@@ -25,7 +25,7 @@ type TestMetadata struct {
 	SetChannelName string `yaml:"set_channel_name"`
 	Flavor         string `yaml:"flavor"`
 	DisableOnline  bool   `yaml:"disable_online"`
-
+	NoStateFile    bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -85,16 +85,21 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs([]string{
+					args := []string{
 						"app",
 						"--headless",
 						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/release.yml")),
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
+						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
+						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
 						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--log-level=off",
 						"--terraform-yes",
-					})
+					}
+					if !testMetadata.NoStateFile {
+						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+					}
+					cmd.SetArgs(args)
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
@@ -111,17 +116,20 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs(append([]string{
+					args := []string{
 						"app",
 						"--headless",
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
 						"--log-level=off",
 						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
 						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--terraform-yes",
-					}))
+					}
+					if !testMetadata.NoStateFile {
+						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+					}
+					cmd.SetArgs(args)
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
