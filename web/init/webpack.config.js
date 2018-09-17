@@ -1,7 +1,19 @@
 const path = require("path");
 var DashboardPlugin = require("webpack-dashboard/plugin");
 
+let developmentOptions = {};
 const { DEVELOPMENT = false } = process.env;
+if (DEVELOPMENT) {
+  developmentOptions = {
+    optimization: {
+      minimize: false,
+    },
+    performance: {
+      hints: false,
+    },
+    plugins: [new DashboardPlugin()]
+  }
+}
 
 module.exports = {
     entry: [
@@ -9,12 +21,7 @@ module.exports = {
         path.resolve(__dirname, 'src/index.js'),
     ],
     mode: "production",
-    optimization: {
-      minimize: !DEVELOPMENT,
-    },
-    performance: {
-      hints: !DEVELOPMENT,
-    },
+    ...developmentOptions,
     output: {
       path: path.resolve(__dirname, './dist'),
       filename: 'index.js',
@@ -65,5 +72,4 @@ module.exports = {
           },
       ]
     },
-    plugins: [new DashboardPlugin()]
   };
