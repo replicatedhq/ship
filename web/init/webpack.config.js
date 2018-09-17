@@ -1,5 +1,7 @@
-const nodeExternals = require("webpack-node-externals");
 const path = require("path");
+var DashboardPlugin = require("webpack-dashboard/plugin");
+
+const { DEVELOPMENT = false } = process.env;
 
 module.exports = {
     entry: [
@@ -7,24 +9,33 @@ module.exports = {
         path.resolve(__dirname, 'src/index.js'),
     ],
     mode: "production",
+    optimization: {
+      minimize: !DEVELOPMENT,
+    },
+    performance: {
+      hints: !DEVELOPMENT,
+    },
     output: {
       path: path.resolve(__dirname, './dist'),
       filename: 'index.js',
       library: '',
       libraryTarget: 'commonjs'
     },
-    externals: [nodeExternals()],
     resolve: {
         extensions: ['.json', '.js', '.jsx']
     },
     externals: {
-        react: "react",
-        "react-dom": "react-dom",
+      react: "react",
+      "react-dom": "react-dom",
     },
     node: {
-        fs: "empty"
+        fs: "empty",
+        module: "empty"
     },
     module: {
+      // TODO: Monaco causes this error to show up,
+      //       possibly remove at some point
+      exprContextCritical: false,
       rules: [
         {
           test: /\.jsx?$/,
@@ -53,5 +64,6 @@ module.exports = {
             loader: "url-loader?limit=10000&mimetype=application/font-woff&name=./assets/[hash].[ext]",
           },
       ]
-    }
+    },
+    plugins: [new DashboardPlugin()]
   };

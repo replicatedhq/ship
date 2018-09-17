@@ -25,6 +25,23 @@ class App extends React.Component {
 }
 ```
 
+## Development
+To build in development mode and watch for changes, run the following command:
+```
+yarn start
+```
+Development mode uses [`webpack-dashboard`](https://github.com/FormidableLabs/webpack-dashboard) for more human-readable output.
+
+To build the project without watching:
+- Development build (no minification, warnings off):
+  ```
+  yarn build-dev
+  ```
+- Production build (minified/uglified):
+  ```
+  yarn build
+  ```
+
 ## License
 
 Apache-2.0 © [Replicated, Inc.](https://github.com/replicatedhq)
