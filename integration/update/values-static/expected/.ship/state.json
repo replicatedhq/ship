@@ -12,6 +12,11 @@
         }
       }
     },
+    "metadata": {
+      "icon": "",
+      "name": "values-update",
+      "version": "0.1.0"
+    },
     "upstream": "github.com/replicatedhq/test-charts/values-static",
     "contentSHA": "77129bbe0cc210b60ae3a2a5775f79a7888d444a2081e6e4f190ebaf2a8da53d"
   }

@@ -31,6 +31,8 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
+	SerializeShipMetadata(api.ShipAppMetadata) error
+	SerializeAppMetadata(api.ReleaseMetadata) error
 	Save(v VersionedState) error
 }
 
@@ -60,6 +62,46 @@ func NewManager(
 		V:       v,
 		Patcher: patcher,
 	}
+}
+
+// SerializeShipMetadata is used by `ship init` to serialize metadata from ship applications to state file
+func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
+
+	debug.Log("event", "tryLoadState")
+	current, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	versionedState := current.Versioned()
+	versionedState.V1.Metadata = map[string]string{
+		"version": metadata.Version,
+		"icon":    metadata.Icon,
+		"name":    metadata.Name,
+	}
+
+	return m.serializeAndWriteState(versionedState)
+}
+
+// SerializeAppMetadata is used by `ship app` to serialize replicated app metadata to state file
+func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
+	debug := level.Debug(log.With(m.Logger, "method", "SerializeAppMetadata"))
+
+	debug.Log("event", "tryLoadState")
+	current, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	versionedState := current.Versioned()
+	versionedState.V1.Metadata = map[string]string{
+		"customerID":     metadata.CustomerID,
+		"installationID": metadata.InstallationID,
+		"version":        metadata.Semver,
+	}
+
+	return m.serializeAndWriteState(versionedState)
 }
 
 // SerializeUpstream is used by `ship init` to serialize a state file with ChartURL to disk
@@ -209,17 +251,12 @@ func (m *MManager) tryLoadFromSecret() (State, error) {
 }
 
 func (m *MManager) tryLoadFromFile() (State, error) {
-	statePath := m.V.GetString("state-file")
-	if statePath == "" {
-		statePath = constants.StatePath
-	}
-
-	if _, err := m.FS.Stat(statePath); os.IsNotExist(err) {
-		level.Debug(m.Logger).Log("msg", "no saved state exists", "path", statePath)
+	if _, err := m.FS.Stat(constants.StatePath); os.IsNotExist(err) {
+		level.Debug(m.Logger).Log("msg", "no saved state exists", "path", constants.StatePath)
 		return Empty{}, nil
 	}
 
-	serialized, err := m.FS.ReadFile(statePath)
+	serialized, err := m.FS.ReadFile(constants.StatePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "read state file")
 	}
