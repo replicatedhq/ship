@@ -83,7 +83,7 @@ jobs:
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
       - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
-      - run: make build-ui-dev
+      - run: make build-ui
       - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
       - run: docker run -it replicatedhq/ship-cypress:latest
       - save_cache:
