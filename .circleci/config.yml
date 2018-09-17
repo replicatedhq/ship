@@ -16,7 +16,6 @@ jobs:
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
-      - run: mkdir -p web/dist
       - run: |
           make build-deps citest
           if [ -n "$CC_TEST_REPORTER_ID" ]; then
