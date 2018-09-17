@@ -43,6 +43,7 @@ jobs:
             - web/app/node_modules
             - web/init/node_modules
             - web/init/dist
+            - web/app/build
           key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
       - persist_to_workspace:
@@ -91,6 +92,7 @@ jobs:
             - web/app/node_modules
             - web/init/node_modules
             - web/init/dist
+            - web/app/build
           key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
   integration:
