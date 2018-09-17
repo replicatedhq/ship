@@ -2,6 +2,7 @@
   "v1": {
     "config": {},
     "contentSHA": "63b91ba3902d63a3dd112e4a8477e53a10cc6edbcd8a248af4be8a067eb8d072",
+    "metadata": null,
     "upstream": "https://github.com/replicatedhq/test-charts/tree/ad1e78d13c33fae7a7ce22ed19920945ceea23e9/"
   }
 }

@@ -14,7 +14,7 @@
     },
     "metadata": {
       "icon": "",
-      "name": "modify-chart",
+      "name": "values-update",
       "version": "0.1.0"
     },
     "upstream": "github.com/replicatedhq/test-charts/values-static",
