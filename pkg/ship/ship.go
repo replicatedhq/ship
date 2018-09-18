@@ -53,6 +53,7 @@ type Ship struct {
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
+	StateManager state.Manager
 }
 
 // NewShip gets an instance using viper to pull config
@@ -91,6 +92,7 @@ func NewShip(
 		State:            stateManager,
 		IDPatcher:        patcher,
 		FS:               fs,
+		StateManager:     stateManager,
 	}, nil
 }
 
@@ -150,6 +152,19 @@ func (s *Ship) Execute(ctx context.Context) error {
 	if s.InstallationID == "" && s.Runbook == "" && s.KustomizeRaw == "" {
 		debug.Log("phase", "validate-inputs", "error", "missing installation ID")
 		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
+	}
+
+	// This is for integration tests to write the passed state.json to the correct path
+	stateFilePath := s.Viper.GetString("state-file")
+	if stateFilePath != "" {
+		debug.Log("phase", "move", "state-file", stateFilePath)
+		stateFile, err := s.FS.ReadFile(stateFilePath)
+		if err != nil {
+			return errors.Wrap(err, "read state-file")
+		}
+		if err := s.FS.WriteFile(constants.StatePath, stateFile, 0644); err != nil {
+			return errors.Wrap(err, "write passed state file to constants.StatePath")
+		}
 	}
 
 	debug.Log("phase", "validate-inputs", "status", "complete")

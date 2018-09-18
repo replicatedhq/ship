@@ -12,6 +12,11 @@
         }
       }
     },
+    "metadata": {
+      "icon": "",
+      "name": "modify-chart",
+      "version": "0.1.0"
+    },
     "upstream": "github.com/replicatedhq/test-charts/modify-chart",
     "contentSHA": "8f221c20ea01b45298094e4c631d10b7583885fd4a62a5eacce2883cd19f1c7f"
   }

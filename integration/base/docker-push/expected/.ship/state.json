@@ -1,1 +1,1 @@
-{"v1":{"config":{"external_registry":"localhost:5000","test_option":"abc123_test-option-value"}}}
+{"v1":{"config":{"external_registry":"localhost:5000","test_option":"abc123_test-option-value"}, "metadata": {"customerID": "", "installationID": "", "version": ""}}}
