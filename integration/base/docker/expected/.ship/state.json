@@ -1,1 +1,13 @@
-{"v1":{"config":{"test_option":"abc123_test-option-value"}, "metadata": {"customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G", "installationID": "RULNveQLrLj4GDum1yQhvKAcABh0GcLY", "version": "0.0.9"}}}
+{
+  "v1": {
+    "config": {
+      "test_option": "abc123_test-option-value"
+    },
+    "contentSHA": "104541e8f52c5077198f4bd2f8a5021ee1a85c0e54d6058b3a757490add42f13",
+    "metadata": {
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "RULNveQLrLj4GDum1yQhvKAcABh0GcLY",
+      "version": "0.0.9"
+    }
+  }
+}

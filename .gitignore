@@ -12,3 +12,4 @@ integration/*/_test_*
 /.state/
 /overlays/
 /base/
+web/.state/

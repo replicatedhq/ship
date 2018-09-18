@@ -2,6 +2,7 @@ package replicatedapp
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"path/filepath"
 
@@ -17,11 +18,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type shaSummer func([]byte) string
 type resolver struct {
 	Logger               log.Logger
 	Client               *GraphQLClient
 	FS                   afero.Afero
 	StateManager         state.Manager
+	ShaSummer            shaSummer
 	Runbook              string
 	SetChannelName       string
 	RunbookReleaseSemver string
@@ -45,6 +48,9 @@ func NewAppResolver(
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
 		StateManager:         stateManager,
+		ShaSummer: func(bytes []byte) string {
+			return fmt.Sprintf("%x", sha256.Sum256(bytes))
+		},
 	}
 }
 
@@ -76,11 +82,23 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 		}
 	} else {
 		release, err = r.resolveCloudRelease(selector)
-		debug.Log("spec.resolve", "spec", specYAML, "err", err)
+		debug.Log("event", "spec.resolve", "spec", specYAML, "err", err)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector)
 		}
 	}
+
+	debug.Log("event", "spec.commit", "spec", specYAML, "err", err)
+	result, err := r.persistRelease(release, selector)
+	if err != nil {
+		return nil, errors.Wrap(err, "persist and deserialize release")
+	}
+
+	return result, nil
+}
+
+func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*api.Release, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "persistRelease"))
 
 	result := &api.Release{
 		Metadata: release.ToReleaseMeta(),
@@ -92,14 +110,17 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 		return nil, errors.Wrap(err, "serialize app metadata")
 	}
 
+	contentSHA := r.ShaSummer([]byte(release.Spec))
+	if err := r.StateManager.SerializeContentSHA(contentSHA); err != nil {
+		return nil, errors.Wrap(err, "serialize content sha")
+	}
+
 	if err := yaml.Unmarshal([]byte(release.Spec), &result.Spec); err != nil {
 		return nil, errors.Wrapf(err, "decode spec")
 	}
-
 	debug.Log("phase", "load-specs", "status", "complete",
 		"resolved-spec", fmt.Sprintf("%+v", result.Spec),
 	)
-
 	return result, nil
 }
 
