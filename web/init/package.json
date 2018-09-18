@@ -69,6 +69,7 @@
     "jest-enzyme": "^6.0.4",
     "jsdoc-babel": "^0.5.0",
     "node-sass": "^4.9.3",
+    "publish": "^0.6.0",
     "react": "^16.5.1",
     "react-dom": "^16.5.1",
     "redux-mock-store": "^1.5.3",

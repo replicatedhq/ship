@@ -47,9 +47,10 @@ jobs:
           key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
       - persist_to_workspace:
-          root: ~/repo/web/app
+          root: ~/repo/web
           paths:
-            - build
+            - app/build
+            - init
 
   test_ui:
     docker:
@@ -133,6 +134,26 @@ jobs:
             $GOPATH/bin/ginkgo -p -stream integration/init_app
           fi
 
+  deploy_ship_init:
+    docker:
+      - image: circleci/node:9
+    working_directory: ~/repo
+    steps:
+      - run: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
+            echo Unable to deploy, the project is currently on a fork.
+            exit 1
+          fi
+      - checkout
+      - attach_workspace:
+          at: .
+      - deploy:
+          name: publish
+          command: |
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            # Run publish npm module
+            cd web/init; npm run publish
+
   deploy_unstable:
     docker:
       - image: circleci/golang:1.10
@@ -200,6 +221,14 @@ workflows:
       - test
       - e2e-init
       - build_ui
+      - deploy_ship_init:
+          requires:
+          - build_ui
+          - test_ui
+          - e2e-init
+          filters:
+            branches:
+              only: /master/
       - deploy_unstable:
           requires:
           - test
