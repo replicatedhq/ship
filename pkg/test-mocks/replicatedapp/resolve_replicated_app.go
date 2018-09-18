@@ -36,6 +36,19 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 	return m.recorder
 }
 
+// FetchRelease mocks base method
+func (m *MockResolver) FetchRelease(arg0 context.Context, arg1 *replicatedapp.Selector) (*replicatedapp.ShipRelease, error) {
+	ret := m.ctrl.Call(m, "FetchRelease", arg0, arg1)
+	ret0, _ := ret[0].(*replicatedapp.ShipRelease)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchRelease indicates an expected call of FetchRelease
+func (mr *MockResolverMockRecorder) FetchRelease(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchRelease", reflect.TypeOf((*MockResolver)(nil).FetchRelease), arg0, arg1)
+}
+
 // RegisterInstall mocks base method
 func (m *MockResolver) RegisterInstall(arg0 context.Context, arg1 replicatedapp.Selector, arg2 *api.Release) error {
 	ret := m.ctrl.Call(m, "RegisterInstall", arg0, arg1, arg2)

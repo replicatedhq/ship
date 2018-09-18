@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/test-mocks/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
+	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -217,6 +218,57 @@ icon: https://kfbr.392/x5.png
 				req.Equal(test.expectRelease, release)
 
 			}()
+		})
+	}
+}
+
+func TestResolver_ReadContentSHAForWatch(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name      string
+		upstream  string
+		shaSummer shaSummer
+		expect    func(
+			t *testing.T,
+			appType *apptype.MockInspector,
+			mockAppResolver *replicatedapp.MockResolver,
+		)
+		expectSHA string
+	}{
+		{
+			name:     "happy path replicated.app",
+			upstream: "replicated.app/some-tool?customer_id=foo&installation_id=bar",
+			expect: func(t *testing.T, appType *apptype.MockInspector, mockAppResolver *replicatedapp.MockResolver) {
+				appType.EXPECT().
+					DetermineApplicationType(ctx, "replicated.app/some-tool?customer_id=foo&installation_id=bar").
+					Return("replicated.app", "fake", nil)
+				mockAppResolver.EXPECT().FetchRelease(ctx, &replicatedapp2.Selector{
+					CustomerID:     "foo",
+					InstallationID: "bar",
+				}).Return(&replicatedapp2.ShipRelease{Spec: "its fake"}, nil)
+			},
+			expectSHA: "a9274e43955abe372d508864d19aa8be39872a39f44c8c5e2e04a4ef98c4aa04", // sha256.Sum256([]byte("its fake"))
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+			mc := gomock.NewController(t)
+			inspector := apptype.NewMockInspector(mc)
+			resolver := replicatedapp.NewMockResolver(mc)
+
+			test.expect(t, inspector, resolver)
+
+			r := &Resolver{
+				Logger:           &logger.TestLogger{T: t},
+				appTypeInspector: inspector,
+				AppResolver:      resolver,
+				shaSummer:        test.shaSummer,
+			}
+
+			sha, err := r.ReadContentSHAForWatch(ctx, test.upstream)
+			req.NoError(err)
+			req.Equal(test.expectSHA, sha)
 		})
 	}
 }

@@ -48,24 +48,13 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.New(`No current SHA found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
-		debug.Log("event", "fetch latest chart")
-		appType, localPath, err := s.AppTypeInspector.DetermineApplicationType(ctx, upstream)
-		if err != nil {
-			return errors.Wrapf(err, "resolve app type for %s", upstream)
-		}
-		debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
+		contentSHA, err := s.Resolver.ReadContentSHAForWatch(ctx, upstream)
 
-		metadata, err := s.Resolver.ResolveBaseMetadata(upstream, localPath)
-		if err != nil {
-			return errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
-		}
-		debug.Log("event", "metadata.resolve", "sha", metadata.ContentSHA)
-
-		if metadata.ContentSHA != existingState.Versioned().V1.ContentSHA {
+		if contentSHA != existingState.Versioned().V1.ContentSHA {
 			debug.Log(
 				"event", "new sha",
 				"previous", existingState.Versioned().V1.ContentSHA,
-				"new", metadata.ContentSHA,
+				"new", contentSHA,
 			)
 			s.UI.Info(fmt.Sprintf("%s has an update available", upstream))
 			return nil
@@ -74,7 +63,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 		debug.Log(
 			"event", "sha.unchanged",
 			"previous", existingState.Versioned().V1.ContentSHA,
-			"new", metadata.ContentSHA,
+			"new", contentSHA,
 			"sleeping", s.Viper.GetDuration("interval"),
 		)
 
