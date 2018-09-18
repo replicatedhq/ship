@@ -1,10 +1,10 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
 
 
 SHELL := /bin/bash -o pipefail
 SRC = $(shell find . -name "*.go" ! -name "ui.bindatafs.go")
 FULLSRC = $(shell find . -name "*.go")
-UI = $(shell find web/dist -name "*.js")
+UI = $(shell find web/app/init/build -name "*.js")
 
 DOCKER_REPO ?= replicated
 
@@ -260,33 +260,30 @@ build_ship_integration_test:
 pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
-	  -prefix web/ \
-	  web/dist/...
+	  -prefix web/app \
+	  web/app/build/...
 
 mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
-embed-ui: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
 
 
 ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
-	$(MAKE) -C web build_ship
+	$(MAKE) -C web/app build_ship
 
 build-ui-dev:
-	$(MAKE) -C web build_ship_dev
-
-ci-build-ui-dev:
-	$(MAKE) -C web build_ship_dev PROGRESS=
+	$(MAKE) -C web/app build_ship_dev
 
 test_CI:
-	$(MAKE) -C web test_CI
+	$(MAKE) -C web/app test_CI
 
 cypress_base:
 	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
 	CHART_URL=github.com/sourcegraph/deploy-sourcegraph/tree/0e4d81d3c1f096c39d39b769a2bf736f5889af77 \
-	sh web/cypress/run_init_spec.sh
+	sh web/app/cypress/run_init_spec.sh
 
 cypress: build cypress_base
 
@@ -313,4 +310,4 @@ clean-ship:
 
 clean:
 	rm -rf .state
-	$(MAKE) -C web clean
+	$(MAKE) -C web/app clean

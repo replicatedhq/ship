@@ -16,32 +16,11 @@ jobs:
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
-      - run: mkdir -p web/dist
       - run: |
           make build-deps citest
           if [ -n "$CC_TEST_REPORTER_ID" ]; then
             make ci-upload-coverage
           fi
-  build_dev_ui:
-    docker:
-    - image: circleci/node:9
-    working_directory: ~/repo
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "web/package.json" }}
-        - v1-dependencies-
-
-    - run:
-        name: build
-        command: make ci-build-ui-dev
-
-    - save_cache:
-        paths:
-        - web/node_modules
-        key: v1-dependencies-{{ checksum "web/package.json" }}
-
   build_ui:
     docker:
       - image: circleci/node:9
@@ -50,22 +29,27 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "web/package.json" }}
-          - v1-dependencies-
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+            - yarn-packages-v1-
 
       - run:
-          name: build dev UI to ensure it compiles
+          name: Build UI
           command: make build-ui
 
       - save_cache:
           paths:
-            - web/node_modules
-          key: v1-dependencies-{{ checksum "web/package.json" }}
+            - ~/.cache/yarn
+            - web/app/node_modules
+            - web/init/node_modules
+            - web/init/dist
+            - web/app/build
+          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
       - persist_to_workspace:
-          root: ~/repo/web
+          root: ~/repo/web/app
           paths:
-            - dist
+            - build
 
   test_ui:
     docker:
@@ -75,37 +59,45 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "web/package.json" }}
-          - v1-dependencies-
+          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+          - yarn-packages-v1-
       - run:
           name: test
           command: make test_CI
       - save_cache:
           paths:
-            - web/node_modules
-          key: v1-dependencies-{{ checksum "web/package.json" }}
+            - ~/.cache/yarn
+          key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
 
   e2e-init:
     docker:
-      - image: circleci/node:8.11.4-stretch
-    machine:
+      - image: circleci/node:9
     working_directory: ~/repo
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "web/package.json" }}
-          - v1-dependencies-
-      - run: cd web; CYPRESS_INSTALL_BINARY=0 yarn --frozen-lockfile
-      - run: make build-ui-dev
-      - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/cypress/Dockerfile .
-      - run: docker run -it replicatedhq/ship-cypress:latest
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
+            - yarn-packages-v1-
+      - run:
+          name: Build UI
+          command: make build-ui
+      - run:
+          name: Build Ship Cypress Docker Image
+          command: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
+      - run:
+          name: Run Ship Cypress Tests
+          command: docker run -it replicatedhq/ship-cypress:latest
       - save_cache:
           paths:
-            - web/node_modules
-          key: v1-dependencies-{{ checksum "web/package.json" }}
+            - ~/.cache/yarn
+            - web/app/node_modules
+            - web/init/node_modules
+            - web/init/dist
+            - web/app/build
+          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
 
   integration:
     machine: true
@@ -207,17 +199,7 @@ workflows:
       - integration
       - test
       - e2e-init
-
-      # only run this on forks, to make sure webpack is compiling
-      - build_dev_ui:
-          filters:
-            branches:
-              ignore: /master/
-      # build the prod UI on master builds
-      - build_ui:
-          filters:
-            branches:
-              only: /master/
+      - build_ui
       - deploy_unstable:
           requires:
           - test
@@ -228,7 +210,6 @@ workflows:
           filters:
             branches:
               only: /master/
-
       - deploy_integration:
           requires:
           - integration
