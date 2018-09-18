@@ -151,7 +151,8 @@ jobs:
           name: publish
           command: |
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            cd web/init; npm publish --access public
+            # Run publish npm module
+            cd web/init; npm run publish
 
   deploy_unstable:
     docker:
