@@ -72,12 +72,13 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 				},
 				{
 					Kustomize: &api.Kustomize{
-						BasePath: constants.KustomizeBasePath,
-						Dest:     path.Join("overlays", "ship"),
+						Base:    constants.KustomizeBasePath,
+						Overlay: path.Join("overlays", "ship"),
 						StepShared: api.StepShared{
 							ID:       "kustomize",
 							Requires: []string{"render"},
 						},
+						Dest: "rendered.yaml",
 					},
 				},
 				{
@@ -89,7 +90,7 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 						Contents: `
 Assets are ready to deploy. You can run
 
-    kustomize build overlays/ship | kubectl apply -f -
+    kubectl apply -f rendered.yaml
 
 to deploy the overlaid assets to your cluster.
 `},
@@ -118,12 +119,13 @@ func DefaultRawRelease(basePath string) api.Spec {
 				},
 				{
 					Kustomize: &api.Kustomize{
-						BasePath: basePath,
-						Dest:     path.Join("overlays", "ship"),
+						Base:    basePath,
+						Overlay: path.Join("overlays", "ship"),
 						StepShared: api.StepShared{
 							ID:          "kustomize",
 							Invalidates: []string{"diff"},
 						},
+						Dest: "rendered.yaml",
 					},
 				},
 				{
@@ -134,7 +136,7 @@ func DefaultRawRelease(basePath string) api.Spec {
 						Contents: `
 Assets are ready to deploy. You can run
 
-    kustomize build overlays/ship | kubectl apply -f -
+    kubectl apply -f rendered.yaml
 
 to deploy the overlaid assets to your cluster.
 						`},

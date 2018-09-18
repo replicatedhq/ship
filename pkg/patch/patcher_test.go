@@ -80,7 +80,7 @@ var _ = Describe("ShipPatcher", func() {
 				patch, err := shipPatcher.MergePatches(
 					original,
 					mergePatchPathMap[mergeTestDir.Name()],
-					api.Kustomize{BasePath: "base"},
+					api.Kustomize{Base: "base"},
 					"base/deployment.yaml",
 				)
 				Expect(err).NotTo(HaveOccurred())
@@ -104,7 +104,7 @@ var _ = Describe("ShipPatcher", func() {
 				expectModified, err := ioutil.ReadFile(path.Join("modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(patch, api.Kustomize{BasePath: "base"}, "base/deployment.yaml")
+				modified, err := shipPatcher.ApplyPatch(patch, api.Kustomize{Base: "base"}, "base/deployment.yaml")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))

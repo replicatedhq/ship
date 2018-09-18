@@ -36,6 +36,7 @@ func CompareDir(expected, actual string) (bool, error) {
 	if skipCheck(actual) {
 		return true, nil
 	}
+
 	expectedDir, err := ioutil.ReadDir(expected)
 	Expect(err).NotTo(HaveOccurred())
 

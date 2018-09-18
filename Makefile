@@ -1,4 +1,4 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
 
 
 SHELL := /bin/bash -o pipefail
@@ -308,6 +308,9 @@ clean-ship:
 	rm -rf overlays/
 	rm -rf base/
 	rm -rf .ship/
+
+clean-integration:
+	rm -rf integration/*/*/_test_*
 
 clean:
 	rm -rf .state

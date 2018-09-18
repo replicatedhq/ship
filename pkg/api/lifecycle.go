@@ -94,8 +94,17 @@ func (t *Terraform) ShortName() string   { return "terraform" }
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
 type Kustomize struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	BasePath   string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
+	Base       string `json:"base,omitempty" yaml:"base,omitempty" hcl:"base,omitempty"`
 	Dest       string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	Overlay    string `json:"overlay,omitempty" yaml:"overlay,omitempty" hcl:"overlay,omitempty"`
+}
+
+func (k *Kustomize) OverlayPath() string {
+	if k.Overlay == "" {
+		return "overlays/ship"
+	} else {
+		return k.Overlay
+	}
 }
 
 func (k *Kustomize) Shared() *StepShared { return &k.StepShared }

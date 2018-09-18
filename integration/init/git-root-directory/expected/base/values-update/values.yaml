@@ -1,6 +1,0 @@
-replicaCount: 3
-image:
-  repository: nginx
-  tag: latest
-
-containerPort: 80

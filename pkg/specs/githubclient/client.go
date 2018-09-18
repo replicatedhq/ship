@@ -139,20 +139,27 @@ func (g *GithubClient) downloadAndExtractFiles(
 				return errors.Wrapf(err, "extract tar gz, mkdir")
 			}
 		case tar.TypeReg:
-			fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !strings.HasPrefix(fileName, basePath) {
-				continue
-			}
-			basePathFound = true
+			// need this in a func because defer in a loop was leaking handles
+			err := func() error {
+				fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
+				if !strings.HasPrefix(fileName, basePath) {
+					return nil
+				}
+				basePathFound = true
 
-			fileName = strings.TrimPrefix(fileName, basePath)
-			outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
+				fileName = strings.TrimPrefix(fileName, basePath)
+				outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
+				if err != nil {
+					return errors.Wrapf(err, "extract tar gz, create")
+				}
+				defer outFile.Close()
+				if _, err := io.Copy(outFile, tarReader); err != nil {
+					return errors.Wrapf(err, "extract tar gz, copy")
+				}
+				return nil
+			}()
 			if err != nil {
-				return errors.Wrapf(err, "extract tar gz, create")
-			}
-			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
-				return errors.Wrapf(err, "extract tar gz, copy")
+				return err
 			}
 		}
 	}

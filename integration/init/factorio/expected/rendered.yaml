@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio-savedgames
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+data:
+  factorio-password: eW91ci5wYXNzd29yZA==
+  factorio-username: eW91ci51c2VybmFtZQ==
+  rcon-password: ""
+  server-password: ""
+kind: Secret
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
+spec:
+  ports:
+  - name: factorio
+    port: 34197
+    protocol: UDP
+    targetPort: factorio
+  selector:
+    app: factorio-factorio
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
+spec:
+  template:
+    metadata:
+      labels:
+        app: factorio-factorio
+    spec:
+      containers:
+      - env:
+        - name: FACTORIO_SERVER_NAME
+          value: Kubernetes Server
+        - name: FACTORIO_DESCRIPTION
+          value: Factorio running on Kubernetes
+        - name: FACTORIO_PORT
+          value: "34197"
+        - name: FACTORIO_MAX_PLAYERS
+          value: "255"
+        - name: FACTORIO_IS_PUBLIC
+          value: "false"
+        - name: FACTORIO_REQUIRE_USER_VERIFICATION
+          value: "false"
+        - name: FACTORIO_ALLOW_COMMANDS
+          value: admins-only
+        - name: FACTORIO_NO_AUTO_PAUSE
+          value: "false"
+        - name: FACTORIO_AUTOSAVE_INTERVAL
+          value: "2"
+        - name: FACTORIO_AUTOSAVE_SLOTS
+          value: "3"
+        image: quay.io/games_on_k8s/factorio:0.14.22
+        imagePullPolicy: Always
+        name: factorio-factorio
+        ports:
+        - containerPort: 34197
+          name: factorio
+          protocol: UDP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /opt/factorio/saves
+          name: saves
+        - mountPath: /opt/factorio/mods
+          name: mods
+      volumes:
+      - name: saves
+        persistentVolumeClaim:
+          claimName: factorio-factorio-savedgames
+      - emptyDir: {}
+        name: mods

@@ -76,3 +76,12 @@ type Release struct {
 	Metadata ReleaseMetadata
 	Spec     Spec
 }
+
+func (r *Release) FindRenderStep() *Render {
+	for _, step := range r.Spec.Lifecycle.V1 {
+		if step.Render != nil {
+			return step.Render
+		}
+	}
+	return nil
+}

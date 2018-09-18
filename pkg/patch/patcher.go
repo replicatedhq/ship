@@ -230,16 +230,16 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 
 	tempBaseKustomization := k8stypes.Kustomization{}
 	if err := p.FS.Walk(
-		step.BasePath,
+		step.Base,
 		func(targetPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
 
-			relativePath, err := filepath.Rel(step.BasePath, targetPath)
+			relativePath, err := filepath.Rel(step.Base, targetPath)
 			if err != nil {
-				debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
+				debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
 
@@ -263,7 +263,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 	}
 
 	// write base kustomization
-	name := path.Join(step.BasePath, "kustomization.yaml")
+	name := path.Join(step.Base, "kustomization.yaml")
 	err = p.FS.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)
@@ -274,7 +274,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 func (p *ShipPatcher) deleteTempKustomization(step api.Kustomize) error {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "deleteTempKustomization"))
 
-	baseKustomizationPath := path.Join(step.BasePath, "kustomization.yaml")
+	baseKustomizationPath := path.Join(step.Base, "kustomization.yaml")
 
 	debug.Log("event", "remove.tempKustomizationYaml")
 	err := p.FS.Remove(baseKustomizationPath)
