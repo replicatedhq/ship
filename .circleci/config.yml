@@ -146,13 +146,13 @@ jobs:
           fi
       - checkout
       - attach_workspace:
-          at: .
+          at: web
       - deploy:
           name: publish
           command: |
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             # Run publish npm module
-            cd web/init; npm run publish
+            cd web/init; `yarn bin`/publish
 
   deploy_unstable:
     docker:
@@ -162,7 +162,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - attach_workspace:
-          at: /go/src/github.com/replicatedhq/ship/web/app
+          at: /go/src/github.com/replicatedhq/ship/web
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
