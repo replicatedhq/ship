@@ -71,8 +71,7 @@ jobs:
 
   e2e-init:
     docker:
-      - image: circleci/node:8.11.4-stretch
-    machine:
+      - image: circleci/node:9
     working_directory: ~/repo
     steps:
       - checkout
@@ -82,9 +81,15 @@ jobs:
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
-      - run: make build-ui
-      - run: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
-      - run: docker run -it replicatedhq/ship-cypress:latest
+      - run:
+          name: Build UI
+          command: make build-ui
+      - run:
+          name: Build Ship Cypress Docker Image
+          command: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
+      - run:
+          name: Run Ship Cypress Tests
+          command: docker run -it replicatedhq/ship-cypress:latest
       - save_cache:
           paths:
             - ~/.cache/yarn
