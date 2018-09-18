@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "build-dev": "cross-env DEVELOPMENT=true npm run build --",
+    "build-dev": "npm run build -- --mode development",
     "start": "webpack-dashboard -m -- npm run build-dev -- --colors --watch",
     "test": "node scripts/test.js --env=jsdom"
   },
