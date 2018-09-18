@@ -2,6 +2,7 @@
   "v1": {
     "config": {},
     "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+    "contentSHA": "2260e2110304496fc8544b8bf51c95352cdf9300270fe7c7fa9f6e1b76855d1c",
     "metadata": {
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-",

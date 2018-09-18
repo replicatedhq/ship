@@ -1,1 +1,11 @@
-{"v1":{"config":{}, "metadata": {"customerID": "", "installationID": "", "version": ""}}}
+{
+  "v1": {
+    "config": {},
+    "contentSHA": "43908c014adbcd9b9c7bd5eb548fc5086c7a9f85b009c70a16e2902097d73784",
+    "metadata": {
+      "customerID": "",
+      "installationID": "",
+      "version": ""
+    }
+  }
+}
