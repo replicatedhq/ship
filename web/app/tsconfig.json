@@ -17,7 +17,9 @@
     "importHelpers": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    // Added due to Cypress dependency
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",
