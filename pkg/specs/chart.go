@@ -152,6 +152,11 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, errors.Wrap(err, "resolve base metadata")
 	}
 
+	err = r.StateManager.SerializeContentSHA(baseMetadata.ContentSHA)
+	if err != nil {
+		return nil, errors.Wrap(err, "write content sha")
+	}
+
 	localChartPath := filepath.Join(localPath, "Chart.yaml")
 
 	exists, err := r.FS.Exists(localChartPath)
@@ -191,11 +196,6 @@ func (r *Resolver) ResolveBaseMetadata(upstream string, localPath string) (*api.
 		return nil, errors.Wrapf(err, "calculate chart sha")
 	}
 	md.ContentSHA = contentSHA
-
-	err = r.StateManager.SerializeContentSHA(contentSHA)
-	if err != nil {
-		return nil, errors.Wrap(err, "write content sha")
-	}
 
 	localReadmePath := filepath.Join(localPath, "README.md")
 	debug.Log("phase", "read-readme", "from", localReadmePath)
@@ -256,7 +256,7 @@ func (r *Resolver) maybeGetShipYAML(ctx context.Context, localPath string) (*api
 	return nil, nil
 }
 
-type shaSummer func(*Resolver, string) (string, error)
+type shaSummer func(r *Resolver, localPath string) (string, error)
 
 func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	var contents []byte

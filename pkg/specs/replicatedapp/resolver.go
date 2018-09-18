@@ -59,6 +59,10 @@ type Resolver interface {
 		ctx context.Context,
 		selector *Selector,
 	) (*api.Release, error)
+	FetchRelease(
+		ctx context.Context,
+		selector *Selector,
+	) (*ShipRelease, error)
 	RegisterInstall(
 		ctx context.Context,
 		selector Selector,
@@ -69,12 +73,23 @@ type Resolver interface {
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local runbook if so configured
 func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
+	release, err := r.FetchRelease(ctx, selector)
+
+	result, err := r.persistRelease(release, selector)
+	if err != nil {
+		return nil, errors.Wrap(err, "persist and deserialize release")
+	}
+
+	return result, nil
+}
+
+// FetchRelease gets the release without persisting anything
+func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*ShipRelease, error) {
 	var specYAML []byte
 	var err error
 	var release *ShipRelease
 
-	debug := level.Debug(log.With(r.Logger, "method", "ResolveAppRelease"))
-
+	debug := level.Debug(log.With(r.Logger, "method", "FetchRelease"))
 	if r.Runbook != "" {
 		release, err = r.resolveRunbookRelease()
 		if err != nil {
@@ -87,14 +102,8 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector)
 		}
 	}
-
-	debug.Log("event", "spec.commit", "spec", specYAML, "err", err)
-	result, err := r.persistRelease(release, selector)
-	if err != nil {
-		return nil, errors.Wrap(err, "persist and deserialize release")
-	}
-
-	return result, nil
+	debug.Log("event", "spec.resolve.success", "spec", specYAML, "err", err)
+	return release, nil
 }
 
 func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*api.Release, error) {

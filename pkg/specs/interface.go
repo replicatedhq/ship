@@ -2,6 +2,7 @@ package specs
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"net/url"
 
@@ -24,11 +25,6 @@ import (
 //   file:///home/luke/my-charts/proton-torpedoes
 func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "ResolveRelease")
-	parsed, err := url.Parse(upstream)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parse url %s", upstream)
-
-	}
 	r.ui.Info(fmt.Sprintf("Reading %s ...", upstream))
 
 	r.ui.Info("Determining application type ...")
@@ -68,11 +64,59 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		)
 
 	case "replicated.app":
+		parsed, err := url.Parse(upstream)
+		if err != nil {
+			return nil, errors.Wrapf(err, "parse url %s", upstream)
+		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
 		return r.AppResolver.ResolveAppRelease(ctx, selector)
 	}
 
 	return nil, errors.Errorf("unknown application type %q for upstream %q", applicationType, upstream)
+}
+
+// read the content sha without writing anything to state
+func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) (string, error) {
+
+	debug := level.Debug(log.With(r.Logger, "method", "ReadContentSHAForWatch"))
+	debug.Log("event", "fetch latest chart")
+	appType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	if err != nil {
+		return "", errors.Wrapf(err, "resolve app type for %s", upstream)
+	}
+	debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
+
+	// this switch block is kinda duped from above, and we ought to centralize parts of this,
+	// but in this case we only want to read the metadata without persisting anything to state,
+	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
+	switch appType {
+
+	case "helm":
+		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
+		if err != nil {
+			return "", errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
+		}
+		return metadata.ContentSHA, nil
+
+	case "k8s":
+		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
+		if err != nil {
+			return "", errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
+		}
+		return metadata.ContentSHA, nil
+
+	case "replicated.app":
+		parsed, err := url.Parse(upstream)
+		if err != nil {
+			return "", errors.Wrapf(err, "parse url %s", upstream)
+		}
+		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
+
+		release, err := r.AppResolver.FetchRelease(ctx, selector)
+		return fmt.Sprintf("%x", sha256.Sum256([]byte(release.Spec))), nil
+	}
+
+	return "", errors.Errorf("Could not determine application type of upstream %s", upstream)
 }
 
 func (r *Resolver) resolveRelease(
