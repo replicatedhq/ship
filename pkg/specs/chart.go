@@ -185,11 +185,6 @@ func (r *Resolver) ResolveBaseMetadata(upstream string, localPath string) (*api.
 	debug := level.Debug(log.With(r.Logger, "method", "resolveBaseMetaData"))
 	var md api.ShipAppMetadata
 	md.URL = upstream
-	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", upstream)
-	err := r.StateManager.SerializeUpstream(upstream)
-	if err != nil {
-		return nil, errors.Wrapf(err, "write upstream")
-	}
 	debug.Log("phase", "calculate-sha", "for", localPath)
 	contentSHA, err := r.shaSummer(r, localPath)
 	if err != nil {

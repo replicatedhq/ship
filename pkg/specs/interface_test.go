@@ -117,6 +117,7 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 
 				inOrder = mockUi.EXPECT().Info("Detected application type replicated.app").After(inOrder)
+				inOrder = mockState.EXPECT().SerializeUpstream("replicated.app?customer_id=12345&installation_id=67890").After(inOrder)
 				mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
 					CustomerID:     "12345",
 					InstallationID: "67890",

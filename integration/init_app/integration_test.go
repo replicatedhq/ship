@@ -89,11 +89,11 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
 
-					// if a token is provided, try to ensure the release matches what we have here in the repo
 					if vendorToken == "" {
 						Fail("Please set SHIP_INTEGRATION_VENDOR_TOKEN to run the init_app test suite")
 					}
 
+					// try to ensure the release matches what we have here in the repo
 					channelName := fmt.Sprintf("integration replicated.app %s", filepath.Base(testPath))
 					installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName)
 					close(done)

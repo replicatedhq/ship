@@ -1,6 +1,7 @@
 {
   "v1": {
     "config": {},
+    "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=arpUWXmV5JnELQ449wRACqVnlqtJlfZy&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
     "metadata": {
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "arpUWXmV5JnELQ449wRACqVnlqtJlfZy",

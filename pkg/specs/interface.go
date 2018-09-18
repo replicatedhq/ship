@@ -39,6 +39,12 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	debug.Log("event", "applicationType.resolve", "type", applicationType)
 	r.ui.Info(fmt.Sprintf("Detected application type %s", applicationType))
 
+	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", upstream)
+	err = r.StateManager.SerializeUpstream(upstream)
+	if err != nil {
+		return nil, errors.Wrapf(err, "write upstream")
+	}
+
 	switch applicationType {
 
 	case "helm":
