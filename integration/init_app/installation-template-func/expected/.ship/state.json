@@ -1,1 +1,11 @@
-{"v1":{"config":{},"metadata":{"customerID":"-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G","installationID": "mTYFJCyJsJIC82QbUTSMmfmttVYCKAzl","version": "1.0.1-SNAPSHOT"}}}
+{
+  "v1": {
+    "config": {},
+    "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=mTYFJCyJsJIC82QbUTSMmfmttVYCKAzl&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+    "metadata": {
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "mTYFJCyJsJIC82QbUTSMmfmttVYCKAzl",
+      "version": "1.0.1-SNAPSHOT"
+    }
+  }
+}
