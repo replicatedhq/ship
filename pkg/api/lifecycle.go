@@ -102,9 +102,8 @@ type Kustomize struct {
 func (k *Kustomize) OverlayPath() string {
 	if k.Overlay == "" {
 		return "overlays/ship"
-	} else {
-		return k.Overlay
 	}
+	return k.Overlay
 }
 
 func (k *Kustomize) Shared() *StepShared { return &k.StepShared }

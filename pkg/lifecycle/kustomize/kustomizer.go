@@ -13,6 +13,7 @@ import (
 	ktypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -115,7 +116,7 @@ func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, st
 
 // hack -- get the root path off a render step to tell if we should prefix kustomize outputs
 func (l *Kustomizer) getPotentiallyChrootedFs(release *api.Release) (afero.Afero, error) {
-	renderRoot := "installer"
+	renderRoot := constants.InstallerPrefixPath
 	renderStep := release.FindRenderStep()
 	if renderStep == nil || renderStep.Root == "./" || renderStep.Root == "." {
 		return l.FS, nil
