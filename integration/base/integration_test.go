@@ -73,7 +73,7 @@ var _ = Describe("ship app", func() {
 				}, 20)
 
 				AfterEach(func() {
-					if !testMetadata.SkipCleanup {
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())

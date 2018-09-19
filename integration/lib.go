@@ -19,7 +19,6 @@ var skipFiles = []string{
 	"installer/terraform/plan",
 	"installer/terraform/terraform.tfstate",
 	"installer/charts/rendered/secrets.yaml",
-	"base/secrets.yaml",
 }
 
 func skipCheck(filepath string) bool {
@@ -36,6 +35,7 @@ func CompareDir(expected, actual string) (bool, error) {
 	if skipCheck(actual) {
 		return true, nil
 	}
+
 	expectedDir, err := ioutil.ReadDir(expected)
 	Expect(err).NotTo(HaveOccurred())
 

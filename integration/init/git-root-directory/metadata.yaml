@@ -1,3 +1,3 @@
-upstream: "https://github.com/replicatedhq/test-charts/tree/ad1e78d13c33fae7a7ce22ed19920945ceea23e9/"
+upstream: "https://github.com/replicatedhq/test-chart-root-dir/tree/507feecae588c958ebe82bcf701b8be63f34ac9b/"
 args: []
 skip_cleanup: false

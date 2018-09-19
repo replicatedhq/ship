@@ -1,0 +1,17 @@
+##---
+# Source: factorio/templates/saves-pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: factorio-factorio-savedgames
+  labels:
+    app: factorio-factorio
+    chart: "factorio-0.3.1"
+    release: "factorio"
+    heritage: "Tiller"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"

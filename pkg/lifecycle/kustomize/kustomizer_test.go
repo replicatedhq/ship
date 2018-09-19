@@ -69,7 +69,16 @@ func Test_kustomizer_writePatches(t *testing.T) {
 			mockDaemon := daemon2.NewMockDaemon(mc)
 			mockState := state2.NewMockManager(mc)
 
-			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			// need a real FS because afero.Rename on a memMapFs doesn't copy directories recursively
+			fs := afero.Afero{Fs: afero.NewOsFs()}
+			tmpdir, err := fs.TempDir("./", tt.name)
+			req.NoError(err)
+			defer fs.RemoveAll(tmpdir)
+
+			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
+			// its chrooted to a temp dir, but this needs to exist
+			err = mockFs.MkdirAll(".ship/tmp/", 0755)
+			req.NoError(err)
 			l := &daemonkustomizer{
 				Kustomizer: Kustomizer{
 					Logger: testLogger,
@@ -79,7 +88,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				Daemon: mockDaemon,
 			}
 
-			got, err := l.writePatches(tt.args.shipOverlay, tt.args.destDir)
+			got, err := l.writePatches(mockFs, tt.args.shipOverlay, tt.args.destDir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writePatches() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -102,8 +111,8 @@ func Test_kustomizer_writePatches(t *testing.T) {
 
 func Test_kustomizer_writeOverlay(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.KustomizeBasePath,
-		Dest:     path.Join("overlays", "ship"),
+		Base:    constants.KustomizeBasePath,
+		Overlay: path.Join("overlays", "ship"),
 	}
 
 	type args struct {
@@ -151,11 +160,11 @@ patches:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockStep, tt.patches); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockFs, mockStep, tt.patches); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			overlayPathDest := path.Join(mockStep.Dest, "kustomization.yaml")
+			overlayPathDest := path.Join(mockStep.OverlayPath(), "kustomization.yaml")
 			fileBytes, err := l.FS.ReadFile(overlayPathDest)
 			if err != nil {
 				t.Errorf("expected file at %v, received error instead: %v", overlayPathDest, err)
@@ -167,8 +176,8 @@ patches:
 
 func Test_kustomizer_writeBase(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.KustomizeBasePath,
-		Dest:     path.Join("overlays", "ship"),
+		Base:    constants.KustomizeBasePath,
+		Overlay: path.Join("overlays", "ship"),
 	}
 
 	type fields struct {
@@ -284,7 +293,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
-				basePathDest := path.Join(mockStep.BasePath, "kustomization.yaml")
+				basePathDest := path.Join(mockStep.Base, "kustomization.yaml")
 				fileBytes, err := l.FS.ReadFile(basePathDest)
 				if err != nil {
 					t.Errorf("expected file at %v, received error instead: %v", basePathDest, err)
@@ -394,8 +403,8 @@ patches:
 				ctx,
 				&release,
 				api.Kustomize{
-					BasePath: constants.KustomizeBasePath,
-					Dest:     "overlays/ship",
+					Base:    constants.KustomizeBasePath,
+					Overlay: "overlays/ship",
 				},
 			)
 

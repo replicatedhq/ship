@@ -1,4 +1,4 @@
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean
+.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
 
 
 SHELL := /bin/bash -o pipefail
@@ -282,8 +282,8 @@ test_CI:
 	$(MAKE) -C web/app test_CI
 
 cypress_base:
-	CYPRESS_SPEC=cypress/integration/init/sourcegraph.spec.js \
-	CHART_URL=github.com/sourcegraph/deploy-sourcegraph/tree/0e4d81d3c1f096c39d39b769a2bf736f5889af77 \
+	CYPRESS_SPEC=cypress/integration/init/testchart.spec.js \
+	CHART_URL=github.com/replicatedhq/test-charts/tree/ad1e78d13c33fae7a7ce22ed19920945ceea23e9/modify-chart \
 	sh web/app/cypress/run_init_spec.sh
 
 cypress: build cypress_base
@@ -308,6 +308,10 @@ clean-ship:
 	rm -rf overlays/
 	rm -rf base/
 	rm -rf .ship/
+	rm -rf rendered.yaml
+
+clean-integration:
+	rm -rf integration/*/*/_test_*
 
 clean:
 	rm -rf .state

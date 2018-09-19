@@ -74,6 +74,9 @@ type Resolver interface {
 // from a local runbook if so configured
 func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
 	release, err := r.FetchRelease(ctx, selector)
+	if err != nil {
+		return nil, errors.Wrap(err, "fetch release")
+	}
 
 	result, err := r.persistRelease(release, selector)
 	if err != nil {

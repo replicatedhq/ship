@@ -69,7 +69,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 				}, 20)
 
 				AfterEach(func() {
-					if !testMetadata.SkipCleanup {
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
@@ -77,7 +77,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output files matching those expected when communicating with the graphql api", func() {
+				It("Should output the expected files", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)

@@ -55,18 +55,37 @@ lifecycle:
 			},
 		},
 		{
-			name: "kustomize",
+			name: "kustomize minimal",
 
 			yaml: `
 ---
 lifecycle:
   v1:
     - kustomize:
-         base_path: "k8s/"`,
+         base: "k8s/"`,
+			expect: Step{
+				Kustomize: &Kustomize{
+					Base: "k8s/",
+				},
+			},
+		},
+		{
+			name: "kustomize with dest",
+
+			yaml: `
+---
+lifecycle:
+  v1:
+    - kustomize:
+         base: k8s/
+         dest: rendered.yaml
+         overlay: overlays/ship`,
 
 			expect: Step{
 				Kustomize: &Kustomize{
-					BasePath: "k8s/",
+					Base:    "k8s/",
+					Dest:    "rendered.yaml",
+					Overlay: "overlays/ship",
 				},
 			},
 		},

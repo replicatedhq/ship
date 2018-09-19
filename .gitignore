@@ -13,3 +13,4 @@ integration/*/_test_*
 /overlays/
 /base/
 web/.state/
+rendered.yaml

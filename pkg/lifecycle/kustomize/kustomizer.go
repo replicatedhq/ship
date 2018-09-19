@@ -3,19 +3,17 @@ package kustomize
 import (
 	"context"
 	"os"
-	"strings"
-
-	"time"
-
 	"path"
-
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	ktypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -54,7 +52,7 @@ func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, st
 	debug.Log("event", "daemon.started")
 
 	l.Daemon.PushKustomizeStep(ctx, daemontypes.Kustomize{
-		BasePath: step.BasePath,
+		BasePath: step.Base,
 	})
 	debug.Log("event", "step.pushed")
 
@@ -83,24 +81,56 @@ func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, st
 		shipOverlay = kustomizeState.Ship()
 	}
 
-	debug.Log("event", "mkdir", "dir", step.Dest)
-	err = l.FS.MkdirAll(step.Dest, 0777)
+	fs, err := l.getPotentiallyChrootedFs(release)
 	if err != nil {
-		debug.Log("event", "mkdir.fail", "dir", step.Dest)
-		return errors.Wrapf(err, "make dir %s", step.Dest)
+		return errors.Wrap(err, "get base fs for writing kustomize")
 	}
 
-	relativePatchPaths, err := l.writePatches(shipOverlay, step.Dest)
+	debug.Log("event", "mkdir", "dir", step.OverlayPath())
+	err = fs.MkdirAll(step.OverlayPath(), 0777)
+	if err != nil {
+		debug.Log("event", "mkdir.fail", "dir", step.OverlayPath())
+		return errors.Wrapf(err, "make dir %s", step.OverlayPath())
+	}
+
+	relativePatchPaths, err := l.writePatches(fs, shipOverlay, step.OverlayPath())
 	if err != nil {
 		return err
 	}
 
-	err = l.writeOverlay(step, relativePatchPaths)
+	err = l.writeOverlay(fs, step, relativePatchPaths)
 	if err != nil {
 		return errors.Wrap(err, "write overlay")
 	}
 
+	if step.Dest != "" {
+		debug.Log("event", "kustomize.build", "dest", step.Dest)
+		err = l.kustomizeBuild(fs, step)
+		if err != nil {
+			return errors.Wrap(err, "build overlay")
+		}
+	}
+
 	return nil
+}
+
+// hack -- get the root path off a render step to tell if we should prefix kustomize outputs
+func (l *Kustomizer) getPotentiallyChrootedFs(release *api.Release) (afero.Afero, error) {
+	renderRoot := constants.InstallerPrefixPath
+	renderStep := release.FindRenderStep()
+	if renderStep == nil || renderStep.Root == "./" || renderStep.Root == "." {
+		return l.FS, nil
+	}
+	if renderStep.Root != "" {
+		renderRoot = renderStep.Root
+	}
+
+	fs := afero.Afero{Fs: afero.NewBasePathFs(l.FS, renderRoot)}
+	err := fs.MkdirAll("/", 0755)
+	if err != nil {
+		return afero.Afero{}, errors.Wrap(err, "mkdir fs root")
+	}
+	return fs, nil
 }
 
 func (l *daemonkustomizer) awaitKustomizeSaved(ctx context.Context, daemonExitedChan chan error) error {
@@ -125,12 +155,12 @@ func (l *daemonkustomizer) awaitKustomizeSaved(ctx context.Context, daemonExited
 	}
 }
 
-func (l *Kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
+func (l *Kustomizer) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatches"))
 
 	for file, contents := range shipOverlay.Patches {
 		name := path.Join(destDir, file)
-		err := l.writePatch(name, contents)
+		err := l.writePatch(fs, name, contents)
 		if err != nil {
 			debug.Log("event", "write", "name", name)
 			return []string{}, errors.Wrapf(err, "write %s", name)
@@ -145,20 +175,20 @@ func (l *Kustomizer) writePatches(shipOverlay state.Overlay, destDir string) (re
 	return relativePatchPaths, nil
 }
 
-func (l *Kustomizer) writePatch(name string, contents string) error {
+func (l *Kustomizer) writePatch(fs afero.Afero, name string, contents string) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatch"))
 
 	destDir := filepath.Dir(name)
 
 	// make the dir
-	err := l.FS.MkdirAll(destDir, 0777)
+	err := fs.MkdirAll(destDir, 0777)
 	if err != nil {
 		debug.Log("event", "mkdir.fail", "dir", destDir)
 		return errors.Wrapf(err, "make dir %s", destDir)
 	}
 
 	// write the file
-	err = l.FS.WriteFile(name, []byte(contents), 0666)
+	err = fs.WriteFile(name, []byte(contents), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write patch %s", name)
 	}
@@ -166,11 +196,11 @@ func (l *Kustomizer) writePatch(name string, contents string) error {
 	return nil
 }
 
-func (l *Kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []string) error {
+func (l *Kustomizer) writeOverlay(fs afero.Afero, step api.Kustomize, relativePatchPaths []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
-			filepath.Join("../../", step.BasePath),
+			filepath.Join("../../", step.Base),
 		},
 		Patches: relativePatchPaths,
 	}
@@ -180,8 +210,8 @@ func (l *Kustomizer) writeOverlay(step api.Kustomize, relativePatchPaths []strin
 		return errors.Wrap(err, "marshal kustomization.yaml")
 	}
 
-	name := path.Join(step.Dest, "kustomization.yaml")
-	err = l.FS.WriteFile(name, []byte(marshalled), 0666)
+	name := path.Join(step.OverlayPath(), "kustomization.yaml")
+	err = fs.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)
 	}
@@ -194,16 +224,16 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(
-		step.BasePath,
+		step.Base,
 		func(targetPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			if filepath.Ext(targetPath) == ".yaml" && !strings.HasSuffix(targetPath, "kustomization.yaml") {
-				relativePath, err := filepath.Rel(step.BasePath, targetPath)
+			if l.shouldAddFile(targetPath) {
+				relativePath, err := filepath.Rel(step.Base, targetPath)
 				if err != nil {
-					debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
+					debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
 					return errors.Wrap(err, "failed to get relative path")
 				}
 				baseKustomization.Resources = append(baseKustomization.Resources, relativePath)
@@ -224,10 +254,17 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	}
 
 	// write base kustomization
-	name := path.Join(step.BasePath, "kustomization.yaml")
+	name := path.Join(step.Base, "kustomization.yaml")
 	err = l.FS.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)
 	}
 	return nil
+}
+
+func (l *Kustomizer) shouldAddFile(targetPath string) bool {
+	return filepath.Ext(targetPath) == ".yaml" &&
+		!strings.HasSuffix(targetPath, "kustomization.yaml") &&
+		!strings.HasSuffix(targetPath, "Chart.yaml") &&
+		!strings.HasSuffix(targetPath, "values.yaml")
 }
