@@ -8,37 +8,47 @@ $SRC = $(shell find . -path "./node_modules" -prune -o -path "./build" -prune -o
 	@mkdir -p .state
 	@touch .state/package
 
+.state/package-init: ../init/package.json ../init/yarn.lock
+	cd ../init && \
+		yarn --pure-lockfile && \
+		yarn build && \
+		yarn link
+		yarn link @replicatedhq/ship-init
+	@mkdir -p .state
+	@touch .state/package-init
+
+.state/package-init-dev: ../init/package.json ../init/yarn.lock
+	cd ../init && \
+		yarn --pure-lockfile && \
+		yarn build-dev && \
+		yarn link
+		yarn link @replicatedhq/ship-init
+	@mkdir -p .state
+	@touch .state/package-init-dev
+
 clean_build_artifacts:
 	rm -rf build
 	rm -rf dist
+	rm -rf ../init/dist
 
 clean: clean_build_artifacts
 	rm -rf node_modules
+	rm -rf ../init/node_modules
 	rm -rf .state
 
-deps: .state/package
-	cd ../init && \
-	yarn --pure-lockfile && \
-	yarn build && \
-	yarn link
-	yarn link @replicatedhq/ship-init
+deps: .state/package .state/package-init
 
-deps-dev: .state/package
-	cd ../init && \
-	yarn --pure-lockfile && \
-	yarn build-dev && \
-	yarn link
-	yarn link @replicatedhq/ship-init
+deps-dev: .state/package .state/package-init-dev
 
 serve_ship:
 	yarn start
 
-.state/build_ship: deps $(shell find src -type f) clean_build_artifacts
+.state/build_ship: deps $(shell find src -type f)
 	yarn build
 	@mkdir -p .state
 	@touch .state/build_ship
 
-.state/build_ship_dev: deps-dev clean_build_artifacts
+.state/build_ship_dev: deps-dev
 	yarn build
 	@mkdir -p .state
 	@touch .state/build_ship_dev
