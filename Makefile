@@ -226,7 +226,7 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
-build: fmt embed-ui test bin/ship
+build: fmt embed-ui-dev test bin/ship
 
 build-ci: ci-embed-ui bin/ship
 
@@ -269,6 +269,7 @@ mark-ui-gitignored:
 
 embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
 
+embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
 
 ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
 build-ui:
