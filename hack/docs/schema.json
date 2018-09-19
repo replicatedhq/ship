@@ -205,6 +205,73 @@
                   }
                 ]
               },
+              "azure_aks": {
+                "type": "object",
+                "properties": {
+                  "cluster_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "dest": {
+                    "type": "string"
+                  },
+                  "disk_gb": {
+                    "type": "string"
+                  },
+                  "kubernetes_version": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "integer"
+                  },
+                  "node_count": {
+                    "type": "string"
+                  },
+                  "node_type": {
+                    "type": "string"
+                  },
+                  "public_key": {
+                    "type": "string"
+                  },
+                  "resource_group_name": {
+                    "type": "string"
+                  },
+                  "service_principal_id": {
+                    "type": "string"
+                  },
+                  "service_principal_secret": {
+                    "type": "string"
+                  },
+                  "subscription_id": {
+                    "type": "string"
+                  },
+                  "tenant_id": {
+                    "type": "string"
+                  },
+                  "when": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tenant_id",
+                  "subscription_id",
+                  "service_principal_id",
+                  "service_principal_secret",
+                  "resource_group_name",
+                  "location",
+                  "cluster_name",
+                  "kubernetes_version",
+                  "public_key",
+                  "node_count",
+                  "node_type",
+                  "disk_gb"
+                ]
+              },
               "docker": {
                 "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
                 "examples": [
@@ -893,13 +960,14 @@
                 "description": "Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
                 "examples": [
                   {
-                    "base_path": "./k8s/base",
-                    "dest": "./k8s/overlays/production"
+                    "base": "./k8s/base",
+                    "overlay": "./overlays/production",
+                    "dest": "./rendered.yaml"
                   }
                 ],
                 "type": "object",
                 "properties": {
-                  "base_path": {
+                  "base": {
                     "type": "string"
                   },
                   "description": {
@@ -917,6 +985,9 @@
                       "type": "string"
                     }
                   },
+                  "overlay": {
+                    "type": "string"
+                  },
                   "requires": {
                     "type": "array",
                     "items": {
@@ -925,8 +996,7 @@
                   }
                 },
                 "required": [
-                  "base_path",
-                  "dest"
+                  "base"
                 ]
               },
               "message": {
