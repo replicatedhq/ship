@@ -3,7 +3,6 @@ import { withRouter } from "react-router-dom";
 import isEmpty from "lodash/isEmpty";
 import find from "lodash/find";
 import indexOf from "lodash/indexOf";
-import "../../scss/components/shared/StepNumbers.scss";
 
 class StepNumbers extends React.Component {
   constructor() {

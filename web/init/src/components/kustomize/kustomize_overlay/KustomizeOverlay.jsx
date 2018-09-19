@@ -17,7 +17,6 @@ import Loader from "../../shared/Loader";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 import DiffEditor from "../../shared/DiffEditor";
 
-import "../../../scss/components/kustomize/KustomizeOverlay.scss";
 import "../../../../node_modules/brace/mode/yaml";
 import "../../../../node_modules/brace/theme/chrome";
 
