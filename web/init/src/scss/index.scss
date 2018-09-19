@@ -1,6 +1,9 @@
+@import "./utilities/reset.scss"; // Scoped to "ship-init"
+@import "./utilities/base.scss"; // Scoped to "ship-init"
+
 #ship-init-component {
-  @import "./utilities/reset.scss";
-  @import "./utilities/base.scss";
+  display: flex;
+  
   @import "./utilities/typography.scss";
   @import "./utilities/buttons.scss";
   @import "./utilities/colors.scss";
