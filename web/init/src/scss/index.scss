@@ -3,6 +3,7 @@
 
 #ship-init-component {
   display: flex;
+  flex: 1;
   
   @import "./utilities/typography.scss";
   @import "./utilities/buttons.scss";
