@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -221,6 +222,11 @@ func (m *MManager) tryLoadFromSecret() (State, error) {
 	if !ok {
 		err := fmt.Errorf("key %q not found in secret %q", secretKey, secretName)
 		return nil, errors.Wrap(err, "get state from secret")
+	}
+
+	// An empty secret should be treated as empty state
+	if len(strings.TrimSpace(string(serialized))) == 0 {
+		return Empty{}, nil
 	}
 
 	// HACK -- try to deserialize it as VersionedState, otherwise, assume its a raw map of config values

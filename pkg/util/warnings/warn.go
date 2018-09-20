@@ -10,6 +10,8 @@ import (
 // to use "ship init" with a present state file on disk
 var WarnShouldUseUpdate = warning{msg: `To build on your progress, run "ship update"`}
 
+var WarnCannotRemoveState = warning{msg: `Existing state was found that Ship cannot automatically remove. Please delete the existing state and try again.`}
+
 // WarnShouldMoveDirectory is the message printed to the user when they attempt to run ship when files like `base` or
 // `overlays` are already present
 func WarnShouldMoveDirectory(dir string) error {

@@ -2,6 +2,7 @@ package ship
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"strings"
@@ -42,16 +43,25 @@ func (s *Ship) Init(ctx context.Context) error {
 	defer s.Shutdown(cancelFunc)
 
 	if s.Viper.GetString("raw") != "" {
-
 		release := s.fakeKustomizeRawRelease()
 		return s.execute(ctx, release, nil, true)
 	}
 
-	// does a state file exist on disk?
-	if s.stateFileExists(ctx) {
-		if err := s.promptToRemoveState(); err != nil {
-			debug.Log("event", "state.remove.prompt.fail")
-			return err
+	existingState, _ := s.State.TryLoad()
+	if existingState != nil {
+		if existingState != existingState.(state.Empty) {
+			fmt.Printf("exsiting state = %#v\n", existingState)
+			debug.Log("event", "existing.state")
+
+			if s.Viper.GetString("state-from") != "file" {
+				debug.Log("event", "existing.state", "state-from", "not file")
+				return warnings.WarnCannotRemoveState
+			}
+
+			if err := s.promptToRemoveState(); err != nil {
+				debug.Log("event", "state.remove.prompt.fail")
+				return err
+			}
 		}
 	}
 
