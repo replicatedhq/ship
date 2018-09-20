@@ -9,8 +9,6 @@ import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../kustomize/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
 
-import "../../scss/components/shared/DetermineStep.scss";
-
 export default class DetermineStep extends React.Component {
 
   constructor(props) {
@@ -31,45 +29,45 @@ export default class DetermineStep extends React.Component {
     switch (phase) {
     case "message":
       return (
-        <StepMessage 
-          actions={actions} 
-          message={currentStep.message} 
-          level={currentStep.level} 
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading} 
+        <StepMessage
+          actions={actions}
+          message={currentStep.message}
+          level={currentStep.level}
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
     case "stream":
       return (
-        <StepMessage 
-          actions={actions} 
-          message={currentStep.message} 
-          level={currentStep.level} 
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents} 
+        <StepMessage
+          actions={actions}
+          message={currentStep.message}
+          level={currentStep.level}
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents}
         />
       );
     case "render.confirm":
       return (
-        <StepBuildingAssets 
-          getStep={this.props.getCurrentStep} 
-          status={progress} 
+        <StepBuildingAssets
+          getStep={this.props.getCurrentStep}
+          status={progress}
         />
       );
     case "terraform.prepare":
       return (
-        <StepBuildingAssets 
-          getStep={this.props.getCurrentStep} 
-          status={progress} 
+        <StepBuildingAssets
+          getStep={this.props.getCurrentStep}
+          status={progress}
         />
       );
     case "helm.intro":
       return (
-        <StepHelmIntro 
+        <StepHelmIntro
           actions={actions}
           shipAppMetadata={this.props.shipAppMetadata}
-          handleAction={this.handleAction} 
-          isLoading={this.props.dataLoading.submitActionLoading} 
+          handleAction={this.handleAction}
+          isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
     case "helm.values":
@@ -78,8 +76,8 @@ export default class DetermineStep extends React.Component {
           saveValues={this.props.saveHelmChartValues}
           getStep={currentStep.helmValues}
           shipAppMetadata={this.props.shipAppMetadata}
-          actions={actions} 
-          handleAction={this.handleAction} 
+          actions={actions}
+          handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );

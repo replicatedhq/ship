@@ -1,8 +1,6 @@
 import * as React from "react";
 import autoBind from "react-autobind";
 
-import "../../scss/components/shared/Toast.scss";
-
 export default class Toast extends React.Component {
   constructor() {
     super();

@@ -3,9 +3,6 @@ import autoBind from "react-autobind";
 import assign from "object-assign";
 import SidebarItem from "./SidebarItem";
 
-// CSS
-import "../../scss/components/shared/Sidebar.scss";
-
 export default class Sidebar extends React.Component {
   constructor() {
     super();

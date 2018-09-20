@@ -2,9 +2,6 @@ import React from "react";
 import Markdown from "react-remarkable";
 import RenderActions from "../shared/RenderActions";
 
-import "../../scss/components/kustomize/HelmChartInfo.scss";
-import "../../scss/components/shared/DetermineStep.scss";
-
 const HelmChartInfo = ({ shipAppMetadata, actions, handleAction, isLoading}) => {
   const { readme, version } = shipAppMetadata;
   return (

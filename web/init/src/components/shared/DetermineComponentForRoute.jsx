@@ -16,8 +16,6 @@ import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
 import { fetchContentForStep } from "../../redux/data/appRoutes/actions";
 
-import "../../scss/components/shared/DetermineStep.scss";
-
 export class DetermineComponentForRoute extends React.Component {
 
   constructor(props) {

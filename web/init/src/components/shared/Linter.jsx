@@ -3,8 +3,6 @@ import autoBind from "react-autobind";
 import Markdown from "react-remarkable";
 import get from "lodash/get";
 
-import "../../scss/components/shared/Linter.scss";
-
 export default class Linter extends React.Component {
 
   constructor() {

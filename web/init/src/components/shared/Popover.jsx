@@ -1,5 +1,4 @@
 import * as React from "react";
-import "../../scss/components/shared/Popover.scss";
 
 export default class Popover extends React.Component {
   render() {
