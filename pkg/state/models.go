@@ -16,6 +16,7 @@ type State interface {
 	CurrentHelmValuesDefaults() string
 	Upstream() string
 	Versioned() VersionedState
+	IsEmpty() bool
 }
 
 var _ State = VersionedState{}
@@ -31,6 +32,7 @@ func (Empty) CurrentHelmValues() string             { return "" }
 func (Empty) CurrentHelmValuesDefaults() string     { return "" }
 func (Empty) Upstream() string                      { return "" }
 func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
+func (Empty) IsEmpty() bool                         { return true }
 
 type V0 map[string]interface{}
 
@@ -41,9 +43,14 @@ func (v V0) CurrentHelmValues() string             { return "" }
 func (v V0) CurrentHelmValuesDefaults() string     { return "" }
 func (v V0) Upstream() string                      { return "" }
 func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
+func (v V0) IsEmpty() bool                         { return false }
 
 type VersionedState struct {
 	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
+}
+
+func (v VersionedState) IsEmpty() bool {
+	return false
 }
 
 type V1 struct {
