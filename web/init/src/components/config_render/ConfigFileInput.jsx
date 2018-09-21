@@ -12,7 +12,6 @@ export default class ConfigFileInput extends React.Component {
   }
 
   handleOnChange(value, data) {
-    ReactDOM.findDOMNode(this.refs.file).value = "";
     if (this.props.handleChange) {
       if (this.props.multiple) {
         this.props.handleChange(this.props.name, data, value);
@@ -52,7 +51,7 @@ export default class ConfigFileInput extends React.Component {
           <div>
             <span>
               <FileInput
-                ref="file"
+                ref={(file) => this.file = file}
                 name={this.props.name}
                 readOnly={this.props.readonly}
                 disabled={this.props.readonly}
