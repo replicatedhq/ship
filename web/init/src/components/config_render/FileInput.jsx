@@ -63,7 +63,7 @@ export default class FileInput extends React.Component {
         <span className={`${this.props.readonly ? "readonly" : ""} ${this.props.disabled ? "disabled" : ""}`}>
           <p className="sub-header-color field-section-sub-header u-marginTop--small u-marginBottom--small">{label}</p>
           <input
-            ref="file"
+            ref={(file) => this.file = file}
             type="file"
             name={this.props.name}
             className="form-control"

@@ -23,7 +23,7 @@ export default class ConfigCheckbox extends React.Component {
         <span className="u-marginTop--10 config-errblock" id={`${this.props.name}-errblock`}></span>
         <div className="flex-auto flex u-marginRight--20">
           <input
-            ref="checkbox"
+            ref={(checkbox) => this.checkbox = checkbox}
             type="checkbox"
             name={this.props.name}
             default={this.props.default}
@@ -37,9 +37,9 @@ export default class ConfigCheckbox extends React.Component {
           <div>
             <label htmlFor={this.props.name} className={`u-marginLeft--small header-color field-section-sub-header u-userSelect--none ${this.props.readonly ? "u-cursor--default" : "u-cursor--pointer"}`}>
               {this.props.title} {
-                this.props.required ? 
+                this.props.required ?
                   <span className="field-label required">Required</span> :
-                  this.props.recommended ? 
+                  this.props.recommended ?
                     <span className="field-label recommended">Recommended</span> :
                     null}
             </label>
