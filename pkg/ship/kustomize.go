@@ -50,7 +50,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	existingState, _ := s.State.TryLoad()
 	if existingState != nil {
 		if !existingState.IsEmpty() {
-			s.UI.Output(fmt.Sprintf("exsiting state = %#v\n", existingState))
+			s.UI.Output(fmt.Sprintf("existing state = %#v\n", existingState))
 			debug.Log("event", "existing.state")
 
 			if s.Viper.GetString("state-from") != "file" {
