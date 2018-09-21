@@ -47,6 +47,18 @@ func (mr *MockManagerMockRecorder) RemoveStateFile() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveStateFile", reflect.TypeOf((*MockManager)(nil).RemoveStateFile))
 }
 
+// ResetLifecycle mocks base method
+func (m *MockManager) ResetLifecycle() error {
+	ret := m.ctrl.Call(m, "ResetLifecycle")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetLifecycle indicates an expected call of ResetLifecycle
+func (mr *MockManagerMockRecorder) ResetLifecycle() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetLifecycle", reflect.TypeOf((*MockManager)(nil).ResetLifecycle))
+}
+
 // Save mocks base method
 func (m *MockManager) Save(arg0 state.VersionedState) error {
 	ret := m.ctrl.Call(m, "Save", arg0)
