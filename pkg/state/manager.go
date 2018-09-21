@@ -35,6 +35,7 @@ type Manager interface {
 	SerializeShipMetadata(api.ShipAppMetadata) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
 	Save(v VersionedState) error
+	ResetLifecycle() error
 }
 
 var _ Manager = &MManager{}
@@ -185,6 +186,22 @@ func (m *MManager) TryLoad() (State, error) {
 		err := fmt.Errorf("unsupported state-from value: %q", stateFrom)
 		return nil, errors.Wrap(err, "try load state")
 	}
+}
+
+// ResetLifecycle is used by `ship update --headed` to reset the saved stepsCompleted
+// in the state.json
+func (m *MManager) ResetLifecycle() error {
+	debug := level.Debug(log.With(m.Logger, "method", "ResetLifecycle"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Lifecycle = nil
+
+	return m.serializeAndWriteState(versionedState)
 }
 
 // tryLoadFromSecret will attempt to load the state from a secret
