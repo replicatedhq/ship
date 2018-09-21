@@ -72,6 +72,6 @@ lifecycle:
        contents: "hi"
     - config: {}
     - render: {}
-#    - terraform: {}
+    - terraform: {}
     - message:
        contents: "hi"
