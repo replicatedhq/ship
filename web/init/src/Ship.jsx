@@ -9,6 +9,15 @@ import "./scss/index.scss";
 const bodyClass = "ship-init";
 
 export class Ship extends React.Component {
+  static propTypes = {
+    /** API endpoint for the Ship binary */
+    apiEndpoint: PropTypes.string.isRequired,
+    /**
+     * Base path name for the internal Ship Init component router
+     * */
+    basePath: PropTypes.string.isRequired,
+  }
+
   componentDidMount() {
     document.body.classList.add(bodyClass);
   }
@@ -17,20 +26,16 @@ export class Ship extends React.Component {
   }
 
   render() {
-    const { apiEndpoint } = this.props;
+    const { apiEndpoint, basePath } = this.props;
 
     return (
       <div id="ship-init-component">
         <Provider store={configureStore(apiEndpoint)}>
           <AppWrapper>
-            <RouteDecider />
+            <RouteDecider basePath={basePath} />
           </AppWrapper>
         </Provider>
       </div>
     )
   }
-}
-
-Ship.propTypes = {
-  apiEndpoint: PropTypes.string.isRequired,
 }
