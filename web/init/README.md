@@ -3,8 +3,6 @@
 
 > The `ship init` web application exported as a React component.
 
-[![NPM](https://img.shields.io/npm/v/{{name}}.svg)](https://www.npmjs.com/package/{{name}})
-
 ## Install
 
 ```bash
@@ -20,7 +18,12 @@ import { Ship } from "@replicatedhq/ship-init";
 
 class App extends React.Component {
   render() {
-    return <Ship apiEndpoint="https://my-awesome-ship-api.com/api/v1" />;
+    return (
+      <Ship
+        apiEndpoint="https://my-awesome-ship-api.com/api/v1"
+        basePath="/"
+      />;
+    );
   }
 }
 ```
