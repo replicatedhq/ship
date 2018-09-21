@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import isEmpty from "lodash/isEmpty";
 import NavBar from "../../containers/Navbar";
@@ -8,18 +9,40 @@ import StepNumbers from "./StepNumbers";
 import DetermineComponentForRoute from "../../containers/DetermineComponentForRoute";
 import StepDone from "./StepDone";
 
+const isRootPath = (basePath) => {
+  const formattedBasePath = basePath === "/" ? basePath : basePath.replace(/\/$/, "");
+  return window.location.pathname === formattedBasePath
+}
+
 export default class RouteDecider extends React.Component {
+  static propTypes = {
+    basePath: PropTypes.string.isRequired,
+    isDone: PropTypes.bool.isRequired,
+    routes: PropTypes.arrayOf(
+      PropTypes.shape({
+         id: PropTypes.string,
+         description: PropTypes.string,
+         phase: PropTypes.string,
+      })
+    )
+  }
 
   componentDidUpdate(lastProps) {
-    if (this.props.routes !== lastProps.routes && this.props.routes.length) {
-      for (let i = 0; i < this.props.routes.length; i++) {
-        if (this.props.routes[i].phase.includes("helm")) {
-          this.props.getHelmChartMetadata();
+    const {
+      basePath,
+      routes,
+      getHelmChartMetadata,
+    } = this.props
+    if (routes !== lastProps.routes && routes.length) {
+      for (let i = 0; i < routes.length; i++) {
+        if (routes[i].phase.includes("helm")) {
+          getHelmChartMetadata();
           break;
         }
       }
-      if (window.location.pathname === "/") {
-        window.location.replace(`/${this.props.routes[0].id}`);
+
+      if (isRootPath(basePath)) {
+        window.location.replace(`${basePath}${routes[0].id}`);
       }
     }
   }
@@ -31,12 +54,16 @@ export default class RouteDecider extends React.Component {
   }
 
   render() {
-    const { routes, isDone } = this.props;
-    const isOnRoot = window.location.pathname === "/";
+    const {
+      basePath,
+      routes,
+      isDone
+    } = this.props;
+    const isOnRoot = isRootPath(basePath)
 
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">
-        <BrowserRouter>
+        <BrowserRouter basename={basePath}>
           <div className="flex-column flex1">
             <div className="flex-column flex1 u-overflow--hidden u-position--relative">
               {!routes ?
