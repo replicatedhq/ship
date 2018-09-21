@@ -486,9 +486,7 @@ func TestMManager_ResetLifecycle(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					Lifecycle: &Lifeycle{
-						StepsCompleted: nil,
-					},
+					Lifecycle: nil,
 				},
 			},
 		},

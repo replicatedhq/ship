@@ -188,6 +188,8 @@ func (m *MManager) TryLoad() (State, error) {
 	}
 }
 
+// ResetLifecycle is used by `ship update --headed` to reset the saved stepsCompleted
+// in the state.json
 func (m *MManager) ResetLifecycle() error {
 	debug := level.Debug(log.With(m.Logger, "method", "ResetLifecycle"))
 
@@ -197,7 +199,7 @@ func (m *MManager) ResetLifecycle() error {
 		return errors.Wrap(err, "try load state")
 	}
 	versionedState := currentState.Versioned()
-	versionedState.V1.Lifecycle = &Lifeycle{StepsCompleted: nil}
+	versionedState.V1.Lifecycle = nil
 
 	return m.serializeAndWriteState(versionedState)
 }
