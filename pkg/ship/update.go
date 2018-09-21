@@ -47,6 +47,11 @@ func (s *Ship) Update(ctx context.Context) error {
 	debug.Log("event", "fetch latest chart")
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+upstreamURL))
 
+	debug.Log("event", "reset steps completed")
+	if err := s.StateManager.ResetLifecycle(); err != nil {
+		return errors.Wrap(err, "reset state.json completed lifecycle")
+	}
+
 	release, err := s.Resolver.ResolveRelease(ctx, upstreamURL)
 	if err != nil {
 		return errors.Wrapf(err, "resolve helm chart metadata for %s", upstreamURL)

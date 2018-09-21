@@ -464,3 +464,54 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 		})
 	}
 }
+
+func TestMManager_ResetLifecycle(t *testing.T) {
+	tests := []struct {
+		name     string
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name: "basic test",
+			before: VersionedState{
+				V1: &V1{
+					Lifecycle: &Lifeycle{
+						StepsCompleted: map[string]interface{}{
+							"step1": true,
+							"step2": true,
+							"step3": true,
+						},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Lifecycle: &Lifeycle{
+						StepsCompleted: nil,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.ResetLifecycle()
+			req.NoError(err)
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
