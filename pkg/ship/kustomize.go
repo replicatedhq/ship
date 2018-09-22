@@ -65,7 +65,13 @@ func (s *Ship) Init(ctx context.Context) error {
 		}
 	}
 
-	release, err := s.Resolver.ResolveRelease(ctx, s.Viper.GetString("target"))
+	// we already check in the CMD, but no harm in being extra safe here
+	target := s.Viper.GetString("upstream")
+	if target == "" {
+		return errors.New("No upstream provided")
+	}
+
+	release, err := s.Resolver.ResolveRelease(ctx, target)
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
 	}
