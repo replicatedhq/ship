@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,9 +30,12 @@ Upstream can be one of:
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := viper.GetViper()
-			if len(args) != 0 {
-				v.Set("target", args[0])
+			if len(args) == 0 {
+				cmd.Help()
+				return errors.New("Error: please supply an upstream")
 			}
+
+			v.Set("upstream", args[0])
 			s, err := ship.Get(v)
 			if err != nil {
 				return err
