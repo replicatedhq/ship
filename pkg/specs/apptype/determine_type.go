@@ -71,11 +71,9 @@ func (r *inspector) DetermineApplicationType(
 		return "replicated.app", "", nil
 	}
 
-	// TODO implement a way to choose which github method should be used
-
 	r.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
-	// use the integrated github client if the url is a github url and does not contain "//"
-	if util.IsGithubURL(upstream) {
+	// use the integrated github client if the url is a github url and does not contain "//", unless perfer-git is set)
+	if r.viper.GetBool("prefer-git") == false && util.IsGithubURL(upstream) {
 		githubClient := githubclient.NewGithubClient(r.fs, r.logger)
 		return r.determineTypeFromContents(ctx, upstream, githubClient)
 	}

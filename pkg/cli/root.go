@@ -65,6 +65,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("secret-key", "", "name of the key in the secret containing state")
 
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
+	cmd.PersistentFlags().BoolP("prefer-git", "", false, "prefer the git protocol instead of using http apis")
 
 	cmd.AddCommand(Init())
 	cmd.AddCommand(Watch())
