@@ -1,7 +1,6 @@
 import React from "react";
 
 import ErrorBoundary from "../../ErrorBoundary";
-import autoBind from "react-autobind";
 
 import isEmpty from "lodash/isEmpty";
 
@@ -21,7 +20,6 @@ export default class ApplicationSettings extends React.Component {
         opts: {}
       }
     };
-    autoBind(this);
   }
 
   componentDidUpdate(lastProps) {
@@ -108,7 +106,7 @@ export default class ApplicationSettings extends React.Component {
   //   return nextGroups;
   // }
 
-  cancelToast() {
+  cancelToast = () => {
     let nextState = {};
     nextState.toastDetails = {
       showToast: false,
@@ -120,7 +118,7 @@ export default class ApplicationSettings extends React.Component {
     this.setState(nextState)
   }
 
-  onConfigSaved(data) {
+  onConfigSaved = (data) => {
     let nextState = {};
     if (data.RunStatusText === "Starting") {
       nextState.toastDetails = {
@@ -216,7 +214,7 @@ export default class ApplicationSettings extends React.Component {
               }
             </div>
             <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-              <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+              <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave.bind(this)} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
             </div>
           </div>
         </div>

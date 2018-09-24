@@ -1,14 +1,9 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 import { Link } from "react-router-dom";
 import Popover from "./Popover";
 import PopoverItem from "./PopoverItem";
 
 export default class NavItem extends React.Component {
-  constructor() {
-    super();
-    autoBind(this);
-  }
 
   componentDidMount() {
     document.addEventListener("mousedown", this.handleClickOutside);
@@ -18,11 +13,11 @@ export default class NavItem extends React.Component {
     document.removeEventListener("mousedown", this.handleClickOutside);
   }
 
-  setWrapperRef(node) {
+  setWrapperRef = (node) => {
     this.wrapperRef = node;
   }
 
-  handleClickOutside(event) {
+  handleClickOutside = (event) => {
     if (this.props.isDropDownActive && this.wrapperRef && !this.wrapperRef.contains(event.target)) {
       if (this.props.dropdownContent) {
         this.props.onClick(event)

@@ -2,7 +2,7 @@ import React from "react";
 
 export default class ConfigCheckbox extends React.Component {
 
-  handleOnChange(e) {
+  handleOnChange = (e) => {
     const { handleOnChange, name } = this.props;
     var val = e.target.checked ? "1" : "0";
     if (this.props.handleOnChange && typeof handleOnChange === "function") {

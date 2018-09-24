@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom"
-import autoBind from "react-autobind";
 import Markdown from "react-remarkable";
 import each from "lodash/each";
 import some from "lodash/some";
@@ -16,19 +15,13 @@ import ConfigFileInput from "./ConfigFileInput";
 
 export default class ConfigGroup extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {}
-    autoBind(this);
-  }
-
-  handleItemChange(itemName, value, data) {
+  handleItemChange = (itemName, value, data) => {
     if (this.props.handleChange) {
       this.props.handleChange(itemName, value, data);
     }
   }
 
-  renderConfigItems(items) {
+  renderConfigItems = (items) => {
     if (!items) return null;
     return items.map((item, i) => {
       switch (item.type) {
@@ -117,7 +110,7 @@ export default class ConfigGroup extends React.Component {
     })
   }
 
-  addLinkAttributes() {
+  addLinkAttributes = () => {
     if (this.refs.markdown) {
       each(ReactDOM.findDOMNode(this.refs.markdown).getElementsByTagName("a"), (el) => {
         el.setAttribute("target", "_blank");
@@ -125,7 +118,7 @@ export default class ConfigGroup extends React.Component {
     }
   }
 
-  isAtLeastOneItemVisible() {
+  isAtLeastOneItemVisible = () => {
     return some(this.props.item.items, (item) => {
       if (!isEmpty(item)) {
         return ConfigService.isVisible(this.props.items, item);

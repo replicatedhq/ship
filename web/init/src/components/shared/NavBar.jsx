@@ -1,6 +1,5 @@
 import React, { Fragment } from "react";
 import assign from "object-assign";
-import autoBind from "react-autobind";
 import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
@@ -17,17 +16,16 @@ export class NavBar extends React.Component {
       },
       imageLoaded: false,
     };
-    autoBind(this);
   }
 
-  isActive(pathname = "") {
+  isActive = (pathname = "") => {
     return (item = {}) => {
       if (!item.linkTo) return false;
       return pathname.indexOf(`${item.linkTo}`) > -1;
     };
   }
 
-  handleRouteChange(route, dropdownKey) {
+  handleRouteChange = (route, dropdownKey) => {
     if (this.state[`${dropdownKey}Active`]) {
       this.setState({
         [`${dropdownKey}Active`]: false
@@ -36,11 +34,11 @@ export class NavBar extends React.Component {
     this.props.history.push(route);
   }
 
-  handleLogOut(e) {
+  handleLogOut = (e) => {
     e.preventDefault();
   }
 
-  getNavItems() {
+  getNavItems = () => {
     const token = true;
     return[ !token ? null :
       {
@@ -66,13 +64,13 @@ export class NavBar extends React.Component {
     ];
   }
 
-  combineItems(methods) {
+  combineItems = (methods) => {
     return methods.reduce((accum, method) => (
       accum.concat(method(this.props))
     ), []);
   }
 
-  onClick(item) {
+  onClick = (item) => {
     return (e, ...rest) => {
       const activeKey = `${item.dropdownLabel || item.id || ""}Active`;
       if (item.href) return;

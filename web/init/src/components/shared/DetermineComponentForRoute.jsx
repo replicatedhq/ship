@@ -1,6 +1,5 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
-import autoBind from "react-autobind";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import indexOf from "lodash/indexOf";
@@ -23,7 +22,6 @@ export class DetermineComponentForRoute extends React.Component {
     this.state = {
       maxPollReached: false,
     };
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -38,12 +36,12 @@ export class DetermineComponentForRoute extends React.Component {
     }
   }
 
-  getContentForStep() {
+  getContentForStep = () => {
     const { getContentForStep, routeId } = this.props;
     getContentForStep(routeId);
   }
 
-  gotoRoute(route) {
+  gotoRoute = (route) => {
     let nextRoute = route;
 
     if (!nextRoute) {
@@ -53,7 +51,7 @@ export class DetermineComponentForRoute extends React.Component {
     }
 
     if (!nextRoute) {
-      return this.handleShutdown();
+      return this.handleShutdown().bind(this);
     }
     this.props.history.push(`/${nextRoute.id}`);
   }
@@ -76,15 +74,15 @@ export class DetermineComponentForRoute extends React.Component {
       routes,
       apiEndpoint,
     } = this.props;
-    this.handleAction(kustomizeIntroActions[0]);
+    this.handleAction(kustomizeIntroActions[0]).bind(this);
 
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
     const { actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id);
-    this.handleAction(kustomizeActions[0]);
+    this.handleAction(kustomizeActions[0]).bind(this);
 
-    this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
+    this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize)).bind(this);
   }
 
   async startPoll(routeId, cb) {
@@ -93,7 +91,7 @@ export class DetermineComponentForRoute extends React.Component {
     }
   }
 
-  renderStep(phase) {
+  renderStep = (phase) => {
     const {
       currentStep,
       progress,
@@ -118,7 +116,7 @@ export class DetermineComponentForRoute extends React.Component {
           actions={actions}
           message={currentStep.message}
           level={currentStep.level}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
@@ -126,7 +124,7 @@ export class DetermineComponentForRoute extends React.Component {
       return (
         <ConfigOnly
           actions={actions}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           routeId={this.props.routeId}
         />
       );
@@ -136,14 +134,14 @@ export class DetermineComponentForRoute extends React.Component {
           actions={actions}
           message={currentStep.message}
           level={currentStep.level}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents}
         />
       );
     case "render":
       return (
         <StepBuildingAssets
-          startPoll={this.startPoll}
+          startPoll={this.startPoll.bind(this)}
           routeId={routeId}
           gotoRoute={this.gotoRoute}
           location={location}
@@ -155,10 +153,10 @@ export class DetermineComponentForRoute extends React.Component {
       return (
         <StepTerraform
           routeId={routeId}
-          startPoll={this.startPoll}
+          startPoll={this.startPoll.bind(this)}
           location={location}
           status={progress || currentStep.status}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           gotoRoute={this.gotoRoute}
           initializeStep={initializeStep}
         />
@@ -168,7 +166,7 @@ export class DetermineComponentForRoute extends React.Component {
         <StepHelmIntro
           actions={actions}
           shipAppMetadata={this.props.shipAppMetadata}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
@@ -179,7 +177,7 @@ export class DetermineComponentForRoute extends React.Component {
           getStep={currentStep.helmValues}
           shipAppMetadata={this.props.shipAppMetadata}
           actions={actions}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
@@ -187,23 +185,23 @@ export class DetermineComponentForRoute extends React.Component {
       return (
         <KustomizeEmpty
           actions={actions}
-          handleAction={this.handleAction}
-          skipKustomize={this.skipKustomize}
+          handleAction={this.handleAction.bind(this)}
+          skipKustomize={this.skipKustomize.bind(this)}
         />
       );
     case "kustomize":
       return (
         <KustomizeOverlay
-          startPoll={this.startPoll}
+          startPoll={this.startPoll.bind(this)}
           getCurrentStep={this.getContentForStep}
           pollCallback={this.gotoRoute}
           routeId={this.props.routeId}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}
-          handleAction={this.handleAction}
+          handleAction={this.handleAction.bind(this)}
           currentStep={currentStep}
-          skipKustomize={this.skipKustomize}
+          skipKustomize={this.skipKustomize.bind(this)}
           dataLoading={this.props.dataLoading}
         />
       );

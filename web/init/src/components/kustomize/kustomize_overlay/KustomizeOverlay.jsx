@@ -1,6 +1,5 @@
 import React from "react";
 import Modal from "react-modal";
-import autoBind from "react-autobind";
 import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
@@ -37,10 +36,9 @@ export default class KustomizeOverlay extends React.Component {
       displayConfirmModal: false,
       overlayToDelete: "",
     };
-    autoBind(this);
   }
 
-  toggleModal(overlayPath) {
+  toggleModal = (overlayPath) => {
     this.setState({
       displayConfirmModal: !this.state.displayConfirmModal,
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath
@@ -93,13 +91,13 @@ export default class KustomizeOverlay extends React.Component {
     const { patch, modified } = this.props;
     const hasPatchButNoModified = patch.length > 0 && modified.length === 0;
     if (hasPatchButNoModified) {
-      await this.handleApplyPatch().catch();
+      await this.handleApplyPatch().catch().bind(this);
     }
 
     this.setState({ viewDiff: !this.state.viewDiff });
   }
 
-  createOverlay() {
+  createOverlay = () => {
     const { selectedFile } = this.state;
     let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
@@ -145,7 +143,7 @@ export default class KustomizeOverlay extends React.Component {
 
   async discardOverlay() {
     const { overlayToDelete } = this.state;
-    await this.deleteOverlay(overlayToDelete);
+    await this.deleteOverlay(overlayToDelete).bind(this);
     this.setState({
       patch: "",
       displayConfirmModal: false
@@ -166,12 +164,12 @@ export default class KustomizeOverlay extends React.Component {
       contents,
     };
 
-    await this.handleApplyPatch();
+    await this.handleApplyPatch().bind(this);
     await this.props.saveKustomizeOverlay(payload).catch();
     await this.props.getCurrentStep();
     if (finalize) {
       this.setState({ savingFinalize: true });
-      this.handleFinalize();
+      this.handleFinalize().bind(this);
     }
   }
 
@@ -188,13 +186,13 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay.editor.find(PATCH_TOKEN);
   }
 
-  rebuildTooltip() {
+  rebuildTooltip = () => {
     // We need to rebuild these because...well I dunno why but if you don't the tooltips will not be visible after toggling the overlay editor.
     ReactTooltip.rebuild();
     ReactTooltip.hide();
   }
 
-  setFileTree({ kustomize }) {
+  setFileTree = ({ kustomize }) => {
     if (!kustomize.tree) return;
     const sortedTree = sortBy(kustomize.tree.children, (dir) => {
       dir.children ? dir.children.length : 0
@@ -206,7 +204,7 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  setAceEditor(editor) {
+  setAceEditor = (editor) => {
     this.aceEditorOverlay = editor;
   }
 
@@ -215,7 +213,7 @@ export default class KustomizeOverlay extends React.Component {
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
     this.state.patch = patch; // eslint-disable-line
-    this.handleApplyPatch()
+    this.handleApplyPatch().bind(this);
   }, 500);
 
   render() {
@@ -284,7 +282,7 @@ export default class KustomizeOverlay extends React.Component {
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
                               <AceEditorHOC
-                                handleGeneratePatch={this.handleGeneratePatch}
+                                handleGeneratePatch={this.handleGeneratePatch.bind(this)}
                                 fileToView={fileToView}
                                 diffOpen={this.state.viewDiff}
                                 overlayOpen={showOverlay}
@@ -335,7 +333,7 @@ export default class KustomizeOverlay extends React.Component {
               {showOverlay ?
                 <div className={`${this.state.viewDiff ? "flex1" : "flex-auto"} flex-column`}>
                   <div className="diff-viewer-wrapper flex-column flex1">
-                    <span className="diff-toggle" onClick={this.toggleDiff}>{this.state.viewDiff ? "Hide diff" : "Show diff"}</span>
+                    <span className="diff-toggle" onClick={this.toggleDiff.bind(this)}>{this.state.viewDiff ? "Hide diff" : "Show diff"}</span>
                     {this.state.viewDiff &&
                       <DiffEditor
                         diffTitle="Diff YAML"
@@ -357,11 +355,11 @@ export default class KustomizeOverlay extends React.Component {
                     <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                     :
                     <div className="flex">
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false).bind(this)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
                       {patch === "" ?
                         <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                         :
-                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true).bind(this)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
                       }
                     </div>
                   }
@@ -386,7 +384,7 @@ export default class KustomizeOverlay extends React.Component {
             <p className="u-fontSize--large u-fontWeight--normal u-color--dustyGray u-lineHeight--more">It will not be applied to the kustomization.yaml file that is generated for you.</p>
             <div className="flex justifyContent--flexEnd u-marginTop--20">
               <button className="btn secondary u-marginRight--10" onClick={() => this.toggleModal("")}>Cancel</button>
-              <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard overlay</button>
+              <button type="button" className="btn primary" onClick={this.discardOverlay.bind(this)}>Discard overlay</button>
             </div>
           </div>
 

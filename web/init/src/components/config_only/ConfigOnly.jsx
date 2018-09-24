@@ -1,6 +1,5 @@
 import React from "react";
 import ErrorBoundary from "../../ErrorBoundary";
-import autoBind from "react-autobind";
 
 import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
@@ -29,7 +28,6 @@ export default class ConfigOnly extends React.Component {
         opts: {}
       }
     };
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -47,7 +45,7 @@ export default class ConfigOnly extends React.Component {
     }
   }
 
-  mergeItemData(groups, data) {
+  mergeItemData = (groups, data) => {
     const nextGroups = map(groups, function(group) {
       group.items = map(group.items, function(item) {
         if (item.name === data.name) {
@@ -81,7 +79,7 @@ export default class ConfigOnly extends React.Component {
     return nextGroups;
   }
 
-  mergeGroupItemData(groups, currentGroups) {
+  mergeGroupItemData = (groups, currentGroups) => {
     const getItemData = (item) => {
       let data = {
         name: item.name,
@@ -113,7 +111,7 @@ export default class ConfigOnly extends React.Component {
     return nextGroups;
   }
 
-  cancelToast() {
+  cancelToast = () => {
     let nextState = {};
     nextState.toastDetails = {
       showToast: false,
@@ -125,7 +123,7 @@ export default class ConfigOnly extends React.Component {
     this.setState(nextState)
   }
 
-  onConfigSaved() {
+  onConfigSaved = () => {
     const {
       actions,
       handleAction,
@@ -153,7 +151,7 @@ export default class ConfigOnly extends React.Component {
     this.setState(nextState);
   }
 
-  onConfigError() {
+  onConfigError = () => {
     const { configErrors } = this.props;
     if (!configErrors.length) return;
     configErrors.map((err) => {
@@ -186,9 +184,9 @@ export default class ConfigOnly extends React.Component {
       .catch();
   }
 
-  handleConfigChange(data) {
+  handleConfigChange = (data) => {
     this.setState({ itemData: data });
-    this.pingServer(data);
+    this.pingServer(data).bind(this);
   }
 
   render() {
@@ -220,7 +218,7 @@ export default class ConfigOnly extends React.Component {
                 }
               </div>
               <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave.bind(this)} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
               </div>
             </div>
           </div>

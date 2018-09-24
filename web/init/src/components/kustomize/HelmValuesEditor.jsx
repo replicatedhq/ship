@@ -1,5 +1,4 @@
 import React from "react";
-import autoBind from "react-autobind";
 import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
 import AceEditor from "react-ace";
@@ -24,7 +23,6 @@ export default class HelmValuesEditor extends React.Component {
       saveFinal: false,
       unsavedChanges: false,
     }
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -36,7 +34,7 @@ export default class HelmValuesEditor extends React.Component {
     }
   }
 
-  getLinterErrors(specContents) {
+  getLinterErrors = (specContents) => {
     if (specContents === "") return;
 
     const errors = new linter.Linter(specContents).lint();
@@ -62,7 +60,7 @@ export default class HelmValuesEditor extends React.Component {
     });
   }
 
-  onSpecChange(value) {
+  onSpecChange = (value) => {
     const { initialSpecValue } = this.state;
     this.getLinterErrors(value);
     this.setState({
@@ -71,14 +69,14 @@ export default class HelmValuesEditor extends React.Component {
     });
   }
 
-  handleContinue() {
+  handleContinue = () => {
     const { actions } = this.props;
     let submitAction;
     submitAction = find(actions, ["buttonType", "popover"]);
     this.props.handleAction(submitAction, true);
   }
 
-  handleSkip() {
+  handleSkip = () => {
     const { initialSpecValue } = this.state;
     const payload = {
       values: initialSpecValue
@@ -99,7 +97,7 @@ export default class HelmValuesEditor extends React.Component {
       })
   }
 
-  handleSaveValues(finalize) {
+  handleSaveValues = (finalize) => {
     const { specValue } = this.state;
     const payload = {
       values: specValue
