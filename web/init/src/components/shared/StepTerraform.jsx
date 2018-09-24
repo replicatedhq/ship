@@ -56,7 +56,6 @@ export default class StepPreparingTerraform extends React.Component {
     const {
       status: parsedDetailStatus,
       progressDetail,
-      error,
       message,
       actions,
     } = parsedDetail;
@@ -74,7 +73,7 @@ export default class StepPreparingTerraform extends React.Component {
       return {
         isJSON,
         status: parsedDetailStatus,
-        error,
+        message,
       }
     }
 
@@ -111,13 +110,12 @@ export default class StepPreparingTerraform extends React.Component {
       progressDetail,
       message,
       actions,
-      error,
     } = this.parseStatus();
 
     return (
       <div className="flex1 flex-column justifyContent--center alignItems--center">
         {status === "working" ?
-          <div>
+          <div className="flex-column alignItems--center">
             <Loader size="60" />
             {isJSON ?
               <div>
@@ -146,7 +144,7 @@ export default class StepPreparingTerraform extends React.Component {
           : null
         }
         {status === "error" ?
-          <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{error}</p>
+          <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
           : null
         }
         {status === "success" ?
