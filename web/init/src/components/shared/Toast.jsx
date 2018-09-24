@@ -1,12 +1,6 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 
 export default class Toast extends React.Component {
-  constructor() {
-    super();
-    autoBind(this);
-  }
-
   render() {
     const { toast, onCancel } = this.props;
 
