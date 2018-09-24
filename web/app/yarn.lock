@@ -6573,10 +6573,6 @@ react-ace@^6.1.4:
     lodash.isequal "^4.1.1"
     prop-types "^15.5.8"
 
-react-autobind@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/react-autobind/-/react-autobind-1.0.6.tgz#936bb58edf6b89b619c50f82f0e617159fdfd4f1"
-
 react-dev-utils@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/react-dev-utils/-/react-dev-utils-5.0.2.tgz#7bb68d2c4f6ffe7ed1184c5b0124fcad692774d2"
