@@ -46,7 +46,9 @@ exports[`StepTerraform provided a status of working renders a loader 1`] = `
 <div
   className="flex1 flex-column justifyContent--center alignItems--center"
 >
-  <div>
+  <div
+    className="flex-column alignItems--center"
+  >
     <div
       className="Loader  u-display--inlineBlock"
     >

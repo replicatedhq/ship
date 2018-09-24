@@ -44,7 +44,7 @@ describe("StepTerraform", () => {
           type: "json",
           detail: JSON.stringify({
             status: "error",
-            error: "this is an error",
+            message: "this is an error",
           }),
         }
       };
