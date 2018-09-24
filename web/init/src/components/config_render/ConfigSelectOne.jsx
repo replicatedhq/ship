@@ -7,7 +7,7 @@ import ConfigRadio from "./ConfigRadio";
 
 export default class ConfigSelectOne extends React.Component {
 
-  handleOnChange(itemName, val) {
+  handleOnChange = (itemName, val) => {
     if (this.props.handleOnChange && typeof this.props.handleOnChange === "function") {
       this.props.handleOnChange(itemName, val);
     }

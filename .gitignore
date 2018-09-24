@@ -1,6 +1,7 @@
 bin/
 dist/
 e2e-retraced/retraced-post.sh
+node_modules
 
 .idea
 .vscode

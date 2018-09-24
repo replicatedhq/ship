@@ -1,5 +1,4 @@
 import React from "react";
-import autoBind from "react-autobind";
 import map from "lodash/map";
 import after from "lodash/after";
 import forEach from "lodash/forEach";
@@ -11,10 +10,9 @@ export default class FileInput extends React.Component {
     this.state = {
       errText: "",
     }
-    autoBind(this);
   }
 
-  handleOnChange(ev) {
+  handleOnChange = (ev) => {
     this.setState({errText: ""});
 
     let files = [];

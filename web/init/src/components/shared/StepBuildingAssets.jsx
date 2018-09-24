@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import autoBind from "react-autobind";
 import { Line } from "rc-progress";
 
 import { Utilities } from "../../utilities/utilities";
@@ -18,11 +17,6 @@ export default class StepBuildingAssets extends React.Component {
       type: PropTypes.string,
       detail: PropTypes.string,
     }),
-  }
-
-  constructor(props) {
-    super(props);
-    autoBind(this);
   }
 
   componentDidMount() {

@@ -1,16 +1,9 @@
 import React from "react";
-// import ReactDOM from "react-dom";
-import autoBind from "react-autobind";
 import get from "lodash/get";
 
 export default class ConfigRadio extends React.Component {
 
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
-  handleOnChange(e) {
+  handleOnChange = (e) => {
     const { group } = this.props;
     if (this.props.handleChange && typeof this.props.handleChange === "function") {
       this.props.handleChange(group, e.target.value);
