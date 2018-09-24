@@ -43,7 +43,8 @@ type KustomizeIntro interface {
 }
 
 type KubectlApply interface {
-	Execute(ctx context.Context, release api.Release, step api.KubectlApply) error
+	Execute(ctx context.Context, release api.Release, step api.KubectlApply, confirmChan chan bool) error
+	WithStatusReceiver(receiver daemontypes.StatusReceiver) KubectlApply
 }
 
 // Config is a thing that can resolve configuration options

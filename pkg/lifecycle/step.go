@@ -56,7 +56,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
 	} else if step.KubectlApply != nil {
 		debug.Log("event", "step.resolve", "type", "kubectl")
-		err := s.KubectlApply.Execute(ctx, *release, *step.KubectlApply)
+		err := s.KubectlApply.Execute(ctx, *release, *step.KubectlApply, make(chan bool))
 		debug.Log("event", "step.complete", "type", "kubectl", "err", err)
 	}
 

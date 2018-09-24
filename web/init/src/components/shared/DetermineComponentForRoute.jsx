@@ -11,6 +11,7 @@ import StepBuildingAssets from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
 import StepTerraform from "./StepTerraform";
+import StepKubectlApply from "./StepKubectlApply";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
@@ -154,6 +155,18 @@ export class DetermineComponentForRoute extends React.Component {
     case "terraform":
       return (
         <StepTerraform
+          routeId={routeId}
+          startPoll={this.startPoll}
+          location={location}
+          status={progress || currentStep.status}
+          handleAction={this.handleAction}
+          gotoRoute={this.gotoRoute}
+          initializeStep={initializeStep}
+        />
+      );
+    case "kubectl":
+      return (
+        <StepKubectlApply
           routeId={routeId}
           startPoll={this.startPoll}
           location={location}

@@ -179,6 +179,11 @@ func (d *NavcycleRoutes) execute(step api.Step) error {
 		terraformer := d.Terraformer.WithStatusReceiver(statusReceiver)
 		err := terraformer.Execute(context.Background(), *d.Release, *step.Terraform, d.TerraformConfirmed)
 		return errors.Wrap(err, "execute terraform step")
+	} else if step.KubectlApply != nil {
+		debug.Log("event", "step.resolve", "type", "kubectl")
+		kubectlApply := d.KubectlApply.WithStatusReceiver(statusReceiver)
+		err := kubectlApply.Execute(context.Background(), *d.Release, *step.KubectlApply, d.KubectlConfirmed)
+		return errors.Wrap(err, "execute kubectl step")
 	}
 
 	return errors.Errorf("unknown step %s:%s", step.ShortName(), step.Shared().ID)

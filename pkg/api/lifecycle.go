@@ -48,6 +48,8 @@ func (s Step) GetStep() StepDetails {
 		return s.HelmIntro
 	} else if s.HelmValues != nil {
 		return s.HelmValues
+	} else if s.KubectlApply != nil {
+		return s.KubectlApply
 	}
 	return nil
 }
