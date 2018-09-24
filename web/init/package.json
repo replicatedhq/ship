@@ -9,7 +9,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build-dev": "npm run build -- --mode development",
-    "start": "webpack-dashboard -m -- npm run build-dev -- --colors --watch",
+    "start": "cross-env DASHBOARD=true webpack-dashboard -m -- npm run build-dev -- --colors --watch",
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
