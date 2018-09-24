@@ -13,8 +13,6 @@
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
-    "@replicatedhq/ship-init": "^1.1.1",
-    "add": "^2.0.6",
     "brace": "^0.11.1",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.11",
@@ -32,8 +30,7 @@
     "redux-segment": "^1.6.2",
     "redux-thunk": "2.2.0",
     "replicated-lint": "^0.12.12",
-    "yaml-ast-parser": "^0.0.41",
-    "yarn": "^1.9.4"
+    "yaml-ast-parser": "^0.0.41"
   },
   "peerDependencies": {
     "prop-types": "^15.5.4",
