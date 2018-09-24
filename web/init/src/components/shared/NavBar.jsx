@@ -142,7 +142,7 @@ export class NavBar extends React.Component {
         : "",
     );
 
-    const itemsArr = [this.getNavItems.bind(this)];
+    const itemsArr = [this.getNavItems];
     // build items
     const headerItems = this.combineItems(itemsArr)
       .filter(item => item)

@@ -161,7 +161,7 @@ export default class ConfigOnly extends React.Component {
     })
   }
 
-  async handleConfigSave() {
+  handleConfigSave = async () => {
     let errs = document.getElementsByClassName("config-errblock");
     for (let i = 0; i < errs.length; i++) {
       errs[i].classList.remove("visible");
@@ -177,7 +177,7 @@ export default class ConfigOnly extends React.Component {
       .catch()
   }
 
-  async pingServer(data) {
+  pingServer = async (data) => {
     const itemValues = map(data, partialRight(omit, "data", "multi_data"));
     await this.props.getApplicationSettings({item_values: itemValues}, false)
       .then()
@@ -186,7 +186,7 @@ export default class ConfigOnly extends React.Component {
 
   handleConfigChange = (data) => {
     this.setState({ itemData: data });
-    this.pingServer(data).bind(this);
+    this.pingServer(data);
   }
 
   render() {
@@ -218,7 +218,7 @@ export default class ConfigOnly extends React.Component {
                 }
               </div>
               <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave.bind(this)} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
               </div>
             </div>
           </div>

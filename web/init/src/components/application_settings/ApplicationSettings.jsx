@@ -168,14 +168,14 @@ export default class ApplicationSettings extends React.Component {
     this.setState(nextState);
   }
 
-  async handleConfigSave() {
+  handleConfigSave = async () => {
     await this.props.saveApplicationSettings(this.state.itemData, false)
       .then((response) => {
         this.onConfigSaved(response);
       })
   }
 
-  handleConfigChange(data) {
+  handleConfigChange = (data) => {
     this.setState({ itemData: data });
     // const itemValues = map(data, partialRight(omit, "data", "multi_data"));
     // await this.props.getApplicationSettings({item_values: itemValues}, false)
@@ -214,7 +214,7 @@ export default class ApplicationSettings extends React.Component {
               }
             </div>
             <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-              <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave.bind(this)} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+              <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
             </div>
           </div>
         </div>
