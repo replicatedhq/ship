@@ -1,17 +1,10 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import autoBind from "react-autobind";
 import FileInput from "./FileInput";
 import ConfigItemTitle from "./ConfigItemTitle";
 
 export default class ConfigFileInput extends React.Component {
 
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
-  handleOnChange(value, data) {
+  handleOnChange = (value, data) => {
     if (this.props.handleChange) {
       if (this.props.multiple) {
         this.props.handleChange(this.props.name, data, value);
@@ -25,7 +18,7 @@ export default class ConfigFileInput extends React.Component {
     }
   }
 
-  getFilenamesText() {
+  getFilenamesText = () => {
     if (this.props.multiple) {
       if (this.props.multi_value && this.props.multi_value.length) {
         return this.props.multi_value.join(", ");

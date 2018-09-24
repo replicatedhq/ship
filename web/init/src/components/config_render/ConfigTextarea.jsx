@@ -3,7 +3,7 @@ import ConfigItemTitle from "./ConfigItemTitle";
 
 export default class ConfigTextarea extends React.Component {
 
-  handleOnChange(e) {
+  handleOnChange = (e) => {
     const { handleOnChange, name } = this.props;
     if (handleOnChange && typeof handleOnChange === "function") {
       handleOnChange(name, e.target.value);

@@ -1,5 +1,4 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 import Markdown from "react-remarkable";
 import get from "lodash/get";
 
@@ -11,24 +10,23 @@ export default class Linter extends React.Component {
       showHelp: false,
       showPreview: true
     };
-    autoBind(this);
   }
 
-  maybeLineNumber(error) {
+  maybeLineNumber = (error) => {
     return get(error, "positions.0.start.line")
       ? `Line ${error.positions[0].start.line + 1} | `
       : "";
   }
 
-  maybeLevel(error) {
+  maybeLevel = (error) => {
     return error.type === "error" ? "Error: " : error.type === "warn" ? "Warning: " : "";
   }
 
-  messageFor(error) {
+  messageFor = (error) => {
     return `${this.maybeLineNumber(error)}${this.maybeLevel(error)}${error.message}`
   }
 
-  linkFor(error) {
+  linkFor = (error) => {
     return error.links && error.links.length > 0 ? (
       <a target="_blank" href={error.links[0]} rel="noopener noreferrer">
         <span className={`icon u-linkIcon--blue flex-auto u-marginLeft--small clickable`}></span>
@@ -36,7 +34,7 @@ export default class Linter extends React.Component {
     ) : null;
   }
 
-  toggleWindow(window) {
+  toggleWindow = (window) => {
     this.setState({
       showHelp: window === "help",
       showPreview: window === "preview"

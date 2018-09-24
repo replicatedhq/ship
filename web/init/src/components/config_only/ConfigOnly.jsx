@@ -1,6 +1,5 @@
 import React from "react";
 import ErrorBoundary from "../../ErrorBoundary";
-import autoBind from "react-autobind";
 
 import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
@@ -29,7 +28,6 @@ export default class ConfigOnly extends React.Component {
         opts: {}
       }
     };
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -47,7 +45,7 @@ export default class ConfigOnly extends React.Component {
     }
   }
 
-  mergeItemData(groups, data) {
+  mergeItemData = (groups, data) => {
     const nextGroups = map(groups, function(group) {
       group.items = map(group.items, function(item) {
         if (item.name === data.name) {
@@ -81,7 +79,7 @@ export default class ConfigOnly extends React.Component {
     return nextGroups;
   }
 
-  mergeGroupItemData(groups, currentGroups) {
+  mergeGroupItemData = (groups, currentGroups) => {
     const getItemData = (item) => {
       let data = {
         name: item.name,
@@ -113,7 +111,7 @@ export default class ConfigOnly extends React.Component {
     return nextGroups;
   }
 
-  cancelToast() {
+  cancelToast = () => {
     let nextState = {};
     nextState.toastDetails = {
       showToast: false,
@@ -125,7 +123,7 @@ export default class ConfigOnly extends React.Component {
     this.setState(nextState)
   }
 
-  onConfigSaved() {
+  onConfigSaved = () => {
     const {
       actions,
       handleAction,
@@ -153,7 +151,7 @@ export default class ConfigOnly extends React.Component {
     this.setState(nextState);
   }
 
-  onConfigError() {
+  onConfigError = () => {
     const { configErrors } = this.props;
     if (!configErrors.length) return;
     configErrors.map((err) => {
@@ -163,7 +161,7 @@ export default class ConfigOnly extends React.Component {
     })
   }
 
-  async handleConfigSave() {
+  handleConfigSave = async () => {
     let errs = document.getElementsByClassName("config-errblock");
     for (let i = 0; i < errs.length; i++) {
       errs[i].classList.remove("visible");
@@ -179,14 +177,14 @@ export default class ConfigOnly extends React.Component {
       .catch()
   }
 
-  async pingServer(data) {
+  pingServer = async (data) => {
     const itemValues = map(data, partialRight(omit, "data", "multi_data"));
     await this.props.getApplicationSettings({item_values: itemValues}, false)
       .then()
       .catch();
   }
 
-  handleConfigChange(data) {
+  handleConfigChange = (data) => {
     this.setState({ itemData: data });
     this.pingServer(data);
   }

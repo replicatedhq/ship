@@ -1,5 +1,4 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 
@@ -10,11 +9,6 @@ export default class SidebarItem extends React.Component {
     linkClassName: "",
     onClick: () => { return; },
   };
-
-  constructor() {
-    super();
-    autoBind(this);
-  }
 
   render() {
     const {

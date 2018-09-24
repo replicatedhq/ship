@@ -1,5 +1,4 @@
 import React from "react";
-import autoBind from "react-autobind";
 import isEmpty from "lodash/isEmpty";
 
 import Loader from "./Loader";
@@ -16,14 +15,13 @@ export default class DetermineStep extends React.Component {
     this.state = {
       maxPollReached: false
     };
-    autoBind(this);
   }
 
-  handleAction(action) {
+  handleAction = (action) => {
     this.props.submitAction({action});
   }
 
-  renderStep(phase) {
+  renderStep = (phase) => {
     const { currentStep, progress, actions } = this.props;
     if (!phase.length || !phase) return null;
     switch (phase) {
@@ -94,7 +92,7 @@ export default class DetermineStep extends React.Component {
     }
   }
 
-  startMaxTimeout() {
+  startMaxTimeout = () => {
     this.maxTimout = setTimeout(() => this.setState({ maxPollReached: true }), 60000);
   }
 
@@ -134,11 +132,11 @@ export default class DetermineStep extends React.Component {
     this.pollIfStream();
   }
 
-  startPoll() {
+  startPoll = () => {
     this.timeout = setTimeout(() => this.props.getCurrentStep(), 1000);
   }
 
-  pollIfStream() {
+  pollIfStream = () => {
     if (this.props.phase !== "stream") {
       clearInterval(this.streamer);
       delete this.streamer;
