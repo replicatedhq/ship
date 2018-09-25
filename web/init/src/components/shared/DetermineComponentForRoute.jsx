@@ -113,7 +113,11 @@ export class DetermineComponentForRoute extends React.Component {
       actions,
       location,
       initializeStep,
+<<<<<<< HEAD
       routes,
+=======
+      basePath
+>>>>>>> Removed * style from base.scss, prepended basePath to routes
     } = this.props;
     const { id: routeId } = find(routes, { phase });
 
@@ -161,6 +165,8 @@ export class DetermineComponentForRoute extends React.Component {
           routeId={routeId}
           location={location}
           status={progress || currentStep.status}
+          initializeStep={initializeStep}
+          basePath={basePath}
         />
       );
     case "terraform":

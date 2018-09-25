@@ -22,10 +22,17 @@ export default class StepBuildingAssets extends React.Component {
     const {
       routeId,
       location,
-      startPollingStep,
+      initializeStep,
+      basePath
     } = this.props;
 
-    startPollingStep(location, routeId);
+    if (location.pathname === `${basePath}/render`) {
+      initializeStep(routeId);
+      startPoll(routeId, () => {
+        // Timeout to wait a little bit before transitioning to the next step
+        setTimeout(gotoRoute, 500);
+      });
+    }
   }
 
   render() {

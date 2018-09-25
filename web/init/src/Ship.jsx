@@ -9,6 +9,12 @@ import "./scss/index.scss";
 const bodyClass = "ship-init";
 
 export class Ship extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      store: null
+    }
+  }
   static propTypes = {
     /** API endpoint for the Ship binary */
     apiEndpoint: PropTypes.string.isRequired,
@@ -31,12 +37,22 @@ export class Ship extends React.Component {
     headerEnabled: false
   }
 
+  componentDidMount() {
+    const { apiEndpoint } = this.props;
+    // This fixes a bug regarding explicit hot reloading of reducers introduced in Redux v2.0.0
+    const store = configureStore(apiEndpoint);
+    this.setState({ store });
+  }
+
   render() {
     const { apiEndpoint, history, headerEnabled, basePath } = this.props;
+    const { store } = this.state;
+
+    if(!store) return <div></div>;
 
     return (
       <div id="ship-init-component">
-        <Provider store={configureStore(apiEndpoint)}>
+        <Provider store={store}>
           <AppWrapper>
             <RouteDecider 
               headerEnabled={headerEnabled}

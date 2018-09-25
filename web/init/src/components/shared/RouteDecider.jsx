@@ -39,8 +39,8 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, basePath }) => (
                   />}
                 />
               ))}
-              <Route exact path="/" component={() => <div className="flex1 flex-column justifyContent--center alignItems--center"><Loader size="60" /></div> } />
-              <Route exact path="/done" component={() =>  <StepDone />} />
+              <Route exact path={`${basePath}/`} component={() => <div className="flex1 flex-column justifyContent--center alignItems--center"><Loader size="60" /></div> } />
+              <Route exact path={`${basePath}/done`} component={() =>  <StepDone />} />
             </Switch>
           </div>
         </div>
