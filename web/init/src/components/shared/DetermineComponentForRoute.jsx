@@ -113,11 +113,8 @@ export class DetermineComponentForRoute extends React.Component {
       actions,
       location,
       initializeStep,
-<<<<<<< HEAD
       routes,
-=======
       basePath
->>>>>>> Removed * style from base.scss, prepended basePath to routes
     } = this.props;
     const { id: routeId } = find(routes, { phase });
 

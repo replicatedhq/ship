@@ -6,15 +6,8 @@ import { configureStore } from "./redux";
 import PropTypes from "prop-types";
 
 import "./scss/index.scss";
-const bodyClass = "ship-init";
 
 export class Ship extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      store: null
-    }
-  }
   static propTypes = {
     /** API endpoint for the Ship binary */
     apiEndpoint: PropTypes.string.isRequired,
@@ -31,30 +24,41 @@ export class Ship extends React.Component {
      * */
     history: PropTypes.object
   }
+
   static defaultProps = {
     basePath: "",
     history: null,
     headerEnabled: false
   }
 
-  componentDidMount() {
-    const { apiEndpoint } = this.props;
-    // This fixes a bug regarding explicit hot reloading of reducers introduced in Redux v2.0.0
-    const store = configureStore(apiEndpoint);
-    this.setState({ store });
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      store: configureStore(props.apiEndpoint),
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    const { apiEndpoint: previousApiEndpoint } = prevProps;
+    const { apiEndpoint: currentApiEndpoint } = this.props;
+
+    if (previousApiEndpoint !== currentApiEndpoint) {
+      this.setState({
+        store: configureStore(apiEndpoint)
+      });
+    }
   }
 
   render() {
-    const { apiEndpoint, history, headerEnabled, basePath } = this.props;
+    const { history, headerEnabled, basePath } = this.props;
     const { store } = this.state;
-
-    if(!store) return <div></div>;
 
     return (
       <div id="ship-init-component">
         <Provider store={store}>
           <AppWrapper>
-            <RouteDecider 
+            <RouteDecider
               headerEnabled={headerEnabled}
               basePath={basePath}
               history={history}
