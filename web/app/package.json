@@ -5,6 +5,7 @@
   "dependencies": {
     "@replicatedhq/react-scripts": "1.0.0",
     "@replicatedhq/ship-init": "link:../init",
+    "monaco-editor": "^0.14.3",
     "react": "^16.5.0",
     "react-dom": "^16.5.0"
   },
