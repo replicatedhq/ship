@@ -40,10 +40,13 @@ type NavcycleRoutes struct {
 	Planner        planner.Planner
 	Patcher        patch.Patcher
 	ConfigRenderer *resolve.APIConfigRenderer
+	KubectlApply   lifecycle.KubectlApply
 
 	ConfigSaved        chan interface{}
 	TerraformConfirmed chan bool
 	CurrentConfig      map[string]interface{}
+
+	KubectlConfirmed chan bool
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
@@ -74,6 +77,9 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	terr := v1.Group("/terraform")
 	terr.POST("apply", d.terraformApply)
 	terr.POST("skip", d.terraformApply)
+
+	kube := v1.Group("/kubectl")
+	kube.POST("confirm", d.kubectlConfirm)
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {
