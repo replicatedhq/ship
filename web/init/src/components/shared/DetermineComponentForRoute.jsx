@@ -96,8 +96,8 @@ export class DetermineComponentForRoute extends React.Component {
   }
 
   startPollingStep = (location, routeId) => {
-    const { initializeStep } = this.props;
-    if (location.pathname === `/${routeId}`) {
+    const { initializeStep, basePath } = this.props;
+    if (location.pathname === `${basePath}/${routeId}`) {
       initializeStep(routeId);
       this.startPoll(routeId, () => {
         // Timeout to wait a little bit before transitioning to the next step
