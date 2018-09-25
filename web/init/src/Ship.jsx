@@ -8,12 +8,6 @@ import PropTypes from "prop-types";
 import "./scss/index.scss";
 
 export class Ship extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      store: null
-    }
-  }
   static propTypes = {
     /** API endpoint for the Ship binary */
     apiEndpoint: PropTypes.string.isRequired,
