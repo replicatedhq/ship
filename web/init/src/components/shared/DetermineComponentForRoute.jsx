@@ -162,8 +162,6 @@ export class DetermineComponentForRoute extends React.Component {
           routeId={routeId}
           location={location}
           status={progress || currentStep.status}
-          initializeStep={initializeStep}
-          basePath={basePath}
         />
       );
     case "terraform":
