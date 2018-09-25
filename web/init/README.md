@@ -6,7 +6,7 @@
 ## Install
 
 ```bash
-yarn add @replicatedhq/ship-init
+yarn add @replicatedhq/ship-init monaco-editor
 ```
 
 ## Usage
