@@ -94,15 +94,27 @@ export class DetermineComponentForRoute extends React.Component {
     }
   }
 
+  startPollingStep(location, routeId) {
+    const { initializeStep } = this.props;
+    if (location.pathname === `/${routeId}`) {
+      initializeStep(routeId);
+      this.startPoll(routeId, () => {
+        // Timeout to wait a little bit before transitioning to the next step
+        setTimeout(this.gotoRoute, 500);
+      });
+    }
+  }
+
   renderStep(phase) {
     const {
       currentStep,
       progress,
       actions,
       location,
-      routeId,
       initializeStep,
+      routes,
     } = this.props;
+    const { id: routeId } = find(routes, { phase });
 
     if (!phase || !phase.length) return null;
     switch (phase) {
@@ -144,17 +156,16 @@ export class DetermineComponentForRoute extends React.Component {
     case "render":
       return (
         <StepBuildingAssets
-          startPoll={this.startPoll}
+          startPollingStep={this.startPollingStep}
           routeId={routeId}
-          gotoRoute={this.gotoRoute}
           location={location}
           status={progress || currentStep.status}
-          initializeStep={initializeStep}
         />
       );
     case "terraform":
       return (
         <StepTerraform
+          startPollingStep={this.startPollingStep}
           routeId={routeId}
           startPoll={this.startPoll}
           location={location}
@@ -167,6 +178,7 @@ export class DetermineComponentForRoute extends React.Component {
     case "kubectl":
       return (
         <StepKubectlApply
+          startPollingStep={this.startPollingStep}
           routeId={routeId}
           startPoll={this.startPoll}
           location={location}

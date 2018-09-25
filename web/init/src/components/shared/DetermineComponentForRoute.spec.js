@@ -11,10 +11,16 @@ const mockKustomizeIntroProps = {
   dataLoading: {},
   actions: ["mockKustomizeIntroAction"],
   getContentForStep: jest.fn(),
-  routes: [{
-    phase: "kustomize",
-    id: "mockKustomizeId",
-  }],
+  routes: [
+    {
+      phase: "kustomize",
+      id: "mockKustomizeId",
+    },
+    {
+      phase: "kustomize-intro",
+      id: "mockKustomizeIntroId",
+    },
+  ],
   finalizeStep: jest.fn(),
   pollContentForStep: mockPollContentForStep,
 };

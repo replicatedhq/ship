@@ -12,8 +12,7 @@ export default class StepBuildingAssets extends React.Component {
       pathname: PropTypes.string,
     }).isRequired,
     routeId: PropTypes.string.isRequired,
-    startPoll: PropTypes.func.isRequired,
-    initializeStep: PropTypes.func.isRequired,
+    startPollingStep: PropTypes.func.isRequired,
     status: PropTypes.shape({
       type: PropTypes.string,
       detail: PropTypes.string,
@@ -27,20 +26,12 @@ export default class StepBuildingAssets extends React.Component {
 
   componentDidMount() {
     const {
-      startPoll,
       routeId,
-      gotoRoute,
       location,
-      initializeStep,
+      startPollingStep,
     } = this.props;
 
-    if (location.pathname === "/render") {
-      initializeStep(routeId);
-      startPoll(routeId, () => {
-        // Timeout to wait a little bit before transitioning to the next step
-        setTimeout(gotoRoute, 500);
-      });
-    }
+    startPollingStep(location, routeId);
   }
 
   render() {

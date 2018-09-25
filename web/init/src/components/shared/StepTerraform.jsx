@@ -22,6 +22,7 @@ export default class StepPreparingTerraform extends React.Component {
       detail: PropTypes.string,
     }),
     handleAction: PropTypes.func,
+    startPollingStep: PropTypes.func.isRequired,
   }
 
   constructor(props) {
@@ -31,20 +32,12 @@ export default class StepPreparingTerraform extends React.Component {
 
   componentDidMount() {
     const {
-      startPoll,
       routeId,
-      gotoRoute,
       location,
-      initializeStep,
+      startPollingStep,
     } = this.props;
 
-    if (location.pathname === "/terraform") {
-      initializeStep(routeId);
-      startPoll(routeId, () => {
-        // Timeout to wait a little bit before transitioning to the next step
-        setTimeout(gotoRoute, 500);
-      });
-    }
+    startPollingStep(location, routeId);
   }
 
   parseStatus() {

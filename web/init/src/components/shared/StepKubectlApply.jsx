@@ -21,6 +21,7 @@ export default class StepKubectlApply extends React.Component {
       type: PropTypes.string,
       detail: PropTypes.string,
     }),
+    startPollingStep: PropTypes.func.isRequired,
     handleAction: PropTypes.func,
   }
 
@@ -31,20 +32,12 @@ export default class StepKubectlApply extends React.Component {
 
   componentDidMount() {
     const {
-      startPoll,
       routeId,
-      gotoRoute,
       location,
-      initializeStep,
+      startPollingStep,
     } = this.props;
 
-    if (location.pathname === "/kubectl") {
-      initializeStep(routeId);
-      startPoll(routeId, () => {
-        // Timeout to wait a little bit before transitioning to the next step
-        setTimeout(gotoRoute, 500);
-      });
-    }
+    startPollingStep(location, routeId);
   }
 
   parseStatus() {
