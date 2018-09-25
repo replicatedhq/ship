@@ -17,7 +17,7 @@ type Step struct {
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty" yaml:"kustomizeIntro,omitempty" hcl:"kustomizeIntro,omitempty"`
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
-	KubectlApply   *KubectlApply   `json:"kubectl_apply,omitempty" yaml:"kubectl_apply,omitempty" hcl:"kubectl_apply,omitempty"`
+	KubectlApply   *KubectlApply   `json:"kubectlApply,omitempty" yaml:"kubectlApply,omitempty" hcl:"kubectlApply,omitempty"`
 }
 
 func (s *Step) String() string {

@@ -127,24 +127,16 @@ stderr: %s`, err.Error(), stderrString)
 		confirmActions(),
 	)
 
-	// daemonExitedChan := d.Status.EnsureStarted(ctx, &release)
-
 	return d.awaitMessageConfirmed(ctx, confirmedChan)
 }
 
 func (d *DaemonlessKubectl) awaitMessageConfirmed(ctx context.Context, confirmedChan chan bool) error {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemonmessenger", "method", "kubectl.confirm.await"))
+	debug := level.Debug(log.With(d.Logger, "struct", "daemonlesskubectl", "method", "awaitMessageConfirmed"))
 	for {
 		select {
 		case <-ctx.Done():
 			debug.Log("event", "ctx.done")
 			return ctx.Err()
-		// case err := <-daemonExitedChan:
-		// 	debug.Log("event", "daemon.exit")
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	return errors.New("daemon exited")
 		case <-confirmedChan:
 			debug.Log("event", "kubectl.message.confirmed")
 			return nil
