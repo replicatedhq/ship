@@ -104,9 +104,9 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
-"@replicatedhq/react-scripts@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@replicatedhq/react-scripts/-/react-scripts-1.0.0.tgz#760aeabf8bfa82a3c794cdf5fab970cd7ea13e72"
+"@replicatedhq/react-scripts@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@replicatedhq/react-scripts/-/react-scripts-1.0.1.tgz#341da1aeb765b6c7f7ccd42eb276917df34637d4"
   dependencies:
     autoprefixer "7.1.6"
     babel-jest "20.0.3"
