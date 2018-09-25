@@ -43,6 +43,7 @@ export class DetermineComponentForRoute extends React.Component {
 
   gotoRoute = (route) => {
     let nextRoute = route;
+    const { basePath } = this.props;
 
     if (!nextRoute) {
       const currRoute = find(this.props.routes, ["id", this.props.routeId]);
@@ -53,10 +54,12 @@ export class DetermineComponentForRoute extends React.Component {
     if (!nextRoute) {
       return this.handleShutdown();
     }
-    this.props.history.push(`/${nextRoute.id}`);
+    this.props.history.push(`${basePath}/${nextRoute.id}`);
+
   }
 
   handleShutdown = async () => {
+    const { basePath } = this.props;
     const url = `${this.props.apiEndpoint}/shutdown`;
     await fetch(url, {
       method: "POST",
@@ -65,7 +68,7 @@ export class DetermineComponentForRoute extends React.Component {
       },
     });
     await this.props.shutdownApp();
-    this.props.history.push("/done");
+    this.props.history.push(`${basePath}/done`);
   }
 
   skipKustomize = async () => {

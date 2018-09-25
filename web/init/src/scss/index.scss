@@ -4,7 +4,8 @@
 #ship-init-component {
   display: flex;
   flex: 1;
-  
+
+  @import "./utilities/ship-init-base.scss";
   @import "./utilities/typography.scss";
   @import "./utilities/buttons.scss";
   @import "./utilities/colors.scss";
