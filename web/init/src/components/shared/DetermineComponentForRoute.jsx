@@ -1,6 +1,5 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
-import autoBind from "react-autobind";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import indexOf from "lodash/indexOf";
@@ -24,7 +23,6 @@ export class DetermineComponentForRoute extends React.Component {
     this.state = {
       maxPollReached: false,
     };
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -32,19 +30,19 @@ export class DetermineComponentForRoute extends React.Component {
     getContentForStep(routeId);
   }
 
-  async handleAction(action, gotoNext) {
+  handleAction = async (action, gotoNext) => {
     await this.props.finalizeStep({action});
     if (gotoNext) {
       this.gotoRoute();
     }
   }
 
-  getContentForStep() {
+  getContentForStep = () => {
     const { getContentForStep, routeId } = this.props;
     getContentForStep(routeId);
   }
 
-  gotoRoute(route) {
+  gotoRoute = (route) => {
     let nextRoute = route;
 
     if (!nextRoute) {
@@ -59,7 +57,7 @@ export class DetermineComponentForRoute extends React.Component {
     this.props.history.push(`/${nextRoute.id}`);
   }
 
-  async handleShutdown() {
+  handleShutdown = async () => {
     const url = `${this.props.apiEndpoint}/shutdown`;
     await fetch(url, {
       method: "POST",
@@ -71,7 +69,7 @@ export class DetermineComponentForRoute extends React.Component {
     this.props.history.push("/done");
   }
 
-  async skipKustomize() {
+  skipKustomize = async () => {
     const {
       actions: kustomizeIntroActions,
       routes,
@@ -88,13 +86,13 @@ export class DetermineComponentForRoute extends React.Component {
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
   }
 
-  async startPoll(routeId, cb) {
+  startPoll = async (routeId, cb) => {
     if (!this.props.isPolling) {
       this.props.pollContentForStep(routeId, cb);
     }
   }
 
-  startPollingStep(location, routeId) {
+  startPollingStep = (location, routeId) => {
     const { initializeStep } = this.props;
     if (location.pathname === `/${routeId}`) {
       initializeStep(routeId);
@@ -105,7 +103,7 @@ export class DetermineComponentForRoute extends React.Component {
     }
   }
 
-  renderStep(phase) {
+  renderStep = (phase) => {
     const {
       currentStep,
       progress,

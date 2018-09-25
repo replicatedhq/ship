@@ -1,23 +1,21 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 import assign from "object-assign";
 import SidebarItem from "./SidebarItem";
 
 export default class Sidebar extends React.Component {
   constructor() {
     super();
-    autoBind(this);
     this.state = {
       activeSub: "",
     }
   }
 
-  isActive(link, pathname = "") {
+  isActive = (link, pathname = "") => {
     if (!link) return false;
     return pathname.indexOf(`${link}`) > -1;
   }
 
-  buildSubItems(items) {
+  buildSubItems = (items) => {
     const { activeSub } = this.state;
     const _items = items.map((item) => {
       return assign(item, {
@@ -27,7 +25,7 @@ export default class Sidebar extends React.Component {
     return _items;
   }
 
-  getSidebarItems(configOnly) {
+  getSidebarItems = (configOnly) => {
     if (configOnly) {
       const { configRouteId } = this.props;
       return [{
@@ -81,7 +79,7 @@ export default class Sidebar extends React.Component {
     }
   }
 
-  scrollToSection(id) {
+  scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
     setTimeout(() => {
@@ -97,7 +95,7 @@ export default class Sidebar extends React.Component {
     }
   }
 
-  onClick(item) {
+  onClick = (item) => {
     this.setState({ route: item.linkTo });
     if (item.subItems) {
       this.setState({ activeSub: "" });

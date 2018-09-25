@@ -1,17 +1,9 @@
 import React from "react";
-import autoBind from "react-autobind";
-
 import ConfigGroup from "./ConfigGroup";
 
 export default class ConfigGroups extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state= {}
-    autoBind(this);
-  }
-
-  handleGroupChange(groupName, itemName, value, data) {
+  handleGroupChange = (groupName, itemName, value, data) => {
     if (this.props.handleChange) {
       this.props.handleChange(groupName, itemName, value, data);
     }

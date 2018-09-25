@@ -1,5 +1,4 @@
 import React from "react";
-import autoBind from "react-autobind";
 import keyBy from "lodash/keyBy";
 import _ from "lodash";
 
@@ -13,16 +12,15 @@ export default class ConfigRender extends React.Component {
     this.state= {
       groups: this.props.fields
     }
-    autoBind(this);
   }
 
-  triggerChange(data) {
+  triggerChange = (data) => {
     if (this.props.handleChange) {
       this.props.handleChange(data);
     }
   }
 
-  getData(groups) {
+  getData = (groups) => {
     const getItemData = (item) => {
       let data = {
         name: item.name,
@@ -77,7 +75,7 @@ export default class ConfigRender extends React.Component {
     return data;
   }
 
-  handleGroupsChange(groupName, itemName, value, data) {
+  handleGroupsChange = (groupName, itemName, value, data) => {
     const getValues = (val) => {
       if (!val) {
         return [];

@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import autoBind from "react-autobind";
 import { Line } from "rc-progress";
 import clamp from "lodash/clamp";
 
@@ -27,7 +26,6 @@ export default class StepKubectlApply extends React.Component {
 
   constructor(props) {
     super(props);
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -40,7 +38,7 @@ export default class StepKubectlApply extends React.Component {
     startPollingStep(location, routeId);
   }
 
-  parseStatus() {
+  parseStatus = () => {
     const { status = {} } = this.props;
     const { type, detail } = status;
     const isJSON = type === "json";
@@ -84,7 +82,7 @@ export default class StepKubectlApply extends React.Component {
     }
   }
 
-  handleAction(action) {
+  handleAction = (action) => {
     const {
       handleAction,
       startPoll,

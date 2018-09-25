@@ -57,5 +57,5 @@ module.exports = {
           },
       ]
     },
-    plugins: [new DashboardPlugin()]
+    plugins: process.env.DASHBOARD ? [new DashboardPlugin()] : []
   };

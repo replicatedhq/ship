@@ -1,18 +1,12 @@
 import * as React from "react";
-import autoBind from "react-autobind";
 
 export default class FileTree extends React.Component {
 
-  constructor() {
-    super();
-    autoBind(this);
-  }
-
-  handleFileSelect(path) {
+  handleFileSelect = (path) => {
     this.props.handleFileSelect(path);
   }
 
-  handleDeleteOverlay(e, path) {
+  handleDeleteOverlay = (e, path) => {
     e.stopPropagation();
     this.props.handleDeleteOverlay(path);
   }

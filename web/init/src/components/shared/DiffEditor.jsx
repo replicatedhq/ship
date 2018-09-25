@@ -1,5 +1,4 @@
 import React from "react";
-import autoBind from "react-autobind";
 import { MonacoDiffEditor } from "react-monaco-editor";
 
 export default class DiffEditor extends React.Component {
@@ -8,10 +7,9 @@ export default class DiffEditor extends React.Component {
     this.state = {
       splitDiff: false
     };
-    autoBind(this);
   }
 
-  toggleDiffType() {
+  toggleDiffType = () => {
     this.monacoDiffEditor.editor.updateOptions({
       renderSideBySide: !this.state.splitDiff
     });

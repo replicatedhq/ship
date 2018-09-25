@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import autoBind from "react-autobind";
 import { Line } from "rc-progress";
 import clamp from "lodash/clamp";
 
@@ -25,11 +24,6 @@ export default class StepPreparingTerraform extends React.Component {
     startPollingStep: PropTypes.func.isRequired,
   }
 
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
   componentDidMount() {
     const {
       routeId,
@@ -40,7 +34,7 @@ export default class StepPreparingTerraform extends React.Component {
     startPollingStep(location, routeId);
   }
 
-  parseStatus() {
+  parseStatus = () => {
     const { status = {} } = this.props;
     const { type, detail } = status;
     const isJSON = type === "json";
@@ -84,7 +78,7 @@ export default class StepPreparingTerraform extends React.Component {
     }
   }
 
-  handleAction(action) {
+  handleAction = (action) => {
     const {
       handleAction,
       startPoll,

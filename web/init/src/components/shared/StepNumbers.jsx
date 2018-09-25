@@ -14,7 +14,7 @@ class StepNumbers extends React.Component {
     }
   }
 
-  getPositionAtCenter(element) {
+  getPositionAtCenter = (element) => {
     const data = element.getBoundingClientRect();
     return {
       x: data.left + data.width / 2,
@@ -22,13 +22,13 @@ class StepNumbers extends React.Component {
     };
   }
 
-  getDistanceBetweenElements(a, b) {
+  getDistanceBetweenElements = (a, b) => {
     var aPosition = this.getPositionAtCenter(a);
     var bPosition = this.getPositionAtCenter(b);
     return Math.sqrt(Math.pow(aPosition.x - bPosition.x, 2) + Math.pow(aPosition.y - bPosition.y, 2));
   }
 
-  setStepsToState() {
+  setStepsToState = () => {
     const { steps } = this.props;
     const stateSteps = steps.map((step) => {
       const cleanedPath = this.props.location.pathname.split("/")[1];
@@ -45,7 +45,7 @@ class StepNumbers extends React.Component {
     this.setCompleteSteps(currStep, stateSteps);
   }
 
-  setCompleteSteps(currentStep, steps) {
+  setCompleteSteps = (currentStep, steps) => {
     for (let i = 0; i < currentStep; i++) {
       let currStep = steps[i];
       currStep.isComplete = true;
@@ -53,14 +53,14 @@ class StepNumbers extends React.Component {
     this.setState({ steps });
   }
 
-  determineCurrentStep(id) {
+  determineCurrentStep = (id) => {
     let stateStep = find(this.state.steps, ["id", id]);
     const stateStepIndex = indexOf(this.state.steps, stateStep);
     const { currentStep } = this.state;
     stateStep.isActive = currentStep === stateStepIndex ? true : false;
   }
 
-  goToStep(idx) {
+  goToStep = (idx) => {
     const step = this.state.steps[idx];
     this.props.history.push(`/${step.id}`);
   }
@@ -88,7 +88,7 @@ class StepNumbers extends React.Component {
     }
   }
 
-  renderSteps() {
+  renderSteps = () => {
     const { steps } = this.state;
     if (!steps.length) return;
     const renderedSteps = this.state.steps.map((step, i) => {

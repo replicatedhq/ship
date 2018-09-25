@@ -1,6 +1,5 @@
 import React from "react";
 import Modal from "react-modal";
-import autoBind from "react-autobind";
 import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
@@ -37,10 +36,9 @@ export default class KustomizeOverlay extends React.Component {
       displayConfirmModal: false,
       overlayToDelete: "",
     };
-    autoBind(this);
   }
 
-  toggleModal(overlayPath) {
+  toggleModal = (overlayPath) => {
     this.setState({
       displayConfirmModal: !this.state.displayConfirmModal,
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath
@@ -78,7 +76,7 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  async handleApplyPatch() {
+  handleApplyPatch = async () => {
     const { selectedFile, fileTreeBasePath } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
 
@@ -89,7 +87,7 @@ export default class KustomizeOverlay extends React.Component {
     await this.props.applyPatch(applyPayload).catch();
   }
 
-  async toggleDiff() {
+  toggleDiff = async () => {
     const { patch, modified } = this.props;
     const hasPatchButNoModified = patch.length > 0 && modified.length === 0;
     if (hasPatchButNoModified) {
@@ -99,7 +97,7 @@ export default class KustomizeOverlay extends React.Component {
     this.setState({ viewDiff: !this.state.viewDiff });
   }
 
-  createOverlay() {
+  createOverlay = () => {
     const { selectedFile } = this.state;
     let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
@@ -109,7 +107,7 @@ export default class KustomizeOverlay extends React.Component {
     this.setState({ patch: `--- \n${overlay}` });
   }
 
-  async setSelectedFile(path) {
+  setSelectedFile = async (path) => {
     this.setState({ selectedFile: path });
     await this.props.getFileContent(path).then(() => {
       // set state with new file content
@@ -119,7 +117,7 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  async handleFinalize() {
+  handleFinalize = async () => {
     const {
       finalizeKustomizeOverlay,
       finalizeStep,
@@ -143,7 +141,7 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  async discardOverlay() {
+  discardOverlay = async () => {
     const { overlayToDelete } = this.state;
     await this.deleteOverlay(overlayToDelete);
     this.setState({
@@ -152,11 +150,11 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  async deleteOverlay(path) {
+  deleteOverlay = async (path) => {
     await this.props.deleteOverlay(path);
   }
 
-  async handleKustomizeSave(finalize) {
+  handleKustomizeSave = async (finalize) => {
     const { selectedFile } = this.state;
     const contents = this.aceEditorOverlay.editor.getValue();
     this.setState({ patch: contents });
@@ -175,7 +173,7 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  async handleGeneratePatch(path) {
+  handleGeneratePatch = async (path) => {
     const current = this.aceEditorOverlay.editor.getValue();
     const { selectedFile, fileTreeBasePath } = this.state;
     const payload = {
@@ -188,13 +186,13 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay.editor.find(PATCH_TOKEN);
   }
 
-  rebuildTooltip() {
+  rebuildTooltip = () => {
     // We need to rebuild these because...well I dunno why but if you don't the tooltips will not be visible after toggling the overlay editor.
     ReactTooltip.rebuild();
     ReactTooltip.hide();
   }
 
-  setFileTree({ kustomize }) {
+  setFileTree = ({ kustomize }) => {
     if (!kustomize.tree) return;
     const sortedTree = sortBy(kustomize.tree.children, (dir) => {
       dir.children ? dir.children.length : 0
@@ -206,7 +204,7 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  setAceEditor(editor) {
+  setAceEditor = (editor) => {
     this.aceEditorOverlay = editor;
   }
 
@@ -215,7 +213,7 @@ export default class KustomizeOverlay extends React.Component {
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
     this.state.patch = patch; // eslint-disable-line
-    this.handleApplyPatch()
+    this.handleApplyPatch();
   }, 500);
 
   render() {

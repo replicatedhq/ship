@@ -9,7 +9,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build-dev": "npm run build -- --mode development",
-    "start": "webpack-dashboard -m -- npm run build-dev -- --colors --watch",
+    "start": "cross-env DASHBOARD=true webpack-dashboard -m -- npm run build-dev -- --colors --watch",
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
@@ -18,7 +18,6 @@
     "lodash": "^4.17.11",
     "rc-progress": "^2.2.5",
     "react-ace": "^6.1.4",
-    "react-autobind": "^1.0.6",
     "react-document-title": "^2.0.3",
     "react-modal": "^3.5.1",
     "react-monaco-editor": "^0.17.2",
