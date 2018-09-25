@@ -25,9 +25,14 @@ export class Ship extends React.Component {
      * */
     history: PropTypes.object
   }
+  static defaultProps = {
+    basePath: "",
+    history: null,
+    headerEnabled: false
+  }
 
   render() {
-    const { apiEndpoint, history = null, headerEnabled = false, basePath = "" } = this.props;
+    const { apiEndpoint, history, headerEnabled, basePath } = this.props;
 
     return (
       <div id="ship-init-component">
@@ -44,4 +49,3 @@ export class Ship extends React.Component {
     )
   }
 }
-
