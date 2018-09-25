@@ -19,12 +19,7 @@ export default class StepBuildingAssets extends React.Component {
   }
 
   componentDidMount() {
-    const {
-      routeId,
-      location,
-      startPollingStep,
-    } = this.props;
-
+    const { startPollingStep, location, routeId } = this.props;
     startPollingStep(location, routeId);
   }
 

@@ -6,7 +6,6 @@ import { configureStore } from "./redux";
 import PropTypes from "prop-types";
 
 import "./scss/index.scss";
-const bodyClass = "ship-init";
 
 export class Ship extends React.Component {
   static propTypes = {
@@ -25,20 +24,41 @@ export class Ship extends React.Component {
      * */
     history: PropTypes.object
   }
+
   static defaultProps = {
     basePath: "",
     history: null,
     headerEnabled: false
   }
 
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      store: configureStore(props.apiEndpoint),
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    const { apiEndpoint: previousApiEndpoint } = prevProps;
+    const { apiEndpoint: currentApiEndpoint } = this.props;
+
+    if (previousApiEndpoint !== currentApiEndpoint) {
+      this.setState({
+        store: configureStore(apiEndpoint)
+      });
+    }
+  }
+
   render() {
-    const { apiEndpoint, history, headerEnabled, basePath } = this.props;
+    const { history, headerEnabled, basePath } = this.props;
+    const { store } = this.state;
 
     return (
       <div id="ship-init-component">
-        <Provider store={configureStore(apiEndpoint)}>
+        <Provider store={store}>
           <AppWrapper>
-            <RouteDecider 
+            <RouteDecider
               headerEnabled={headerEnabled}
               basePath={basePath}
               history={history}
