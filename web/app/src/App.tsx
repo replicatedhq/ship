@@ -5,7 +5,7 @@ import * as React from "react";
 class App extends React.Component {
   render() {
     return (
-      <Ship apiEndpoint={process.env.REACT_APP_API_ENDPOINT} basePath="/" />
+      <Ship apiEndpoint={process.env.REACT_APP_API_ENDPOINT} headerEnabled />
     );
   }
 }

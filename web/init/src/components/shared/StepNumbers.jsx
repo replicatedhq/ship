@@ -31,7 +31,7 @@ class StepNumbers extends React.Component {
   setStepsToState = () => {
     const { steps } = this.props;
     const stateSteps = steps.map((step) => {
-      const cleanedPath = this.props.location.pathname.split("/")[1];
+      const cleanedPath = this.props.location.pathname.split("/").pop();
       const newStep = {
         ...step,
         isComplete: false,
@@ -61,8 +61,9 @@ class StepNumbers extends React.Component {
   }
 
   goToStep = (idx) => {
+    const { basePath } = this.props;
     const step = this.state.steps[idx];
-    this.props.history.push(`/${step.id}`);
+    this.props.history.push(`${basePath}/${step.id}`);
   }
 
   componentDidUpdate(lastProps, lastState) {
