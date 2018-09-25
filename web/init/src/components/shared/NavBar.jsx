@@ -31,7 +31,8 @@ export class NavBar extends React.Component {
         [`${dropdownKey}Active`]: false
       });
     }
-    this.props.history.push(route);
+    const { basePath } = this.props;
+    this.props.history.push(`${basePath}/${route}`);
   }
 
   handleLogOut = (e) => {

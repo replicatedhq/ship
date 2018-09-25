@@ -15,27 +15,33 @@ export class Ship extends React.Component {
     /**
      * Base path name for the internal Ship Init component router
      * */
-    basePath: PropTypes.string.isRequired,
-  }
-
-  componentDidMount() {
-    document.body.classList.add(bodyClass);
-  }
-  componentWillUnmount() {
-    document.body.classList.remove(bodyClass);
+    basePath: PropTypes.string,
+    /**
+     * Determines whether or not the Ship Init app will instantiate its own BrowserRouter
+     * */
+    headerEnabled: PropTypes.bool,
+    /**
+     * Parent history needed to sync ship routing with parent
+     * */
+    history: PropTypes.object
   }
 
   render() {
-    const { apiEndpoint, basePath } = this.props;
+    const { apiEndpoint, history = null, headerEnabled = false, basePath = "" } = this.props;
 
     return (
       <div id="ship-init-component">
         <Provider store={configureStore(apiEndpoint)}>
           <AppWrapper>
-            <RouteDecider basePath={basePath} />
+            <RouteDecider 
+              headerEnabled={headerEnabled}
+              basePath={basePath}
+              history={history}
+            />
           </AppWrapper>
         </Provider>
       </div>
     )
   }
 }
+
