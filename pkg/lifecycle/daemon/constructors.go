@@ -47,6 +47,7 @@ func NewV2Router(
 	kustomizeIntro lifecycle.KustomizeIntro,
 	kustomizer lifecycle.Kustomizer,
 	terraformer lifecycle.Terraformer,
+	kubectlApply lifecycle.KubectlApply,
 	configRenderer *resolve.APIConfigRenderer,
 	planners planner.Planner,
 	patcher patch.Patcher,
@@ -60,6 +61,7 @@ func NewV2Router(
 		Planner:            planners,
 		Shutdown:           make(chan interface{}),
 		TerraformConfirmed: make(chan bool, 1),
+		KubectlConfirmed:   make(chan bool, 1),
 
 		Messenger:      messenger,
 		HelmIntro:      helmIntro,
@@ -67,6 +69,7 @@ func NewV2Router(
 		KustomizeIntro: kustomizeIntro,
 		Kustomizer:     kustomizer,
 		Terraformer:    terraformer,
+		KubectlApply:   kubectlApply,
 		ConfigRenderer: configRenderer,
 		Patcher:        patcher,
 		Renderer:       renderer,

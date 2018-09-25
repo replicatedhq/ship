@@ -105,8 +105,6 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		azureaks.NewRenderer,
 
-		kubectl.NewKubectl,
-
 		NewShip,
 	}
 
@@ -161,6 +159,7 @@ func headlessProviders() []interface{} {
 		kustomize.NewDaemonKustomizer,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
+		kubectl.NewKubectl,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -178,6 +177,7 @@ func headedProviders() []interface{} {
 		kustomize.NewDaemonKustomizer,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
+		kubectl.NewKubectl,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -198,6 +198,7 @@ func navcycleProviders() []interface{} {
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		terraform2.NewDaemonlessTerraformer,
 		tfplan.NewDaemonlessPlanner,
+		kubectl.NewDaemonlessKubectl,
 		// fake, we override it, this is janky, use a factory dex
 		func() daemontypes.StatusReceiver { return &statusonly.StatusReceiver{} },
 		daemon.NewV2Router,

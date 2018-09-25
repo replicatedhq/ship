@@ -7,7 +7,7 @@ import { Utilities } from "../../utilities/utilities";
 import Loader from "./Loader";
 import StepMessage from "./StepMessage";
 
-export default class StepPreparingTerraform extends React.Component {
+export default class StepKubectlApply extends React.Component {
   static propTypes = {
     location: PropTypes.shape({
       pathname: PropTypes.string,
@@ -20,8 +20,12 @@ export default class StepPreparingTerraform extends React.Component {
       type: PropTypes.string,
       detail: PropTypes.string,
     }),
-    handleAction: PropTypes.func,
     startPollingStep: PropTypes.func.isRequired,
+    handleAction: PropTypes.func,
+  }
+
+  constructor(props) {
+    super(props);
   }
 
   componentDidMount() {

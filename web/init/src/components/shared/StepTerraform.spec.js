@@ -11,6 +11,7 @@ const mockProps = {
   startPoll: jest.fn(),
   gotoRoute: jest.fn(),
   initializeStep: jest.fn(),
+  startPollingStep: jest.fn(),
 };
 
 describe("StepTerraform", () => {
