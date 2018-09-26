@@ -59,6 +59,7 @@ a {
   padding-left: 20px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* don't let that chrome autofill yellow ruin the aesthetic of your site */
@@ -105,5 +106,6 @@ input:-webkit-autofill {
   .container {
     padding-right: 30px;
     padding-left: 30px;
+    box-sizing: border-box;
   }
 }
