@@ -26,9 +26,6 @@ module.exports = {
         module: "empty"
     },
     module: {
-      // TODO: Monaco causes this error to show up,
-      //       possibly remove at some point
-      exprContextCritical: false,
       rules: [
         {
           test: /\.jsx?$/,
