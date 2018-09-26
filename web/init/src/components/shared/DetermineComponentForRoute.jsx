@@ -83,7 +83,12 @@ export class DetermineComponentForRoute extends React.Component {
     const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
     const kustomizeStep = routes[kustomizeStepIndex];
     const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-    const { actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id);
+
+    let { actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id);
+    // TODO: Revert when https://github.com/replicatedhq/ship/issues/596 is addressed
+    if (!kustomizeActions) {
+      ({ actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id));
+    }
     this.handleAction(kustomizeActions[0]);
 
     this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
