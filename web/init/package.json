@@ -11,6 +11,7 @@
     "build-dev": "npm run build -- --mode development",
     "start": "npm run build-dev -- --colors --watch",
     "dashboard": "cross-env DASHBOARD=true webpack-dashboard -m -- npm run start",
+    "gen-prop-docs": "rmd Ship src/Ship.jsx props.md",
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
@@ -73,6 +74,7 @@
     "publish": "^0.6.0",
     "react": "^16.5.1",
     "react-dom": "^16.5.1",
+    "react-markdown-gen": "^0.0.11",
     "redux-mock-store": "^1.5.3",
     "sass-loader": "^7.1.0",
     "source-map-support": "^0.5.9",

@@ -11,17 +11,11 @@ export class Ship extends React.Component {
   static propTypes = {
     /** API endpoint for the Ship binary */
     apiEndpoint: PropTypes.string.isRequired,
-    /**
-     * Base path name for the internal Ship Init component router
-     * */
+    /** Base path name for the internal Ship Init component router<br>Note: If basePath is omitted, it will default the base route to "/" */
     basePath: PropTypes.string,
-    /**
-     * Determines whether or not the Ship Init app will instantiate its own BrowserRouter
-     * */
+    /** Determines whether default header is displayed */
     headerEnabled: PropTypes.bool,
-    /**
-     * Parent history needed to sync ship routing with parent
-     * */
+    /** Parent history needed to sync Ship routing with parent<br>Note: Defaults to instantiate own internal BrowserRouter if omitted. */
     history: PropTypes.object
   }
 
