@@ -34,8 +34,8 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, basePath }) => (
                   path={`${basePath}/${route.id}`}
                   render={() => <DetermineComponentForRoute
                     basePath={basePath}
-                    routes={routes} 
-                    routeId={route.id} 
+                    routes={routes}
+                    routeId={route.id}
                   />}
                 />
               ))}
@@ -58,7 +58,10 @@ export default class RouteDecider extends React.Component {
          description: PropTypes.string,
          phase: PropTypes.string,
       })
-    )
+    ),
+    basePath: PropTypes.string.isRequired,
+    headerEnabled: PropTypes.bool.isRequired,
+    history: PropTypes.object.isRequired
   }
 
   componentDidUpdate(lastProps) {
@@ -75,7 +78,12 @@ export default class RouteDecider extends React.Component {
         }
       }
       if (isRootPath(basePath)) {
-        window.location.replace(`${basePath}/${routes[0].id}`);
+        const defaultRoute = `${basePath}/${routes[0].id}`;
+        if (this.props.history !== null) {
+          this.props.history.push(defaultRoute);
+        } else {
+          window.location.replace(defaultRoute);
+        }
       }
     }
   }
@@ -101,14 +109,14 @@ export default class RouteDecider extends React.Component {
     }
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">
-        { history ? 
+        { history ?
           <Router history={history}>
-            <ShipRoutesWrapper 
+            <ShipRoutesWrapper
               {...routeProps}
             />
           </Router> :
           <BrowserRouter basename={basePath}>
-            <ShipRoutesWrapper 
+            <ShipRoutesWrapper
               {...routeProps}
             />
           </BrowserRouter>
