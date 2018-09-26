@@ -119,9 +119,8 @@ export class DetermineComponentForRoute extends React.Component {
       location,
       initializeStep,
       routes,
-      basePath
     } = this.props;
-    const { id: routeId } = find(routes, { phase });
+    const { id: routeId } = find(routes, { phase }) || {};
 
     if (!phase || !phase.length) return null;
     switch (phase) {
