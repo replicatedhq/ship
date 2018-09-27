@@ -51,6 +51,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			localPath,
 			constants.HelmChartPath,
 			&defaultRelease,
+			applicationType,
 		)
 
 	case "k8s":
@@ -61,6 +62,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			localPath,
 			constants.KustomizeBasePath,
 			&defaultRelease,
+			applicationType,
 		)
 
 	case "replicated.app":
@@ -125,6 +127,7 @@ func (r *Resolver) resolveRelease(
 	localPath string,
 	destPath string,
 	defaultSpec *api.Spec,
+	applicationType string,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
@@ -144,7 +147,7 @@ func (r *Resolver) resolveRelease(
 		return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
 	}
 
-	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath)
+	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath, applicationType)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
 	}

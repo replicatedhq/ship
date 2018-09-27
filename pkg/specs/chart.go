@@ -146,7 +146,7 @@ to deploy the overlaid assets to your cluster.
 	}
 }
 
-func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string) (*api.ShipAppMetadata, error) {
+func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string, applicationType string) (*api.ShipAppMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveHelmMetadata"))
 
 	baseMetadata, err := r.ResolveBaseMetadata(upstream, localPath)
@@ -180,7 +180,7 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, err
 	}
 
-	if err := r.StateManager.SerializeShipMetadata(*baseMetadata); err != nil {
+	if err := r.StateManager.SerializeShipMetadata(*baseMetadata, applicationType); err != nil {
 		return nil, errors.Wrap(err, "write metadata to state")
 	}
 

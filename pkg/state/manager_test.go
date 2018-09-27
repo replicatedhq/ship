@@ -430,9 +430,10 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 			expected: VersionedState{
 				V1: &V1{
 					Metadata: map[string]string{
-						"version": "test version",
-						"icon":    "test icon",
-						"name":    "test name",
+						"applicationType": "mock application type",
+						"version":         "test version",
+						"icon":            "test icon",
+						"name":            "test name",
 					},
 				},
 			},
@@ -450,7 +451,7 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 			err := m.serializeAndWriteState(tt.before)
 			req.NoError(err)
 
-			err = m.SerializeShipMetadata(tt.Metadata)
+			err = m.SerializeShipMetadata(tt.Metadata, "mock application type")
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeShipMetadata() error = %v", err)
 			} else {

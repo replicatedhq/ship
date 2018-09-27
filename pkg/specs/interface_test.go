@@ -79,7 +79,7 @@ icon: https://kfbr.392/x5.png
 					Readme:     "its the readme",
 					ContentSHA: "abcdef1234567890",
 					URL:        "github.com/helm/charts/stable/x5",
-				}).After(inOrder)
+				}, "helm").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
 
