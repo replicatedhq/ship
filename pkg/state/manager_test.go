@@ -431,6 +431,7 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 				V1: &V1{
 					Metadata: map[string]string{
 						"applicationType": "mock application type",
+						"releaseNotes":    "",
 						"version":         "test version",
 						"icon":            "test icon",
 						"name":            "test name",

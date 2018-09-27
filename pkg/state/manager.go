@@ -79,6 +79,7 @@ func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata, applicati
 	versionedState := current.Versioned()
 	versionedState.V1.Metadata = map[string]string{
 		"applicationType": applicationType,
+		"releaseNotes":    metadata.ReleaseNotes,
 		"version":         metadata.Version,
 		"icon":            metadata.Icon,
 		"name":            metadata.Name,
@@ -100,6 +101,7 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 	versionedState := current.Versioned()
 	versionedState.V1.Metadata = map[string]string{
 		"applicationType": "replicated.app",
+		"releaseNotes":    metadata.ReleaseNotes,
 		"customerID":      metadata.CustomerID,
 		"installationID":  metadata.InstallationID,
 		"version":         metadata.Semver,

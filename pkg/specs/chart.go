@@ -14,6 +14,8 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
+	"github.com/replicatedhq/ship/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -152,6 +154,15 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 	baseMetadata, err := r.ResolveBaseMetadata(upstream, localPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve base metadata")
+	}
+
+	if util.IsGithubURL(upstream) {
+		githubClient := githubclient.NewGithubClient(r.FS, r.Logger)
+		releaseNotes, err := githubClient.ResolveReleaseNotes(ctx, upstream)
+		if err != nil {
+			debug.Log("could not resolve release notes from %s", upstream)
+		}
+		baseMetadata.ReleaseNotes = releaseNotes
 	}
 
 	err = r.StateManager.SerializeContentSHA(baseMetadata.ContentSHA)

@@ -171,9 +171,10 @@ icon: https://kfbr.392/x5.png
 				Spec: DefaultRawRelease("base"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
-						URL:        "github.com/replicatedhq/test-charts/plain-k8s",
-						Readme:     "its the readme",
-						ContentSHA: "abcdef1234567890",
+						URL:          "github.com/replicatedhq/test-charts/plain-k8s",
+						Readme:       "its the readme",
+						ReleaseNotes: "plain-k8s example",
+						ContentSHA:   "abcdef1234567890",
 					},
 				},
 			},
