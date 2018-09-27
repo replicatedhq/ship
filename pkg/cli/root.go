@@ -64,6 +64,8 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("secret-name", "", "name of the secret to laod state from")
 	cmd.PersistentFlags().String("secret-key", "", "name of the key in the secret containing state")
 
+	cmd.PersistentFlags().String("upload-assets-to", "", "URL to upload assets to via HTTP PUT request. NOTE: this will cause the entire working directory to be uploaded to the specified URL, use with caution.")
+
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
 	cmd.PersistentFlags().BoolP("prefer-git", "", false, "prefer the git protocol instead of using http apis")
 
@@ -83,6 +85,7 @@ func RootCmd() *cobra.Command {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd().Execute(); err != nil {
+
 		fmt.Println(err)
 		os.Exit(1)
 	}

@@ -17,6 +17,12 @@ make integration-test
       ```sh
       docker run -d -p 5000:5000 --restart=always --name registry registry:2
       ```
+- Test S3 Bucket
+    * To run a local http server for tests, run the following command:
+      ```sh
+      npm install -g http-echo-server
+      PORT=4569 http-echo-server 
+      ```
 
 ## Running the integration tests (from a docker image)
 

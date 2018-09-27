@@ -35,9 +35,11 @@ RUN cd /go/src/github.com/replicatedhq/ship && \
     go test -c ./integration/init
 
 # package things up
-FROM alpine
+FROM node:8-alpine
 ENV GOPATH=/go
 WORKDIR /test
+
+RUN npm install -g http-echo-server
 
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
@@ -53,7 +55,7 @@ COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init_app.test /test/init_app/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init.test /test/init/
-ENTRYPOINT ./integration_docker_start.sh
+CMD ./integration_docker_start.sh
 
 
 
