@@ -2,8 +2,8 @@
 
 
 SHELL := /bin/bash -o pipefail
-SRC = $(shell find . -name "*.go" ! -name "ui.bindatafs.go")
-FULLSRC = $(shell find . -name "*.go")
+SRC = $(shell find pkg -name "*.go" ! -name "ui.bindatafs.go")
+FULLSRC = $(shell find pkg -name "*.go")
 UI = $(shell find web/app/init/build -name "*.js")
 
 DOCKER_REPO ?= replicated
@@ -66,6 +66,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/state
 	mkdir -p pkg/test-mocks/apptype
 	mkdir -p pkg/test-mocks/replicatedapp
+	mkdir -p pkg/test-mocks/util
 	mockgen \
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
@@ -171,6 +172,11 @@ _mockgen:
 		-package replicatedapp \
 		github.com/replicatedhq/ship/pkg/specs/replicatedapp \
 		Resolver
+	mockgen \
+		-destination pkg/test-mocks/util/asset_uploader.go \
+		-package util \
+		github.com/replicatedhq/ship/pkg/util \
+		AssetUploader
 
 mockgen: _mockgen fmt
 

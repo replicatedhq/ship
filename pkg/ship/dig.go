@@ -1,9 +1,11 @@
 package ship
 
 import (
-	"github.com/replicatedhq/ship/pkg/patch"
-
+	"net/http"
 	"time"
+
+	"github.com/replicatedhq/ship/pkg/patch"
+	"github.com/replicatedhq/ship/pkg/util"
 
 	dockercli "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
@@ -54,6 +56,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 	providers := []interface{}{
 
+		func() *http.Client { return http.DefaultClient },
 		provide(v),
 		clock,
 		logger.New,
@@ -65,6 +68,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		patch.NewShipPatcher,
 		specs.NewIDPatcher,
 		apptype.NewInspector,
+		util.NewAssetUploader,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,

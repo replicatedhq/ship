@@ -10,6 +10,7 @@ import (
 
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -35,11 +36,13 @@ type Ship struct {
 
 	APIPort  int
 	Headless bool
+	Navcycle bool
 
 	CustomerID     string
 	ReleaseSemver  string
 	InstallationID string
 	PlanOnly       bool
+	UploadAssetsTo string
 
 	Daemon           daemontypes.Daemon
 	Resolver         *specs.Resolver
@@ -50,6 +53,7 @@ type Ship struct {
 	State            state.Manager
 	IDPatcher        *specs.IDPatcher
 	FS               afero.Afero
+	Uploader         util.AssetUploader
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
@@ -69,14 +73,17 @@ func NewShip(
 	patcher *specs.IDPatcher,
 	fs afero.Afero,
 	inspector apptype.Inspector,
+	uploader util.AssetUploader,
 ) (*Ship, error) {
 
 	return &Ship{
 		APIPort:        v.GetInt("api-port"),
 		Headless:       v.GetBool("headless"),
+		Navcycle:       v.GetBool("navcycle"),
 		CustomerID:     v.GetString("customer-id"),
 		ReleaseSemver:  v.GetString("release-semver"),
 		InstallationID: v.GetString("installation-id"),
+		UploadAssetsTo: v.GetString("upload-assets-to"),
 		Runbook:        flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 
 		KustomizeRaw: v.GetString("raw"),
@@ -93,6 +100,7 @@ func NewShip(
 		IDPatcher:        patcher,
 		FS:               fs,
 		StateManager:     stateManager,
+		Uploader:         uploader,
 	}, nil
 }
 
@@ -186,15 +194,17 @@ func (s *Ship) Execute(ctx context.Context) error {
 }
 
 func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector, isKustomize bool) error {
+	debug := level.Debug(log.With(s.Logger, "method", "execute"))
+	warn := level.Debug(log.With(s.Logger, "method", "execute"))
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
 		var err error
 		// *wince* dex do this better
-		if viper.GetBool("headless") {
+		if s.Headless {
 			err = s.Runner.Run(ctx, release)
 			s.Daemon.AllStepsDone(ctx)
-		} else if viper.GetBool("navcycle") {
+		} else if s.Navcycle {
 			s.Daemon.EnsureStarted(ctx, release)
 			err = s.Daemon.AwaitShutdown()
 		} else {
@@ -208,8 +218,24 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
 
-		if err == nil && !isKustomize && selector != nil {
+		if err != nil {
+			runResultCh <- err
+			return
+		}
+
+		if !isKustomize && selector != nil {
 			_ = s.AppResolver.RegisterInstall(ctx, *selector, release)
+		}
+
+		if s.UploadAssetsTo != "" {
+			debug.Log("event", "tmpdir.remove") // this feels like a weird place to do this. Open to other ways of excluding the tmp dir from the results
+			err = os.RemoveAll(constants.ShipPathInternalTmp)
+			if err != nil {
+				warn.Log("event", "tmpdir.remove.fail", "path", constants.ShipPathInternalTmp, "err", err)
+				// ignore, just do the upload anyway
+			}
+			debug.Log("event", "assets.upload")
+			err = s.Uploader.UploadAssets(s.UploadAssetsTo)
 		}
 		runResultCh <- err
 	}()

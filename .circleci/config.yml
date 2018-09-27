@@ -113,8 +113,12 @@ jobs:
           export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.10.4.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-           # sudo apt update --fix-missing && apt upgrade -y
-           # sudo apt install --no-install-recommends -y gcc
+
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
 
           wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
           echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
@@ -127,6 +131,7 @@ jobs:
       - run: sudo mkdir -p /var/lib/registry
       - run: |
           sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
           $GOPATH/bin/ginkgo -p -stream integration/init
