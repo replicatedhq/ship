@@ -13,8 +13,10 @@
       }
     },
     "metadata": {
+      "applicationType": "helm",
       "icon": "",
       "name": "values-update",
+      "releaseNotes": "add static chart (will not be updated)",
       "version": "0.1.0"
     },
     "upstream": "github.com/replicatedhq/test-charts/values-static",

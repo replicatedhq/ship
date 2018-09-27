@@ -6,8 +6,10 @@
     },
     "contentSHA": "3dc528ef57edab157951c0b8dfbaf510c6d8667f0808d2c0e9bdf7ce508e10a3",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "6-TGyWWOCG-6hmsa4R1zz9jOL9CWPJy7",
+      "releaseNotes": "",
       "version": "0.0.6"
     }
   }

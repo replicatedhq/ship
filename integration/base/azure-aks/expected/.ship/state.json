@@ -10,8 +10,10 @@
     },
     "contentSHA": "fe72c32ca04fb40f17ff1fe1e7a4bfe4d764fe1d4c30dc3fa6f05056019bba5c",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "placeholder",
       "installationID": "placeholder",
+      "releaseNotes": "",
       "version": "placeholder"
     },
     "lifecycle": {

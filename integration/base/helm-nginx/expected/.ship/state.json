@@ -3,8 +3,10 @@
     "config": {},
     "contentSHA": "b93b0ea7be591d5d017fe977093eab71958b9e89a062062e500961011fce7f39",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "WAtB86RsD8koFOgnAEX63TU0mafWsqAj",
+      "releaseNotes": "",
       "version": "0.0.4"
     }
   }
