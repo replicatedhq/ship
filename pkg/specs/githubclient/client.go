@@ -224,9 +224,9 @@ func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string)
 	}
 
 	if len(commitList) > 0 {
-		firstRepoCommit := commitList[0]
-		if firstRepoCommit != nil {
-			commit := firstRepoCommit.GetCommit()
+		latestRepoCommit := commitList[0]
+		if latestRepoCommit != nil {
+			commit := latestRepoCommit.GetCommit()
 			if commit != nil {
 				return commit.GetMessage(), nil
 			}
