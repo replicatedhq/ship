@@ -81,6 +81,12 @@ func (a *assetUploader) UploadAssets(target string) error {
 		return errors.Errorf("request returned no error, but was nil")
 	}
 	if resp.StatusCode > 299 {
+		if resp.Body != nil {
+			body, err := ioutil.ReadAll(resp.Body)
+			if err == nil {
+				return errors.Errorf("request returned status code %d and body %q", resp.StatusCode, string(body))
+			}
+		}
 		return errors.Errorf("request returned status code %d", resp.StatusCode)
 	}
 	return nil
