@@ -14,7 +14,7 @@ const isRootPath = (basePath) => {
   return window.location.pathname === formattedBasePath
 }
 
-const ShipRoutesWrapper = ({ routes, headerEnabled, basePath }) => (
+const ShipRoutesWrapper = ({ routes, headerEnabled, basePath, onCompletion }) => (
   <div className="flex-column flex1">
     <div className="flex-column flex1 u-overflow--hidden u-position--relative">
       {!routes ?
@@ -33,6 +33,7 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, basePath }) => (
                   key={route.id}
                   path={`${basePath}/${route.id}`}
                   render={() => <DetermineComponentForRoute
+                    onCompletion={onCompletion}
                     basePath={basePath}
                     routes={routes}
                     routeId={route.id}
@@ -61,7 +62,9 @@ export default class RouteDecider extends React.Component {
     ),
     basePath: PropTypes.string.isRequired,
     headerEnabled: PropTypes.bool.isRequired,
-    history: PropTypes.object.isRequired
+    history: PropTypes.object.isRequired,
+    /** Callback function to be invoked at the finalization of the Ship Init flow */
+    onCompletion: PropTypes.func,
   }
 
   componentDidUpdate(lastProps) {
@@ -97,15 +100,16 @@ export default class RouteDecider extends React.Component {
   render() {
     const {
       routes,
-      isDone,
       basePath,
       history,
       headerEnabled,
+      onCompletion,
     } = this.props;
     const routeProps = {
       routes,
       basePath,
-      headerEnabled
+      headerEnabled,
+      onCompletion,
     }
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">

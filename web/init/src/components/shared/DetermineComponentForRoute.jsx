@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
@@ -17,6 +18,10 @@ import ConfigOnly from "../../containers/ConfigOnly";
 import { fetchContentForStep } from "../../redux/data/appRoutes/actions";
 
 export class DetermineComponentForRoute extends React.Component {
+  static propTypes = {
+    /** Callback function to be invoked at the finalization of the Ship Init flow */
+    onCompletion: PropTypes.func,
+  }
 
   constructor(props) {
     super(props);
@@ -42,33 +47,44 @@ export class DetermineComponentForRoute extends React.Component {
     getContentForStep(routeId);
   }
 
-  gotoRoute = (route) => {
+  gotoRoute = async(route) => {
     let nextRoute = route;
-    const { basePath } = this.props;
+    const { basePath, routes, routeId, history, onCompletion } = this.props;
 
     if (!nextRoute) {
-      const currRoute = find(this.props.routes, ["id", this.props.routeId]);
-      const currIndex = indexOf(this.props.routes, currRoute);
-      nextRoute = this.props.routes[currIndex + 1];
+      const currRoute = find(routes, ["id", routeId]);
+      const currIndex = indexOf(routes, currRoute);
+      nextRoute = routes[currIndex + 1];
     }
 
     if (!nextRoute) {
-      return this.handleShutdown();
-    }
-    this.props.history.push(`${basePath}/${nextRoute.id}`);
+      if (onCompletion) {
+        await this.handleShutdown();
+        return onCompletion();
+      }
 
+      await this.handleShutdown();
+      return this.gotoDone();
+    }
+
+    history.push(`${basePath}/${nextRoute.id}`);
   }
 
   handleShutdown = async () => {
-    const { basePath } = this.props;
-    const url = `${this.props.apiEndpoint}/shutdown`;
+    const { apiEndpoint, shutdownApp } = this.props;
+
+    const url = `${apiEndpoint}/shutdown`;
     await fetch(url, {
       method: "POST",
       headers: {
         "Accept": "application/json",
       },
     });
-    await this.props.shutdownApp();
+    await shutdownApp();
+  }
+
+  gotoDone = () => {
+    const { basePath } = this.props;
     this.props.history.push(`${basePath}/done`);
   }
 

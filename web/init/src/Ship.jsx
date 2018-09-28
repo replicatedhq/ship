@@ -16,7 +16,9 @@ export class Ship extends React.Component {
     /** Determines whether default header is displayed */
     headerEnabled: PropTypes.bool,
     /** Parent history needed to sync Ship routing with parent<br>Note: Defaults to instantiate own internal BrowserRouter if omitted. */
-    history: PropTypes.object
+    history: PropTypes.object,
+    /** Callback function to be invoked at the finalization of the Ship Init flow */
+    onCompletion: PropTypes.func,
   }
 
   static defaultProps = {
@@ -45,7 +47,7 @@ export class Ship extends React.Component {
   }
 
   render() {
-    const { history, headerEnabled, basePath } = this.props;
+    const { history, headerEnabled, basePath, onCompletion } = this.props;
     const { store } = this.state;
 
     return (
@@ -56,6 +58,7 @@ export class Ship extends React.Component {
               headerEnabled={headerEnabled}
               basePath={basePath}
               history={history}
+              onCompletion={onCompletion}
             />
           </AppWrapper>
         </Provider>
