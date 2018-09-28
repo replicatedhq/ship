@@ -73,6 +73,12 @@ func (a *assetUploader) UploadAssets(target string) error {
 		return errors.Wrap(err, "create request")
 	}
 
+	stat, err := archive.Stat()
+	if err != nil {
+		return errors.Wrap(err, "get archive info")
+	}
+	request.ContentLength = stat.Size()
+
 	debug.Log("event", "request.send")
 	resp, err := a.client.Do(request)
 	if err != nil {
