@@ -61,19 +61,21 @@ func (a *assetUploader) UploadAssets(target string) error {
 	debug.Log("event", "archive.open")
 	archive, err := os.Open(archivePath)
 	if err != nil {
-		errors.Wrap(err, "open archive")
+		return errors.Wrap(err, "open archive")
 	}
 
 	debug.Log("event", "request.create")
 	request, err := http.NewRequest("PUT", target, archive)
 	if err != nil {
-		errors.Wrap(err, "create request")
+		return errors.Wrap(err, "create request")
 	}
 
 	debug.Log("event", "request.send")
 	resp, err := a.client.Do(request)
 	if err != nil {
-		errors.Wrap(err, "send request")
+		return errors.Wrap(err, "send request")
+	} else if resp == nil {
+		return errors.Errorf("request returned no error, but was nil")
 	}
 	if resp.StatusCode > 299 {
 		return errors.Errorf("request returned status code %d", resp.StatusCode)
