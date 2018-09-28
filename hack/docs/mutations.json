@@ -1,5 +1,63 @@
 [
   {
+    "path": "properties.config.properties.v1.items.properties",
+    "delete": [
+      "filters",
+      "test_proc"
+    ]
+  },
+  {
+    "path": "properties.config.properties.v1.items.properties.description",
+    "merge": {
+      "description": "The `description` of a config item should tell end users what data needs to be collected and how it will be used.",
+      "examples": [
+        "Configure application authentication below."
+      ]
+    }
+  },
+  {
+    "path": "properties.config.properties.v1.items.properties.items",
+    "merge": {
+      "description": "The `items` property is a grouping of similar config items.",
+      "examples": [
+        {
+          "name": "http_enabled",
+          "title": "HTTP Enabled",
+          "help_text": "When enabled we will listen to http",
+          "type": "bool",
+          "default": "0"
+        }
+      ]
+    }
+  },
+  {
+    "path": "properties.config.properties.v1.items.properties.name",
+    "merge": {
+      "description": "The `name` is used to reference an item in a template function.",
+      "examples": [
+        "authentication"
+      ]
+    }
+  },
+  {
+    "path": "properties.config.properties.v1.items.properties.title",
+    "merge": {
+      "description": "The `title` is the header of an item displayed to the end user.`",
+      "examples": [
+        "Authentication"
+      ]
+    }
+  },
+  {
+    "path": "properties.config.properties.v1.items.properties.when",
+    "merge": {
+      "description": "The `when` property is used to control whether an item will be shown to the end user.",
+      "examples": [
+        "'{{repl or (ConfigOptionEquals \"select_one\" \"external\") (ConfigOptionEquals \"select_one\" \"embedded\")}}'"
+      ]
+    }
+  },
+  {
     "path": "properties.assets",
     "merge": {
       "description": "Assets allows you to configure the application artifacts and deployment manifests will be delivered to end users running your application"
@@ -706,6 +764,138 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks",
+    "merge": {
+      "description": "An `azure_aks` asset generates a terraform file that will create an Azure AKS Cluster.",
+      "extended_description": "It also populates a template function `AzureAKS` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectl_apply](/api/ship-lifecycle/lifecycle/kubectl_apply/) lifecycle step.",
+      "examples": [
+        {
+          "tenant_id": "5c87f096-eafc-41e1-82f3-1d2282887dff",
+          "subscription_id": "75cfa510-7123-4812-89bb-fc0286968bf5",
+          "service_principal_id": "651ed514-6d89-4e51-adaf-c3d3f6dac5a3",
+          "service_principal_secret": "hvS/lhixCYsPxXgFt04Ilj14NLU4o8LOAIDSAktrwbo=",
+          "resource_group_name": "DefaultResourceGroup-EUS",
+          "location": "East US",
+          "kubernetes_version": "v1.11.2",
+          "cluster_name": "AKS cluster",
+          "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDdEcdAqClaNZdHAGHhiSBobJo5ZUL3sDfrZbBQinLvx3HN/9UaXp5mimlzhUkUQwX4jPqJ78w52idmXItd55HVboSQ8uKaRicgLLaNhSqrNpb+W3k2RToRPsjuaCi6a8XET0kcma6NaIbae9n0+nKzTtadX/hkrPEMS56BYpnHjQ== user@example.com",
+          "node_count": "3",
+          "node_type": "Standard_D1_v2",
+          "disk_gb": "50"
+        }
+      ]
+    },
+    "replace": {
+      "required": [
+        "cluster_name",
+        "location",
+        "node_count",
+        "node_type",
+        "resource_group_name",
+        "service_principal_id",
+        "service_principal_secret",
+        "subscription_id",
+        "tenant_id"
+      ]
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.cluster_name",
+    "merge": {
+      "description": "The name of the cluster."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.description",
+    "merge": {
+      "description": "A description for the cluster."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.dest",
+    "merge": {
+      "description": "The path within `installer/` to place the generated file. Defaults to `azure_aks.tf`"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.disk_gb",
+    "merge": {
+      "description": "The size of the disk the the operating system will be installed on for each node in the cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.kubernetes_version",
+    "merge": {
+      "description": "The cluster version to create"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.location",
+    "merge": {
+      "description": "The location of the resource group specified in resource_group_name"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.mode",
+    "merge": {
+      "description": "Ignored"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.node_count",
+    "merge": {
+      "description": "The number of nodes to create in the cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.node_type",
+    "merge": {
+      "description": "The size of VM to create for each node in the cluster"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.public_key",
+    "merge": {
+      "description": "Enables SSH access to the nodes in the cluster with the corresponding private key"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.resource_group_name",
+    "merge": {
+      "description": "The name of a resource group within the subscription specified in subscription_id"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.service_principal_id",
+    "merge": {
+      "description": "The Application ID of a registered application."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.service_principal_secret",
+    "merge": {
+      "description": "A key associated with a registered application."
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.subscription_id",
+    "merge": {
+      "description": "An Azure subscription ID"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.tenant_id",
+    "merge": {
+      "description": "The tenant ID, also known as Directory ID, from Azure Active Directory"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.azure_aks.properties.when",
+    "merge": {
+      "description": "This asset will be included when 'when' is omitted or true"
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.google_gke",
     "merge": {
       "description": "A `google_gke` asset generates a terraform file that will create a Google GKE Cluster.",
@@ -933,9 +1123,9 @@
     "delete": ["github"]
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectlApply",
     "merge": {
-      "description": "A `kubectl_apply` step will run `kubectl apply` with the provided file path and kubeconfig.",
+      "description": "A `kubectlApply` step will run `kubectl apply` with the provided file path and kubeconfig.",
       "examples": [
         { "path": "config.yml" },
         {
@@ -955,13 +1145,13 @@
     }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply.properties.path",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectlApply.properties.path",
     "merge": {
       "description": "the file to apply"
     }
   },
   {
-    "path": "properties.lifecycle.properties.v1.items.properties.kubectl_apply.properties.kubeconfig",
+    "path": "properties.lifecycle.properties.v1.items.properties.kubectlApply.properties.kubeconfig",
     "merge": {
       "description": "the kubeconfig file to use, overriding the system default"
     }
@@ -1005,7 +1195,7 @@
       "kustomizeIntro",
       "helmIntro",
       "helmValues",
-      "kubectl_apply.properties.StepShared"
+      "kubectlApply.properties.StepShared"
     ]
   }
 ]
