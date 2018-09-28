@@ -7,7 +7,7 @@
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "xYe8HKjr9UJuXHYg4FIUX2n6wQ_VY2mV",
-      "releaseNotes": "",
+      "releaseNotes": "integration tests",
       "version": "1.0.1-SNAPSHOT"
     }
   }

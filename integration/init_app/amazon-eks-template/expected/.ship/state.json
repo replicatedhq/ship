@@ -7,7 +7,7 @@
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "arpUWXmV5JnELQ449wRACqVnlqtJlfZy",
-      "releaseNotes": "",
+      "releaseNotes": "integration tests",
       "version": "1.0.0-amazon-eks-template"
     }
   }
