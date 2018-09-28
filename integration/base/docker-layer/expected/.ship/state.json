@@ -5,8 +5,10 @@
     },
     "contentSHA": "181da1498e9c63c2b9a8b47446cce7dffd11c28b095814c7136a02391edbca8b",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "a5jOQ1Fnb5l-a2uXwFf-YFkUukeVWnbU",
+      "releaseNotes": "",
       "version": "0.0.9"
     }
   }

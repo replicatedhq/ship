@@ -13,8 +13,10 @@
       }
     },
     "metadata": {
+      "applicationType": "helm",
       "icon": "",
       "name": "modify-chart",
+      "releaseNotes": "Update values.yaml",
       "version": "0.1.0"
     },
     "upstream": "github.com/replicatedhq/test-charts/modify-chart",

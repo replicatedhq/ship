@@ -79,7 +79,7 @@ icon: https://kfbr.392/x5.png
 					Readme:     "its the readme",
 					ContentSHA: "abcdef1234567890",
 					URL:        "github.com/helm/charts/stable/x5",
-				}).After(inOrder)
+				}, "helm").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
 
@@ -171,9 +171,10 @@ icon: https://kfbr.392/x5.png
 				Spec: DefaultRawRelease("base"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
-						URL:        "github.com/replicatedhq/test-charts/plain-k8s",
-						Readme:     "its the readme",
-						ContentSHA: "abcdef1234567890",
+						URL:          "github.com/replicatedhq/test-charts/plain-k8s",
+						Readme:       "its the readme",
+						ReleaseNotes: "plain-k8s example",
+						ContentSHA:   "abcdef1234567890",
 					},
 				},
 			},

@@ -3,8 +3,10 @@
     "config": {},
     "contentSHA": "54e761100cb39926d58cb68ddc20437347240310f5cbdce01f00d7e085d4c2b1",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "",
       "installationID": "",
+      "releaseNotes": "",
       "version": ""
     }
   }

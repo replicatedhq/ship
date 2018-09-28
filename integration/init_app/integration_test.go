@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/docker/docker/client"
 	. "github.com/onsi/ginkgo"
@@ -175,7 +174,7 @@ func createRelease(
 		string(releaseContents),
 		channel.ID,
 		testMetadata.ReleaseVersion,
-		fmt.Sprintf("integration tests running on %s", time.Now()),
+		"integration tests",
 	)
 	Expect(err).NotTo(HaveOccurred())
 	installationID, err := vendorClient.EnsureCustomerOnChannel(testMetadata.CustomerID, channel.ID)

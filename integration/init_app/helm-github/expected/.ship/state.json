@@ -4,8 +4,10 @@
     "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=OafdEI-lF2IQV0Il3bfzrIl5mUdHCb3j&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
     "contentSHA": "3f27933df35c90e60a3c943e6fa765bc6116e8e6e17f89cdb6976ccc52e1cb65",
     "metadata": {
+      "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "OafdEI-lF2IQV0Il3bfzrIl5mUdHCb3j",
+      "releaseNotes": "integration tests",
       "version": "1.0.0-SNAPSHOT"
     }
   }

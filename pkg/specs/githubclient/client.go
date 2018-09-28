@@ -41,22 +41,14 @@ func (g *GithubClient) GetFiles(
 ) error {
 	debug := level.Debug(log.With(g.logger, "method", "getRepoContents"))
 
-	if !strings.HasPrefix(upstream, "http") {
-
-		upstream = fmt.Sprintf("http://%s", upstream)
-	}
-
-	debug.Log("event", "parseURL")
-	upstreamURL, err := url.Parse(upstream)
+	debug.Log("event", "validateGithubURL")
+	validatedUpstreamURL, err := validateGithubURL(upstream)
 	if err != nil {
 		return err
 	}
 
-	if !strings.Contains(upstreamURL.Host, "github.com") {
-		return errors.New(fmt.Sprintf("%s is not a Github URL", upstream))
-	}
-
-	owner, repo, branch, repoPath, err := decodeGitHubURL(upstreamURL.Path)
+	debug.Log("event", "decodeGithubURL")
+	owner, repo, branch, repoPath, err := decodeGitHubURL(validatedUpstreamURL.Path)
 	if err != nil {
 		return err
 	}
@@ -188,4 +180,58 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	}
 
 	return owner, repo, branch, path, nil
+}
+
+func validateGithubURL(upstream string) (*url.URL, error) {
+	if !strings.HasPrefix(upstream, "http") {
+
+		upstream = fmt.Sprintf("http://%s", upstream)
+	}
+
+	upstreamURL, err := url.Parse(upstream)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.Contains(upstreamURL.Host, "github.com") {
+		return nil, errors.New(fmt.Sprintf("%s is not a Github URL", upstream))
+	}
+
+	return upstreamURL, nil
+}
+
+func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string) (string, error) {
+	debug := level.Debug(log.With(g.logger, "method", "ResolveReleaseNotes"))
+
+	debug.Log("event", "validateGithubURL")
+	validatedUpstreamURL, err := validateGithubURL(upstream)
+	if err != nil {
+		return "", errors.Wrap(err, "not a valid github url")
+	}
+
+	debug.Log("event", "decodeGithubURL")
+	owner, repo, branch, repoPath, err := decodeGitHubURL(validatedUpstreamURL.Path)
+	if err != nil {
+		return "", err
+	}
+
+	commitList, _, err := g.client.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{
+		SHA:  branch,
+		Path: repoPath,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if len(commitList) > 0 {
+		latestRepoCommit := commitList[0]
+		if latestRepoCommit != nil {
+			commit := latestRepoCommit.GetCommit()
+			if commit != nil {
+				return commit.GetMessage(), nil
+			}
+		}
+	}
+
+	return "", errors.New("No commit available")
 }

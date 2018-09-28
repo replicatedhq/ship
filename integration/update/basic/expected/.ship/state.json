@@ -13,8 +13,10 @@
       }
     },
     "metadata": {
+      "applicationType": "helm",
       "icon": "",
       "name": "basic",
+      "releaseNotes": "Update README.md",
       "version": "0.1.0"
     },
     "upstream": "github.com/replicatedhq/test-charts/basic",

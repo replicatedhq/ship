@@ -32,7 +32,7 @@ type Manager interface {
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
 	SerializeContentSHA(contentSHA string) error
-	SerializeShipMetadata(api.ShipAppMetadata) error
+	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
@@ -67,7 +67,7 @@ func NewManager(
 }
 
 // SerializeShipMetadata is used by `ship init` to serialize metadata from ship applications to state file
-func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata) error {
+func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata, applicationType string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
 
 	debug.Log("event", "tryLoadState")
@@ -78,9 +78,11 @@ func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata) error {
 
 	versionedState := current.Versioned()
 	versionedState.V1.Metadata = map[string]string{
-		"version": metadata.Version,
-		"icon":    metadata.Icon,
-		"name":    metadata.Name,
+		"applicationType": applicationType,
+		"releaseNotes":    metadata.ReleaseNotes,
+		"version":         metadata.Version,
+		"icon":            metadata.Icon,
+		"name":            metadata.Name,
 	}
 
 	return m.serializeAndWriteState(versionedState)
@@ -98,9 +100,11 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 
 	versionedState := current.Versioned()
 	versionedState.V1.Metadata = map[string]string{
-		"customerID":     metadata.CustomerID,
-		"installationID": metadata.InstallationID,
-		"version":        metadata.Semver,
+		"applicationType": "replicated.app",
+		"releaseNotes":    metadata.ReleaseNotes,
+		"customerID":      metadata.CustomerID,
+		"installationID":  metadata.InstallationID,
+		"version":         metadata.Semver,
 	}
 
 	return m.serializeAndWriteState(versionedState)

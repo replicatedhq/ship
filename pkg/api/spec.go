@@ -32,13 +32,14 @@ type GithubFile struct {
 }
 
 type ShipAppMetadata struct {
-	Description string `json:"description" yaml:"description" hcl:"description" meta:"description"`
-	Version     string `json:"version" yaml:"version" hcl:"version" meta:"version"`
-	Icon        string `json:"icon" yaml:"icon" hcl:"icon" meta:"icon"`
-	Name        string `json:"name" yaml:"name" hcl:"name" meta:"name"`
-	Readme      string `json:"readme" yaml:"readme" hcl:"readme" meta:"readme"`
-	URL         string `json:"url" yaml:"url" hcl:"url" meta:"url"`
-	ContentSHA  string `json:"contentSHA" yaml:"contentSHA" hcl:"contentSHA" meta:"contentSHA"`
+	Description  string `json:"description" yaml:"description" hcl:"description" meta:"description"`
+	Version      string `json:"version" yaml:"version" hcl:"version" meta:"version"`
+	Icon         string `json:"icon" yaml:"icon" hcl:"icon" meta:"icon"`
+	Name         string `json:"name" yaml:"name" hcl:"name" meta:"name"`
+	Readme       string `json:"readme" yaml:"readme" hcl:"readme" meta:"readme"`
+	URL          string `json:"url" yaml:"url" hcl:"url" meta:"url"`
+	ContentSHA   string `json:"contentSHA" yaml:"contentSHA" hcl:"contentSHA" meta:"contentSHA"`
+	ReleaseNotes string `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
 }
 
 // ReleaseMetadata
