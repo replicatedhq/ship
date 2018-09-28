@@ -25,12 +25,10 @@ type assetUploader struct {
 func NewAssetUploader(
 	logger log.Logger,
 	client *http.Client,
-	tar archiver.Archiver,
 ) AssetUploader {
 	return &assetUploader{
 		logger: log.With(logger, "struct", "assetUploader"),
 		client: client,
-		tar:    tar,
 	}
 
 }
@@ -50,6 +48,11 @@ func (a *assetUploader) UploadAssets(target string) error {
 		return errors.Wrapf(err, "create temp dir")
 	}
 	defer os.RemoveAll(tmpdir)
+
+	// in normal use this means that the targz archiver will be used, but tests can set something else if needed
+	if a.tar == nil {
+		a.tar = archiver.TarGz
+	}
 
 	debug.Log("event", "archive.create")
 	archivePath := path.Join(tmpdir, "assets.tar.gz")
