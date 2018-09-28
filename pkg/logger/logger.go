@@ -31,7 +31,7 @@ func (c *compositeLogger) Log(keyvals ...interface{}) error {
 // New builds a logger from env using viper
 func New(v *viper.Viper, fs afero.Afero) log.Logger {
 
-	fullPathCaller := pathCaller(3)
+	fullPathCaller := pathCaller(5)
 	var stdoutLogger log.Logger
 	stdoutLogger = withFormat(viper.GetString("log-format"))
 	stdoutLogger = log.With(stdoutLogger, "ts", log.DefaultTimestampUTC)

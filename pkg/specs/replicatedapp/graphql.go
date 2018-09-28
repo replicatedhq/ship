@@ -174,7 +174,7 @@ func (r *ShipRelease) githubContents() []api.GithubContent {
 }
 
 // NewGraphqlClient builds a new client using a viper instance
-func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
+func NewGraphqlClient(v *viper.Viper, client *http.Client) (*GraphQLClient, error) {
 	addr := v.GetString("customer-endpoint")
 	server, err := url.ParseRequestURI(addr)
 	if err != nil {
@@ -182,7 +182,7 @@ func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
 	}
 	return &GraphQLClient{
 		GQLServer: server,
-		Client:    http.DefaultClient,
+		Client:    client,
 	}, nil
 }
 
