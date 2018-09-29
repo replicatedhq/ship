@@ -173,7 +173,7 @@ export const handler = (argv) => {
   fs.writeFileSync(`lifecycle/_index.md`, LIFECYCLE_INDEX_DOC);
   fs.writeFileSync(`config/_index.md`, CONFIG_INDEX_DOC);
 
-  for (let subgroup of ["assets", "lifecycle"]) {
+  for (let subgroup of ["assets", "lifecycle", "config"]) {
     const specTypes = _.get(schema, `properties[${subgroup}].properties.v1.items.properties`);
     if (!specTypes) {
       continue;

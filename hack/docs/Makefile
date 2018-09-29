@@ -43,7 +43,7 @@ markdown-assets:
 
 pipeline-strict: deps prebuild build gen-schema merge-mutations validate markdown-assets
 pipeline: deps prebuild build gen-schema merge-mutations 
-	
+
 # require validation to generate docs, pipeline only does schema
 pipeline-docs: pipeline-strict
 

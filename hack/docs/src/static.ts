@@ -53,5 +53,5 @@ gradient: "purpleToPink"
 
 ## Ship Config
 
-This is the reference documentation for Ship config. It has unfortunately not yet been created. It is largely shared with the Replicated config described [here](https://help.replicated.com/docs/config-screen/config-yaml/).
+This is the reference documentation for Ship config. It is largely shared with the Replicated config described [here](https://help.replicated.com/docs/config-screen/config-yaml/). Config allows you to collect settings from end-users that will be available through template functions to use in assets and lifecycle steps.
 `;
