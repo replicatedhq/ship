@@ -8,6 +8,9 @@
     z-index: 500;
     overflow: auto;
 
+    @import "./buttons.scss";
+    @import "./utilities.scss";
+
     .Modal {
         position: absolute;
         top: 50%;

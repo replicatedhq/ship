@@ -380,7 +380,7 @@ export default class KustomizeOverlay extends React.Component {
           <div className="Modal-header">
             <p>Are you sure you want to discard this overlay?</p>
           </div>
-          <div className="flex flex-column u-modalPadding">
+          <div className="flex flex-column Modal-body">
             <p className="u-fontSize--large u-fontWeight--normal u-color--dustyGray u-lineHeight--more">It will not be applied to the kustomization.yaml file that is generated for you.</p>
             <div className="flex justifyContent--flexEnd u-marginTop--20">
               <button className="btn secondary u-marginRight--10" onClick={() => this.toggleModal("")}>Cancel</button>
