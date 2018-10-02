@@ -89,25 +89,26 @@ export class DetermineComponentForRoute extends React.Component {
   }
 
   skipKustomize = async () => {
-    const {
-      actions: kustomizeIntroActions,
-      routes,
-      apiEndpoint,
-    } = this.props;
-    this.handleAction(kustomizeIntroActions[0]);
+    const { apiEndpoint } = this.props;
+    const { actions, progress } = await fetchContentForStep(apiEndpoint, "kustomize");
 
-    const kustomizeStepIndex = findIndex(routes, { phase: "kustomize" });
-    const kustomizeStep = routes[kustomizeStepIndex];
-    const stepAfterKustomize = routes[kustomizeStepIndex + 1];
-
-    let { actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id);
-    // TODO: Revert when https://github.com/replicatedhq/ship/issues/596 is addressed
-    if (!kustomizeActions) {
-      ({ actions: kustomizeActions } = await fetchContentForStep(apiEndpoint, kustomizeStep.id));
+    let stepValid = true;
+    if (progress && progress.detail) {
+      const { status } = JSON.parse(progress.detail);
+      stepValid = status !== error;
     }
-    this.handleAction(kustomizeActions[0]);
 
-    this.startPoll(kustomizeStep.id, () => this.gotoRoute(stepAfterKustomize));
+    if (stepValid) {
+      const [finalizeKustomize] = actions;
+      await this.props.finalizeStep({ action: finalizeKustomize });
+
+      this.startPoll("kustomize", this.gotoRoute);
+    } else {
+      // TODO: Handle case where error detected in Kustomize step on skip
+      //       This can occur even if no overlays created since kustomize
+      //       build is always executed.
+      console.log("Error detected, cancelling kustomize step skip.")
+    }
   }
 
   startPoll = async (routeId, cb) => {
