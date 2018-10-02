@@ -93,9 +93,11 @@ export class DetermineComponentForRoute extends React.Component {
     const { actions, progress } = await fetchContentForStep(apiEndpoint, "kustomize");
 
     let stepValid = true;
+    let kustomizeErrorMessage = "";
     if (progress && progress.detail) {
-      const { status } = JSON.parse(progress.detail);
-      stepValid = status !== error;
+      const { status, message } = JSON.parse(progress.detail);
+      stepValid = status !== "error";
+      kustomizeErrorMessage = message;
     }
 
     if (stepValid) {
@@ -107,7 +109,7 @@ export class DetermineComponentForRoute extends React.Component {
       // TODO: Handle case where error detected in Kustomize step on skip
       //       This can occur even if no overlays created since kustomize
       //       build is always executed.
-      console.log("Error detected, cancelling kustomize step skip.")
+      alert(`Error detected, cancelling kustomize step skip. Error below: \n${kustomizeErrorMessage}`);
     }
   }
 
