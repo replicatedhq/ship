@@ -9,12 +9,12 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
 const (
