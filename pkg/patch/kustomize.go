@@ -25,7 +25,7 @@ func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
 // runKustomize is a repro of
 // https://sigs.k8s.io/kustomize/blob/4569a09d54853003c5a474ab49a401a689bb58f6/pkg/commands/build.go#L72
 func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizationPath string) error {
-	l := loader.NewLoader(loader.NewFileLoader(fSys))
+	l := loader.NewFileLoader(fSys)
 
 	absPath, err := filepath.Abs(kustomizationPath)
 	if err != nil {
