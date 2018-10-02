@@ -44,7 +44,7 @@ import (
 // Application implements the guts of the kustomize 'build' command.
 // TODO: Change name, as "application" is overloaded and somewhat
 // misleading (one can customize an RBAC policy).  Perhaps "Target"
-// https://sigs.k8s.io/kustomize/blob/master/docs/glossary.md#target
+// https://github.com/kubernetes-sigs/kustomize/blob/master/docs/glossary.md#target
 type Application struct {
 	kustomization *types.Kustomization
 	ldr           loader.Loader

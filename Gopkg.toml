@@ -81,7 +81,7 @@ ignored = [
   version = "2.11.0"
 
 [[constraint]]
-  name = "github.com/kubernetes-sigs/kustomize"
+  name = "sigs.k8s.io/kustomize"
   version = "1.0.8"
 
 [[override]]

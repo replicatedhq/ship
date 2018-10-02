@@ -756,21 +756,6 @@
   version = "v0.0.10"
 
 [[projects]]
-  digest = "1:bf8d06b33b2eb76c425b474d0392fe8a565ed855c48ffa74c8e84c35ce077226"
-  name = "github.com/kubernetes-sigs/kustomize"
-  packages = [
-    "pkg/app",
-    "pkg/fs",
-    "pkg/loader",
-    "pkg/resmap",
-    "pkg/resource",
-    "pkg/types",
-  ]
-  pruneopts = "UT"
-  revision = "58492e2d83c59ed63881311f46ad6251f77dabc3"
-  version = "v1.0.8"
-
-[[projects]]
   digest = "1:38c6c0068711ac95a80ba4d5d8cf86b5b066cc6d74ddd1e007d4d3eb45751894"
   name = "github.com/magiconair/properties"
   packages = ["."]
@@ -1805,9 +1790,10 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:dee3c12e01d99b7bebda96cdfef343a3a1a31f2606e7d56b81eb892c1bd026e3"
+  digest = "1:fbbfb3bb08bd57bcfc4e3d6b7ead630e442343a46ac544cf965b5ce80070e2a5"
   name = "sigs.k8s.io/kustomize"
   packages = [
+    "pkg/app",
     "pkg/configmapandsecret",
     "pkg/constants",
     "pkg/crds",
@@ -1863,12 +1849,6 @@
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
     "github.com/jarcoal/httpmock",
-    "github.com/kubernetes-sigs/kustomize/pkg/app",
-    "github.com/kubernetes-sigs/kustomize/pkg/fs",
-    "github.com/kubernetes-sigs/kustomize/pkg/loader",
-    "github.com/kubernetes-sigs/kustomize/pkg/resmap",
-    "github.com/kubernetes-sigs/kustomize/pkg/resource",
-    "github.com/kubernetes-sigs/kustomize/pkg/types",
     "github.com/mcuadros/go-jsonschema-generator",
     "github.com/mholt/archiver",
     "github.com/mitchellh/cli",
@@ -1912,6 +1892,12 @@
     "k8s.io/helm/pkg/tiller",
     "k8s.io/helm/pkg/timeconv",
     "k8s.io/helm/pkg/version",
+    "sigs.k8s.io/kustomize/pkg/app",
+    "sigs.k8s.io/kustomize/pkg/fs",
+    "sigs.k8s.io/kustomize/pkg/loader",
+    "sigs.k8s.io/kustomize/pkg/resmap",
+    "sigs.k8s.io/kustomize/pkg/resource",
+    "sigs.k8s.io/kustomize/pkg/types",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
