@@ -26,23 +26,25 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
 
-	"github.com/kubernetes-sigs/kustomize/pkg/configmapandsecret"
-	"github.com/kubernetes-sigs/kustomize/pkg/constants"
-	"github.com/kubernetes-sigs/kustomize/pkg/crds"
-	"github.com/kubernetes-sigs/kustomize/pkg/fs"
-	interror "github.com/kubernetes-sigs/kustomize/pkg/internal/error"
-	"github.com/kubernetes-sigs/kustomize/pkg/loader"
-	"github.com/kubernetes-sigs/kustomize/pkg/resmap"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
-	"github.com/kubernetes-sigs/kustomize/pkg/transformers"
-	"github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/kustomize/pkg/configmapandsecret"
+	"sigs.k8s.io/kustomize/pkg/constants"
+	"sigs.k8s.io/kustomize/pkg/crds"
+	"sigs.k8s.io/kustomize/pkg/fs"
+	interror "sigs.k8s.io/kustomize/pkg/internal/error"
+	"sigs.k8s.io/kustomize/pkg/loader"
+	"sigs.k8s.io/kustomize/pkg/patch"
+	patchtransformer "sigs.k8s.io/kustomize/pkg/patch/transformer"
+	"sigs.k8s.io/kustomize/pkg/resmap"
+	"sigs.k8s.io/kustomize/pkg/resource"
+	"sigs.k8s.io/kustomize/pkg/transformers"
+	"sigs.k8s.io/kustomize/pkg/types"
 )
 
 // Application implements the guts of the kustomize 'build' command.
 // TODO: Change name, as "application" is overloaded and somewhat
 // misleading (one can customize an RBAC policy).  Perhaps "Target"
-// https://github.com/kubernetes-sigs/kustomize/blob/master/docs/glossary.md#target
+// https://sigs.k8s.io/kustomize/blob/master/docs/glossary.md#target
 type Application struct {
 	kustomization *types.Kustomization
 	ldr           loader.Loader
@@ -61,7 +63,6 @@ func NewApplication(ldr loader.Loader, fSys fs.FileSystem) (*Application, error)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Application{kustomization: &m, ldr: ldr, fSys: fSys}, nil
 }
 
@@ -80,20 +81,6 @@ func unmarshal(y []byte, o interface{}) error {
 // The Resources in the returned ResMap are fully customized.
 func (a *Application) MakeCustomizedResMap() (resmap.ResMap, error) {
 	m, err := a.loadCustomizedResMap()
-	if err != nil {
-		return nil, err
-	}
-	return a.resolveRefsToGeneratedResources(m)
-}
-
-// MakeUncustomizedResMap purports to create a ResMap without customization.
-// The Resources in the returned ResMap include all resources mentioned
-// in the kustomization file and transitively reachable via its Bases,
-// and all generated secrets and configMaps.
-// Meant for use in generating a diff against customized resources.
-// TODO: See https://github.com/kubernetes-sigs/kustomize/issues/85
-func (a *Application) MakeUncustomizedResMap() (resmap.ResMap, error) {
-	m, err := a.loadResMapFromBasesAndResources()
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +125,7 @@ func (a *Application) loadCustomizedResMap() (resmap.ResMap, error) {
 	if err != nil {
 		errs.Append(errors.Wrap(err, "loadResMapFromBasesAndResources"))
 	}
-	err = crds.RegisterCRDs(a.ldr, a.kustomization.CRDs)
+	err = crds.RegisterCRDs(a.ldr, a.kustomization.Crds)
 	if err != nil {
 		errs.Append(errors.Wrap(err, "RegisterCRDs"))
 	}
@@ -164,7 +151,8 @@ func (a *Application) loadCustomizedResMap() (resmap.ResMap, error) {
 		return nil, err
 	}
 
-	patches, err := resmap.NewResourceSliceFromPatches(a.ldr, a.kustomization.Patches)
+	a.kustomization.PatchesStrategicMerge = patch.Append(a.kustomization.PatchesStrategicMerge, a.kustomization.Patches...)
+	patches, err := resmap.NewResourceSliceFromPatches(a.ldr, a.kustomization.PatchesStrategicMerge)
 	if err != nil {
 		errs.Append(errors.Wrap(err, "NewResourceSliceFromPatches"))
 	}
@@ -175,6 +163,11 @@ func (a *Application) loadCustomizedResMap() (resmap.ResMap, error) {
 
 	var r []transformers.Transformer
 	t, err := a.newTransformer(patches)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, t)
+	t, err = patchtransformer.NewPatchJson6902Factory(a.ldr).MakePatchJson6902Transformer(a.kustomization.PatchesJson6902)
 	if err != nil {
 		return nil, err
 	}
@@ -226,6 +219,7 @@ func (a *Application) loadCustomizedBases() (resmap.ResMap, *interror.Kustomizat
 			errs.Append(errors.Wrap(err, "SemiResources"))
 			continue
 		}
+		ldr.Cleanup()
 		list = append(list, resMap)
 	}
 	result, err := resmap.MergeWithoutOverride(list...)
@@ -292,7 +286,7 @@ func (a *Application) resolveRefVars(m resmap.ResMap) (map[string]string, error)
 	}
 	for _, v := range vars {
 		id := resource.NewResId(v.ObjRef.GroupVersionKind(), v.ObjRef.Name)
-		if r, found := m[id]; found {
+		if r, found := m.DemandOneMatchForId(id); found {
 			s, err := r.GetFieldValue(v.FieldRef.FieldPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to resolve referred var: %+v", v)
@@ -322,6 +316,7 @@ func (a *Application) getAllVars() ([]types.Var, error) {
 			errs.Append(err)
 			continue
 		}
+		b.ldr.Cleanup()
 		result = append(result, vars...)
 	}
 	for _, v := range a.kustomization.Vars {

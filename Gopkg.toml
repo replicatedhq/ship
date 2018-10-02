@@ -74,36 +74,39 @@ ignored = [
   name = "github.com/ghodss/yaml"
   version = "1.0.0"
 
-[[constraint]]
-  name = "k8s.io/helm"
-  version = "2.9.1"
 
 # Overrides for Kustomize & Helm
+[[constraint]]
+  name = "k8s.io/helm"
+  version = "2.11.0"
+
+[[constraint]]
+  name = "github.com/kubernetes-sigs/kustomize"
+  version = "1.0.8"
+
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "1.10.6"
+  version = "1.11.3"
 
 [[override]]
   name = "k8s.io/code-generator"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision to include dependencies for Kustomize
-  # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
-  revision = "bca10bed01016dcaebb845433499fbb2a6343139"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "github.com/russross/blackfriday"
