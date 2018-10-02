@@ -123,6 +123,14 @@ func TestResolvePullUrl(t *testing.T) {
 			},
 			ExpectURL: fmt.Sprintf("%s/awesomeapp/jjzpr9u62gaz4.chatops:f3c689e", replicatedRegistry()),
 		},
+		{
+			Name: "private proxied image with no slug",
+			Asset: api.DockerAsset{
+				Image:  "quay.io/redacted/hugops:f3c689e",
+				Source: "quayio",
+			},
+			ExpectURL: fmt.Sprintf("%s/ship/jjzpr9u62gaz4.hugops:f3c689e", replicatedRegistry()),
+		},
 	}
 	meta := api.ReleaseMetadata{
 		Images: []api.Image{
@@ -136,6 +144,11 @@ func TestResolvePullUrl(t *testing.T) {
 				URL:      "quay.io/redacted/chatops:f3c689e",
 				Source:   "quayio",
 				AppSlug:  "awesomeapp",
+				ImageKey: "jjzpr9u62gaz4",
+			},
+			{
+				URL:      "quay.io/redacted/hugops:f3c689e",
+				Source:   "quayio",
 				ImageKey: "jjzpr9u62gaz4",
 			},
 		},
