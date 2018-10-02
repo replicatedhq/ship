@@ -7,6 +7,7 @@ jest.mock("../kustomize/kustomize_overlay/AceEditorHOC");
 
 const mockPollContentForStep = jest.fn();
 const mockKustomizeIntroProps = {
+  apiEndpoint: "https://ship-api.com",
   phase: "kustomize-intro",
   dataLoading: {},
   actions: ["mockKustomizeIntroAction"],
@@ -27,7 +28,7 @@ const mockKustomizeIntroProps = {
 
 describe("DetermineComponentForRoute", () => {
   describe("skipKustomize", () => {
-    it("calls the kustomizeIntro action, kustomize action, and then polls for the kustomize step", async() => {
+    it("completes kustomize step and polls for the outro", async() => {
       const mockHandleAction = jest.fn();
 
       const mockFetchContentForStep = jest.fn();
@@ -36,18 +37,22 @@ describe("DetermineComponentForRoute", () => {
       }));
       RewireAPI.__set__("fetchContentForStep", mockFetchContentForStep);
 
-      const wrapper = shallow(<DetermineComponentForRoute {...mockKustomizeIntroProps} />);
+      const wrapper = shallow(
+        <DetermineComponentForRoute
+          {...mockKustomizeIntroProps}
+          fetchContentForStep={mockFetchContentForStep}
+        />
+      );
       wrapper.instance().handleAction = mockHandleAction;
       wrapper.update();
 
       await wrapper.instance().skipKustomize();
 
-      expect(mockHandleAction.mock.calls).toHaveLength(2);
-      expect(mockHandleAction.mock.calls[0][0]).toEqual("mockKustomizeIntroAction");
-      expect(mockHandleAction.mock.calls[1][0]).toEqual("mockKustomizeAction");
+      expect(mockFetchContentForStep.mock.calls).toHaveLength(1);
+      expect(mockFetchContentForStep.mock.calls[0]).toEqual(["https://ship-api.com", "kustomize"]);
 
       expect(mockPollContentForStep).toHaveBeenCalled();
-      expect(mockPollContentForStep.mock.calls[0][0]).toEqual("mockKustomizeId");
+      expect(mockPollContentForStep.mock.calls[0][0]).toEqual("kustomize");
     });
   });
 });
