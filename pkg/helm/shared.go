@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors All rights reserved.
+Copyright The Helm Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,16 +32,14 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"google.golang.org/grpc/status"
 	yaml "gopkg.in/yaml.v2"
-	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/kube"
-	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/strvals"
 )
 
 // The following shared dependencies found here:
-// https://github.com/helm/helm/blob/v2.9.1/cmd/helm/install.go
+// https://github.com/helm/helm/blob/v2.11.0/cmd/helm/install.go
 
 type valueFiles []string
 
@@ -76,11 +74,6 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 			dest[k] = v
 			continue
 		}
-		// If the key doesn't exist already, then just set the key to that value
-		if _, exists := dest[k]; !exists {
-			dest[k] = nextMap
-			continue
-		}
 		// Edge case: If the key exists in the destination, but isn't a map
 		destMap, isMap := dest[k].(map[string]interface{})
 		// If the source map has a map for this key, prefer it
@@ -95,8 +88,8 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 }
 
 // vals merges values from files specified via -f/--values and
-// directly via --set or --set-string, marshaling them to YAML
-func vals(valueFiles valueFiles, values []string, stringValues []string) ([]byte, error) {
+// directly via --set or --set-string or --set-file, marshaling them to YAML
+func vals(valueFiles valueFiles, values []string, stringValues []string, fileValues []string, CertFile, KeyFile, CAFile string) ([]byte, error) {
 	base := map[string]interface{}{}
 
 	// User specified a values files via -f/--values
@@ -108,7 +101,7 @@ func vals(valueFiles valueFiles, values []string, stringValues []string) ([]byte
 		if strings.TrimSpace(filePath) == "-" {
 			bytes, err = ioutil.ReadAll(os.Stdin)
 		} else {
-			bytes, err = readFile(filePath)
+			bytes, err = readFile(filePath, CertFile, KeyFile, CAFile)
 		}
 
 		if err != nil {
@@ -136,6 +129,17 @@ func vals(valueFiles valueFiles, values []string, stringValues []string) ([]byte
 		}
 	}
 
+	// User specified a value via --set-file
+	for _, value := range fileValues {
+		reader := func(rs []rune) (interface{}, error) {
+			bytes, err := readFile(string(rs), CertFile, KeyFile, CAFile)
+			return string(bytes), err
+		}
+		if err := strvals.ParseIntoFile(value, base, reader); err != nil {
+			return []byte{}, fmt.Errorf("failed parsing --set-file data: %s", err)
+		}
+	}
+
 	return yaml.Marshal(base)
 }
 
@@ -153,37 +157,14 @@ func generateName(nameTemplate string) (string, error) {
 }
 
 func defaultNamespace() string {
-	if ns, _, err := kube.GetConfig(settings.KubeContext).Namespace(); err == nil {
+	if ns, _, err := kube.GetConfig(settings.KubeContext, settings.KubeConfig).Namespace(); err == nil {
 		return ns
 	}
 	return "default"
 }
 
-func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
-	missing := []string{}
-
-	deps := ch.GetDependencies()
-	for _, r := range reqs.Dependencies {
-		found := false
-		for _, d := range deps {
-			if d.Metadata.Name == r.Name {
-				found = true
-				break
-			}
-		}
-		if !found {
-			missing = append(missing, r.Name)
-		}
-	}
-
-	if len(missing) > 0 {
-		return fmt.Errorf("found in requirements.yaml, but missing in charts/ directory: %s", strings.Join(missing, ", "))
-	}
-	return nil
-}
-
-// readFile load a file from the local directory or a remote file with a url.
-func readFile(filePath string) ([]byte, error) {
+//readFile load a file from the local directory or a remote file with a url.
+func readFile(filePath, CertFile, KeyFile, CAFile string) ([]byte, error) {
 	u, _ := url.Parse(filePath)
 	p := getter.All(settings)
 
@@ -194,7 +175,7 @@ func readFile(filePath string) ([]byte, error) {
 		return ioutil.ReadFile(filePath)
 	}
 
-	getter, err := getterConstructor(filePath, "", "", "")
+	getter, err := getterConstructor(filePath, CertFile, KeyFile, CAFile)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -203,7 +184,7 @@ func readFile(filePath string) ([]byte, error) {
 }
 
 // The following shared dependencies found here:
-// https://github.com/helm/helm/blob/v2.9.1/cmd/helm/helm.go
+// https://github.com/helm/helm/blob/v2.11.0/cmd/helm/helm.go
 
 // prettyError unwraps or rewrites certain errors to make them more user-friendly.
 func prettyError(err error) error {

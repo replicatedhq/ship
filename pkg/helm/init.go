@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors All rights reserved.
+Copyright The Helm Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -108,63 +108,63 @@ func Init(home string) (string, error) {
 // run initializes local config and installs Tiller to Kubernetes cluster.
 func (i *initCmd) run() error {
 
-	writeYAMLManifest := func(apiVersion, kind, body string, first, last bool) error {
+	writeYAMLManifests := func(manifests []string) error {
 		w := i.out
-		if !first {
-			// YAML starting document boundary marker
+		for _, manifest := range manifests {
 			if _, err := fmt.Fprintln(w, "---"); err != nil {
 				return err
 			}
+
+			if _, err := fmt.Fprintln(w, manifest); err != nil {
+				return err
+			}
 		}
-		if _, err := fmt.Fprintln(w, "apiVersion:", apiVersion); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintln(w, "kind:", kind); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprint(w, body); err != nil {
-			return err
-		}
-		if !last {
-			return nil
-		}
+
 		// YAML ending document boundary marker
 		_, err := fmt.Fprintln(w, "...")
 		return err
 	}
 	if len(i.opts.Output) > 0 {
-		var body string
+		var manifests []string
 		var err error
-		const tm = `{"apiVersion":"extensions/v1beta1","kind":"Deployment",`
-		if body, err = installer.DeploymentManifest(&i.opts); err != nil {
+		if manifests, err = installer.TillerManifests(&i.opts); err != nil {
 			return err
 		}
 		switch i.opts.Output.String() {
 		case "json":
-			var out bytes.Buffer
-			jsonb, err := yaml.ToJSON([]byte(body))
-			if err != nil {
-				return err
+			for _, manifest := range manifests {
+				var out bytes.Buffer
+				jsonb, err := yaml.ToJSON([]byte(manifest))
+				if err != nil {
+					return err
+				}
+				buf := bytes.NewBuffer(jsonb)
+				if err := json.Indent(&out, buf.Bytes(), "", "    "); err != nil {
+					return err
+				}
+				if _, err = i.out.Write(out.Bytes()); err != nil {
+					return err
+				}
+				fmt.Fprint(i.out, "\n")
 			}
-			buf := bytes.NewBuffer(make([]byte, 0, len(tm)+len(jsonb)-1))
-			buf.WriteString(tm)
-			// Drop the opening object delimiter ('{').
-			buf.Write(jsonb[1:])
-			if err := json.Indent(&out, buf.Bytes(), "", "    "); err != nil {
-				return err
-			}
-			if _, err = i.out.Write(out.Bytes()); err != nil {
-				return err
-			}
-
 			return nil
 		case "yaml":
-			if err := writeYAMLManifest("extensions/v1beta1", "Deployment", body, true, false); err != nil {
-				return err
-			}
-			return nil
+			return writeYAMLManifests(manifests)
 		default:
 			return fmt.Errorf("unknown output format: %q", i.opts.Output)
+		}
+	}
+	if settings.Debug {
+		var manifests []string
+		var err error
+
+		// write Tiller manifests
+		if manifests, err = installer.TillerManifests(&i.opts); err != nil {
+			return err
+		}
+
+		if err = writeYAMLManifests(manifests); err != nil {
+			return err
 		}
 	}
 

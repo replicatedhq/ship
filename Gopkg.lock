@@ -1574,7 +1574,7 @@
   version = "kubernetes-1.11.3"
 
 [[projects]]
-  digest = "1:90aaf9aeb12782d994a69d8d315431b1d750c12527402f1ff22294a02566651c"
+  digest = "1:190ead723ad8a72162fb04feafa17de9afd9d7de40564e833fcdd9608e584a3e"
   name = "k8s.io/helm"
   packages = [
     "cmd/helm/installer",
@@ -1599,6 +1599,7 @@
     "pkg/provenance",
     "pkg/releasetesting",
     "pkg/releaseutil",
+    "pkg/renderutil",
     "pkg/repo",
     "pkg/resolver",
     "pkg/rudder",
@@ -1878,21 +1879,20 @@
     "k8s.io/helm/cmd/helm/installer",
     "k8s.io/helm/pkg/chartutil",
     "k8s.io/helm/pkg/downloader",
-    "k8s.io/helm/pkg/engine",
     "k8s.io/helm/pkg/getter",
     "k8s.io/helm/pkg/helm/environment",
     "k8s.io/helm/pkg/helm/helmpath",
     "k8s.io/helm/pkg/kube",
     "k8s.io/helm/pkg/lint/rules",
     "k8s.io/helm/pkg/lint/support",
+    "k8s.io/helm/pkg/manifest",
     "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/proto/hapi/release",
-    "k8s.io/helm/pkg/releaseutil",
+    "k8s.io/helm/pkg/renderutil",
     "k8s.io/helm/pkg/repo",
     "k8s.io/helm/pkg/strvals",
     "k8s.io/helm/pkg/tiller",
     "k8s.io/helm/pkg/timeconv",
-    "k8s.io/helm/pkg/version",
     "sigs.k8s.io/kustomize/pkg/app",
     "sigs.k8s.io/kustomize/pkg/fs",
     "sigs.k8s.io/kustomize/pkg/loader",
