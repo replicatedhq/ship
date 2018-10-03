@@ -127,14 +127,18 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 		{
 			name:    "No patches",
 			patches: []string{},
-			expectFile: `bases:
+			expectFile: `kind: ""
+apiversion: ""
+bases:
 - ../../base
 `,
 		},
 		{
 			name:    "Patches provided",
 			patches: []string{"a.yaml", "b.yaml", "c.yaml"},
-			expectFile: `bases:
+			expectFile: `kind: ""
+apiversion: ""
+bases:
 - ../../base
 patches:
 - a.yaml
@@ -226,7 +230,9 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					return fs, nil
 				},
 			},
-			expectFile: `resources:
+			expectFile: `kind: ""
+apiversion: ""
+resources:
 - a.yaml
 - b.yaml
 - c.yaml
@@ -263,7 +269,9 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					return fs, nil
 				},
 			},
-			expectFile: `resources:
+			expectFile: `kind: ""
+apiversion: ""
+resources:
 - charts/kube-stats-metrics/templates/deployment.yaml
 - clusterrole.yaml
 - deployment.yaml
@@ -314,10 +322,14 @@ func TestKustomizer(t *testing.T) {
 			name:      "no files",
 			kustomize: nil,
 			expectFiles: map[string]string{
-				"overlays/ship/kustomization.yaml": `bases:
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
 - ../../base
 `,
-				"base/kustomization.yaml": `resources:
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
 - deployment.yaml
 `,
 			},
@@ -345,12 +357,16 @@ metadata:
 spec:
   replicas: 100`,
 
-				"overlays/ship/kustomization.yaml": `bases:
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
 - ../../base
 patches:
 - deployment.yaml
 `,
-				"base/kustomization.yaml": `resources:
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
 - deployment.yaml
 `,
 			},
