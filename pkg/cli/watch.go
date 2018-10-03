@@ -7,10 +7,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	_ "sigs.k8s.io/kustomize/pkg/app"
-	_ "sigs.k8s.io/kustomize/pkg/fs"
-	_ "sigs.k8s.io/kustomize/pkg/loader"
-	_ "sigs.k8s.io/kustomize/pkg/resmap"
 )
 
 func Watch() *cobra.Command {

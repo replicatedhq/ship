@@ -1896,7 +1896,6 @@
     "sigs.k8s.io/kustomize/pkg/app",
     "sigs.k8s.io/kustomize/pkg/fs",
     "sigs.k8s.io/kustomize/pkg/loader",
-    "sigs.k8s.io/kustomize/pkg/resmap",
     "sigs.k8s.io/kustomize/pkg/resource",
     "sigs.k8s.io/kustomize/pkg/types",
   ]
