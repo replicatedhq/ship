@@ -3,8 +3,8 @@ import Markdown from "react-remarkable";
 import RenderActions from "./RenderActions";
 
 const StepMessage = ({ actions, message, handleAction, isLoading }) => (
-  <div className="StepMessage-wrapper">
-    <div className={`markdown-wrapper ${message.level || ""}`}>
+  <div className="StepMessage-wrapper flex flex1 flex-column">
+    <div className={`markdown-wrapper flex flex1 flex-column u-overflow--auto  ${message.level || ""}`}>
       <Markdown
         options={{
           html: message.trusted_html,
