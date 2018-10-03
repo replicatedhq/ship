@@ -1,4 +1,4 @@
-##---
+---
 # Source: mysql/templates/tests/test-configmap.yaml
 apiVersion: v1
 kind: ConfigMap

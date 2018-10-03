@@ -62,7 +62,7 @@ export default class RouteDecider extends React.Component {
     ),
     basePath: PropTypes.string.isRequired,
     headerEnabled: PropTypes.bool.isRequired,
-    history: PropTypes.object.isRequired,
+    history: PropTypes.object,
     /** Callback function to be invoked at the finalization of the Ship Init flow */
     onCompletion: PropTypes.func,
   }

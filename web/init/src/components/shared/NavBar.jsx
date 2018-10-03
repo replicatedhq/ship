@@ -4,7 +4,6 @@ import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 import { get, isEmpty } from "lodash";
-import * as shipLogo from "../../assets/images/ship-logo.png";
 
 export class NavBar extends React.Component {
 
@@ -172,7 +171,7 @@ export class NavBar extends React.Component {
       <div className="HeaderLogo-wrapper flex-column flex1 flex-verticalCenter u-position--relative">
         <div className="HeaderLogo">
           <Link to={`/${firstRouteId}`} tabIndex="-1">
-            <img src={navDetails.icon || shipLogo} className="logo" />
+            <img src={navDetails.icon} className="logo" />
           </Link>
         </div>
       </div>

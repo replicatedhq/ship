@@ -1,4 +1,4 @@
-##---
+---
 # Source: mysql/templates/svc.yaml
 apiVersion: v1
 kind: Service

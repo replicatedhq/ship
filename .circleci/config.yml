@@ -77,14 +77,13 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - attach_workspace:
+          at: ~/repo/web/
       - restore_cache:
           keys:
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
             - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
             - yarn-packages-v1-
-      - run:
-          name: Build UI
-          command: make build-ui
       - run:
           name: Build Ship Cypress Docker Image
           command: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
@@ -224,8 +223,10 @@ workflows:
       - test_ui
       - integration
       - test
-      - e2e-init
       - build_ui
+      - e2e-init:
+          requires:
+          - build_ui
       - deploy_ship_init:
           requires:
           - build_ui
@@ -268,6 +269,8 @@ workflows:
             branches:
               ignore: /.*/
       - e2e-init:
+          requires:
+            - build_ui
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
