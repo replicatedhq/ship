@@ -1,4 +1,4 @@
-##---
+---
 # Source: mysql/templates/pvc.yaml
 
 kind: PersistentVolumeClaim
