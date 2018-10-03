@@ -114,7 +114,8 @@ func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, st
 		// listen on err chan for step
 		case err := <-errChan:
 			if err != nil {
-				level.Error(debug).Log("event", "async.fail", "err", err, "progress", d.progress(step))
+				errToPrint := fmt.Sprintf("%+v", err) // log a stack trace on failed completestep
+				level.Error(debug).Log("event", "async.fail", "err", err, "errorWithStack", errToPrint, "progress", d.progress(step))
 				return err
 			}
 			level.Info(debug).Log("event", "task.complete", "progess", d.progress(step))
