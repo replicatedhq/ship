@@ -49,6 +49,9 @@ func (s *Ship) Watch(ctx context.Context) error {
 		}
 
 		contentSHA, err := s.Resolver.ReadContentSHAForWatch(ctx, upstream)
+		if err != nil {
+			return errors.Wrap(err, "read content SHA")
+		}
 
 		if contentSHA != existingState.Versioned().V1.ContentSHA {
 			debug.Log(
