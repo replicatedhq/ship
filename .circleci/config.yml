@@ -202,7 +202,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - attach_workspace:
-          at: /go/src/github.com/replicatedhq/ship/web/app
+          at: /go/src/github.com/replicatedhq/ship/web
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
