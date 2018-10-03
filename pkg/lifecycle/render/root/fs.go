@@ -24,7 +24,7 @@ func NewRootFS(fs afero.Afero, root string) Fs {
 	if root == "" {
 		root = constants.InstallerPrefixPath
 	}
-	if root != "." {
+	if root != "." && root != "./" {
 		fs = afero.Afero{
 			Fs: afero.NewBasePathFs(fs.Fs, root),
 		}
