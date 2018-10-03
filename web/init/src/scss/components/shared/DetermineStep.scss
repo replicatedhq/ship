@@ -7,6 +7,27 @@
   line-height: 26px;
   font-weight: 400;
 
+  .markdown-wrapper {
+    & > div {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+
+      & > span {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+
+        .term-container {
+          display: flex;
+          flex: 1;
+          overflow: auto;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
   b, strong {
     font-weight: 600;
   }
@@ -30,6 +51,11 @@
     line-height: 1.7;
     overflow-x: scroll;
   }
+}
+
+.Error--wrapper {
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
 .StepDone-wrapper {

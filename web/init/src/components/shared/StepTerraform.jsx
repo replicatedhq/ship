@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import { Line } from "rc-progress";
 import clamp from "lodash/clamp";
@@ -32,6 +33,10 @@ export default class StepPreparingTerraform extends React.Component {
     } = this.props;
 
     startPollingStep(location, routeId);
+  }
+
+  componentDidUpdate() {
+    this.scrollToLogsBottom();
   }
 
   parseStatus = () => {
@@ -89,27 +94,44 @@ export default class StepPreparingTerraform extends React.Component {
     startPoll(routeId, gotoRoute);
   }
 
+  scrollToLogsBottom = (elm) => {
+    const {
+      status = "",
+    } = this.parseStatus();
+    const node = ReactDOM.findDOMNode(this);
+    const child = node.querySelector('.term-container');
+    if(child) {
+      const height = child.scrollHeight;
+      child.scrollTo({ top: height, behavior: "instant" });
+    }
+  }
+
   render() {
     const {
       isJSON,
-      status = "",
       percent,
       progressDetail,
-      message,
       actions,
     } = this.parseStatus();
 
+    const status = "error";
+    const message = "haha";
+
     return (
-      <div className="flex1 flex-column justifyContent--center alignItems--center">
+      <div className="flex1 flex flex-column justifyContent--center">
         {status === "working" ?
-          <div className="flex-column alignItems--center">
-            <Loader size="60" />
+          <div className="flex flex1 flex-column u-paddingTop--30 justifyContent--center">
+            <div className="flex justifyContent--center">
+              <Loader size="60" />
+            </div>
             {isJSON ?
-              <div>
+              <div className="flex flex-column">
                 {!progressDetail ? null :
-                  <div className="u-marginTop--20">
-                    <div className="progressBar-wrapper">
-                      <Line percent={percent} strokeWidth="1" strokeColor="#337AB7" />
+                  <div className="flex flex1 flex-column">
+                    <div className="u-marginTop--20">
+                      <div className="progressBar-wrapper">
+                        <Line percent={percent} strokeWidth="1" strokeColor="#337AB7" />
+                      </div>
                     </div>
                   </div>
                 }
@@ -127,11 +149,15 @@ export default class StepPreparingTerraform extends React.Component {
             message={message}
             actions={actions}
             handleAction={this.handleAction}
+            setLogsRef={this.setLogsRef}
           />
           : null
         }
         {status === "error" ?
-          <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
+          <div className="Error--wrapper flex flex-column alignItems--center"> 
+            <div className="icon progress-detail-error"></div>
+            <p className="u-fontSizer--larger u-color--tundora u-lineHeight--normal u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
+          </div>
           : null
         }
         {status === "success" ?

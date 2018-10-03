@@ -183,7 +183,10 @@ export class NavBar extends React.Component {
           <div className="flex-column flex1 flex-verticalCenter u-position--relative">
             <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
           </div>
-          : null}
+          : <div className="flex-column flex1 flex-verticalCenter u-position--relative">
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">Replicated Ship</p>
+          </div>
+        }
       </div>
     );
 
