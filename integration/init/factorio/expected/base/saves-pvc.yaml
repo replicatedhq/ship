@@ -1,4 +1,4 @@
-##---
+---
 # Source: factorio/templates/saves-pvc.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1

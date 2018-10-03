@@ -5,10 +5,10 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/kubernetes-sigs/kustomize/pkg/app"
-	"github.com/kubernetes-sigs/kustomize/pkg/fs"
-	"github.com/kubernetes-sigs/kustomize/pkg/loader"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/kustomize/pkg/app"
+	"sigs.k8s.io/kustomize/pkg/fs"
+	"sigs.k8s.io/kustomize/pkg/loader"
 )
 
 func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
@@ -22,10 +22,8 @@ func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// runKustomize is a repro of
-// https://github.com/kubernetes-sigs/kustomize/blob/4569a09d54853003c5a474ab49a401a689bb58f6/pkg/commands/build.go#L72
 func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizationPath string) error {
-	l := loader.NewLoader(loader.NewFileLoader(fSys))
+	l := loader.NewFileLoader(fSys)
 
 	absPath, err := filepath.Abs(kustomizationPath)
 	if err != nil {

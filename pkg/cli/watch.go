@@ -4,10 +4,6 @@ import (
 	"context"
 	"time"
 
-	_ "github.com/kubernetes-sigs/kustomize/pkg/app"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/fs"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/loader"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/resmap"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

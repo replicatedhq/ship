@@ -12,8 +12,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
-	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -22,6 +20,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/kustomize/pkg/resource"
+	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
 const PATCH_TOKEN = "TO_BE_MODIFIED"

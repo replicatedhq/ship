@@ -1,4 +1,4 @@
-##---
+---
 # Source: nginx/templates/configmap.yaml
 # This is a simple example of using a config map to create a single page static site.
 apiVersion: v1
