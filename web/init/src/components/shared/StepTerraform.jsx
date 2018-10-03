@@ -110,12 +110,11 @@ export default class StepPreparingTerraform extends React.Component {
     const {
       isJSON,
       percent,
+      status,
+      message,
       progressDetail,
       actions,
     } = this.parseStatus();
-
-    const status = "error";
-    const message = "haha";
 
     return (
       <div className="flex1 flex flex-column justifyContent--center">
