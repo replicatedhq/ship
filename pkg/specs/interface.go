@@ -115,6 +115,10 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
 
 		release, err := r.AppResolver.FetchRelease(ctx, selector)
+		if err != nil {
+			return "", errors.Wrap(err, "fetch release")
+		}
+
 		return fmt.Sprintf("%x", sha256.Sum256([]byte(release.Spec))), nil
 	}
 
