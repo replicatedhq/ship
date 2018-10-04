@@ -257,8 +257,8 @@ jobs:
           working_directory: ~/ship/web/init
           command: |
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            # Run publish npm module
-            `yarn bin`/publish
+            # Run publish npm module, will pull latest
+            npx publish
 
   deploy_unstable:
     docker:
