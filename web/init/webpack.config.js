@@ -1,7 +1,38 @@
 const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var DashboardPlugin = require("webpack-dashboard/plugin");
 
-module.exports = {
+const basePlugins = [
+  new MiniCssExtractPlugin({
+    filename: "styles.css"
+  }),
+];
+
+module.exports = (env, { mode }) => {
+  let plugins = [...basePlugins];
+
+  if (process.env.DASHBOARD) {
+    plugins = plugins.concat([new DashboardPlugin()])
+  }
+
+  const isProduction = mode === "production";
+  let optimizations = {};
+  if (isProduction) {
+    optimizations = {
+      optimization: {
+        minimizer: [
+          new UglifyJsPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true
+          }),
+          new OptimizeCSSAssetsPlugin()
+        ]
+      }
+    }
+  }
+
+  return {
     entry: [
         "babel-polyfill",
         path.resolve(__dirname, 'src/index.js'),
@@ -33,10 +64,9 @@ module.exports = {
           loader: 'babel-loader',
         },
         {
-            // TODO: Split the CSS into a separate file
             test: /\.s?css$/,
             use: [
-                "style-loader",
+                MiniCssExtractPlugin.loader,
                 "css-loader",
                 "sass-loader"
             ]
@@ -55,5 +85,7 @@ module.exports = {
           },
       ]
     },
-    plugins: process.env.DASHBOARD ? [new DashboardPlugin()] : []
-  };
+    plugins,
+    ...optimizations,
+  }
+};
