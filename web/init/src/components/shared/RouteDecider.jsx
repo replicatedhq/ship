@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { BrowserRouter, Router, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch } from "react-router-dom";
 import isEmpty from "lodash/isEmpty";
 import NavBar from "../../containers/Navbar";
 
@@ -62,7 +62,7 @@ export default class RouteDecider extends React.Component {
     ),
     basePath: PropTypes.string.isRequired,
     headerEnabled: PropTypes.bool.isRequired,
-    history: PropTypes.object,
+    history: PropTypes.object.isRequired,
     /** Callback function to be invoked at the finalization of the Ship Init flow */
     onCompletion: PropTypes.func,
   }
@@ -82,11 +82,7 @@ export default class RouteDecider extends React.Component {
       }
       if (isRootPath(basePath)) {
         const defaultRoute = `${basePath}/${routes[0].id}`;
-        if (this.props.history !== null) {
-          this.props.history.push(defaultRoute);
-        } else {
-          window.location.replace(defaultRoute);
-        }
+        this.props.history.push(defaultRoute);
       }
     }
   }
@@ -113,18 +109,11 @@ export default class RouteDecider extends React.Component {
     }
     return (
       <div className="u-minHeight--full u-minWidth--full flex-column flex1">
-        { history ?
-          <Router history={history}>
-            <ShipRoutesWrapper
-              {...routeProps}
-            />
-          </Router> :
-          <BrowserRouter basename={basePath}>
-            <ShipRoutesWrapper
-              {...routeProps}
-            />
-          </BrowserRouter>
-        }
+        <Router history={history}>
+          <ShipRoutesWrapper
+            {...routeProps}
+          />
+        </Router>
       </div>
     );
   }

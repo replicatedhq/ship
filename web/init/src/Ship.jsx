@@ -4,6 +4,7 @@ import RouteDecider from "./containers/RouteDecider";
 import AppWrapper from "./containers/AppWrapper";
 import { configureStore } from "./redux";
 import PropTypes from "prop-types";
+import createBrowserHistory from 'history/createBrowserHistory'
 
 import "./scss/index.scss";
 
@@ -23,7 +24,7 @@ export class Ship extends React.Component {
 
   static defaultProps = {
     basePath: "",
-    history: null,
+    history: createBrowserHistory(),
     headerEnabled: false
   }
 
