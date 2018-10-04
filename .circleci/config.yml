@@ -1,6 +1,3 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 
 experimental:
@@ -10,94 +7,166 @@ experimental:
         - master
 
 jobs:
-  test:
+  build_web_init:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - ship-web-init-deps-{{ checksum "web/init/yarn.lock" }}
+            - ship-web-init-deps-
+      - restore_cache:
+          keys:
+            - ship-web-init-build-cache
+      - run:
+          name: Install Dependencies
+          working_directory: ~/ship/web/init
+          command: yarn install
+      - run:
+          name: Build
+          working_directory: ~/ship/web/init
+          command: yarn build
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - web/init/node_modules
+          key: ship-web-init-deps-{{ checksum "web/init/yarn.lock" }}
+      - save_cache:
+          paths:
+            - web/init/node_modules/.cache
+          key: ship-web-init-build-cache-{{ epoch }}
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ship/web/init/dist
+            - ship/web/init/package.json
+  build_web_app:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - ship-web-app-deps-{{ checksum "web/app/yarn.lock" }}
+            - ship-web-app-deps-
+      - restore_cache:
+          keys:
+            - ship-web-app-build-cache
+      - run:
+          name: Install Dependencies
+          working_directory: ~/ship/web/app
+          command: CYPRESS_INSTALL_BINARY=0 yarn install
+      - run:
+          name: Build
+          working_directory: ~/ship/web/app
+          command: yarn build
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - web/app/node_modules
+          key: ship-web-app-deps-{{ checksum "web/app/yarn.lock" }}
+      - save_cache:
+          paths:
+            - web/app/node_modules/.cache
+          key: ship-web-app-build-cache-{{ epoch }}
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ship/web/app/build
+  build_binary:
     docker:
       - image: circleci/golang:1.10
+    environment:
+      GOCACHE: "/tmp/go/cache"
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
+      - attach_workspace:
+          at: /go/src/github.com/replicatedhq
+      - restore_cache:
+          keys:
+            - ship-binary-cache
       - run: |
+          mkdir -p $GOCACHE
+          make build-ci
+      - save_cache:
+          paths:
+            - ~/.cache/go-build
+            - /tmp/go/cache
+          key: ship-binary-cache-{{ epoch }}
+      - persist_to_workspace:
+          root: /go/src/github.com/replicatedhq
+          paths:
+            - ship/bin
+  e2e_setup:
+    docker:
+      - image: cypress/browsers:chrome67
+    working_directory: ~/ship
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - ship-e2e-setup-cy-3.1.0
+      - run:
+          # When updating Cypress version,
+          # update cache key below
+          name: Install Cypress 3.1.0
+          working_directory: ~/ship/web/app
+          command: npm install cypress@3.1.0
+      - run:
+          name: Verify Cypress
+          working_directory: ~/ship/web/app
+          command: npx cypress verify
+      - save_cache:
+          paths:
+            - ~/.cache/Cypress
+            - web/app/node_modules/cypress
+          key: ship-e2e-setup-cy-3.1.0
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ship/web/app/node_modules/cypress
+            - .cache/Cypress
+  e2e_init:
+    docker:
+      - image: cypress/browsers:chrome67
+    working_directory: ~/ship
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Run Tests
+          command: make cypress_base
+
+  test:
+    docker:
+      - image: circleci/golang:1.10
+    environment:
+      GOCACHE: "/tmp/go/cache"
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - ship-unit-test-build-cache
+      - run: |
+          mkdir -p $GOCACHE
           make build-deps citest
           if [ -n "$CC_TEST_REPORTER_ID" ]; then
             make ci-upload-coverage
           fi
-  build_ui:
-    docker:
-      - image: circleci/node:9
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
-            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
-            - yarn-packages-v1-
-
-      - run:
-          name: Build UI
-          command: make build-ui
-
       - save_cache:
           paths:
-            - ~/.cache/yarn
-            - web/app/node_modules
-            - web/init/node_modules
-            - web/init/dist
-            - web/app/build
-          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
-
-      - persist_to_workspace:
-          root: ~/repo/web
-          paths:
-            - app/build
-            - init
-
-  test_ui:
-    docker:
-      - image: circleci/node:9
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
-          - yarn-packages-v1-
-      - run:
-          name: test
-          command: make test_CI
-      - save_cache:
-          paths:
-            - ~/.cache/yarn
-          key: 'yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}'
-
-  e2e-init:
-    docker:
-      - image: circleci/node:9
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - setup_remote_docker
-      - attach_workspace:
-          at: ~/repo/web/
-      - restore_cache:
-          keys:
-            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
-            - yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}
-            - yarn-packages-v1-
-      - run:
-          name: Build Ship Cypress Docker Image
-          command: docker build -t replicatedhq/ship-cypress:latest -f ./web/app/cypress/Dockerfile .
-      - run:
-          name: Run Ship Cypress Tests
-          command: docker run -it replicatedhq/ship-cypress:latest
-      - save_cache:
-          paths:
-            - ~/.cache/yarn
-            - web/app/node_modules
-            - web/init/node_modules
-            - web/init/dist
-            - web/app/build
-          key: yarn-packages-v1-{{ checksum "web/init/yarn.lock" }}-{{ checksum "web/app/yarn.lock" }}
+            - /tmp/go/cache
+          key: ship-unit-test-build-cache-{{ epoch }}
 
   integration:
     machine: true
@@ -106,8 +175,12 @@ jobs:
       GOPATH: /home/circleci/go
       GO_SHA256SUM: fa04efdb17a275a0c6e137f969a1c4eb878939e91e1da16060ce42f02c2ec5ec
       GO: /usr/local/go/bin/go
+      GOCACHE: "/tmp/go/cache"
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - ship-integration-test-build-cache
       - run: |
           export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.10.4.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
@@ -137,11 +210,39 @@ jobs:
           if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
             $GOPATH/bin/ginkgo -p -stream integration/init_app
           fi
+      - save_cache:
+          paths:
+            - /tmp/go/cache
+          key: ship-integration-test-build-cache-{{ epoch }}
+
+  ui:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - ship-ui-test-deps-{{ checksum "web/init/yarn.lock" }}
+            - ship-ui-test-deps-
+      - run:
+          name: Install Dependencies
+          working_directory: ~/ship/web/init
+          command: yarn install
+      - run:
+          name: Test
+          working_directory: ~/ship/web/init
+          command: yarn test
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - web/init/node_modules
+          key: ship-ui-test-deps-{{ checksum "web/init/yarn.lock" }}
 
   deploy_ship_init:
     docker:
-      - image: circleci/node:9
-    working_directory: ~/repo
+      - image: circleci/node:8
+    working_directory: ~/ship
     steps:
       - run: |
           if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
@@ -150,13 +251,14 @@ jobs:
           fi
       - checkout
       - attach_workspace:
-          at: web
+          at: ~/
       - deploy:
           name: publish
+          working_directory: ~/ship/web/init
           command: |
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             # Run publish npm module
-            cd web/init; `yarn bin`/publish
+            `yarn bin`/publish
 
   deploy_unstable:
     docker:
@@ -166,7 +268,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - attach_workspace:
-          at: /go/src/github.com/replicatedhq/ship/web
+          at: /go/src/github.com/replicatedhq
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
@@ -202,7 +304,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - attach_workspace:
-          at: /go/src/github.com/replicatedhq/ship/web
+          at: /go/src/github.com/replicatedhq
       - run: make build-deps ci-embed-ui
       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
       - run: docker pull alpine:latest # make sure it's fresh
@@ -220,28 +322,51 @@ workflows:
   # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
   unstable:
     jobs:
-      - test_ui
-      - integration
-      - test
-      - build_ui
-      - e2e-init:
+      - build_web_init
+      - build_web_app:
           requires:
-          - build_ui
+            - build_web_init
+      - build_binary:
+          requires:
+            - build_web_init
+            - build_web_app
+      - e2e_setup:
+          requires:
+            - build_web_init
+            - build_web_app
+            - build_binary
+      - e2e_init:
+          requires:
+            - build_web_init
+            - build_web_app
+            - build_binary
+            - e2e_setup
+
+      - test
+      - integration
+      - ui
+
       - deploy_ship_init:
           requires:
-          - build_ui
-          - test_ui
-          - e2e-init
+            - build_web_init
+            - build_web_app
+            - build_binary
+            - e2e_setup
+            - e2e_init
+            - ui
           filters:
             branches:
               only: /master/
       - deploy_unstable:
           requires:
-          - test
-          - integration
-          - build_ui
-          - test_ui
-          - e2e-init
+            - build_web_init
+            - build_web_app
+            - build_binary
+            - e2e_setup
+            - e2e_init
+            - test
+            - integration
+            - ui
           filters:
             branches:
               only: /master/
@@ -253,24 +378,55 @@ workflows:
             branches:
               only: /master/
 
-  # Stable deploys the `alpha` and `latest` tags to dockerhub and github
+# Stable deploys the `alpha` and `latest` tags to dockerhub and github
   stable:
     jobs:
-      - build_ui:
+      - build_web_init:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
-      - test_ui:
-          filters:
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-            branches:
-              ignore: /.*/
-      - e2e-init:
+      - build_web_app:
           requires:
-            - build_ui
+            - build_web_init
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - build_binary:
+          requires:
+            - build_web_init
+            - build_web_app
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - e2e_setup:
+          requires:
+            - build_web_init
+            - build_web_app
+            - build_binary
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - e2e_init:
+          requires:
+            - build_web_init
+            - build_web_app
+            - build_binary
+            - e2e_setup
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+
+      - test:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
@@ -278,11 +434,11 @@ workflows:
               ignore: /.*/
       - integration:
           filters:
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-            branches:
-              ignore: /.*/
-      - test:
+              tags:
+                only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+              branches:
+                ignore: /.*/
+      - ui:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
@@ -290,11 +446,14 @@ workflows:
               ignore: /.*/
       - deploy:
           requires:
-          - test
-          - integration
-          - e2e-init
-          - build_ui
-          - test_ui
+            - build_web_init
+            - build_web_app
+            - build_binary
+            - e2e_setup
+            - e2e_init
+            - test
+            - integration
+            - ui
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
