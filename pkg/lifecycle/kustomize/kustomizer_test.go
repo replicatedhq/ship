@@ -116,18 +116,15 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 		Overlay: path.Join("overlays", "ship"),
 	}
 
-	type args struct {
-		patches []patch.PatchStrategicMerge
-	}
 	tests := []struct {
-		name       string
-		patches    []patch.PatchStrategicMerge
-		expectFile string
-		wantErr    bool
+		name               string
+		relativePatchPaths []patch.PatchStrategicMerge
+		expectFile         string
+		wantErr            bool
 	}{
 		{
-			name:    "No patches",
-			patches: []patch.PatchStrategicMerge{},
+			name:               "No patches",
+			relativePatchPaths: []patch.PatchStrategicMerge{},
 			expectFile: `kind: ""
 apiversion: ""
 bases:
@@ -135,8 +132,8 @@ bases:
 `,
 		},
 		{
-			name:    "Patches provided",
-			patches: []patch.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
+			name:               "Patches provided",
+			relativePatchPaths: []patch.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
 			expectFile: `kind: ""
 apiversion: ""
 bases:
@@ -165,7 +162,7 @@ patchesStrategicMerge:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockFs, mockStep, tt.patches); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockFs, mockStep, tt.relativePatchPaths); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

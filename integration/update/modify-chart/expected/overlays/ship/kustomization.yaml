@@ -2,5 +2,5 @@ kind: ""
 apiversion: ""
 bases:
 - ../../base
-patches:
+patchesStrategicMerge:
 - templates/deployment.yaml
