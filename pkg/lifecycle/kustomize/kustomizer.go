@@ -18,6 +18,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/kustomize/pkg/patch"
 	ktypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
@@ -155,7 +156,11 @@ func (l *daemonkustomizer) awaitKustomizeSaved(ctx context.Context, daemonExited
 	}
 }
 
-func (l *Kustomizer) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []string, err error) {
+func (l *Kustomizer) writePatches(
+	fs afero.Afero,
+	shipOverlay state.Overlay,
+	destDir string,
+) (relativePatchPaths []patch.PatchStrategicMerge, err error) {
 	debug := level.Debug(log.With(l.Logger, "method", "writePatches"))
 
 	for file, contents := range shipOverlay.Patches {
@@ -163,14 +168,14 @@ func (l *Kustomizer) writePatches(fs afero.Afero, shipOverlay state.Overlay, des
 		err := l.writePatch(fs, name, contents)
 		if err != nil {
 			debug.Log("event", "write", "name", name)
-			return []string{}, errors.Wrapf(err, "write %s", name)
+			return []patch.PatchStrategicMerge{}, errors.Wrapf(err, "write %s", name)
 		}
 
 		relativePatchPath, err := filepath.Rel(destDir, name)
 		if err != nil {
-			return []string{}, errors.Wrap(err, "unable to determine relative path")
+			return []patch.PatchStrategicMerge{}, errors.Wrap(err, "unable to determine relative path")
 		}
-		relativePatchPaths = append(relativePatchPaths, relativePatchPath)
+		relativePatchPaths = patch.Append(relativePatchPaths, relativePatchPath)
 	}
 	return relativePatchPaths, nil
 }
@@ -196,13 +201,13 @@ func (l *Kustomizer) writePatch(fs afero.Afero, name string, contents string) er
 	return nil
 }
 
-func (l *Kustomizer) writeOverlay(fs afero.Afero, step api.Kustomize, relativePatchPaths []string) error {
+func (l *Kustomizer) writeOverlay(fs afero.Afero, step api.Kustomize, relativePatchPaths []patch.PatchStrategicMerge) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
 			filepath.Join("../../", step.Base),
 		},
-		Patches: relativePatchPaths,
+		PatchesStrategicMerge: relativePatchPaths,
 	}
 
 	marshalled, err := yaml.Marshal(kustomization)
