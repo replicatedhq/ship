@@ -4,11 +4,6 @@ import (
 	"path"
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
-	"github.com/replicatedhq/ship/pkg/testing/matchers"
-
-	"github.com/spf13/viper"
-
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -17,9 +12,12 @@ import (
 	"github.com/replicatedhq/ship/pkg/process"
 	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -155,6 +153,8 @@ func TestLocalTemplater(t *testing.T) {
 				optionAndValuesArgs...,
 			)
 
+			templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+
 			mockCommands.EXPECT().Init().Return(nil)
 			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
 			if test.ontemplate != nil {
@@ -261,6 +261,74 @@ func TestTryRemoveKustomizeBasePath(t *testing.T) {
 					req.NoError(removeErr)
 				}
 			}
+		})
+	}
+}
+
+func Test_addArgIfNotPresent(t *testing.T) {
+	type args struct {
+		existingArgs []string
+		newArg       string
+		newDefault   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "empty",
+			args: args{
+				existingArgs: []string{},
+				newArg:       "--test",
+				newDefault:   "newDefault",
+			},
+			want: []string{"--test", "newDefault"},
+		},
+		{
+			name: "not present, not empty",
+			args: args{
+				existingArgs: []string{"--notTest", "notDefault"},
+				newArg:       "--test",
+				newDefault:   "newDefault",
+			},
+			want: []string{"--notTest", "notDefault", "--test", "newDefault"},
+		},
+		{
+			name: "present",
+			args: args{
+				existingArgs: []string{"--test", "notDefault"},
+				newArg:       "--test",
+				newDefault:   "newDefault",
+			},
+			want: []string{"--test", "notDefault"},
+		},
+		{
+			name: "present with others",
+			args: args{
+				existingArgs: []string{"--notTest", "notDefault", "--test", "alsoNotDefault"},
+				newArg:       "--test",
+				newDefault:   "newDefault",
+			},
+			want: []string{"--notTest", "notDefault", "--test", "alsoNotDefault"},
+		},
+		{
+			name: "present as substring",
+			args: args{
+				existingArgs: []string{"--notTest", "notDefault", "abc--test", "alsoNotDefault"},
+				newArg:       "--test",
+				newDefault:   "newDefault",
+			},
+			want: []string{"--notTest", "notDefault", "abc--test", "alsoNotDefault", "--test", "newDefault"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			got := addArgIfNotPresent(tt.args.existingArgs, tt.args.newArg, tt.args.newDefault)
+
+			req.Equal(tt.want, got)
 		})
 	}
 }
