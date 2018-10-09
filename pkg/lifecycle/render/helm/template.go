@@ -166,19 +166,13 @@ func (f *LocalTemplater) Template(
 
 // checks to see if the specified arg is present in the list. If it is not, adds it set to the specified value
 func addArgIfNotPresent(existingArgs []string, newArg string, newDefault string) []string {
-	argPresent := false
 	for _, arg := range existingArgs {
 		if arg == newArg {
-			argPresent = true
-			break
+			return existingArgs
 		}
 	}
 
-	if !argPresent {
-		existingArgs = append(existingArgs, newArg, newDefault)
-	}
-
-	return existingArgs
+	return append(existingArgs, newArg, newDefault)
 }
 
 func (f *LocalTemplater) appendHelmValues(
