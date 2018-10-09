@@ -149,6 +149,8 @@ func (f *LocalTemplater) Template(
 		templateArgs = append(templateArgs, args...)
 	}
 
+	templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+
 	debug.Log("event", "helm.template")
 	if err := f.Commands.Template(chartRoot, templateArgs); err != nil {
 		debug.Log("event", "helm.template.err")
@@ -160,6 +162,23 @@ func (f *LocalTemplater) Template(
 		return err
 	}
 	return f.cleanUpAndOutputRenderedFiles(rootFs, asset, tempRenderedChartDir)
+}
+
+// checks to see if the specified arg is present in the list. If it is not, adds it set to the specified value
+func addArgIfNotPresent(existingArgs []string, newArg string, newDefault string) []string {
+	argPresent := false
+	for _, arg := range existingArgs {
+		if arg == newArg {
+			argPresent = true
+			break
+		}
+	}
+
+	if !argPresent {
+		existingArgs = append(existingArgs, newArg, newDefault)
+	}
+
+	return existingArgs
 }
 
 func (f *LocalTemplater) appendHelmValues(
