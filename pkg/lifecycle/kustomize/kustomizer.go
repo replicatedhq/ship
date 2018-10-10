@@ -45,73 +45,13 @@ type daemonkustomizer struct {
 }
 
 func (l *daemonkustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
-	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "method", "execute"))
-
 	daemonExitedChan := l.Daemon.EnsureStarted(ctx, release)
-
-	debug.Log("event", "daemon.started")
-
-	l.Daemon.PushKustomizeStep(ctx, daemontypes.Kustomize{
-		BasePath: step.Base,
-	})
-	debug.Log("event", "step.pushed")
-
-	if err := l.writeBase(step); err != nil {
-		return errors.Wrap(err, "write base kustomization")
-	}
-
 	err := l.awaitKustomizeSaved(ctx, daemonExitedChan)
-	debug.Log("event", "kustomize.saved", "err", err)
 	if err != nil {
-		return errors.Wrap(err, "await save kustomize")
+		return errors.Wrap(err, "ensure daemon \"started\"")
 	}
 
-	current, err := l.State.TryLoad()
-	if err != nil {
-		return errors.Wrap(err, "load state")
-	}
-
-	debug.Log("event", "state.loaded")
-	kustomizeState := current.CurrentKustomize()
-
-	var shipOverlay state.Overlay
-	if kustomizeState == nil {
-		debug.Log("event", "state.kustomize.empty")
-	} else {
-		shipOverlay = kustomizeState.Ship()
-	}
-
-	fs, err := l.getPotentiallyChrootedFs(release)
-	if err != nil {
-		return errors.Wrap(err, "get base fs for writing kustomize")
-	}
-
-	debug.Log("event", "mkdir", "dir", step.OverlayPath())
-	err = fs.MkdirAll(step.OverlayPath(), 0777)
-	if err != nil {
-		debug.Log("event", "mkdir.fail", "dir", step.OverlayPath())
-		return errors.Wrapf(err, "make dir %s", step.OverlayPath())
-	}
-
-	relativePatchPaths, err := l.writePatches(fs, shipOverlay, step.OverlayPath())
-	if err != nil {
-		return err
-	}
-
-	err = l.writeOverlay(fs, step, relativePatchPaths)
-	if err != nil {
-		return errors.Wrap(err, "write overlay")
-	}
-
-	if step.Dest != "" {
-		debug.Log("event", "kustomize.build", "dest", step.Dest)
-		err = l.kustomizeBuild(fs, step)
-		if err != nil {
-			return errors.Wrap(err, "build overlay")
-		}
-	}
-
-	return nil
+	return l.Kustomizer.Execute(ctx, release, step)
 }
 
 // hack -- get the root path off a render step to tell if we should prefix kustomize outputs
