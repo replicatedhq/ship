@@ -20,6 +20,7 @@ type TestCase struct {
 	Mkdir     []string      `yaml:"mkdir"`
 	Touch     []string      `yaml:"touch"`
 	Patches   yaml.MapSlice `yaml:"patches"`
+	Resources yaml.MapSlice `yaml:"resources"`
 	Read      string        `yaml:"read"`
 	Expect    *Node         `yaml:"expect"`
 	ExpectErr string        `yaml:"expectErr"`
@@ -71,12 +72,18 @@ func TestAferoLoader(t *testing.T) {
 				testPatches[patch.Key.(string)] = patch.Value.(string)
 			}
 
+			testResources := make(map[string]string)
+			for _, resource := range test.Resources {
+				testPatches[resource.Key.(string)] = resource.Value.(string)
+			}
+
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{
 				V1: &state.V1{
 					Kustomize: &state.Kustomize{
 						Overlays: map[string]state.Overlay{
 							"ship": {
-								Patches: testPatches,
+								Patches:   testPatches,
+								Resources: testResources,
 							},
 						},
 					},

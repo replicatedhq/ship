@@ -217,3 +217,36 @@
           children:
               - name: foo.txt
                 path: /bar/foo.txt
+
+- name: has an overlay with resources
+  mkdir:
+  - bar
+  touch:
+  - bar/foo.txt
+  patches:
+    /bar/foo.txt: baz
+  resources:
+    /bar/spam.txt: eggs
+  expect:
+    name: /
+    path: /
+    children:
+    - name: /
+      path: /
+      children:
+      - name: bar
+        path: /bar
+        children:
+        - name: foo.txt
+          path: /bar/foo.txt
+          hasOverlay: true
+    - name: overlays
+      path: /
+      children:
+      - name: bar
+        path: /bar
+        children:
+        - name: foo.txt
+          path: /bar/foo.txt
+        - name: spam.txt
+          path: /bar/spam.txt
