@@ -99,6 +99,7 @@ func (l *Lifeycle) WithCompletedStep(step api.Step) *Lifeycle {
 
 type Overlay struct {
 	Patches           map[string]string `json:"patches,omitempty" yaml:"patches,omitempty" hcl:"patches,omitempty"`
+	Resources         map[string]string `json:"resources,omitempty" yaml:"resources,omitempty" hcl:"resources,omitempty"`
 	KustomizationYAML string            `json:"kustomization_yaml,omitempty" yaml:"kustomization_yaml,omitempty" hcl:"kustomization_yaml,omitempty"`
 }
 

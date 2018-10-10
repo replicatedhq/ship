@@ -74,7 +74,12 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		return err
 	}
 
-	err = l.writeOverlay(fs, step, relativePatchPaths)
+	relativeResourcePaths, err := l.writeResources(fs, shipOverlay, step.OverlayPath())
+	if err != nil {
+		return err
+	}
+
+	err = l.writeOverlay(fs, step, relativePatchPaths, relativeResourcePaths)
 	if err != nil {
 		return errors.Wrap(err, "write overlay")
 	}
