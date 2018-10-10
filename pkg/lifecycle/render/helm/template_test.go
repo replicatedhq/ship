@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"os"
 	"path"
 	"testing"
 
@@ -329,6 +330,276 @@ func Test_addArgIfNotPresent(t *testing.T) {
 			got := addArgIfNotPresent(tt.args.existingArgs, tt.args.newArg, tt.args.newDefault)
 
 			req.Equal(tt.want, got)
+		})
+	}
+}
+
+func Test_validateGeneratedFiles(t *testing.T) {
+
+	type file struct {
+		contents string
+		path     string
+	}
+	tests := []struct {
+		name        string
+		inputFiles  []file
+		dir         string
+		outputFiles []file
+	}{
+		{
+			name:        "no_files",
+			dir:         "",
+			inputFiles:  []file{},
+			outputFiles: []file{},
+		},
+		{
+			name: "irrelevant_files",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path:     "outside",
+					contents: `irrelevant`,
+				},
+				{
+					path: "test/inside",
+					contents: `irrelevant
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path:     "outside",
+					contents: `irrelevant`,
+				},
+				{
+					path: "test/inside",
+					contents: `irrelevant
+`,
+				},
+			},
+		},
+		{
+			name: "relevant_args_files",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  args: {}`,
+				},
+				{
+					path:     "test/missingArgs.yaml",
+					contents: `  args:`,
+				},
+				{
+					path: "test/notMissingMultilineArgs.yaml",
+					contents: `
+  args:
+    something
+  args:
+  - something`,
+				},
+				{
+					path: "test/missingMultilineArgs.yaml",
+					contents: `
+  args:
+  something:`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  args: {}`,
+				},
+				{
+					path:     "test/missingArgs.yaml",
+					contents: `  args: []`,
+				},
+				{
+					path: "test/notMissingMultilineArgs.yaml",
+					contents: `
+  args:
+    something
+  args:
+  - something`,
+				},
+				{
+					path: "test/missingMultilineArgs.yaml",
+					contents: `
+  args: []
+  something:`,
+				},
+			},
+		},
+		{
+			name: "relevant_env_files",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  env: []`,
+				},
+				{
+					path:     "test/missingEnv.yaml",
+					contents: `  env:`,
+				},
+				{
+					path: "test/notMissingMultilineEnv.yaml",
+					contents: `
+  env:
+    something
+  env:
+  - something`,
+				},
+				{
+					path: "test/missingMultilineEnv.yaml",
+					contents: `
+  env:
+  something:`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  env: []`,
+				},
+				{
+					path:     "test/missingEnv.yaml",
+					contents: `  env: {}`,
+				},
+				{
+					path: "test/notMissingMultilineEnv.yaml",
+					contents: `
+  env:
+    something
+  env:
+  - something`,
+				},
+				{
+					path: "test/missingMultilineEnv.yaml",
+					contents: `
+  env: {}
+  something:`,
+				},
+			},
+		},
+		{
+			name: "blank lines",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path: "test/blank_line_env.yaml",
+					contents: `
+  env:
+
+    item
+`,
+				},
+				{
+					path: "test/blank_line_args.yaml",
+					contents: `
+  args:
+
+    item
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path: "test/blank_line_env.yaml",
+					contents: `
+  env:
+
+    item
+`,
+				},
+				{
+					path: "test/blank_line_args.yaml",
+					contents: `
+  args:
+
+    item
+`,
+				},
+			},
+		},
+		{
+			name: "comment lines",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path: "test/blank_line_env.yaml",
+					contents: `
+  env:
+    #item
+
+  env:
+  #item
+    item2
+`,
+				},
+				{
+					path: "test/blank_line_args.yaml",
+					contents: `
+  args:
+    #item
+
+  args:
+  #item
+    item2
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path: "test/blank_line_env.yaml",
+					contents: `
+  env: {}
+    #item
+
+  env:
+  #item
+    item2
+`,
+				},
+				{
+					path: "test/blank_line_args.yaml",
+					contents: `
+  args: []
+    #item
+
+  args:
+  #item
+    item2
+`,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			testLogger := &logger.TestLogger{T: t}
+
+			fakeFS := afero.Afero{Fs: afero.NewMemMapFs()}
+			lt := &LocalTemplater{
+				FS:     fakeFS,
+				Logger: testLogger,
+			}
+
+			// add inputFiles to fakeFS
+			for _, file := range tt.inputFiles {
+				req.NoError(fakeFS.WriteFile(file.path, []byte(file.contents), os.FileMode(777)))
+			}
+
+			req.NoError(lt.validateGeneratedFiles(fakeFS, tt.dir))
+
+			// check outputFiles from fakeFS
+			for _, file := range tt.outputFiles {
+				contents, err := fakeFS.ReadFile(file.path)
+				req.NoError(err)
+				req.Equal(file.contents, string(contents), "expected %s contents to be equal", file.path)
+			}
 		})
 	}
 }
