@@ -162,7 +162,7 @@ patchesStrategicMerge:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockFs, mockStep, tt.relativePatchPaths); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockFs, mockStep, tt.relativePatchPaths, nil); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -361,6 +361,57 @@ bases:
 - ../../base
 patchesStrategicMerge:
 - deployment.yaml
+`,
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
+- deployment.yaml
+`,
+			},
+		},
+		{
+			name: "adding a resource",
+			kustomize: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": {
+						Resources: map[string]string{
+							"/limitrange.yaml": `---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container`,
+						},
+						KustomizationYAML: "",
+					},
+				},
+			},
+			expectFiles: map[string]string{
+				"overlays/ship/limitrange.yaml": `---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container`,
+
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
+- ../../base
+resources:
+- limitrange.yaml
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""

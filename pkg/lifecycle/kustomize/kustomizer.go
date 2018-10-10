@@ -101,27 +101,43 @@ func (l *Kustomizer) writePatches(
 	shipOverlay state.Overlay,
 	destDir string,
 ) (relativePatchPaths []patch.PatchStrategicMerge, err error) {
-	debug := level.Debug(log.With(l.Logger, "method", "writePatches"))
+	patches, err := l.writeFileMap(fs, shipOverlay.Patches, destDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "write file map to %s", destDir)
+	}
+	for _, p := range patches {
+		relativePatchPaths = append(relativePatchPaths, patch.PatchStrategicMerge(p))
+	}
+	return
+}
 
-	for file, contents := range shipOverlay.Patches {
+func (l *Kustomizer) writeResources(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativeResourcePaths []string, err error) {
+	return l.writeFileMap(fs, shipOverlay.Resources, destDir)
+}
+
+func (l *Kustomizer) writeFileMap(fs afero.Afero, files map[string]string, destDir string) (paths []string, err error) {
+	debug := level.Debug(log.With(l.Logger, "method", "writeResources"))
+
+	for file, contents := range files {
 		name := path.Join(destDir, file)
-		err := l.writePatch(fs, name, contents)
+		err := l.writeFile(fs, name, contents)
 		if err != nil {
 			debug.Log("event", "write", "name", name)
-			return []patch.PatchStrategicMerge{}, errors.Wrapf(err, "write %s", name)
+			return []string{}, errors.Wrapf(err, "write resource %s", name)
 		}
 
 		relativePatchPath, err := filepath.Rel(destDir, name)
 		if err != nil {
-			return []patch.PatchStrategicMerge{}, errors.Wrap(err, "unable to determine relative path")
+			return []string{}, errors.Wrap(err, "unable to determine relative path")
 		}
-		relativePatchPaths = patch.Append(relativePatchPaths, relativePatchPath)
+		paths = append(paths, relativePatchPath)
 	}
-	return relativePatchPaths, nil
+	return paths, nil
+
 }
 
-func (l *Kustomizer) writePatch(fs afero.Afero, name string, contents string) error {
-	debug := level.Debug(log.With(l.Logger, "method", "writePatch"))
+func (l *Kustomizer) writeFile(fs afero.Afero, name string, contents string) error {
+	debug := level.Debug(log.With(l.Logger, "method", "writeFile"))
 
 	destDir := filepath.Dir(name)
 
@@ -141,13 +157,19 @@ func (l *Kustomizer) writePatch(fs afero.Afero, name string, contents string) er
 	return nil
 }
 
-func (l *Kustomizer) writeOverlay(fs afero.Afero, step api.Kustomize, relativePatchPaths []patch.PatchStrategicMerge) error {
+func (l *Kustomizer) writeOverlay(
+	fs afero.Afero,
+	step api.Kustomize,
+	relativePatchPaths []patch.PatchStrategicMerge,
+	relativeResourcePaths []string,
+) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
 			filepath.Join("../../", step.Base),
 		},
 		PatchesStrategicMerge: relativePatchPaths,
+		Resources:             relativeResourcePaths,
 	}
 
 	marshalled, err := yaml.Marshal(kustomization)
