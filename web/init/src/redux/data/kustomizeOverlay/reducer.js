@@ -14,6 +14,7 @@ function updateFileContents(currState, data) {
     overlayContent: data.content.overlay,
     key: data.path,
     isSupported: data.content.isSupported,
+    isResource: data.content.isResource || null
   }
   nextFiles.unshift(transformed); // add to front of array so uniqBy will keep newest version
   return uniqBy(nextFiles, "key");
