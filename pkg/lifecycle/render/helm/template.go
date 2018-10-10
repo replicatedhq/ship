@@ -59,6 +59,8 @@ func NewTemplater(
 }
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+var argsLineRegex = regexp.MustCompile(`^\s*args:\s*$`)
+var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
 
 // LocalTemplater implements Templater by using the Commands interface
 // from pkg/helm and creating the chart in place
@@ -394,13 +396,13 @@ func (l *LocalTemplater) validateGeneratedFiles(
 			}
 
 			for idx, line := range lines {
-				if regexp.MustCompile(`^\s*args:\s*$`).MatchString(line) {
+				if argsLineRegex.MatchString(line) {
 					// line has `args:` and nothing else but whitespace
 					if !checkIsChild(line, nextLine(idx, lines)) {
 						// next line is not a child, so args has no contents, add an empty array
 						lines[idx] = line + " []"
 					}
-				} else if regexp.MustCompile(`^\s*env:\s*$`).MatchString(line) {
+				} else if envLineRegex.MatchString(line) {
 					// line has `env:` and nothing else but whitespace
 					if !checkIsChild(line, nextLine(idx, lines)) {
 						// next line is not a child, so env has no contents, add an empty object
