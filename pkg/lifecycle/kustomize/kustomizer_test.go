@@ -5,6 +5,8 @@ import (
 	"path"
 	"testing"
 
+	"sigs.k8s.io/kustomize/pkg/patch"
+
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -19,7 +21,6 @@ import (
 
 func Test_kustomizer_writePatches(t *testing.T) {
 	destDir := path.Join("overlays", "ship")
-	var nilSlice []string
 
 	type args struct {
 		shipOverlay state.Overlay
@@ -29,7 +30,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 		name        string
 		args        args
 		expectFiles map[string]string
-		want        []string
+		want        []patch.PatchStrategicMerge
 		wantErr     bool
 	}{
 		{
@@ -41,7 +42,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				destDir: destDir,
 			},
 			expectFiles: map[string]string{},
-			want:        nilSlice,
+			want:        nil,
 		},
 		{
 			name: "Patches in state",
@@ -58,7 +59,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				"a.yaml":        "---",
 				"folder/b.yaml": "---",
 			},
-			want: []string{"a.yaml", "folder/b.yaml"},
+			want: []patch.PatchStrategicMerge{"a.yaml", "folder/b.yaml"},
 		},
 	}
 	for _, tt := range tests {
@@ -115,18 +116,15 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 		Overlay: path.Join("overlays", "ship"),
 	}
 
-	type args struct {
-		patches []string
-	}
 	tests := []struct {
-		name       string
-		patches    []string
-		expectFile string
-		wantErr    bool
+		name               string
+		relativePatchPaths []patch.PatchStrategicMerge
+		expectFile         string
+		wantErr            bool
 	}{
 		{
-			name:    "No patches",
-			patches: []string{},
+			name:               "No patches",
+			relativePatchPaths: []patch.PatchStrategicMerge{},
 			expectFile: `kind: ""
 apiversion: ""
 bases:
@@ -134,13 +132,13 @@ bases:
 `,
 		},
 		{
-			name:    "Patches provided",
-			patches: []string{"a.yaml", "b.yaml", "c.yaml"},
+			name:               "Patches provided",
+			relativePatchPaths: []patch.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
 			expectFile: `kind: ""
 apiversion: ""
 bases:
 - ../../base
-patches:
+patchesStrategicMerge:
 - a.yaml
 - b.yaml
 - c.yaml
@@ -164,7 +162,7 @@ patches:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockFs, mockStep, tt.patches); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockFs, mockStep, tt.relativePatchPaths); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -361,7 +359,7 @@ spec:
 apiversion: ""
 bases:
 - ../../base
-patches:
+patchesStrategicMerge:
 - deployment.yaml
 `,
 				"base/kustomization.yaml": `kind: ""

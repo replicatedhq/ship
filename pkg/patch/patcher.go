@@ -20,11 +20,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	"sigs.k8s.io/kustomize/pkg/resource"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
 const PATCH_TOKEN = "TO_BE_MODIFIED"
+
+const TempYamlPath = "temp.yaml"
 
 type Patcher interface {
 	CreateTwoWayMergePatch(original, modified []byte) ([]byte, error)
@@ -188,7 +191,7 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	debug.Log("event", "writeFile.tempPatch")
-	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), patch, 0755); err != nil {
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, TempYamlPath), patch, 0755); err != nil {
 		return nil, errors.Wrap(err, "write temp patch overlay")
 	}
 
@@ -199,8 +202,8 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	kustomizationYaml := k8stypes.Kustomization{
-		Bases:   []string{relativePathToBases},
-		Patches: []string{"temp.yaml"},
+		Bases: []string{relativePathToBases},
+		PatchesStrategicMerge: []kustomizepatch.PatchStrategicMerge{TempYamlPath},
 	}
 
 	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)
