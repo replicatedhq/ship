@@ -10,6 +10,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	replicatedapp2 "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/test-mocks/apptype"
+	"github.com/replicatedhq/ship/pkg/test-mocks/githubclient"
 	"github.com/replicatedhq/ship/pkg/test-mocks/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
@@ -32,6 +33,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 			mockState *state.MockManager,
 			mockFs afero.Afero,
 			mockAppResolver *replicatedapp.MockResolver,
+			mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
 		)
 		expectRelease *api.Release
 	}{
@@ -48,6 +50,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
+				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
 			) {
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/helm/charts/stable/x5 ...")
@@ -71,14 +74,18 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
+				mockReleaseNotesFetcher.EXPECT().
+					ResolveReleaseNotes(ctx, "github.com/helm/charts/stable/x5").
+					Return("some release notes", nil)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeShipMetadata(api.ShipAppMetadata{
-					Version:    "0.1.0",
-					Name:       "i know what the x5 is",
-					Icon:       "https://kfbr.392/x5.png",
-					Readme:     "its the readme",
-					ContentSHA: "abcdef1234567890",
-					URL:        "github.com/helm/charts/stable/x5",
+					Version:      "0.1.0",
+					Name:         "i know what the x5 is",
+					Icon:         "https://kfbr.392/x5.png",
+					Readme:       "its the readme",
+					ReleaseNotes: "some release notes",
+					ContentSHA:   "abcdef1234567890",
+					URL:          "github.com/helm/charts/stable/x5",
 				}, "helm").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
@@ -88,12 +95,13 @@ icon: https://kfbr.392/x5.png
 				Spec: DefaultHelmRelease(".ship/tmp/chart"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
-						Version:    "0.1.0",
-						URL:        "github.com/helm/charts/stable/x5",
-						Readme:     "its the readme",
-						Icon:       "https://kfbr.392/x5.png",
-						Name:       "i know what the x5 is",
-						ContentSHA: "abcdef1234567890",
+						Version:      "0.1.0",
+						URL:          "github.com/helm/charts/stable/x5",
+						Readme:       "its the readme",
+						Icon:         "https://kfbr.392/x5.png",
+						Name:         "i know what the x5 is",
+						ContentSHA:   "abcdef1234567890",
+						ReleaseNotes: "some release notes",
 					},
 				},
 			},
@@ -108,6 +116,7 @@ icon: https://kfbr.392/x5.png
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
+				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
 			) {
 				inOrder := mockUi.EXPECT().Info("Reading replicated.app?customer_id=12345&installation_id=67890 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
@@ -147,6 +156,7 @@ icon: https://kfbr.392/x5.png
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
+				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
 			) {
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/replicatedhq/test-charts/plain-k8s ...")
@@ -162,6 +172,9 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
+				inOrder = mockReleaseNotesFetcher.EXPECT().
+					ResolveReleaseNotes(ctx, "github.com/replicatedhq/test-charts/plain-k8s").
+					Return("plain-k8s example", nil).After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
@@ -188,6 +201,7 @@ icon: https://kfbr.392/x5.png
 			appType := apptype.NewMockInspector(mc)
 			mockState := state.NewMockManager(mc)
 			mockAppResolver := replicatedapp.NewMockResolver(mc)
+			mockReleaseNotesFetcher := githubclient.NewMockGitHubReleaseNotesFetcher(mc)
 
 			// need a real FS because afero.Rename on a memMapFs doesn't copy directories recursively
 			fs := afero.Afero{Fs: afero.NewOsFs()}
@@ -201,16 +215,17 @@ icon: https://kfbr.392/x5.png
 			req.NoError(err)
 
 			resolver := &Resolver{
-				Logger:           log.NewNopLogger(),
-				StateManager:     mockState,
-				FS:               mockFs,
-				AppResolver:      mockAppResolver,
-				Viper:            viper.New(),
-				ui:               mockUI,
-				appTypeInspector: appType,
-				shaSummer:        test.shaSummer,
+				Logger:                    log.NewNopLogger(),
+				StateManager:              mockState,
+				FS:                        mockFs,
+				AppResolver:               mockAppResolver,
+				Viper:                     viper.New(),
+				ui:                        mockUI,
+				appTypeInspector:          appType,
+				shaSummer:                 test.shaSummer,
+				GitHubReleaseNotesFetcher: mockReleaseNotesFetcher,
 			}
-			test.expect(t, mockUI, appType, mockState, mockFs, mockAppResolver)
+			test.expect(t, mockUI, appType, mockState, mockFs, mockAppResolver, mockReleaseNotesFetcher)
 
 			func() {
 				defer mc.Finish()

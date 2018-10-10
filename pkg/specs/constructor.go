@@ -4,6 +4,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
@@ -12,11 +13,12 @@ import (
 
 // A Resolver resolves specs
 type Resolver struct {
-	Logger       log.Logger
-	Client       *replicatedapp.GraphQLClient
-	StateManager state.Manager
-	FS           afero.Afero
-	AppResolver  replicatedapp.Resolver
+	Logger                    log.Logger
+	Client                    *replicatedapp.GraphQLClient
+	StateManager              state.Manager
+	FS                        afero.Afero
+	AppResolver               replicatedapp.Resolver
+	GitHubReleaseNotesFetcher githubclient.GitHubReleaseNotesFetcher
 
 	ui               cli.Ui
 	appTypeInspector apptype.Inspector
@@ -36,6 +38,7 @@ func NewResolver(
 	ui cli.Ui,
 	determiner apptype.Inspector,
 	appresolver replicatedapp.Resolver,
+	github *githubclient.GithubClient,
 ) *Resolver {
 	return &Resolver{
 		Logger:           logger,
@@ -48,6 +51,7 @@ func NewResolver(
 		shaSummer: func(resolver *Resolver, s string) (string, error) {
 			return resolver.calculateContentSHA(s)
 		},
-		AppResolver: appresolver,
+		AppResolver:               appresolver,
+		GitHubReleaseNotesFetcher: github,
 	}
 }

@@ -48,9 +48,10 @@ type aferoLoader struct {
 	FS           afero.Afero
 	StateManager state.Manager
 	patches      map[string]string
+	resources    map[string]string
 }
 
-func (a *aferoLoader) loadShipPatches() error {
+func (a *aferoLoader) loadShipOverlay() error {
 	currentState, err := a.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "failed to load state")
@@ -63,11 +64,12 @@ func (a *aferoLoader) loadShipPatches() error {
 
 	shipOverlay := kustomize.Ship()
 	a.patches = shipOverlay.Patches
+	a.resources = shipOverlay.Resources
 	return nil
 }
 
 func (a *aferoLoader) LoadTree(root string) (*Node, error) {
-	if err := a.loadShipPatches(); err != nil {
+	if err := a.loadShipOverlay(); err != nil {
 		return nil, errors.Wrapf(err, "load overlays")
 	}
 
@@ -203,6 +205,10 @@ func (a *aferoLoader) loadOverlayTree(kustomizationNode Node) Node {
 	filledTree := &kustomizationNode
 	for patchPath := range a.patches {
 		splitPatchPath := strings.Split(patchPath, "/")[1:]
+		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
+	}
+	for resourcePath := range a.resources {
+		splitPatchPath := strings.Split(resourcePath, "/")[1:]
 		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
 	}
 	return *filledTree

@@ -60,6 +60,7 @@ _mockgen:
 	mkdir -p pkg/test-mocks/helm
 	mkdir -p pkg/test-mocks/dockerlayer
 	mkdir -p pkg/test-mocks/github
+	mkdir -p pkg/test-mocks/githubclient
 	mkdir -p pkg/test-mocks/inline
 	mkdir -p pkg/test-mocks/daemon
 	mkdir -p pkg/test-mocks/tfplan
@@ -71,112 +72,119 @@ _mockgen:
 		-destination pkg/test-mocks/ui/ui.go \
 		-package ui \
 		github.com/mitchellh/cli \
-		Ui
+		Ui & \
 	mockgen \
 		-destination pkg/test-mocks/config/resolver.go \
 		-package config \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/config \
-		Resolver
+		Resolver & \
 	mockgen \
 		-destination pkg/test-mocks/daemon/daemon.go \
 		-package daemon \
 		github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes \
-		Daemon
+		Daemon & \
 	mockgen \
 		-destination pkg/test-mocks/planner/planner_mock.go \
 		-package planner \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/planner \
-		Planner
+		Planner & \
 	mockgen \
 		-destination pkg/test-mocks/images/saver/image_saver_mock.go \
 		-package saver \
 		github.com/replicatedhq/ship/pkg/images \
-		ImageSaver
+		ImageSaver & \
 	mockgen \
 		-destination pkg/test-mocks/images/image_manager_mock.go \
 		-package images \
 		github.com/replicatedhq/ship/pkg/images \
-		ImageManager
+		ImageManager & \
 	mockgen \
 		-destination pkg/test-mocks/images/pull_url_resovler_mock.go \
 		-package images \
 		github.com/replicatedhq/ship/pkg/images \
-		PullURLResolver
+		PullURLResolver & \
 	mockgen \
 		-destination pkg/test-mocks/helm/chart_fetcher_mock.go \
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
-		ChartFetcher
+		ChartFetcher & \
 	mockgen \
 		-destination pkg/test-mocks/helm/templater_mock.go \
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
-		Templater
+		Templater & \
 	mockgen \
 		-destination pkg/test-mocks/helm/commands_mock.go \
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
-		Commands
+		Commands & \
 	mockgen \
 		-destination pkg/test-mocks/helm/renderer_mock.go \
 		-package helm \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/helm \
-		Renderer
+		Renderer & \
 	mockgen \
 		-destination pkg/test-mocks/docker/renderer_mock.go \
 		-package docker \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/docker \
-		Renderer
+		Renderer & \
 	mockgen \
 		-destination pkg/test-mocks/dockerlayer/archive_mock.go \
 		-package dockerlayer \
 		github.com/mholt/archiver \
-		Archiver
+		Archiver & \
 	mockgen \
 		-destination pkg/test-mocks/github/github_mock.go \
 		-package github \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/github \
-		Renderer
+		Renderer & \
 	mockgen \
 		-destination pkg/test-mocks/inline/inline_mock.go \
 		-package inline \
 		github.com/replicatedhq/ship/pkg/lifecycle/render/inline \
-		Renderer
+		Renderer & \
 	mockgen \
 		-destination pkg/test-mocks/tfplan/confirmer_mock.go \
 		-package tfplan \
 		github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan \
-		PlanConfirmer
+		PlanConfirmer & \
 	mockgen \
 		-destination pkg/test-mocks/state/manager_mock.go \
 		-package state \
 		github.com/replicatedhq/ship/pkg/state \
-		Manager
+		Manager & \
 	mockgen \
 		-destination pkg/test-mocks/lifecycle/messenger_mock.go \
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
-		Messenger
+		Messenger & \
 	mockgen \
 		-destination pkg/test-mocks/lifecycle/renderer_mock.go \
 		-package lifecycle \
 		github.com/replicatedhq/ship/pkg/lifecycle \
-		Renderer
+		Renderer & \
 	mockgen \
 		-destination pkg/test-mocks/apptype/determine_type_mock.go \
 		-package apptype \
 		github.com/replicatedhq/ship/pkg/specs/apptype \
-		Inspector
+		Inspector & \
 	mockgen \
 		-destination pkg/test-mocks/replicatedapp/resolve_replicated_app.go \
 		-package replicatedapp \
 		github.com/replicatedhq/ship/pkg/specs/replicatedapp \
-		Resolver
+		Resolver & \
 	mockgen \
 		-destination pkg/test-mocks/util/asset_uploader.go \
 		-package util \
 		github.com/replicatedhq/ship/pkg/util \
-		AssetUploader
+		AssetUploader & \
+	mockgen \
+		-destination pkg/test-mocks/githubclient/release_note_fetcher.go \
+		-package githubclient \
+		github.com/replicatedhq/ship/pkg/specs/githubclient \
+		GitHubReleaseNotesFetcher & \
+	wait
+
 
 mockgen: _mockgen fmt
 
