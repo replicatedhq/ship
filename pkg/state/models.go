@@ -11,7 +11,7 @@ import (
 type State interface {
 	CurrentConfig() map[string]interface{}
 	CurrentKustomize() *Kustomize
-	CurrentKustomizeOverlay(filename string) string
+	CurrentKustomizeOverlay(filename string) (string, bool)
 	CurrentHelmValues() string
 	CurrentHelmValuesDefaults() string
 	Upstream() string
@@ -25,25 +25,25 @@ var _ State = V0{}
 
 type Empty struct{}
 
-func (Empty) CurrentKustomize() *Kustomize          { return nil }
-func (Empty) CurrentKustomizeOverlay(string) string { return "" }
-func (Empty) CurrentConfig() map[string]interface{} { return make(map[string]interface{}) }
-func (Empty) CurrentHelmValues() string             { return "" }
-func (Empty) CurrentHelmValuesDefaults() string     { return "" }
-func (Empty) Upstream() string                      { return "" }
-func (Empty) Versioned() VersionedState             { return VersionedState{V1: &V1{}} }
-func (Empty) IsEmpty() bool                         { return true }
+func (Empty) CurrentKustomize() *Kustomize                  { return nil }
+func (Empty) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
+func (Empty) CurrentConfig() map[string]interface{}         { return make(map[string]interface{}) }
+func (Empty) CurrentHelmValues() string                     { return "" }
+func (Empty) CurrentHelmValuesDefaults() string             { return "" }
+func (Empty) Upstream() string                              { return "" }
+func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
+func (Empty) IsEmpty() bool                                 { return true }
 
 type V0 map[string]interface{}
 
-func (v V0) CurrentConfig() map[string]interface{} { return v }
-func (v V0) CurrentKustomize() *Kustomize          { return nil }
-func (v V0) CurrentKustomizeOverlay(string) string { return "" }
-func (v V0) CurrentHelmValues() string             { return "" }
-func (v V0) CurrentHelmValuesDefaults() string     { return "" }
-func (v V0) Upstream() string                      { return "" }
-func (v V0) Versioned() VersionedState             { return VersionedState{V1: &V1{Config: v}} }
-func (v V0) IsEmpty() bool                         { return false }
+func (v V0) CurrentConfig() map[string]interface{}         { return v }
+func (v V0) CurrentKustomize() *Kustomize                  { return nil }
+func (v V0) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
+func (v V0) CurrentHelmValues() string                     { return "" }
+func (v V0) CurrentHelmValuesDefaults() string             { return "" }
+func (v V0) Upstream() string                              { return "" }
+func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
+func (v V0) IsEmpty() bool                                 { return false }
 
 type VersionedState struct {
 	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
@@ -125,30 +125,34 @@ func (v VersionedState) CurrentKustomize() *Kustomize {
 	return nil
 }
 
-func (v VersionedState) CurrentKustomizeOverlay(filename string) string {
+func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents string, isPatch bool) {
 	if v.V1.Kustomize == nil {
-		return ""
+		return
 	}
 
 	if v.V1.Kustomize.Overlays == nil {
-		return ""
+		return
 	}
 
 	overlay, ok := v.V1.Kustomize.Overlays["ship"]
 	if !ok {
-		return ""
+		return
 	}
 
-	if overlay.Patches == nil {
-		return ""
+	if overlay.Patches != nil {
+		file, ok := overlay.Patches[filename]
+		if ok {
+			return file, true
+		}
 	}
 
-	file, ok := overlay.Patches[filename]
-	if ok {
-		return file
+	if overlay.Resources != nil {
+		file, ok := overlay.Resources[filename]
+		if ok {
+			return file, false
+		}
 	}
-
-	return ""
+	return
 }
 
 func (v VersionedState) CurrentConfig() map[string]interface{} {

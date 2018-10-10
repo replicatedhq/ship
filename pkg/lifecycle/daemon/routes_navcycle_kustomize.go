@@ -133,18 +133,12 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	type Response struct {
 		Base        string `json:"base"`
 		IsSupported bool   `json:"isSupported"`
+		IsPatch     bool   `json:"isPatch"`
 		Overlay     string `json:"overlay"`
 	}
 
 	step, ok := d.getKustomizeStepOrAbort(c) // todo this should fetch by step ID
 	if !ok {
-		return
-	}
-
-	base, err := d.TreeLoader.LoadFile(step.Kustomize.Base, request.Path)
-	if err != nil {
-		level.Warn(d.Logger).Log("event", "load file failed", "err", err)
-		c.AbortWithError(500, err)
 		return
 	}
 
@@ -155,9 +149,22 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 		return
 	}
 
+	overlay, isPatch := savedState.CurrentKustomizeOverlay(request.Path)
+
+	var base []byte
+	if isPatch {
+		base, err = d.TreeLoader.LoadFile(step.Kustomize.Base, request.Path)
+		if err != nil {
+			level.Warn(d.Logger).Log("event", "load file failed", "err", err)
+			c.AbortWithError(500, err)
+			return
+		}
+	}
+
 	c.JSON(200, Response{
 		Base:        string(base),
-		Overlay:     savedState.CurrentKustomizeOverlay(request.Path),
+		Overlay:     overlay,
+		IsPatch:     isPatch,
 		IsSupported: isSupported(base),
 	})
 }

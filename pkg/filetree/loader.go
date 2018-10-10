@@ -51,7 +51,7 @@ type aferoLoader struct {
 	resources    map[string]string
 }
 
-func (a *aferoLoader) loadShipPatches() error {
+func (a *aferoLoader) loadShipOverlay() error {
 	currentState, err := a.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "failed to load state")
@@ -64,27 +64,12 @@ func (a *aferoLoader) loadShipPatches() error {
 
 	shipOverlay := kustomize.Ship()
 	a.patches = shipOverlay.Patches
-	return nil
-}
-
-func (a *aferoLoader) loadShipResources() error {
-	currentState, err := a.StateManager.TryLoad()
-	if err != nil {
-		return errors.Wrap(err, "failed to load state")
-	}
-
-	kustomize := currentState.CurrentKustomize()
-	if kustomize == nil {
-		kustomize = &state.Kustomize{}
-	}
-
-	shipOverlay := kustomize.Ship()
 	a.resources = shipOverlay.Resources
 	return nil
 }
 
 func (a *aferoLoader) LoadTree(root string) (*Node, error) {
-	if err := a.loadShipPatches(); err != nil {
+	if err := a.loadShipOverlay(); err != nil {
 		return nil, errors.Wrapf(err, "load overlays")
 	}
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/replicatedhq/ship/pkg/patch"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/util"
 
 	dockercli "github.com/docker/docker/client"
@@ -100,6 +101,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		web.NewStep,
 
 		github.NewRenderer,
+		githubclient.NewGithubClient,
 
 		terraform.NewRenderer,
 

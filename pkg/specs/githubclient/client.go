@@ -19,6 +19,12 @@ import (
 	"github.com/spf13/afero"
 )
 
+type GitHubReleaseNotesFetcher interface {
+	ResolveReleaseNotes(ctx context.Context, upstream string) (string, error)
+}
+
+var _ GitHubReleaseNotesFetcher = &GithubClient{}
+
 type GithubClient struct {
 	logger log.Logger
 	client *github.Client
