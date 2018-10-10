@@ -17,14 +17,15 @@ import (
 	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
-func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
-	type Request struct {
-		Path     string `json:"path"`
-		Contents string `json:"contents"`
-	}
+type SaveOverlayRequest struct {
+	Path       string `json:"path"`
+	Contents   string `json:"contents"`
+	IsResource bool   `json:"isResource"`
+}
 
-	var request Request
+func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
+
+	var request SaveOverlayRequest
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -47,12 +48,25 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 		return
 	}
 
-	debug.Log("event", "request.bind")
-	currentState, err := d.StateManager.TryLoad()
-	if err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+	if err := d.kustomizeDoSaveOverlay(request); err != nil {
+		level.Error(d.Logger).Log("event", "saveOverlay.fail", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
+	}
+
+	level.Debug(d.Logger).Log("event", "stepProgress.storeStatus")
+	d.StepProgress.Delete(step.Shared().ID)
+
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) kustomizeDoSaveOverlay(request SaveOverlayRequest) error {
+	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
+
+	debug.Log("event", "state.load")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
 	}
 
 	debug.Log("event", "current.load")
@@ -62,35 +76,32 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 	}
 
 	if kustomize.Overlays == nil {
-		kustomize.Overlays = make(map[string]state.Overlay)
+		kustomize.Overlays = map[string]state.Overlay{}
 	}
 
-	if _, ok := kustomize.Overlays["ship"]; !ok {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
+	overlay := kustomize.Ship()
+
+	if request.IsResource {
+		if overlay.Resources == nil {
+			overlay.Resources = map[string]string{}
 		}
-	}
-
-	if kustomize.Overlays["ship"].Patches == nil {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
+		overlay.Resources[request.Path] = request.Contents
+	} else {
+		if overlay.Patches == nil {
+			overlay.Patches = map[string]string{}
 		}
+		overlay.Patches[request.Path] = request.Contents
 	}
 
-	kustomize.Overlays["ship"].Patches[request.Path] = request.Contents
+	kustomize.Overlays["ship"] = overlay
 
 	debug.Log("event", "newstate.save")
 	err = d.StateManager.SaveKustomize(kustomize)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
-		return
+		return errors.Wrap(err, "save new state")
 	}
 
-	debug.Log("event", "stepProgress.storeStatus")
-	d.StepProgress.Delete(step.Shared().ID)
-
-	c.JSON(200, map[string]string{"status": "success"})
+	return nil
 }
 
 // TODO(Robert): duped logic in filetree

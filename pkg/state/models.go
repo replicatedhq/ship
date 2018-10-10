@@ -103,19 +103,26 @@ type Overlay struct {
 	KustomizationYAML string            `json:"kustomization_yaml,omitempty" yaml:"kustomization_yaml,omitempty" hcl:"kustomization_yaml,omitempty"`
 }
 
+func NewOverlay() Overlay {
+	return Overlay{
+		Patches:   map[string]string{},
+		Resources: map[string]string{},
+	}
+}
+
 type Kustomize struct {
 	Overlays map[string]Overlay `json:"overlays,omitempty" yaml:"overlays,omitempty" hcl:"overlays,omitempty"`
 }
 
 func (k *Kustomize) Ship() Overlay {
 	if k.Overlays == nil {
-		return Overlay{}
+		return NewOverlay()
 	}
 	if ship, ok := k.Overlays["ship"]; ok {
 		return ship
 	}
 
-	return Overlay{}
+	return NewOverlay()
 }
 
 func (v VersionedState) CurrentKustomize() *Kustomize {
