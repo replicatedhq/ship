@@ -133,7 +133,7 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	type Response struct {
 		Base        string `json:"base"`
 		IsSupported bool   `json:"isSupported"`
-		IsPatch     bool   `json:"isPatch"`
+		IsResource  bool   `json:"isResource"`
 		Overlay     string `json:"overlay"`
 	}
 
@@ -149,10 +149,10 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 		return
 	}
 
-	overlay, isPatch := savedState.CurrentKustomizeOverlay(request.Path)
+	overlay, isResource := savedState.CurrentKustomizeOverlay(request.Path)
 
 	var base []byte
-	if isPatch {
+	if !isResource {
 		base, err = d.TreeLoader.LoadFile(step.Kustomize.Base, request.Path)
 		if err != nil {
 			level.Warn(d.Logger).Log("event", "load file failed", "err", err)
@@ -164,7 +164,7 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	c.JSON(200, Response{
 		Base:        string(base),
 		Overlay:     overlay,
-		IsPatch:     isPatch,
+		IsResource:  isResource,
 		IsSupported: isSupported(base),
 	})
 }

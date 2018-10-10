@@ -125,7 +125,7 @@ func (v VersionedState) CurrentKustomize() *Kustomize {
 	return nil
 }
 
-func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents string, isPatch bool) {
+func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents string, isResource bool) {
 	if v.V1.Kustomize == nil {
 		return
 	}
@@ -142,14 +142,14 @@ func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents strin
 	if overlay.Patches != nil {
 		file, ok := overlay.Patches[filename]
 		if ok {
-			return file, true
+			return file, false
 		}
 	}
 
 	if overlay.Resources != nil {
 		file, ok := overlay.Resources[filename]
 		if ok {
-			return file, false
+			return file, true
 		}
 	}
 	return
