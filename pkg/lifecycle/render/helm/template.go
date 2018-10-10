@@ -359,11 +359,11 @@ func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath s
 
 // validate each file to make sure that it conforms to the yaml spec
 // TODO replace this with an actual validation tool
-func (l *LocalTemplater) validateGeneratedFiles(
+func (f *LocalTemplater) validateGeneratedFiles(
 	fs afero.Afero,
 	dir string,
 ) error {
-	debug := level.Debug(log.With(l.Logger, "method", "validateGeneratedFiles"))
+	debug := level.Debug(log.With(f.Logger, "method", "validateGeneratedFiles"))
 
 	debug.Log("event", "readdir", "folder", dir)
 	files, err := fs.ReadDir(dir)
@@ -375,7 +375,7 @@ func (l *LocalTemplater) validateGeneratedFiles(
 	for _, file := range files {
 		thisPath := filepath.Join(dir, file.Name())
 		if file.IsDir() {
-			err := l.validateGeneratedFiles(fs, thisPath)
+			err := f.validateGeneratedFiles(fs, thisPath)
 			if err != nil {
 				return err
 			}
