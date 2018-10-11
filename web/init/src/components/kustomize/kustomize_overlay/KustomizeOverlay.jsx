@@ -271,7 +271,7 @@ export default class KustomizeOverlay extends React.Component {
                         <div className="flex1 flex-column">
                           <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
                             <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
-                            <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create an overlay for that file.</p>
+                            <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create a patch for that file.</p>
                           </div>
                           { selectedFile !== "" ?
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
@@ -280,7 +280,7 @@ export default class KustomizeOverlay extends React.Component {
                                 <span className="icon clickable u-overlayCreateIcon"></span>
                               </div>
                               }
-                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create overlay</ReactTooltip>
+                              <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create patch</ReactTooltip>
                               <AceEditorHOC
                                 handleGeneratePatch={this.handleGeneratePatch}
                                 fileToView={fileToView}
@@ -300,13 +300,13 @@ export default class KustomizeOverlay extends React.Component {
 
                 <div className={`flex-column flex1 overlays-editor-wrapper ${showOverlay ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
-                    <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Overlay</p>
-                    <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as an overlay to the base YAML. Edit the values that you want overlayed. The current file you're editing will be automatically save when you open a new file.</p>
+                    <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Patch</p>
+                    <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as a patch to the base YAML. Edit the values that you want patched. The current file you're editing will be automatically saved when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
                       {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span>}
-                      <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard overlay</ReactTooltip>
+                      <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard patch</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
                         mode="yaml"
@@ -355,11 +355,11 @@ export default class KustomizeOverlay extends React.Component {
                     <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                     :
                     <div className="flex">
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving overlay"  : "Save overlay"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch"  : "Save patch"}</button>
                       {patch === "" ?
                         <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                         :
-                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlays"  : "Save & continue"}</button>
+                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlay"  : "Save & continue"}</button>
                       }
                     </div>
                   }
@@ -378,13 +378,13 @@ export default class KustomizeOverlay extends React.Component {
           className="Modal DefaultSize"
         >
           <div className="Modal-header">
-            <p>Are you sure you want to discard this overlay?</p>
+            <p>Are you sure you want to discard this patch?</p>
           </div>
           <div className="flex flex-column Modal-body">
             <p className="u-fontSize--large u-fontWeight--normal u-color--dustyGray u-lineHeight--more">It will not be applied to the kustomization.yaml file that is generated for you.</p>
             <div className="flex justifyContent--flexEnd u-marginTop--20">
               <button className="btn secondary u-marginRight--10" onClick={() => this.toggleModal("")}>Cancel</button>
-              <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard overlay</button>
+              <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard patch</button>
             </div>
           </div>
 
