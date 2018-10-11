@@ -60,13 +60,23 @@ type V1 struct {
 	HelmValuesDefaults string                 `json:"helmValuesDefaults,omitempty" yaml:"helmValuesDefaults,omitempty" hcl:"helmValuesDefaults,omitempty"`
 	Kustomize          *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
-	Metadata           map[string]string      `json:"metadata" yaml:"metadata" hcl:"metadata"`
+	Metadata           *Metadata              `json:"metadata" yaml:"metadata" hcl:"metadata"`
 	//deprecated in favor of upstream
 	ChartURL     string    `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
 	ChartRepoURL string    `json:"ChartRepoURL,omitempty" yaml:"ChartRepoURL,omitempty" hcl:"ChartRepoURL,omitempty"`
 	ChartVersion string    `json:"ChartVersion,omitempty" yaml:"ChartVersion,omitempty" hcl:"ChartVersion,omitempty"`
 	ContentSHA   string    `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
 	Lifecycle    *Lifeycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+}
+
+type Metadata struct {
+	ApplicationType string `json:"applicationType" yaml:"applicationType" hcl:"applicationType"`
+	Icon            string `json:"icon,omitempty" yaml:"icon,omitempty" hcl:"icon,omitempty"`
+	Name            string `json:"name,omitempty" yaml:"name,omitempty" hcl:"name,omitempty"`
+	ReleaseNotes    string `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes"`
+	Version         string `json:"version" yaml:"version" hcl:"version"`
+	CustomerID      string `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
+	InstallationID  string `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}
