@@ -483,6 +483,30 @@ func Test_validateGeneratedFiles(t *testing.T) {
 			},
 		},
 		{
+			name: "relevant_value_files",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  value: {}`,
+				},
+				{
+					path:     "test/missingValue.yaml",
+					contents: `  value:`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path:     "test/something.yaml",
+					contents: `  value: {}`,
+				},
+				{
+					path:     "test/missingValue.yaml",
+					contents: `  value: ""`,
+				},
+			},
+		},
+		{
 			name: "blank lines",
 			dir:  "test",
 			inputFiles: []file{

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -59,8 +60,10 @@ func NewTemplater(
 }
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+
 var argsLineRegex = regexp.MustCompile(`^\s*args:\s*$`)
 var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
+var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
 // LocalTemplater implements Templater by using the Commands interface
 // from pkg/helm and creating the chart in place
@@ -380,55 +383,77 @@ func (f *LocalTemplater) validateGeneratedFiles(
 				return err
 			}
 		} else {
-			contents, err := fs.ReadFile(thisPath)
+			err := fixFile(fs, thisPath, file.Mode())
 			if err != nil {
-				return errors.Wrapf(err, "failed to read file %s", thisPath)
-			}
-
-			scanner := bufio.NewScanner(bytes.NewReader(contents))
-
-			lines := []string{}
-			for scanner.Scan() {
-				lines = append(lines, scanner.Text())
-			}
-			if err := scanner.Err(); err != nil {
-				return errors.Wrapf(err, "failed to read lines from file %s", thisPath)
-			}
-
-			for idx, line := range lines {
-				if argsLineRegex.MatchString(line) {
-					// line has `args:` and nothing else but whitespace
-					if !checkIsChild(line, nextLine(idx, lines)) {
-						// next line is not a child, so args has no contents, add an empty array
-						lines[idx] = line + " []"
-					}
-				} else if envLineRegex.MatchString(line) {
-					// line has `env:` and nothing else but whitespace
-					if !checkIsChild(line, nextLine(idx, lines)) {
-						// next line is not a child, so env has no contents, add an empty object
-						lines[idx] = line + " {}"
-					}
-				}
-			}
-
-			var outputFile bytes.Buffer
-			for idx, line := range lines {
-				if idx+1 != len(lines) || contents[len(contents)-1] == '\n' {
-					fmt.Fprintln(&outputFile, line)
-				} else {
-					// avoid adding trailing newlines
-					fmt.Fprintf(&outputFile, line)
-				}
-			}
-
-			err = fs.WriteFile(thisPath, outputFile.Bytes(), file.Mode())
-			if err != nil {
-				return errors.Wrapf(err, "failed to write file %s after fixup", thisPath)
+				return err
 			}
 		}
 	}
 
 	return nil
+}
+
+func fixFile(fs afero.Afero, thisPath string, mode os.FileMode) error {
+	contents, err := fs.ReadFile(thisPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read file %s", thisPath)
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(contents))
+
+	lines := []string{}
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return errors.Wrapf(err, "failed to read lines from file %s", thisPath)
+	}
+
+	lines = fixLines(lines)
+
+	var outputFile bytes.Buffer
+	for idx, line := range lines {
+		if idx+1 != len(lines) || contents[len(contents)-1] == '\n' {
+			fmt.Fprintln(&outputFile, line)
+		} else {
+			// avoid adding trailing newlines
+			fmt.Fprintf(&outputFile, line)
+		}
+	}
+
+	err = fs.WriteFile(thisPath, outputFile.Bytes(), mode)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write file %s after fixup", thisPath)
+	}
+
+	return nil
+}
+
+// applies all fixes to all lines provided
+func fixLines(lines []string) []string {
+	for idx, line := range lines {
+		if argsLineRegex.MatchString(line) {
+			// line has `args:` and nothing else but whitespace
+			if !checkIsChild(line, nextLine(idx, lines)) {
+				// next line is not a child, so args has no contents, add an empty array
+				lines[idx] = line + " []"
+			}
+		} else if envLineRegex.MatchString(line) {
+			// line has `env:` and nothing else but whitespace
+			if !checkIsChild(line, nextLine(idx, lines)) {
+				// next line is not a child, so env has no contents, add an empty object
+				lines[idx] = line + " {}"
+			}
+		} else if valueLineRegex.MatchString(line) {
+			// line has `value:` and nothing else but whitespace
+			if !checkIsChild(line, nextLine(idx, lines)) {
+				// next line is not a child, so value has no contents, add an empty string
+				lines[idx] = line + ` ""`
+			}
+		}
+	}
+
+	return lines
 }
 
 // returns true if the second line is a child of the first
