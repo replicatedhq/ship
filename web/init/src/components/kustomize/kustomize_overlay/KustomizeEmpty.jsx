@@ -20,7 +20,7 @@ export default class KustomizeEmpty extends React.Component {
                   <div className="feature-block">
                     <div className="icon u-selectBaseIcon"></div>
                     <p className="title">Select a base file</p>
-                    <p>Start by select a base file from the tree to the left. Files that typically use patches are service.yaml and deployment.yaml</p>
+                    <p>Start by selecting a base file from the tree to the left. Files that typically use patches are services and deployments.</p>
                   </div>
                 </div>
               </div>
