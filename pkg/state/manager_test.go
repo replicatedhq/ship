@@ -429,12 +429,12 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 			},
 			expected: VersionedState{
 				V1: &V1{
-					Metadata: map[string]string{
-						"applicationType": "mock application type",
-						"releaseNotes":    "",
-						"version":         "test version",
-						"icon":            "test icon",
-						"name":            "test name",
+					Metadata: &Metadata{
+						ApplicationType: "mock application type",
+						ReleaseNotes:    "",
+						Version:         "test version",
+						Icon:            "test icon",
+						Name:            "test name",
 					},
 				},
 			},

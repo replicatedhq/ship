@@ -6,7 +6,6 @@
     "upstream": "https://github.com/replicatedhq/test-chart-root-dir/tree/507feecae588c958ebe82bcf701b8be63f34ac9b/",
     "metadata": {
       "applicationType": "helm",
-      "icon": "",
       "name": "values-update",
       "releaseNotes": "test chart",
       "version": "0.1.0"
