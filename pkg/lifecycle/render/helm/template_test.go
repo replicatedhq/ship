@@ -551,7 +551,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 			dir:  "test",
 			inputFiles: []file{
 				{
-					path: "test/blank_line_env.yaml",
+					path: "test/comment_line_env.yaml",
 					contents: `
   env:
     #item
@@ -562,7 +562,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 `,
 				},
 				{
-					path: "test/blank_line_args.yaml",
+					path: "test/comment_line_args.yaml",
 					contents: `
   args:
     #item
@@ -575,7 +575,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 			},
 			outputFiles: []file{
 				{
-					path: "test/blank_line_env.yaml",
+					path: "test/comment_line_env.yaml",
 					contents: `
   env: {}
     #item
@@ -586,7 +586,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 `,
 				},
 				{
-					path: "test/blank_line_args.yaml",
+					path: "test/comment_line_args.yaml",
 					contents: `
   args: []
     #item
@@ -594,6 +594,68 @@ func Test_validateGeneratedFiles(t *testing.T) {
   args:
   #item
     item2
+`,
+				},
+			},
+		},
+		{
+			name: "null values",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path: "test/null_values.yaml",
+					contents: `
+  value: null
+    #item
+
+  value:
+    null
+
+  value:
+    value: null
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path: "test/null_values.yaml",
+					contents: `
+  value: ""
+    #item
+
+  value:
+    null
+
+  value:
+    value: ""
+`,
+				},
+			},
+		},
+		{
+			name: "everything",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path: "test/everything.yaml",
+					contents: `
+  args:
+  env:
+  volumes:
+  value:
+  value: null
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path: "test/everything.yaml",
+					contents: `
+  args: []
+  env: {}
+  volumes: []
+  value: ""
+  value: ""
 `,
 				},
 			},

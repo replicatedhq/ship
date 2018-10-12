@@ -65,6 +65,8 @@ var arrayLineRegex = regexp.MustCompile(`^\s*(args|volumes):\s*$`)
 var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
 var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
+var nullValueLineRegex = regexp.MustCompile(`^(\s*value:)\s*null\s*$`)
+
 // LocalTemplater implements Templater by using the Commands interface
 // from pkg/helm and creating the chart in place
 type LocalTemplater struct {
@@ -449,6 +451,13 @@ func fixLines(lines []string) []string {
 			if !checkIsChild(line, nextLine(idx, lines)) {
 				// next line is not a child, so value has no contents, add an empty string
 				lines[idx] = line + ` ""`
+			}
+		} else if nullValueLineRegex.MatchString(line) {
+			// line has `value: null`
+			matches := nullValueLineRegex.FindStringSubmatch(line)
+
+			if len(matches) >= 2 && matches[0] == line {
+				lines[idx] = matches[1] + ` ""`
 			}
 		}
 	}
