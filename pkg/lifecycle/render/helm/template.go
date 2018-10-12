@@ -61,7 +61,7 @@ func NewTemplater(
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 
-var argsLineRegex = regexp.MustCompile(`^\s*args:\s*$`)
+var arrayLineRegex = regexp.MustCompile(`^\s*(args|volumes):\s*$`)
 var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
 var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
@@ -432,10 +432,10 @@ func fixFile(fs afero.Afero, thisPath string, mode os.FileMode) error {
 // applies all fixes to all lines provided
 func fixLines(lines []string) []string {
 	for idx, line := range lines {
-		if argsLineRegex.MatchString(line) {
-			// line has `args:` and nothing else but whitespace
+		if arrayLineRegex.MatchString(line) {
+			// line has `key:` and nothing else but whitespace
 			if !checkIsChild(line, nextLine(idx, lines)) {
-				// next line is not a child, so args has no contents, add an empty array
+				// next line is not a child, so this key has no contents, add an empty array
 				lines[idx] = line + " []"
 			}
 		} else if envLineRegex.MatchString(line) {
