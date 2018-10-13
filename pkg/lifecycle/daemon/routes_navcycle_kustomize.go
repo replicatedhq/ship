@@ -298,57 +298,81 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		})
 	}
 }
-
-func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deletePatch"))
+func (d *NavcycleRoutes) deleteResource(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
 	pathQueryParam := c.Query("path")
 	if pathQueryParam == "" {
 		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
 	}
 
-	debug.Log("event")
+	debug.Log("event", "resource.delete", "path", pathQueryParam)
+	err := d.deleteFile(pathQueryParam, func(overlay state.Overlay) map[string]string {
+		return overlay.Resources
+	})
+
+	if err != nil {
+		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
+		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+	}
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	debug.Log("event", "resource.delete", "path", pathQueryParam)
+	err := d.deleteFile(pathQueryParam, func(overlay state.Overlay) map[string]string {
+		return overlay.Patches
+	})
+
+	if err != nil {
+		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
+		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+	}
+
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) deleteFile(pathQueryParam string, filesMap func(overlay state.Overlay) map[string]string) error {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteFile"))
+	debug.Log("event", "state.load")
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {
-		level.Error(d.Logger).Log("event", "try load state failed", "err", err)
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+		return errors.Wrap(err, "load state")
 	}
 
 	kustomize := currentState.CurrentKustomize()
 	if kustomize == nil {
-		level.Error(d.Logger).Log("event", "empty kustomize")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
+		return errors.New("current kustomize empty")
 	}
 
 	shipOverlay := kustomize.Ship()
-	if len(shipOverlay.Patches) == 0 {
-		level.Error(d.Logger).Log("event", "empty ship overlay")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
+	files := filesMap(shipOverlay)
+
+	if len(files) == 0 {
+		return errors.New("no patches to delete")
 	}
 
-	_, ok := shipOverlay.Patches[pathQueryParam]
+	_, ok := files[pathQueryParam]
 	if !ok {
-		level.Error(d.Logger).Log("event", "patch does not exist")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
+		return errors.New("not found: file not in map")
 	}
 
 	debug.Log("event", "deletePatch", "path", pathQueryParam)
-	delete(shipOverlay.Patches, pathQueryParam)
+	delete(files, pathQueryParam)
 
 	if shipOverlay.Patches == nil {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
-		}
+		kustomize.Overlays["ship"] = state.NewOverlay()
 	}
 
 	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
-		level.Error(d.Logger).Log("event", "patch does not exist")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
+		return errors.Wrap(err, "save updated kustomize")
 	}
-
-	c.JSON(200, map[string]string{"status": "success"})
+	return nil
 }
