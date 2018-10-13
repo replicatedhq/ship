@@ -132,6 +132,22 @@
             - name: foo.txt
               path: /k/foo.txt
 
+- name: has a resource
+  resources:
+    /foo.txt: bar
+  expect:
+    name: /
+    path: /
+    children:
+    - name: /
+      path: /
+      children: []
+    - name: resources
+      path: /
+      children:
+      - name: foo.txt
+        path: /foo.txt
+
 - name: has an overlay
   touch:
     - foo.txt
@@ -248,5 +264,11 @@
         children:
         - name: foo.txt
           path: /bar/foo.txt
+    - name: resources
+      path: /
+      children:
+      - name: bar
+        path: /bar
+        children:
         - name: spam.txt
           path: /bar/spam.txt
