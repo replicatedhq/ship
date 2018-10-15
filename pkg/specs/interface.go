@@ -56,11 +56,9 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		defaultRelease := DefaultHelmRelease(constants.HelmChartPath, renderedDest)
 		return r.resolveRelease(
 			ctx,
-			applicationType,
-			upstream,
-			constants.HelmChartPath,
-			metadata,
 			&defaultRelease,
+			metadata,
+			constants.HelmChartPath,
 		)
 	case "k8s":
 		if err := r.prepareDestPath(localPath, constants.KustomizeBasePath); err != nil {
@@ -75,11 +73,9 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
 		return r.resolveRelease(
 			ctx,
-			applicationType,
-			upstream,
-			constants.KustomizeBasePath,
-			metadata,
 			&defaultRelease,
+			metadata,
+			constants.KustomizeBasePath,
 		)
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -165,11 +161,9 @@ func (r *Resolver) prepareDestPath(localPath, destPath string) error {
 
 func (r *Resolver) resolveRelease(
 	ctx context.Context,
-	applicationType,
-	upstream,
-	destPath string,
-	metadata *api.ShipAppMetadata,
 	defaultSpec *api.Spec,
+	metadata *api.ShipAppMetadata,
+	destPath string,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveRelease")
 
