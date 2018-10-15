@@ -42,29 +42,14 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	}
 
 	switch applicationType {
-
-	case "helm":
-		defaultRelease := DefaultHelmRelease(constants.HelmChartPath)
-		return r.resolveRelease(
-			ctx,
-			upstream,
-			localPath,
-			constants.HelmChartPath,
-			&defaultRelease,
-			applicationType,
-		)
-
-	case "k8s":
-		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
+	case "helm", "k8s":
 		return r.resolveRelease(
 			ctx,
 			upstream,
 			localPath,
 			constants.KustomizeBasePath,
-			&defaultRelease,
 			applicationType,
 		)
-
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
 		if err != nil {
@@ -130,7 +115,6 @@ func (r *Resolver) resolveRelease(
 	upstream,
 	localPath string,
 	destPath string,
-	defaultSpec *api.Spec,
 	applicationType string,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
@@ -163,9 +147,16 @@ func (r *Resolver) resolveRelease(
 	}
 
 	if spec == nil {
-		debug.Log("event", "no helm release")
+		debug.Log("event", "no ship.yaml")
 		r.ui.Info("ship.yaml not found in upstream, generating default lifecycle for application ...")
-		spec = defaultSpec
+
+		var defaultSpec api.Spec
+		if applicationType == "helm" {
+			defaultSpec = DefaultHelmRelease(constants.HelmChartPath, fmt.Sprintf("%s.yaml", metadata.Name))
+		} else {
+			defaultSpec = DefaultRawRelease(constants.KustomizeBasePath)
+		}
+		spec = &defaultSpec
 	}
 
 	return &api.Release{
