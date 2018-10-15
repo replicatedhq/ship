@@ -15,7 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/util"
 )
 
-// A resolver turns a target string into a release.
+// ResolveRelease is a resolver that turns a target string into a release.
 //
 // A "target string" is something like
 //
@@ -42,13 +42,44 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	}
 
 	switch applicationType {
-	case "helm", "k8s":
+	case "helm":
+		if err := r.prepareDestPath(localPath, constants.HelmChartPath); err != nil {
+			return nil, err
+		}
+
+		metadata, err := r.resolveMetadata(ctx, upstream, constants.HelmChartPath, applicationType)
+		if err != nil {
+			return nil, errors.Wrapf(err, "resolve metadata for %s", constants.HelmChartPath)
+		}
+
+		renderedDest := fmt.Sprintf("%s.yaml", metadata.Name)
+		defaultRelease := DefaultHelmRelease(constants.HelmChartPath, renderedDest)
 		return r.resolveRelease(
 			ctx,
-			upstream,
-			localPath,
-			constants.KustomizeBasePath,
 			applicationType,
+			upstream,
+			constants.HelmChartPath,
+			metadata,
+			&defaultRelease,
+		)
+	case "k8s":
+		if err := r.prepareDestPath(localPath, constants.KustomizeBasePath); err != nil {
+			return nil, err
+		}
+
+		metadata, err := r.resolveMetadata(ctx, upstream, constants.KustomizeBasePath, applicationType)
+		if err != nil {
+			return nil, errors.Wrapf(err, "resolve metadata for %s", constants.KustomizeBasePath)
+		}
+
+		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
+		return r.resolveRelease(
+			ctx,
+			applicationType,
+			upstream,
+			constants.KustomizeBasePath,
+			metadata,
+			&defaultRelease,
 		)
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -73,8 +104,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	}
 	debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
 
-	// this switch block is kinda duped from above, and we ought to centralize parts of this,
-	// but in this case we only want to read the metadata without persisting anything to state,
+	// In this switch we only want to read the metadata without persisting anything to state,
 	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
 	switch appType {
 
@@ -110,35 +140,38 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	return "", errors.Errorf("Could not determine application type of upstream %s", upstream)
 }
 
-func (r *Resolver) resolveRelease(
-	ctx context.Context,
-	upstream,
-	localPath string,
-	destPath string,
-	applicationType string,
-) (*api.Release, error) {
-	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
+func (r *Resolver) prepareDestPath(localPath, destPath string) error {
+	debug := log.With(level.Debug(r.Logger), "method", "prepareDestPath")
 
 	if r.Viper.GetBool("rm-asset-dest") {
 		err := r.FS.RemoveAll(destPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "remove asset dest %s", destPath)
+			return errors.Wrapf(err, "remove asset dest %s", destPath)
 		}
 	}
 
 	err := util.BailIfPresent(r.FS, destPath, debug)
 	if err != nil {
-		return nil, errors.Wrapf(err, "backup %s", destPath)
-	}
-	err = r.FS.Rename(localPath, destPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
+		return errors.Wrapf(err, "backup %s", destPath)
 	}
 
-	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath, applicationType)
+	err = r.FS.Rename(localPath, destPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
+		return errors.Wrapf(err, "copy %s to %s", localPath, destPath)
 	}
+
+	return nil
+}
+
+func (r *Resolver) resolveRelease(
+	ctx context.Context,
+	applicationType,
+	upstream,
+	destPath string,
+	metadata *api.ShipAppMetadata,
+	defaultSpec *api.Spec,
+) (*api.Release, error) {
+	debug := log.With(level.Debug(r.Logger), "method", "resolveRelease")
 
 	debug.Log("event", "check upstream for ship.yaml")
 	spec, err := r.maybeGetShipYAML(ctx, destPath)
@@ -149,14 +182,7 @@ func (r *Resolver) resolveRelease(
 	if spec == nil {
 		debug.Log("event", "no ship.yaml")
 		r.ui.Info("ship.yaml not found in upstream, generating default lifecycle for application ...")
-
-		var defaultSpec api.Spec
-		if applicationType == "helm" {
-			defaultSpec = DefaultHelmRelease(constants.HelmChartPath, fmt.Sprintf("%s.yaml", metadata.Name))
-		} else {
-			defaultSpec = DefaultRawRelease(constants.KustomizeBasePath)
-		}
-		spec = &defaultSpec
+		spec = defaultSpec
 	}
 
 	return &api.Release{
