@@ -339,7 +339,7 @@ func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
 	c.JSON(200, map[string]string{"status": "success"})
 }
 
-func (d *NavcycleRoutes) deleteFile(pathQueryParam string, filesMap func(overlay state.Overlay) map[string]string) error {
+func (d *NavcycleRoutes) deleteFile(pathQueryParam string, getFiles func(overlay state.Overlay) map[string]string) error {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteFile"))
 	debug.Log("event", "state.load")
 	currentState, err := d.StateManager.TryLoad()
@@ -353,7 +353,7 @@ func (d *NavcycleRoutes) deleteFile(pathQueryParam string, filesMap func(overlay
 	}
 
 	shipOverlay := kustomize.Ship()
-	files := filesMap(shipOverlay)
+	files := getFiles(shipOverlay)
 
 	if len(files) == 0 {
 		return errors.New("no patches to delete")

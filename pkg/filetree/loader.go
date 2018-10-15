@@ -98,6 +98,10 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 	}
 
 	populatedBase, err := a.loadTree(fs, rootNode, files)
+	if err != nil {
+		return nil, errors.Wrap(err, "load tree")
+	}
+
 	populatedPatches := a.loadOverlayTree(patchesRootNode, a.patches)
 	populatedResources := a.loadOverlayTree(resourceRootNode, a.resources)
 
@@ -115,7 +119,7 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 		Path:     "/",
 		Name:     "/",
 		Children: children,
-	}, errors.Wrap(err, "load tree")
+	}, nil
 }
 
 // todo move this to a new struct or something
