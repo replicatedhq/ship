@@ -66,7 +66,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 						err = mockFs.WriteFile(path.Join("fake-tmp", "Chart.yaml"), []byte(`
 ---
 version: 0.1.0
-name: i know what the x5 is
+name: x5
 icon: https://kfbr.392/x5.png
 `), 0666)
 						req.NoError(err)
@@ -80,7 +80,7 @@ icon: https://kfbr.392/x5.png
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeShipMetadata(api.ShipAppMetadata{
 					Version:      "0.1.0",
-					Name:         "i know what the x5 is",
+					Name:         "x5",
 					Icon:         "https://kfbr.392/x5.png",
 					Readme:       "its the readme",
 					ReleaseNotes: "some release notes",
@@ -92,14 +92,14 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: DefaultHelmRelease(".ship/tmp/chart"),
+				Spec: DefaultHelmRelease(".ship/tmp/chart", "x5.yaml"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:      "0.1.0",
 						URL:          "github.com/helm/charts/stable/x5",
 						Readme:       "its the readme",
 						Icon:         "https://kfbr.392/x5.png",
-						Name:         "i know what the x5 is",
+						Name:         "x5",
 						ContentSHA:   "abcdef1234567890",
 						ReleaseNotes: "some release notes",
 					},

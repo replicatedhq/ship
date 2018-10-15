@@ -18,7 +18,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func DefaultHelmRelease(chartPath string) api.Spec {
+const DefaultRenderedDest = "rendered.yaml"
+
+func DefaultHelmRelease(chartPath string, renderedDest string) api.Spec {
 	return api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
@@ -79,7 +81,7 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 							ID:       "kustomize",
 							Requires: []string{"render"},
 						},
-						Dest: "rendered.yaml",
+						Dest: renderedDest,
 					},
 				},
 				{
@@ -88,13 +90,8 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 							ID:       "outro",
 							Requires: []string{"kustomize"},
 						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f rendered.yaml
-
-to deploy the overlaid assets to your cluster.
-`},
+						Contents: getDefaultOutroMessage(renderedDest),
+					},
 				},
 			},
 		},
@@ -126,7 +123,7 @@ func DefaultRawRelease(basePath string) api.Spec {
 							ID:          "kustomize",
 							Invalidates: []string{"diff"},
 						},
-						Dest: "rendered.yaml",
+						Dest: DefaultRenderedDest,
 					},
 				},
 				{
@@ -134,17 +131,25 @@ func DefaultRawRelease(basePath string) api.Spec {
 						StepShared: api.StepShared{
 							ID: "outro",
 						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f rendered.yaml
-
-to deploy the overlaid assets to your cluster.
-						`},
+						Contents: getDefaultOutroMessage(DefaultRenderedDest),
+					},
 				},
 			},
 		},
 	}
+}
+
+func getDefaultOutroMessage(renderedPath string) string {
+	return fmt.Sprintf(
+		`
+Assets are ready to deploy. You can run
+
+    kubectl apply -f %s
+
+to deploy the overlaid assets to your cluster.
+`,
+		renderedPath,
+	)
 }
 
 func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string, applicationType string) (*api.ShipAppMetadata, error) {
