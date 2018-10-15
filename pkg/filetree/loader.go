@@ -19,7 +19,8 @@ import (
 
 const (
 	CustomResourceDefinition = "CustomResourceDefinition"
-	OverlaysFolder           = "overlays"
+	PatchesFolder            = "overlays"
+	ResourcesFolder          = "resources"
 )
 
 // A Loader returns a struct representation
@@ -85,25 +86,40 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 		Name:     "/",
 		Children: []Node{},
 	}
-	overlayRootNode := Node{
+	patchesRootNode := Node{
 		Path:     "/",
-		Name:     OverlaysFolder,
+		Name:     PatchesFolder,
+		Children: []Node{},
+	}
+	resourceRootNode := Node{
+		Path:     "/",
+		Name:     ResourcesFolder,
 		Children: []Node{},
 	}
 
-	populatedKustomization := a.loadOverlayTree(overlayRootNode)
-	populated, err := a.loadTree(fs, rootNode, files)
-	children := []Node{populated}
+	populatedBase, err := a.loadTree(fs, rootNode, files)
+	if err != nil {
+		return nil, errors.Wrap(err, "load tree")
+	}
 
-	if len(populatedKustomization.Children) != 0 {
-		children = append(children, populatedKustomization)
+	populatedPatches := a.loadOverlayTree(patchesRootNode, a.patches)
+	populatedResources := a.loadOverlayTree(resourceRootNode, a.resources)
+
+	children := []Node{populatedBase}
+
+	if len(populatedPatches.Children) != 0 {
+		children = append(children, populatedPatches)
+	}
+
+	if len(populatedResources.Children) != 0 {
+		children = append(children, populatedResources)
 	}
 
 	return &Node{
 		Path:     "/",
 		Name:     "/",
 		Children: children,
-	}, errors.Wrap(err, "load tree")
+	}, nil
 }
 
 // todo move this to a new struct or something
@@ -201,14 +217,10 @@ func (n Node) withChild(child Node) Node {
 	}
 }
 
-func (a *aferoLoader) loadOverlayTree(kustomizationNode Node) Node {
+func (a *aferoLoader) loadOverlayTree(kustomizationNode Node, files map[string]string) Node {
 	filledTree := &kustomizationNode
-	for patchPath := range a.patches {
+	for patchPath := range files {
 		splitPatchPath := strings.Split(patchPath, "/")[1:]
-		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
-	}
-	for resourcePath := range a.resources {
-		splitPatchPath := strings.Split(resourcePath, "/")[1:]
 		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
 	}
 	return *filledTree

@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"path"
 	"testing"
@@ -74,7 +75,7 @@ func TestAferoLoader(t *testing.T) {
 
 			testResources := make(map[string]string)
 			for _, resource := range test.Resources {
-				testPatches[resource.Key.(string)] = resource.Value.(string)
+				testResources[resource.Key.(string)] = resource.Value.(string)
 			}
 
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{
@@ -97,8 +98,11 @@ func TestAferoLoader(t *testing.T) {
 				req.Regexp(test.ExpectErr, err.Error())
 				return
 			}
+			eq := EqualTrees(*tree, *test.Expect)
 
-			req.True(EqualTrees(*tree, *test.Expect))
+			expectTree, err := json.Marshal(test.Expect)
+			actualTree, err := json.Marshal(tree)
+			req.True(eq, "%s\n%s", string(expectTree), string(actualTree))
 		})
 	}
 }
