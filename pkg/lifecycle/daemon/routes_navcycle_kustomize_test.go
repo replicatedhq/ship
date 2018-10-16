@@ -167,3 +167,125 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 		})
 	}
 }
+
+type kustomizeDeleteFileTestCase struct {
+	Name             string
+	InState          state.V1
+	DeleteFileParams deleteFileParams
+	ExpectState      state.Kustomize
+}
+
+type deleteFileParams struct {
+	pathQueryParam string
+	getFiles       func(overlay state.Overlay) map[string]string
+}
+
+func TestV2KustomizeDeleteFile(t *testing.T) {
+	tests := []kustomizeDeleteFileTestCase{
+		{
+			Name: "delete patch",
+			DeleteFileParams: deleteFileParams{
+				pathQueryParam: "deployment.yaml",
+				getFiles: func(overlay state.Overlay) map[string]string {
+					return overlay.Patches
+				},
+			},
+			InState: state.V1{
+				Kustomize: &state.Kustomize{
+					Overlays: map[string]state.Overlay{
+						"ship": {
+							Patches: map[string]string{
+								"deployment.yaml": "foo/bar/baz",
+							},
+							Resources: map[string]string{
+								"resource.yaml": "hi",
+							},
+						},
+					},
+				},
+			},
+			ExpectState: state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": {
+						Patches: map[string]string{},
+						Resources: map[string]string{
+							"resource.yaml": "hi",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "delete resource, nil patches",
+			DeleteFileParams: deleteFileParams{
+				pathQueryParam: "resource.yaml",
+				getFiles: func(overlay state.Overlay) map[string]string {
+					return overlay.Resources
+				},
+			},
+			InState: state.V1{
+				Kustomize: &state.Kustomize{
+					Overlays: map[string]state.Overlay{
+						"ship": {
+							Patches: nil,
+							Resources: map[string]string{
+								"resource.yaml":      "bye",
+								"dont-touch-me.yaml": "forever",
+							},
+						},
+					},
+				},
+			},
+			ExpectState: state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": {
+						Patches: nil,
+						Resources: map[string]string{
+							"dont-touch-me.yaml": "forever",
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
+
+			mc := gomock.NewController(t)
+			fakeState := mockstate.NewMockManager(mc)
+			testLogger := &logger.TestLogger{T: t}
+			progressmap := &daemontypes.ProgressMap{}
+
+			v2 := &NavcycleRoutes{
+				Logger:       testLogger,
+				StateManager: fakeState,
+				StepProgress: progressmap,
+			}
+
+			fakeState.EXPECT().TryLoad().Return(state.VersionedState{
+				V1: &test.InState,
+			}, nil).AnyTimes()
+
+			fakeState.EXPECT().SaveKustomize(&matchers.Is{
+				Test: func(v interface{}) bool {
+					c, ok := v.(*state.Kustomize)
+					if !ok {
+						return false
+					}
+					diff := deep.Equal(&test.ExpectState, c)
+					if len(diff) != 0 {
+						fmt.Print(fmt.Sprintf("Failed diff compare with %s", strings.Join(diff, "\n")))
+						return false
+					}
+					return true
+				},
+				Describe: fmt.Sprintf("expect state equal to %s", test.ExpectState),
+			}).Return(nil).AnyTimes()
+
+			err := v2.deleteFile(test.DeleteFileParams.pathQueryParam, test.DeleteFileParams.getFiles)
+			req.NoError(err)
+			mc.Finish()
+		})
+	}
+}
