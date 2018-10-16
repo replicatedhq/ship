@@ -30,6 +30,12 @@
     position: relative;
   }
 }
+.base-editor-wrapper {
+  display: none;
+  &.visible {
+    display: flex;
+  }
+}
 
 .icon.u-closeOverlayIcon {
   position: absolute;

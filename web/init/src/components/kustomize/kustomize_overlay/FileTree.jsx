@@ -12,7 +12,7 @@ export default class FileTree extends React.Component {
   }
 
   render() {
-    const { files, basePath, isRoot, selectedFile, handleFileSelect, handleDeleteOverlay, isOverlayTree } = this.props;
+    const { files, basePath, isRoot, selectedFile, handleFileSelect, handleDeleteOverlay, isOverlayTree, isResourceTree } = this.props;
     return (
       <ul className={`${isRoot ? "FileTree-wrapper" : "u-marginLeft--normal"}`}>
         {files && files.map((file, i) => ( file.children && file.children.length ?
@@ -30,7 +30,7 @@ export default class FileTree extends React.Component {
           :
           <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""}`} onClick={() => this.handleFileSelect(file.path)}>
             {file.name}
-            {isOverlayTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
+            {isOverlayTree || isResourceTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
           </li>
         ))
         }
