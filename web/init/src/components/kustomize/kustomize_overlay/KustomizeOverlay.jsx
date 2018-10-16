@@ -151,20 +151,25 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   deleteOverlay = async (path) => {
-    await this.props.deleteOverlay(path);
+    const { fileContents, fileTree } = this.state;
+    const resources = find(fileTree, { name: "resources" });
+    const isResource = resources && !!find(resources.children, { path });
+    await this.props.deleteOverlay(path, isResource);
   }
 
   handleKustomizeSave = async (finalize) => {
-    const { selectedFile } = this.state;
+    const { selectedFile, fileContents } = this.state;
+    const { isResource } = fileContents[selectedFile];
     const contents = this.aceEditorOverlay.editor.getValue();
     this.setState({ patch: contents });
 
     const payload = {
       path: selectedFile,
       contents,
+      isResource
     };
 
-    await this.handleApplyPatch();
+    if(!isResource) await this.handleApplyPatch();
     await this.props.saveKustomizeOverlay(payload).catch();
     await this.props.getCurrentStep();
     if (finalize) {
@@ -208,12 +213,14 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay = editor;
   }
 
-  updateModifiedPatch = debounce((patch) => {
+  updateModifiedPatch = debounce((patch, isResource) => {
     // We already circumvent React's lifecycle state system for updates
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
-    this.state.patch = patch; // eslint-disable-line
-    this.handleApplyPatch();
+    if(!isResource) {
+      this.state.patch = patch; // eslint-disable-line
+      this.handleApplyPatch();
+    }
   }, 500);
 
   render() {
@@ -229,6 +236,7 @@ export default class KustomizeOverlay extends React.Component {
     } = this.state;
     const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
+    const showBase = !fileToView.isResource;
 
     return (
       <div className="flex flex1">
@@ -248,6 +256,7 @@ export default class KustomizeOverlay extends React.Component {
                         handleDeleteOverlay={this.toggleModal}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
+                        isResourceTree={tree.name === "resources"}
                       />
                     </div>
                   ))}
@@ -257,7 +266,7 @@ export default class KustomizeOverlay extends React.Component {
             <div className="flex-column flex1 u-height--auto u-overflow--hidden LayoutContent-wrapper u-position--relative">
               <div className="flex flex1 u-position--relative">
 
-                <div className={`flex-column flex1 ${showOverlay && "u-paddingRight--15"}`}>
+                <div className={`flex-column flex1 base-editor-wrapper ${showOverlay && "u-paddingRight--15"} ${showBase ? "visible" : ""}`}>
                   <div className="flex1 flex-column u-position--relative">
                     {fileLoadErr ?
                       <div className="flex-column flex1 alignItems--center justifyContent--center">
@@ -305,7 +314,7 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span>}
+                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span> : null }
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard patch</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
@@ -323,14 +332,14 @@ export default class KustomizeOverlay extends React.Component {
                         setOptions={{
                           scrollPastEnd: false
                         }}
-                        onChange={this.updateModifiedPatch}
+                        onChange={(patch) => this.updateModifiedPatch(patch, fileToView.isResource)}
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {showOverlay ?
+              {showOverlay && showBase ?
                 <div className={`${this.state.viewDiff ? "flex1" : "flex-auto"} flex-column`}>
                   <div className="diff-viewer-wrapper flex-column flex1">
                     <span className="diff-toggle" onClick={this.toggleDiff}>{this.state.viewDiff ? "Hide diff" : "Show diff"}</span>

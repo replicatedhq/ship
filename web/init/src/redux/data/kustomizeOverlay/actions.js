@@ -79,13 +79,14 @@ export function saveKustomizeOverlay(payload) {
   };
 }
 
-export function deleteOverlay(path) {
+export function deleteOverlay(path, isResource) {
   return async (dispatch, getState) => {
     const { apiEndpoint } = getState();
     let response;
+    let url = `${apiEndpoint}/kustomize/patch?path=${path}`;
+    if(isResource) url = `${apiEndpoint}/kustomize/resource?path=${path}`;
     dispatch(loadingData("deleteOverlay", true));
     try {
-      const url = `${apiEndpoint}/kustomize/patch?path=${path}`;
       response = await fetch(url, {
         method: "DELETE",
         headers: {

@@ -29,7 +29,7 @@ const KustomizeOverlay = connect(
     getContentForStep(stepId) { return dispatch(getContentForStep(stepId)); },
     getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
     saveKustomizeOverlay(payload) { return dispatch(saveKustomizeOverlay(payload)); },
-    deleteOverlay(path) { return dispatch(deleteOverlay(path)); },
+    deleteOverlay(path, isResource) { return dispatch(deleteOverlay(path, isResource)); },
     finalizeKustomizeOverlay() { return dispatch(finalizeKustomizeOverlay()); },
     loadingData(key, isLoading) { return dispatch(loadingData(key, isLoading)); },
     generatePatch(payload) { return dispatch(generatePatch(payload)); },
