@@ -151,7 +151,10 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   deleteOverlay = async (path) => {
-    await this.props.deleteOverlay(path);
+    const { fileContents, fileTree } = this.state;
+    const resources = find(fileTree, { name: "resources" });
+    const isResource = resources && !!find(resources.children, { path });
+    await this.props.deleteOverlay(path, isResource);
   }
 
   handleKustomizeSave = async (finalize) => {
@@ -253,6 +256,7 @@ export default class KustomizeOverlay extends React.Component {
                         handleDeleteOverlay={this.toggleModal}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
+                        isResourceTree={tree.name === "resources"}
                       />
                     </div>
                   ))}
@@ -310,7 +314,7 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span>}
+                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span> : null }
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard patch</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
