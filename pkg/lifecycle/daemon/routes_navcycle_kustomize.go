@@ -356,7 +356,7 @@ func (d *NavcycleRoutes) deleteFile(pathQueryParam string, getFiles func(overlay
 	files := getFiles(shipOverlay)
 
 	if len(files) == 0 {
-		return errors.New("no patches to delete")
+		return errors.New("no files to delete")
 	}
 
 	_, ok := files[pathQueryParam]
@@ -367,7 +367,7 @@ func (d *NavcycleRoutes) deleteFile(pathQueryParam string, getFiles func(overlay
 	debug.Log("event", "deletePatch", "path", pathQueryParam)
 	delete(files, pathQueryParam)
 
-	if shipOverlay.Patches == nil {
+	if shipOverlay.Patches == nil && shipOverlay.Resources == nil {
 		kustomize.Overlays["ship"] = state.NewOverlay()
 	}
 
