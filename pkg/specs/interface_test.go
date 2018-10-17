@@ -280,6 +280,7 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 				appTypeInspector: inspector,
 				AppResolver:      resolver,
 				shaSummer:        test.shaSummer,
+				FS:               afero.Afero{Fs: afero.NewMemMapFs()},
 			}
 
 			sha, err := r.ReadContentSHAForWatch(ctx, test.upstream)

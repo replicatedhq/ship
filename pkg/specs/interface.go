@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/url"
-	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -90,7 +89,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
 
 	defer func() {
-		if err := os.RemoveAll(localPath); err != nil {
+		if err := r.FS.RemoveAll(localPath); err != nil {
 			level.Error(r.Logger).Log("event", "remove watch dir", "err", err)
 		}
 	}()
