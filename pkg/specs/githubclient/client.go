@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -125,17 +126,6 @@ func (g *GithubClient) downloadAndExtractFiles(
 		}
 
 		switch header.Typeflag {
-		case tar.TypeDir:
-			dirName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !strings.HasPrefix(dirName, basePath) {
-				continue
-			}
-			basePathFound = true
-
-			dirName = strings.TrimPrefix(dirName, basePath)
-			if err := g.fs.MkdirAll(filepath.Join(filePath, dirName), 0755); err != nil {
-				return errors.Wrapf(err, "extract tar gz, mkdir")
-			}
 		case tar.TypeReg:
 			// need this in a func because defer in a loop was leaking handles
 			err := func() error {
@@ -145,7 +135,13 @@ func (g *GithubClient) downloadAndExtractFiles(
 				}
 				basePathFound = true
 
-				fileName = strings.TrimPrefix(fileName, basePath)
+				if fileName != basePath {
+					fileName = strings.TrimPrefix(fileName, basePath)
+				}
+				dirPath, _ := path.Split(fileName)
+				if err := g.fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
+					return errors.Wrapf(err, "extract tar gz, mkdir")
+				}
 				outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
 				if err != nil {
 					return errors.Wrapf(err, "extract tar gz, create")
@@ -177,7 +173,7 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	branch = ""
 	path = ""
 	if len(splitPath) > 3 {
-		if splitPath[3] == "tree" {
+		if splitPath[3] == "tree" || splitPath[3] == "blob" {
 			branch = splitPath[4]
 			path = strings.Join(splitPath[5:], "/")
 		} else {
