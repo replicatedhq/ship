@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -125,28 +126,21 @@ func (g *GithubClient) downloadAndExtractFiles(
 		}
 
 		switch header.Typeflag {
-		case tar.TypeDir:
-			dirName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !includeDirOrFile(dirName, basePath, false) {
-				continue
-			}
-			basePathFound = true
-
-			dirName = strings.TrimPrefix(dirName, basePath)
-			if err := g.fs.MkdirAll(filepath.Join(filePath, dirName), 0755); err != nil {
-				return errors.Wrapf(err, "extract tar gz, mkdir")
-			}
 		case tar.TypeReg:
 			// need this in a func because defer in a loop was leaking handles
 			err := func() error {
 				fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-				if !includeDirOrFile(fileName, basePath, true) {
+				if !strings.HasPrefix(fileName, basePath) {
 					return nil
 				}
 				basePathFound = true
 
 				if fileName != basePath {
 					fileName = strings.TrimPrefix(fileName, basePath)
+				}
+				dirPath, _ := path.Split(fileName)
+				if err := g.fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
+					return errors.Wrapf(err, "extract tar gz, mkdir")
 				}
 				outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
 				if err != nil {
@@ -165,21 +159,6 @@ func (g *GithubClient) downloadAndExtractFiles(
 	}
 
 	return nil
-}
-
-func includeDirOrFile(currentPath, includePath string, currentIsFile bool) bool {
-	splitInclude := strings.Split(includePath, "/")
-	includeIsFile := strings.Contains(splitInclude[len(splitInclude)-1], ".")
-
-	if includeIsFile {
-		if currentIsFile {
-			return currentPath == includePath
-		}
-
-		return strings.HasPrefix(includePath, currentPath)
-	}
-
-	return strings.HasPrefix(currentPath, includePath)
 }
 
 func decodeGitHubURL(chartPath string) (owner string, repo string, branch string, path string, err error) {
