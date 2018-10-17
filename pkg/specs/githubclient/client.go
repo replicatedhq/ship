@@ -145,7 +145,9 @@ func (g *GithubClient) downloadAndExtractFiles(
 				}
 				basePathFound = true
 
-				fileName = strings.TrimPrefix(fileName, basePath)
+				if fileName != basePath {
+					fileName = strings.TrimPrefix(fileName, basePath)
+				}
 				outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
 				if err != nil {
 					return errors.Wrapf(err, "extract tar gz, create")
@@ -177,7 +179,7 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	branch = ""
 	path = ""
 	if len(splitPath) > 3 {
-		if splitPath[3] == "tree" {
+		if splitPath[3] == "tree" || splitPath[3] == "blob" {
 			branch = splitPath[4]
 			path = strings.Join(splitPath[5:], "/")
 		} else {
