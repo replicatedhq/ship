@@ -3,12 +3,10 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
-
-	"strings"
-
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

@@ -4,10 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/replicatedhq/ship/pkg/patch"
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
-	"github.com/replicatedhq/ship/pkg/util"
-
 	dockercli "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -43,12 +39,15 @@ import (
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/logger"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/ui"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )

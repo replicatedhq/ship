@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"testing"
-
 	"strings"
-
+	"testing"
 	"time"
 
 	"github.com/go-test/deep"

@@ -30,7 +30,6 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
-
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm/helmpath"
 )

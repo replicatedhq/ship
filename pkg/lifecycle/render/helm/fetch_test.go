@@ -1,11 +1,9 @@
 package helm
 
 import (
-	"testing"
-
 	"context"
-
 	"strings"
+	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"

@@ -4,11 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	mockdocker "github.com/replicatedhq/ship/pkg/test-mocks/docker"

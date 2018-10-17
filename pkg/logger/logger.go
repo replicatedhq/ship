@@ -4,7 +4,6 @@ import (
 	"fmt"
 	golog "log"
 	"os"
-
 	"path"
 
 	"github.com/go-kit/kit/log"

@@ -3,16 +3,15 @@ package planner
 import (
 	"fmt"
 
-	"github.com/replicatedhq/libyaml"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/templates"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 type buildProgress struct {

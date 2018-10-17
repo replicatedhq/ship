@@ -2,15 +2,13 @@ package headless
 
 import (
 	"context"
-	"testing"
-
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"encoding/json"
+	"testing"
 
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"

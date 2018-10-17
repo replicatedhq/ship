@@ -197,7 +197,7 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			if l.shouldAddFile(targetPath) {
+			if l.shouldAddFileToBase(targetPath) {
 				relativePath, err := filepath.Rel(step.Base, targetPath)
 				if err != nil {
 					debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
@@ -229,9 +229,12 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	return nil
 }
 
-func (l *Kustomizer) shouldAddFile(targetPath string) bool {
-	return filepath.Ext(targetPath) == ".yaml" &&
-		!strings.HasSuffix(targetPath, "kustomization.yaml") &&
+func (l *Kustomizer) shouldAddFileToBase(targetPath string) bool {
+	if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
+		return false
+	}
+
+	return !strings.HasSuffix(targetPath, "kustomization.yaml") &&
 		!strings.HasSuffix(targetPath, "Chart.yaml") &&
 		!strings.HasSuffix(targetPath, "values.yaml")
 }

@@ -3,15 +3,8 @@ package daemon
 import (
 	"fmt"
 	"net/http"
-	"sync"
-
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/lint/rules"
-	"k8s.io/helm/pkg/lint/support"
-
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"path"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -19,6 +12,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
@@ -26,6 +20,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"k8s.io/helm/pkg/chartutil"
+	"k8s.io/helm/pkg/lint/rules"
+	"k8s.io/helm/pkg/lint/support"
 )
 
 type V1Routes struct {

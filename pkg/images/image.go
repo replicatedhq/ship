@@ -6,10 +6,9 @@ import (
 	"strings"
 
 	"github.com/docker/distribution/reference"
-	"github.com/pkg/errors"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 )
 

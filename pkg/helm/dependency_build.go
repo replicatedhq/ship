@@ -24,7 +24,6 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
-
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/helmpath"

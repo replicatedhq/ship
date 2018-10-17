@@ -3,9 +3,8 @@ package templates
 import (
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"

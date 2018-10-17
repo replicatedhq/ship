@@ -4,9 +4,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Merges user edited values from state file and vendor values from upstream Helm repo.

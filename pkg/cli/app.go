@@ -1,9 +1,8 @@
 package cli
 
 import (
-	"strings"
-
 	"context"
+	"strings"
 
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"

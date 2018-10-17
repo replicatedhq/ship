@@ -32,7 +32,6 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/yaml"
-
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/environment"

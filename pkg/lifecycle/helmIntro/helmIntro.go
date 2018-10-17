@@ -4,16 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/spf13/afero"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )

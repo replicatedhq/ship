@@ -1,17 +1,14 @@
 package docker
 
 import (
-	"errors"
-	"testing"
-
-	"github.com/replicatedhq/libyaml"
-
 	"context"
-
+	"errors"
 	"fmt"
+	"testing"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"

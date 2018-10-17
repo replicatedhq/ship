@@ -5,8 +5,6 @@ import (
 	"path"
 	"testing"
 
-	"sigs.k8s.io/kustomize/pkg/patch"
-
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -17,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/patch"
 )
 
 func Test_kustomizer_writePatches(t *testing.T) {
@@ -480,6 +479,41 @@ resources:
 			}
 
 			req.NoError(err)
+		})
+	}
+}
+
+func TestKustomizer_shouldAddFile(t *testing.T) {
+	k := daemonkustomizer{}
+
+	tests := []struct {
+		name       string
+		targetPath string
+		want       bool
+	}{
+		{name: "empty", targetPath: "", want: false},
+		{name: "no extension", targetPath: "file", want: false},
+		{name: "wrong extension", targetPath: "file.txt", want: false},
+		{name: "yaml file", targetPath: "file.yaml", want: true},
+		{name: "yml file", targetPath: "file.yml", want: true},
+		{name: "kustomization yaml", targetPath: "kustomization.yaml", want: false},
+		{name: "Chart yaml", targetPath: "Chart.yaml", want: false},
+		{name: "values yaml", targetPath: "values.yaml", want: false},
+		{name: "no extension in dir", targetPath: "dir/file", want: false},
+		{name: "wrong extension in dir", targetPath: "dir/file.txt", want: false},
+		{name: "yaml in dir", targetPath: "dir/file.yaml", want: true},
+		{name: "yml in dir", targetPath: "dir/file.yml", want: true},
+		{name: "kustomization yaml in dir", targetPath: "dir/kustomization.yaml", want: false},
+		{name: "Chart yaml in dir", targetPath: "dir/Chart.yaml", want: false},
+		{name: "values yaml in dir", targetPath: "dir/values.yaml", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			got := k.shouldAddFileToBase(tt.targetPath)
+
+			req.Equal(tt.want, got, "expected %t for path %s, got %t", tt.want, tt.targetPath, got)
 		})
 	}
 }

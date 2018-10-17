@@ -3,12 +3,11 @@ package helm
 import (
 	"context"
 
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
-
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 )
 
 // Renderer is something that can render a helm asset as part of a planner.Plan

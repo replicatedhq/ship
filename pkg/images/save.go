@@ -4,19 +4,17 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/url"
 	"os"
 	"path"
 
-	"github.com/pkg/errors"
-
-	"fmt"
-
 	"github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/client"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 )
 
 // ImageSaver saves an image
