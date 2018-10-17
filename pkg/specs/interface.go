@@ -88,6 +88,12 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	}
 	debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
 
+	defer func() {
+		if err := r.FS.RemoveAll(localPath); err != nil {
+			level.Error(r.Logger).Log("event", "remove watch dir", "err", err)
+		}
+	}()
+
 	// this switch block is kinda duped from above, and we ought to centralize parts of this,
 	// but in this case we only want to read the metadata without persisting anything to state,
 	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
@@ -98,6 +104,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		if err != nil {
 			return "", errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
 		}
+
 		return metadata.ContentSHA, nil
 
 	case "k8s":
