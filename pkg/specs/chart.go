@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -294,4 +295,98 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
+}
+
+// this function is not perfect, and has known limitations. One of these is that it does not account for `\n---\n` in multiline strings.
+func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string) error {
+	type outputYaml struct {
+		name     string
+		contents string
+	}
+
+	type minimalK8sYaml struct {
+		Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
+		Metadata struct {
+			Name      string `json:"name" yaml:"name" hcl:"name"`
+			Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
+		}
+	}
+
+	files, err := r.FS.ReadDir(localPath)
+	if err != nil {
+		return errors.Wrapf(err, "read files in %s", localPath)
+	}
+
+	if len(files) != 1 {
+		// if there's more than one file, we'll assume that it does not need to be split
+		// if there are no files, there's nothing to do
+		return nil
+	}
+
+	file := files[0]
+
+	if file.IsDir() {
+		// if the single file is a directory, obviously we can't split it
+		return nil
+	}
+
+	if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+		// not yaml, nothing to do
+		return nil
+	}
+
+	inFileBytes, err := r.FS.ReadFile(filepath.Join(localPath, file.Name()))
+	if err != nil {
+		return errors.Wrapf(err, "read %s", filepath.Join(localPath, file.Name()))
+	}
+
+	outputFiles := []outputYaml{}
+	filesStrings := strings.Split(string(inFileBytes), "\n---\n")
+
+	if len(filesStrings) == 1 {
+		// not a multidoc yaml
+		return nil
+	}
+
+	// generate replacement yaml files
+	for idx, fileString := range filesStrings {
+
+		thisOutputFile := outputYaml{contents: fileString}
+
+		thisMetadata := minimalK8sYaml{}
+		err = yaml.Unmarshal([]byte(fileString), &thisMetadata)
+
+		if thisMetadata.Kind == "" {
+			// not a valid k8s yaml
+			continue
+		}
+
+		fileName := fmt.Sprintf("%s-%d", thisMetadata.Kind, idx)
+
+		if thisMetadata.Metadata.Name != "" {
+			fileName = thisMetadata.Kind + "-" + thisMetadata.Metadata.Name
+			if thisMetadata.Metadata.Namespace != "" && thisMetadata.Metadata.Namespace != "default" {
+				fileName += "-" + thisMetadata.Metadata.Namespace
+			}
+		}
+
+		thisOutputFile.name = fileName
+		outputFiles = append(outputFiles, thisOutputFile)
+	}
+
+	// delete multidoc yaml file
+	err = r.FS.Remove(filepath.Join(localPath, file.Name()))
+	if err != nil {
+		return errors.Wrapf(err, "unable to remove %s", filepath.Join(localPath, file.Name()))
+	}
+
+	// write replacement yaml
+	for _, outputFile := range outputFiles {
+		err = r.FS.WriteFile(filepath.Join(localPath, outputFile.name+".yaml"), []byte(outputFile.contents), os.FileMode(0644))
+		if err != nil {
+			return errors.Wrapf(err, "write %s", outputFile.name)
+		}
+	}
+
+	return nil
 }

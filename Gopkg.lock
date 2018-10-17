@@ -1357,12 +1357,12 @@
   version = "v2.1.8"
 
 [[projects]]
-  branch = "v2"
-  digest = "1:c46d0fb245dbc49cb816b3e2818d1830e29d03bee1663b1e201f3ed918ec6e60"
+  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [[projects]]
   digest = "1:e09af9cf7fe651b19aa5e7720319800847330bc94594aafb102fc68b6f3aa86b"
@@ -1896,6 +1896,7 @@
     "sigs.k8s.io/kustomize/pkg/app",
     "sigs.k8s.io/kustomize/pkg/fs",
     "sigs.k8s.io/kustomize/pkg/loader",
+    "sigs.k8s.io/kustomize/pkg/patch",
     "sigs.k8s.io/kustomize/pkg/resource",
     "sigs.k8s.io/kustomize/pkg/types",
   ]
