@@ -127,7 +127,7 @@ func (g *GithubClient) downloadAndExtractFiles(
 		switch header.Typeflag {
 		case tar.TypeDir:
 			dirName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !strings.HasPrefix(dirName, basePath) {
+			if !includeDirOrFile(dirName, basePath, false) {
 				continue
 			}
 			basePathFound = true
@@ -140,7 +140,7 @@ func (g *GithubClient) downloadAndExtractFiles(
 			// need this in a func because defer in a loop was leaking handles
 			err := func() error {
 				fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-				if !strings.HasPrefix(fileName, basePath) {
+				if !includeDirOrFile(fileName, basePath, true) {
 					return nil
 				}
 				basePathFound = true
@@ -165,6 +165,21 @@ func (g *GithubClient) downloadAndExtractFiles(
 	}
 
 	return nil
+}
+
+func includeDirOrFile(currentPath, includePath string, currentIsFile bool) bool {
+	splitInclude := strings.Split(includePath, "/")
+	includeIsFile := strings.Contains(splitInclude[len(splitInclude)-1], ".")
+
+	if includeIsFile {
+		if currentIsFile {
+			return currentPath == includePath
+		}
+
+		return strings.HasPrefix(includePath, currentPath)
+	}
+
+	return strings.HasPrefix(currentPath, includePath)
 }
 
 func decodeGitHubURL(chartPath string) (owner string, repo string, branch string, path string, err error) {

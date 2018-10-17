@@ -3,7 +3,6 @@ package githubclient
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -144,12 +143,28 @@ var _ = Describe("GithubClient", func() {
 
 				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 
-				files, _ := gitClient.fs.ReadDir(path.Join(constants.HelmChartPath))
-				fmt.Println("files", files)
 				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("bar"))
+			})
+		})
+
+		Context("With a url path to a single nested file", func() {
+			It("should fetch and persist the file", func() {
+				validGithubURLSingle := "github.com/o/r/blob/master/templates/service.yml"
+				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+				gitClient := &GithubClient{
+					client: client,
+					fs:     mockFs,
+					logger: log.NewNopLogger(),
+				}
+
+				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
+				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "service.yml"))
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(string(chart)).To(Equal("service"))
 			})
 		})
 	})
