@@ -1,15 +1,11 @@
 package web
 
 import (
-	"testing"
-
-	"net/http"
-
 	"context"
-
 	"encoding/base64"
-
 	"io/ioutil"
+	"net/http"
+	"testing"
 
 	"github.com/jarcoal/httpmock"
 	"github.com/pkg/errors"

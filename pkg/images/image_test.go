@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResolveImageName(t *testing.T) {

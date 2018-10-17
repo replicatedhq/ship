@@ -3,14 +3,10 @@ package render
 import (
 	"context"
 	"io/ioutil"
-	"path/filepath"
-	"testing"
-
-	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
-	"github.com/replicatedhq/ship/pkg/state"
-
 	"os"
+	"path/filepath"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -19,6 +15,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
+	"github.com/replicatedhq/ship/pkg/state"
 	mockconfig "github.com/replicatedhq/ship/pkg/test-mocks/config"
 	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"

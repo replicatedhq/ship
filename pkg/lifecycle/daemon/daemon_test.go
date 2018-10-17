@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"testing"
 	"time"
-
-	"fmt"
-	"math/rand"
 
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"

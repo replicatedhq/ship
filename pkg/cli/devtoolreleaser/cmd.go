@@ -1,11 +1,9 @@
 package devtoolreleaser
 
 import (
-	"strings"
-
 	"context"
-
 	"os"
+	"strings"
 
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"

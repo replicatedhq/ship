@@ -7,9 +7,6 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/azureaks"
@@ -22,6 +19,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // A Plan is a list of PlanSteps to execute

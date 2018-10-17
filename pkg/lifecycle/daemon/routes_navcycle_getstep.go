@@ -2,7 +2,6 @@ package daemon
 
 import (
 	"fmt"
-
 	"path"
 
 	"github.com/gin-gonic/gin"

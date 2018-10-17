@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/docker/docker/pkg/jsonmessage"
-
 	"github.com/pkg/errors"
 )
 

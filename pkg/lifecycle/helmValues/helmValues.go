@@ -3,9 +3,8 @@ package helmValues
 import (
 	"context"
 	"path"
-	"time"
-
 	"path/filepath"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"

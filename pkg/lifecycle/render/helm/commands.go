@@ -1,9 +1,8 @@
 package helm
 
 import (
-	"os"
-
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"

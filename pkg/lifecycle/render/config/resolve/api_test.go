@@ -6,9 +6,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/go-test/deep"
 	"github.com/replicatedhq/libyaml"

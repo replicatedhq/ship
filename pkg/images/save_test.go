@@ -8,12 +8,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-
-	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
-
 	"github.com/docker/docker/api/types"
 	"github.com/go-kit/kit/log"
+	"github.com/golang/mock/gomock"
+	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 	logger2 "github.com/replicatedhq/ship/pkg/testing/logger"
 )
 

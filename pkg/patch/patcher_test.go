@@ -6,12 +6,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/spf13/afero"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/spf13/afero"
 )
 
 func TestShipPatcher(t *testing.T) {

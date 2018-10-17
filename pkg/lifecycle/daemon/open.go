@@ -1,9 +1,8 @@
 package daemon
 
 import (
-	"strings"
-
 	"fmt"
+	"strings"
 
 	"github.com/mitchellh/cli"
 	"github.com/skratchdot/open-golang/open"

@@ -2,7 +2,6 @@ package render
 
 import (
 	"context"
-
 	"time"
 
 	"github.com/go-kit/kit/log"

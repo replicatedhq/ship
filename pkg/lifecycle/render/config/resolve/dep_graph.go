@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/replicatedhq/libyaml"
-
-	"github.com/replicatedhq/ship/pkg/templates"
-
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 type depGraph struct {

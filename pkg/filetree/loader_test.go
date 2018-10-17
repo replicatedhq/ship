@@ -7,9 +7,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-
 	"github.com/replicatedhq/ship/pkg/state"
-
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/tmpfs"
 	"github.com/stretchr/testify/require"

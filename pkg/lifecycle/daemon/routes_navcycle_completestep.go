@@ -3,7 +3,6 @@ package daemon
 import (
 	"context"
 	"fmt"
-
 	"time"
 
 	"github.com/gin-gonic/gin"

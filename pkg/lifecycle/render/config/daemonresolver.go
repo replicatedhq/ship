@@ -5,10 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/replicatedhq/ship/pkg/api"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 

@@ -4,22 +4,20 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
-
 	"time"
-
-	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
-	"github.com/spf13/viper"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	_ "github.com/replicatedhq/ship/pkg/lifecycle/render/test-cases"
 	"github.com/replicatedhq/ship/pkg/state"
 	mockdaemon "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mockplanner "github.com/replicatedhq/ship/pkg/test-mocks/planner"
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/ui"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 

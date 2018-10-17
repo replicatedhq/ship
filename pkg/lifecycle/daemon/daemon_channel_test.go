@@ -2,15 +2,12 @@ package daemon
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"testing"
-
-	"encoding/json"
-	"io/ioutil"
-
-	"fmt"
-	"math/rand"
-
 	"time"
 
 	"github.com/gin-gonic/gin"

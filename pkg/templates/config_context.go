@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/replicatedhq/libyaml"
 )
 
 func (bb *BuilderBuilder) NewConfigContext(
