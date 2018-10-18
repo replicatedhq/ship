@@ -296,7 +296,6 @@ spec:
 				},
 			},
 		},
-
 		{
 			name:      "flux-account",
 			localPath: "/flux-account",
@@ -388,6 +387,109 @@ subjects:
   - kind: ServiceAccount
     name: flux
     namespace: default
+`,
+				},
+			},
+		},
+		{
+			name:      "comment-before-doc",
+			localPath: "/comment-before",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/comment-before/account.yaml",
+					data: `
+# The service account, cluster roles, and cluster role binding are
+# only needed for Kubernetes with role-based access control (RBAC).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/comment-before/account.yaml",
+					data: `
+# The service account, cluster roles, and cluster role binding are
+# only needed for Kubernetes with role-based access control (RBAC).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+`,
+				},
+			},
+		},
+		{
+			name:      "comment-before-multidoc",
+			localPath: "/comment-before-multi",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/comment-before-multi/account.yaml",
+					data: `
+# A comment
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+  namespace: namespace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svcName
+  labels:
+    app: svcName
+  namespace: anotherNamespace
+spec:
+  ports:
+  - name: port-name
+    port: 1234
+    protocol: TCP
+    targetPort: 1234
+  type: ClusterIP
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/comment-before-multi/ServiceAccount-name-namespace.yaml",
+					data: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+  namespace: namespace`,
+				},
+				{
+					name: "/comment-before-multi/Service-svcName-anotherNamespace.yaml",
+					data: `apiVersion: v1
+kind: Service
+metadata:
+  name: svcName
+  labels:
+    app: svcName
+  namespace: anotherNamespace
+spec:
+  ports:
+  - name: port-name
+    port: 1234
+    protocol: TCP
+    targetPort: 1234
+  type: ClusterIP
 `,
 				},
 			},

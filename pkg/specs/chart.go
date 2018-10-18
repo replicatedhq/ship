@@ -343,18 +343,13 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 	outputFiles := []outputYaml{}
 	filesStrings := strings.Split(string(inFileBytes), "\n---\n")
 
-	if len(filesStrings) == 1 {
-		// not a multidoc yaml
-		return nil
-	}
-
 	// generate replacement yaml files
 	for idx, fileString := range filesStrings {
 
 		thisOutputFile := outputYaml{contents: fileString}
 
 		thisMetadata := minimalK8sYaml{}
-		err = yaml.Unmarshal([]byte(fileString), &thisMetadata)
+		_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 		if thisMetadata.Kind == "" {
 			// not a valid k8s yaml
@@ -372,6 +367,11 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 
 		thisOutputFile.name = fileName
 		outputFiles = append(outputFiles, thisOutputFile)
+	}
+
+	if len(outputFiles) < 2 {
+		// not a multidoc yaml, or at least not a multidoc kubernetes yaml
+		return nil
 	}
 
 	// delete multidoc yaml file
