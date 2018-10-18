@@ -35,7 +35,11 @@ export default class KustomizeOverlay extends React.Component {
       savingFinalize: false,
       displayConfirmModal: false,
       overlayToDelete: "",
+      addingNewResource: false,
+      newResourceName: ""
     };
+    this.addResourceWrapper = React.createRef();
+    this.addResourceInput = React.createRef();
   }
 
   toggleModal = (overlayPath) => {
@@ -108,6 +112,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   setSelectedFile = async (path) => {
+    console.log(path);
     this.setState({ selectedFile: path });
     await this.props.getFileContent(path).then(() => {
       // set state with new file content
@@ -173,9 +178,29 @@ export default class KustomizeOverlay extends React.Component {
     await this.props.saveKustomizeOverlay(payload).catch();
     await this.props.getCurrentStep();
     if (finalize) {
-      this.setState({ savingFinalize: true });
+      this.setState({ savingFinalize: true, addingNewResource: false });
       this.handleFinalize();
     }
+  }
+
+  handleCreateResource = async () => {
+    const { newResourceName } = this.state;
+    const contents = "---"
+    this.setState({ patch: contents });
+
+    const payload = {
+      path: `/${newResourceName}`,
+      contents,
+      isResource: true
+    };
+
+    await this.props.saveKustomizeOverlay(payload)
+    .then(() => {
+      this.setSelectedFile(`/${newResourceName}`);
+      this.setState({ addingNewResource: false, newResourceName: "" })
+    })
+    .catch();
+    await this.props.getCurrentStep();
   }
 
   handleGeneratePatch = async (path) => {
@@ -223,6 +248,27 @@ export default class KustomizeOverlay extends React.Component {
     }
   }, 500);
 
+  handleAddResourceClick = async () => {
+    // Ref input won't focus until state has been set
+    await this.setState({ addingNewResource: true });
+    this.addResourceInput.current.focus();
+    window.addEventListener("click", this.handleClickOutsideResourceInput);
+  }
+
+  handleClickOutsideResourceInput = (e) => {
+    const { addingNewResource } = this.state;
+    if (addingNewResource && !this.addResourceWrapper.current.contains(e.target)) {
+      this.setState({ addingNewResource: false, newResourceName: "" });
+      window.removeEventListener("click", this.handleClickOutsideResourceInput);
+    }
+  }
+
+  handleCreateNewResource = (e) => {
+    if(e.charCode === 13) {
+      this.handleCreateResource()
+    }
+  }
+
   render() {
     const { dataLoading } = this.props;
     const {
@@ -233,6 +279,8 @@ export default class KustomizeOverlay extends React.Component {
       patch,
       savingFinalize,
       fileContents,
+      addingNewResource,
+      newResourceName
     } = this.state;
     const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
@@ -260,6 +308,23 @@ export default class KustomizeOverlay extends React.Component {
                       />
                     </div>
                   ))}
+                  <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
+                    <input 
+                      type="text"
+                      className={`Input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`} 
+                      name="new-resource" 
+                      placeholder="filename.yaml" 
+                      onChange={(e) => { this.setState({ newResourceName: e.target.value }) }} 
+                      onKeyPress={(e) => { this.handleCreateNewResource(e) }}
+                      value={newResourceName}
+                      ref={this.addResourceInput}
+                    />
+                    <p 
+                      className={`add-resource-link u-position--absolute u-marginTop--small u-marginLeft--normal u-cursor--pointer u-fontSize--small u-color--silverSand u-fontWeight--bold ${addingNewResource ? "u-visibility--hidden" : ""}`}
+                      onClick={this.handleAddResourceClick}
+                    >+ Add Resource
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -309,7 +374,7 @@ export default class KustomizeOverlay extends React.Component {
 
                 <div className={`flex-column flex1 overlays-editor-wrapper ${showOverlay ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
-                    <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Patch</p>
+                    <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">{showBase ? "Patch" : "Resource"}</p>
                     <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as a patch to the base YAML. Edit the values that you want patched. The current file you're editing will be automatically saved when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
