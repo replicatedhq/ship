@@ -22,6 +22,7 @@ import (
 
 type Manager interface {
 	SerializeHelmValues(values string, defaults string) error
+	SerializeReleaseName(name string) error
 	SerializeConfig(
 		assets []api.Asset,
 		meta api.ReleaseMetadata,
@@ -153,6 +154,21 @@ func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	versionedState := currentState.Versioned()
 	versionedState.V1.HelmValues = values
 	versionedState.V1.HelmValuesDefaults = defaults
+
+	return m.serializeAndWriteState(versionedState)
+}
+
+// SerializeReleaseName serializes to disk the name to use for helm template
+func (m *MManager) SerializeReleaseName(name string) error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.ReleaseName = name
 
 	return m.serializeAndWriteState(versionedState)
 }

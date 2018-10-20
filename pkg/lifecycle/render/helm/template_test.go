@@ -35,6 +35,7 @@ func TestLocalTemplater(t *testing.T) {
 		expectedChannelName string
 		expectHelmOpts      *matchers.Is
 		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
+		state               state2.VersionedState
 	}{
 		{
 			name:        "helm test proper args",
@@ -82,7 +83,7 @@ func TestLocalTemplater(t *testing.T) {
 			expectedHelmValues: []string{
 				"--set", "service.clusterIP=10.3.9.2",
 			},
-			channelName:         "1.2.3-$#(%*)@-frobnitz",
+			channelName:         "1-2-3---------frobnitz",
 			expectedChannelName: "1-2-3---------frobnitz",
 		},
 		{
@@ -97,7 +98,7 @@ func TestLocalTemplater(t *testing.T) {
 			expectedHelmValues: []string{
 				"--set", "service.clusterIP=10.3.9.2",
 			},
-			channelName:         "1.2.3-$#(%*)@-frobnitz",
+			channelName:         "1-2-3---------frobnitz",
 			expectedChannelName: "1-2-3---------frobnitz",
 		},
 	}
@@ -121,13 +122,7 @@ func TestLocalTemplater(t *testing.T) {
 				process:        process.Process{Logger: testLogger},
 			}
 
-			mockState.EXPECT().TryLoad().Return(state2.VersionedState{
-				V1: &state2.V1{
-					HelmValues: "we fake",
-				},
-			}, nil)
-
-			channelName := "Frobnitz"
+			channelName := "frobnitz"
 			expectedChannelName := "frobnitz"
 			if test.channelName != "" {
 				channelName = test.channelName
@@ -139,6 +134,13 @@ func TestLocalTemplater(t *testing.T) {
 			if test.templateContext == nil {
 				test.templateContext = map[string]interface{}{}
 			}
+
+			mockState.EXPECT().TryLoad().Return(state2.VersionedState{
+				V1: &state2.V1{
+					HelmValues:  "we fake",
+					ReleaseName: channelName,
+				},
+			}, nil)
 
 			chartRoot := "/tmp/chartroot"
 			optionAndValuesArgs := append(

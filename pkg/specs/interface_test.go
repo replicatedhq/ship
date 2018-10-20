@@ -88,7 +88,8 @@ icon: https://kfbr.392/x5.png
 					URL:          "github.com/helm/charts/stable/x5",
 				}, "helm").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
-				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
+				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
+				mockState.EXPECT().SerializeReleaseName("i-know-what-the-x5-is").After(inOrder)
 
 			},
 			expectRelease: &api.Release{
@@ -177,8 +178,8 @@ icon: https://kfbr.392/x5.png
 					Return("plain-k8s example", nil).After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
-				mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
-
+				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
+				mockState.EXPECT().SerializeReleaseName("ship").After(inOrder)
 			},
 			expectRelease: &api.Release{
 				Spec: DefaultRawRelease("base"),

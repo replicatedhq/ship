@@ -3,6 +3,7 @@ import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
 import AceEditor from "react-ace";
 import ErrorBoundary from "../../ErrorBoundary";
+import HelmReleaseNameInput from "./HelmReleaseNameInput";
 import get from "lodash/get";
 import find from "lodash/find";
 
@@ -22,6 +23,8 @@ export default class HelmValuesEditor extends React.Component {
       saving: false,
       saveFinal: false,
       unsavedChanges: false,
+      initialHelmReleaseName: "",
+      helmReleaseName: "",
     }
   }
 
@@ -29,8 +32,10 @@ export default class HelmValuesEditor extends React.Component {
     if(this.props.getStep.values) {
       this.setState({
         initialSpecValue: this.props.getStep.values,
-        specValue: this.props.getStep.values
-      })
+        specValue: this.props.getStep.values,
+        initialHelmReleaseName: this.props.getStep.helmName,
+        helmReleaseName: this.props.getStep.helmName,
+      });
     }
   }
 
@@ -80,7 +85,7 @@ export default class HelmValuesEditor extends React.Component {
     const { initialSpecValue } = this.state;
     const payload = {
       values: initialSpecValue
-    }
+    };
     this.setState({ helmLintErrors: [] });
     this.props.saveValues(payload)
       .then(({ errors }) => {
@@ -98,10 +103,11 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   handleSaveValues = (finalize) => {
-    const { specValue } = this.state;
+    const { specValue, helmReleaseName } = this.state;
     const payload = {
-      values: specValue
-    }
+      values: specValue,
+      releaseName: helmReleaseName,
+    };
     if (payload.values !== "") {
       this.setState({ saving: true, savedYaml: false, saveFinal: finalize, helmLintErrors: [] });
       this.props.saveValues(payload)
@@ -130,6 +136,8 @@ export default class HelmValuesEditor extends React.Component {
     }
   }
 
+  handleOnChangehelmReleaseName = (helmReleaseName) => this.setState({ helmReleaseName })
+
   render() {
     const {
       readOnly,
@@ -139,6 +147,8 @@ export default class HelmValuesEditor extends React.Component {
       saveFinal,
       savedYaml,
       helmLintErrors,
+      initialHelmReleaseName,
+      helmReleaseName,
     } = this.state;
     const {
       values,
@@ -148,6 +158,7 @@ export default class HelmValuesEditor extends React.Component {
 
     return (
       <ErrorBoundary>
+        <HelmReleaseNameInput value={helmReleaseName} onChange={this.handleOnChangehelmReleaseName} />
         <div className="flex-column flex1 HelmValues--wrapper u-paddingTop--30">
           <div className="flex-column flex-1-auto u-overflow--auto container">
             <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
@@ -193,7 +204,7 @@ export default class HelmValuesEditor extends React.Component {
                 : null}
             </div>
             <div className="flex flex-auto alignItems--center">
-              {initialSpecValue === specValue ?
+              {initialSpecValue === specValue && initialHelmReleaseName === helmReleaseName ?
                 <button className="btn primary" onClick={() => { this.handleSkip() }}>Continue</button>
                 :
                 <div className="flex">

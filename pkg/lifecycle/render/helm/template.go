@@ -58,8 +58,6 @@ func NewTemplater(
 	}
 }
 
-var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
-
 var arrayLineRegex = regexp.MustCompile(`^\s*(args|volumes):\s*$`)
 var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
 var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
@@ -106,9 +104,15 @@ func (f *LocalTemplater) Template(
 		return errors.Wrapf(err, "create tmp directory in %s", constants.ShipPathInternalTmp)
 	}
 
-	releaseName := strings.ToLower(fmt.Sprintf("%s", meta.ReleaseName()))
-	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
-	debug.Log("event", "releasename.resolve", "releasename", releaseName)
+	state, err := f.StateManager.TryLoad()
+	if err != nil {
+		debug.Log("event", "tryloadState.fail", "err", err)
+		return errors.Wrapf(err, "try load state")
+	}
+
+	versioned := state.Versioned()
+	releaseName := versioned.CurrentReleaseName()
+	debug.Log("event", "releasename.resolve.fromState", "releasename", releaseName)
 
 	templateArgs := []string{
 		"--output-dir", renderDest,
