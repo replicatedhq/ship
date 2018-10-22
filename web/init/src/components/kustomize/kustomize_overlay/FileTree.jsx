@@ -14,7 +14,7 @@ export default class FileTree extends React.Component {
   render() {
     const { files, basePath, isRoot, selectedFile, handleFileSelect, handleDeleteOverlay, isOverlayTree, isResourceTree } = this.props;
     return (
-      <ul className={`${isRoot ? "FileTree-wrapper" : "u-marginLeft--normal"}`}>
+      <ul className={`${isRoot ? "FileTree-wrapper" : "u-marginLeft--normal"} u-position--relative`}>
         {files && files.map((file, i) => ( file.children && file.children.length ?
           <li key={`${file.path}-Directory-${i}`} className={`u-position--relative u-userSelect--none ${file.hasOverlay && "edited"}`}>
             <input type="checkbox" name={`sub-dir-${file.name}-${file.children.length}-${file.path}-${basePath}-${i}`} id={`sub-dir-${file.name}-${file.children.length}-${file.path}-${basePath}-${i}`} defaultChecked={true} />
