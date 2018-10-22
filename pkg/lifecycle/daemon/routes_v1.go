@@ -129,10 +129,10 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 	}
 
-	debug.Log("event", "serialize.helmName")
+	debug.Log("event", "serialize.helmReleaseName")
 	if len(request.ReleaseName) > 0 {
 		if err := d.StateManager.SerializeReleaseName(request.ReleaseName); err != nil {
-			debug.Log("event", "serialize.helmName.fail", "err", err)
+			debug.Log("event", "serialize.helmReleaseName.fail", "err", err)
 			c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
 		}
 	}

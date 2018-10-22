@@ -73,9 +73,18 @@ type Resolver interface {
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local runbook if so configured
 func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "ResolveAppRelease"))
 	release, err := r.FetchRelease(ctx, selector)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch release")
+	}
+
+	releaseName := release.ToReleaseMeta().ReleaseName()
+	debug.Log("event", "resolve.releaseName")
+
+	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
+		debug.Log("event", "serialize.releaseName.fail", "err", err)
+		return nil, errors.Wrapf(err, "serialize helm release name")
 	}
 
 	result, err := r.persistRelease(release, selector)

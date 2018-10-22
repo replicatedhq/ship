@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/url"
-	"regexp"
-	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -16,8 +14,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/util"
 )
-
-var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
 
 // A resolver turns a target string into a release.
 //
@@ -186,9 +182,8 @@ func (r *Resolver) resolveRelease(
 		Spec: *spec,
 	}
 
-	releaseName := strings.ToLower(fmt.Sprintf("%s", release.Metadata.ReleaseName()))
-	releaseName = releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
-	debug.Log("event", "releasename.resolve", "releasename", releaseName)
+	releaseName := release.Metadata.ReleaseName()
+	debug.Log("event", "resolve.releaseName")
 
 	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
 		debug.Log("event", "serialize.releaseName.fail", "err", err)

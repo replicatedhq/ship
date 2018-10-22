@@ -1,5 +1,12 @@
 package api
 
+import (
+	"regexp"
+	"strings"
+)
+
+var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+
 // Spec is the top level Ship document that defines an application
 type Spec struct {
 	Assets    Assets    `json:"assets" yaml:"assets" hcl:"asset"`
@@ -59,17 +66,23 @@ type ReleaseMetadata struct {
 	ShipAppMetadata ShipAppMetadata `json:"shipAppMetadata" yaml:"shipAppMetadata" hcl:"shipAppMetadata" meta:"shipAppMetadata"`
 }
 
-func (r *ReleaseMetadata) ReleaseName() string {
+func (r ReleaseMetadata) ReleaseName() string {
+	var releaseName string
+
 	if r.ChannelName != "" {
-		return r.ChannelName
+		releaseName = r.ChannelName
 	}
 
 	if r.ShipAppMetadata.Name != "" {
-		return r.ShipAppMetadata.Name
+		releaseName = r.ShipAppMetadata.Name
 	}
 
-	return "ship"
+	if len(releaseName) == 0 {
+		return "ship"
+	}
 
+	releaseName = strings.ToLower(releaseName)
+	return releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 }
 
 // Release
