@@ -24,7 +24,8 @@ type Resolver struct {
 	appTypeInspector apptype.Inspector
 	shaSummer        shaSummer
 
-	Viper *viper.Viper
+	Viper   *viper.Viper
+	NoOutro bool
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -53,5 +54,6 @@ func NewResolver(
 		},
 		AppResolver:               appresolver,
 		GitHubReleaseNotesFetcher: github,
+		NoOutro:                   v.GetBool("no-outro"),
 	}
 }

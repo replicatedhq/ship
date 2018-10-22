@@ -20,7 +20,6 @@ import (
 )
 
 func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
-	noOutro := r.Viper.GetBool("no-outro")
 	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
@@ -87,7 +86,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 			},
 		},
 	}
-	if !noOutro {
+	if !r.NoOutro {
 		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
 			Message: &api.Message{
 				StepShared: api.StepShared{
@@ -108,7 +107,6 @@ to deploy the overlaid assets to your cluster.
 }
 
 func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
-	noOutro := r.Viper.GetBool("no-outro")
 	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{},
@@ -139,7 +137,7 @@ func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
 			},
 		},
 	}
-	if !noOutro {
+	if !r.NoOutro {
 		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
 			Message: &api.Message{
 				StepShared: api.StepShared{
