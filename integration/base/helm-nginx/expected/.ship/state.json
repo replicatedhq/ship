@@ -8,6 +8,7 @@
       "installationID": "WAtB86RsD8koFOgnAEX63TU0mafWsqAj",
       "releaseNotes": "",
       "version": "0.0.4"
-    }
+    },
+    "releaseName": "integration-test-helm"
   }
 }

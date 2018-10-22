@@ -9,6 +9,7 @@
       "applicationType": "replicated.app",
       "releaseNotes": "",
       "version": ""
-    }
+    },
+    "releaseName": "ship"
   }
 }

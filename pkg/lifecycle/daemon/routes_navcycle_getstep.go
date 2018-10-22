@@ -55,6 +55,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 	if step.HelmValues != nil {
 		userValues := currentState.CurrentHelmValues()
 		defaultValues := currentState.CurrentHelmValuesDefaults()
+		releaseName := currentState.CurrentReleaseName()
 
 		valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 		if err != nil {
@@ -69,6 +70,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 
 		step.HelmValues.Values = mergedValues
 		step.HelmValues.DefaultValues = vendorValues
+		step.HelmValues.ReleaseName = releaseName
 	}
 
 	result := &daemontypes.StepResponse{

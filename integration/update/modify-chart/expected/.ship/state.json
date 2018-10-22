@@ -18,6 +18,7 @@
       "releaseNotes": "Update values.yaml",
       "version": "0.1.0"
     },
+    "releaseName": "modify-chart",
     "upstream": "github.com/replicatedhq/test-charts/modify-chart",
     "contentSHA": "8f221c20ea01b45298094e4c631d10b7583885fd4a62a5eacce2883cd19f1c7f"
   }

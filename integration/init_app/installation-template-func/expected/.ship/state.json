@@ -9,6 +9,7 @@
       "installationID": "xYe8HKjr9UJuXHYg4FIUX2n6wQ_VY2mV",
       "releaseNotes": "integration tests",
       "version": "1.0.1-SNAPSHOT"
-    }
+    },
+    "releaseName": "integration-replicated-app-installation-template-func"
   }
 }

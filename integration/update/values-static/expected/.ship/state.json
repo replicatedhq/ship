@@ -18,6 +18,7 @@
       "releaseNotes": "add static chart (will not be updated)",
       "version": "0.1.0"
     },
+    "releaseName": "values-update",
     "upstream": "github.com/replicatedhq/test-charts/values-static",
     "contentSHA": "77129bbe0cc210b60ae3a2a5775f79a7888d444a2081e6e4f190ebaf2a8da53d"
   }

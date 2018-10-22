@@ -18,6 +18,7 @@
       "releaseNotes": "Update README.md",
       "version": "0.1.0"
     },
+    "releaseName": "basic",
     "upstream": "github.com/replicatedhq/test-charts/basic",
     "contentSHA": "94d255c48a20929dbfbe341109a7ab86dae1ecfab3b8f01151bb36a2ebea7bbe"
   }

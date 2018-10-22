@@ -182,10 +182,20 @@ func (r *Resolver) resolveRelease(
 		}
 	}
 
-	return &api.Release{
+	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,
 		},
 		Spec: *spec,
-	}, nil
+	}
+
+	releaseName := release.Metadata.ReleaseName()
+	debug.Log("event", "resolve.releaseName")
+
+	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
+		debug.Log("event", "serialize.releaseName.fail", "err", err)
+		return nil, errors.Wrapf(err, "serialize helm release name")
+	}
+
+	return release, nil
 }
