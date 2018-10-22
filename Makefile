@@ -209,13 +209,21 @@ fmt: .state/build-deps .state/fmt
 
 vet: .state/vet
 
+.state/ineffassign: .state/build-deps $(SRC)
+	ineffassign ./pkg
+	ineffassign ./src
+	@mkdir -p .state
+	@touch .state/ineffassign
+
+ineffassign: .state/ineffassign
+
 .state/lint: $(SRC)
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
 	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
 	@mkdir -p .state
 	@touch .state/lint
 
-lint: vet .state/lint
+lint: vet ineffassign .state/lint
 
 .state/test: $(SRC)
 	go test ./pkg/... | grep -v '?'
@@ -229,7 +237,7 @@ test: lint .state/test
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
 	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/...
 
-citest: .state/vet .state/lint .state/coverage.out
+citest: .state/vet .state/ineffassign .state/lint .state/coverage.out
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
