@@ -44,7 +44,7 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 			},
 		},
 		{
-			name: "set many files from one repo",
+			name: "set many files from two repos",
 			fs: map[string]string{
 				"/foo/bar.txt":     "some-contents",
 				"/foo/baz.txt":     "some-contents",
