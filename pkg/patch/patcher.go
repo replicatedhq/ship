@@ -202,7 +202,7 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	kustomizationYaml := k8stypes.Kustomization{
-		Bases:                 []string{relativePathToBases},
+		Bases: []string{relativePathToBases},
 		PatchesStrategicMerge: []kustomizepatch.PatchStrategicMerge{TempYamlPath},
 	}
 

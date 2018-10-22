@@ -44,7 +44,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	switch applicationType {
 
 	case "helm":
-		defaultRelease := DefaultHelmRelease(constants.HelmChartPath)
+		defaultRelease := r.DefaultHelmRelease(constants.HelmChartPath)
 		return r.resolveRelease(
 			ctx,
 			upstream,
@@ -55,7 +55,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		)
 
 	case "k8s":
-		defaultRelease := DefaultRawRelease(constants.KustomizeBasePath)
+		defaultRelease := r.DefaultRawRelease(constants.KustomizeBasePath)
 		return r.resolveRelease(
 			ctx,
 			upstream,

@@ -21,6 +21,7 @@ import (
 )
 
 func TestResolver_ResolveRelease(t *testing.T) {
+	viperResolver := Resolver{Viper: viper.New()}
 	ctx := context.Background()
 	tests := []struct {
 		name      string
@@ -92,7 +93,7 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: DefaultHelmRelease(".ship/tmp/chart"),
+				Spec: viperResolver.DefaultHelmRelease(".ship/tmp/chart"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:      "0.1.0",
@@ -181,7 +182,7 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: DefaultRawRelease("base"),
+				Spec: viperResolver.DefaultRawRelease("base"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						URL:          "github.com/replicatedhq/test-charts/plain-k8s",

@@ -29,19 +29,19 @@ func TestDockerStep(t *testing.T) {
 		Expect                  error
 	}{
 		{
-			name:                    "registry succeeds",
+			name: "registry succeeds",
 			RegistrySecretSaveError: nil,
 			InstallationIDSaveError: nil,
 			Expect:                  nil,
 		},
 		{
-			name:                    "registry fails, install id succeeds",
+			name: "registry fails, install id succeeds",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: nil,
 			Expect:                  nil,
 		},
 		{
-			name:                    "registry fails, install id fails",
+			name: "registry fails, install id fails",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: errors.New("nope nope nope"),
 			Expect:                  errors.New("docker save image, both auth methods failed: nope nope nope"),
