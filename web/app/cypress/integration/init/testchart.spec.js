@@ -5,13 +5,6 @@ describe("Ship Init test-charts/modify-chart", () => {
     cy.visit(Cypress.env("HOST"));
   })
 
-  context("intro", () => {
-    it("allows navigation to the Helm step", () => {
-      cy.get(".btn").click();
-      cy.location("pathname").should("eq", "/values")
-    });
-  });
-
   context("values", () => {
     context("required Helm values entered", () => {
       it("successfully saves Helm values", () => {
