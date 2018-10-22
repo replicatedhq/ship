@@ -1,0 +1,16 @@
+{
+  "v1": {
+    "config": {
+      "test_option": "abc123_test-option-value"
+    },
+    "contentSHA": "b9b0e107bb87dd3843d1d1178a6e9109d42d5e86ac8885a172f23c291b62d3b3",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "RULNveQLrLj4GDum1yQhvKAcABh0GcLY",
+      "releaseNotes": "",
+      "version": "0.0.4"
+    },
+    "releaseName": "ship"
+  }
+}

@@ -82,7 +82,7 @@ func (r *LocalRenderer) Execute(
 
 		if len(files) == 0 {
 			level.Info(r.Logger).Log("msg", "no files for asset", "repo", asset.Repo, "path", asset.Path)
-			return nil
+			return errors.New("github asset returned no files")
 		}
 
 		builder, err := r.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
