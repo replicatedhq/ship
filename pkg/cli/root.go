@@ -67,6 +67,8 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
 	cmd.PersistentFlags().BoolP("prefer-git", "", false, "prefer the git protocol instead of using http apis")
 
+	cmd.PersistentFlags().Bool("no-outro", false, "skip outro step in Ship UI")
+
 	cmd.AddCommand(Init())
 	cmd.AddCommand(Watch())
 	cmd.AddCommand(Update())

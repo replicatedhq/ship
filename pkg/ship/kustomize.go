@@ -110,7 +110,8 @@ Continuing will delete this state, would you like to continue? There is no undo.
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	r := specs.Resolver{Viper: s.Viper}
 	return &api.Release{
-		Spec: specs.DefaultRawRelease(s.KustomizeRaw),
+		Spec: r.DefaultRawRelease(s.KustomizeRaw),
 	}
 }

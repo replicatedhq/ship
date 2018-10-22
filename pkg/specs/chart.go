@@ -19,8 +19,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func DefaultHelmRelease(chartPath string) api.Spec {
-	return api.Spec{
+func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
+	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
 				{
@@ -41,17 +41,9 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 		Lifecycle: api.Lifecycle{
 			V1: []api.Step{
 				{
-					HelmIntro: &api.HelmIntro{
-						StepShared: api.StepShared{
-							ID: "intro",
-						},
-					},
-				},
-				{
 					HelmValues: &api.HelmValues{
 						StepShared: api.StepShared{
 							ID:          "values",
-							Requires:    []string{"intro"},
 							Invalidates: []string{"render"},
 						},
 					},
@@ -83,27 +75,31 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 						Dest: "rendered.yaml",
 					},
 				},
-				{
-					Message: &api.Message{
-						StepShared: api.StepShared{
-							ID:       "outro",
-							Requires: []string{"kustomize"},
-						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f rendered.yaml
-
-to deploy the overlaid assets to your cluster.
-`},
-				},
 			},
 		},
 	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID:       "outro",
+					Requires: []string{"kustomize"},
+				},
+				Contents: `
+Assets are ready to deploy. You can run
+
+kubectl apply -f rendered.yaml
+
+to deploy the overlaid assets to your cluster.
+`},
+		})
+	}
+
+	return spec
 }
 
-func DefaultRawRelease(basePath string) api.Spec {
-	return api.Spec{
+func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
+	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{},
 		},
@@ -130,22 +126,26 @@ func DefaultRawRelease(basePath string) api.Spec {
 						Dest: "rendered.yaml",
 					},
 				},
-				{
-					Message: &api.Message{
-						StepShared: api.StepShared{
-							ID: "outro",
-						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kubectl apply -f rendered.yaml
-
-to deploy the overlaid assets to your cluster.
-						`},
-				},
 			},
 		},
 	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID:       "outro",
+					Requires: []string{"kustomize"},
+				},
+				Contents: `
+Assets are ready to deploy. You can run
+
+kubectl apply -f rendered.yaml
+
+to deploy the overlaid assets to your cluster.
+`},
+		})
+	}
+	return spec
 }
 
 func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string, applicationType string) (*api.ShipAppMetadata, error) {
