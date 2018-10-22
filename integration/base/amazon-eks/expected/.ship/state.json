@@ -8,6 +8,7 @@
       "installationID": "Jn0nK8OlT3k9AYqpnq6SGqzo_srKjzjQ",
       "releaseNotes": "",
       "version": "0.0.1-b"
-    }
+    },
+    "releaseName": "integration-test-aws-eks"
   }
 }

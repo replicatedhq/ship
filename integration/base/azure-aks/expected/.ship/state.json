@@ -16,6 +16,7 @@
       "releaseNotes": "",
       "version": "placeholder"
     },
+    "releaseName": "ship",
     "lifecycle": {
       "stepsCompleted": {
         "config": true,

@@ -10,6 +10,7 @@
       "installationID": "a5jOQ1Fnb5l-a2uXwFf-YFkUukeVWnbU",
       "releaseNotes": "",
       "version": "0.0.9"
-    }
+    },
+    "releaseName": "integration-test-dockerlayer"
   }
 }

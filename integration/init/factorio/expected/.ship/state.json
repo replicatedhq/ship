@@ -11,6 +11,7 @@
       "releaseNotes": "Add appVersion key for factorio (#4718)\n\n* Add appVersion key for factorio\n\nThe key \"appVersion\" is needed for ci testing, it's missing in this yaml. That sometimes will cause testing failure.\n\n* Missing starting space in line 20\n\nMissing starting space in line 20",
       "version": "0.3.1"
     },
+    "releaseName": "factorio",
     "contentSHA": "d6135300cdb29c5f3914bdfbf29030db9cb6cd8ea4691c732019bec9fe6d5374"
   }
 }

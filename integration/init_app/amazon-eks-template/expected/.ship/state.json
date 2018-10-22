@@ -9,6 +9,7 @@
       "installationID": "arpUWXmV5JnELQ449wRACqVnlqtJlfZy",
       "releaseNotes": "integration tests",
       "version": "1.0.0-amazon-eks-template"
-    }
+    },
+    "releaseName": "integration-replicated-app-amazon-eks-template"
   }
 }

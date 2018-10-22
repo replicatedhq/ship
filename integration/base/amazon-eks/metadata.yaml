@@ -1,6 +1,7 @@
 customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 installation_id: "Jn0nK8OlT3k9AYqpnq6SGqzo_srKjzjQ"
 release_version: "0.0.1-b"
+set_channel_name: "integration-test-aws-eks"
 
 disable_online: false
 skip_cleanup: false

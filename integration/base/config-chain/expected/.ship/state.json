@@ -12,6 +12,7 @@
       "installationID": "t6-uzytbbkSoCiLtEfNO62LDIRLFec-2",
       "releaseNotes": "",
       "version": "0.0.1-test2"
-    }
+    },
+    "releaseName": "integration-tests"
   }
 }

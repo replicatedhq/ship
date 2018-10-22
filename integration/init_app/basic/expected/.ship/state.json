@@ -9,6 +9,7 @@
       "installationID": "3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-",
       "releaseNotes": "integration tests",
       "version": "1.0.0-SNAPSHOT"
-    }
+    },
+    "releaseName": "integration-replicated-app-basic"
   }
 }

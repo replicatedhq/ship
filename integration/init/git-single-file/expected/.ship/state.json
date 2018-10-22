@@ -3,6 +3,7 @@
     "config": {},
     "upstream": "github.com/replicatedhq/test-charts/blob/3427d6997bd150c60caa00ba0298fdfe17e3ed04/plain-k8s/frontend-deployment.yaml",
     "metadata": null,
+    "releaseName": "ship",
     "contentSHA": "9fa025c3fdbcc02c7de8e9c74c8058d16b2aada04917895685504b387563afda"
   }
 }

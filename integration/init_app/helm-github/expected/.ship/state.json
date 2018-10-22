@@ -9,6 +9,7 @@
       "installationID": "OafdEI-lF2IQV0Il3bfzrIl5mUdHCb3j",
       "releaseNotes": "integration tests",
       "version": "1.0.0-SNAPSHOT"
-    }
+    },
+    "releaseName": "integration-replicated-app-helm-github"
   }
 }
