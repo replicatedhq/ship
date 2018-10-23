@@ -1,6 +1,10 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/replicatedhq/ship/pkg/constants"
+)
 
 // A Lifecycle  is the top-level lifecycle object
 type Lifecycle struct {
@@ -82,6 +86,12 @@ type Render struct {
 func (r *Render) Shared() *StepShared { return &r.StepShared }
 
 func (r *Render) ShortName() string { return "render" }
+func (r *Render) RenderRoot() string {
+	if r.Root == "" {
+		return constants.InstallerPrefixPath
+	}
+	return r.Root
+}
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {

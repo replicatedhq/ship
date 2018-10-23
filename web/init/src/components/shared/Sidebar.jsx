@@ -17,7 +17,7 @@ export default class Sidebar extends React.Component {
 
   buildSubItems = (items) => {
     const { activeSub } = this.state;
-    const _items = items.map((item) => {
+    const _items = items.filter(Boolean).map((item) => {
       return assign(item, {
         isActive: activeSub === item.id,
       });

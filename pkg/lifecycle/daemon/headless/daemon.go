@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 var _ daemontypes.Daemon = &HeadlessDaemon{}
@@ -26,6 +27,8 @@ type HeadlessDaemon struct {
 	ConfigRenderer *resolve.APIConfigRenderer
 	FS             afero.Afero
 	ResolvedConfig map[string]interface{}
+
+	YesApplyTerraform bool
 }
 
 func (d *HeadlessDaemon) AwaitShutdown() error {
@@ -38,13 +41,15 @@ func NewHeadlessDaemon(
 	renderer *resolve.APIConfigRenderer,
 	stateManager state.Manager,
 	fs afero.Afero,
+	v *viper.Viper,
 ) daemontypes.Daemon {
 	return &HeadlessDaemon{
-		StateManager:   stateManager,
-		Logger:         logger,
-		UI:             ui,
-		ConfigRenderer: renderer,
-		FS:             fs,
+		StateManager:      stateManager,
+		Logger:            logger,
+		UI:                ui,
+		ConfigRenderer:    renderer,
+		FS:                fs,
+		YesApplyTerraform: v.GetBool("terraform-apply-yes"),
 	}
 }
 
@@ -95,11 +100,16 @@ func (d *HeadlessDaemon) PushStreamStep(context.Context, <-chan daemontypes.Mess
 
 func (d *HeadlessDaemon) CleanPreviousStep() {}
 
-// todo I think if headless we should blow up here, but for now just skipping
 func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
 	ch := make(chan bool, 1)
-	level.Debug(d.Logger).Log("event", "terraform.skip", "detail", "running in automation, auto-skipping terraform plan")
-	ch <- false
+
+	if !d.YesApplyTerraform {
+		ch <- false
+		return ch
+	}
+
+	level.Info(d.Logger).Log("event", "terraform.apply", "detail", "running terraform because --terraform-apply-yes was set")
+	ch <- true
 	return ch
 }
 
