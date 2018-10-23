@@ -17,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -31,6 +32,9 @@ type ForkTerraformer struct {
 	Terraform     func(string) *exec.Cmd
 	Viper         *viper.Viper
 	FS            afero.Afero
+	StateManager  state.Manager
+	StateRestorer stateRestorer
+	StateSaver    stateSaver
 }
 
 func NewTerraformer(
@@ -38,6 +42,7 @@ func NewTerraformer(
 	daemon daemontypes.Daemon,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
+	statemanager state.Manager,
 	fs afero.Afero,
 ) lifecycle.Terraformer {
 	terraformPath := viper.GetString("terraform-exec-path")
@@ -50,8 +55,11 @@ func NewTerraformer(
 			cmd.Dir = cmdPath
 			return cmd
 		},
-		Viper: viper,
-		FS:    fs,
+		Viper:         viper,
+		FS:            fs,
+		StateManager:  statemanager,
+		StateRestorer: restoreState,
+		StateSaver:    persistState,
 	}
 }
 
@@ -64,19 +72,30 @@ func (t *ForkTerraformer) WithStatusReceiver(status daemontypes.StatusReceiver) 
 		Terraform:     t.Terraform,
 		Viper:         t.Viper,
 		FS:            t.FS,
+		StateManager:  t.StateManager,
+		StateSaver:    t.StateSaver,
+		StateRestorer: t.StateRestorer,
 	}
 }
 
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, terraformConfirmedChan chan bool) error {
+	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
 	dir := path.Join(release.FindRenderRoot(), step.Path)
 	if err := t.FS.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "mkdirall %s", dir)
 	}
 
+	debug.Log("event", "terraform.state.restore")
+	if err := t.StateRestorer(debug, t.FS, t.StateManager, dir); err != nil {
+		return errors.Wrapf(err, "restore terraform state")
+	}
+
+	debug.Log("event", "terraform.init")
 	if err := t.init(dir); err != nil {
 		return errors.Wrap(err, "init")
 	}
 
+	debug.Log("event", "terraform.plan")
 	plan, hasChanges, err := t.plan(dir)
 	if err != nil {
 		return errors.Wrap(err, "plan")
@@ -86,12 +105,14 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	}
 
 	if !viper.GetBool("terraform-yes") {
+		debug.Log("event", "terraform.auto-apply")
 		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release, terraformConfirmedChan)
 		if err != nil {
 			return errors.Wrap(err, "confirm plan")
 		}
 
 		if !shouldApply {
+			debug.Log("event", "terraform.apply.skip")
 			return nil
 		}
 	}
@@ -99,6 +120,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 	// capacity is whatever's required for tests to proceed
 	applyMsgs := make(chan daemontypes.Message, 20)
 
+	debug.Log("event", "streamStep.push")
 	// returns when the applyMsgs channel closes
 	go t.Daemon.PushStreamStep(ctx, applyMsgs)
 
@@ -135,6 +157,11 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		<-t.Daemon.MessageConfirmedChan()
 	}
 
+	err = t.StateSaver(debug, t.FS, t.StateManager, dir)
+	if err != nil {
+		return errors.Wrapf(err, "persist terraform state")
+	}
+
 	return nil
 }
 
@@ -151,7 +178,7 @@ func (t *ForkTerraformer) init(dir string) error {
 	debug.Log("stdout", string(out))
 	debug.Log("stderr", stderr.String())
 	if err != nil {
-		return errors.Wrap(err, "exec terraform init")
+		return errors.Wrap(err, string(out)+"\n"+stderr.String())
 	}
 
 	return nil
@@ -164,7 +191,7 @@ func (t *ForkTerraformer) plan(dir string) (string, bool, error) {
 
 	// we really shouldn't write plan to a file, but this will do for now
 	cmd := t.Terraform(dir)
-	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan")
+	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan.tfplan")
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -199,7 +226,7 @@ func (t *ForkTerraformer) apply(dir string, msgs chan<- daemontypes.Message) (st
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
 	cmd := t.Terraform(dir)
-	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan")
+	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan.tfplan")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -268,7 +295,7 @@ func (t *ForkTerraformer) apply(dir string, msgs chan<- daemontypes.Message) (st
 
 	err = cmd.Wait()
 
-	return ansiToHTML(accm), errors.Wrap(err, "command wait")
+	return ansiToHTML(accm), errors.Wrapf(err, "command wait, output %s", accm)
 }
 
 func failedApplyActions() []daemontypes.Action {

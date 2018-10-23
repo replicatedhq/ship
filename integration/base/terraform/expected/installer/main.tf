@@ -1,3 +1,4 @@
-resource "random_id" "server" {
-  byte_length = 1
+resource "local_file" "foo" {
+  content     = "foo!"
+  filename = "/tmp/foo.bar"
 }

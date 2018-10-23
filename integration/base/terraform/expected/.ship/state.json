@@ -3,14 +3,50 @@
     "config": {
       "id_length": "1"
     },
-    "contentSHA": "8bf48b8321de3daa8d3466f7dae76c6589e60873bde27b04f32ec593c905006f",
+    "terraform": {
+      "rawState": "{\n    \"version\": 3,\n    \"terraform_version\": \"0.11.9\",\n    \"serial\": 4,\n    \"lineage\": \"9c4547a4-c042-5ef9-01de-12509401b810\",\n    \"modules\": [\n        {\n            \"path\": [\n                \"root\"\n            ],\n            \"outputs\": {},\n            \"resources\": {\n                \"local_file.foo\": {\n                    \"type\": \"local_file\",\n                    \"depends_on\": [],\n                    \"primary\": {\n                        \"id\": \"4bf3e335199107182c6f7638efaad377acc7f452\",\n                        \"attributes\": {\n                            \"content\": \"foo!\",\n                            \"filename\": \"/tmp/foo.bar\",\n                            \"id\": \"4bf3e335199107182c6f7638efaad377acc7f452\"\n                        },\n                        \"meta\": {},\n                        \"tainted\": false\n                    },\n                    \"deposed\": [],\n                    \"provider\": \"provider.local\"\n                }\n            },\n            \"depends_on\": []\n        }\n    ]\n}\n",
+      "state": {
+        "version": 3,
+        "terraform_version": "0.11.9",
+        "serial": 4,
+        "lineage": "9c4547a4-c042-5ef9-01de-12509401b810",
+        "modules": [
+          {
+            "path": [
+              "root"
+            ],
+            "outputs": {},
+            "resources": {
+              "local_file.foo": {
+                "type": "local_file",
+                "depends_on": [],
+                "primary": {
+                  "id": "4bf3e335199107182c6f7638efaad377acc7f452",
+                  "attributes": {
+                    "content": "foo!",
+                    "filename": "/tmp/foo.bar",
+                    "id": "4bf3e335199107182c6f7638efaad377acc7f452"
+                  },
+                  "meta": {},
+                  "tainted": false
+                },
+                "deposed": [],
+                "provider": "provider.local"
+              }
+            },
+            "depends_on": []
+          }
+        ]
+      }
+    },
+    "releaseName": "terraform",
     "metadata": {
       "applicationType": "replicated.app",
-      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
-      "installationID": "lZk73HnLmatQ-s1nk7l3Q3QKA45orDFi",
       "releaseNotes": "",
-      "version": "0.0.4-alpha"
+      "version": "0.0.5",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "lZk73HnLmatQ-s1nk7l3Q3QKA45orDFi"
     },
-    "releaseName": "terraform"
+    "contentSHA": "28d52c6d97bf25a9c716fe9ac317b2b951a6ca460fd4271ba8f7ed1d12c46a2a"
   }
 }

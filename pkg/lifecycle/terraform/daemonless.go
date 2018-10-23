@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -25,8 +26,13 @@ type DaemonlessTerraformer struct {
 	PlanConfirmer tfplan.PlanConfirmer
 	Terraform     func(string) *exec.Cmd
 	Status        daemontypes.StatusReceiver
+	StateManager  state.Manager
 	Viper         *viper.Viper
 	FS            afero.Afero
+
+	// exposed for testing
+	StateRestorer stateRestorer
+	StateSaver    stateSaver
 }
 
 func NewDaemonlessTerraformer(
@@ -34,6 +40,7 @@ func NewDaemonlessTerraformer(
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
 	fs afero.Afero,
+	statemanager state.Manager,
 ) lifecycle.Terraformer {
 	terraformPath := viper.GetString("terraform-exec-path")
 	return &DaemonlessTerraformer{
@@ -44,8 +51,11 @@ func NewDaemonlessTerraformer(
 			cmd.Dir = cmdPath
 			return cmd
 		},
-		Viper: viper,
-		FS:    fs,
+		Viper:         viper,
+		FS:            fs,
+		StateManager:  statemanager,
+		StateSaver:    persistState,
+		StateRestorer: restoreState,
 	}
 }
 
@@ -58,16 +68,25 @@ func (t *DaemonlessTerraformer) WithStatusReceiver(
 		Terraform:     t.Terraform,
 		Viper:         t.Viper,
 		FS:            t.FS,
+		StateManager:  t.StateManager,
+		StateSaver:    t.StateSaver,
+		StateRestorer: t.StateRestorer,
 
 		Status: statusReceiver,
 	}
 }
 
 func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, confirmedChan chan bool) error {
+	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
 	renderRoot := release.FindRenderRoot()
 	dir := path.Join(renderRoot, step.Path)
 	if err := t.FS.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "mkdirall %s", dir)
+	}
+
+	debug.Log("event", "terraform.state.restore")
+	if err := t.StateRestorer(debug, t.FS, t.StateManager, dir); err != nil {
+		return errors.Wrapf(err, "restore terraform state")
 	}
 
 	if err := t.init(dir); err != nil {
@@ -132,6 +151,12 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 		<-confirmedChan
 	}
 
+	err = t.StateSaver(debug, t.FS, t.StateManager, dir)
+	if err != nil {
+		return errors.Wrapf(err, "persist terraform state")
+
+	}
+
 	return nil
 }
 
@@ -161,7 +186,7 @@ func (t *DaemonlessTerraformer) plan(dir string) (string, bool, error) {
 
 	// we really shouldn't write plan to a file, but this will do for now
 	cmd := t.Terraform(dir)
-	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan")
+	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan.tfplan")
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -196,7 +221,7 @@ func (t *DaemonlessTerraformer) apply(dir string, msgs chan<- daemontypes.Messag
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
 	cmd := t.Terraform(dir)
-	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan")
+	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan.tfplan")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
