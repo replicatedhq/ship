@@ -81,7 +81,7 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 	var files []GithubFile
 	err := r.FS.Walk(localpath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "walk %s from %s", info, path)
+			return errors.Wrapf(err, "walk %+v from %s", info, path)
 		}
 
 		if info.IsDir() {
