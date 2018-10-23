@@ -55,7 +55,7 @@ type inspector struct {
 }
 
 type FileFetcher interface {
-	GetFiles(ctx context.Context, upstream, savePath string) error
+	GetFiles(ctx context.Context, upstream, savePath string) (string, error)
 }
 
 func (r *inspector) DetermineApplicationType(
@@ -78,10 +78,10 @@ func (r *inspector) DetermineApplicationType(
 		return r.determineTypeFromContents(ctx, upstream, githubClient)
 	}
 
-	upstream = gogetter.UntreeGithub(upstream)
+	upstream, subdir := gogetter.UntreeGithub(upstream)
 	if gogetter.IsGoGettable(upstream) {
 		// get with go-getter
-		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs}
+		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs, Subdir: subdir}
 		return r.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
@@ -100,7 +100,7 @@ func (r *inspector) determineTypeFromContents(
 	debug := level.Debug(r.logger)
 	savePath := path.Join(constants.ShipPathInternalTmp, "tmp-repo")
 
-	err = fetcher.GetFiles(ctx, upstream, savePath)
+	finalPath, err := fetcher.GetFiles(ctx, upstream, savePath)
 	if err != nil {
 		if _, ok := err.(errors2.FetchFilesError); ok {
 			r.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
@@ -113,7 +113,7 @@ func (r *inspector) determineTypeFromContents(
 				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
 				time.Sleep(time.Second * 5)
-				retryError = fetcher.GetFiles(ctx, upstream, savePath)
+				finalPath, retryError = fetcher.GetFiles(ctx, upstream, savePath)
 
 				if retryError != nil {
 					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
@@ -132,15 +132,15 @@ func (r *inspector) determineTypeFromContents(
 	}
 
 	// if there's a Chart.yaml, assume its a chart
-	isChart, err := r.fs.Exists(path.Join(savePath, "Chart.yaml"))
+	isChart, err := r.fs.Exists(path.Join(finalPath, "Chart.yaml"))
 	if err != nil {
 		return "", "", errors.Wrap(err, "check for Chart.yaml")
 	}
 	debug.Log("event", "isChart.check", "isChart", isChart)
 
 	if isChart {
-		return "helm", savePath, nil
+		return "helm", finalPath, nil
 	}
 
-	return "k8s", savePath, nil
+	return "k8s", finalPath, nil
 }
