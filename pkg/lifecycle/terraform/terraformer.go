@@ -39,12 +39,13 @@ func NewTerraformer(
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
 ) lifecycle.Terraformer {
+	terraformPath := viper.GetString("terraform-exec-path")
 	return &ForkTerraformer{
 		Logger:        logger,
 		Daemon:        daemon,
 		PlanConfirmer: planner,
 		Terraform: func(cmdPath string) *exec.Cmd {
-			cmd := exec.Command("terraform")
+			cmd := exec.Command(terraformPath)
 			cmd.Dir = path.Join(constants.InstallerPrefixPath, cmdPath)
 			return cmd
 		},

@@ -34,11 +34,12 @@ func NewDaemonlessTerraformer(
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
 ) lifecycle.Terraformer {
+	terraformPath := viper.GetString("terraform-exec-path")
 	return &DaemonlessTerraformer{
 		Logger:        logger,
 		PlanConfirmer: planner,
 		Terraform: func(cmdPath string) *exec.Cmd {
-			cmd := exec.Command("terraform")
+			cmd := exec.Command(terraformPath)
 			cmd.Dir = path.Join(constants.InstallerPrefixPath, cmdPath)
 			return cmd
 		},
