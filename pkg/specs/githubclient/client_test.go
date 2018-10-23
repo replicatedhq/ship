@@ -142,6 +142,7 @@ var _ = Describe("GithubClient", func() {
 				}
 
 				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
+				Expect(err).NotTo(HaveOccurred())
 
 				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
@@ -161,6 +162,7 @@ var _ = Describe("GithubClient", func() {
 				}
 
 				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
+				Expect(err).NotTo(HaveOccurred())
 				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
