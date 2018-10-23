@@ -65,6 +65,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("upload-assets-to", "", "URL to upload assets to via HTTP PUT request. NOTE: this will cause the entire working directory to be uploaded to the specified URL, use with caution.")
 
 	cmd.PersistentFlags().String("terraform-exec-path", "terraform", "Path to a terraform executable on the system.")
+	cmd.PersistentFlags().Bool("terraform-apply-yes", false, "Automatically apply terraform steps in headless mode. By default, terraform will be skipped when ship is running in automation.")
 
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
 	cmd.PersistentFlags().BoolP("prefer-git", "", false, "prefer the git protocol instead of using http apis")
