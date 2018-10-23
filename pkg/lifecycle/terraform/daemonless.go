@@ -13,10 +13,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -26,13 +26,14 @@ type DaemonlessTerraformer struct {
 	Terraform     func(string) *exec.Cmd
 	Status        daemontypes.StatusReceiver
 	Viper         *viper.Viper
-	dir           string
+	FS            afero.Afero
 }
 
 func NewDaemonlessTerraformer(
 	logger log.Logger,
 	planner tfplan.PlanConfirmer,
 	viper *viper.Viper,
+	fs afero.Afero,
 ) lifecycle.Terraformer {
 	terraformPath := viper.GetString("terraform-exec-path")
 	return &DaemonlessTerraformer{
@@ -40,10 +41,11 @@ func NewDaemonlessTerraformer(
 		PlanConfirmer: planner,
 		Terraform: func(cmdPath string) *exec.Cmd {
 			cmd := exec.Command(terraformPath)
-			cmd.Dir = path.Join(constants.InstallerPrefixPath, cmdPath)
+			cmd.Dir = cmdPath
 			return cmd
 		},
 		Viper: viper,
+		FS:    fs,
 	}
 }
 
@@ -55,19 +57,24 @@ func (t *DaemonlessTerraformer) WithStatusReceiver(
 		PlanConfirmer: t.PlanConfirmer.WithStatusReceiver(statusReceiver),
 		Terraform:     t.Terraform,
 		Viper:         t.Viper,
+		FS:            t.FS,
 
 		Status: statusReceiver,
 	}
 }
 
 func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, confirmedChan chan bool) error {
-	t.dir = step.Path
+	renderRoot := release.FindRenderRoot()
+	dir := path.Join(renderRoot, step.Path)
+	if err := t.FS.MkdirAll(dir, 0755); err != nil {
+		return errors.Wrapf(err, "mkdirall %s", dir)
+	}
 
-	if err := t.init(); err != nil {
+	if err := t.init(dir); err != nil {
 		return errors.Wrap(err, "init")
 	}
 
-	plan, hasChanges, err := t.plan()
+	plan, hasChanges, err := t.plan(dir)
 	if err != nil {
 		return errors.Wrap(err, "plan")
 	}
@@ -93,7 +100,7 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	go t.Status.PushStreamStep(ctx, applyMsgs)
 
 	// blocks until all of stdout/stderr has been sent on applyMsgs channel
-	html, err := t.apply(applyMsgs)
+	html, err := t.apply(dir, applyMsgs)
 
 	close(applyMsgs)
 	if err != nil {
@@ -128,10 +135,10 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	return nil
 }
 
-func (t *DaemonlessTerraformer) init() error {
+func (t *DaemonlessTerraformer) init(dir string) error {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "init"))
 
-	cmd := t.Terraform(t.dir)
+	cmd := t.Terraform(dir)
 	cmd.Args = append(cmd.Args, "init", "-input=false")
 
 	var stderr bytes.Buffer
@@ -148,12 +155,12 @@ func (t *DaemonlessTerraformer) init() error {
 }
 
 // plan returns a human readable plan and a changes-required flag
-func (t *DaemonlessTerraformer) plan() (string, bool, error) {
+func (t *DaemonlessTerraformer) plan(dir string) (string, bool, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 	warn := level.Warn(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "plan"))
 
 	// we really shouldn't write plan to a file, but this will do for now
-	cmd := t.Terraform(t.dir)
+	cmd := t.Terraform(dir)
 	cmd.Args = append(cmd.Args, "plan", "-input=false", "-out=plan")
 
 	var stderr bytes.Buffer
@@ -185,10 +192,10 @@ func (t *DaemonlessTerraformer) plan() (string, bool, error) {
 }
 
 // apply returns the full stdout and stderr rendered as HTML
-func (t *DaemonlessTerraformer) apply(msgs chan<- daemontypes.Message) (string, error) {
+func (t *DaemonlessTerraformer) apply(dir string, msgs chan<- daemontypes.Message) (string, error) {
 	debug := level.Debug(log.With(t.Logger, "step.type", "terraform", "terraform.phase", "apply"))
 
-	cmd := t.Terraform(t.dir)
+	cmd := t.Terraform(dir)
 	cmd.Args = append(cmd.Args, "apply", "-input=false", "-auto-approve=true", "plan")
 
 	stdout, err := cmd.StdoutPipe()

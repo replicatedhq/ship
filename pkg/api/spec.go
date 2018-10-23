@@ -3,6 +3,8 @@ package api
 import (
 	"regexp"
 	"strings"
+
+	"github.com/replicatedhq/ship/pkg/constants"
 )
 
 var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
@@ -98,4 +100,13 @@ func (r *Release) FindRenderStep() *Render {
 		}
 	}
 	return nil
+}
+
+func (r *Release) FindRenderRoot() string {
+	render := r.FindRenderStep()
+	if render == nil {
+		return constants.InstallerPrefixPath
+	}
+
+	return render.RenderRoot()
 }
