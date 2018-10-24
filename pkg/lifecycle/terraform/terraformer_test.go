@@ -17,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mocktf "github.com/replicatedhq/ship/pkg/test-mocks/tfplan"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,6 +89,7 @@ func TestTerraformer(t *testing.T) {
 			mc := gomock.NewController(t)
 			mockDaemon := daemon.NewMockDaemon(mc)
 			mockPlanner := mocktf.NewMockPlanConfirmer(mc)
+			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			tf := &ForkTerraformer{
 				Logger:        &logger.TestLogger{T: t},
 				Daemon:        mockDaemon,
@@ -118,6 +120,7 @@ func TestTerraformer(t *testing.T) {
 					)
 					return cmd
 				},
+				FS: mockFS,
 			}
 
 			if test.expectConfirmPlan {
@@ -223,6 +226,7 @@ func TestForkTerraformerApply(t *testing.T) {
 	req := require.New(t)
 	mc := gomock.NewController(t)
 	mockDaemon := daemon.NewMockDaemon(mc)
+	mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 	ft := ForkTerraformer{
 		Daemon: mockDaemon,
 		Logger: &logger.TestLogger{T: t},
@@ -233,10 +237,11 @@ func TestForkTerraformerApply(t *testing.T) {
 			)
 			return cmd
 		},
+		FS: mockFS,
 	}
 
 	msgs := make(chan daemontypes.Message, 10)
-	output, err := ft.apply(msgs)
+	output, err := ft.apply("fakedir", msgs)
 	req.NoError(err)
 	req.Equal(output, `<div class="term-container">stdout1stderr1stdout2</div>`)
 
