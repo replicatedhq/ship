@@ -1013,6 +1013,33 @@
                   "base"
                 ]
               },
+              "kustomizeIntro": {
+                "description": "This step presents an introduction page about kustomize, usually used before a `kustomize` step. Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
+                "examples": [
+                  {}
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
                 "examples": [
