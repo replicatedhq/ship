@@ -94,7 +94,7 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: viperResolver.DefaultHelmRelease(".ship/tmp/chart"),
+				Spec: viperResolver.DefaultHelmRelease("fake-tmp"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:      "0.1.0",

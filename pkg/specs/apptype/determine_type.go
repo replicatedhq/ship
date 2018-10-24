@@ -134,7 +134,8 @@ func (r *inspector) determineTypeFromContents(
 	// if there's a Chart.yaml, assume its a chart
 	isChart, err := r.fs.Exists(path.Join(finalPath, "Chart.yaml"))
 	if err != nil {
-		return "", "", errors.Wrap(err, "check for Chart.yaml")
+		isChart = false
+		// return "", "", errors.Wrap(err, "check for Chart.yaml")
 	}
 	debug.Log("event", "isChart.check", "isChart", isChart)
 

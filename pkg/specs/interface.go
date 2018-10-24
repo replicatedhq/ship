@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -44,7 +46,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	switch applicationType {
 
 	case "helm":
-		defaultRelease := r.DefaultHelmRelease(constants.HelmChartPath)
+		defaultRelease := r.DefaultHelmRelease(localPath)
 		return r.resolveRelease(
 			ctx,
 			upstream,
@@ -52,6 +54,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			constants.HelmChartPath,
 			&defaultRelease,
 			applicationType,
+			true,
 		)
 
 	case "k8s":
@@ -63,6 +66,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			constants.KustomizeBasePath,
 			&defaultRelease,
 			applicationType,
+			false,
 		)
 
 	case "replicated.app":
@@ -139,6 +143,7 @@ func (r *Resolver) resolveRelease(
 	destPath string,
 	defaultSpec *api.Spec,
 	applicationType string,
+	keepOriginal bool,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
 
@@ -153,9 +158,18 @@ func (r *Resolver) resolveRelease(
 	if err != nil {
 		return nil, errors.Wrapf(err, "backup %s", destPath)
 	}
-	err = r.FS.Rename(localPath, destPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
+
+	if !keepOriginal {
+		err = r.FS.Rename(localPath, destPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "move %s to %s", localPath, destPath)
+		}
+	} else {
+		// instead of renaming, copy files from localPath to destPath
+		err = r.recursiveCopy(localPath, destPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
+		}
 	}
 
 	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath, applicationType)
@@ -198,4 +212,35 @@ func (r *Resolver) resolveRelease(
 	}
 
 	return release, nil
+}
+
+func (r *Resolver) recursiveCopy(sourceDir, destDir string) error {
+	err := r.FS.MkdirAll(destDir, os.FileMode(0777))
+	if err != nil {
+		return errors.Wrapf(err, "create dest dir %s", destDir)
+	}
+	srcFiles, err := r.FS.ReadDir(sourceDir)
+	if err != nil {
+		return errors.Wrapf(err, "")
+	}
+	for _, file := range srcFiles {
+		if file.IsDir() {
+			err = r.recursiveCopy(filepath.Join(sourceDir, file.Name()), filepath.Join(destDir, file.Name()))
+			if err != nil {
+				return errors.Wrapf(err, "copy dir %s", file.Name())
+			}
+		} else {
+			// is file
+			contents, err := r.FS.ReadFile(filepath.Join(sourceDir, file.Name()))
+			if err != nil {
+				return errors.Wrapf(err, "read file %s to copy", file.Name())
+			}
+
+			err = r.FS.WriteFile(filepath.Join(destDir, file.Name()), contents, file.Mode())
+			if err != nil {
+				return errors.Wrapf(err, "write file %s to copy", file.Name())
+			}
+		}
+	}
+	return nil
 }
