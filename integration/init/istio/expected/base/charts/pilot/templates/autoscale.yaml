@@ -1,0 +1,26 @@
+---
+# Source: istio/charts/pilot/templates/autoscale.yaml
+
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: istio-pilot
+  namespace: default
+  labels:
+    app: pilot
+    chart: pilot
+    heritage: Tiller
+    release: istio
+spec:
+  maxReplicas: 5
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: istio-pilot
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 80
+---

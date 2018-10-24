@@ -1,0 +1,21 @@
+---
+# Source: istio/charts/prometheus/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: default
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    app: prometheus
+    chart: prometheus
+    heritage: Tiller
+    release: istio
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - name: http-prometheus
+    protocol: TCP
+    port: 9090
