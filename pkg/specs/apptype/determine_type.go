@@ -98,9 +98,8 @@ func (r *inspector) determineTypeFromContents(
 	err error,
 ) {
 	debug := level.Debug(r.logger)
-	savePath := path.Join(constants.ShipPathInternalTmp, "tmp-repo")
 
-	finalPath, err := fetcher.GetFiles(ctx, upstream, savePath)
+	finalPath, err := fetcher.GetFiles(ctx, upstream, constants.RepoSavePath)
 	if err != nil {
 		if _, ok := err.(errors2.FetchFilesError); ok {
 			r.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
@@ -113,7 +112,7 @@ func (r *inspector) determineTypeFromContents(
 				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
 				time.Sleep(time.Second * 5)
-				finalPath, retryError = fetcher.GetFiles(ctx, upstream, savePath)
+				finalPath, retryError = fetcher.GetFiles(ctx, upstream, constants.RepoSavePath)
 
 				if retryError != nil {
 					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
@@ -135,7 +134,6 @@ func (r *inspector) determineTypeFromContents(
 	isChart, err := r.fs.Exists(path.Join(finalPath, "Chart.yaml"))
 	if err != nil {
 		isChart = false
-		// return "", "", errors.Wrap(err, "check for Chart.yaml")
 	}
 	debug.Log("event", "isChart.check", "isChart", isChart)
 

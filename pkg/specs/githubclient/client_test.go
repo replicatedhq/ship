@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -144,7 +145,7 @@ var _ = Describe("GithubClient", func() {
 				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				chart, err := gitClient.fs.ReadFile(dest)
+				chart, err := gitClient.fs.ReadFile(filepath.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("bar"))
@@ -163,7 +164,7 @@ var _ = Describe("GithubClient", func() {
 
 				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.fs.ReadFile(dest)
+				chart, err := gitClient.fs.ReadFile(filepath.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("service"))

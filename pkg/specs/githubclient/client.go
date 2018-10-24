@@ -66,7 +66,12 @@ func (g *GithubClient) GetFiles(
 		return "", errors.Wrap(err, "remove chart clone destination")
 	}
 
-	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, "", destinationPath)
+	downloadBasePath := ""
+	if filepath.Ext(repoPath) != "" {
+		downloadBasePath = repoPath
+		repoPath = ""
+	}
+	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, downloadBasePath, destinationPath)
 	if err != nil {
 		return "", errors2.FetchFilesError{Message: err.Error()}
 	}
