@@ -4,13 +4,13 @@ assets:
         dest: ./terraform/random.tf
         inline: |
           resource "local_file" "foo" {
-            content     = "foo!"
+            content     = "{{repl ConfigOption "id_length" }}"
             filename = "/tmp/foo.bar"
           }
     - terraform:
         inline: |
           resource "local_file" "foo" {
-            content     = "foo!"
+            content     = "{{repl ConfigOption "id_length" }}"
             filename = "/tmp/foo.bar"
           }
 
