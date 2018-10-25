@@ -130,6 +130,19 @@ func (r *inspector) determineTypeFromContents(
 		}
 	}
 
+	// if there's a ship.yaml, assume its a replicated.app
+	var isReplicatedApp bool
+	for _, filename := range []string{"ship.yaml", "ship.yml"} {
+		isReplicatedApp, err = r.fs.Exists(path.Join(finalPath, filename))
+		if err != nil {
+			return "", "", errors.Wrapf(err, "check for %s", filename)
+		}
+	}
+
+	if isReplicatedApp {
+		return "inline.replicated.app", finalPath, nil
+	}
+
 	// if there's a Chart.yaml, assume its a chart
 	isChart, err := r.fs.Exists(path.Join(finalPath, "Chart.yaml"))
 	if err != nil {
