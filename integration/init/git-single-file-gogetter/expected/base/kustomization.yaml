@@ -1,0 +1,4 @@
+kind: ""
+apiversion: ""
+resources:
+- plain-k8s/frontend-deployment.yaml
