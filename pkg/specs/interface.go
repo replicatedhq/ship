@@ -23,8 +23,8 @@ import (
 //
 //   github.com/helm/charts/stable/nginx-ingress
 //   replicated.app/cool-ci-tool?customer_id=...&installation_id=...
-//   file:///home/bob/apps/ship.yaml
-//   file:///home/luke/my-charts/proton-torpedoes
+//   file::/home/bob/apps/ship.yaml
+//   file::/home/luke/my-charts/proton-torpedoes
 func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "ResolveRelease")
 	r.ui.Info(fmt.Sprintf("Reading %s ...", upstream))
@@ -76,6 +76,14 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
 		return r.AppResolver.ResolveAppRelease(ctx, selector)
+	case "inline.replicated.app":
+		return r.resolveInlineShipYAMLRelease(
+			ctx,
+			upstream,
+			localPath,
+			applicationType,
+		)
+
 	}
 
 	return nil, errors.Errorf("unknown application type %q for upstream %q", applicationType, upstream)
@@ -102,19 +110,12 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	// but in this case we only want to read the metadata without persisting anything to state,
 	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
 	switch appType {
-
 	case "helm":
-		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
-		if err != nil {
-			return "", errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
-		}
-
-		return metadata.ContentSHA, nil
-
 	case "k8s":
+	case "inline.replicated.app":
 		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
 		if err != nil {
-			return "", errors.Wrapf(err, "resolve metadata and content sha for %s", upstream)
+			return "", errors.Wrapf(err, "resolve metadata and content sha for %s %s", appType, upstream)
 		}
 		return metadata.ContentSHA, nil
 
@@ -184,7 +185,7 @@ func (r *Resolver) resolveRelease(
 	}
 
 	if spec == nil {
-		debug.Log("event", "no helm release")
+		debug.Log("event", "no ship.yaml for release")
 		r.ui.Info("ship.yaml not found in upstream, generating default lifecycle for application ...")
 		spec = defaultSpec
 	}
@@ -243,4 +244,41 @@ func (r *Resolver) recursiveCopy(sourceDir, destDir string) error {
 		}
 	}
 	return nil
+}
+
+func (r *Resolver) resolveInlineShipYAMLRelease(
+	ctx context.Context,
+	upstream,
+	localPath string,
+	applicationType string,
+) (*api.Release, error) {
+	debug := log.With(level.Debug(r.Logger), "method", "resolveInlineShipYAMLRelease")
+
+	metadata, err := r.resolveMetadata(context.Background(), upstream, localPath, applicationType)
+	if err != nil {
+		return nil, errors.Wrapf(err, "resolve metadata for %s", localPath)
+	}
+
+	debug.Log("event", "check upstream for ship.yaml")
+	spec, err := r.maybeGetShipYAML(ctx, localPath)
+	if err != nil || spec == nil {
+		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", localPath)
+	}
+
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			ShipAppMetadata: *metadata,
+		},
+		Spec: *spec,
+	}
+
+	releaseName := release.Metadata.ReleaseName()
+	debug.Log("event", "resolve.releaseName")
+
+	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
+		debug.Log("event", "serialize.releaseName.fail", "err", err)
+		return nil, errors.Wrapf(err, "serialize helm release name")
+	}
+
+	return release, nil
 }
