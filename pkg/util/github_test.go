@@ -205,6 +205,17 @@ func TestParseGithubURL(t *testing.T) {
 				Subdir: "pkg/specs",
 			},
 		},
+		{
+			name: "ship repo in pkg/specs/chart.go file at hash with www",
+			path: "https://www.github.com/replicatedhq/ship/blob/atestsha/pkg/specs/chart.go",
+			want: GithubURL{
+				Owner:  "replicatedhq",
+				Repo:   "ship",
+				Ref:    "atestsha",
+				Subdir: "pkg/specs/chart.go",
+				IsBlob: true,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

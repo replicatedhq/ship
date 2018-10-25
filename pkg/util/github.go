@@ -12,9 +12,11 @@ type GithubURL struct {
 	Repo   string
 	Ref    string
 	Subdir string
+	IsBlob bool
 }
 
 var githubTreeRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?=]+)/tree/([^/?=]+)/?(.*)$`)
+var githubBlobRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?=]+)/blob/([^/?=]+)/?(.*)$`)
 var githubRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?=]+)(/(.*))?$`)
 
 func ParseGithubURL(url string, defaultRef string) (GithubURL, error) {
@@ -25,6 +27,12 @@ func ParseGithubURL(url string, defaultRef string) (GithubURL, error) {
 		parsed.Repo = matches[2]
 		parsed.Ref = matches[3]
 		parsed.Subdir = matches[4]
+	} else if matches = githubBlobRegex.FindStringSubmatch(url); matches != nil && len(matches) == 5 {
+		parsed.Owner = matches[1]
+		parsed.Repo = matches[2]
+		parsed.Ref = matches[3]
+		parsed.Subdir = matches[4]
+		parsed.IsBlob = true
 	} else if matches = githubRegex.FindStringSubmatch(url); matches != nil && len(matches) == 5 {
 		parsed.Owner = matches[1]
 		parsed.Repo = matches[2]

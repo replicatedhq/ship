@@ -47,6 +47,7 @@ func TestUntreeGithub(t *testing.T) {
 		path   string
 		want   string
 		subdir string
+		blob   bool
 	}{
 		{
 			name: "empty",
@@ -124,11 +125,18 @@ func TestUntreeGithub(t *testing.T) {
 			want:   "github.com/replicatedhq/ship?ref=master//",
 			subdir: "pkg/specs",
 		},
+		{
+			name:   "ship repo in pkg/specs dir at hash with www",
+			path:   "https://www.github.com/replicatedhq/ship/blob/atestsha/pkg/specs/chart.go",
+			want:   "github.com/replicatedhq/ship?ref=atestsha//",
+			subdir: "pkg/specs/chart.go",
+			blob:   true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, subdir := UntreeGithub(tt.path); got != tt.want || subdir != tt.subdir {
-				t.Errorf("untreeGithub(%s) = %v, %v, want %v, %v", tt.path, got, subdir, tt.want, tt.subdir)
+			if got, subdir, blob := UntreeGithub(tt.path); got != tt.want || subdir != tt.subdir || blob != tt.blob {
+				t.Errorf("untreeGithub(%s) = %v, %v, %t want %v, %v, %t", tt.path, got, subdir, blob, tt.want, tt.subdir, tt.blob)
 			}
 		})
 	}

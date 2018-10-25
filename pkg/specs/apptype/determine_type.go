@@ -78,10 +78,10 @@ func (r *inspector) DetermineApplicationType(
 		return r.determineTypeFromContents(ctx, upstream, githubClient)
 	}
 
-	upstream, subdir := gogetter.UntreeGithub(upstream)
+	upstream, subdir, isSingleFile := gogetter.UntreeGithub(upstream)
 	if gogetter.IsGoGettable(upstream) {
 		// get with go-getter
-		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs, Subdir: subdir}
+		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs, Subdir: subdir, IsSingleFile: isSingleFile}
 		return r.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
