@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -67,16 +68,16 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetFiles(context.Background(), validGitURLWithPrefix, constants.HelmChartPath)
+				dest, err := gitClient.GetFiles(context.Background(), validGitURLWithPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				readme, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "README.md"))
+				readme, err := gitClient.fs.ReadFile(path.Join(dest, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "Chart.yaml"))
+				chart, err := gitClient.fs.ReadFile(path.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
-				deployment, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "deployment.yml"))
+				deployment, err := gitClient.fs.ReadFile(path.Join(dest, "templates", "deployment.yml"))
 				Expect(err).NotTo(HaveOccurred())
-				service, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "service.yml"))
+				service, err := gitClient.fs.ReadFile(path.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(readme)).To(Equal("foo"))
@@ -96,16 +97,16 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetFiles(context.Background(), validGitURLWithoutPrefix, constants.HelmChartPath)
+				dest, err := gitClient.GetFiles(context.Background(), validGitURLWithoutPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				readme, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "README.md"))
+				readme, err := gitClient.fs.ReadFile(path.Join(dest, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "Chart.yaml"))
+				chart, err := gitClient.fs.ReadFile(path.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
-				deployment, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "deployment.yml"))
+				deployment, err := gitClient.fs.ReadFile(path.Join(dest, "templates", "deployment.yml"))
 				Expect(err).NotTo(HaveOccurred())
-				service, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "service.yml"))
+				service, err := gitClient.fs.ReadFile(path.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(readme)).To(Equal("foo"))
@@ -125,7 +126,7 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetFiles(context.Background(), nonGithubURL, constants.HelmChartPath)
+				_, err := gitClient.GetFiles(context.Background(), nonGithubURL, constants.HelmChartPath)
 				Expect(err).NotTo(BeNil())
 				Expect(err.Error()).To(Equal("http://gitlab.com/o/r is not a Github URL"))
 			})
@@ -141,10 +142,10 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
+				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "Chart.yaml"))
+				chart, err := gitClient.fs.ReadFile(filepath.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("bar"))
@@ -161,9 +162,9 @@ var _ = Describe("GithubClient", func() {
 					logger: log.NewNopLogger(),
 				}
 
-				err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
+				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.fs.ReadFile(path.Join(constants.HelmChartPath, "templates", "service.yml"))
+				chart, err := gitClient.fs.ReadFile(filepath.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("service"))

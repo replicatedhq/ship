@@ -2,7 +2,9 @@ package specs
 
 import (
 	"context"
+	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -94,7 +96,7 @@ icon: https://kfbr.392/x5.png
 
 			},
 			expectRelease: &api.Release{
-				Spec: viperResolver.DefaultHelmRelease(".ship/tmp/chart"),
+				Spec: viperResolver.DefaultHelmRelease("fake-tmp"),
 				Metadata: api.ReleaseMetadata{
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:      "0.1.0",
@@ -288,6 +290,129 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 			sha, err := r.ReadContentSHAForWatch(ctx, test.upstream)
 			req.NoError(err)
 			req.Equal(test.expectSHA, sha)
+		})
+	}
+}
+
+func TestResolver_recursiveCopy(t *testing.T) {
+	type fileStruct struct {
+		name string
+		data string
+	}
+
+	tests := []struct {
+		name        string
+		fromPath    string
+		destPath    string
+		wantErr     bool
+		inputFiles  []fileStruct
+		outputFiles []fileStruct
+	}{
+		{
+			name:     "one file",
+			fromPath: "/test",
+			destPath: "/dest",
+			wantErr:  false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+				{
+					name: "/dest/main.yml",
+					data: `filedata`,
+				},
+			},
+		},
+		{
+			name:     "two files, nested dirs",
+			fromPath: "/test",
+			destPath: "/dest",
+			wantErr:  false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+				{
+					name: "/test/a/test/dir/file.txt",
+					data: `nested`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+				{
+					name: "/test/a/test/dir/file.txt",
+					data: `nested`,
+				},
+				{
+					name: "/dest/main.yml",
+					data: `filedata`,
+				},
+				{
+					name: "/dest/a/test/dir/file.txt",
+					data: `nested`,
+				},
+			},
+		},
+		{
+			name:     "src does not exist, other files undisturbed",
+			fromPath: "/src",
+			destPath: "/dest",
+			wantErr:  false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/main.yml",
+					data: `filedata`,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			// setup input FS
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			req.NoError(mockFs.MkdirAll(tt.fromPath, os.FileMode(0644)))
+			for _, inFile := range tt.inputFiles {
+				req.NoError(mockFs.MkdirAll(filepath.Dir(inFile.name), os.FileMode(0644)))
+				req.NoError(mockFs.WriteFile(inFile.name, []byte(inFile.data), os.FileMode(0644)))
+			}
+
+			r := Resolver{
+				FS:     mockFs,
+				Logger: log.NewNopLogger(),
+			}
+
+			// run copy function
+			if err := r.recursiveCopy(tt.fromPath, tt.destPath); (err != nil) != tt.wantErr {
+				t.Errorf("Resolver.recursiveCopy() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			// compare output FS
+			// this doesn't validate that there aren't extra files produced, but that shouldn't be a problem
+			for _, outFile := range tt.outputFiles {
+				fileBytes, err := mockFs.ReadFile(outFile.name)
+				req.NoError(err, "reading output file %s", outFile.name)
+
+				req.Equal(outFile.data, string(fileBytes), "compare file %s", outFile.name)
+			}
 		})
 	}
 }

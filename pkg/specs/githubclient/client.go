@@ -45,33 +45,38 @@ func (g *GithubClient) GetFiles(
 	ctx context.Context,
 	upstream string,
 	destinationPath string,
-) error {
+) (string, error) {
 	debug := level.Debug(log.With(g.logger, "method", "getRepoContents"))
 
 	debug.Log("event", "validateGithubURL")
 	validatedUpstreamURL, err := validateGithubURL(upstream)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	debug.Log("event", "decodeGithubURL")
 	owner, repo, branch, repoPath, err := decodeGitHubURL(validatedUpstreamURL.Path)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	debug.Log("event", "removeAll", "destinationPath", destinationPath)
 	err = g.fs.RemoveAll(destinationPath)
 	if err != nil {
-		return errors.Wrap(err, "remove chart clone destination")
+		return "", errors.Wrap(err, "remove chart clone destination")
 	}
 
-	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, repoPath, destinationPath)
+	downloadBasePath := ""
+	if filepath.Ext(repoPath) != "" {
+		downloadBasePath = repoPath
+		repoPath = ""
+	}
+	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, downloadBasePath, destinationPath)
 	if err != nil {
-		return errors2.FetchFilesError{Message: err.Error()}
+		return "", errors2.FetchFilesError{Message: err.Error()}
 	}
 
-	return nil
+	return filepath.Join(destinationPath, repoPath), nil
 }
 
 func (g *GithubClient) downloadAndExtractFiles(
