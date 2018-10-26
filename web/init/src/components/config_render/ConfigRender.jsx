@@ -1,5 +1,6 @@
 import React from "react";
 import keyBy from "lodash/keyBy";
+import debounce from "lodash/debounce";
 import _ from "lodash";
 
 import ConfigGroups from "./ConfigGroups";
@@ -12,6 +13,7 @@ export default class ConfigRender extends React.Component {
     this.state= {
       groups: this.props.fields
     }
+    this.triggerChange = debounce(this.triggerChange, 300);
   }
 
   triggerChange = (data) => {
