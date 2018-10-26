@@ -16,8 +16,7 @@ import (
 // files and directories with non-deterministic output
 var skipFiles = []string{
 	"installer/terraform/.terraform/plugins",
-	"installer/terraform/plan",
-	"installer/terraform/terraform.tfstate",
+	"installer/terraform/plan.tfplan",
 	"installer/charts/rendered/secrets.yaml",
 }
 

@@ -4,10 +4,11 @@
 # used in circle
 set -ex
 
-TERRAFORM_VERSION="0.11.7"
-TERRAFORM_URL="https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip"
-TERRAFORM_ZIP="terraform_0.11.7_linux_amd64.zip"
-TERRAFORM_SHA256SUM="6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418"
+TERRAFORM_VERSION=0.11.10
+TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+TERRAFORM_SHA256SUM=43543a0e56e31b0952ea3623521917e060f2718ab06fe2b2d506cfaa14d54527
+
 KUBECTL_VERSION=v1.11.1
 KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 KUBECTL_SHA256SUM=d16a4e7bfe0033ea5f56f8d11e74f7a2dec5ff8832a046a643c8355b79b4ba5c

@@ -3,13 +3,15 @@ assets:
     - terraform:
         dest: ./terraform/random.tf
         inline: |
-          resource "random_id" "server" {
-            byte_length = {{repl ConfigOption "id_length" | ParseInt}}
+          resource "local_file" "foo" {
+            content     = "{{repl ConfigOption "id_length" }}"
+            filename = "/tmp/foo.bar"
           }
     - terraform:
         inline: |
-          resource "random_id" "server" {
-            byte_length = {{repl ConfigOption "id_length" | ParseInt}}
+          resource "local_file" "foo" {
+            content     = "{{repl ConfigOption "id_length" }}"
+            filename = "/tmp/foo.bar"
           }
 
 config:

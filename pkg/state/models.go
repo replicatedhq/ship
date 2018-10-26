@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/replicatedhq/ship/pkg/api"
 )
 
@@ -58,7 +59,7 @@ func (v VersionedState) IsEmpty() bool {
 
 type V1 struct {
 	Config             map[string]interface{} `json:"config" yaml:"config" hcl:"config"`
-	Terraform          interface{}            `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
+	Terraform          *Terraform             `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	HelmValues         string                 `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
 	ReleaseName        string                 `json:"releaseName,omitempty" yaml:"releaseName,omitempty" hcl:"releaseName,omitempty"`
 	HelmValuesDefaults string                 `json:"helmValuesDefaults,omitempty" yaml:"helmValuesDefaults,omitempty" hcl:"helmValuesDefaults,omitempty"`
@@ -174,6 +175,11 @@ func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents strin
 		}
 	}
 	return
+}
+
+type Terraform struct {
+	RawState string           `json:"rawState,omitempty" yaml:"rawState,omitempty" hcl:"rawState,omitempty"`
+	State    *terraform.State `json:"state,omitempty" yaml:"state,omitempty" hcl:"state,omitempty"`
 }
 
 func (v VersionedState) CurrentConfig() map[string]interface{} {

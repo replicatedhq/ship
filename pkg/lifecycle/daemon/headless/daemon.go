@@ -104,6 +104,7 @@ func (d *HeadlessDaemon) TerraformConfirmedChan() chan bool {
 	ch := make(chan bool, 1)
 
 	if !d.YesApplyTerraform {
+		level.Info(d.Logger).Log("event", "terraform.skip", "detail", "skipping running terraform because --terraform-apply-yes was not set")
 		ch <- false
 		return ch
 	}
