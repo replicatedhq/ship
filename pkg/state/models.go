@@ -82,6 +82,16 @@ type Metadata struct {
 	Version         string `json:"version" yaml:"version" hcl:"version"`
 	CustomerID      string `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
 	InstallationID  string `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
+	Lists           []List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
+}
+
+type List struct {
+	Path  string     `json:"path" yaml:"path"`
+	Items []ListItem `json:"items" yaml:"items"`
+}
+
+type ListItem struct {
+	Path string `json:"path" yaml:"path"`
 }
 
 type StepsCompleted map[string]interface{}

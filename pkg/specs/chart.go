@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/replicatedhq/ship/pkg/state"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -297,19 +299,19 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
 }
 
+type minimalK8sYaml struct {
+	Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
+	Metadata struct {
+		Name      string `json:"name" yaml:"name" hcl:"name"`
+		Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
+	}
+}
+
 // this function is not perfect, and has known limitations. One of these is that it does not account for `\n---\n` in multiline strings.
 func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string) error {
 	type outputYaml struct {
 		name     string
 		contents string
-	}
-
-	type minimalK8sYaml struct {
-		Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
-		Metadata struct {
-			Name      string `json:"name" yaml:"name" hcl:"name"`
-			Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
-		}
 	}
 
 	files, err := r.FS.ReadDir(localPath)
@@ -386,6 +388,83 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 		if err != nil {
 			return errors.Wrapf(err, "write %s", outputFile.name)
 		}
+	}
+
+	return nil
+}
+
+func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
+	type listK8sYaml struct {
+		Kind  string        `json:"kind" yaml:"kind" hcl:"kind"`
+		Items []interface{} `json:"items" yaml:"items"`
+	}
+
+	files, err := r.FS.ReadDir(path)
+	if err != nil {
+		return errors.Wrapf(err, "read files in %s", path)
+	}
+
+	var lists []state.List
+	for _, file := range files {
+		filePath := filepath.Join(path, file.Name())
+
+		if file.IsDir() {
+			// oh man we're going to have to check this dir
+		}
+
+		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+			// not yaml, nothing to do
+			return nil
+		}
+
+		fileB, err := r.FS.ReadFile(filePath)
+		if err != nil {
+			return errors.Wrapf(err, "read %s", filePath)
+		}
+
+		k8sYaml := listK8sYaml{}
+		if err := yaml.Unmarshal(fileB, &k8sYaml); err != nil {
+			return errors.Wrapf(err, "unmarshal %s", filePath)
+		}
+
+		if k8sYaml.Kind == "List" {
+			listItems := make([]state.ListItem, 0)
+			for idx, item := range k8sYaml.Items {
+				itemK8sYaml := minimalK8sYaml{}
+				itemB, err := yaml.Marshal(item)
+				if err != nil {
+					return errors.Wrapf(err, "marshal item %d from %s", idx, filePath)
+				}
+
+				if err := yaml.Unmarshal(itemB, &itemK8sYaml); err != nil {
+					return errors.Wrap(err, "unmarshal item")
+				}
+
+				fileName := fmt.Sprintf("%s-%d", itemK8sYaml.Metadata.Name, idx)
+				if err := r.FS.WriteFile(filepath.Join(path, fileName+".yaml"), []byte(itemB), os.FileMode(0644)); err != nil {
+					return errors.Wrap(err, "write yaml")
+				}
+
+				listItem := state.ListItem{
+					Path: filepath.Join(path, fileName+".yaml"),
+				}
+
+				listItems = append(listItems, listItem)
+			}
+			list := state.List{
+				Path:  filePath,
+				Items: listItems,
+			}
+			lists = append(lists, list)
+
+			if err := r.FS.Remove(filePath); err != nil {
+				return errors.Wrapf(err, "remove k8s list %s", filePath)
+			}
+		}
+	}
+
+	if err := r.StateManager.SerializeListsMetadata(lists); err != nil {
+		return errors.Wrapf(err, "serialize list metadata")
 	}
 
 	return nil
