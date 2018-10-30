@@ -394,7 +394,7 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 		filePath := filepath.Join(path, file.Name())
 
 		if file.IsDir() {
-			// oh man we're going to have to check this dir
+			// TODO: Not handling nested list yamls
 		}
 
 		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {

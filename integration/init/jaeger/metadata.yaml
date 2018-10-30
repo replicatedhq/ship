@@ -1,0 +1,3 @@
+upstream: "https://github.com/jaegertracing/jaeger-kubernetes/blob/59e7afcae7b2f3bc109695cfda2a5c116cea4391/jaeger-production-template.yml"
+args: []
+skip_cleanup: false

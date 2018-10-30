@@ -1,0 +1,9 @@
+kind: ""
+apiversion: ""
+resources:
+- DaemonSet-jaeger-agent.yaml
+- Deployment-jaeger-collector.yaml
+- Deployment-jaeger-query.yaml
+- Service-jaeger-collector.yaml
+- Service-jaeger-query.yaml
+- Service-zipkin.yaml

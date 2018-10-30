@@ -143,13 +143,18 @@ func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize) error {
 	}
 
 	debug.Log("event", "try load state")
-	state, err := l.State.TryLoad()
+	currentState, err := l.State.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
 
+	lists := make([]state.List, 0)
+	if currentState.Versioned().V1.Metadata != nil {
+		lists = currentState.Versioned().V1.Metadata.Lists
+	}
+
 	var fullReconstructedRendered string
-	for _, list := range state.Versioned().V1.Metadata.Lists {
+	for _, list := range lists {
 		var allListItems []interface{}
 		for _, item := range list.Items {
 			if full, exists := yamlMap[item]; exists {
