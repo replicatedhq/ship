@@ -218,7 +218,8 @@ export default class ConfigOnly extends React.Component {
                 }
               </div>
               <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                <button type="button" disabled={!toastDetails.showToast} onClick={toastDetails.opts.confirmAction} className="btn primary">Continue to next step</button>
               </div>
             </div>
           </div>
