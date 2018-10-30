@@ -92,11 +92,13 @@ type List struct {
 }
 
 type MinimalK8sYaml struct {
-	Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
-	Metadata struct {
-		Name      string `json:"name" yaml:"name" hcl:"name"`
-		Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" hcl:"namespace,omitempty"`
-	}
+	Kind     string             `json:"kind" yaml:"kind" hcl:"kind"`
+	Metadata minimalK8sMetadata `json:"metadata" yaml:"metadata" hcl:"metadata"`
+}
+
+type minimalK8sMetadata struct {
+	Name      string `json:"name" yaml:"name" hcl:"name"`
+	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" hcl:"namespace,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}

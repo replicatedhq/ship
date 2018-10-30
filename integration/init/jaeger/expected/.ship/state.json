@@ -14,37 +14,37 @@
           "items": [
             {
               "kind": "Deployment",
-              "Metadata": {
+              "metadata": {
                 "name": "jaeger-collector"
               }
             },
             {
               "kind": "Service",
-              "Metadata": {
+              "metadata": {
                 "name": "jaeger-collector"
               }
             },
             {
               "kind": "Service",
-              "Metadata": {
+              "metadata": {
                 "name": "zipkin"
               }
             },
             {
               "kind": "Deployment",
-              "Metadata": {
+              "metadata": {
                 "name": "jaeger-query"
               }
             },
             {
               "kind": "Service",
-              "Metadata": {
+              "metadata": {
                 "name": "jaeger-query"
               }
             },
             {
               "kind": "DaemonSet",
-              "Metadata": {
+              "metadata": {
                 "name": "jaeger-agent"
               }
             }

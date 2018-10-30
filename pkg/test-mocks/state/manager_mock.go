@@ -131,6 +131,18 @@ func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0, arg1)
 }
 
+// SerializeListsMetadata mocks base method
+func (m *MockManager) SerializeListsMetadata(arg0 []state.List) error {
+	ret := m.ctrl.Call(m, "SerializeListsMetadata", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeListsMetadata indicates an expected call of SerializeListsMetadata
+func (mr *MockManagerMockRecorder) SerializeListsMetadata(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeListsMetadata", reflect.TypeOf((*MockManager)(nil).SerializeListsMetadata), arg0)
+}
+
 // SerializeReleaseName mocks base method
 func (m *MockManager) SerializeReleaseName(arg0 string) error {
 	ret := m.ctrl.Call(m, "SerializeReleaseName", arg0)
