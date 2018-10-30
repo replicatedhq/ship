@@ -15,11 +15,6 @@ export default class Toast extends React.Component {
             {toast.subText && <div className="Toast-sub">{toast.subText}</div>}
           </div>
         </div>
-        <div className="flex-auto flex-column flex-verticalCenter">
-          <div className="flex">
-            <button onClick={toast.opts.confirmAction} className="btn primary">{toast.opts.confirmButtonText}</button>
-          </div>
-        </div>
       </div>
     );
   }
