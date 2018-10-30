@@ -9,9 +9,9 @@ brew:
     name: homebrew-ship
   folder: Formula
   homepage: https://ship.replicated.com/
-  description: Deploy 3rd party applications through modern pipelines.
+  description: Deploy 3rd party applications through modern pipelines
   test: |
-    system "#{bin}/ship version"
+    system "#{bin}/ship", "version"
 builds:
 - goos:
   - linux

@@ -8,6 +8,7 @@ import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
 import keyBy from "lodash/keyBy";
 import find from "lodash/find";
+import map from "lodash/map";
 import defaultTo from "lodash/defaultTo";
 import debounce from "lodash/debounce";
 
@@ -109,8 +110,10 @@ export default class KustomizeOverlay extends React.Component {
     const { selectedFile } = this.state;
     let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
-    file = yaml.safeLoad(file.baseContent)
-    const overlayFields = pick(file, "apiVersion", "kind", "metadata.name");
+    const files = yaml.safeLoadAll(file.baseContent);
+    const overlayFields = map(files, (file) => {
+      return pick(file, "apiVersion", "kind", "metadata.name")
+    });
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ patch: `--- \n${overlay}` });
   }
