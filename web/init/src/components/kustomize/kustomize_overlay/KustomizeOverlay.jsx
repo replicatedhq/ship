@@ -37,7 +37,8 @@ export default class KustomizeOverlay extends React.Component {
       displayConfirmModal: false,
       overlayToDelete: "",
       addingNewResource: false,
-      newResourceName: ""
+      newResourceName: "",
+      lastSavedPatch: null
     };
     this.addResourceWrapper = React.createRef();
     this.addResourceInput = React.createRef();
@@ -67,7 +68,10 @@ export default class KustomizeOverlay extends React.Component {
       this.aceEditorOverlay.editor.resize();
     }
     if (this.props.patch !== lastProps.patch) {
-      this.setState({ patch: this.props.patch });
+      this.setState({
+        lastSavedPatch: this.state.lastSavedPatch !== null ? this.state.lastSavedPatch : this.props.patch,
+        patch: this.props.patch
+      });
     }
   }
 
@@ -115,13 +119,18 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   setSelectedFile = async (path) => {
-    this.setState({ selectedFile: path });
-    await this.props.getFileContent(path).then(() => {
-      // set state with new file content
-      this.setState({
-        fileContents: keyBy(this.props.fileContents, "key"),
+    const { lastSavedPatch, patch } = this.state;
+
+    let canChangeFile = !lastSavedPatch || patch === lastSavedPatch || confirm("You have unsaved changes in the patch. If you proceed, you will lose any of the changes you've made.");
+    if (canChangeFile) {
+      this.setState({ selectedFile: path, lastSavedPatch: null });
+      await this.props.getFileContent(path).then(() => {
+        // set state with new file content
+        this.setState({
+          fileContents: keyBy(this.props.fileContents, "key"),
+        });
       });
-    });
+    }
   }
 
   handleFinalize = async () => {
@@ -158,7 +167,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   deleteOverlay = async (path) => {
-    const { fileContents, fileTree } = this.state;
+    const { fileTree } = this.state;
     const resources = find(fileTree, { name: "resources" });
     const isResource = resources && !!find(resources.children, { path });
     await this.props.deleteOverlay(path, isResource);
@@ -176,8 +185,12 @@ export default class KustomizeOverlay extends React.Component {
       isResource
     };
 
-    if(!isResource) await this.handleApplyPatch();
-    await this.props.saveKustomizeOverlay(payload).catch();
+    if (!isResource) await this.handleApplyPatch();
+    await this.props.saveKustomizeOverlay(payload)
+      .then(() => {
+        this.setState({ lastSavedPatch: null });
+      })
+      .catch();
     await this.props.getCurrentStep();
     if (finalize) {
       this.setState({ savingFinalize: true, addingNewResource: false });
@@ -197,17 +210,18 @@ export default class KustomizeOverlay extends React.Component {
     };
 
     await this.props.saveKustomizeOverlay(payload)
-    .then(() => {
-      this.setSelectedFile(`/${newResourceName}`);
-      this.setState({ addingNewResource: false, newResourceName: "" })
-    })
-    .catch();
+      .then(() => {
+        this.setSelectedFile(`/${newResourceName}`);
+        this.setState({ addingNewResource: false, newResourceName: "" })
+      })
+      .catch();
     await this.props.getCurrentStep();
   }
 
   handleGeneratePatch = async (path) => {
     const current = this.aceEditorOverlay.editor.getValue();
     const { selectedFile, fileTreeBasePath } = this.state;
+    this.setState({ lastSavedPatch: null })
     const payload = {
       original: selectedFile,
       current,
@@ -244,7 +258,7 @@ export default class KustomizeOverlay extends React.Component {
     // We already circumvent React's lifecycle state system for updates
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
-    if(!isResource) {
+    if (!isResource) {
       this.state.patch = patch; // eslint-disable-line
       this.handleApplyPatch();
     }
@@ -266,13 +280,13 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   handleCreateNewResource = (e) => {
-    if(e.charCode === 13) {
+    if (e.charCode === 13) {
       this.handleCreateResource()
     }
   }
 
   render() {
-    const { dataLoading } = this.props;
+    const { dataLoading, modified } = this.props;
     const {
       fileTree,
       selectedFile,
@@ -296,10 +310,10 @@ export default class KustomizeOverlay extends React.Component {
               <div className="flex-column flex1">
                 <div className="flex1 dirtree-wrapper flex-column u-overflow-hidden u-background--biscay">
                   {fileTree.map((tree, i) => (
-                    <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border": "flex-0-auto"}`} key={i}>
+                    <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
                       <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
                       <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
-                      <FileTree
+                      < FileTree
                         files={tree.children}
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
@@ -311,17 +325,17 @@ export default class KustomizeOverlay extends React.Component {
                     </div>
                   ))}
                   <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
-                    <input 
+                    <input
                       type="text"
-                      className={`Input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`} 
-                      name="new-resource" 
-                      placeholder="filename.yaml" 
-                      onChange={(e) => { this.setState({ newResourceName: e.target.value }) }} 
+                      className={`Input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
+                      name="new-resource"
+                      placeholder="filename.yaml"
+                      onChange={(e) => { this.setState({ newResourceName: e.target.value }) }}
                       onKeyPress={(e) => { this.handleCreateNewResource(e) }}
                       value={newResourceName}
                       ref={this.addResourceInput}
                     />
-                    <p 
+                    <p
                       className={`add-resource-link u-position--absolute u-marginTop--small u-marginLeft--normal u-cursor--pointer u-fontSize--small u-color--silverSand u-fontWeight--bold ${addingNewResource ? "u-visibility--hidden" : ""}`}
                       onClick={this.handleAddResourceClick}
                     >+ Add Resource
@@ -349,12 +363,12 @@ export default class KustomizeOverlay extends React.Component {
                             <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">Base YAML</p>
                             <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">Select a file to be used as the base YAML. You can then click the edit icon on the top right to create a patch for that file.</p>
                           </div>
-                          { selectedFile !== "" ?
+                          {selectedFile !== "" ?
                             <div className="flex1 file-contents-wrapper AceEditor--wrapper">
                               {!showOverlay &&
-                              <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
-                                <span className="icon clickable u-overlayCreateIcon"></span>
-                              </div>
+                                <div data-tip="create-overlay-tooltip" data-for="create-overlay-tooltip" className="overlay-toggle u-cursor--pointer" onClick={this.createOverlay}>
+                                  <span className="icon clickable u-overlayCreateIcon"></span>
+                                </div>
                               }
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create patch</ReactTooltip>
                               <AceEditorHOC
@@ -381,7 +395,7 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span> : null }
+                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span> : null}
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard patch</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
@@ -431,11 +445,11 @@ export default class KustomizeOverlay extends React.Component {
                     <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                     :
                     <div className="flex">
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch"  : "Save patch"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch" : "Save patch"}</button>
                       {patch === "" ?
                         <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                         :
-                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlay"  : "Save & continue"}</button>
+                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlay" : "Save & continue"}</button>
                       }
                     </div>
                   }
@@ -463,7 +477,6 @@ export default class KustomizeOverlay extends React.Component {
               <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard patch</button>
             </div>
           </div>
-
         </Modal>
       </div>
     );
