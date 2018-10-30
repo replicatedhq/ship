@@ -378,7 +378,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 }
 
 type ListK8sYaml struct {
-	ApiVersion string        `json:"apiVersion" yaml:"apiVersion"`
+	APIVersion string        `json:"apiVersion" yaml:"apiVersion"`
 	Kind       string        `json:"kind" yaml:"kind" hcl:"kind"`
 	Items      []interface{} `json:"items" yaml:"items"`
 }
@@ -433,7 +433,7 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 				listItems = append(listItems, itemK8sYaml)
 			}
 			list := state.List{
-				ApiVersion: k8sYaml.ApiVersion,
+				APIVersion: k8sYaml.APIVersion,
 				Path:       filePath,
 				Items:      listItems,
 			}

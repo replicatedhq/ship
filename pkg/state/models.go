@@ -86,7 +86,7 @@ type Metadata struct {
 }
 
 type List struct {
-	ApiVersion string           `json:"apiVersion" yaml:"apiVersion"`
+	APIVersion string           `json:"apiVersion" yaml:"apiVersion"`
 	Path       string           `json:"path" yaml:"path"`
 	Items      []MinimalK8sYaml `json:"items" yaml:"items"`
 }

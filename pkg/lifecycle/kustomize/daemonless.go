@@ -165,7 +165,7 @@ func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize, lists []state.List
 		}
 
 		reconstructed := specs.ListK8sYaml{
-			ApiVersion: list.ApiVersion,
+			APIVersion: list.APIVersion,
 			Kind:       "List",
 			Items:      allListItems,
 		}
