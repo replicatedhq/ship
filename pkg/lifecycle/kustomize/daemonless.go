@@ -96,9 +96,21 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 			return errors.Wrap(err, "build overlay")
 		}
 
-		debug.Log("event", "kustomize.rebuildListYaml")
-		if err := l.rebuildListYaml(step); err != nil {
-			return errors.Wrap(err, "rebuild list yaml")
+		debug.Log("event", "try load state")
+		currentState, err := l.State.TryLoad()
+		if err != nil {
+			return errors.Wrap(err, "try load state")
+		}
+
+		if currentState.Versioned().V1.Metadata != nil {
+			lists := currentState.Versioned().V1.Metadata.Lists
+			if len(lists) > 0 {
+
+				debug.Log("event", "kustomize.rebuildListYaml")
+				if err := l.rebuildListYaml(step, lists); err != nil {
+					return errors.Wrap(err, "rebuild list yaml")
+				}
+			}
 		}
 	}
 
@@ -114,7 +126,7 @@ func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) err
 	return nil
 }
 
-func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize) error {
+func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize, lists []state.List) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "rebuildListYaml"))
 	yamlMap := make(map[state.MinimalK8sYaml]interface{})
 
@@ -140,17 +152,6 @@ func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize) error {
 		}
 
 		yamlMap[minimal] = fullYaml
-	}
-
-	debug.Log("event", "try load state")
-	currentState, err := l.State.TryLoad()
-	if err != nil {
-		return errors.Wrap(err, "try load state")
-	}
-
-	lists := make([]state.List, 0)
-	if currentState.Versioned().V1.Metadata != nil {
-		lists = currentState.Versioned().V1.Metadata.Lists
 	}
 
 	var fullReconstructedRendered string
