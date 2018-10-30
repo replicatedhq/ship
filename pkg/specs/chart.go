@@ -299,14 +299,6 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	return fmt.Sprintf("%x", sha256.Sum256(contents)), nil
 }
 
-type minimalK8sYaml struct {
-	Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
-	Metadata struct {
-		Name      string `json:"name" yaml:"name" hcl:"name"`
-		Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
-	}
-}
-
 // this function is not perfect, and has known limitations. One of these is that it does not account for `\n---\n` in multiline strings.
 func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string) error {
 	type outputYaml struct {
@@ -350,7 +342,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 
 		thisOutputFile := outputYaml{contents: fileString}
 
-		thisMetadata := minimalK8sYaml{}
+		thisMetadata := state.MinimalK8sYaml{}
 		_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 		if thisMetadata.Kind == "" {
@@ -358,15 +350,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 			continue
 		}
 
-		fileName := fmt.Sprintf("%s-%d", thisMetadata.Kind, idx)
-
-		if thisMetadata.Metadata.Name != "" {
-			fileName = thisMetadata.Kind + "-" + thisMetadata.Metadata.Name
-			if thisMetadata.Metadata.Namespace != "" && thisMetadata.Metadata.Namespace != "default" {
-				fileName += "-" + thisMetadata.Metadata.Namespace
-			}
-		}
-
+		fileName := generateNameFromMetadata(thisMetadata, idx)
 		thisOutputFile.name = fileName
 		outputFiles = append(outputFiles, thisOutputFile)
 	}
@@ -393,12 +377,13 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 	return nil
 }
 
-func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
-	type listK8sYaml struct {
-		Kind  string        `json:"kind" yaml:"kind" hcl:"kind"`
-		Items []interface{} `json:"items" yaml:"items"`
-	}
+type ListK8sYaml struct {
+	ApiVersion string        `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string        `json:"kind" yaml:"kind" hcl:"kind"`
+	Items      []interface{} `json:"items" yaml:"items"`
+}
 
+func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 	files, err := r.FS.ReadDir(path)
 	if err != nil {
 		return errors.Wrapf(err, "read files in %s", path)
@@ -422,15 +407,15 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 			return errors.Wrapf(err, "read %s", filePath)
 		}
 
-		k8sYaml := listK8sYaml{}
+		k8sYaml := ListK8sYaml{}
 		if err := yaml.Unmarshal(fileB, &k8sYaml); err != nil {
 			return errors.Wrapf(err, "unmarshal %s", filePath)
 		}
 
 		if k8sYaml.Kind == "List" {
-			listItems := make([]state.ListItem, 0)
+			listItems := make([]state.MinimalK8sYaml, 0)
 			for idx, item := range k8sYaml.Items {
-				itemK8sYaml := minimalK8sYaml{}
+				itemK8sYaml := state.MinimalK8sYaml{}
 				itemB, err := yaml.Marshal(item)
 				if err != nil {
 					return errors.Wrapf(err, "marshal item %d from %s", idx, filePath)
@@ -440,20 +425,17 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 					return errors.Wrap(err, "unmarshal item")
 				}
 
-				fileName := fmt.Sprintf("%s-%d", itemK8sYaml.Metadata.Name, idx)
+				fileName := generateNameFromMetadata(itemK8sYaml, idx)
 				if err := r.FS.WriteFile(filepath.Join(path, fileName+".yaml"), []byte(itemB), os.FileMode(0644)); err != nil {
 					return errors.Wrap(err, "write yaml")
 				}
 
-				listItem := state.ListItem{
-					Path: filepath.Join(path, fileName+".yaml"),
-				}
-
-				listItems = append(listItems, listItem)
+				listItems = append(listItems, itemK8sYaml)
 			}
 			list := state.List{
-				Path:  filePath,
-				Items: listItems,
+				ApiVersion: k8sYaml.ApiVersion,
+				Path:       filePath,
+				Items:      listItems,
 			}
 			lists = append(lists, list)
 
@@ -468,4 +450,17 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 	}
 
 	return nil
+}
+
+func generateNameFromMetadata(k8sYaml state.MinimalK8sYaml, idx int) string {
+	fileName := fmt.Sprintf("%s-%d", k8sYaml.Kind, idx)
+
+	if k8sYaml.Metadata.Name != "" {
+		fileName = k8sYaml.Kind + "-" + k8sYaml.Metadata.Name
+		if k8sYaml.Metadata.Namespace != "" && k8sYaml.Metadata.Namespace != "default" {
+			fileName += "-" + k8sYaml.Metadata.Namespace
+		}
+	}
+
+	return fileName
 }

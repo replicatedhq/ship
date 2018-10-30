@@ -2,6 +2,11 @@ package kustomize
 
 import (
 	"context"
+	"os"
+	"strings"
+
+	"github.com/replicatedhq/ship/pkg/specs"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -90,6 +95,11 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		if err != nil {
 			return errors.Wrap(err, "build overlay")
 		}
+
+		debug.Log("event", "kustomize.rebuildListYaml")
+		if err := l.rebuildListYaml(step); err != nil {
+			return errors.Wrap(err, "rebuild list yaml")
+		}
 	}
 
 	return nil
@@ -101,5 +111,89 @@ func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) err
 	}
 
 	fs.WriteFile(kustomize.Dest, builtYAML, 0644)
+	return nil
+}
+
+func (l *Kustomizer) rebuildListYaml(kustomize api.Kustomize) error {
+	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "rebuildListYaml"))
+	yamlMap := make(map[state.MinimalK8sYaml]interface{})
+
+	debug.Log("event", "read rendered yaml", "dest", kustomize.Dest)
+	renderedB, err := l.FS.ReadFile(kustomize.Dest)
+	if err != nil {
+		return errors.Wrap(err, "read kustomize rendered yaml")
+	}
+
+	files := strings.Split(string(renderedB), "\n---\n")
+	for _, file := range files {
+		var fullYaml interface{}
+
+		debug.Log("event", "unmarshal part of rendered")
+		if err := yaml.Unmarshal([]byte(file), &fullYaml); err != nil {
+			return errors.Wrap(err, "unmarshal part of rendered")
+		}
+
+		debug.Log("event", "unmarshal part of rendered to minimal")
+		minimal := state.MinimalK8sYaml{}
+		if err := yaml.Unmarshal([]byte(file), &minimal); err != nil {
+			return errors.Wrap(err, "unmarshal part of rendered to minimal")
+		}
+
+		yamlMap[minimal] = fullYaml
+	}
+
+	debug.Log("event", "try load state")
+	state, err := l.State.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+
+	var fullReconstructedRendered string
+	for _, list := range state.Versioned().V1.Metadata.Lists {
+		var allListItems []interface{}
+		for _, item := range list.Items {
+			if full, exists := yamlMap[item]; exists {
+				delete(yamlMap, item)
+				allListItems = append(allListItems, full)
+			}
+		}
+
+		reconstructed := specs.ListK8sYaml{
+			ApiVersion: list.ApiVersion,
+			Kind:       "List",
+			Items:      allListItems,
+		}
+
+		debug.Log("event", "marshal reconstructed")
+		reconstructedB, err := yaml.Marshal(reconstructed)
+		if err != nil {
+			return errors.Wrapf(err, "marshal reconstructed yaml %s", list.Path)
+		}
+
+		if fullReconstructedRendered != "" {
+			fullReconstructedRendered += "\n---\n"
+		}
+
+		fullReconstructedRendered += string(reconstructedB)
+	}
+
+	for _, nonListYaml := range yamlMap {
+		nonListYamlB, err := yaml.Marshal(nonListYaml)
+		if err != nil {
+			return errors.Wrapf(err, "marshal non list yaml")
+		}
+
+		if fullReconstructedRendered != "" {
+			fullReconstructedRendered += "\n---\n"
+		}
+
+		fullReconstructedRendered += string(nonListYamlB)
+	}
+
+	debug.Log("event", "write reconstructed", "dest", kustomize.Dest)
+	if err := l.FS.WriteFile(kustomize.Dest, []byte(fullReconstructedRendered), os.FileMode(0644)); err != nil {
+		return errors.Wrapf(err, "write reconstructed dest %s", kustomize.Dest)
+	}
+
 	return nil
 }

@@ -86,12 +86,17 @@ type Metadata struct {
 }
 
 type List struct {
-	Path  string     `json:"path" yaml:"path"`
-	Items []ListItem `json:"items" yaml:"items"`
+	ApiVersion string           `json:"apiVersion" yaml:"apiVersion"`
+	Path       string           `json:"path" yaml:"path"`
+	Items      []MinimalK8sYaml `json:"items" yaml:"items"`
 }
 
-type ListItem struct {
-	Path string `json:"path" yaml:"path"`
+type MinimalK8sYaml struct {
+	Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
+	Metadata struct {
+		Name      string `json:"name" yaml:"name" hcl:"name"`
+		Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" hcl:"namespace,omitempty"`
+	}
 }
 
 type StepsCompleted map[string]interface{}
