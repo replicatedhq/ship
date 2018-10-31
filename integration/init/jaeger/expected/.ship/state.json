@@ -15,37 +15,43 @@
             {
               "kind": "Deployment",
               "metadata": {
-                "name": "jaeger-collector"
+                "name": "jaeger-collector",
+                "namespace": ""
               }
             },
             {
               "kind": "Service",
               "metadata": {
-                "name": "jaeger-collector"
+                "name": "jaeger-collector",
+                "namespace": ""
               }
             },
             {
               "kind": "Service",
               "metadata": {
-                "name": "zipkin"
+                "name": "zipkin",
+                "namespace": ""
               }
             },
             {
               "kind": "Deployment",
               "metadata": {
-                "name": "jaeger-query"
+                "name": "jaeger-query",
+                "namespace": ""
               }
             },
             {
               "kind": "Service",
               "metadata": {
-                "name": "jaeger-query"
+                "name": "jaeger-query",
+                "namespace": ""
               }
             },
             {
               "kind": "DaemonSet",
               "metadata": {
-                "name": "jaeger-agent"
+                "name": "jaeger-agent",
+                "namespace": ""
               }
             }
           ]

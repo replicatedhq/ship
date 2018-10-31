@@ -1,13 +1,13 @@
 {
   "v1": {
     "config": {},
+    "releaseName": "ship",
     "upstream": "https://raw.githubusercontent.com/cockroachdb/cockroach/v2.0.6/cloud/kubernetes/cockroachdb-statefulset-secure.yaml",
     "metadata": {
       "applicationType": "",
       "releaseNotes": "",
       "version": ""
     },
-    "releaseName": "ship",
     "contentSHA": "4e8ef4ad3601ea5b1970b22010af6b21bc6f16d849cb3af0e973cf2447f79009"
   }
 }

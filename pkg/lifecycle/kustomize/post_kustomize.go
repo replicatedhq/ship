@@ -34,9 +34,11 @@ func (p postKustomizeCollection) Less(i, j int) bool {
 	}
 
 	if postKustomizeFileI.minimal.Metadata.Namespace == postKustomizeFileJ.minimal.Metadata.Namespace {
-		return postKustomizeFileI.minimal.Metadata.Name < postKustomizeFileJ.minimal.Metadata.Name
+		if postKustomizeFileI.minimal.Kind == postKustomizeFileJ.minimal.Kind {
+			return postKustomizeFileI.minimal.Metadata.Name < postKustomizeFileJ.minimal.Metadata.Name
+		}
+		return postKustomizeFileI.minimal.Kind < postKustomizeFileJ.minimal.Kind
 	}
-
 	return postKustomizeFileI.minimal.Metadata.Namespace < postKustomizeFileJ.minimal.Metadata.Namespace
 }
 
@@ -101,7 +103,7 @@ func (l *Kustomizer) writePostKustomizeFiles(step api.Kustomize, postKustomizeFi
 		}
 
 		if joinedFinal != "" {
-			joinedFinal += "\n---\n" + string(fileB)
+			joinedFinal += "---\n" + string(fileB)
 		} else {
 			joinedFinal += string(fileB)
 		}
