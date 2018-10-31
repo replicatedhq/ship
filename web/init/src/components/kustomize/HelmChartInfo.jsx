@@ -2,8 +2,7 @@ import React from "react";
 import Markdown from "react-remarkable";
 import RenderActions from "../shared/RenderActions";
 
-const HelmChartInfo = ({ shipAppMetadata, actions, handleAction, isLoading}) => {
-  const { readme, version } = shipAppMetadata;
+const HelmChartInfo = ({ actions, handleAction, isLoading}) => {
   return (
     <div className="flex-column u-paddingTop--30 flex1 u-position--relative">
       <div className="flex-column flex-1-auto u-overflow--auto container">
