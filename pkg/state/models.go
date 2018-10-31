@@ -98,7 +98,7 @@ type MinimalK8sYaml struct {
 
 type minimalK8sMetadata struct {
 	Name      string `json:"name" yaml:"name" hcl:"name"`
-	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" hcl:"namespace,omitempty"`
+	Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
 }
 
 type StepsCompleted map[string]interface{}

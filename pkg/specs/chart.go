@@ -394,6 +394,7 @@ func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
 		filePath := filepath.Join(path, file.Name())
 
 		if file.IsDir() {
+			continue
 			// TODO: handling nested list yamls
 		}
 
