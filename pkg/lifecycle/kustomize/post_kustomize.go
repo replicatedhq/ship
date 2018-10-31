@@ -62,13 +62,13 @@ func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []p
 			}
 		}
 
+		debug.Log("event", "reconstruct list")
 		reconstructedList := specs.ListK8sYaml{
 			APIVersion: list.APIVersion,
 			Kind:       "List",
 			Items:      allListItems,
 		}
 
-		debug.Log("event", "marshal reconstructed")
 		postKustomizeList := postKustomizeFile{
 			minimal: state.MinimalK8sYaml{
 				Kind: "List",

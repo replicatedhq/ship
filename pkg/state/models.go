@@ -93,10 +93,10 @@ type List struct {
 
 type MinimalK8sYaml struct {
 	Kind     string             `json:"kind" yaml:"kind" hcl:"kind"`
-	Metadata minimalK8sMetadata `json:"metadata" yaml:"metadata" hcl:"metadata"`
+	Metadata MinimalK8sMetadata `json:"metadata" yaml:"metadata" hcl:"metadata"`
 }
 
-type minimalK8sMetadata struct {
+type MinimalK8sMetadata struct {
 	Name      string `json:"name" yaml:"name" hcl:"name"`
 	Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
 }
