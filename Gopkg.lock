@@ -1922,7 +1922,7 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:fbbfb3bb08bd57bcfc4e3d6b7ead630e442343a46ac544cf965b5ce80070e2a5"
+  digest = "1:0b765e5515d191f0a74f7ebbb5e5c9cf66a3623b5b72cb6316aaa56092e6a0fc"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "pkg/app",
@@ -1942,8 +1942,8 @@
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "58492e2d83c59ed63881311f46ad6251f77dabc3"
-  version = "v1.0.8"
+  revision = "747fc669ce76213f980d6542951962142b8d0b1d"
+  source = "https://github.com/laverya/kustomize.git"
 
 [[projects]]
   branch = "master"
