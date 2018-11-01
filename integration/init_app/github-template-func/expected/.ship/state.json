@@ -3,12 +3,12 @@
     "config": {
       "option": "abc123"
     },
-    "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=SGhsB1wdjOF0N2KBRoMBW0zw4tHiF4ZR&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+    "upstream": "__upstream__",
     "contentSHA": "9fb30c009a2bb7202d3b0dfe7683823f799e238fd6132316de1cdbc54062dc6f",
     "metadata": {
       "applicationType": "replicated.app",
-      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
-      "installationID": "SGhsB1wdjOF0N2KBRoMBW0zw4tHiF4ZR",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
       "releaseNotes": "integration tests",
       "version": "1.0.1-SNAPSHOT"
     },
