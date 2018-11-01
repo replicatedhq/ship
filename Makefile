@@ -9,10 +9,11 @@ UI = $(shell find web/app/init/build -name "*.js")
 DOCKER_REPO ?= replicated
 
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
-VERSION=`git describe --tags &>/dev/null || echo "v0.0.1"`
-GIT_SHA=`git rev-parse HEAD`
+VERSION ?=`git describe --tags &>/dev/null || echo "v0.0.1"`
+GIT_SHA ?=`git rev-parse HEAD`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
+ifneq "$(GIT_SHA)" ""
 define LDFLAGS
 -ldflags "\
 	-X ${VERSION_PACKAGE}.version=${VERSION} \
@@ -20,6 +21,14 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
+else
+define LDFLAGS
+-ldflags "\
+	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+"
+endef
+endif
 
 .state/build-deps: hack/get_build_deps.sh
 	./hack/get_build_deps.sh
@@ -253,6 +262,8 @@ build: fmt embed-ui-dev test bin/ship
 build-ci: ci-embed-ui bin/ship
 
 build-ci-cypress: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go bin/ship
+
+build-minimal: bin/ship build-ui pkg/lifeycle/daemon/ui.bindatafs.go
 
 bin/ship: $(FULLSRC)
 	go build \
