@@ -76,6 +76,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
 
+					// TODO - instead of getting installation ID, etc from test metadata create a release with the vendor api
+					// TODO customer ID and vendor token will need to be read from environment variables
+					// TODO so will the desired environment - staging vs prod
+
 					close(done)
 				}, 20)
 
@@ -113,8 +117,9 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					// these strings will be replaced in the "expected" yaml before comparison
 					replacements := map[string]string{
-						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1),
+						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
 						"__installationID__": testMetadata.InstallationID,
 						"__customerID__":     testMetadata.CustomerID,
 					}
