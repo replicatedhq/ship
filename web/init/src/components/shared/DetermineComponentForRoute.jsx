@@ -217,6 +217,7 @@ export class DetermineComponentForRoute extends React.Component {
       return (
         <StepHelmIntro
           actions={actions}
+          isUpdate={currentStep.helmIntro.isUpdate}
           shipAppMetadata={this.props.shipAppMetadata}
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}

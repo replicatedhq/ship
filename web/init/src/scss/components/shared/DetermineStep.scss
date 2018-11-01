@@ -55,6 +55,7 @@
 
 .HelmIntro--wrapper {
   max-width: 1000px;
+  min-height: 620px;
   margin: 0 auto;
   & > div:last-of-type {
     padding-top: 30px;
@@ -133,7 +134,7 @@
     .icon.deployable-app {
       background-position: -176px -226px;
       width: 78px;
-      height: 87px;
+      height: 89px;
     }
     p {
       white-space: nowrap;

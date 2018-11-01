@@ -42,6 +42,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 			V1: []api.Step{
 				{
 					HelmIntro: &api.HelmIntro{
+						IsUpdate: r.Viper.GetBool("IsUpdate"),
 						StepShared: api.StepShared{
 							ID: "intro",
 						},

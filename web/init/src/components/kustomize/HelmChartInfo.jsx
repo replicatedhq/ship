@@ -2,13 +2,16 @@ import React from "react";
 import Markdown from "react-remarkable";
 import RenderActions from "../shared/RenderActions";
 
-const HelmChartInfo = ({ actions, handleAction, isLoading}) => {
+const HelmChartInfo = ({ isUpdate, actions, handleAction, isLoading}) => {
   return (
     <div className="flex-column u-paddingTop--30 flex1 u-position--relative">
       <div className="flex-column flex-1-auto u-overflow--auto container">
         <div className="HelmIntro--wrapper flex-column">
-          <p className="u-fontSize--jumbo2 u-color--tuna u-fontWeight--bold u-lineHeight--normal">Set custom values in youlr Helm chart</p>
-          <p className="u-fontSize--normal u-fontWeight--medium u-color--dustyGray u-lineHeight--more">Let’s prepare the CoreOS vault-operator chart for a Production Grade deployment. To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart.</p>
+          <p className="u-fontSize--jumbo2 u-color--tuna u-fontWeight--bold u-lineHeight--normal">Set custom values in your Helm chart</p>
+          <p className="u-fontSize--normal u-fontWeight--medium u-color--dustyGray u-lineHeight--more">
+            {isUpdate ? "Let’s update the CoreOS vault-operator application. Ship has downloaded the latest version of the Helm chart, and can merge your patches into the latest upstream, or allow you to edit your patches." :
+            "Let’s prepare the CoreOS vault-operator chart for a Production Grade deployment. To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart." }
+          </p>
           <div className="HelmIntro--diagram flex">
             <div className="detailed-steps flex flex-column">
               <div className="detailed-step flex">
@@ -53,7 +56,10 @@ const HelmChartInfo = ({ actions, handleAction, isLoading}) => {
             </div>
           </div>
           <div className="flex flex-column flex1 u-borderTop--gray">
-            <p className="u-fontSize--normal u-color--dustyGray u-fontWeight--medium u-lineHeight--more">To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart.</p>
+            <p className="u-fontSize--normal u-color--dustyGray u-fontWeight--medium u-lineHeight--more">
+              {isUpdate ? "To get started, we need to confirm the values to use when generating the updated Kubernetes YAML from the latest version of the Helm chart. Click continue to review your values to provide to the chart." :
+              "To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart."}
+            </p>
             <p className="u-marginTop--20 u-fontSize--normal u-color--dustyGray u-fontWeight--medium u-lineHeight--more">Happy Shipping!</p>
           </div>
         </div>

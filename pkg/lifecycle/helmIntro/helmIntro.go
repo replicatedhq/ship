@@ -17,6 +17,7 @@ import (
 )
 
 type HelmIntro struct {
+	v      *viper.Viper
 	Logger log.Logger
 	Daemon daemontypes.Daemon
 }
@@ -39,6 +40,7 @@ func NewHelmIntro(
 ) lifecycle.HelmIntro {
 
 	return &HelmIntro{
+		v:      v,
 		Logger: logger,
 		Daemon: daemon,
 	}
@@ -48,8 +50,13 @@ func (h *HelmIntro) Execute(ctx context.Context, release *api.Release, step *api
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmIntro"))
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
-
-	h.Daemon.PushHelmIntroStep(ctx, daemontypes.HelmIntro{}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(
+		ctx,
+		daemontypes.HelmIntro{
+			IsUpdate: step.IsUpdate,
+		},
+		daemon.HelmIntroActions(),
+	)
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)
