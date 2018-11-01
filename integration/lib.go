@@ -30,7 +30,7 @@ func skipCheck(filepath string) bool {
 }
 
 // CompareDir returns false if the two directories have different contents
-func CompareDir(expected, actual string) (bool, error) {
+func CompareDir(expected, actual string, replacements map[string]string) (bool, error) {
 	if skipCheck(actual) {
 		return true, nil
 	}
@@ -67,7 +67,7 @@ func CompareDir(expected, actual string) (bool, error) {
 
 		if expectedFile.IsDir() {
 			// compare child items
-			result, err := CompareDir(expectedFilePath, actualFilePath)
+			result, err := CompareDir(expectedFilePath, actualFilePath, replacements)
 			if !result || err != nil {
 				return result, err
 			}
@@ -99,6 +99,11 @@ func CompareDir(expected, actual string) (bool, error) {
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
 			expectedContents := strings.TrimRight(string(expectedContentsBytes), "\n")
 			actualContents := strings.TrimRight(string(actualContentsBytes), "\n")
+
+			// find and replace strings from the expected contents (customerID, installationID, etc)
+			for k, v := range replacements {
+				expectedContents = strings.Replace(expectedContents, k, v, -1)
+			}
 
 			diff := difflib.UnifiedDiff{
 				A:        difflib.SplitLines(expectedContents),

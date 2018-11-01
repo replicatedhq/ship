@@ -106,7 +106,7 @@ var _ = Describe("ship app", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					//compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
@@ -136,7 +136,7 @@ var _ = Describe("ship app", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					//compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

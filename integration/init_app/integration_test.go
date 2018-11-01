@@ -26,7 +26,6 @@ import (
 )
 
 type TestMetadata struct {
-	CustomerID     string `yaml:"customer_id"`
 	InstallationID string `yaml:"installation_id"`
 	ReleaseVersion string `yaml:"release_version"`
 	SetChannelName string `yaml:"set_channel_name"`
@@ -71,11 +70,12 @@ var _ = Describe("ship init replicated.app/...", func() {
 				customerEndpoint := os.Getenv("SHIP_INTEGRATION_CUSTOMER_ENDPOINT")
 				vendorEndpoint := os.Getenv("SHIP_INTEGRATION_VENDOR_ENDPOINT")
 				vendorToken := os.Getenv("SHIP_INTEGRATION_VENDOR_TOKEN")
+				customerID := os.Getenv("SHIP_INTEGRATION_VENDOR_CUSTOMER")
 				if customerEndpoint == "" {
-					customerEndpoint = "https://pg.staging.replicated.com/graphql"
+					customerEndpoint = "https://pg.replicated.com/graphql"
 				}
 				if vendorEndpoint == "" {
-					vendorEndpoint = "https://g.staging.replicated.com/graphql"
+					vendorEndpoint = "https://g.replicated.com/graphql"
 				}
 
 				BeforeEach(func(done chan<- interface{}) {
@@ -94,7 +94,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 					// try to ensure the release matches what we have here in the repo
 					channelName := fmt.Sprintf("integration replicated.app %s", filepath.Base(testPath))
-					installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName)
+					installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName, customerID)
 					close(done)
 				}, 20)
 
@@ -123,7 +123,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 						"%s?installation_id=%s&customer_id=%s",
 						upstream,
 						installationID,
-						testMetadata.CustomerID,
+						customerID,
 					)
 
 					cmd := cli.RootCmd()
@@ -139,8 +139,14 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					replacements := map[string]string{
+						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1),
+						"__installationID__": installationID,
+						"__customerID__":     customerID,
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
@@ -155,6 +161,7 @@ func createRelease(
 	testInputPath string,
 	testMetadata TestMetadata,
 	channelName string,
+	customerID string,
 ) string {
 	endpointURL, err := url.Parse(vendorEndpoint)
 	Expect(err).NotTo(HaveOccurred())
@@ -177,7 +184,7 @@ func createRelease(
 		"integration tests",
 	)
 	Expect(err).NotTo(HaveOccurred())
-	installationID, err := vendorClient.EnsureCustomerOnChannel(testMetadata.CustomerID, channel.ID)
+	installationID, err := vendorClient.EnsureCustomerOnChannel(customerID, channel.ID)
 	Expect(err).NotTo(HaveOccurred())
 	return installationID
 }
