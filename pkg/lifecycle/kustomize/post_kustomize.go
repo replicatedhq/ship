@@ -27,10 +27,8 @@ func (p postKustomizeCollection) Less(i, j int) bool {
 	postKustomizeFileI := p[i]
 	postKustomizeFileJ := p[j]
 
-	if postKustomizeFileI.minimal.Kind == "List" {
-		if postKustomizeFileJ.minimal.Kind != "List" {
-			return true
-		}
+	if postKustomizeFileI.minimal.Kind == "List" || postKustomizeFileJ.minimal.Kind == "List" {
+		return postKustomizeFileI.minimal.Kind == "List"
 	}
 
 	if postKustomizeFileI.minimal.Metadata.Namespace == postKustomizeFileJ.minimal.Metadata.Namespace {
