@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -27,10 +26,10 @@ import (
 
 type TestMetadata struct {
 	InstallationID string `yaml:"installation_id"`
+	CustomerID     string `yaml:"customer_id"`
 	ReleaseVersion string `yaml:"release_version"`
 	SetChannelName string `yaml:"set_channel_name"`
 	Flavor         string `yaml:"flavor"`
-	DisableOnline  bool   `yaml:"disable_online"`
 
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -66,17 +65,6 @@ var _ = Describe("ship init replicated.app/...", func() {
 				testInputPath := path.Join(testPath, "input")
 				var testOutputPath string
 				var testMetadata TestMetadata
-				var installationID string
-				customerEndpoint := os.Getenv("SHIP_INTEGRATION_CUSTOMER_ENDPOINT")
-				vendorEndpoint := os.Getenv("SHIP_INTEGRATION_VENDOR_ENDPOINT")
-				vendorToken := os.Getenv("SHIP_INTEGRATION_VENDOR_TOKEN")
-				customerID := os.Getenv("SHIP_INTEGRATION_VENDOR_CUSTOMER")
-				if customerEndpoint == "" {
-					customerEndpoint = "https://pg.replicated.com/graphql"
-				}
-				if vendorEndpoint == "" {
-					vendorEndpoint = "https://g.replicated.com/graphql"
-				}
 
 				BeforeEach(func(done chan<- interface{}) {
 					os.Setenv("NO_OS_EXIT", "1")
@@ -88,13 +76,6 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
 
-					if vendorToken == "" {
-						Fail("Please set SHIP_INTEGRATION_VENDOR_TOKEN to run the init_app test suite")
-					}
-
-					// try to ensure the release matches what we have here in the repo
-					channelName := fmt.Sprintf("integration replicated.app %s", filepath.Base(testPath))
-					installationID = createRelease(vendorEndpoint, vendorToken, testInputPath, testMetadata, channelName, customerID)
 					close(done)
 				}, 20)
 
@@ -108,22 +89,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}, 20)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
-					if testMetadata.DisableOnline {
-						Skip("Online test skipped")
-					}
 
-					isStaging := strings.Contains(customerEndpoint, "staging")
-					upstream := "replicated.app/some-cool-ci-tool"
-					if isStaging {
-						upstream = "staging.replicated.app/some-cool-ci-tool"
-					}
+					upstream := "staging.replicated.app/some-cool-ci-tool"
 
 					// this should probably be url encoded but whatever
 					upstream = fmt.Sprintf(
 						"%s?installation_id=%s&customer_id=%s",
 						upstream,
-						installationID,
-						customerID,
+						testMetadata.InstallationID,
+						testMetadata.CustomerID,
 					)
 
 					cmd := cli.RootCmd()
@@ -141,8 +115,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 					replacements := map[string]string{
 						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1),
-						"__installationID__": installationID,
-						"__customerID__":     customerID,
+						"__installationID__": testMetadata.InstallationID,
+						"__customerID__":     testMetadata.CustomerID,
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory

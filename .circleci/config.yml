@@ -201,9 +201,7 @@ jobs:
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
           $GOPATH/bin/ginkgo -p -stream integration/init
-          if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
-            $GOPATH/bin/ginkgo -p -stream integration/init_app
-          fi
+          $GOPATH/bin/ginkgo -p -stream integration/init_app
       - save_cache:
           paths:
             - /tmp/go/cache
