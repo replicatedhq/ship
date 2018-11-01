@@ -201,9 +201,7 @@ jobs:
           $GOPATH/bin/ginkgo -p -stream integration/base
           $GOPATH/bin/ginkgo -p -stream integration/update
           $GOPATH/bin/ginkgo -p -stream integration/init
-          if [ -n "$SHIP_INTEGRATION_VENDOR_TOKEN" ]; then
-            $GOPATH/bin/ginkgo -p -stream integration/init_app
-          fi
+          $GOPATH/bin/ginkgo -p -stream integration/init_app
       - save_cache:
           paths:
             - /tmp/go/cache
@@ -282,7 +280,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: make build_ship_integration_test
-      - run: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
+      - run: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN -e SHIP_INTEGRATION_VENDOR_CUSTOMER --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
       - deploy:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
