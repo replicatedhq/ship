@@ -12,12 +12,10 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
 
 type HelmIntro struct {
-	v      *viper.Viper
 	Logger log.Logger
 	Daemon daemontypes.Daemon
 }
@@ -33,14 +31,12 @@ func (d *DaemonlessHelmIntro) Execute(context.Context, *api.Release, *api.HelmIn
 }
 
 func NewHelmIntro(
-	v *viper.Viper,
 	fs afero.Afero,
 	logger log.Logger,
 	daemon daemontypes.Daemon,
 ) lifecycle.HelmIntro {
 
 	return &HelmIntro{
-		v:      v,
 		Logger: logger,
 		Daemon: daemon,
 	}
