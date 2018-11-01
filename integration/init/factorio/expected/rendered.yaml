@@ -1,3 +1,54 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio-savedgames
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+data:
+  factorio-password: eW91ci5wYXNzd29yZA==
+  factorio-username: eW91ci51c2VybmFtZQ==
+  rcon-password: ""
+  server-password: ""
+kind: Secret
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: factorio-factorio
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
+spec:
+  ports:
+  - name: factorio
+    port: 34197
+    protocol: UDP
+    targetPort: factorio
+  selector:
+    app: factorio-factorio
+  type: LoadBalancer
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -57,54 +108,3 @@ spec:
           claimName: factorio-factorio-savedgames
       - emptyDir: {}
         name: mods
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app: factorio-factorio
-    chart: factorio-0.3.1
-    heritage: Tiller
-    release: factorio
-  name: factorio-factorio-savedgames
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-data:
-  factorio-password: eW91ci5wYXNzd29yZA==
-  factorio-username: eW91ci51c2VybmFtZQ==
-  rcon-password: ""
-  server-password: ""
-kind: Secret
-metadata:
-  labels:
-    app: factorio-factorio
-    chart: factorio-0.3.1
-    heritage: Tiller
-    release: factorio
-  name: factorio-factorio
-type: Opaque
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: factorio-factorio
-    chart: factorio-0.3.1
-    heritage: Tiller
-    release: factorio
-  name: factorio-factorio
-spec:
-  ports:
-  - name: factorio
-    port: 34197
-    protocol: UDP
-    targetPort: factorio
-  selector:
-    app: factorio-factorio
-  type: LoadBalancer

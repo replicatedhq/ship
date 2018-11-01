@@ -2,7 +2,6 @@ package kustomize
 
 import (
 	"context"
-	"sort"
 	"strings"
 
 	"github.com/go-kit/kit/log"
@@ -109,8 +108,6 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 				}
 			}
 		}
-
-		sort.Sort(postKustomizeCollection(built))
 
 		if err := l.writePostKustomizeFiles(step, built); err != nil {
 			return errors.Wrapf(err, "write kustomized and post processed yaml at %s", step.Dest)

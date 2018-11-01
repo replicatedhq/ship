@@ -1,45 +1,9 @@
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
+apiVersion: v1
+kind: ServiceAccount
 metadata:
   labels:
     app: cockroachdb
   name: cockroachdb
-rules:
-- apiGroups:
-  - certificates.k8s.io
-  resources:
-  - certificatesigningrequests
-  verbs:
-  - create
-  - get
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app: cockroachdb
-  name: cockroachdb
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cockroachdb
-subjects:
-- kind: ServiceAccount
-  name: cockroachdb
-  namespace: default
----
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  labels:
-    app: cockroachdb
-  name: cockroachdb-budget
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      app: cockroachdb
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
@@ -57,6 +21,22 @@ rules:
   - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  labels:
+    app: cockroachdb
+  name: cockroachdb
+rules:
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - create
+  - get
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   labels:
@@ -70,6 +50,38 @@ subjects:
 - kind: ServiceAccount
   name: cockroachdb
   namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: cockroachdb
+  name: cockroachdb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cockroachdb
+subjects:
+- kind: ServiceAccount
+  name: cockroachdb
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cockroachdb
+  name: cockroachdb-public
+spec:
+  ports:
+  - name: grpc
+    port: 26257
+    targetPort: 26257
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: cockroachdb
 ---
 apiVersion: v1
 kind: Service
@@ -93,30 +105,6 @@ spec:
     targetPort: 8080
   selector:
     app: cockroachdb
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: cockroachdb
-  name: cockroachdb-public
-spec:
-  ports:
-  - name: grpc
-    port: 26257
-    targetPort: 26257
-  - name: http
-    port: 8080
-    targetPort: 8080
-  selector:
-    app: cockroachdb
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app: cockroachdb
-  name: cockroachdb
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
@@ -203,3 +191,15 @@ spec:
       resources:
         requests:
           storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    app: cockroachdb
+  name: cockroachdb-budget
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: cockroachdb

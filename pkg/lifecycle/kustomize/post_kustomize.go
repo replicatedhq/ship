@@ -17,33 +17,6 @@ type postKustomizeFile struct {
 	full    interface{}
 }
 
-type postKustomizeCollection []postKustomizeFile
-
-func (p postKustomizeCollection) Swap(i, j int) {
-	p[i], p[j] = p[j], p[i]
-}
-
-func (p postKustomizeCollection) Less(i, j int) bool {
-	postKustomizeFileI := p[i]
-	postKustomizeFileJ := p[j]
-
-	if postKustomizeFileI.minimal.Kind == "List" || postKustomizeFileJ.minimal.Kind == "List" {
-		return postKustomizeFileI.minimal.Kind == "List"
-	}
-
-	if postKustomizeFileI.minimal.Metadata.Namespace == postKustomizeFileJ.minimal.Metadata.Namespace {
-		if postKustomizeFileI.minimal.Kind == postKustomizeFileJ.minimal.Kind {
-			return postKustomizeFileI.minimal.Metadata.Name < postKustomizeFileJ.minimal.Metadata.Name
-		}
-		return postKustomizeFileI.minimal.Kind < postKustomizeFileJ.minimal.Kind
-	}
-	return postKustomizeFileI.minimal.Metadata.Namespace < postKustomizeFileJ.minimal.Metadata.Namespace
-}
-
-func (p postKustomizeCollection) Len() int {
-	return len(p)
-}
-
 func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []postKustomizeFile) ([]postKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "rebuildListYaml"))
 	yamlMap := make(map[state.MinimalK8sYaml]interface{})
