@@ -9,10 +9,11 @@ UI = $(shell find web/app/init/build -name "*.js")
 DOCKER_REPO ?= replicated
 
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
-VERSION=`git describe --tags &>/dev/null || echo "v0.0.1"`
-GIT_SHA=`git rev-parse HEAD`
+VERSION ?=`git describe --tags &>/dev/null || echo "v0.0.1"`
+GIT_SHA ?=`git rev-parse HEAD`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
+ifneq "$(GIT_SHA)" ""
 define LDFLAGS
 -ldflags "\
 	-X ${VERSION_PACKAGE}.version=${VERSION} \
@@ -20,6 +21,14 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
+else
+define LDFLAGS
+-ldflags "\
+	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+"
+endef
+endif
 
 .state/build-deps: hack/get_build_deps.sh
 	./hack/get_build_deps.sh
@@ -252,7 +261,9 @@ build: fmt embed-ui-dev test bin/ship
 
 build-ci: ci-embed-ui bin/ship
 
-build-ci-cypress: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go bin/ship
+build-ci-cypress: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
+
+build-minimal: build-ui pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
 bin/ship: $(FULLSRC)
 	go build \
@@ -279,7 +290,7 @@ run: build
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
+pkg/lifecycle/daemon/ui.bindatafs.go: .state/build-deps
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix web/app \
@@ -289,11 +300,11 @@ mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
-embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: mark-ui-gitignored build-ui pkg/lifecycle/daemon/ui.bindatafs.go
 
-embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifecycle/daemon/ui.bindatafs.go
 
-ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
+ci-embed-ui: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go
 build-ui:
 	$(MAKE) -C web/app build_ship
 
