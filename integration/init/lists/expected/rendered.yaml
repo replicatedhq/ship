@@ -161,6 +161,17 @@ spec:
     app: myapp-metrics
 ---
 apiVersion: extensions/v1
+kind: Service
+metadata:
+  name: myapp-service
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: myapp
+---
+apiVersion: extensions/v1
 kind: Deployment
 metadata:
   labels:
@@ -185,14 +196,3 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           timeoutSeconds: 5
----
-apiVersion: extensions/v1
-kind: Service
-metadata:
-  name: myapp-service
-spec:
-  ports:
-  - port: 8080
-    protocol: TCP
-  selector:
-    app: myapp
