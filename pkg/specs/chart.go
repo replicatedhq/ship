@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/replicatedhq/ship/pkg/state"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -313,14 +315,6 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 		contents string
 	}
 
-	type minimalK8sYaml struct {
-		Kind     string `json:"kind" yaml:"kind" hcl:"kind"`
-		Metadata struct {
-			Name      string `json:"name" yaml:"name" hcl:"name"`
-			Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
-		}
-	}
-
 	files, err := r.FS.ReadDir(localPath)
 	if err != nil {
 		return errors.Wrapf(err, "read files in %s", localPath)
@@ -357,7 +351,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 
 		thisOutputFile := outputYaml{contents: fileString}
 
-		thisMetadata := minimalK8sYaml{}
+		thisMetadata := state.MinimalK8sYaml{}
 		_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 		if thisMetadata.Kind == "" {
@@ -365,15 +359,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 			continue
 		}
 
-		fileName := fmt.Sprintf("%s-%d", thisMetadata.Kind, idx)
-
-		if thisMetadata.Metadata.Name != "" {
-			fileName = thisMetadata.Kind + "-" + thisMetadata.Metadata.Name
-			if thisMetadata.Metadata.Namespace != "" && thisMetadata.Metadata.Namespace != "default" {
-				fileName += "-" + thisMetadata.Metadata.Namespace
-			}
-		}
-
+		fileName := generateNameFromMetadata(thisMetadata, idx)
 		thisOutputFile.name = fileName
 		outputFiles = append(outputFiles, thisOutputFile)
 	}
@@ -398,4 +384,93 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 	}
 
 	return nil
+}
+
+type ListK8sYaml struct {
+	APIVersion string        `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string        `json:"kind" yaml:"kind" hcl:"kind"`
+	Items      []interface{} `json:"items" yaml:"items"`
+}
+
+func (r *Resolver) maybeSplitListYaml(ctx context.Context, path string) error {
+	files, err := r.FS.ReadDir(path)
+	if err != nil {
+		return errors.Wrapf(err, "read files in %s", path)
+	}
+
+	var lists []state.List
+	for _, file := range files {
+		filePath := filepath.Join(path, file.Name())
+
+		if file.IsDir() {
+			continue
+			// TODO: handling nested list yamls
+		}
+
+		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+			// not yaml, nothing to do
+			return nil
+		}
+
+		fileB, err := r.FS.ReadFile(filePath)
+		if err != nil {
+			return errors.Wrapf(err, "read %s", filePath)
+		}
+
+		k8sYaml := ListK8sYaml{}
+		if err := yaml.Unmarshal(fileB, &k8sYaml); err != nil {
+			return errors.Wrapf(err, "unmarshal %s", filePath)
+		}
+
+		if k8sYaml.Kind == "List" {
+			listItems := make([]state.MinimalK8sYaml, 0)
+			for idx, item := range k8sYaml.Items {
+				itemK8sYaml := state.MinimalK8sYaml{}
+				itemB, err := yaml.Marshal(item)
+				if err != nil {
+					return errors.Wrapf(err, "marshal item %d from %s", idx, filePath)
+				}
+
+				if err := yaml.Unmarshal(itemB, &itemK8sYaml); err != nil {
+					return errors.Wrap(err, "unmarshal item")
+				}
+
+				fileName := generateNameFromMetadata(itemK8sYaml, idx)
+				if err := r.FS.WriteFile(filepath.Join(path, fileName+".yaml"), []byte(itemB), os.FileMode(0644)); err != nil {
+					return errors.Wrap(err, "write yaml")
+				}
+
+				listItems = append(listItems, itemK8sYaml)
+			}
+			list := state.List{
+				APIVersion: k8sYaml.APIVersion,
+				Path:       filePath,
+				Items:      listItems,
+			}
+			lists = append(lists, list)
+
+			if err := r.FS.Remove(filePath); err != nil {
+				return errors.Wrapf(err, "remove k8s list %s", filePath)
+			}
+		}
+	}
+
+	if err := r.StateManager.SerializeListsMetadata(lists); err != nil {
+		return errors.Wrapf(err, "serialize list metadata")
+	}
+
+	return nil
+}
+
+func generateNameFromMetadata(k8sYaml state.MinimalK8sYaml, idx int) string {
+	fileName := fmt.Sprintf("%s-%d", k8sYaml.Kind, idx)
+
+	if k8sYaml.Metadata.Name != "" {
+		fileName = k8sYaml.Kind + "-" + k8sYaml.Metadata.Name
+		if k8sYaml.Metadata.Namespace != "" && k8sYaml.Metadata.Namespace != "default" {
+			fileName += "-" + k8sYaml.Metadata.Namespace
+		}
+	}
+
+	return fileName
 }

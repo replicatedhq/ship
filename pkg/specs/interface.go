@@ -191,9 +191,12 @@ func (r *Resolver) resolveRelease(
 	}
 
 	if applicationType == "k8s" {
-		err = r.maybeSplitMultidocYaml(ctx, destPath)
-		if err != nil {
+		if err := r.maybeSplitMultidocYaml(ctx, destPath); err != nil {
 			return nil, errors.Wrap(err, "split multipath yaml")
+		}
+
+		if err := r.maybeSplitListYaml(ctx, destPath); err != nil {
+			return nil, errors.Wrap(err, "split list yaml")
 		}
 	}
 

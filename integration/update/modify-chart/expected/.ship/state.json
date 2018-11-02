@@ -2,6 +2,7 @@
   "v1": {
     "config": {},
     "helmValues": "affinity: {}\nimage:\n  pullPolicy: IfNotPresent\n  repository: nginx\n  tag: stable\ningress:\n  annotations: {}\n  enabled: false\n  hosts:\n  - chart-example.local\n  path: /\n  tls: []\nnodeSelector: {}\nreplicaCount: 1\nresources: {}\nservice:\n  port: 80\n  type: ClusterIP\ntolerations: []\n",
+    "releaseName": "modify-chart",
     "helmValuesDefaults": "# Default values for modify-chart.\n# This is a YAML-formatted file.\n# Declare variables to be passed into your templates.\n\nreplicaCount: 2\n\nimage:\n  repository: nginx\n  tag: stable\n  pullPolicy: IfNotPresent\n\nservice:\n  type: ClusterIP\n  port: 80\n\ningress:\n  enabled: false\n  annotations: {}\n    # kubernetes.io/ingress.class: nginx\n    # kubernetes.io/tls-acme: \"true\"\n  path: /\n  hosts:\n    - chart-example.local\n  tls: []\n  #  - secretName: chart-example-tls\n  #    hosts:\n  #      - chart-example.local\n\nresources: {}\n  # We usually recommend not to specify default resources and to leave this as a conscious\n  # choice for the user. This also increases chances charts run on environments with little\n  # resources, such as Minikube. If you do want to specify resources, uncomment the following\n  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.\n  # limits:\n  #  cpu: 100m\n  #  memory: 128Mi\n  # requests:\n  #  cpu: 100m\n  #  memory: 128Mi\n\nnodeSelector: {}\n\ntolerations: []\n\naffinity: {}\n",
     "kustomize": {
       "overlays": {
@@ -12,14 +13,13 @@
         }
       }
     },
+    "upstream": "github.com/replicatedhq/test-charts/modify-chart",
     "metadata": {
       "applicationType": "helm",
       "name": "modify-chart",
       "releaseNotes": "Update values.yaml",
       "version": "0.1.0"
     },
-    "releaseName": "modify-chart",
-    "upstream": "github.com/replicatedhq/test-charts/modify-chart",
     "contentSHA": "8f221c20ea01b45298094e4c631d10b7583885fd4a62a5eacce2883cd19f1c7f"
   }
 }

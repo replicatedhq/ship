@@ -1,0 +1,198 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: nginx-service
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+    selector:
+      app: nginx
+- apiVersion: v1
+  kind: Deployment
+  metadata:
+    labels:
+      app: nginx
+    name: nginx
+  spec:
+    replicas: 2
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+        - image: nginx
+          name: nginx
+          ports:
+          - containerPort: 80
+        serviceAccountName: nginx
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    labels:
+      app: nginx
+    name: nginx
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    labels:
+      app: nginx
+    name: nginx
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - services
+    - events
+    - endpoints
+    - pods
+    - nodes
+    - componentstatuses
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    labels:
+      app: nginx
+    name: nginx
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: nginx
+  subjects:
+  - kind: ServiceAccount
+    name: nginx
+    namespace: default
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    labels:
+      app: metrics
+    name: nginx-metrics
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    labels:
+      app: metrics
+    name: nginx-metrics
+  rules:
+  - apiGroups:
+    - batch
+    resources:
+    - cronjobs
+    verbs:
+    - list
+    - watch
+  - apiGroups:
+    - extensions
+    resources:
+    - daemonsets
+    verbs:
+    - list
+    - watch
+  - apiGroups:
+    - extensions
+    resources:
+    - deployments
+    verbs:
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    labels:
+      app: metrics
+    name: nginx-metrics
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: nginx-metrics
+  subjects:
+  - kind: ServiceAccount
+    name: nginx-metrics
+    namespace: default
+---
+apiVersion: extensions/v1
+kind: Deployment
+metadata:
+  labels:
+    app: myapp-metrics
+  name: myapp-metrics
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myapp-metrics
+    spec:
+      containers:
+      - image: my/app-metrics:latest
+        imagePullPolicy: IfNotPresent
+        name: myapp-metrics
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+---
+apiVersion: extensions/v1
+kind: Deployment
+metadata:
+  labels:
+    app: myapp
+  name: myapp
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - image: my/app:latest
+        imagePullPolicy: IfNotPresent
+        name: myapp
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+---
+apiVersion: extensions/v1
+kind: Service
+metadata:
+  name: metrocs-service
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: myapp-metrics
+---
+apiVersion: extensions/v1
+kind: Service
+metadata:
+  name: myapp-service
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: myapp

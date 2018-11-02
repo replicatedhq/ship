@@ -35,6 +35,7 @@ type Manager interface {
 	SerializeContentSHA(contentSHA string) error
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
+	SerializeListsMetadata([]List) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
 }
@@ -184,6 +185,22 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	}
 	versionedState := currentState.Versioned()
 	versionedState.V1.Config = templateContext
+
+	return m.serializeAndWriteState(versionedState)
+}
+
+func (m *MManager) SerializeListsMetadata(lists []List) error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.Metadata = &Metadata{
+		Lists: lists,
+	}
 
 	return m.serializeAndWriteState(versionedState)
 }

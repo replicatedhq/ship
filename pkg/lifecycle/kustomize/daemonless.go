@@ -2,6 +2,7 @@ package kustomize
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -11,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Kustomizer struct {
@@ -86,20 +88,65 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 
 	if step.Dest != "" {
 		debug.Log("event", "kustomize.build", "dest", step.Dest)
-		err = l.kustomizeBuild(fs, step)
+		built, err := l.kustomizeBuild(fs, step)
 		if err != nil {
 			return errors.Wrap(err, "build overlay")
+		}
+
+		debug.Log("event", "try load state")
+		currentState, err := l.State.TryLoad()
+		if err != nil {
+			return errors.Wrap(err, "try load state")
+		}
+
+		if currentState.Versioned().V1.Metadata != nil {
+			lists := currentState.Versioned().V1.Metadata.Lists
+			if len(lists) > 0 {
+				debug.Log("event", "kustomize.rebuildListYaml")
+				if built, err = l.rebuildListYaml(lists, built); err != nil {
+					return errors.Wrap(err, "rebuild list yaml")
+				}
+			}
+		}
+
+		if err := l.writePostKustomizeFiles(step, built); err != nil {
+			return errors.Wrapf(err, "write kustomized and post processed yaml at %s", step.Dest)
 		}
 	}
 
 	return nil
 }
-func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) error {
+
+func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) ([]postKustomizeFile, error) {
+	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "kustomizeBuild"))
+
 	builtYAML, err := l.Patcher.RunKustomize(kustomize.OverlayPath())
 	if err != nil {
-		return errors.Wrap(err, "run kustomize")
+		return nil, errors.Wrap(err, "run kustomize")
 	}
 
-	fs.WriteFile(kustomize.Dest, builtYAML, 0644)
-	return nil
+	files := strings.Split(string(builtYAML), "\n---\n")
+	postKustomizeFiles := make([]postKustomizeFile, 0)
+	for idx, file := range files {
+		var fullYaml interface{}
+
+		debug.Log("event", "unmarshal part of rendered")
+		if err := yaml.Unmarshal([]byte(file), &fullYaml); err != nil {
+			return postKustomizeFiles, errors.Wrap(err, "unmarshal part of rendered")
+		}
+
+		debug.Log("event", "unmarshal part of rendered to minimal")
+		minimal := state.MinimalK8sYaml{}
+		if err := yaml.Unmarshal([]byte(file), &minimal); err != nil {
+			return postKustomizeFiles, errors.Wrap(err, "unmarshal part of rendered to minimal")
+		}
+
+		postKustomizeFiles = append(postKustomizeFiles, postKustomizeFile{
+			order:   idx,
+			minimal: minimal,
+			full:    fullYaml,
+		})
+	}
+
+	return postKustomizeFiles, nil
 }

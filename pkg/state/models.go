@@ -82,6 +82,23 @@ type Metadata struct {
 	Version         string `json:"version" yaml:"version" hcl:"version"`
 	CustomerID      string `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
 	InstallationID  string `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
+	Lists           []List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
+}
+
+type List struct {
+	APIVersion string           `json:"apiVersion" yaml:"apiVersion"`
+	Path       string           `json:"path" yaml:"path"`
+	Items      []MinimalK8sYaml `json:"items" yaml:"items"`
+}
+
+type MinimalK8sYaml struct {
+	Kind     string             `json:"kind" yaml:"kind" hcl:"kind"`
+	Metadata MinimalK8sMetadata `json:"metadata" yaml:"metadata" hcl:"metadata"`
+}
+
+type MinimalK8sMetadata struct {
+	Name      string `json:"name" yaml:"name" hcl:"name"`
+	Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
 }
 
 type StepsCompleted map[string]interface{}
