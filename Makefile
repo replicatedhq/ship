@@ -261,9 +261,9 @@ build: fmt embed-ui-dev test bin/ship
 
 build-ci: ci-embed-ui bin/ship
 
-build-ci-cypress: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go bin/ship
+build-ci-cypress: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
-build-minimal: bin/ship build-ui pkg/lifeycle/daemon/ui.bindatafs.go
+build-minimal: bin/ship build-ui pkg/lifecycle/daemon/ui.bindatafs.go
 
 bin/ship: $(FULLSRC)
 	go build \
@@ -290,7 +290,7 @@ run: build
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifeycle/daemon/ui.bindatafs.go: .state/build-deps
+pkg/lifecycle/daemon/ui.bindatafs.go: .state/build-deps
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix web/app \
@@ -300,11 +300,11 @@ mark-ui-gitignored:
 	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
 
 
-embed-ui: mark-ui-gitignored build-ui pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui: mark-ui-gitignored build-ui pkg/lifecycle/daemon/ui.bindatafs.go
 
-embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifeycle/daemon/ui.bindatafs.go
+embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifecycle/daemon/ui.bindatafs.go
 
-ci-embed-ui: mark-ui-gitignored pkg/lifeycle/daemon/ui.bindatafs.go
+ci-embed-ui: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go
 build-ui:
 	$(MAKE) -C web/app build_ship
 
