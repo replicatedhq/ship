@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@replicatedhq/react-scripts": "1.0.1",
-    "@replicatedhq/ship-init": "link:../init",
+    "@replicatedhq/ship-init": "1.4.1",
     "monaco-editor": "^0.14.3",
     "react": "^16.5.0",
     "react-dom": "^16.5.0"
