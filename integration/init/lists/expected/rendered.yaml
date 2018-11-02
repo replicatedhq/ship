@@ -127,6 +127,32 @@ apiVersion: extensions/v1
 kind: Deployment
 metadata:
   labels:
+    app: myapp-metrics
+  name: myapp-metrics
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myapp-metrics
+    spec:
+      containers:
+      - image: my/app-metrics:latest
+        imagePullPolicy: IfNotPresent
+        name: myapp-metrics
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+---
+apiVersion: extensions/v1
+kind: Deployment
+metadata:
+  labels:
     app: myapp
   name: myapp
 spec:
@@ -170,29 +196,3 @@ spec:
     protocol: TCP
   selector:
     app: myapp
----
-apiVersion: extensions/v1
-kind: Deployment
-metadata:
-  labels:
-    app: myapp-metrics
-  name: myapp-metrics
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: myapp-metrics
-    spec:
-      containers:
-      - image: my/app-metrics:latest
-        imagePullPolicy: IfNotPresent
-        name: myapp-metrics
-        ports:
-        - containerPort: 8080
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-          initialDelaySeconds: 5
-          timeoutSeconds: 5

@@ -127,7 +127,7 @@ func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) ([]
 
 	files := strings.Split(string(builtYAML), "\n---\n")
 	postKustomizeFiles := make([]postKustomizeFile, 0)
-	for _, file := range files {
+	for idx, file := range files {
 		var fullYaml interface{}
 
 		debug.Log("event", "unmarshal part of rendered")
@@ -142,6 +142,7 @@ func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) ([]
 		}
 
 		postKustomizeFiles = append(postKustomizeFiles, postKustomizeFile{
+			order:   idx,
 			minimal: minimal,
 			full:    fullYaml,
 		})

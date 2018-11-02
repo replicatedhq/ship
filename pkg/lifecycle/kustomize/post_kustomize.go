@@ -2,6 +2,7 @@ package kustomize
 
 import (
 	"os"
+	"sort"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -13,25 +14,40 @@ import (
 )
 
 type postKustomizeFile struct {
+	order   int
 	minimal state.MinimalK8sYaml
 	full    interface{}
 }
 
+type postKustomizeFileCollection []postKustomizeFile
+
+func (c postKustomizeFileCollection) Len() int {
+	return len(c)
+}
+
+func (c postKustomizeFileCollection) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func (c postKustomizeFileCollection) Less(i, j int) bool {
+	return c[i].order < c[j].order
+}
+
 func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []postKustomizeFile) ([]postKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "rebuildListYaml"))
-	yamlMap := make(map[state.MinimalK8sYaml]interface{})
+	yamlMap := make(map[state.MinimalK8sYaml]postKustomizeFile)
 
 	for _, postKustomizeFile := range kustomizedYamlFiles {
-		yamlMap[postKustomizeFile.minimal] = postKustomizeFile.full
+		yamlMap[postKustomizeFile.minimal] = postKustomizeFile
 	}
 
 	fullReconstructedRendered := make([]postKustomizeFile, 0)
 	for _, list := range lists {
 		var allListItems []interface{}
 		for _, item := range list.Items {
-			if full, exists := yamlMap[item]; exists {
+			if pkFile, exists := yamlMap[item]; exists {
 				delete(yamlMap, item)
-				allListItems = append(allListItems, full)
+				allListItems = append(allListItems, pkFile.full)
 			}
 		}
 
@@ -52,10 +68,11 @@ func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []p
 		fullReconstructedRendered = append(fullReconstructedRendered, postKustomizeList)
 	}
 
-	for nonListYamlMinimal, nonListYamlFull := range yamlMap {
+	for nonListYamlMinimal, pkFile := range yamlMap {
 		fullReconstructedRendered = append(fullReconstructedRendered, postKustomizeFile{
+			order:   pkFile.order,
 			minimal: nonListYamlMinimal,
-			full:    nonListYamlFull,
+			full:    pkFile.full,
 		})
 	}
 
@@ -64,6 +81,8 @@ func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []p
 
 func (l *Kustomizer) writePostKustomizeFiles(step api.Kustomize, postKustomizeFiles []postKustomizeFile) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "writePostKustomizeFiles"))
+
+	sort.Stable(postKustomizeFileCollection(postKustomizeFiles))
 
 	var joinedFinal string
 	for _, file := range postKustomizeFiles {
