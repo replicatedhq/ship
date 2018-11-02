@@ -68,7 +68,9 @@ type Step struct {
 
 // hack hack hack, I don't even know what to call this one
 func NewStep(apiStep api.Step) Step {
-	step := Step{Source: apiStep}
+	step := Step{
+		Source: apiStep,
+	}
 	if apiStep.Message != nil {
 		step.Message = &Message{
 			Contents:    apiStep.Message.Contents,
@@ -78,7 +80,9 @@ func NewStep(apiStep api.Step) Step {
 	} else if apiStep.Render != nil {
 		step.Render = &Render{}
 	} else if apiStep.HelmIntro != nil {
-		step.HelmIntro = &HelmIntro{}
+		step.HelmIntro = &HelmIntro{
+			IsUpdate: apiStep.HelmIntro.IsUpdate,
+		}
 	} else if apiStep.HelmValues != nil {
 		step.HelmValues = &HelmValues{
 			Values: "", // todo
@@ -126,6 +130,7 @@ type Action struct {
 }
 
 type HelmIntro struct {
+	IsUpdate bool `json:"isUpdate"`
 }
 
 type HelmValues struct {

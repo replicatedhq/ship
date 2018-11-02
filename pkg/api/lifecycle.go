@@ -131,6 +131,7 @@ func (k *KustomizeIntro) ShortName() string   { return "kustomize-intro" }
 
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {
+	IsUpdate   bool
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 

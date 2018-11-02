@@ -16,6 +16,8 @@ func Update() *cobra.Command {
 		Long:  `Pull an updated helm chart to be integrated into current application configuration`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// update should run in headless mode by default
+			viper.Set("isUpdate", true)
+
 			if !viper.GetBool("headed") {
 				viper.Set("headless", true)
 			}

@@ -41,9 +41,18 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 		Lifecycle: api.Lifecycle{
 			V1: []api.Step{
 				{
+					HelmIntro: &api.HelmIntro{
+						IsUpdate: r.Viper.GetBool("IsUpdate"),
+						StepShared: api.StepShared{
+							ID: "intro",
+						},
+					},
+				},
+				{
 					HelmValues: &api.HelmValues{
 						StepShared: api.StepShared{
 							ID:          "values",
+							Requires:    []string{"intro"},
 							Invalidates: []string{"render"},
 						},
 					},

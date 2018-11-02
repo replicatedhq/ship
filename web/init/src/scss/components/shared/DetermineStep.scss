@@ -53,6 +53,125 @@
   }
 }
 
+.HelmIntro--wrapper {
+  max-width: 1000px;
+  min-height: 620px;
+  margin: 0 auto;
+  & > div:last-of-type {
+    padding-top: 30px;
+  }
+}
+.HelmIntro--diagram {
+  margin: 45px 0;
+  .detailed-step:first-of-type {
+    margin-bottom: 30px;
+  }
+  .icon.helm-chart {
+    background-position: 0 -105px;
+    width: 95px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .icon.custom-values {
+    background-position: 0 -226px;
+    width: 95px;
+    height: 117px;
+    margin-right: 30px;
+  }
+  .icon.base {
+    background-position: 0 -347px;
+    width: 90px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .icon.patches {
+    background-position: -176px -105px;
+    width: 90px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .border-wth-arrow,
+  .border-wth-es {
+    margin: 0 30px;
+    .line {
+      width: 2px;
+      background: #DFDFDF; 
+      border-radius: 5px;
+    }
+    .icon.arrow {
+      background-position: -45px -90px;
+      height: 6px;
+      width: 14px;
+      margin: 7px 0;
+    }
+    p {
+      margin: 7px 0 14px;
+      line-height: 0;
+    }
+  }
+  .kustomize-steps {
+    background: #F8F8F8;
+    border-radius: 3px;
+    padding: 0 30px;
+    .plus {
+      margin: 0 20px 0 15px;
+    }
+    .icon.base-small {
+      background-position: -95px -347px;
+      width: 68px;
+      height: 88px;
+    }
+    .icon.patches-small {
+      background-position: -272px -105px;
+      width: 68px;
+      height: 88px;
+    }
+  }
+  .deployment-step {
+    background: #F8F8F8;
+    border-radius: 3px;
+    padding: 0 30px;
+    .icon.deployable-app {
+      background-position: -176px -226px;
+      width: 78px;
+      height: 89px;
+    }
+    p {
+      white-space: nowrap;
+    }
+  }
+  .values-step {
+    background: #FDFFFE;
+    border-radius: 3px;
+    padding: 20px 30px;
+    border: solid 1px #6FC98D;
+    & > div:nth-of-type(2) {
+      margin-bottom: 15px;
+    }
+    p {
+      white-space: nowrap;
+    }
+    .checkmark {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      background-position: -66px -75px;
+      width: 28px;
+      height: 28px;
+    }
+    .icon.helm-chart-small {
+      background-position: -95px -105px;
+      width: 69px;
+      height: 89px;
+    }
+    .icon.custom-values-small {
+      background-position: -98px -226px;
+      width: 72px;
+      height: 88px;
+    }
+  }
+}
+
 .Error--wrapper {
   max-width: 1024px;
   margin: 0 auto;

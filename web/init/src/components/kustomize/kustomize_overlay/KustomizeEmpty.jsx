@@ -5,49 +5,60 @@ export default class KustomizeEmpty extends React.Component {
   render() {
     const { actions, handleAction} = this.props;
     return (
-      <div className="KustomizeEmpty--wrapper flex1 flex-column EmmptyState--wrapper">
-        <div className="flex-1-auto u-overflow--auto container u-paddingTop--30 u-paddingBottom--30">
-          <p className="u-fontSize--jumbo u-color--tuna u-fontWeight--bold u-marginBottom--normal u-lineHeight--normal">Kustomize your YAML with patches</p>
-          <p className="u-fontSize--normal u-fontWeight--medium u-lineHeight--more">
-          A patch is an asset that modifies (and thus depends on) another asset. The kustomization in an overlay refers to (via file path, URI or other method)
-          some other kustomization, known as its base. An overlay is a collections of patches. Overlays allow you to create different variants of a common base
-          - e.g. development, QA, staging and production environment variants.
-          </p>
-          <div className="product-features-wrapper">
-            <div className="feature-blocks-wrapper ">
-              <div className="feature-block-outer">
-                <div className="feature-block-wrapper">
-                  <div className="feature-block">
-                    <div className="icon u-selectBaseIcon"></div>
-                    <p className="title">Select a base file</p>
-                    <p>Start by selecting a base file from the tree to the left. Files that typically use patches are services and deployments.</p>
+      <div className="KustomizeEmpty--wrapper u-paddingTop--30 flex1 flex-column justifyContent--spaceBetween EmptyState--wrapper">
+        <div className="flex-column flex-1-auto u-overflow--auto container">
+          <div className="HelmIntro--wrapper flex-column">
+            <p className="u-fontSize--jumbo2 u-color--tuna u-fontWeight--bold u-lineHeight--normal">Kustomize your YAML</p>
+            <p className="u-fontSize--normal u-fontWeight--medium u-color--dustyGray u-lineHeight--more">Ship has generated all of the Kubernetes YAML from the Helm chart and has prepared the application for deployment to a cluster without Helm and Tiller installed. On the next screen, you’ll see a file tree showing all of the Kubernetes resources. You can review them, and click on any line to create a patch using Kustomize and edit (or add/remove).</p>
+            <div className="HelmIntro--diagram flex">
+              <div className="values-step flex-column justifyContent--center u-position--relative">
+                <div className="icon checkmark"></div>
+                <div className="flex flex-column alignItems--center">
+                  <div className="icon helm-chart-small"></div>
+                  <p className="u-textAlign--center u-fontSize--small u-color--tuna u-fontWeight--bold u-marginTop--normal u-lineHeight--small">Helm Chart</p>
+                </div>
+                <div className="flex flex-column alignItems--center">
+                  <div className="icon custom-values-small"></div>
+                  <p className="u-textAlign--center u-fontSize--small u-color--tuna u-fontWeight--bold u-marginTop--normal u-lineHeight--small">Custom Values</p>
+                </div>
+              </div>
+              <div className="border-wth-arrow flex flex-column alignItems--center">
+                <div className="line flex1"></div>
+                <div className="icon arrow flex-auto"></div>
+                <div className="line flex1"></div>
+              </div>
+              <div className="detailed-steps flex flex-column">
+                <div className="detailed-step flex">
+                  <div className="icon base flex-auto"></div>
+                  <div className="flex flex-column">
+                    <p className="u-fontSize--larger u-fontWeight--bold u-color--tuna u-paddingBottom--10">Base</p>
+                    <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">The base is the rendered Helm chart. Ship will create this for you and it’s generated from the original Chart, never forked.</p>
+                  </div>
+                </div>
+                <div className="detailed-step flex">
+                  <div className="icon patches flex-auto"></div>
+                  <div className="flex flex-column">
+                    <p className="u-fontSize--larger u-fontWeight--bold u-color--tuna u-paddingBottom--10">Patches</p>
+                    <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">The changes you would have made in a fork, i.e. any advanced customization (additions, deletions or changes) to the base can be written as patches and will be managed using <a href="http://kustomize.io" target="_blank" rel="noopener noreferrer" className="u-color--astral u-fontWeight--medium">Kustomize</a>. Ship will guide you through creating these patches.</p>
                   </div>
                 </div>
               </div>
-              <div className="feature-block-outer">
-                <div className="feature-block-wrapper">
-                  <div className="feature-block">
-                    <div className="icon u-setOverlayIcon"></div>
-                    <p className="title">Create a patch</p>
-                    <p>After selecting a base file, you can select specific items that you want to customize to meet your needs.</p>
-                  </div>
-                </div>
+              <div className="border-wth-es flex flex-column alignItems--center">
+                <div className="line flex1"></div>
+                <p className="plus u-color--chateauGreen u-fontSize--jumbo2 u-fontWeight--bold">=</p>
+                <div className="line flex1"></div>
               </div>
-              <div className="feature-block-outer">
-                <div className="feature-block-wrapper">
-                  <div className="feature-block">
-                    <div className="icon u-shipItIcon"></div>
-                    <p className="title">Ship your rendered YAML</p>
-                    <p>We do the heavy lifting to merge your patches with the base YAML and give you a single YAML file for deployment.</p>
-                  </div>
+              <div className="deployment-step flex alignItems--center">
+                <div className="flex flex-column alignItems--center">
+                  <div className="icon deployable-app"></div>
+                  <p className="u-textAlign--center u-fontSize--small u-color--tuna u-fontWeight--bold u-marginTop--normal u-lineHeight--small">Deployable App</p>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="skip-wrapper">
-            <p className="u-fontSize--normal u-fontWeight--medium u-lineHeight--more">
-          You are not required to customize your YAML. We built this tool to make it easy to apply patches and ship customized YAML quickly and effeciently. However, if you have no need to change any of these files you can move right along to the deployment step. </p>
-            <p className="u-marginTop--20 u-fontSize--normal u-fontWeight--medium u-lineHeight--more">If you’re ready to deploy your YAML simply <span onClick={this.props.skipKustomize} className="u-color--astral u-textDecoration--underlineOnHover">click here</span>.</p>
+            <div className="flex flex-column flex1 u-borderTop--gray">
+              <p className="u-fontSize--normal u-color--dustyGray u-fontWeight--medium u-lineHeight--more">Ship will keep all of your patches separate from the upstream (base) YAML. This allows Ship to pull the latest version of the Helm chart every time it’s updated and merge your patches back in.</p>
+              <p className="u-marginTop--20 u-fontSize--normal u-color--dustyGray u-fontWeight--medium u-lineHeight--more">To continue, click Next and review some YAML.</p>
+            </div>
           </div>
         </div>
         <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
