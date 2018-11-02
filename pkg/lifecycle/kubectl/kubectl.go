@@ -13,7 +13,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
@@ -63,7 +62,7 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 	}
 
 	cmd := exec.Command("kubectl")
-	cmd.Dir = constants.InstallerPrefixPath
+	cmd.Dir = release.FindRenderRoot()
 	cmd.Args = append(cmd.Args, "apply", "-f", step.Path)
 	if step.Kubeconfig != "" {
 		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)
