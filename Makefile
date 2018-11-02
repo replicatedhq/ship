@@ -263,7 +263,7 @@ build-ci: ci-embed-ui bin/ship
 
 build-ci-cypress: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
-build-minimal: bin/ship build-ui pkg/lifecycle/daemon/ui.bindatafs.go
+build-minimal: build-ui pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
 bin/ship: $(FULLSRC)
 	go build \
