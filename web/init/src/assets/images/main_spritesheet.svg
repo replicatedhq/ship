@@ -71,7 +71,7 @@
                             <path d="M80.5114216,18.8318089 L64.0837644,18.8318089 C63.0507748,18.8318089 62.2133713,17.9944053 62.2133713,16.9614157 L62.2133713,0" id="Rectangle-12" fill="#D8D8D8"></path>
                             <path d="M80.5114216,18.8318089 L64.0837644,18.8318089 C63.0507748,18.8318089 62.2133713,17.9944053 62.2133713,16.9614157 L62.2133713,0" id="Rectangle-12" fill="#C6DCF0"></path>
                         </g>
-                        <g id="Group-4" transform="translate(10.827337, 10.895547)">
+                        <g id="Group-4" transform="translate(10.827337, 10.895547)" stroke-linecap="round">
                             <path d="M1.33670823,7.53272355 L23.7934064,7.53272355" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.40479115"></path>
                             <path d="M0.902278052,1.47964213 L20.4516358,1.47964213" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.80359337" stroke-dasharray="3.607186664234508"></path>
                             <path d="M1.33670823,13.585805 L33.6850473,13.585805" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.40479115"></path>
@@ -113,7 +113,7 @@
                             <path d="M81.3933934,18.994152 L64.7867868,18.994152 C63.7419237,18.994152 62.8948949,18.1471232 62.8948949,17.1022602 L62.8948949,0" id="Rectangle-12" fill="#D8D8D8"></path>
                             <path d="M81.3933934,18.994152 L64.7867868,18.994152 C63.7419237,18.994152 62.8948949,18.1471232 62.8948949,17.1022602 L62.8948949,0" id="Rectangle-12" fill="#C6DCF0"></path>
                         </g>
-                        <g id="Group-4" transform="translate(10.945946, 10.989474)">
+                        <g id="Group-4" transform="translate(10.945946, 10.989474)" stroke-linecap="round">
                             <path d="M1.35135135,7.59766082 L24.0540541,7.59766082" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.43243243"></path>
                             <path d="M0.912162162,1.49239766 L20.6756757,1.49239766" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432" stroke-dasharray="3.648648648648649"></path>
                             <path d="M1.35135135,13.702924 L34.0540541,13.702924" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.43243243"></path>
@@ -170,7 +170,7 @@
                             <path d="M61.4972306,14.4093567 L48.9558156,14.4093567 C48.1631609,14.4093567 47.5205873,13.7667831 47.5205873,12.9741284 L47.5205873,0" id="Rectangle-12" fill="#D8D8D8"></path>
                             <path d="M61.4972306,14.4093567 L48.9558156,14.4093567 C48.1631609,14.4093567 47.5205873,13.7667831 47.5205873,12.9741284 L47.5205873,0" id="Rectangle-12" fill="#C6DCF0"></path>
                         </g>
-                        <g id="Group-4" transform="translate(8.270270, 8.336842)">
+                        <g id="Group-4" transform="translate(8.270270, 8.336842)" stroke-linecap="round">
                             <path d="M1.02102102,5.76374269 L18.1741742,5.76374269" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.84529357"></path>
                             <path d="M0.689189189,1.13216374 L15.6216216,1.13216374" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.38397018" stroke-dasharray="2.767940422584271"></path>
                             <path d="M1.02102102,10.3953216 L25.7297297,10.3953216" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.84529357"></path>
@@ -210,7 +210,7 @@
                         <path d="M81.3933934,18.994152 L64.7867868,18.994152 C63.7419237,18.994152 62.8948949,18.1471232 62.8948949,17.1022602 L62.8948949,0" id="Rectangle-12" fill="#D8D8D8"></path>
                         <path d="M81.3933934,18.994152 L64.7867868,18.994152 C63.7419237,18.994152 62.8948949,18.1471232 62.8948949,17.1022602 L62.8948949,0" id="Rectangle-12" fill="#C6DCF0"></path>
                     </g>
-                    <g id="Group-4" transform="translate(10.945946, 10.989474)">
+                    <g id="Group-4" transform="translate(10.945946, 10.989474)" stroke-linecap="round">
                         <path d="M1.35135135,7.59766082 L24.0540541,7.59766082" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.43243243"></path>
                         <path d="M0.912162162,1.49239766 L20.6756757,1.49239766" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432" stroke-dasharray="3.648648648648649"></path>
                         <path d="M1.35135135,13.702924 L34.0540541,13.702924" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.43243243"></path>
@@ -250,7 +250,7 @@
                             <path d="M60.8308519,14.2861998 L48.4286197,14.2861998 C47.6427398,14.2861998 47.0056583,13.6491183 47.0056583,12.8632384 L47.0056583,0" id="Rectangle-12" fill="#D8D8D8"></path>
                             <path d="M60.8308519,14.2861998 L48.4286197,14.2861998 C47.6427398,14.2861998 47.0056583,13.6491183 47.0056583,12.8632384 L47.0056583,0" id="Rectangle-12" fill="#C6DCF0"></path>
                         </g>
-                        <g id="Group-4" transform="translate(8.180654, 8.265587)">
+                        <g id="Group-4" transform="translate(8.180654, 8.265587)" stroke-linecap="round">
                             <path d="M1.00995733,5.71447993 L17.9772404,5.71447993" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82952183"></path>
                             <path d="M0.681721195,1.12248713 L15.4523471,1.12248713" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.37214137" stroke-dasharray="2.744282812134832"></path>
                             <path d="M1.00995733,10.3064727 L25.4509246,10.3064727" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82952183"></path>
@@ -308,7 +308,7 @@
                                 <path d="M60.8308519,14.2861998 L48.4245772,14.2861998 C47.6409299,14.2861998 47.0056583,13.6509282 47.0056583,12.8672809 L47.0056583,0" id="Rectangle-12" fill="#D8D8D8"></path>
                                 <path d="M60.8308519,14.2861998 L48.4245772,14.2861998 C47.6409299,14.2861998 47.0056583,13.6509282 47.0056583,12.8672809 L47.0056583,0" id="Rectangle-12" fill="#C6DCF0"></path>
                             </g>
-                            <g id="Group-4" transform="translate(8.180654, 8.265587)">
+                            <g id="Group-4" transform="translate(8.180654, 8.265587)" stroke-linecap="round">
                                 <path d="M1.00995733,5.71447993 L17.9772404,5.71447993" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432"></path>
                                 <path d="M0.681721195,1.12248713 L15.4523471,1.12248713" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.36824324" stroke-dasharray="2.736486554145813"></path>
                                 <path d="M1.00995733,10.3064727 L25.4509246,10.3064727" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432"></path>
@@ -351,8 +351,8 @@
                                 <g id="Group-24">
                                     <path d="M79.5762251,19.2113285 L61.8181018,0.93519656 L3.65961007,0.93519656 C2.16107138,0.93519656 0.93519656,2.19683044 0.93519656,3.76636177 L0.93519656,96.0422252 C0.93519656,97.6117566 2.16107138,98.8733904 3.65961007,98.8733904 L76.8518116,98.8733904 C78.3503503,98.8733904 79.5762251,97.6117566 79.5762251,96.0422252 L79.5762251,19.2113285 Z" id="Rectangle-11" stroke="#D2E2F1" stroke-width="1.87039312" fill="#F3F7FF"></path>
                                     <path d="M38.4971969,60.7998401 L64.0386064,60.7998401" id="Line-2" stroke="#497ADD" stroke-width="2.39909091" stroke-linecap="round"></path>
-                                    <path d="M64.0386064,60.7998401 L64.0386064,49.9042935" id="Line-3" stroke="#497ADD" stroke-width="2.39909091" stroke-linecap="square"></path>
-                                    <g id="Group-4" transform="translate(10.827337, 10.895547)">
+                                    <path d="M64.0386064,60.7998401 L64.0386064,49.9042935" id="Line-3" stroke="#497ADD" stroke-width="2.39909091" stroke-linecap="round"></path>
+                                    <g id="Group-4" transform="translate(10.827337, 10.895547)" stroke-linecap="round">
                                         <path d="M1.33670823,7.53272355 L23.7934064,7.53272355" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.40479115"></path>
                                         <path d="M0.902278052,1.47964213 L20.4516358,1.47964213" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.80359337" stroke-dasharray="3.607186664234508"></path>
                                         <path d="M1.33670823,13.585805 L33.6850473,13.585805" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="2.40479115"></path>
@@ -423,8 +423,8 @@
                                 <g id="Group-24">
                                     <path d="M60.1213924,14.5732757 L46.7049524,0.709459459 L2.76503872,0.709459459 C1.63507557,0.709459459 0.709459459,1.66594058 0.709459459,2.85723997 L0.709459459,72.8596191 C0.709459459,74.0509185 1.63507557,75.0073996 2.76503872,75.0073996 L58.0658132,75.0073996 C59.1957763,75.0073996 60.1213924,74.0509185 60.1213924,72.8596191 L60.1213924,14.5732757 Z" id="Rectangle-11" stroke="#D2E2F1" stroke-width="1.41891892" fill="#F3F7FF"></path>
                                     <path d="M29.086771,46.1240166 L48.3847248,46.1240166" id="Line-2" stroke="#497ADD" stroke-width="1.82" stroke-linecap="round"></path>
-                                    <path d="M48.3847248,46.1240166 L48.3847248,37.8584295" id="Line-3" stroke="#497ADD" stroke-width="1.82" stroke-linecap="square"></path>
-                                    <g id="Group-4" transform="translate(8.180654, 8.265587)">
+                                    <path d="M48.3847248,46.1240166 L48.3847248,37.8584295" id="Line-3" stroke="#497ADD" stroke-width="1.82" stroke-linecap="round"></path>
+                                    <g id="Group-4" transform="translate(8.180654, 8.265587)" stroke-linecap="round">
                                         <path d="M1.00995733,5.71447993 L17.9772404,5.71447993" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432"></path>
                                         <path d="M0.681721195,1.12248713 L15.4523471,1.12248713" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.36824324" stroke-dasharray="2.736486554145813"></path>
                                         <path d="M1.00995733,10.3064727 L25.4509246,10.3064727" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.82432432"></path>
@@ -510,7 +510,7 @@
                             <g id="Group-26">
                                 <g id="Group-24">
                                     <path d="M42.6283952,10.4854481 L33.1144935,0.506208912 L1.96066382,0.506208912 C1.16294027,0.506208912 0.506208912,1.19506186 0.506208912,2.05656248 L0.506208912,52.4423432 C0.506208912,53.3038438 1.16294027,53.9926968 1.96066382,53.9926968 L41.1739403,53.9926968 C41.9716638,53.9926968 42.6283952,53.3038438 42.6283952,52.4423432 L42.6283952,10.4854481 Z" id="Rectangle-11" stroke="#D2E2F1" stroke-width="1.01241782" fill="#F3F7FF"></path>
-                                    <g id="Group-4" transform="translate(5.800828, 5.949341)">
+                                    <g id="Group-4" transform="translate(5.800828, 5.949341)" stroke-linecap="round">
                                         <path d="M0.716151558,4.11312496 L12.7474977,4.11312496" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.30168006"></path>
                                         <path d="M0.483402302,0.80793526 L10.9571188,0.80793526" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="0.976260044" stroke-dasharray="1.952520022521148"></path>
                                         <path d="M0.716151558,7.41831466 L18.0470193,7.41831466" id="Line-12" stroke-opacity="0.75" stroke="#A8ACB6" stroke-width="1.30168006"></path>

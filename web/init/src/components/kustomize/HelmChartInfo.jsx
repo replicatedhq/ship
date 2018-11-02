@@ -18,14 +18,14 @@ const HelmChartInfo = ({ isUpdate, actions, handleAction, isLoading}) => {
                 <div className="icon helm-chart flex-auto"></div>
                 <div className="flex flex-column">
                   <p className="u-fontSize--larger u-fontWeight--bold u-color--tuna u-paddingBottom--10">Helm Chart</p>
-                  <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">The base is the rendered Helm chart. Ship will create this for you and it’s generated from the original Chart, never forked.</p>
+                  <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">This is the original, upstream Helm Chart. You can use any Helm chart without forking here.</p>
                 </div>
               </div>
               <div className="detailed-step flex">
                 <div className="icon custom-values flex-auto"></div>
                 <div className="flex flex-column">
                   <p className="u-fontSize--larger u-fontWeight--bold u-color--tuna u-paddingBottom--10">Custom Values</p>
-                  <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">The changes you would have made in a fork, i.e. any advanced customization (additions, deletions or changes) to the base can be written as patches and will be managed using <a href="http://kustomize.io" target="_blank" rel="noopener noreferrer" className="u-color--astral u-fontWeight--medium">Kustomize</a>. Ship will guide you through creating these patches.</p>
+                  <p className="u-fontSize--normal u-color--dustyGray u-lineHeight--more u-fontWeight--medium">Provide the values to the original Helm Chart. You will be able to view the generated YAML from these and have an opportunity to create patches using <a href="http://kustomize.io" target="_blank" rel="noopener noreferrer" className="u-color--astral u-fontWeight--medium">Kustomize</a> to make advanced changes without forking the original Helm Chart.</p>
                 </div>
               </div>
             </div>
