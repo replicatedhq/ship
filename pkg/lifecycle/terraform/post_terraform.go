@@ -50,8 +50,8 @@ type kubeContext struct {
 }
 
 type namedKubeAuthInfo struct {
-	Name string       `json:"name" yaml:"name"`
-	User kubeAuthInfo `json:"user" yaml:"user"`
+	Name     string       `json:"name" yaml:"name"`
+	AuthInfo kubeAuthInfo `json:"user" yaml:"user"`
 }
 
 type kubeAuthInfo struct {
@@ -98,10 +98,10 @@ func (t *DaemonlessTerraformer) createKubeConfig(dir string, builder *templates.
 	newConfig := kubeConfig{
 		APIVersion:     "v1",
 		Kind:           "Config",
-		CurrentContext: "ship",
+		CurrentContext: fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
 		Clusters: []namedKubeCluster{
 			{
-				Name: "ship",
+				Name: fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
 				Cluster: kubeCluster{
 					CertificateAuthorityData: string(clusterCA),
 					Server:                   fmt.Sprintf("https://%s", string(endpoint)),
@@ -110,17 +110,17 @@ func (t *DaemonlessTerraformer) createKubeConfig(dir string, builder *templates.
 		},
 		Contexts: []namedKubeContext{
 			{
-				Name: "ship",
+				Name: fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
 				Context: kubeContext{
-					Cluster:  "ship",
-					AuthInfo: "ship",
+					Cluster:  fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
+					AuthInfo: fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
 				},
 			},
 		},
 		AuthInfos: []namedKubeAuthInfo{
 			{
-				Name: "ship",
-				User: kubeAuthInfo{
+				Name: fmt.Sprintf("ship-%s", gkeAsset.ClusterName),
+				AuthInfo: kubeAuthInfo{
 					ClientCertificateData: string(clientCert),
 					ClientKeyData:         string(clientKey),
 				},
