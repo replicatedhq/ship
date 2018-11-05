@@ -17,18 +17,20 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
 type DaemonlessTerraformer struct {
-	Logger        log.Logger
-	PlanConfirmer tfplan.PlanConfirmer
-	Terraform     func(string) *exec.Cmd
-	Status        daemontypes.StatusReceiver
-	StateManager  state.Manager
-	Viper         *viper.Viper
-	FS            afero.Afero
+	Logger         log.Logger
+	PlanConfirmer  tfplan.PlanConfirmer
+	Terraform      func(string) *exec.Cmd
+	Status         daemontypes.StatusReceiver
+	StateManager   state.Manager
+	Viper          *viper.Viper
+	FS             afero.Afero
+	BuilderBuilder *templates.BuilderBuilder
 
 	// exposed for testing
 	StateRestorer stateRestorer
@@ -41,6 +43,7 @@ func NewDaemonlessTerraformer(
 	viper *viper.Viper,
 	fs afero.Afero,
 	statemanager state.Manager,
+	builderBuilder *templates.BuilderBuilder,
 ) lifecycle.Terraformer {
 	terraformPath := viper.GetString("terraform-exec-path")
 	return &DaemonlessTerraformer{
@@ -51,11 +54,12 @@ func NewDaemonlessTerraformer(
 			cmd.Dir = cmdPath
 			return cmd
 		},
-		Viper:         viper,
-		FS:            fs,
-		StateManager:  statemanager,
-		StateSaver:    persistState,
-		StateRestorer: restoreState,
+		Viper:          viper,
+		FS:             fs,
+		BuilderBuilder: builderBuilder,
+		StateManager:   statemanager,
+		StateSaver:     persistState,
+		StateRestorer:  restoreState,
 	}
 }
 
@@ -63,14 +67,15 @@ func (t *DaemonlessTerraformer) WithStatusReceiver(
 	statusReceiver daemontypes.StatusReceiver,
 ) lifecycle.Terraformer {
 	return &DaemonlessTerraformer{
-		Logger:        t.Logger,
-		PlanConfirmer: t.PlanConfirmer.WithStatusReceiver(statusReceiver),
-		Terraform:     t.Terraform,
-		Viper:         t.Viper,
-		FS:            t.FS,
-		StateManager:  t.StateManager,
-		StateSaver:    t.StateSaver,
-		StateRestorer: t.StateRestorer,
+		Logger:         t.Logger,
+		PlanConfirmer:  t.PlanConfirmer.WithStatusReceiver(statusReceiver),
+		Terraform:      t.Terraform,
+		Viper:          t.Viper,
+		FS:             t.FS,
+		BuilderBuilder: t.BuilderBuilder,
+		StateManager:   t.StateManager,
+		StateSaver:     t.StateSaver,
+		StateRestorer:  t.StateRestorer,
 
 		Status: statusReceiver,
 	}
@@ -80,6 +85,12 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
 	renderRoot := release.FindRenderRoot()
 	dir := path.Join(renderRoot, step.Path)
+
+	builder, err := t.BuilderBuilder.BaseBuilder(release.Metadata)
+	if err != nil {
+		return errors.Wrapf(err, "get builder")
+	}
+
 	if err := t.FS.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "mkdirall %s", dir)
 	}
@@ -139,6 +150,13 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 		return errors.Wrap(err, "apply")
 	}
 
+	if gkeAsset := release.FindGKEAsset(); gkeAsset != nil {
+		debug.Log("create kube config")
+		if err := t.createKubeConfig(dir, builder, gkeAsset); err != nil {
+			return errors.Wrap(err, "create kubeconfig for gke")
+		}
+	}
+
 	if !viper.GetBool("terraform-yes") {
 		t.Status.PushMessageStep(
 			ctx,
@@ -151,10 +169,8 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 		<-confirmedChan
 	}
 
-	err = t.StateSaver(debug, t.FS, t.StateManager, dir)
-	if err != nil {
+	if err := t.StateSaver(debug, t.FS, t.StateManager, dir); err != nil {
 		return errors.Wrapf(err, "persist terraform state")
-
 	}
 
 	return nil

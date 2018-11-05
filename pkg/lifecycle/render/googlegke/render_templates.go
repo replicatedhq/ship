@@ -48,7 +48,7 @@ locals {
   min_master_version = "{{.MinMasterVersion}}"
 }
 
-resource "google_container_cluster" "ship-{{.ClusterName}}" {
+resource "google_container_cluster" "{{.ClusterName}}" {
   name               = "${var.cluster_name}"
   zone               = "${var.zone}"
   initial_node_count = "${var.initial_node_count}"
@@ -60,5 +60,27 @@ resource "google_container_cluster" "ship-{{.ClusterName}}" {
   node_config {
     machine_type = "${var.machine_type}"
   }
+
+  enable_legacy_abac = "true"
+}
+
+resource "local_file" "client_certificate" {
+  content = "${google_container_cluster.{{.ClusterName}}.master_auth.0.client_certificate}"
+  filename = "client_certificate"
+}
+
+resource "local_file" "client_key" {
+  content = "${google_container_cluster.{{.ClusterName}}.master_auth.0.client_key}"
+  filename = "client_key"
+}
+
+resource "local_file" "cluster_ca_certificate" {
+  content = "${google_container_cluster.{{.ClusterName}}.master_auth.0.cluster_ca_certificate}"
+  filename = "cluster_ca_certificate"
+}
+
+resource "local_file" "endpoint" {
+  content = "${google_container_cluster.{{.ClusterName}}.endpoint}"
+  filename = "endpoint"
 }
 `
