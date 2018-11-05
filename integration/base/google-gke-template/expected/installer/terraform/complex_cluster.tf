@@ -39,7 +39,7 @@ locals {
   min_master_version = "1.10.6-gke.1"
 }
 
-resource "google_container_cluster" "ship-complex-cluster" {
+resource "google_container_cluster" "complex-cluster" {
   name               = "${var.cluster_name}"
   zone               = "${var.zone}"
   initial_node_count = "${var.initial_node_count}"
@@ -51,4 +51,26 @@ resource "google_container_cluster" "ship-complex-cluster" {
   node_config {
     machine_type = "${var.machine_type}"
   }
+
+  enable_legacy_abac = "true"
+}
+
+resource "local_file" "client_certificate" {
+  content = "${google_container_cluster.complex-cluster.master_auth.0.client_certificate}"
+  filename = "client_certificate"
+}
+
+resource "local_file" "client_key" {
+  content = "${google_container_cluster.complex-cluster.master_auth.0.client_key}"
+  filename = "client_key"
+}
+
+resource "local_file" "cluster_ca_certificate" {
+  content = "${google_container_cluster.complex-cluster.master_auth.0.cluster_ca_certificate}"
+  filename = "cluster_ca_certificate"
+}
+
+resource "local_file" "endpoint" {
+  content = "${google_container_cluster.complex-cluster.endpoint}"
+  filename = "endpoint"
 }
