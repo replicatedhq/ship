@@ -117,6 +117,7 @@ func TestCreateKubeConfig(t *testing.T) {
 		req.NoError(err)
 
 		expectKubeConfigB, err := yaml.Marshal(tt.expectKubeConfig)
+		req.NoError(err)
 		req.Equal(string(expectKubeConfigB), string(kubeConfigB))
 	}
 }

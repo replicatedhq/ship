@@ -69,6 +69,7 @@ func (t *DaemonlessTerraformer) createKubeConfig(dir string, builder *templates.
 	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "createKubeConfig"))
 
 	builtKubePath, err := builder.String(fmt.Sprintf(`{{repl GoogleGKE "%s"}}`, gkeAsset.ClusterName))
+	debug.Log("event", "build kube path", "path", builtKubePath)
 	if err != nil {
 		return errors.Wrap(err, "build kubepath")
 	}
@@ -134,13 +135,13 @@ func (t *DaemonlessTerraformer) createKubeConfig(dir string, builder *templates.
 		return errors.Wrap(err, "marshal new kube config")
 	}
 
-	debug.Log("event", "mkdir for kube config", "dest", path.Join(dir, path.Dir(builtKubePath)))
-	if err := t.FS.MkdirAll(path.Join(dir, path.Dir(builtKubePath)), 0777); err != nil {
+	debug.Log("event", "mkdir for kube config", "dest", dir)
+	if err := t.FS.MkdirAll(dir, 0777); err != nil {
 		return errors.Wrap(err, "mkdir for kube config")
 	}
 
-	debug.Log("event", "write new kube config", "dest", path.Join(dir, builtKubePath))
-	if err := t.FS.WriteFile(path.Join(dir, builtKubePath), newConfigB, 0666); err != nil {
+	debug.Log("event", "write new kube config", "dest", path.Join(dir, path.Base(builtKubePath)))
+	if err := t.FS.WriteFile(path.Join(dir, path.Base(builtKubePath)), newConfigB, 0666); err != nil {
 		return errors.Wrap(err, "write new kube config")
 	}
 
