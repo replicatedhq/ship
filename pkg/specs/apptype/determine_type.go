@@ -79,6 +79,9 @@ func (r *inspector) DetermineApplicationType(
 	}
 
 	upstream, subdir, isSingleFile := gogetter.UntreeGithub(upstream)
+	if !isSingleFile {
+		isSingleFile = gogetter.IsShipYaml(upstream)
+	}
 	if gogetter.IsGoGettable(upstream) {
 		// get with go-getter
 		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs, Subdir: subdir, IsSingleFile: isSingleFile}
@@ -137,10 +140,9 @@ func (r *inspector) determineTypeFromContents(
 		if err != nil {
 			return "", "", errors.Wrapf(err, "check for %s", filename)
 		}
-	}
-
-	if isReplicatedApp {
-		return "inline.replicated.app", finalPath, nil
+		if isReplicatedApp {
+			return "inline.replicated.app", finalPath, nil
+		}
 	}
 
 	// if there's a Chart.yaml, assume its a chart
