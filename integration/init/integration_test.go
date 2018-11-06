@@ -90,7 +90,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 						Expect(err).NotTo(HaveOccurred())
 						absolutePath := filepath.Join(pwdRoot, "..")
 						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(absolutePath, relativePath))
-						replacements["__upstream__"] = absolutePath
+						replacements["__upstream__"] = absoluteUpstream
 					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
