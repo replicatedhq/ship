@@ -79,15 +79,18 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 				}, 20)
 
 				It("Should output the expected files", func() {
+					replacements := map[string]string{}
 					absoluteUpstream := testMetadata.Upstream
+
 					if testMetadata.MakeAbsolute {
 						relativePath := testMetadata.Upstream
 						pwdRoot, err := os.Getwd()
 						Expect(err).NotTo(HaveOccurred())
 						pwdRoot, err = filepath.Abs(pwdRoot)
 						Expect(err).NotTo(HaveOccurred())
-						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(pwdRoot, "..", relativePath))
-						fmt.Println("absolute upstream", absoluteUpstream)
+						absolutePath := filepath.Join(pwdRoot, "..")
+						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(absolutePath, relativePath))
+						replacements["__upstream__"] = absolutePath
 					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
@@ -102,7 +105,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

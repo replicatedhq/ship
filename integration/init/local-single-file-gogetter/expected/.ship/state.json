@@ -2,7 +2,7 @@
   "v1": {
     "config": null,
     "releaseName": "ship",
-    "upstream": "file::/Users/robert/go/src/github.com/replicatedhq/ship/integration/init/local-single-file-gogetter/input/ship.yaml",
+    "upstream": "file::__upstream__/input/ship.yaml",
     "metadata": null,
     "contentSHA": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
