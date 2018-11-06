@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -19,9 +20,9 @@ import (
 )
 
 type TestMetadata struct {
-	Upstream string   `yaml:"upstream"`
-	Args     []string `yaml:"args"`
-
+	Upstream     string   `yaml:"upstream"`
+	Args         []string `yaml:"args"`
+	MakeAbsolute bool     `yaml:"make_absolute"`
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -78,12 +79,22 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 				}, 20)
 
 				It("Should output the expected files", func() {
+					absoluteUpstream := testMetadata.Upstream
+					if testMetadata.MakeAbsolute {
+						relativePath := testMetadata.Upstream
+						pwdRoot, err := os.Getwd()
+						Expect(err).NotTo(HaveOccurred())
+						pwdRoot, err = filepath.Abs(pwdRoot)
+						Expect(err).NotTo(HaveOccurred())
+						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(pwdRoot, "..", relativePath))
+						fmt.Println("absolute upstream", absoluteUpstream)
+					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					cmd.SetArgs(append([]string{
 						"init",
-						testMetadata.Upstream,
+						absoluteUpstream,
 						"--headless",
 						"--log-level=off",
 					}, testMetadata.Args...))
