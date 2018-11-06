@@ -110,12 +110,3 @@ func (r *Release) FindRenderRoot() string {
 
 	return render.RenderRoot()
 }
-
-func (r *Release) FindGKEAsset() *GKEAsset {
-	for _, asset := range r.Spec.Assets.V1 {
-		if asset.GoogleGKE != nil {
-			return asset.GoogleGKE
-		}
-	}
-	return nil
-}
