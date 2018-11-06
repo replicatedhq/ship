@@ -99,7 +99,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 				Contents: `
 Assets are ready to deploy. You can run
 
-kubectl apply -f rendered.yaml
+    kubectl apply -f rendered.yaml
 
 to deploy the overlaid assets to your cluster.
 `},
@@ -150,7 +150,7 @@ func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
 				Contents: `
 Assets are ready to deploy. You can run
 
-kubectl apply -f rendered.yaml
+    kubectl apply -f rendered.yaml
 
 to deploy the overlaid assets to your cluster.
 `},
