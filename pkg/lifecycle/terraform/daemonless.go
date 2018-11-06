@@ -80,6 +80,7 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
 	renderRoot := release.FindRenderRoot()
 	dir := path.Join(renderRoot, step.Path)
+
 	if err := t.FS.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "mkdirall %s", dir)
 	}
@@ -151,10 +152,8 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 		<-confirmedChan
 	}
 
-	err = t.StateSaver(debug, t.FS, t.StateManager, dir)
-	if err != nil {
+	if err := t.StateSaver(debug, t.FS, t.StateManager, dir); err != nil {
 		return errors.Wrapf(err, "persist terraform state")
-
 	}
 
 	return nil

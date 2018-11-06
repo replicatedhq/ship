@@ -3,6 +3,7 @@ package googlegke
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"path"
 	"text/template"
 
@@ -76,6 +77,7 @@ func (r *LocalRenderer) Execute(
 		if err != nil {
 			return errors.Wrap(err, "render tf config")
 		}
+		fmt.Println("contents", contents)
 
 		assetsPath := "google_gke.tf"
 		if asset.Dest != "" {
@@ -155,8 +157,15 @@ func renderTerraformContents(asset api.GKEAsset) (string, error) {
 }
 
 func executeTemplate(t *template.Template, asset api.GKEAsset) (string, error) {
+	var data = struct {
+		api.GKEAsset
+		KubeConfigTmpl string
+	}{
+		asset,
+		kubeConfigTmpl,
+	}
 	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, asset); err != nil {
+	if err := t.Execute(&tpl, data); err != nil {
 		return "", err
 	}
 
