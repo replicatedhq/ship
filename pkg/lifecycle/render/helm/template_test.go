@@ -159,7 +159,7 @@ func TestLocalTemplater(t *testing.T) {
 			templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
 
 			mockCommands.EXPECT().Init().Return(nil)
-			mockCommands.EXPECT().DependencyUpdate(chartRoot).Return(nil)
+			mockCommands.EXPECT().MaybeDependencyUpdate(chartRoot).Return(nil)
 			if test.ontemplate != nil {
 				mockCommands.EXPECT().Template(chartRoot, templateArgs).DoAndReturn(test.ontemplate(req, mockFs))
 			} else {

@@ -33,18 +33,6 @@ func (m *MockCommands) EXPECT() *MockCommandsMockRecorder {
 	return m.recorder
 }
 
-// DependencyUpdate mocks base method
-func (m *MockCommands) DependencyUpdate(arg0 string) error {
-	ret := m.ctrl.Call(m, "DependencyUpdate", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DependencyUpdate indicates an expected call of DependencyUpdate
-func (mr *MockCommandsMockRecorder) DependencyUpdate(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependencyUpdate", reflect.TypeOf((*MockCommands)(nil).DependencyUpdate), arg0)
-}
-
 // Fetch mocks base method
 func (m *MockCommands) Fetch(arg0, arg1, arg2, arg3, arg4 string) error {
 	ret := m.ctrl.Call(m, "Fetch", arg0, arg1, arg2, arg3, arg4)
@@ -67,6 +55,18 @@ func (m *MockCommands) Init() error {
 // Init indicates an expected call of Init
 func (mr *MockCommandsMockRecorder) Init() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockCommands)(nil).Init))
+}
+
+// MaybeDependencyUpdate mocks base method
+func (m *MockCommands) MaybeDependencyUpdate(arg0 string) error {
+	ret := m.ctrl.Call(m, "MaybeDependencyUpdate", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MaybeDependencyUpdate indicates an expected call of MaybeDependencyUpdate
+func (mr *MockCommandsMockRecorder) MaybeDependencyUpdate(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeDependencyUpdate", reflect.TypeOf((*MockCommands)(nil).MaybeDependencyUpdate), arg0)
 }
 
 // Template mocks base method

@@ -129,7 +129,7 @@ func (f *LocalTemplater) Template(
 	}
 
 	debug.Log("event", "helm.dependency.update")
-	if err := f.Commands.DependencyUpdate(chartRoot); err != nil {
+	if err := f.Commands.MaybeDependencyUpdate(chartRoot); err != nil {
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
