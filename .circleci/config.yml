@@ -248,9 +248,11 @@ jobs:
           name: publish
           working_directory: ~/ship/web/init
           command: |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            # Run publish npm module, will pull latest
-            npx publish
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+              echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+              # Run publish npm module, will pull latest
+              npx publish
+            fi
 
   deploy_unstable:
     docker:

@@ -111,9 +111,12 @@ export default class KustomizeOverlay extends React.Component {
     let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
     const files = yaml.safeLoadAll(file.baseContent);
-    const overlayFields = map(files, (file) => {
+    let overlayFields = map(files, (file) => {
       return pick(file, "apiVersion", "kind", "metadata.name")
     });
+    if (files.length === 1) {
+      overlayFields = overlayFields[0];
+    }
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ patch: `--- \n${overlay}` });
   }
