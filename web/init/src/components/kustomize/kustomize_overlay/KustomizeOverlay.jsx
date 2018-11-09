@@ -165,7 +165,8 @@ export default class KustomizeOverlay extends React.Component {
     await this.deleteOverlay(overlayToDelete);
     this.setState({
       patch: "",
-      displayConfirmModal: false
+      displayConfirmModal: false,
+      lastSavedPatch: null
     });
   }
 
@@ -257,7 +258,7 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay = editor;
   }
 
-  updateModifiedPatch = debounce((patch, isResource) => {
+  updateModifiedPatch = (patch, isResource) => {
     // We already circumvent React's lifecycle state system for updates
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
@@ -265,7 +266,7 @@ export default class KustomizeOverlay extends React.Component {
       this.state.patch = patch; // eslint-disable-line
       this.handleApplyPatch();
     }
-  }, 500);
+  };
 
   handleAddResourceClick = async () => {
     // Ref input won't focus until state has been set
@@ -413,6 +414,7 @@ export default class KustomizeOverlay extends React.Component {
                           useSoftTabs: true,
                           tabSize: 2,
                         }}
+                        debounceChangePeriod={1000}
                         setOptions={{
                           scrollPastEnd: false
                         }}
