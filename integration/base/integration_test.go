@@ -19,13 +19,14 @@ import (
 )
 
 type TestMetadata struct {
-	CustomerID        string `yaml:"customer_id"`
-	InstallationID    string `yaml:"installation_id"`
-	ReleaseVersion    string `yaml:"release_version"`
-	SetChannelName    string `yaml:"set_channel_name"`
-	SetGitHubContents string `yaml:"set_github_contents"`
-	DisableOnline     bool   `yaml:"disable_online"`
-	NoStateFile       bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
+	CustomerID          string `yaml:"customer_id"`
+	InstallationID      string `yaml:"installation_id"`
+	ReleaseVersion      string `yaml:"release_version"`
+	SetChannelName      string `yaml:"set_channel_name"`
+	SetGitHubContents   string `yaml:"set_github_contents"`
+	DisableOnline       bool   `yaml:"disable_online"`
+	NoStateFile         bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
+	SetEntitlementsJSON string `yaml:"set_entitlements_json"`
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -99,6 +100,10 @@ var _ = Describe("ship app", func() {
 					}
 					if !testMetadata.NoStateFile {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+					}
+
+					if testMetadata.SetEntitlementsJSON != "" {
+						args = append(args, fmt.Sprintf("--set-entitlements-json=%s", testMetadata.SetEntitlementsJSON))
 					}
 
 					cmd.SetArgs(args)

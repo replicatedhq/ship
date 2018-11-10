@@ -3,11 +3,10 @@ package kustomize
 import (
 	"testing"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 type kustomizeTestFile struct {

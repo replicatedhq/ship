@@ -27,8 +27,9 @@ func TestInstallationContext(t *testing.T) {
 
 			v := viper.New()
 			ctx := &InstallationContext{
-				Meta:  test.Meta,
-				Viper: v,
+				Meta:   test.Meta,
+				Viper:  v,
+				Logger: &logger.TestLogger{T: t},
 			}
 			v.Set("customer-id", "abc")
 			v.Set("installation-id", "xyz")
@@ -107,6 +108,40 @@ func testCases() []TestInstallation {
 			Meta:     api.ReleaseMetadata{},
 			Tpl:      `It's {{repl Installation "installation_id" }}`,
 			Expected: `It's xyz`,
+		},
+		{
+			Name: "entitlement value",
+			Meta: api.ReleaseMetadata{
+				Entitlements: api.Entitlements{
+					Values: []api.EntitlementValue{
+						{
+							Key:   "num_seats",
+							Value: "3",
+						},
+					},
+				}},
+			Tpl:      `You get {{repl EntitlementValue "num_seats" }} seats`,
+			Expected: `You get 3 seats`,
+		},
+		{
+			Name:     "no entitlements",
+			Meta:     api.ReleaseMetadata{},
+			Tpl:      `You get {{repl EntitlementValue "num_repos" }} repos`,
+			Expected: `You get  repos`,
+		},
+		{
+			Name: "entitlement value not found",
+			Meta: api.ReleaseMetadata{
+				Entitlements: api.Entitlements{
+					Values: []api.EntitlementValue{
+						{
+							Key:   "num_seats",
+							Value: "3",
+						},
+					},
+				}},
+			Tpl:      `You get {{repl EntitlementValue "num_repos" }} repos`,
+			Expected: `You get  repos`,
 		},
 	}
 	return tests

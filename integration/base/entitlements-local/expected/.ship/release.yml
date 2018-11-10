@@ -1,0 +1,17 @@
+---
+assets:
+  v1:
+  - inline:
+      contents: |
+        #!/bin/bash
+        echo "you have {{repl EntitlementValue "num_seats" }} seats"
+      dest: ./scripts/seats.sh
+      mode: 0777
+
+config:
+  v1: []
+
+lifecycle:
+  v1:
+  - render: {}
+

@@ -36,12 +36,18 @@ func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
 		return nil, errors.Wrapf(err, "load fake github contents")
 	}
 
+	fakeEntitlements, err := r.loadFakeEntitlements()
+	if err != nil {
+		return nil, errors.Wrapf(err, "load fake entitlements")
+	}
+
 	return &ShipRelease{
 		Spec:           string(specYAML),
 		ChannelName:    r.SetChannelName,
 		ChannelIcon:    r.SetChannelIcon,
 		Semver:         r.RunbookReleaseSemver,
 		GithubContents: fakeGithubContents,
+		Entitlements:   *fakeEntitlements,
 	}, nil
 }
 

@@ -6,14 +6,13 @@ import (
 	"path/filepath"
 
 	"github.com/ghodss/yaml"
-	"k8s.io/helm/pkg/chartutil"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helm"
 	"github.com/spf13/afero"
+	"k8s.io/helm/pkg/chartutil"
 )
 
 // Commands are Helm commands that are available to the Ship binary.

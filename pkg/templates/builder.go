@@ -59,8 +59,9 @@ func (bb *BuilderBuilder) FullBuilder(
 		return nil, errors.Wrap(err, "create config context for templating")
 	}
 	installationCtx := &InstallationContext{
-		Meta:  meta,
-		Viper: bb.Viper,
+		Logger: bb.Logger,
+		Viper:  bb.Viper,
+		Meta:   meta,
 	}
 	shipCtx := ShipContext{
 		Logger: bb.Logger,
