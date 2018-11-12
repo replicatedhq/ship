@@ -33,6 +33,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 			ExpectState: state.Kustomize{
 				Overlays: map[string]state.Overlay{
 					"ship": {
+						ExcludedBases: []string{},
 						Patches: map[string]string{
 							"deployment.yaml": "foo/bar/baz",
 						},
@@ -51,7 +52,8 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 			ExpectState: state.Kustomize{
 				Overlays: map[string]state.Overlay{
 					"ship": {
-						Patches: map[string]string{},
+						ExcludedBases: []string{},
+						Patches:       map[string]string{},
 						Resources: map[string]string{
 							"deployment.yaml": "foo/bar/baz",
 						},
@@ -70,6 +72,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 				Kustomize: &state.Kustomize{
 					Overlays: map[string]state.Overlay{
 						"ship": {
+							ExcludedBases: []string{},
 							Patches: map[string]string{
 								"deployment.yaml": "foo/bar/baz",
 							},
@@ -80,6 +83,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 			ExpectState: state.Kustomize{
 				Overlays: map[string]state.Overlay{
 					"ship": {
+						ExcludedBases: []string{},
 						Patches: map[string]string{
 							"deployment.yaml": "foo/bar/baz",
 						},
@@ -101,6 +105,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 				Kustomize: &state.Kustomize{
 					Overlays: map[string]state.Overlay{
 						"ship": {
+							ExcludedBases: []string{},
 							Resources: map[string]string{
 								"deployment.yaml": "foo/bar/baz",
 							},
@@ -114,6 +119,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 			ExpectState: state.Kustomize{
 				Overlays: map[string]state.Overlay{
 					"ship": {
+						ExcludedBases: []string{},
 						Resources: map[string]string{
 							"deployment.yaml": "foo/bar/baz",
 							"service.yaml":    "foo/bar/baz",

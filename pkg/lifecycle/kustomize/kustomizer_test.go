@@ -185,10 +185,11 @@ func Test_kustomizer_writeBase(t *testing.T) {
 		GetFS func() (afero.Afero, error)
 	}
 	tests := []struct {
-		name       string
-		fields     fields
-		expectFile string
-		wantErr    bool
+		name          string
+		fields        fields
+		expectFile    string
+		wantErr       bool
+		excludedBases []string
 	}{
 		{
 			name: "No base files",
@@ -274,6 +275,45 @@ resources:
 - deployment.yaml
 `,
 		},
+		{
+			name: "Base files with nested and excluded chart",
+			fields: fields{
+				GetFS: func() (afero.Afero, error) {
+					fs := afero.Afero{Fs: afero.NewMemMapFs()}
+					nestedChartPath := path.Join(
+						constants.KustomizeBasePath,
+						"charts/kube-stats-metrics/templates",
+					)
+					if err := fs.MkdirAll(nestedChartPath, 0777); err != nil {
+						return afero.Afero{}, err
+					}
+
+					files := []string{
+						"deployment.yaml",
+						"clusterrole.yaml",
+						"charts/kube-stats-metrics/templates/deployment.yaml",
+					}
+					for _, file := range files {
+						if err := fs.WriteFile(
+							path.Join(constants.KustomizeBasePath, file),
+							[]byte{},
+							0777,
+						); err != nil {
+							return afero.Afero{}, err
+						}
+					}
+
+					return fs, nil
+				},
+			},
+			expectFile: `kind: ""
+apiversion: ""
+resources:
+- charts/kube-stats-metrics/templates/deployment.yaml
+- deployment.yaml
+`,
+			excludedBases: []string{"/clusterrole.yaml"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -282,6 +322,18 @@ resources:
 			testLogger := &logger.TestLogger{T: t}
 			mockDaemon := daemon2.NewMockDaemon(mc)
 			mockState := state2.NewMockManager(mc)
+
+			mockState.EXPECT().TryLoad().Return(state.VersionedState{
+				V1: &state.V1{
+					Kustomize: &state.Kustomize{
+						Overlays: map[string]state.Overlay{
+							"ship": state.Overlay{
+								ExcludedBases: tt.excludedBases,
+							},
+						},
+					},
+				},
+			}, nil).AnyTimes()
 
 			fs, err := tt.fields.GetFS()
 			req.NoError(err)
@@ -452,7 +504,7 @@ resources:
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
 				Kustomize: test.kustomize,
-			}}, nil)
+			}}, nil).Times(2)
 
 			k := &daemonkustomizer{
 				Kustomizer: Kustomizer{
