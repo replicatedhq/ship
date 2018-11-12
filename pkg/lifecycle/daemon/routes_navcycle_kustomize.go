@@ -208,6 +208,7 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "getKustomizationStep")
@@ -221,6 +222,7 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	c.JSON(200, map[string]interface{}{
@@ -242,6 +244,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	var stringPath []string
@@ -254,6 +257,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		default:
 			level.Error(d.Logger).Log("event", "invalid path provided")
 			c.AbortWithError(500, errors.New("internal_server_error"))
+			return
 		}
 	}
 
@@ -267,6 +271,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to read original file", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "patcher.modifyField")
@@ -274,6 +279,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "modify field", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "patcher.CreatePatch")
@@ -281,6 +287,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	if len(request.Current) > 0 {
@@ -288,6 +295,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
 			c.AbortWithError(500, errors.New("internal_server_error"))
+			return
 		}
 		c.JSON(200, map[string]interface{}{
 			"patch": string(out),
@@ -298,6 +306,53 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		})
 	}
 }
+
+func (d *NavcycleRoutes) deleteBase(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteBase"))
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
+		return
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	shipOverlay := kustomize.Ship()
+	for _, base := range shipOverlay.ExcludedBases {
+		if base == pathQueryParam {
+			debug.Log("event", "base", pathQueryParam, "exists in excluded")
+			c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+			return
+		}
+	}
+	shipOverlay.ExcludedBases = append(shipOverlay.ExcludedBases, pathQueryParam)
+
+	if _, exists := shipOverlay.Patches[pathQueryParam]; exists {
+		delete(shipOverlay.Patches, pathQueryParam)
+	}
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = map[string]state.Overlay{}
+	}
+	kustomize.Overlays["ship"] = shipOverlay
+
+	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "delete base"))
+		return
+	}
+
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
 func (d *NavcycleRoutes) deleteResource(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
 	pathQueryParam := c.Query("path")
@@ -314,6 +369,7 @@ func (d *NavcycleRoutes) deleteResource(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
 		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+		return
 	}
 	c.JSON(200, map[string]string{"status": "success"})
 }
@@ -334,6 +390,7 @@ func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
 		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+		return
 	}
 
 	c.JSON(200, map[string]string{"status": "success"})

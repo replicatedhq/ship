@@ -45,11 +45,12 @@ func NewLoader(
 }
 
 type aferoLoader struct {
-	Logger       log.Logger
-	FS           afero.Afero
-	StateManager state.Manager
-	patches      map[string]string
-	resources    map[string]string
+	Logger        log.Logger
+	FS            afero.Afero
+	StateManager  state.Manager
+	excludedBases map[string]string
+	patches       map[string]string
+	resources     map[string]string
 }
 
 func (a *aferoLoader) loadShipOverlay() error {
@@ -64,6 +65,11 @@ func (a *aferoLoader) loadShipOverlay() error {
 	}
 
 	shipOverlay := kustomize.Ship()
+	baseMap := make(map[string]string)
+	for _, base := range shipOverlay.ExcludedBases {
+		baseMap[base] = base
+	}
+	a.excludedBases = baseMap
 	a.patches = shipOverlay.Patches
 	a.resources = shipOverlay.Resources
 	return nil
@@ -155,11 +161,13 @@ func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo
 			return current, errors.Wrapf(err, "read file %s", file.Name())
 		}
 
+		_, exists := a.excludedBases[filePath]
 		return a.loadTree(fs, current.withChild(Node{
 			Name:        file.Name(),
 			Path:        filePath,
 			HasOverlay:  hasOverlay,
 			IsSupported: isSupported(fileB),
+			IsExcluded:  exists,
 		}), rest)
 	}
 

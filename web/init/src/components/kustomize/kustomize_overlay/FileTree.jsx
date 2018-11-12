@@ -1,4 +1,5 @@
 import * as React from "react";
+import PropTypes from "prop-types";
 
 export default class FileTree extends React.Component {
 
@@ -11,8 +12,13 @@ export default class FileTree extends React.Component {
     this.props.handleDeleteOverlay(path);
   }
 
+  handleDeleteBase = (e, path) => {
+    e.stopPropagation();
+    this.props.handleDeleteBase(path);
+  }
+
   render() {
-    const { files, basePath, isRoot, selectedFile, handleFileSelect, handleDeleteOverlay, isOverlayTree, isResourceTree } = this.props;
+    const { files, basePath, isRoot, selectedFile, handleFileSelect, handleDeleteOverlay, isOverlayTree, isResourceTree, isBaseTree } = this.props;
     return (
       <ul className={`${isRoot ? "FileTree-wrapper" : "u-marginLeft--normal"} u-position--relative`}>
         {files && files.map((file, i) => ( file.children && file.children.length ?
@@ -28,9 +34,11 @@ export default class FileTree extends React.Component {
             />
           </li>
           :
+          file.isExcluded ? <li key={file.path} className={`u-position--relative is-file ${file.isExcluded ? "is-excluded" : ""}`}>{file.name}</li> :
           <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""}`} onClick={() => this.handleFileSelect(file.path)}>
             {file.name}
             {isOverlayTree || isResourceTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
+            {isBaseTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteBase(e, file.path)}></span> : null}
           </li>
         ))
         }
@@ -38,3 +46,12 @@ export default class FileTree extends React.Component {
     );
   }
 }
+
+FileTree.propTypes = {
+  isOverlayTree: PropTypes.bool,
+  isResourceTree: PropTypes.bool,
+  // boolean whether the provided tree is part of the base resources tree
+  isBaseTree: PropTypes.bool,
+  // function invoked when deleting a base resource
+  handleDeleteBase: PropTypes.func,
+};

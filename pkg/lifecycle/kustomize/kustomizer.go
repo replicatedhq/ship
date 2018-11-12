@@ -189,6 +189,17 @@ func (l *Kustomizer) writeOverlay(
 func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
+	currentState, err := l.State.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	currentKustomize := currentState.CurrentKustomize()
+	if currentKustomize == nil {
+		currentKustomize = &state.Kustomize{}
+	}
+	shipOverlay := currentKustomize.Ship()
+
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(
 		step.Base,
@@ -197,12 +208,12 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			if l.shouldAddFileToBase(targetPath) {
-				relativePath, err := filepath.Rel(step.Base, targetPath)
-				if err != nil {
-					debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
-					return errors.Wrap(err, "failed to get relative path")
-				}
+			relativePath, err := filepath.Rel(step.Base, targetPath)
+			if err != nil {
+				debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
+				return errors.Wrap(err, "failed to get relative path")
+			}
+			if l.shouldAddFileToBase(shipOverlay.ExcludedBases, relativePath) {
 				baseKustomization.Resources = append(baseKustomization.Resources, relativePath)
 			}
 			return nil
@@ -229,9 +240,16 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	return nil
 }
 
-func (l *Kustomizer) shouldAddFileToBase(targetPath string) bool {
+func (l *Kustomizer) shouldAddFileToBase(excludedBases []string, targetPath string) bool {
 	if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
 		return false
+	}
+
+	for _, base := range excludedBases {
+		basePathWOLeading := strings.TrimPrefix(base, "/")
+		if basePathWOLeading == targetPath {
+			return false
+		}
 	}
 
 	return !strings.HasSuffix(targetPath, "kustomization.yaml") &&
