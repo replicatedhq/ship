@@ -334,7 +334,6 @@ export default class KustomizeOverlay extends React.Component {
     const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
     const showBase = !fileToView.isResource;
-    console.log("filetree", fileTree);
 
     return (
       <div className="flex flex1">
