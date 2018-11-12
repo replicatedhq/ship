@@ -68,6 +68,7 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	kustom.POST("patch", d.createOrMergePatch)
 	kustom.DELETE("patch", d.deletePatch)
 	kustom.DELETE("resource", d.deleteResource)
+	kustom.DELETE("base", d.deleteBase)
 	kustom.POST("apply", d.applyPatch)
 
 	conf := v1.Group("/config")

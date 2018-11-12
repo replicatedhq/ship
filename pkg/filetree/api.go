@@ -6,4 +6,5 @@ type Node struct {
 	Path        string `json:"path" yaml:"path"`
 	HasOverlay  bool   `json:"hasOverlay" yaml:"hasOverlay"`
 	IsSupported bool   `json:"isSupported" yaml:"isSupported"`
+	IsExcluded  bool   `json:"isExcluded" yaml:"isExcluded"`
 }
