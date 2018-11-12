@@ -70,6 +70,12 @@ func (s *Ship) Watch(ctx context.Context) error {
 			"sleeping", s.Viper.GetDuration("interval"),
 		)
 
+		if s.Viper.GetBool("exit") {
+			noUpdateMsg := fmt.Sprintf("No update was found for %s", upstream)
+			s.UI.Info(noUpdateMsg)
+			return nil
+		}
+
 		time.Sleep(s.Viper.GetDuration("interval"))
 	}
 }

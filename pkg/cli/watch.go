@@ -28,6 +28,7 @@ of 0 when there's an update available.`,
 	}
 
 	cmd.Flags().DurationP("interval", "", time.Duration(time.Minute*15), "interval to wait between cycles polling for updates")
+	cmd.Flags().BoolP("exit", "", false, "exit immediately after first poll, regardless of whether an update is available")
 
 	v.BindPFlags(cmd.PersistentFlags())
 	v.BindPFlags(cmd.Flags())

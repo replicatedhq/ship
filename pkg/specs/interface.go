@@ -111,7 +111,9 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
 	switch appType {
 	case "helm":
+		fallthrough
 	case "k8s":
+		fallthrough
 	case "inline.replicated.app":
 		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
 		if err != nil {
@@ -134,7 +136,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		return fmt.Sprintf("%x", sha256.Sum256([]byte(release.Spec))), nil
 	}
 
-	return "", errors.Errorf("Could not determine application type of upstream %s", upstream)
+	return "", errors.Errorf("Could not continue with application type %q of upstream %s", appType, upstream)
 }
 
 func (r *Resolver) resolveRelease(

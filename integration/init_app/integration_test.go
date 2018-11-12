@@ -128,6 +128,14 @@ var _ = Describe("ship init replicated.app/...", func() {
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
+
+					// run 'ship watch' and expect no error to occur
+					watchCmd := cli.RootCmd()
+					watchBuf := new(bytes.Buffer)
+					watchCmd.SetOutput(watchBuf)
+					watchCmd.SetArgs([]string{"watch", "--exit"})
+					err = watchCmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
 				}, 60)
 			})
 		}
