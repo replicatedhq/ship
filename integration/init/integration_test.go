@@ -108,6 +108,14 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
+
+					// run 'ship watch' and expect no error to occur
+					watchCmd := cli.RootCmd()
+					watchBuf := new(bytes.Buffer)
+					watchCmd.SetOutput(watchBuf)
+					watchCmd.SetArgs(append([]string{"watch", "--exit"}, testMetadata.Args...))
+					err = watchCmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
 				}, 60)
 			})
 		}
