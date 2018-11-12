@@ -5,6 +5,9 @@
         "kustomize": {
             "overlays": {
                 "ship": {
+                    "excludedBases": [
+                        "service.yaml"
+                    ],
                     "patches": {
                         "/templates/deployment.yaml": "--- \napiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  name: 'basic'\n"
                     }
