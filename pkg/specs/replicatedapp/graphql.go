@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/viper"
@@ -103,17 +103,18 @@ type GithubContent struct {
 
 // ShipRelease is the release response form GQL
 type ShipRelease struct {
-	ID             string          `json:"id"`
-	ChannelID      string          `json:"channelId"`
-	ChannelName    string          `json:"channelName"`
-	ChannelIcon    string          `json:"channelIcon"`
-	Semver         string          `json:"semver"`
-	ReleaseNotes   string          `json:"releaseNotes"`
-	Spec           string          `json:"spec"`
-	Images         []Image         `json:"images"`
-	GithubContents []GithubContent `json:"githubContents"`
-	Created        string          `json:"created"` // TODO: this time is not in RFC 3339 format
-	RegistrySecret string          `json:"registrySecret"`
+	ID             string           `json:"id"`
+	ChannelID      string           `json:"channelId"`
+	ChannelName    string           `json:"channelName"`
+	ChannelIcon    string           `json:"channelIcon"`
+	Semver         string           `json:"semver"`
+	ReleaseNotes   string           `json:"releaseNotes"`
+	Spec           string           `json:"spec"`
+	Images         []Image          `json:"images"`
+	GithubContents []GithubContent  `json:"githubContents"`
+	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string           `json:"registrySecret"`
+	Entitlements   api.Entitlements `json:"entitlements"`
 }
 
 // GQLRegisterInstallResponse is the top-level response object from the graphql server
@@ -144,6 +145,7 @@ func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 		RegistrySecret: r.RegistrySecret,
 		Images:         r.apiImages(),
 		GithubContents: r.githubContents(),
+		Entitlements:   r.Entitlements,
 	}
 }
 

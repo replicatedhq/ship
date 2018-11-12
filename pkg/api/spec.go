@@ -66,6 +66,7 @@ type ReleaseMetadata struct {
 	Images          []Image         `json:"images" yaml:"images" hcl:"images" meta:"images"`
 	GithubContents  []GithubContent `json:"githubContents" yaml:"githubContents" hcl:"githubContents" meta:"githubContents"`
 	ShipAppMetadata ShipAppMetadata `json:"shipAppMetadata" yaml:"shipAppMetadata" hcl:"shipAppMetadata" meta:"shipAppMetadata"`
+	Entitlements    Entitlements    `json:"entitlements" yaml:"entitlements" hcl:"entitlements" meta:"entitlements"`
 }
 
 func (r ReleaseMetadata) ReleaseName() string {
