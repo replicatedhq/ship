@@ -12,9 +12,14 @@ export default class FileTree extends React.Component {
     this.props.handleDeleteOverlay(path);
   }
 
-  handleDeleteBase = (e, path) => {
+  handleExcludeBase = (e, path) => {
     e.stopPropagation();
-    this.props.handleDeleteBase(path);
+    this.props.handleExcludeBase(path);
+  }
+
+  handleClickExcludedBase = (e, path) => {
+    e.stopPropagation();
+    this.props.handleClickExcludedBase(path);
   }
 
   render() {
@@ -34,11 +39,11 @@ export default class FileTree extends React.Component {
             />
           </li>
           :
-          file.isExcluded ? <li key={file.path} className={`u-position--relative is-file ${file.isExcluded ? "is-excluded" : ""}`}>{file.name}</li> :
-          <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""}`} onClick={() => this.handleFileSelect(file.path)}>
+          file.isExcluded ? <li key={file.path} className={`u-position--relative is-file ${file.isExcluded ? "is-excluded" : ""}`} onClick={(e) => this.handleClickExcludedBase(e, file.path)}>{file.name}</li> :
+          <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""}${isBaseTree ? "is-base" : ""}`} onClick={() => this.handleFileSelect(file.path)}>
             {file.name}
             {isOverlayTree || isResourceTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
-            {isBaseTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteBase(e, file.path)}></span> : null}
+            {isBaseTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleExcludeBase(e, file.path)}></span> : null}
           </li>
         ))
         }
@@ -52,6 +57,8 @@ FileTree.propTypes = {
   isResourceTree: PropTypes.bool,
   // boolean whether the provided tree is part of the base resources tree
   isBaseTree: PropTypes.bool,
-  // function invoked when deleting a base resource
-  handleDeleteBase: PropTypes.func,
+  // function invoked when excluding a base resource
+  handleExcludeBase: PropTypes.func,
+  // function invoked when clicking on an excluded base resource
+  handleClickExcludedBase: PropTypes.func,
 };

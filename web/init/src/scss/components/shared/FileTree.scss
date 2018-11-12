@@ -75,6 +75,19 @@
   text-decoration: line-through;
 }
 
+.FileTree-wrapper li.is-file.is-base {
+  span.u-deleteOverlayIcon {
+    opacity: 0;
+    pointer-events: none;
+  }
+  &:hover {
+    span.u-deleteOverlayIcon {
+      pointer-events: all;
+      opacity: 1;
+    }
+  }
+}
+
 .FileTree-wrapper input[type=checkbox]:checked + label,
 .FileTree-wrapper li.is-selected {
   font-weight: 700;

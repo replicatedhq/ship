@@ -353,6 +353,51 @@ func (d *NavcycleRoutes) deleteBase(c *gin.Context) {
 	c.JSON(200, map[string]string{"status": "success"})
 }
 
+func (d *NavcycleRoutes) includeBase(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "includeBase"))
+	type includeRequest struct {
+		Path string `json:"path"`
+	}
+	var request includeRequest
+	debug.Log("event", "unmarshal request")
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+		return
+	}
+
+	debug.Log("event", "load state")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
+		return
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	shipOverlay := kustomize.Ship()
+	newExcludedBases := make([]string, 0)
+	for _, base := range shipOverlay.ExcludedBases {
+		if base != request.Path {
+			newExcludedBases = append(newExcludedBases, base)
+		}
+	}
+	shipOverlay.ExcludedBases = newExcludedBases
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = map[string]state.Overlay{}
+	}
+	kustomize.Overlays["ship"] = shipOverlay
+
+	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "delete base"))
+		return
+	}
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
 func (d *NavcycleRoutes) deleteResource(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
 	pathQueryParam := c.Query("path")
