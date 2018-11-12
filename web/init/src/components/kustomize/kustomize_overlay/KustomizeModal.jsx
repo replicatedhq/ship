@@ -2,7 +2,7 @@ import React from "react";
 import Modal from "react-modal";
 import PropTypes from "prop-types";
 
-const KustomizeDeleteModal = ({
+const KustomizeModal = ({
     isOpen,
     onRequestClose,
     discardOverlay,
@@ -30,10 +30,11 @@ const KustomizeDeleteModal = ({
   </Modal>
 );
 
-KustomizeDeleteModal.propTypes = {
+KustomizeModal.propTypes = {
     // boolean to control whether the modal is open
     isOpen: PropTypes.bool,
     onRequestClose: PropTypes.func,
+    // function invoked when pressing the "confirm" button
     discardOverlay: PropTypes.func,
     // message to display in the body of the modal
     message: PropTypes.string,
@@ -41,4 +42,4 @@ KustomizeDeleteModal.propTypes = {
     discardMessage: PropTypes.string,
 }
 
-export default KustomizeDeleteModal;
+export default KustomizeModal;

@@ -13,7 +13,7 @@ import defaultTo from "lodash/defaultTo";
 import debounce from "lodash/debounce";
 
 import FileTree from "./FileTree";
-import KustomizeDeleteModal from "./KustomizeDeleteModal";
+import KustomizeModal from "./KustomizeModal";
 import Loader from "../../shared/Loader";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 import DiffEditor from "../../shared/DiffEditor";
@@ -42,6 +42,7 @@ export default class KustomizeOverlay extends React.Component {
       lastSavedPatch: null,
       displayConfirmModalMessage: "",
       displayConfirmModalDiscardMessage: "",
+      modalAction: this.discardOverlay,
     };
     this.addResourceWrapper = React.createRef();
     this.addResourceInput = React.createRef();
@@ -53,6 +54,7 @@ export default class KustomizeOverlay extends React.Component {
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
       displayConfirmModalMessage: "Are you sure you want to discard this patch?",
       displayConfirmModalDiscardMessage: "Discard patch",
+      modalAction: this.discardOverlay,
     });
   }
 
@@ -62,7 +64,22 @@ export default class KustomizeOverlay extends React.Component {
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
       displayConfirmModalMessage: "Are you sure you want to discard this base resource?",
       displayConfirmModalDiscardMessage: "Discard base",
+      modalAction: this.discardOverlay,
     });
+  }
+
+  toggleModalForExcludedBase = (basePath) => {
+    this.setState({
+      displayConfirmModal: !this.state.displayConfirmModal,
+      displayConfirmModalMessage: "Are you sure you want to include this base resource?",
+      displayConfirmModalDiscardMessage: "Include base",
+      modalAction: () => (this.includeBase(basePath)),
+    });
+  }
+
+  includeBase = async(basePath) => {
+    await this.props.includeBase(basePath);
+    this.setState({ displayConfirmModal: false });
   }
 
   componentDidUpdate(lastProps, lastState) {
@@ -330,7 +347,8 @@ export default class KustomizeOverlay extends React.Component {
       savingFinalize,
       fileContents,
       addingNewResource,
-      newResourceName
+      newResourceName,
+      modalAction,
     } = this.state;
     const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
@@ -352,7 +370,8 @@ export default class KustomizeOverlay extends React.Component {
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
                         handleDeleteOverlay={this.toggleModal}
-                        handleDeleteBase={this.toggleModalForBase}
+                        handleExcludeBase={this.toggleModalForBase}
+                        handleClickExcludedBase={this.toggleModalForExcludedBase}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
                         isResourceTree={tree.name === "resources"}
@@ -496,10 +515,10 @@ export default class KustomizeOverlay extends React.Component {
             </div>
           </div>
         </div>
-        <KustomizeDeleteModal
+        <KustomizeModal
           isOpen={this.state.displayConfirmModal}
           onRequestClose={this.toggleModal}
-          discardOverlay={this.discardOverlay}
+          discardOverlay={modalAction}
           message={this.state.displayConfirmModalMessage}
           discardMessage={this.state.displayConfirmModalDiscardMessage}
         />

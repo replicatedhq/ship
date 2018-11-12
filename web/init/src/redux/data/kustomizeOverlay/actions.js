@@ -110,6 +110,37 @@ export function deleteOverlay(path, type) {
   };
 }
 
+export function includeBase(path, type) {
+  return async (dispatch, getState) => {
+    const { apiEndpoint } = getState();
+    let response;
+    const url = `${apiEndpoint}/kustomize/include`;
+    dispatch(loadingData("includeBase", true));
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ path }),
+      });
+      if (!response.ok) {
+        dispatch(loadingData("includeBase", false));
+        return;
+      }
+      await response.json();
+      dispatch(loadingData("includeBase", false));
+      dispatch(getFileContent(path));
+      dispatch(getContentForStep("kustomize"));
+    } catch (error) {
+      dispatch(loadingData("includeBase", false));
+      console.log(error)
+      return;
+    }
+  };
+}
+
 export function finalizeKustomizeOverlay() {
   return async (dispatch, getState) => {
     const { apiEndpoint } = getState();
