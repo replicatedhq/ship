@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -13,6 +14,9 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
+	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -31,7 +35,8 @@ type Renderer interface {
 
 var _ Renderer = &LocalRenderer{}
 
-// LocalRenderer pulls github files from pg
+// LocalRenderer pulls proxied github files from pg
+// and pulls no proxy github files directly via git or the git client
 type LocalRenderer struct {
 	Logger         log.Logger
 	Fs             afero.Afero
@@ -72,6 +77,12 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrapf(err, "write directory to %s", asset.Dest)
 		}
 
+		builder, err := r.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
+		if err != nil {
+			return errors.Wrap(err, "init builder")
+		}
+
+		debug.Log("event", "resolveProxyGithubAssets")
 		var files []api.GithubFile
 		for _, c := range meta.GithubContents {
 			if c.Repo == asset.Repo && c.Path == asset.Path && c.Ref == asset.Ref {
@@ -82,50 +93,81 @@ func (r *LocalRenderer) Execute(
 
 		if len(files) == 0 {
 			level.Info(r.Logger).Log("msg", "no files for asset", "repo", asset.Repo, "path", asset.Path)
+
+			if asset.Source == "public" || !asset.Proxy {
+				debug.Log("event", "resolveNoProxyGithubAssets")
+				return r.resolveNoProxyGithubAssets(asset, builder, rootFs)
+			}
 			return errors.New("github asset returned no files")
 		}
 
-		builder, err := r.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
-		if err != nil {
-			return errors.Wrap(err, "init builder")
-		}
-
-		for _, file := range files {
-			data, err := base64.StdEncoding.DecodeString(file.Data)
-			if err != nil {
-				return errors.Wrapf(err, "decode %s", file.Path)
-			}
-
-			built, err := builder.String(string(data))
-			if err != nil {
-				return errors.Wrapf(err, "building %s", file.Path)
-			}
-
-			filePath, err := getDestPath(file.Path, asset, builder)
-			if err != nil {
-				return errors.Wrapf(err, "determining destination for %s", file.Path)
-			}
-
-			basePath := filepath.Dir(filePath)
-			debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
-			if err := rootFs.MkdirAll(basePath, 0755); err != nil {
-				debug.Log("event", "mkdirall.fail", "err", err, "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
-				return errors.Wrapf(err, "write directory to %s", filePath)
-			}
-
-			mode := os.FileMode(0644) // TODO: how to get mode info from github?
-			if asset.AssetShared.Mode != os.FileMode(0000) {
-				mode = asset.AssetShared.Mode
-			}
-			if err := rootFs.WriteFile(filePath, []byte(built), mode); err != nil {
-				debug.Log("event", "execute.fail", "err", err)
-				return errors.Wrapf(err, "Write inline asset to %s", filePath)
-			}
-
-			// TODO: check file sha
-		}
-		return nil
+		return r.resolveProxyGithubAssets(asset, builder, rootFs, files)
 	}
+}
+
+func (r *LocalRenderer) resolveProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder, rootFs root.Fs, files []api.GithubFile) error {
+	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github", "dest", asset.Dest, "description", asset.Description))
+
+	for _, file := range files {
+		data, err := base64.StdEncoding.DecodeString(file.Data)
+		if err != nil {
+			return errors.Wrapf(err, "decode %s", file.Path)
+		}
+
+		built, err := builder.String(string(data))
+		if err != nil {
+			return errors.Wrapf(err, "building %s", file.Path)
+		}
+
+		filePath, err := getDestPath(file.Path, asset, builder)
+		if err != nil {
+			return errors.Wrapf(err, "determining destination for %s", file.Path)
+		}
+
+		basePath := filepath.Dir(filePath)
+		debug.Log("event", "mkdirall.attempt", "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
+		if err := rootFs.MkdirAll(basePath, 0755); err != nil {
+			debug.Log("event", "mkdirall.fail", "err", err, "root", rootFs.RootPath, "dest", filePath, "basePath", basePath)
+			return errors.Wrapf(err, "write directory to %s", filePath)
+		}
+
+		mode := os.FileMode(0644) // TODO: how to get mode info from github?
+		if asset.AssetShared.Mode != os.FileMode(0000) {
+			mode = asset.AssetShared.Mode
+		}
+		if err := rootFs.WriteFile(filePath, []byte(built), mode); err != nil {
+			debug.Log("event", "execute.fail", "err", err)
+			return errors.Wrapf(err, "Write inline asset to %s", filePath)
+		}
+	}
+
+	return nil
+}
+
+func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder, rootFs root.Fs) error {
+	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github", "dest", asset.Dest, "description", asset.Description))
+
+	var fetcher apptype.FileFetcher
+	fetcher = githubclient.NewGithubClient(rootFs.Afero, r.Logger)
+	if r.Viper.GetBool("prefer-git") {
+		fetcher = &gogetter.GoGetter{Logger: r.Logger, FS: rootFs.Afero}
+	}
+
+	debug.Log("event", "createUpstream")
+	upstream := createUpstreamURL(asset)
+
+	debug.Log("event", "getDestPath")
+	dest, err := getDestPath("/", asset, builder)
+	if err != nil {
+		return errors.Wrap(err, "get dest path")
+	}
+
+	debug.Log("event", "getFiles", "upstream", upstream)
+	if _, err := fetcher.GetFiles(context.Background(), upstream, dest); err != nil {
+		return errors.Wrap(err, "get files")
+	}
+
+	return nil
 }
 
 func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Builder) (string, error) {
@@ -152,4 +194,21 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 	}
 
 	return filepath.Join(destDir, githubPath), nil
+}
+
+func createUpstreamURL(asset api.GitHubAsset) string {
+	var assetType string
+	assetBasePath := filepath.Base(asset.Path)
+	if len(strings.Split(assetBasePath, ".")) > 0 {
+		assetType = "blob"
+	} else {
+		assetType = "tree"
+	}
+
+	assetRef := "master"
+	if asset.Ref != "" {
+		assetRef = asset.Ref
+	}
+
+	return path.Join("github.com", asset.Repo, assetType, assetRef, asset.Path)
 }
