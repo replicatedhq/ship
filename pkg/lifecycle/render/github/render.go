@@ -159,7 +159,7 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 	upstream := createUpstreamURL(asset)
 
 	debug.Log("event", "getFiles", "upstream", upstream)
-	finalPath, err := fetcher.GetFiles(context.Background(), upstream, constants.GithubAssetSavePath)
+	localPath, err := fetcher.GetFiles(context.Background(), upstream, constants.GithubAssetSavePath)
 	if err != nil {
 		return errors.Wrap(err, "get files")
 	}
@@ -170,8 +170,24 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 		return errors.Wrap(err, "get dest path")
 	}
 
-	debug.Log("event", "rename", "from", finalPath, "dest", dest)
-	if err := rootFs.Rename(finalPath, dest); err != nil {
+	if filepath.Ext(asset.Path) != "" {
+		localPath = filepath.Join(localPath, asset.Path)
+	}
+
+	exists, err := rootFs.Exists(filepath.Dir(dest))
+	if err != nil {
+		return errors.Wrap(err, "rootfs dest dir exists")
+	}
+
+	if !exists {
+		debug.Log("event", "mkdirall", "dir", filepath.Dir(dest))
+		if err := rootFs.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+			return errors.Wrap(err, "mkdir all dest dir")
+		}
+	}
+
+	debug.Log("event", "rename", "from", localPath, "dest", dest)
+	if err := rootFs.Rename(localPath, dest); err != nil {
 		return errors.Wrap(err, "rename to dest")
 	}
 
@@ -221,7 +237,11 @@ func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder) (stri
 	}
 
 	if stripPath {
-		assetPath = ""
+		if filepath.Ext(assetPath) != "" {
+			assetPath = filepath.Base(assetPath)
+		} else {
+			assetPath = ""
+		}
 	}
 
 	return filepath.Join(destDir, assetPath), nil
