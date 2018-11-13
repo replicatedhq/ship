@@ -3,6 +3,7 @@ package replicatedapp
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 
@@ -30,6 +31,7 @@ type resolver struct {
 	RunbookReleaseSemver string
 	SetChannelIcon       string
 	SetGitHubContents    []string
+	SetEntitlementsJSON  string
 }
 
 // NewAppResolver builds a resolver from a Viper instance
@@ -48,6 +50,7 @@ func NewAppResolver(
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
 		SetGitHubContents:    v.GetStringSlice("set-github-contents"),
+		SetEntitlementsJSON:  v.GetString("set-entitlements-json"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
 		StateManager:         stateManager,
 		ShaSummer: func(bytes []byte) string {
@@ -194,4 +197,12 @@ func (r *resolver) RegisterInstall(ctx context.Context, selector Selector, relea
 	debug.Log("phase", "register", "status", "complete")
 
 	return nil
+}
+func (r *resolver) loadFakeEntitlements() (*api.Entitlements, error) {
+	var entitlements api.Entitlements
+	err := json.Unmarshal([]byte(r.SetEntitlementsJSON), &entitlements)
+	if err != nil {
+		return nil, errors.Wrap(err, "load entitlements json")
+	}
+	return &entitlements, nil
 }

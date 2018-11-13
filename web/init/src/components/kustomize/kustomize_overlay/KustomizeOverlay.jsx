@@ -1,5 +1,4 @@
 import React from "react";
-import Modal from "react-modal";
 import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
@@ -8,11 +7,13 @@ import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
 import keyBy from "lodash/keyBy";
 import find from "lodash/find";
+import findIndex from "lodash/findIndex";
 import map from "lodash/map";
 import defaultTo from "lodash/defaultTo";
 import debounce from "lodash/debounce";
 
 import FileTree from "./FileTree";
+import KustomizeDeleteModal from "./KustomizeDeleteModal";
 import Loader from "../../shared/Loader";
 import { AceEditorHOC, PATCH_TOKEN } from "./AceEditorHOC";
 import DiffEditor from "../../shared/DiffEditor";
@@ -38,7 +39,9 @@ export default class KustomizeOverlay extends React.Component {
       overlayToDelete: "",
       addingNewResource: false,
       newResourceName: "",
-      lastSavedPatch: null
+      lastSavedPatch: null,
+      displayConfirmModalMessage: "",
+      displayConfirmModalDiscardMessage: "",
     };
     this.addResourceWrapper = React.createRef();
     this.addResourceInput = React.createRef();
@@ -47,7 +50,18 @@ export default class KustomizeOverlay extends React.Component {
   toggleModal = (overlayPath) => {
     this.setState({
       displayConfirmModal: !this.state.displayConfirmModal,
-      overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath
+      overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
+      displayConfirmModalMessage: "Are you sure you want to discard this patch?",
+      displayConfirmModalDiscardMessage: "Discard patch",
+    });
+  }
+
+  toggleModalForBase = (overlayPath) => {
+    this.setState({
+      displayConfirmModal: !this.state.displayConfirmModal,
+      overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
+      displayConfirmModalMessage: "Are you sure you want to discard this base resource?",
+      displayConfirmModalDiscardMessage: "Discard base",
     });
   }
 
@@ -111,9 +125,12 @@ export default class KustomizeOverlay extends React.Component {
     let file = find(this.props.fileContents, ["key", selectedFile]);
     if (!file) return;
     const files = yaml.safeLoadAll(file.baseContent);
-    const overlayFields = map(files, (file) => {
+    let overlayFields = map(files, (file) => {
       return pick(file, "apiVersion", "kind", "metadata.name")
     });
+    if (files.length === 1) {
+      overlayFields = overlayFields[0];
+    }
     const overlay = yaml.safeDump(overlayFields);
     this.setState({ patch: `--- \n${overlay}` });
   }
@@ -162,15 +179,32 @@ export default class KustomizeOverlay extends React.Component {
     await this.deleteOverlay(overlayToDelete);
     this.setState({
       patch: "",
-      displayConfirmModal: false
+      displayConfirmModal: false,
+      lastSavedPatch: null
     });
   }
 
   deleteOverlay = async (path) => {
-    const { fileTree } = this.state;
+    const { fileTree, selectedFile } = this.state;
     const resources = find(fileTree, { name: "resources" });
-    const isResource = resources && !!find(resources.children, { path });
-    await this.props.deleteOverlay(path, isResource);
+    const bases = find(fileTree, { name: "/" });
+    const isResource = resources && findIndex(resources.children, { path }) > -1;
+    const isBase = findIndex(bases.children, { path }) > -1;
+    if (isResource) {
+      await this.props.deleteOverlay(path, "resource");
+      return;
+    }
+
+    if (isBase) {
+      if (selectedFile === path) {
+        this.setState({ selectedFile: "" });
+      }
+      await this.props.deleteOverlay(path, "base");
+      return;
+    }
+
+    await this.props.deleteOverlay(path, "patch");
+    return;
   }
 
   handleKustomizeSave = async (finalize) => {
@@ -254,7 +288,7 @@ export default class KustomizeOverlay extends React.Component {
     this.aceEditorOverlay = editor;
   }
 
-  updateModifiedPatch = debounce((patch, isResource) => {
+  updateModifiedPatch = (patch, isResource) => {
     // We already circumvent React's lifecycle state system for updates
     // Set the current patch state to the changed value to avoid
     // React re-rendering the ACE Editor
@@ -262,7 +296,7 @@ export default class KustomizeOverlay extends React.Component {
       this.state.patch = patch; // eslint-disable-line
       this.handleApplyPatch();
     }
-  }, 500);
+  };
 
   handleAddResourceClick = async () => {
     // Ref input won't focus until state has been set
@@ -313,14 +347,16 @@ export default class KustomizeOverlay extends React.Component {
                     <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
                       <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
                       <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
-                      < FileTree
+                      <FileTree
                         files={tree.children}
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
                         handleDeleteOverlay={this.toggleModal}
+                        handleDeleteBase={this.toggleModalForBase}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
                         isResourceTree={tree.name === "resources"}
+                        isBaseTree={tree.name === "/"}
                       />
                     </div>
                   ))}
@@ -410,6 +446,7 @@ export default class KustomizeOverlay extends React.Component {
                           useSoftTabs: true,
                           tabSize: 2,
                         }}
+                        debounceChangePeriod={1000}
                         setOptions={{
                           scrollPastEnd: false
                         }}
@@ -459,25 +496,13 @@ export default class KustomizeOverlay extends React.Component {
             </div>
           </div>
         </div>
-        <Modal
+        <KustomizeDeleteModal
           isOpen={this.state.displayConfirmModal}
           onRequestClose={this.toggleModal}
-          shouldReturnFocusAfterClose={false}
-          ariaHideApp={false}
-          contentLabel="Modal"
-          className="Modal DefaultSize"
-        >
-          <div className="Modal-header">
-            <p>Are you sure you want to discard this patch?</p>
-          </div>
-          <div className="flex flex-column Modal-body">
-            <p className="u-fontSize--large u-fontWeight--normal u-color--dustyGray u-lineHeight--more">It will not be applied to the kustomization.yaml file that is generated for you.</p>
-            <div className="flex justifyContent--flexEnd u-marginTop--20">
-              <button className="btn secondary u-marginRight--10" onClick={() => this.toggleModal("")}>Cancel</button>
-              <button type="button" className="btn primary" onClick={this.discardOverlay}>Discard patch</button>
-            </div>
-          </div>
-        </Modal>
+          discardOverlay={this.discardOverlay}
+          message={this.state.displayConfirmModalMessage}
+          discardMessage={this.state.displayConfirmModalDiscardMessage}
+        />
       </div>
     );
   }

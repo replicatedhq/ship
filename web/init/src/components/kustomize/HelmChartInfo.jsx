@@ -2,15 +2,15 @@ import React from "react";
 import Markdown from "react-remarkable";
 import RenderActions from "../shared/RenderActions";
 
-const HelmChartInfo = ({ isUpdate, actions, handleAction, isLoading}) => {
+const HelmChartInfo = ({ shipAppMetadata, isUpdate, actions, handleAction, isLoading}) => {
   return (
     <div className="flex-column u-paddingTop--30 flex1 u-position--relative">
       <div className="flex-column flex-1-auto u-overflow--auto container">
         <div className="HelmIntro--wrapper flex-column">
           <p className="u-fontSize--jumbo2 u-color--tuna u-fontWeight--bold u-lineHeight--normal">Set custom values in your Helm chart</p>
           <p className="u-fontSize--normal u-fontWeight--medium u-color--dustyGray u-lineHeight--more">
-            {isUpdate ? "Let’s update the CoreOS vault-operator application. Ship has downloaded the latest version of the Helm chart, and can merge your patches into the latest upstream, or allow you to edit your patches." :
-            "Let’s prepare the CoreOS vault-operator chart for a Production Grade deployment. To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart." }
+            {isUpdate ? `Let’s update the ${shipAppMetadata.name} application. Ship has downloaded the latest version of the Helm chart, and can merge your patches into the latest upstream, or allow you to edit your patches.` :
+            `Let's prepare the ${shipAppMetadata.name} chart for a Production Grade deployment. To get started, we need to confirm the values to use when generating Kubernetes YAML from the Helm chart. Click continue to review the standard values provided in the chart.` }
           </p>
           <div className="HelmIntro--diagram flex">
             <div className="detailed-steps flex flex-column">

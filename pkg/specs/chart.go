@@ -9,14 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/replicatedhq/ship/pkg/state"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -97,11 +96,21 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 					Requires: []string{"kustomize"},
 				},
 				Contents: `
-Assets are ready to deploy. You can run
+## Deploy
 
-kubectl apply -f rendered.yaml
+The application is ready to be deployed. To deploy it now, you can run:
 
-to deploy the overlaid assets to your cluster.
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
 `},
 		})
 	}
@@ -148,11 +157,21 @@ func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
 					Requires: []string{"kustomize"},
 				},
 				Contents: `
-Assets are ready to deploy. You can run
+## Deploy
 
-kubectl apply -f rendered.yaml
+The application is ready to be deployed. To deploy it now, you can run:
 
-to deploy the overlaid assets to your cluster.
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+  	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
 `},
 		})
 	}

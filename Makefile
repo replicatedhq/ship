@@ -220,7 +220,7 @@ vet: .state/vet
 
 .state/ineffassign: .state/build-deps $(SRC)
 	ineffassign ./pkg
-	ineffassign ./src
+	ineffassign ./cmd
 	@mkdir -p .state
 	@touch .state/ineffassign
 

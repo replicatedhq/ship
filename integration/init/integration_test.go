@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -19,9 +20,9 @@ import (
 )
 
 type TestMetadata struct {
-	Upstream string   `yaml:"upstream"`
-	Args     []string `yaml:"args"`
-
+	Upstream     string   `yaml:"upstream"`
+	Args         []string `yaml:"args"`
+	MakeAbsolute bool     `yaml:"make_absolute"`
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -78,12 +79,25 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 				}, 20)
 
 				It("Should output the expected files", func() {
+					replacements := map[string]string{}
+					absoluteUpstream := testMetadata.Upstream
+
+					if testMetadata.MakeAbsolute {
+						relativePath := testMetadata.Upstream
+						pwdRoot, err := os.Getwd()
+						Expect(err).NotTo(HaveOccurred())
+						pwdRoot, err = filepath.Abs(pwdRoot)
+						Expect(err).NotTo(HaveOccurred())
+						absolutePath := filepath.Join(pwdRoot, "..")
+						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(absolutePath, relativePath))
+						replacements["__upstream__"] = absoluteUpstream
+					}
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					cmd.SetArgs(append([]string{
 						"init",
-						testMetadata.Upstream,
+						absoluteUpstream,
 						"--headless",
 						"--log-level=off",
 					}, testMetadata.Args...))
@@ -91,9 +105,17 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
+
+					// run 'ship watch' and expect no error to occur
+					watchCmd := cli.RootCmd()
+					watchBuf := new(bytes.Buffer)
+					watchCmd.SetOutput(watchBuf)
+					watchCmd.SetArgs(append([]string{"watch", "--exit"}, testMetadata.Args...))
+					err = watchCmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
 				}, 60)
 			})
 		}

@@ -96,3 +96,8 @@ func UntreeGithub(path string) (string, string, bool) {
 	}
 	return fmt.Sprintf("github.com/%s/%s?ref=%s//", githubURL.Owner, githubURL.Repo, githubURL.Ref), githubURL.Subdir, githubURL.IsBlob
 }
+
+func IsShipYaml(path string) bool {
+	base := filepath.Base(path)
+	return base == "ship.yaml" || base == "ship.yml"
+}

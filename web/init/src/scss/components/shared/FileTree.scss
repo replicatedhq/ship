@@ -54,7 +54,7 @@
 .FileTree-wrapper ul {
   padding-top: 4px;
 }
-.FileTree-wrapper label, 
+.FileTree-wrapper label,
 .FileTree-wrapper li {
   color: rgba(255,255,255,0.8);
   font-weight: 500;
@@ -69,6 +69,10 @@
     color: #ffffff;
     cursor: pointer;
   }
+}
+
+.FileTree-wrapper li.is-file.is-excluded {
+  text-decoration: line-through;
 }
 
 .FileTree-wrapper input[type=checkbox]:checked + label,

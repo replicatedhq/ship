@@ -51,12 +51,12 @@ There are two ways you can get started with Ship:
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.22.0/ship_0.22.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.23.0/ship_0.23.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.22.0/ship_0.22.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.23.0/ship_0.23.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 Ship is also available through [Homebrew](https://brew.sh/):
