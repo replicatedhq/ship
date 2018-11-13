@@ -1,0 +1,16 @@
+assets:
+  v1:
+  - github:
+      repo: replicatedhq/test-charts
+      ref: 8293c6cea77c29748b0ac8d8b67c561f1886cf78
+      path: /basic
+      dest: ./
+  - github:
+      repo: replicatedhq/test-charts
+      ref: 3427d6997bd150c60caa00ba0298fdfe17e3ed04
+      path: /plain-k8s
+      strip_path: true
+      dest: ./my-own-folder
+lifecycle:
+  v1:
+  - render: {}

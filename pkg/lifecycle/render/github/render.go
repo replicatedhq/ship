@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -156,15 +158,25 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 	debug.Log("event", "createUpstream")
 	upstream := createUpstreamURL(asset)
 
+	debug.Log("event", "getFiles", "upstream", upstream)
+	finalPath, err := fetcher.GetFiles(context.Background(), upstream, constants.GithubAssetSavePath)
+	if err != nil {
+		return errors.Wrap(err, "get files")
+	}
+
 	debug.Log("event", "getDestPath")
-	dest, err := getDestPath("/", asset, builder)
+	dest, err := getDestPathNoProxy(asset, builder)
 	if err != nil {
 		return errors.Wrap(err, "get dest path")
 	}
 
-	debug.Log("event", "getFiles", "upstream", upstream)
-	if _, err := fetcher.GetFiles(context.Background(), upstream, dest); err != nil {
-		return errors.Wrap(err, "get files")
+	debug.Log("event", "rename", "from", finalPath, "dest", dest)
+	if err := rootFs.Rename(finalPath, dest); err != nil {
+		return errors.Wrap(err, "rename to dest")
+	}
+
+	if err := rootFs.RemoveAll(constants.GithubAssetSavePath); err != nil {
+		return errors.Wrap(err, "remove tmp github asset")
 	}
 
 	return nil
@@ -196,10 +208,29 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 	return filepath.Join(destDir, githubPath), nil
 }
 
+func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder) (string, error) {
+	assetPath := asset.Path
+	stripPath, err := builder.Bool(asset.StripPath, false)
+	if err != nil {
+		return "", errors.Wrapf(err, "parse boolean from %q", asset.StripPath)
+	}
+
+	destDir, err := builder.String(asset.Dest)
+	if err != nil {
+		return "", errors.Wrapf(err, "get destination directory from %q", asset.Dest)
+	}
+
+	if stripPath {
+		assetPath = ""
+	}
+
+	return filepath.Join(destDir, assetPath), nil
+}
+
 func createUpstreamURL(asset api.GitHubAsset) string {
 	var assetType string
 	assetBasePath := filepath.Base(asset.Path)
-	if len(strings.Split(assetBasePath, ".")) > 0 {
+	if filepath.Ext(assetBasePath) != "" {
 		assetType = "blob"
 	} else {
 		assetType = "tree"
