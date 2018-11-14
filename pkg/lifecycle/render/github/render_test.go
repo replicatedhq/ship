@@ -226,3 +226,166 @@ func Test_getDestPath(t *testing.T) {
 		})
 	}
 }
+
+func Test_getDestPathNoProxy(t *testing.T) {
+	tests := []struct {
+		name    string
+		asset   api.GitHubAsset
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "basic file",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "",
+				AssetShared: api.AssetShared{
+					Dest: "./",
+				},
+			},
+			want:    "installer/README.md",
+			wantErr: false,
+		},
+		{
+			name: "file in subdir",
+			asset: api.GitHubAsset{
+				Path:      "subdir/README.md",
+				StripPath: "",
+				AssetShared: api.AssetShared{
+					Dest: "./",
+				},
+			},
+			want:    "installer/subdir/README.md",
+			wantErr: false,
+		},
+		{
+			name: "file in subdir with dest dir",
+			asset: api.GitHubAsset{
+				Path:      "subdir/README.md",
+				StripPath: "",
+				AssetShared: api.AssetShared{
+					Dest: "./dest",
+				},
+			},
+			want:    "installer/dest/subdir/README.md",
+			wantErr: false,
+		},
+		{
+			name: "file in stripped subdir with dest dir",
+			asset: api.GitHubAsset{
+				Path:      "subdir/README.md",
+				StripPath: "true",
+				AssetShared: api.AssetShared{
+					Dest: "./dest",
+				},
+			},
+			want:    "installer/dest/README.md",
+			wantErr: false,
+		},
+		{
+			name: "literal file in stripped subdir with dest dir",
+			asset: api.GitHubAsset{
+				Path:      "dir/subdir/README.md",
+				StripPath: "true",
+				AssetShared: api.AssetShared{
+					Dest: "dest",
+				},
+			},
+			want:    "installer/dest/README.md",
+			wantErr: false,
+		},
+		{
+			name: "templated dest dir",
+			asset: api.GitHubAsset{
+				Path:      "dir/subdir/README.md",
+				StripPath: "false",
+				AssetShared: api.AssetShared{
+					Dest: "dest{{repl Add 1 1}}",
+				},
+			},
+			want:    "installer/dest2/dir/subdir/README.md",
+			wantErr: false,
+		},
+		{
+			name: "templated stripPath (eval to true)",
+			asset: api.GitHubAsset{
+				Path:      "dir/subdir/README.md",
+				StripPath: `{{repl ParseBool "true"}}`,
+				AssetShared: api.AssetShared{
+					Dest: "dest",
+				},
+			},
+			want:    "installer/dest/README.md",
+			wantErr: false,
+		},
+		{
+			name: "templated stripPath (eval to false)",
+			asset: api.GitHubAsset{
+				Path:      "dir/subdir/README.md",
+				StripPath: `{{repl ParseBool "false"}}`,
+				AssetShared: api.AssetShared{
+					Dest: "dest",
+				},
+			},
+			want:    "installer/dest/dir/subdir/README.md",
+			wantErr: false,
+		},
+		{
+			name: "strip path of root dir file",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "true",
+				AssetShared: api.AssetShared{
+					Dest: "dest",
+				},
+			},
+			want:    "installer/dest/README.md",
+			wantErr: false,
+		},
+		{
+			name: "not a valid template function (dest)",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "true",
+				AssetShared: api.AssetShared{
+					Dest: "{{repl NotATemplateFunction }}",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "not a valid template function (stripPath)",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "{{repl NotATemplateFunction }}",
+				AssetShared: api.AssetShared{
+					Dest: "dest",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			testLogger := &logger.TestLogger{T: t}
+			v := viper.New()
+			bb := templates.NewBuilderBuilder(testLogger, v)
+			builder, err := bb.FullBuilder(api.ReleaseMetadata{}, []libyaml.ConfigGroup{}, map[string]interface{}{})
+			req.NoError(err)
+
+			got, err := getDestPathNoProxy(tt.asset, builder)
+			if !tt.wantErr {
+				req.NoError(err)
+			} else {
+				req.Error(err)
+			}
+
+			// convert the returned file to forwardslash format before testing - otherwise this test fails when the separator isn't '/'
+			req.Equal(tt.want, filepath.ToSlash(got))
+		})
+	}
+}

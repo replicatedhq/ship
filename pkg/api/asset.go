@@ -63,6 +63,7 @@ type GitHubAsset struct {
 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
 	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+	Proxy       bool   `json:"proxy" yaml:"proxy" hcl:"proxy"`
 	StripPath   string `json:"strip_path" yaml:"strip_path" hcl:"strip_path"`
 }
 
