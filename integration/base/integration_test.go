@@ -19,15 +19,14 @@ import (
 )
 
 type TestMetadata struct {
-	CustomerID          string   `yaml:"customer_id"`
-	InstallationID      string   `yaml:"installation_id"`
-	ReleaseVersion      string   `yaml:"release_version"`
-	SetChannelName      string   `yaml:"set_channel_name"`
-	SetGitHubContents   string   `yaml:"set_github_contents"`
-	DisableOnline       bool     `yaml:"disable_online"`
-	NoStateFile         bool     `yaml:"no_state_file"` // used to denote that there is no input state.json
-	SetEntitlementsJSON string   `yaml:"set_entitlements_json"`
-	Args                []string `yaml:"args"`
+	CustomerID          string `yaml:"customer_id"`
+	InstallationID      string `yaml:"installation_id"`
+	ReleaseVersion      string `yaml:"release_version"`
+	SetChannelName      string `yaml:"set_channel_name"`
+	SetGitHubContents   string `yaml:"set_github_contents"`
+	DisableOnline       bool   `yaml:"disable_online"`
+	NoStateFile         bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
+	SetEntitlementsJSON string `yaml:"set_entitlements_json"`
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -87,7 +86,7 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					args := append([]string{
+					args := []string{
 						"app",
 						"--headless",
 						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/release.yml")),
@@ -98,7 +97,7 @@ var _ = Describe("ship app", func() {
 						fmt.Sprintf("--set-github-contents=%s", testMetadata.SetGitHubContents),
 						"--log-level=off",
 						"--terraform-yes",
-					}, testMetadata.Args...)
+					}
 					if !testMetadata.NoStateFile {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
 					}
@@ -124,7 +123,7 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					args := append([]string{
+					args := []string{
 						"app",
 						"--headless",
 						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
@@ -133,7 +132,7 @@ var _ = Describe("ship app", func() {
 						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						"--terraform-yes",
-					}, testMetadata.Args...)
+					}
 					if !testMetadata.NoStateFile {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
 					}
