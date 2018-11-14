@@ -98,7 +98,7 @@ func (r *LocalRenderer) Execute(
 
 			if asset.Source == "public" || !asset.Proxy {
 				debug.Log("event", "resolveNoProxyGithubAssets")
-				return r.resolveNoProxyGithubAssets(asset, builder, rootFs)
+				return r.resolveNoProxyGithubAssets(asset, builder)
 			}
 			return errors.New("github asset returned no files")
 		}
@@ -146,20 +146,23 @@ func (r *LocalRenderer) resolveProxyGithubAssets(asset api.GitHubAsset, builder 
 	return nil
 }
 
-func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder, rootFs root.Fs) error {
+func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github", "dest", asset.Dest, "description", asset.Description))
-
-	var fetcher apptype.FileFetcher
-	fetcher = githubclient.NewGithubClient(rootFs.Afero, r.Logger)
-	if r.Viper.GetBool("prefer-git") {
-		fetcher = &gogetter.GoGetter{Logger: r.Logger, FS: rootFs.Afero}
-	}
-
 	debug.Log("event", "createUpstream")
 	upstream := createUpstreamURL(asset)
 
+	var fetcher apptype.FileFetcher
+	localFetchPath := filepath.Join(constants.InstallerPrefixPath, constants.GithubAssetSavePath)
+	fetcher = githubclient.NewGithubClient(r.Fs, r.Logger)
+	if r.Viper.GetBool("prefer-git") {
+		var isSingleFile bool
+		var subdir string
+		upstream, subdir, isSingleFile = gogetter.UntreeGithub(upstream)
+		fetcher = &gogetter.GoGetter{Logger: r.Logger, FS: r.Fs, Subdir: subdir, IsSingleFile: isSingleFile}
+	}
+
 	debug.Log("event", "getFiles", "upstream", upstream)
-	localPath, err := fetcher.GetFiles(context.Background(), upstream, constants.GithubAssetSavePath)
+	localPath, err := fetcher.GetFiles(context.Background(), upstream, localFetchPath)
 	if err != nil {
 		return errors.Wrap(err, "get files")
 	}
@@ -174,24 +177,24 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 		localPath = filepath.Join(localPath, asset.Path)
 	}
 
-	exists, err := rootFs.Exists(filepath.Dir(dest))
+	exists, err := r.Fs.Exists(filepath.Dir(dest))
 	if err != nil {
-		return errors.Wrap(err, "rootfs dest dir exists")
+		return errors.Wrap(err, "dest dir exists")
 	}
 
 	if !exists {
 		debug.Log("event", "mkdirall", "dir", filepath.Dir(dest))
-		if err := rootFs.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+		if err := r.Fs.MkdirAll(filepath.Dir(dest), 0755); err != nil {
 			return errors.Wrap(err, "mkdir all dest dir")
 		}
 	}
 
 	debug.Log("event", "rename", "from", localPath, "dest", dest)
-	if err := rootFs.Rename(localPath, dest); err != nil {
+	if err := r.Fs.Rename(localPath, dest); err != nil {
 		return errors.Wrap(err, "rename to dest")
 	}
 
-	if err := rootFs.RemoveAll(constants.GithubAssetSavePath); err != nil {
+	if err := r.Fs.RemoveAll(localFetchPath); err != nil {
 		return errors.Wrap(err, "remove tmp github asset")
 	}
 
@@ -244,7 +247,7 @@ func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder) (stri
 		}
 	}
 
-	return filepath.Join(destDir, assetPath), nil
+	return filepath.Join(constants.InstallerPrefixPath, destDir, assetPath), nil
 }
 
 func createUpstreamURL(asset api.GitHubAsset) string {

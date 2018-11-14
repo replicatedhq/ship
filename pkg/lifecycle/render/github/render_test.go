@@ -243,7 +243,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "./",
 				},
 			},
-			want:    "README.md",
+			want:    "installer/README.md",
 			wantErr: false,
 		},
 		{
@@ -255,7 +255,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "./",
 				},
 			},
-			want:    "subdir/README.md",
+			want:    "installer/subdir/README.md",
 			wantErr: false,
 		},
 		{
@@ -267,7 +267,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "./dest",
 				},
 			},
-			want:    "dest/subdir/README.md",
+			want:    "installer/dest/subdir/README.md",
 			wantErr: false,
 		},
 		{
@@ -279,7 +279,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "./dest",
 				},
 			},
-			want:    "dest/README.md",
+			want:    "installer/dest/README.md",
 			wantErr: false,
 		},
 		{
@@ -291,7 +291,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "dest",
 				},
 			},
-			want:    "dest/README.md",
+			want:    "installer/dest/README.md",
 			wantErr: false,
 		},
 		{
@@ -303,7 +303,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "dest{{repl Add 1 1}}",
 				},
 			},
-			want:    "dest2/dir/subdir/README.md",
+			want:    "installer/dest2/dir/subdir/README.md",
 			wantErr: false,
 		},
 		{
@@ -315,7 +315,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "dest",
 				},
 			},
-			want:    "dest/README.md",
+			want:    "installer/dest/README.md",
 			wantErr: false,
 		},
 		{
@@ -327,7 +327,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "dest",
 				},
 			},
-			want:    "dest/dir/subdir/README.md",
+			want:    "installer/dest/dir/subdir/README.md",
 			wantErr: false,
 		},
 		{
@@ -339,7 +339,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 					Dest: "dest",
 				},
 			},
-			want:    "dest/README.md",
+			want:    "installer/dest/README.md",
 			wantErr: false,
 		},
 		{

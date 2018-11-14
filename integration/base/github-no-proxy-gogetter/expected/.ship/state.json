@@ -1,0 +1,14 @@
+{
+  "v1": {
+    "config": {
+      "test_option": "abc123_test-option-value"
+    },
+    "releaseName": "ship",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "releaseNotes": "",
+      "version": ""
+    },
+    "contentSHA": "0bd08bb91e8366d2edc94c1551d1204f099071dbe0a4c7ade0517dcb78a7a9ab"
+  }
+}
