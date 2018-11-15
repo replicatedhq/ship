@@ -20,9 +20,9 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 		return vendorValues, nil
 	}
 
-	base := map[string]interface{}{}
-	user := map[string]interface{}{}
-	vendor := map[string]interface{}{}
+	base := yaml.MapSlice{}
+	user := yaml.MapSlice{}
+	vendor := yaml.MapSlice{}
 
 	if err := yaml.Unmarshal([]byte(baseValues), &base); err != nil {
 		return "", errors.Wrapf(err, "unmarshal base values")
@@ -34,8 +34,10 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 		return "", errors.Wrapf(err, "unmarshal vendor values")
 	}
 
-	merged := map[string]interface{}{}
-	deepMerge(base, user, vendor, merged)
+	merged, err := deepMerge(base, user, vendor)
+	if err != nil {
+		return "", errors.Wrap(err, "deep merge values")
+	}
 
 	vals, err := yaml.Marshal(merged)
 	if err != nil {
@@ -45,23 +47,25 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 }
 
 // Value priorities: user, vendor, base
-func deepMerge(base, user, vendor, merged map[string]interface{}) error {
+func deepMerge(base, user, vendor yaml.MapSlice) (yaml.MapSlice, error) {
+	merged := yaml.MapSlice{}
+
 	allKeys := getAllKeys(base, user, vendor)
 	for _, k := range allKeys {
-		baseVal, baseOk := base[k]
-		userVal, userOk := user[k]
-		vendorVal, vendorOk := vendor[k]
+		baseVal, baseOk := getValueFromKey(base, k)
+		userVal, userOk := getValueFromKey(user, k)
+		vendorVal, vendorOk := getValueFromKey(vendor, k)
 
 		numExistingMaps := 0
-		preprocessValue := func(exists bool, value interface{}) map[string]interface{} {
+		preprocessValue := func(exists bool, value interface{}) yaml.MapSlice {
 			if !exists {
-				return map[string]interface{}{}
+				return yaml.MapSlice{}
 			}
-			if m, ok := value.(map[interface{}]interface{}); ok {
-				numExistingMaps += 1
-				return makeStringMap(m)
+			m, ok := value.(yaml.MapSlice)
+			if ok {
+				numExistingMaps++
 			}
-			return map[string]interface{}{}
+			return m
 		}
 
 		baseSubmap := preprocessValue(baseOk, baseVal)
@@ -69,49 +73,71 @@ func deepMerge(base, user, vendor, merged map[string]interface{}) error {
 		vendorSubmap := preprocessValue(vendorOk, vendorVal)
 
 		if numExistingMaps > 1 {
-			mergedSubmap := map[string]interface{}{}
-			deepMerge(baseSubmap, userSubmap, vendorSubmap, mergedSubmap)
-			merged[k] = mergedSubmap
+			mergedSubmap, err := deepMerge(baseSubmap, userSubmap, vendorSubmap)
+			if err != nil {
+				return merged, errors.Wrapf(err, "merge submap at key %s", k)
+			}
+			merged = setValueAtKey(merged, k, mergedSubmap)
 			continue
 		}
 
 		if userOk && baseOk && vendorOk {
 
 			if eq, err := valuesEqual(userVal, baseVal); err != nil {
-				return errors.Wrapf(err, "compare values at key %s", k)
+				return merged, errors.Wrapf(err, "compare values at key %s", k)
 			} else if eq {
 				// user didn't change the value shipped in the previous version
 				// so we continue propagating vendor shipped values
-				merged[k] = vendorVal
+				merged = setValueAtKey(merged, k, vendorVal)
 			} else {
-				merged[k] = userVal
+				merged = setValueAtKey(merged, k, userVal)
 			}
 		} else if userOk {
-			merged[k] = userVal
+			merged = setValueAtKey(merged, k, userVal)
 		} else if vendorOk {
-			merged[k] = vendorVal
+			merged = setValueAtKey(merged, k, vendorVal)
 		} else {
-			merged[k] = baseVal // vendor stopped shipping this value?
+			merged = setValueAtKey(merged, k, baseVal) // vendor stopped shipping this value?
 		}
 	}
-	return nil
+	return merged, nil
 }
 
-func getAllKeys(maps ...map[string]interface{}) []string {
-	allKeys := map[string]bool{}
+func getAllKeys(maps ...yaml.MapSlice) (allKeys []interface{}) {
+	seenKeys := map[interface{}]bool{}
 	for _, m := range maps {
-		for k := range m {
-			allKeys[k] = true
+		for _, item := range m {
+			if _, ok := seenKeys[item.Key]; !ok {
+				seenKeys[item.Key] = true
+				allKeys = append(allKeys, item.Key)
+			}
 		}
 	}
+	return
+}
 
-	keys := make([]string, len(allKeys), len(allKeys))
-	i := 0
-	for k := range allKeys {
-		keys[i] = k
-		i += 1
+func getValueFromKey(m yaml.MapSlice, key interface{}) (interface{}, bool) {
+	for _, item := range m {
+		if item.Key == key {
+			return item.Value, true
+		}
 	}
-	return keys
+	return nil, false
+}
+
+func setValueAtKey(m yaml.MapSlice, key, value interface{}) (next yaml.MapSlice) {
+	var found bool
+	for _, item := range m {
+		if item.Key == key {
+			item.Value = value
+			found = true
+		}
+		next = append(next, item)
+	}
+	if !found {
+		next = append(next, yaml.MapItem{Key: key, Value: value})
+	}
+	return
 }
 
 func makeStringMap(m map[interface{}]interface{}) map[string]interface{} {
