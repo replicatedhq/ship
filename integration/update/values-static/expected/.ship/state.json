@@ -1,7 +1,7 @@
 {
   "v1": {
     "config": {},
-    "helmValues": "image:\n  repository: nginx\n  tag: stable\nreplicaCount: 2\n",
+    "helmValues": "replicaCount: 2\nimage:\n  repository: nginx\n  tag: stable\n",
     "helmValuesDefaults": "replicaCount: 1\nimage:\n  repository: nginx\n  tag: stable\n\n",
     "kustomize": {
       "overlays": {

@@ -4,22 +4,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestGetAllKeys(t *testing.T) {
 	t.Run("get all keys", func(t *testing.T) {
 		req := require.New(t)
 
-		req.Equal([]string{}, getAllKeys(map[string]interface{}{}))
+		req.Equal([]interface{}(nil), getAllKeys(yaml.MapSlice{}))
 
-		m1 := map[string]interface{}{"a": 5}
-		m2 := map[string]interface{}{"b": true}
-		m3 := map[string]interface{}{"a": "value", "b": false, "c": nil}
-		allKeys := getAllKeys(m1, m2, m3)
-		req.Contains(allKeys, "a")
-		req.Contains(allKeys, "b")
-		req.Contains(allKeys, "c")
-		req.Len(allKeys, 3)
+		m1 := yaml.MapSlice{
+			{Key: "a", Value: 5},
+		}
+		m2 := yaml.MapSlice{
+			{Key: "b", Value: true},
+		}
+		m3 := yaml.MapSlice{
+			{Key: "a", Value: "value"},
+			{Key: "b", Value: false},
+			{Key: "c", Value: nil},
+		}
+		req.Equal(
+			[]interface{}{"a", "b", "c"},
+			getAllKeys(m1, m2, m3),
+		)
 	})
 }
 
@@ -69,15 +77,15 @@ deep_key:
       myvalue: 5
 key3: modified-by-vendor`,
 
-			expected: `deep_key:
+			expected: `key1: 1
+key2:
+- item1
+- item2_added_by_user
+deep_key:
   level1:
     level2:
       myvalue: modified-by-user-5
     newkey: added-by-vendor
-key1: 1
-key2:
-- item1
-- item2_added_by_user
 key3: modified-by-vendor
 `,
 		},
