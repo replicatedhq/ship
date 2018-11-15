@@ -71,11 +71,10 @@ func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigI
 	// non-empty defaults
 	if firstPass {
 		return item.Hidden && item.Value == "" && item.Default != ""
-	} else {
-		// vendor can't override a default with "" in interactive mode
-		_, ok := savedState[item.Name]
-		return !ok && item.Value == "" && item.Default != ""
 	}
+	// vendor can't override a default with "" in interactive mode
+	_, ok := savedState[item.Name]
+	return !ok && item.Value == "" && item.Default != ""
 }
 
 func isRequired(item *libyaml.ConfigItem) bool {

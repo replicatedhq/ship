@@ -28,7 +28,6 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 	var request SaveOverlayRequest
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -137,7 +136,6 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	var request Request
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
 		return
 	}
 
@@ -207,7 +205,6 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
 		return
 	}
 
@@ -243,7 +240,6 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
 		return
 	}
 
