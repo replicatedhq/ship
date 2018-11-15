@@ -1,18 +1,18 @@
 {
-    "v1": {
-      "config": {},
-      "helmValues": "containerPort: 80\nimage:\n  repository: nginx\n  tag: latest\nreplicaCount: 5\n",
-      "helmValuesDefaults": "replicaCount: 3\nimage:\n  repository: nginx\n  tag: latest\n\ncontainerPort: 80\n",
-      "kustomize": {
-        "overlays": {
-          "ship": {
-            "patches": {
-              "/deployment.yaml": "apiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  labels:\n    app: my-app\n    chart: values-update\n    heritage: Tiller\n    release: values-update\n  name: deployment\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: values-update\n      containers:\n      - imagePullPolicy: IfNotPresent\n        name: values-update\n"
-            }
+  "v1": {
+    "config": {},
+    "helmValues": "replicaCount: 5\nimage:\n  repository: nginx\n  tag: stable\n\n",
+    "helmValuesDefaults": "replicaCount: 3\nimage:\n  repository: nginx\n  tag: latest\n\ncontainerPort: 80\n",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "patches": {
+            "/deployment.yaml": "apiVersion: apps/v1beta2\nkind: Deployment\nmetadata:\n  labels:\n    app: my-app\n    chart: values-update\n    heritage: Tiller\n    release: values-update\n  name: deployment\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: values-update\n      containers:\n      - imagePullPolicy: IfNotPresent\n        name: values-update\n"
           }
         }
-      },
-      "upstream": "github.com/replicatedhq/test-charts/values-update",
-      "contentSHA": "63d3908a68f30101edc72ce2e0b09d76077c0a9e927673bff076e2ec07bb5949"
-    }
+      }
+    },
+    "upstream": "github.com/replicatedhq/test-charts/values-update",
+    "contentSHA": "63d3908a68f30101edc72ce2e0b09d76077c0a9e927673bff076e2ec07bb5949"
   }
+}
