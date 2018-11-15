@@ -16,6 +16,11 @@ assets:
       ref: cbc06b6f566744cf5190cf774895700a6c2ff1ca
       path: /values-static/README.md
       dest: ./
+  - github:
+      repo: replicatedhq/test-charts
+      ref: test-tag
+      path: /.gitignore
+      dest: ./
 lifecycle:
   v1:
   - render: {}
