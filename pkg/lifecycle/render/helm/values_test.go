@@ -24,11 +24,10 @@ func TestGetAllKeys(t *testing.T) {
 			{Key: "b", Value: false},
 			{Key: "c", Value: nil},
 		}
-		allKeys := getAllKeys(m1, m2, m3)
-		req.Contains(allKeys, "a")
-		req.Contains(allKeys, "b")
-		req.Contains(allKeys, "c")
-		req.Len(allKeys, 3)
+		req.Equal(
+			[]interface{}{"a", "b", "c"},
+			getAllKeys(m1, m2, m3),
+		)
 	})
 }
 
