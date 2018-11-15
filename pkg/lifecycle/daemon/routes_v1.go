@@ -109,6 +109,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+		return
 	}
 
 	debug.Log("event", "validate")
@@ -121,12 +122,14 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 
 		level.Error(d.Logger).Log("event", "values.readDefault.fail")
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "read file values.yaml"))
+		return
 	}
 
 	debug.Log("event", "serialize.helmValues")
 	if err := d.StateManager.SerializeHelmValues(request.Values, string(chartDefaultValues)); err != nil {
 		debug.Log("event", "seralize.helmValues.fail", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "serialize.helmReleaseName")
@@ -134,6 +137,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 		if err := d.StateManager.SerializeReleaseName(request.ReleaseName); err != nil {
 			debug.Log("event", "serialize.helmReleaseName.fail", "err", err)
 			c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+			return
 		}
 	}
 	c.String(http.StatusOK, "")

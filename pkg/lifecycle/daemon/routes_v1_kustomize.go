@@ -17,6 +17,7 @@ func (d *V1Routes) requireKustomize() gin.HandlerFunc {
 				400,
 				errors.Errorf("bad request: expected phase kustomize, was %q", d.currentStepName),
 			)
+			return
 		}
 		c.Next()
 

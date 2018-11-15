@@ -223,9 +223,8 @@ func TestParseGithubURL(t *testing.T) {
 			if err != nil {
 				if tt.wanterr {
 					return
-				} else {
-					t.Errorf("got unexpected error %s parsing %q", err.Error(), tt.path)
 				}
+				t.Errorf("got unexpected error %s parsing %q", err.Error(), tt.path)
 			}
 
 			if got != tt.want {
