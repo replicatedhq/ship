@@ -3,7 +3,6 @@ package googlegke
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"path"
 	"text/template"
 
@@ -77,7 +76,6 @@ func (r *LocalRenderer) Execute(
 		if err != nil {
 			return errors.Wrap(err, "render tf config")
 		}
-		fmt.Println("contents", contents)
 
 		assetsPath := "google_gke.tf"
 		if asset.Dest != "" {
