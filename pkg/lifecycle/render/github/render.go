@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -44,6 +45,7 @@ type LocalRenderer struct {
 	Fs             afero.Afero
 	BuilderBuilder *templates.BuilderBuilder
 	Viper          *viper.Viper
+	StateManager   state.Manager
 }
 
 func NewRenderer(
@@ -51,12 +53,14 @@ func NewRenderer(
 	fs afero.Afero,
 	viper *viper.Viper,
 	builderBuilder *templates.BuilderBuilder,
+	stateManager state.Manager,
 ) Renderer {
 	return &LocalRenderer{
 		Logger:         logger,
 		Fs:             fs,
 		Viper:          viper,
 		BuilderBuilder: builderBuilder,
+		StateManager:   stateManager,
 	}
 }
 
@@ -98,12 +102,20 @@ func (r *LocalRenderer) Execute(
 
 			if asset.Source == "public" || !asset.Proxy {
 				debug.Log("event", "resolveNoProxyGithubAssets")
-				return r.resolveNoProxyGithubAssets(asset, builder)
+				err := r.resolveNoProxyGithubAssets(asset, builder)
+				if err != nil {
+					return errors.Wrap(err, "resolveNoProxyGithubAssets")
+				}
+			} else {
+				return errors.New("github asset returned no files")
 			}
-			return errors.New("github asset returned no files")
 		}
 
-		return r.resolveProxyGithubAssets(asset, builder, rootFs, files)
+		if err := r.resolveProxyGithubAssets(asset, builder, rootFs, files); err != nil {
+			return errors.Wrap(err, "resolveProxyGithubAssets")
+		}
+
+		return r.maybeSplitListYaml(ctx, asset, builder)
 	}
 }
 

@@ -1,0 +1,6 @@
+kind: ""
+apiversion: ""
+resources:
+- Job-jaeger-cassandra-schema-job.yaml
+- Service-cassandra.yaml
+- StatefulSet-cassandra.yaml

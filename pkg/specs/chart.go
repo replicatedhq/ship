@@ -129,6 +129,15 @@ func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
 		Lifecycle: api.Lifecycle{
 			V1: []api.Step{
 				{
+					Render: &api.Render{
+						StepShared: api.StepShared{
+							ID:       "render",
+							Requires: []string{"values"},
+						},
+						Root: ".",
+					},
+				},
+				{
 					KustomizeIntro: &api.KustomizeIntro{
 						StepShared: api.StepShared{
 							ID: "kustomize-intro",

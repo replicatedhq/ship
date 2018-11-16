@@ -65,7 +65,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	}
 
 	debug.Log("event", "mkdir", "dir", step.OverlayPath())
-	err = fs.MkdirAll(step.OverlayPath(), 0777)
+	err = l.FS.MkdirAll(step.OverlayPath(), 0777)
 	if err != nil {
 		debug.Log("event", "mkdir.fail", "dir", step.OverlayPath())
 		return errors.Wrapf(err, "make dir %s", step.OverlayPath())
@@ -81,14 +81,14 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		return err
 	}
 
-	err = l.writeOverlay(fs, step, relativePatchPaths, relativeResourcePaths)
+	err = l.writeOverlay(step, relativePatchPaths, relativeResourcePaths)
 	if err != nil {
 		return errors.Wrap(err, "write overlay")
 	}
 
 	if step.Dest != "" {
 		debug.Log("event", "kustomize.build", "dest", step.Dest)
-		built, err := l.kustomizeBuild(fs, step)
+		built, err := l.kustomizeBuild(step)
 		if err != nil {
 			return errors.Wrap(err, "build overlay")
 		}
@@ -117,7 +117,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	return nil
 }
 
-func (l *Kustomizer) kustomizeBuild(fs afero.Afero, kustomize api.Kustomize) ([]postKustomizeFile, error) {
+func (l *Kustomizer) kustomizeBuild(kustomize api.Kustomize) ([]postKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "kustomizeBuild"))
 
 	builtYAML, err := l.Patcher.RunKustomize(kustomize.OverlayPath())

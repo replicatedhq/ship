@@ -1,0 +1,15 @@
+assets:
+  v1:
+  - github:
+      repo: jaegertracing/jaeger-kubernetes
+      ref: e49ee50e350b82d2e6703afbabf8b96e943201e5
+      path: /production/cassandra.yml
+      dest: ./
+      strip_path: true
+lifecycle:
+  v1:
+  - render:
+        root: installer/
+  - kustomize:
+        base: installer/
+        dest: rendered.yaml
