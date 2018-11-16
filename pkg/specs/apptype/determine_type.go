@@ -102,6 +102,18 @@ func (r *inspector) determineTypeFromContents(
 ) {
 	debug := level.Debug(r.logger)
 
+	savedTmpRepoExists, err := r.fs.DirExists(constants.RepoSavePath)
+	if err != nil {
+		return "", "", errors.Wrap(err, "saved tmp repo exists")
+	}
+
+	if savedTmpRepoExists {
+		debug.Log("event", "remove.saveTmpRepo")
+		if err := r.fs.RemoveAll(constants.RepoSavePath); err != nil {
+			return "", "", errors.Wrap(err, "remove existing saved tmp repo")
+		}
+	}
+
 	finalPath, err := fetcher.GetFiles(ctx, upstream, constants.RepoSavePath)
 	if err != nil {
 		if _, ok := err.(errors2.FetchFilesError); ok {
