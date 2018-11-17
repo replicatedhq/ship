@@ -1,4 +1,4 @@
-package github
+package kustomize
 
 import (
 	"context"
@@ -352,10 +352,10 @@ spec:
 				req.NoError(mockFs.WriteFile(inFile.name, []byte(inFile.data), os.FileMode(0644)))
 			}
 
-			r := LocalRenderer{
-				Fs:     mockFs,
+			l := Kustomizer{
+				FS:     mockFs,
 				Logger: log.NewNopLogger(),
-				StateManager: &state.MManager{
+				State: &state.MManager{
 					Logger: log.NewNopLogger(),
 					FS:     mockFs,
 					V:      viper.New(),
@@ -363,8 +363,8 @@ spec:
 			}
 
 			// run split function
-			if err := r.maybeSplitListYaml(context.Background(), tt.localPath); (err != nil) != tt.wantErr {
-				t.Errorf("Resolver.maybeSplitListYaml() error = %v, wantErr %v", err, tt.wantErr)
+			if err := l.maybeSplitListYaml(context.Background(), tt.localPath); (err != nil) != tt.wantErr {
+				t.Errorf("Kustomizer.maybeSplitListYaml() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			// compare output FS
@@ -386,7 +386,7 @@ spec:
 				req.Equal(outFile.data, string(fileBytes), "compare file %s", outFile.name)
 			}
 
-			currentState, err := r.StateManager.TryLoad()
+			currentState, err := l.State.TryLoad()
 			req.NoError(err)
 
 			actualLists := make([]state.List, 0)

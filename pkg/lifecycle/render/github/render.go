@@ -111,17 +111,7 @@ func (r *LocalRenderer) Execute(
 			}
 		}
 
-		if err := r.resolveProxyGithubAssets(asset, builder, rootFs, files); err != nil {
-			return errors.Wrap(err, "resolveProxyGithubAssets")
-		}
-
-		assetDestPath, err := getDestPathNoProxy(asset, builder)
-		if err != nil {
-			return errors.Wrap(err, "get dest path")
-		}
-		path := filepath.Dir(assetDestPath)
-
-		return r.maybeSplitListYaml(ctx, path)
+		return r.resolveProxyGithubAssets(asset, builder, rootFs, files)
 	}
 }
 

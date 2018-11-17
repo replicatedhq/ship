@@ -387,7 +387,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 			continue
 		}
 
-		fileName := generateNameFromMetadata(thisMetadata, idx)
+		fileName := util.GenerateNameFromMetadata(thisMetadata, idx)
 		thisOutputFile.name = fileName
 		outputFiles = append(outputFiles, thisOutputFile)
 	}
@@ -412,17 +412,4 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 	}
 
 	return nil
-}
-
-func generateNameFromMetadata(k8sYaml state.MinimalK8sYaml, idx int) string {
-	fileName := fmt.Sprintf("%s-%d", k8sYaml.Kind, idx)
-
-	if k8sYaml.Metadata.Name != "" {
-		fileName = k8sYaml.Kind + "-" + k8sYaml.Metadata.Name
-		if k8sYaml.Metadata.Namespace != "" && k8sYaml.Metadata.Namespace != "default" {
-			fileName += "-" + k8sYaml.Metadata.Namespace
-		}
-	}
-
-	return fileName
 }

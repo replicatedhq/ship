@@ -35,6 +35,7 @@ type HelmValues interface {
 }
 
 type Kustomizer interface {
+	PreExecute(ctx context.Context, step api.Step) error
 	Execute(ctx context.Context, release *api.Release, step api.Kustomize) error
 }
 

@@ -1,15 +1,16 @@
-package github
+package kustomize
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/util"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -19,11 +20,15 @@ type ListK8sYaml struct {
 	Items      []interface{} `json:"items" yaml:"items"`
 }
 
-func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) error {
-	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github"))
+func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
+	return l.maybeSplitListYaml(ctx, step.Kustomize.Base)
+}
+
+func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error {
+	debug := level.Debug(log.With(l.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github"))
 
 	debug.Log("event", "readDir", "path", path)
-	files, err := r.Fs.ReadDir(path)
+	files, err := l.FS.ReadDir(path)
 	if err != nil {
 		return errors.Wrapf(err, "read files in %s", path)
 	}
@@ -32,8 +37,7 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) err
 		filePath := filepath.Join(path, file.Name())
 
 		if file.IsDir() {
-			continue
-			// TODO: handling nested list yamls
+			return l.maybeSplitListYaml(ctx, filepath.Join(path, file.Name()))
 		}
 
 		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
@@ -41,7 +45,7 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) err
 			return nil
 		}
 
-		fileB, err := r.Fs.ReadFile(filePath)
+		fileB, err := l.FS.ReadFile(filePath)
 		if err != nil {
 			return errors.Wrapf(err, "read %s", filePath)
 		}
@@ -64,15 +68,15 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) err
 					return errors.Wrap(err, "unmarshal item")
 				}
 
-				fileName := generateNameFromMetadata(itemK8sYaml, idx)
-				if err := r.Fs.WriteFile(filepath.Join(path, fileName+".yaml"), []byte(itemB), os.FileMode(0644)); err != nil {
+				fileName := util.GenerateNameFromMetadata(itemK8sYaml, idx)
+				if err := l.FS.WriteFile(filepath.Join(path, fileName+".yaml"), []byte(itemB), os.FileMode(0644)); err != nil {
 					return errors.Wrap(err, "write yaml")
 				}
 
 				listItems = append(listItems, itemK8sYaml)
 			}
 
-			if err := r.Fs.Remove(filePath); err != nil {
+			if err := l.FS.Remove(filePath); err != nil {
 				return errors.Wrapf(err, "remove k8s list %s", filePath)
 			}
 
@@ -83,24 +87,11 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) err
 			}
 
 			debug.Log("event", "serializeListsMetadata")
-			if err := r.StateManager.SerializeListsMetadata(list); err != nil {
+			if err := l.State.SerializeListsMetadata(list); err != nil {
 				return errors.Wrapf(err, "serialize list metadata")
 			}
 		}
 	}
 
 	return nil
-}
-
-func generateNameFromMetadata(k8sYaml state.MinimalK8sYaml, idx int) string {
-	fileName := fmt.Sprintf("%s-%d", k8sYaml.Kind, idx)
-
-	if k8sYaml.Metadata.Name != "" {
-		fileName = k8sYaml.Kind + "-" + k8sYaml.Metadata.Name
-		if k8sYaml.Metadata.Namespace != "" && k8sYaml.Metadata.Namespace != "default" {
-			fileName += "-" + k8sYaml.Metadata.Namespace
-		}
-	}
-
-	return fileName
 }
