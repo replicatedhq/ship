@@ -196,10 +196,6 @@ func (r *Resolver) resolveRelease(
 		if err := r.maybeSplitMultidocYaml(ctx, destPath); err != nil {
 			return nil, errors.Wrap(err, "split multipath yaml")
 		}
-
-		if err := r.maybeSplitListYaml(ctx, destPath); err != nil {
-			return nil, errors.Wrap(err, "split list yaml")
-		}
 	}
 
 	release := &api.Release{

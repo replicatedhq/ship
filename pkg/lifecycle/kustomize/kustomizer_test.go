@@ -161,7 +161,7 @@ patchesStrategicMerge:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockFs, mockStep, tt.relativePatchPaths, nil); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockStep, tt.relativePatchPaths, nil); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

@@ -35,7 +35,7 @@ type Manager interface {
 	SerializeContentSHA(contentSHA string) error
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
-	SerializeListsMetadata([]List) error
+	SerializeListsMetadata(List) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
 }
@@ -189,7 +189,7 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	return m.serializeAndWriteState(versionedState)
 }
 
-func (m *MManager) SerializeListsMetadata(lists []List) error {
+func (m *MManager) SerializeListsMetadata(list List) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
 
 	debug.Log("event", "tryLoadState")
@@ -197,10 +197,12 @@ func (m *MManager) SerializeListsMetadata(lists []List) error {
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
+
 	versionedState := currentState.Versioned()
-	versionedState.V1.Metadata = &Metadata{
-		Lists: lists,
+	if versionedState.V1.Metadata == nil {
+		versionedState.V1.Metadata = &Metadata{}
 	}
+	versionedState.V1.Metadata.Lists = append(versionedState.V1.Metadata.Lists, list)
 
 	return m.serializeAndWriteState(versionedState)
 }
@@ -404,7 +406,7 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 	if err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
-
+	fmt.Println("SERIALIZING", string(serialized))
 	err = m.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")

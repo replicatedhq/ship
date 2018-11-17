@@ -8,7 +8,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/state"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -52,7 +52,7 @@ func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []p
 		}
 
 		debug.Log("event", "reconstruct list")
-		reconstructedList := specs.ListK8sYaml{
+		reconstructedList := github.ListK8sYaml{
 			APIVersion: list.APIVersion,
 			Kind:       "List",
 			Items:      allListItems,

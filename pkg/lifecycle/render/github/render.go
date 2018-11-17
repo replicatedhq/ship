@@ -115,7 +115,13 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "resolveProxyGithubAssets")
 		}
 
-		return r.maybeSplitListYaml(ctx, asset, builder)
+		assetDestPath, err := getDestPathNoProxy(asset, builder)
+		if err != nil {
+			return errors.Wrap(err, "get dest path")
+		}
+		path := filepath.Dir(assetDestPath)
+
+		return r.maybeSplitListYaml(ctx, path)
 	}
 }
 

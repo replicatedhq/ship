@@ -9,9 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
-	"github.com/replicatedhq/ship/pkg/templates"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -21,13 +19,8 @@ type ListK8sYaml struct {
 	Items      []interface{} `json:"items" yaml:"items"`
 }
 
-func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, asset api.GitHubAsset, builder *templates.Builder) error {
+func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, path string) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github"))
-	assetDestPath, err := getDestPathNoProxy(asset, builder)
-	if err != nil {
-		return errors.Wrap(err, "get dest path")
-	}
-	path := filepath.Dir(assetDestPath)
 
 	debug.Log("event", "readDir", "path", path)
 	files, err := r.Fs.ReadDir(path)
@@ -35,7 +28,6 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, asset api.GitHub
 		return errors.Wrapf(err, "read files in %s", path)
 	}
 
-	var lists []state.List
 	for _, file := range files {
 		filePath := filepath.Join(path, file.Name())
 
@@ -79,21 +71,22 @@ func (r *LocalRenderer) maybeSplitListYaml(ctx context.Context, asset api.GitHub
 
 				listItems = append(listItems, itemK8sYaml)
 			}
+
+			if err := r.Fs.Remove(filePath); err != nil {
+				return errors.Wrapf(err, "remove k8s list %s", filePath)
+			}
+
 			list := state.List{
 				APIVersion: k8sYaml.APIVersion,
 				Path:       filePath,
 				Items:      listItems,
 			}
-			lists = append(lists, list)
 
-			if err := r.Fs.Remove(filePath); err != nil {
-				return errors.Wrapf(err, "remove k8s list %s", filePath)
+			debug.Log("event", "serializeListsMetadata")
+			if err := r.StateManager.SerializeListsMetadata(list); err != nil {
+				return errors.Wrapf(err, "serialize list metadata")
 			}
 		}
-	}
-
-	if err := r.StateManager.SerializeListsMetadata(lists); err != nil {
-		return errors.Wrapf(err, "serialize list metadata")
 	}
 
 	return nil

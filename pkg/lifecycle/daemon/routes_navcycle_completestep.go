@@ -69,7 +69,7 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			time.Sleep(10 * time.Millisecond)
 
 			d.hydrateAndSend(daemontypes.NewStep(step), c)
-			go d.handleAsync(errChan, debug, step, stepID, currentState)
+			go d.handleAsync(errChan, debug, step, stepID)
 			return
 		}
 
@@ -79,10 +79,8 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 	d.errNotFound(c)
 }
 
-func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string, state state.State) {
-	err := d.awaitAsyncStep(errChan, debug, step)
-	if err != nil {
-
+func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string) {
+	if err := d.awaitAsyncStep(errChan, debug, step); err != nil {
 		debug.Log("event", "execute.fail", "err", err)
 
 		progress := daemontypes.JSONProgress("v2router", map[string]interface{}{
@@ -93,6 +91,13 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 		d.StepProgress.Store(stepID, progress)
 		return
 	}
+
+	state, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "state.load.fail", "err", err)
+		return
+	}
+
 	newState := state.Versioned().WithCompletedStep(step)
 	err = d.StateManager.Save(newState)
 	if err != nil {
