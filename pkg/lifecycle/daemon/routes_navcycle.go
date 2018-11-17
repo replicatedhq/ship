@@ -94,6 +94,7 @@ type preExecuteFunc func(context.Context, api.Step) error
 func (d *NavcycleRoutes) registerPreExecuteFuncs() {
 	preExecuteFuncMap := make(map[string]preExecuteFunc)
 
+	// TODO(robert): steps should register preExecute funcs by id
 	preExecuteFuncMap["kustomize"] = d.Kustomizer.PreExecute
 	d.PreExecuteFuncMap = preExecuteFuncMap
 }
