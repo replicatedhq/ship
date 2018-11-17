@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: agent-daemonset
+  name: jaeger-agent
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "5778"
+        prometheus.io/scrape: "true"
+      labels:
+        app: jaeger
+        jaeger-infra: agent-instance
+    spec:
+      containers:
+      - args:
+        - --config-file=/conf/agent.yaml
+        image: jaegertracing/jaeger-agent:1.7.0
+        name: agent-instance
+        ports:
+        - containerPort: 5775
+          protocol: UDP
+        - containerPort: 6831
+          protocol: UDP
+        - containerPort: 6832
+          protocol: UDP
+        - containerPort: 5778
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /conf
+          name: jaeger-configuration-volume
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      volumes:
+      - configMap:
+          items:
+          - key: agent
+            path: agent.yaml
+          name: jaeger-configuration
+        name: jaeger-configuration-volume

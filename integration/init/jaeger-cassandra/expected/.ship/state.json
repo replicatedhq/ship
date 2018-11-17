@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "releaseName": "ship",
-    "upstream": "__upstream__",
+    "upstream": "file::/Users/robert/go/src/github.com/replicatedhq/ship/integration/init/jaeger-cassandra/input/ship.yaml",
     "metadata": {
       "applicationType": "",
       "releaseNotes": "",
@@ -10,7 +10,7 @@
       "lists": [
         {
           "apiVersion": "v1",
-          "path": "installer/cassandra.yml",
+          "path": "installer/base/cassandra.yml",
           "items": [
             {
               "kind": "Service",
@@ -30,6 +30,54 @@
               "kind": "Job",
               "metadata": {
                 "name": "jaeger-cassandra-schema-job",
+                "namespace": ""
+              }
+            }
+          ]
+        },
+        {
+          "apiVersion": "v1",
+          "path": "installer/base/jaeger-production-template.yml",
+          "items": [
+            {
+              "kind": "Deployment",
+              "metadata": {
+                "name": "jaeger-collector",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "jaeger-collector",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "zipkin",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Deployment",
+              "metadata": {
+                "name": "jaeger-query",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "jaeger-query",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "DaemonSet",
+              "metadata": {
+                "name": "jaeger-agent",
                 "namespace": ""
               }
             }

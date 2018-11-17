@@ -406,7 +406,7 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 	if err != nil {
 		return errors.Wrap(err, "mkdir state")
 	}
-	fmt.Println("SERIALIZING", string(serialized))
+
 	err = m.FS.WriteFile(constants.StatePath, serialized, 0644)
 	if err != nil {
 		return errors.Wrap(err, "write state file")

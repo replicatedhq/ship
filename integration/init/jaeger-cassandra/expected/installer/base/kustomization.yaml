@@ -1,0 +1,12 @@
+kind: ""
+apiversion: ""
+resources:
+- DaemonSet-jaeger-agent.yaml
+- Deployment-jaeger-collector.yaml
+- Deployment-jaeger-query.yaml
+- Job-jaeger-cassandra-schema-job.yaml
+- Service-cassandra.yaml
+- Service-jaeger-collector.yaml
+- Service-jaeger-query.yaml
+- Service-zipkin.yaml
+- StatefulSet-cassandra.yaml
