@@ -9,6 +9,7 @@ import find from "lodash/find";
 
 import "../../../node_modules/brace/mode/yaml";
 import "../../../node_modules/brace/theme/chrome";
+import "../../../node_modules/brace/ext/searchbox";
 
 export default class HelmValuesEditor extends React.Component {
   constructor(props) {
