@@ -95,6 +95,7 @@ func (d *NavcycleRoutes) registerPreExecuteFuncs() {
 	preExecuteFuncMap := make(map[string]preExecuteFunc)
 
 	preExecuteFuncMap["kustomize"] = d.Kustomizer.PreExecute
+	d.PreExecuteFuncMap = preExecuteFuncMap
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {
