@@ -389,7 +389,12 @@ spec:
 			currentState, err := r.StateManager.TryLoad()
 			req.NoError(err)
 
-			req.ElementsMatch(tt.expectState, currentState.Versioned().V1.Metadata.Lists)
+			actualLists := make([]state.List, 0)
+			if currentState.Versioned().V1.Metadata != nil {
+				actualLists = currentState.Versioned().V1.Metadata.Lists
+			}
+
+			req.ElementsMatch(tt.expectState, actualLists)
 		})
 	}
 }

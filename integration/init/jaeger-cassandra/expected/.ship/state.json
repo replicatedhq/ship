@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "releaseName": "ship",
-    "upstream": "file::/Users/robert/go/src/github.com/replicatedhq/ship/integration/init/jaeger-cassandra/input/ship.yaml",
+    "upstream": "__upstream__",
     "metadata": {
       "applicationType": "",
       "releaseNotes": "",
