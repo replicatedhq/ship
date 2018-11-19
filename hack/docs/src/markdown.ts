@@ -155,7 +155,7 @@ weight: "100"
 gradient: "purpleToPink"
 ---
 
-[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle)
+[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
 
 ## ${specType}
 
