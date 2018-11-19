@@ -196,7 +196,6 @@ func TestDaemonAPI(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			fmt.Println("name", test.name)
 			test.test(t)
 		})
 	}
