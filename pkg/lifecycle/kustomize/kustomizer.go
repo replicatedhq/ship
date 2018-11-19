@@ -142,14 +142,14 @@ func (l *Kustomizer) writeFile(fs afero.Afero, name string, contents string) err
 	destDir := filepath.Dir(name)
 
 	// make the dir
-	err := fs.MkdirAll(destDir, 0777)
+	err := l.FS.MkdirAll(destDir, 0777)
 	if err != nil {
 		debug.Log("event", "mkdir.fail", "dir", destDir)
 		return errors.Wrapf(err, "make dir %s", destDir)
 	}
 
 	// write the file
-	err = fs.WriteFile(name, []byte(contents), 0666)
+	err = l.FS.WriteFile(name, []byte(contents), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write patch %s", name)
 	}
@@ -158,7 +158,6 @@ func (l *Kustomizer) writeFile(fs afero.Afero, name string, contents string) err
 }
 
 func (l *Kustomizer) writeOverlay(
-	fs afero.Afero,
 	step api.Kustomize,
 	relativePatchPaths []patch.PatchStrategicMerge,
 	relativeResourcePaths []string,
@@ -178,7 +177,7 @@ func (l *Kustomizer) writeOverlay(
 	}
 
 	name := path.Join(step.OverlayPath(), "kustomization.yaml")
-	err = fs.WriteFile(name, []byte(marshalled), 0666)
+	err = l.FS.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)
 	}

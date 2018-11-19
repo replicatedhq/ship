@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: cassandra-schema-job
+  name: jaeger-cassandra-schema-job
+spec:
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      name: cassandra-schema
+    spec:
+      containers:
+      - env:
+        - name: MODE
+          value: prod
+        - name: DATACENTER
+          value: dc1
+        image: jaegertracing/jaeger-cassandra-schema:1.6.0
+        name: jaeger-cassandra-schema
+      restartPolicy: OnFailure

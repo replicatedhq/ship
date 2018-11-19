@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: query-deployment
+  name: jaeger-query
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "16686"
+        prometheus.io/scrape: "true"
+      labels:
+        app: jaeger
+        jaeger-infra: query-pod
+    spec:
+      containers:
+      - args:
+        - --config-file=/conf/query.yaml
+        env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage-type
+              name: jaeger-configuration
+        image: jaegertracing/jaeger-query:1.7.0
+        name: jaeger-query
+        ports:
+        - containerPort: 16686
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 16687
+        volumeMounts:
+        - mountPath: /conf
+          name: jaeger-configuration-volume
+      volumes:
+      - configMap:
+          items:
+          - key: query
+            path: query.yaml
+          name: jaeger-configuration
+        name: jaeger-configuration-volume

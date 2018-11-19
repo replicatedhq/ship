@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -49,6 +50,7 @@ func initTestDaemon(
 
 	if v2 != nil {
 		v.Set("navcycle", true)
+		v2.Kustomizer = &kustomize.Kustomizer{}
 	}
 	daemon := &ShipDaemon{
 		Logger:         log,

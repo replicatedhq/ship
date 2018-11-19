@@ -9,6 +9,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
+	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -140,7 +141,8 @@ func TestDaemonResolver(t *testing.T) {
 					OpenWebConsole: func(ui cli.Ui, s string, b bool) error { return nil },
 				},
 				NavcycleRoutes: &daemon.NavcycleRoutes{
-					Shutdown: make(chan interface{}),
+					Kustomizer: &kustomize.Kustomizer{},
+					Shutdown:   make(chan interface{}),
 				},
 			}
 

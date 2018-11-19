@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"context"
 	"fmt"
 	"path"
 
@@ -24,6 +25,16 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 		if stepShared.ID == requestedStep {
 			if ok := d.maybeAbortDueToMissingRequirement(stepShared.Requires, c, requestedStep); !ok {
 				return
+			}
+
+			if preExecuteFunc, exists := d.PreExecuteFuncMap[step.ShortName()]; exists {
+				if err := preExecuteFunc(context.Background(), step); err != nil {
+					level.Error(d.Logger).Log("event", "preExecute.fail", "err", err)
+					return
+				}
+				// TODO(robert): need to store the progress for multiple occurrences of
+				// a step with a pre execution func
+				delete(d.PreExecuteFuncMap, step.ShortName())
 			}
 
 			d.hydrateAndSend(daemontypes.NewStep(step), c)
