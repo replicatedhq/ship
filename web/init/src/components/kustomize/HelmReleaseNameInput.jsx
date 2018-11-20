@@ -13,7 +13,7 @@ export default class HelmReleaseNameInput extends React.Component {
     const { value } = this.props;
 
     return (
-      <div className={`field field-type-text container u-marginTop--15`}>
+      <div className={`field field-type-text u-marginTop--15`}>
         <ConfigItemTitle
           title="Helm Name"
         />
