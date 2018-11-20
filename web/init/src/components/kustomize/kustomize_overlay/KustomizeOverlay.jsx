@@ -311,7 +311,6 @@ export default class KustomizeOverlay extends React.Component {
     // React re-rendering the ACE Editor
     if (!isResource) {
       this.state.patch = patch; // eslint-disable-line
-      this.handleApplyPatch();
     }
   };
 
@@ -428,6 +427,7 @@ export default class KustomizeOverlay extends React.Component {
                               <ReactTooltip id="create-overlay-tooltip" effect="solid" className="replicated-tooltip">Create patch</ReactTooltip>
                               <AceEditorHOC
                                 handleGeneratePatch={this.handleGeneratePatch}
+                                handleApplyPatch={this.handleApplyPatch}
                                 fileToView={fileToView}
                                 diffOpen={this.state.viewDiff}
                                 overlayOpen={showOverlay}
