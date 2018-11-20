@@ -26,6 +26,7 @@ export default class HelmValuesEditor extends React.Component {
       unsavedChanges: false,
       initialHelmReleaseName: "",
       helmReleaseName: "",
+      displaySettings: false
     }
   }
 
@@ -150,6 +151,7 @@ export default class HelmValuesEditor extends React.Component {
       helmLintErrors,
       initialHelmReleaseName,
       helmReleaseName,
+      displaySettings
     } = this.state;
     const {
       values,
@@ -159,7 +161,6 @@ export default class HelmValuesEditor extends React.Component {
 
     return (
       <ErrorBoundary>
-        <HelmReleaseNameInput value={helmReleaseName} onChange={this.handleOnChangehelmReleaseName} />
         <div className="flex-column flex1 HelmValues--wrapper u-paddingTop--30">
           <div className="flex-column flex-1-auto u-overflow--auto container">
             <p className="u-color--dutyGray u-fontStize--large u-fontWeight--medium u-marginBottom--small">
@@ -167,6 +168,14 @@ export default class HelmValuesEditor extends React.Component {
               <span className="u-color--tuna u-fontWeight--bold">values.yaml</span>
             </p>
             <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">Here you can edit the values.yaml to specify values for your application. You will be able to apply overlays for your YAML in the next step.</p>
+            <div className="advanced-settings-wrapper u-marginTop--10">
+              <div className={`section-border ${displaySettings ? "open" : "closed"} flex justifyContent--center u-position--relative`}>
+                <p className="flex-auto u-fontSize--small u-color--tundora u-fontWeight--medium u-cursor--pointer" onClick={() => { this.setState({ displaySettings: !this.state.displaySettings }) }}>{displaySettings ? "Close Advanced Settings" : "Show Advanced Settings"}</p>
+              </div>
+              {displaySettings ? <div className="settings u-marginBottom--20">
+                <HelmReleaseNameInput value={helmReleaseName} onChange={this.handleOnChangehelmReleaseName} />
+              </div> : null}
+            </div>
             <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
               <div className="flex1 flex-column u-width--half">
                 <AceEditor
