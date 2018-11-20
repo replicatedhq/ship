@@ -51,13 +51,14 @@ export class AceEditorHOC extends React.Component {
     find(markers, ({ startRow, endRow }) => ( row >= startRow && row <= endRow ))
   )
 
-  addToOverlay = () => {
-    const { handleGeneratePatch } = this.props;
+  addToOverlay = async () => {
+    const { handleGeneratePatch, handleApplyPatch } = this.props;
     const { activeMarker } = this.state;
 
     if (activeMarker.length > 0) {
       const matchingMarker = activeMarker[0];
       const { path } = matchingMarker;
+      await handleApplyPatch().catch();
       handleGeneratePatch(path);
     }
   }
