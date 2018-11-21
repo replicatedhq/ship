@@ -188,10 +188,10 @@ _mockgen:
 		github.com/replicatedhq/ship/pkg/util \
 		AssetUploader & \
 	mockgen \
-		-destination pkg/test-mocks/githubclient/release_note_fetcher.go \
+		-destination pkg/test-mocks/githubclient/github_fetcher.go \
 		-package githubclient \
 		github.com/replicatedhq/ship/pkg/specs/githubclient \
-		GitHubReleaseNotesFetcher & \
+		GitHubFetcher & \
 	wait
 
 

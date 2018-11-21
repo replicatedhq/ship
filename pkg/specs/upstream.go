@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/hashicorp/go-version"
@@ -21,9 +19,8 @@ const (
 func (r *Resolver) MaybeResolveVersionedUpstream(ctx context.Context, upstream string, existingState state.State) (string, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveVersionedUpstream"))
 
-	githubClient := githubclient.NewGithubClient(r.FS, r.Logger)
 	debug.Log("event", "resolve latest release")
-	latestReleaseVersion, err := githubClient.ResolveLatestRelease(ctx, upstream)
+	latestReleaseVersion, err := r.GitHubFetcher.ResolveLatestRelease(ctx, upstream)
 	if err != nil {
 		if strings.Contains(upstream, UpstreamVersionToken) {
 			return "", errors.Wrap(err, "resolve latest release")
@@ -35,18 +32,20 @@ func (r *Resolver) MaybeResolveVersionedUpstream(ctx context.Context, upstream s
 
 	debug.Log("event", "check previous version")
 	if existingState.Versioned().V1.Metadata != nil {
-		previousVersion, err := version.NewVersion(existingState.Versioned().V1.Metadata.Version)
-		if err != nil {
-			return maybeVersionedUpstream, nil
-		}
+		if existingState.Versioned().V1.Metadata.Version != "" {
+			previousVersion, err := version.NewVersion(existingState.Versioned().V1.Metadata.Version)
+			if err != nil {
+				return maybeVersionedUpstream, nil
+			}
 
-		latestVersion, err := version.NewVersion(latestReleaseVersion)
-		if err != nil {
-			return maybeVersionedUpstream, nil
-		}
+			latestVersion, err := version.NewVersion(latestReleaseVersion)
+			if err != nil {
+				return maybeVersionedUpstream, nil
+			}
 
-		if latestVersion.LessThan(previousVersion) {
-			return "", errors.Wrap(err, "latest version less than previous")
+			if latestVersion.LessThan(previousVersion) {
+				return "", errors.New("Latest version less than previous")
+			}
 		}
 	}
 

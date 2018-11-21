@@ -36,7 +36,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 			mockState *state.MockManager,
 			mockFs afero.Afero,
 			mockAppResolver *replicatedapp.MockResolver,
-			mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
+			mockGitHubFetcher *githubclient.MockGitHubFetcher,
 		)
 		expectRelease *api.Release
 	}{
@@ -53,7 +53,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
-				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
+				mockGitHubFetcher *githubclient.MockGitHubFetcher,
 			) {
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/helm/charts/stable/x5 ...")
@@ -77,7 +77,7 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
-				mockReleaseNotesFetcher.EXPECT().
+				mockGitHubFetcher.EXPECT().
 					ResolveReleaseNotes(ctx, "github.com/helm/charts/stable/x5").
 					Return("some release notes", nil)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
@@ -120,7 +120,7 @@ icon: https://kfbr.392/x5.png
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
-				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
+				mockGitHubFetcher *githubclient.MockGitHubFetcher,
 			) {
 				inOrder := mockUi.EXPECT().Info("Reading replicated.app?customer_id=12345&installation_id=67890 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
@@ -160,7 +160,7 @@ icon: https://kfbr.392/x5.png
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
-				mockReleaseNotesFetcher *githubclient.MockGitHubReleaseNotesFetcher,
+				mockGitHubFetcher *githubclient.MockGitHubFetcher,
 			) {
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/replicatedhq/test-charts/plain-k8s ...")
@@ -176,7 +176,7 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
-				inOrder = mockReleaseNotesFetcher.EXPECT().
+				inOrder = mockGitHubFetcher.EXPECT().
 					ResolveReleaseNotes(ctx, "github.com/replicatedhq/test-charts/plain-k8s").
 					Return("plain-k8s example", nil).After(inOrder)
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
@@ -205,7 +205,7 @@ icon: https://kfbr.392/x5.png
 			appType := apptype.NewMockInspector(mc)
 			mockState := state.NewMockManager(mc)
 			mockAppResolver := replicatedapp.NewMockResolver(mc)
-			mockReleaseNotesFetcher := githubclient.NewMockGitHubReleaseNotesFetcher(mc)
+			mockGitHubFetcher := githubclient.NewMockGitHubFetcher(mc)
 
 			// need a real FS because afero.Rename on a memMapFs doesn't copy directories recursively
 			fs := afero.Afero{Fs: afero.NewOsFs()}
@@ -219,17 +219,17 @@ icon: https://kfbr.392/x5.png
 			req.NoError(err)
 
 			resolver := &Resolver{
-				Logger:                    log.NewNopLogger(),
-				StateManager:              mockState,
-				FS:                        mockFs,
-				AppResolver:               mockAppResolver,
-				Viper:                     viper.New(),
-				ui:                        mockUI,
-				appTypeInspector:          appType,
-				shaSummer:                 test.shaSummer,
-				GitHubReleaseNotesFetcher: mockReleaseNotesFetcher,
+				Logger:           log.NewNopLogger(),
+				StateManager:     mockState,
+				FS:               mockFs,
+				AppResolver:      mockAppResolver,
+				Viper:            viper.New(),
+				ui:               mockUI,
+				appTypeInspector: appType,
+				shaSummer:        test.shaSummer,
+				GitHubFetcher:    mockGitHubFetcher,
 			}
-			test.expect(t, mockUI, appType, mockState, mockFs, mockAppResolver, mockReleaseNotesFetcher)
+			test.expect(t, mockUI, appType, mockState, mockFs, mockAppResolver, mockGitHubFetcher)
 
 			func() {
 				defer mc.Finish()
