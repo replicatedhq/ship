@@ -62,8 +62,8 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			name:     "not a versioned upstream",
-			upstream: "github.com/o/r/tree/ref/path",
+			name:     "commit sha upstream",
+			upstream: "github.com/o/r/tree/d3eed9a347ad02f0b79e3f92330878f88953cf64/path",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
@@ -71,7 +71,19 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 					},
 				},
 			},
-			expected: "github.com/o/r/tree/ref/path",
+			expected: "github.com/o/r/tree/d3eed9a347ad02f0b79e3f92330878f88953cf64/path",
+		},
+		{
+			name:     "ref upstream",
+			upstream: "github.com/o/r/tree/abcedfg/path",
+			currentState: &state.VersionedState{
+				V1: &state.V1{
+					Metadata: &state.Metadata{
+						Version: "1.2.0",
+					},
+				},
+			},
+			expected: "github.com/o/r/tree/abcedfg/path",
 		},
 		{
 			name:     "versioned upstream with no latest release",
