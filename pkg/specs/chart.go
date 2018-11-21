@@ -131,8 +131,7 @@ func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
 				{
 					Render: &api.Render{
 						StepShared: api.StepShared{
-							ID:       "render",
-							Requires: []string{"values"},
+							ID: "render",
 						},
 						Root: ".",
 					},
