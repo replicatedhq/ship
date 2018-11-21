@@ -63,7 +63,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		},
 		{
 			name:     "not a versioned upstream",
-			upstream: "github.com/o/r/tree/ref",
+			upstream: "github.com/o/r/tree/ref/path",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
@@ -71,7 +71,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 					},
 				},
 			},
-			expected: "github.com/o/r/tree/ref",
+			expected: "github.com/o/r/tree/ref/path",
 		},
 		{
 			name:     "versioned upstream with no latest release",
@@ -95,6 +95,26 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 				},
 			},
 			expected: "github.com/o/r/tree/1.2.0",
+		},
+		{
+			name:     "ref upstream with no version in state",
+			upstream: "github.com/o/r/tree/abranch",
+			currentState: &state.VersionedState{
+				V1: &state.V1{
+					Metadata: &state.Metadata{},
+				},
+			},
+			expected: "github.com/o/r/tree/abranch",
+		},
+		{
+			name:     "not a github url",
+			upstream: "notgithub.com/o/r/tree/_latest_",
+			currentState: &state.VersionedState{
+				V1: &state.V1{
+					Metadata: &state.Metadata{},
+				},
+			},
+			expected: "notgithub.com/o/r/tree/_latest_",
 		},
 	}
 
@@ -150,6 +170,11 @@ func TestResolver_maybeCreateVersionedUpstream(t *testing.T) {
 			expected: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
 		},
 		{
+			name:     "has a ref - no changed",
+			upstream: "https://github.com/istio/istio/tree/abranch/install/kubernetes/helm/istio",
+			expected: "https://github.com/istio/istio/tree/abranch/install/kubernetes/helm/istio",
+		},
+		{
 			name:     "not a github url - no change",
 			upstream: "some-website.com/chart/chart/tree/1.0.2",
 			expected: "some-website.com/chart/chart/tree/1.0.2",
@@ -168,6 +193,11 @@ func TestResolver_maybeCreateVersionedUpstream(t *testing.T) {
 			name:     "github url with latest token - no change",
 			upstream: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
 			expected: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
+		},
+		{
+			name:     "github url with commit sha - no change",
+			upstream: "https://github.com/o/r/tree/507feecae588c958ebe82bcf701b8be63f34ac9b",
+			expected: "https://github.com/o/r/tree/507feecae588c958ebe82bcf701b8be63f34ac9b",
 		},
 	}
 	for _, tt := range tests {
