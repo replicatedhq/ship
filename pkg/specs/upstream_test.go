@@ -164,6 +164,11 @@ func TestResolver_maybeCreateVersionedUpstream(t *testing.T) {
 			upstream: "github.com/owner/repo/tree/branch",
 			expected: "github.com/owner/repo/tree/branch",
 		},
+		{
+			name:     "github url with latest token - no change",
+			upstream: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
+			expected: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
