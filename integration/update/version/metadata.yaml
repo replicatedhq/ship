@@ -1,2 +1,1 @@
 args: ["--prefer-git"]
-skip_cleanup: true
