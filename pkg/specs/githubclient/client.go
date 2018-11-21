@@ -242,3 +242,22 @@ func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string)
 
 	return "", errors.New("No commit available")
 }
+
+func (g *GithubClient) ResolveLatestRelease(ctx context.Context, upstream string) (string, error) {
+	validatedUpstreamURL, err := validateGithubURL(upstream)
+	if err != nil {
+		return "", errors.Wrap(err, "not a valid github url")
+	}
+
+	owner, repo, _, _, err := decodeGitHubURL(validatedUpstreamURL.Path)
+	if err != nil {
+		return "", err
+	}
+
+	latest, _, err := g.client.Repositories.GetLatestRelease(ctx, owner, repo)
+	if err != nil {
+		return "", errors.Wrap(err, "get latest release")
+	}
+
+	return latest.GetTagName(), nil
+}
