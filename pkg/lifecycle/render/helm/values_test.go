@@ -3,8 +3,8 @@ package helm
 import (
 	"testing"
 
+	"github.com/emosbaugh/yaml"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func TestGetAllKeys(t *testing.T) {
@@ -46,6 +46,7 @@ func TestMergeHelmValues(t *testing.T) {
 			vendor:   "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
 			expected: "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
 		},
+
 		{
 			name: "merge, vendor and user values",
 			base: `key1: 1
@@ -56,7 +57,6 @@ deep_key:
     level2:
       myvalue: 3
 key3: a`,
-
 			user: `key1: 1
 key2:
   - item1
@@ -66,7 +66,6 @@ deep_key:
     level2:
       myvalue: modified-by-user-5
 key3: a`,
-
 			vendor: `key1: 1
 key2:
   - item1
@@ -76,18 +75,27 @@ deep_key:
     level2:
       myvalue: 5
 key3: modified-by-vendor`,
-
 			expected: `key1: 1
 key2:
 - item1
 - item2_added_by_user
 deep_key:
   level1:
+    newkey: added-by-vendor
     level2:
       myvalue: modified-by-user-5
-    newkey: added-by-vendor
 key3: modified-by-vendor
 `,
+		},
+
+		{
+			name: "comments",
+			base: "",
+			user: `# user comment
+key3: 4
+# another user comment`,
+			vendor:   "# comment prefix\nkey1: 1\n  # indented comment\n\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2 # inline comment\n  # nested comment line 3\nkey3: 3\n# comment suffix\n",
+			expected: "# comment prefix\nkey1: 1\n  # indented comment\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2\n          # inline comment\n  # nested comment line 3\nkey3: 4\n# comment suffix\n",
 		},
 	}
 

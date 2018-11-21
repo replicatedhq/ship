@@ -30,6 +30,10 @@ ignored = [
   unused-packages = true
 
 [[constraint]]
+  name = "github.com/emosbaugh/yaml"
+  branch = "improve-comment-parsing"
+
+[[constraint]]
   name = "github.com/go-kit/kit"
   version = "0.6.0"
 
@@ -73,7 +77,6 @@ ignored = [
 [[constraint]]
   name = "github.com/ghodss/yaml"
   version = "1.0.0"
-
 
 # Overrides for Kustomize & Helm
 [[constraint]]

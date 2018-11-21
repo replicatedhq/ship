@@ -4,8 +4,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 
+	"github.com/emosbaugh/yaml"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // Merges user edited values from state file and vendor values from upstream Helm repo.
@@ -19,18 +19,22 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 	if userValues == "" {
 		return vendorValues, nil
 	}
+	if vendorValues == "" {
+		vendorValues = baseValues
+	}
 
-	base := yaml.MapSlice{}
-	user := yaml.MapSlice{}
-	vendor := yaml.MapSlice{}
+	var base, user, vendor yaml.MapSlice
 
+	// we can drop comments in base
 	if err := yaml.Unmarshal([]byte(baseValues), &base); err != nil {
 		return "", errors.Wrapf(err, "unmarshal base values")
 	}
+	// TODO: preserve user comments
 	if err := yaml.Unmarshal([]byte(userValues), &user); err != nil {
 		return "", errors.Wrapf(err, "unmarshal user values")
 	}
-	if err := yaml.Unmarshal([]byte(vendorValues), &vendor); err != nil {
+	var unmarshaler yaml.CommentUnmarshaler
+	if err := unmarshaler.Unmarshal([]byte(vendorValues), &vendor); err != nil {
 		return "", errors.Wrapf(err, "unmarshal vendor values")
 	}
 
@@ -50,7 +54,8 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 func deepMerge(base, user, vendor yaml.MapSlice) (yaml.MapSlice, error) {
 	merged := yaml.MapSlice{}
 
-	allKeys := getAllKeys(base, user, vendor)
+	allKeys := getAllKeys(vendor, user) // we can drop keys that have been dropped by the vendor
+
 	for _, k := range allKeys {
 		baseVal, baseOk := getValueFromKey(base, k)
 		userVal, userOk := getValueFromKey(user, k)
@@ -82,7 +87,6 @@ func deepMerge(base, user, vendor yaml.MapSlice) (yaml.MapSlice, error) {
 		}
 
 		if userOk && baseOk && vendorOk {
-
 			if eq, err := valuesEqual(userVal, baseVal); err != nil {
 				return merged, errors.Wrapf(err, "compare values at key %s", k)
 			} else if eq {
@@ -94,10 +98,8 @@ func deepMerge(base, user, vendor yaml.MapSlice) (yaml.MapSlice, error) {
 			}
 		} else if userOk {
 			merged = setValueAtKey(merged, k, userVal)
-		} else if vendorOk {
-			merged = setValueAtKey(merged, k, vendorVal)
 		} else {
-			merged = setValueAtKey(merged, k, baseVal) // vendor stopped shipping this value?
+			merged = setValueAtKey(merged, k, vendorVal)
 		}
 	}
 	return merged, nil

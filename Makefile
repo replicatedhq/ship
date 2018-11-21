@@ -227,8 +227,8 @@ vet: .state/vet
 ineffassign: .state/ineffassign
 
 .state/lint: $(SRC)
-	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
-	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v bindatafs || :
+	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v "package comment should be of the form" | grep -v bindatafs || :
+	golint ./cmd/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v "package comment should be of the form" | grep -v bindatafs || :
 	@mkdir -p .state
 	@touch .state/lint
 
