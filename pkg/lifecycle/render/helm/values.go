@@ -13,7 +13,7 @@ import (
 // user is the modified config from state
 // vendor is the new config from current chart
 // Value priorities: user, vendor, base
-func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error) {
+func MergeHelmValues(baseValues, userValues, vendorValues string, preserveComments bool) (string, error) {
 	// First time merge is performed, there are no user values.  We are shortcutting this
 	// in order to preserve original file formatting and comments
 	if userValues == "" {
@@ -33,9 +33,15 @@ func MergeHelmValues(baseValues, userValues, vendorValues string) (string, error
 	if err := yaml.Unmarshal([]byte(userValues), &user); err != nil {
 		return "", errors.Wrapf(err, "unmarshal user values")
 	}
-	var unmarshaler yaml.CommentUnmarshaler
-	if err := unmarshaler.Unmarshal([]byte(vendorValues), &vendor); err != nil {
-		return "", errors.Wrapf(err, "unmarshal vendor values")
+	if preserveComments {
+		var unmarshaler yaml.CommentUnmarshaler
+		if err := unmarshaler.Unmarshal([]byte(vendorValues), &vendor); err != nil {
+			return "", errors.Wrapf(err, "unmarshal vendor values")
+		}
+	} else {
+		if err := yaml.Unmarshal([]byte(vendorValues), &vendor); err != nil {
+			return "", errors.Wrapf(err, "unmarshal vendor values")
+		}
 	}
 
 	merged, err := deepMerge(base, user, vendor)

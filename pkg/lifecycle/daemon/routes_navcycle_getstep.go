@@ -74,7 +74,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		}
 		vendorValues := string(valuesFileContents)
 
-		mergedValues, err := helm.MergeHelmValues(defaultValues, userValues, vendorValues)
+		mergedValues, err := helm.MergeHelmValues(defaultValues, userValues, vendorValues, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "merge values")
 		}

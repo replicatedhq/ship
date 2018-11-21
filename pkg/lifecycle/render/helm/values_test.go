@@ -102,7 +102,7 @@ key3: 4
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
-			merged, err := MergeHelmValues(test.base, test.user, test.vendor)
+			merged, err := MergeHelmValues(test.base, test.user, test.vendor, true)
 			req.NoError(err)
 			req.Equal(test.expected, merged)
 		})
