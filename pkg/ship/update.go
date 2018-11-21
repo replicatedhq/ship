@@ -44,7 +44,7 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, s.Viper.GetString("state-file")))
 	}
 
-	maybeVersionedUpstream, err := s.maybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
+	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
 	if err != nil {
 		return errors.New(`Unable to resolve versioned upstream ` + upstreamURL)
 	}

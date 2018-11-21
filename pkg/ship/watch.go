@@ -42,7 +42,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.New(`No current chart url found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
-		maybeVersionedUpstream, err := s.maybeResolveVersionedUpstream(ctx, upstream, existingState)
+		maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstream, existingState)
 		if err != nil {
 			return errors.New(`Unable to resolve versioned upstream ` + upstream)
 		}
