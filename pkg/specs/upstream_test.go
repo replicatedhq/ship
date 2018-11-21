@@ -38,7 +38,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 	}{
 		{
 			name:     "versioned upstream has an update available",
-			upstream: "github.com/o/r/tree/<latest>",
+			upstream: "github.com/o/r/tree/_latest_",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
@@ -50,7 +50,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		},
 		{
 			name:     "version upstream is above latest",
-			upstream: "github.com/o/r/tree/<latest>",
+			upstream: "github.com/o/r/tree/_latest_",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
@@ -75,7 +75,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		},
 		{
 			name:     "versioned upstream with no latest release",
-			upstream: "github.com/a/b/tree/<latest>",
+			upstream: "github.com/a/b/tree/_latest_",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
@@ -88,7 +88,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		},
 		{
 			name:     "versioned upstream with no version in state",
-			upstream: "github.com/o/r/tree/<latest>",
+			upstream: "github.com/o/r/tree/_latest_",
 			currentState: &state.VersionedState{
 				V1: &state.V1{
 					Metadata: &state.Metadata{},
@@ -147,7 +147,7 @@ func TestResolver_maybeCreateVersionedUpstream(t *testing.T) {
 		{
 			name:     "has a version - changed",
 			upstream: "https://github.com/istio/istio/tree/1.0.2/install/kubernetes/helm/istio",
-			expected: "https://github.com/istio/istio/tree/<latest>/install/kubernetes/helm/istio",
+			expected: "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
 		},
 		{
 			name:     "not a github url - no change",

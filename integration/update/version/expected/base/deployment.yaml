@@ -1,0 +1,42 @@
+---
+# Source: version/templates/deployment.yaml
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: version
+  labels:
+    app: version
+    chart: version-0.0.2
+    release: version
+    heritage: Tiller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: version
+      release: version
+  template:
+    metadata:
+      labels:
+        app: version
+        release: version
+    spec:
+      containers:
+        - name: version
+          image: "nginx:stable"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}
+            

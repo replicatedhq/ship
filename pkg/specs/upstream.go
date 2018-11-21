@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	UpstreamVersionToken = "<latest>"
+	UpstreamVersionToken = "_latest_"
 )
 
 func (r *Resolver) MaybeResolveVersionedUpstream(ctx context.Context, upstream string, existingState state.State) (string, error) {
