@@ -35,9 +35,7 @@ func (r *Resolver) MaybeResolveVersionedUpstream(ctx context.Context, upstream s
 
 		debug.Log("event", "check previous version")
 		if existingState.Versioned().V1.Metadata != nil && existingState.Versioned().V1.Metadata.Version != "" {
-			isSemver := len(strings.Split(existingState.Versioned().V1.Metadata.Version, ".")) > 1
-
-			if isSemver {
+			if strings.Contains(upstream, UpstreamVersionToken) {
 				previousVersion, err := version.NewVersion(existingState.Versioned().V1.Metadata.Version)
 				if err != nil {
 					return maybeVersionedUpstream, nil
