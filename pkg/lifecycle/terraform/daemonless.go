@@ -30,6 +30,8 @@ type DaemonlessTerraformer struct {
 	Viper         *viper.Viper
 	FS            afero.Afero
 
+	YesApplyTerraform bool
+
 	// exposed for testing
 	StateRestorer stateRestorer
 	StateSaver    stateSaver
@@ -51,11 +53,12 @@ func NewDaemonlessTerraformer(
 			cmd.Dir = cmdPath
 			return cmd
 		},
-		Viper:         viper,
-		FS:            fs,
-		StateManager:  statemanager,
-		StateSaver:    persistState,
-		StateRestorer: restoreState,
+		Viper:             viper,
+		FS:                fs,
+		StateManager:      statemanager,
+		StateSaver:        persistState,
+		StateRestorer:     restoreState,
+		YesApplyTerraform: viper.GetBool("terraform-yes") || viper.GetBool("terraform-apply-yes"),
 	}
 }
 
@@ -102,7 +105,7 @@ func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release
 		return nil
 	}
 
-	if !viper.GetBool("terraform-yes") {
+	if !t.YesApplyTerraform {
 		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release, confirmedChan)
 		if err != nil {
 			return errors.Wrap(err, "confirm plan")

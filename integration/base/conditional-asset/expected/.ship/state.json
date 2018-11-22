@@ -9,6 +9,7 @@
       "releaseNotes": "",
       "version": ""
     },
-    "releaseName": "ship"
+    "releaseName": "ship",
+    "upstream": "staging.replicated.app/integration"
   }
 }

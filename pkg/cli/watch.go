@@ -17,6 +17,10 @@ func Watch() *cobra.Command {
 		Long: `Watch will poll the upstream source for changes, and block until a
 change has been published. The watch command will return with an exit code
 of 0 when there's an update available.`,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.Flags())
+			viper.BindPFlags(cmd.PersistentFlags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			s, err := ship.Get(v)
 			if err != nil {
@@ -29,9 +33,6 @@ of 0 when there's an update available.`,
 
 	cmd.Flags().DurationP("interval", "", time.Duration(time.Minute*15), "interval to wait between cycles polling for updates")
 	cmd.Flags().BoolP("exit", "", false, "exit immediately after first poll, regardless of whether an update is available")
-
-	v.BindPFlags(cmd.PersistentFlags())
-	v.BindPFlags(cmd.Flags())
 
 	return cmd
 }

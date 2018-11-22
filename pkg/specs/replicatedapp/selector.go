@@ -18,6 +18,7 @@ type Selector struct {
 
 	// optional
 	Upstream      string `url:"upstream,omitempty"`
+	ReleaseID     string `url:"release_id,omitempty"` // NOTE: this is unused
 	ReleaseSemver string `url:"release_semver,omitempty"`
 }
 
@@ -29,25 +30,21 @@ func (s *Selector) String() string {
 	return v.Encode()
 }
 
-// this is kinda janky
+// this is less janky
 func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 	for key, values := range url.Query() {
+		if len(values) == 0 {
+			continue
+		}
 		switch key {
 		case "customer_id":
-			if len(values) != 0 {
-				s.CustomerID = values[0]
-			}
-			continue
+			s.CustomerID = values[0]
 		case "installation_id":
-			if len(values) != 0 {
-				s.InstallationID = values[0]
-			}
-			continue
+			s.InstallationID = values[0]
+		case "release_id":
+			s.ReleaseID = values[0]
 		case "release_semver":
-			if len(values) != 0 {
-				s.ReleaseSemver = values[0]
-			}
-			continue
+			s.ReleaseSemver = values[0]
 		}
 	}
 

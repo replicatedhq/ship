@@ -87,16 +87,16 @@ var _ = Describe("ship app", func() {
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
-						"app",
-						"--headless",
-						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/release.yml")),
+						"init", "staging.replicated.app/integration",
+						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/ship.yml")),
 						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
 						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
-						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
+						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
 						fmt.Sprintf("--set-github-contents=%s", testMetadata.SetGitHubContents),
+						"--headless",
 						"--log-level=off",
-						"--terraform-yes",
+						"--terraform-apply-yes",
 					}
 					if !testMetadata.NoStateFile {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
@@ -124,14 +124,13 @@ var _ = Describe("ship app", func() {
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					args := []string{
-						"app",
-						"--headless",
-						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
-						"--log-level=off",
+						"init", "staging.replicated.app/integration",
 						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
 						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
 						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
-						"--terraform-yes",
+						"--headless",
+						"--log-level=off",
+						"--terraform-apply-yes",
 					}
 					if !testMetadata.NoStateFile {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))

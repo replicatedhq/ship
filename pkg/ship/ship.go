@@ -161,19 +161,8 @@ func (s *Ship) Execute(ctx context.Context) error {
 		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
 	}
 
-	// This is for integration tests to write the passed state.json to the correct path
-	if s.Viper.GetString("state-from") == "file" {
-		stateFilePath := s.Viper.GetString("state-file")
-		if stateFilePath != "" {
-			debug.Log("phase", "move", "state-file", stateFilePath)
-			stateFile, err := s.FS.ReadFile(stateFilePath)
-			if err != nil {
-				return errors.Wrap(err, "read state-file")
-			}
-			if err := s.FS.WriteFile(constants.StatePath, stateFile, 0644); err != nil {
-				return errors.Wrap(err, "write passed state file to constants.StatePath")
-			}
-		}
+	if err := s.maybeWriteStateFromFile(); err != nil {
+		return err
 	}
 
 	debug.Log("phase", "validate-inputs", "status", "complete")
@@ -252,4 +241,26 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 	case result := <-runResultCh:
 		return result
 	}
+}
+
+func (s *Ship) maybeWriteStateFromFile() error {
+	debug := level.Debug(log.With(s.Logger, "method", "maybeWriteStateFromFile"))
+
+	// This is for integration tests to write the passed state.json to the correct path
+	if s.Viper.GetString("state-from") != "file" {
+		return nil
+	}
+	stateFilePath := s.Viper.GetString("state-file")
+	if stateFilePath == "" {
+		return nil
+	}
+	debug.Log("phase", "move", "state-file", stateFilePath)
+	stateFile, err := s.FS.ReadFile(stateFilePath)
+	if err != nil {
+		return errors.Wrap(err, "read state-file")
+	}
+	if err := s.FS.WriteFile(constants.StatePath, stateFile, 0644); err != nil {
+		return errors.Wrap(err, "write passed state file to constants.StatePath")
+	}
+	return nil
 }

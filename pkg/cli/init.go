@@ -2,12 +2,16 @@ package cli
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	developerFlagUsage = "Useful for debugging your specs on the command line, without having to make round trips to the server"
 )
 
 func Init() *cobra.Command {
@@ -28,6 +32,10 @@ Upstream can be one of:
 - A go-getter compatible URL
   (github.com/hashicorp/go-getter)              [git::gitlab.com/myrepo/mychart, ./local-charts/nginx-ingress, github.com/myrepo/mychart?ref=abcdef123456//my/path]
 `,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.Flags())
+			viper.BindPFlags(cmd.PersistentFlags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := viper.GetViper()
 			if len(args) == 0 {
@@ -50,9 +58,17 @@ Upstream can be one of:
 	cmd.Flags().Bool("rm-asset-dest", false, "Always remove asset destinations if already present")
 	cmd.Flags().Int("retries", 3, "Number of times to retry retrieving upstream")
 
-	viper.BindPFlags(cmd.Flags())
-	viper.BindPFlags(cmd.PersistentFlags())
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	// optional flags for "ship init replicated.app"
+	cmd.Flags().String("customer-id", "", "Customer ID for which to query app specs. Required for all ship operations.")
+	cmd.Flags().String("installation-id", "", "Installation ID for which to query app specs")
+	cmd.Flags().String("release-semver", "", "Specific release version to pin installation to. Requires channel-id")
+
+	// optional developer flags for "ship init replicated.app"
+	cmd.Flags().String("runbook", "", developerFlagUsage)
+	cmd.Flags().String("set-channel-name", "", developerFlagUsage)
+	cmd.Flags().String("set-channel-icon", "", developerFlagUsage)
+	cmd.Flags().StringSlice("set-github-contents", []string{}, fmt.Sprintf("Specify a REPO:REPO_PATH:REF:LOCAL_PATH to override github checkouts to use a local path on the filesystem. %s. ", developerFlagUsage))
+	cmd.Flags().String("set-entitlements-json", "{\"values\":[]}", fmt.Sprintf("Specify json for entitlements payload. %s", developerFlagUsage))
+
 	return cmd
 }

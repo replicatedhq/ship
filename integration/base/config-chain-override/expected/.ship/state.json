@@ -13,6 +13,7 @@
       "releaseNotes": "",
       "version": "0.0.1-test2"
     },
-    "releaseName": "integration-tests"
+    "releaseName": "integration-tests",
+    "upstream": "staging.replicated.app/integration"
   }
 }

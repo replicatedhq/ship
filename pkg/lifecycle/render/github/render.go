@@ -90,7 +90,7 @@ func (r *LocalRenderer) Execute(
 		debug.Log("event", "resolveProxyGithubAssets")
 		var files []api.GithubFile
 		for _, c := range meta.GithubContents {
-			if c.Repo == asset.Repo && c.Path == asset.Path && c.Ref == asset.Ref {
+			if c.Repo == asset.Repo && strings.Trim(c.Path, "/") == strings.Trim(asset.Path, "/") && c.Ref == asset.Ref {
 				files = c.Files
 				break
 			}

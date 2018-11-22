@@ -95,7 +95,7 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 		}
 
 		walkRepoPath := strings.TrimPrefix(path, localpath)
-		if !strings.HasPrefix(walkRepoPath, repoPath) {
+		if !strings.HasPrefix(strings.Trim(walkRepoPath, "/"), strings.Trim(repoPath, "/")) {
 			return nil
 		}
 
@@ -107,8 +107,8 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 
 		encodedData := &bytes.Buffer{}
 		encoder := base64.NewEncoder(base64.StdEncoding, encodedData)
-		defer encoder.Close()
 		encoder.Write(contents)
+		encoder.Close()
 		sha := fmt.Sprintf("%x", sha256.Sum256(contents))
 		files = append(files, GithubFile{
 			Name: info.Name(),

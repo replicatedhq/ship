@@ -26,15 +26,16 @@ const tfSep = "-----------------------------------------------------------------
 const tfNoChanges = "No changes. Infrastructure is up-to-date."
 
 type ForkTerraformer struct {
-	Logger        log.Logger
-	Daemon        daemontypes.Daemon
-	PlanConfirmer tfplan.PlanConfirmer
-	Terraform     func(string) *exec.Cmd
-	Viper         *viper.Viper
-	FS            afero.Afero
-	StateManager  state.Manager
-	StateRestorer stateRestorer
-	StateSaver    stateSaver
+	Logger            log.Logger
+	Daemon            daemontypes.Daemon
+	PlanConfirmer     tfplan.PlanConfirmer
+	Terraform         func(string) *exec.Cmd
+	Viper             *viper.Viper
+	FS                afero.Afero
+	StateManager      state.Manager
+	StateRestorer     stateRestorer
+	StateSaver        stateSaver
+	YesApplyTerraform bool
 }
 
 func NewTerraformer(
@@ -55,11 +56,12 @@ func NewTerraformer(
 			cmd.Dir = cmdPath
 			return cmd
 		},
-		Viper:         viper,
-		FS:            fs,
-		StateManager:  statemanager,
-		StateRestorer: restoreState,
-		StateSaver:    persistState,
+		Viper:             viper,
+		FS:                fs,
+		StateManager:      statemanager,
+		StateRestorer:     restoreState,
+		StateSaver:        persistState,
+		YesApplyTerraform: viper.GetBool("terraform-yes") || viper.GetBool("terraform-apply-yes"),
 	}
 }
 
@@ -104,7 +106,7 @@ func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step
 		return nil
 	}
 
-	if !viper.GetBool("terraform-yes") {
+	if !t.YesApplyTerraform {
 		debug.Log("event", "terraform.auto-apply")
 		shouldApply, err := t.PlanConfirmer.ConfirmPlan(ctx, ansiToHTML(plan), release, terraformConfirmedChan)
 		if err != nil {

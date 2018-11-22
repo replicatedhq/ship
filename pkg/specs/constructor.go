@@ -26,6 +26,11 @@ type Resolver struct {
 
 	Viper   *viper.Viper
 	NoOutro bool
+
+	Runbook        string
+	CustomerID     string
+	ReleaseSemver  string
+	InstallationID string
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -55,5 +60,10 @@ func NewResolver(
 		AppResolver:   appresolver,
 		GitHubFetcher: github,
 		NoOutro:       v.GetBool("no-outro"),
+
+		Runbook:        v.GetString("runbook"),
+		CustomerID:     v.GetString("customer-id"),
+		InstallationID: v.GetString("installation-id"),
+		ReleaseSemver:  v.GetString("release-semver"),
 	}
 }

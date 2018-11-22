@@ -15,19 +15,21 @@ func TestUnmarshalSelector(t *testing.T) {
 	}{
 		{
 			name: "replicated.app",
-			url:  "replicated.app?customer_id=123&installation_id=456&release_semver=7.8.9",
+			url:  "replicated.app?customer_id=123&installation_id=456&release_id=789&release_semver=7.8.9",
 			want: &Selector{
 				CustomerID:     "123",
 				InstallationID: "456",
+				ReleaseID:      "789",
 				ReleaseSemver:  "7.8.9",
 			},
 		},
 		{
 			name: "staging.replicated.app",
-			url:  "staging.replicated.app?customer_id=123&installation_id=456&release_semver=7.8.9",
+			url:  "staging.replicated.app?customer_id=123&installation_id=456&release_id=789&release_semver=7.8.9",
 			want: &Selector{
 				CustomerID:     "123",
 				InstallationID: "456",
+				ReleaseID:      "789",
 				ReleaseSemver:  "7.8.9",
 				Upstream:       "https://pg.staging.replicated.com/graphql",
 			},

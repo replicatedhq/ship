@@ -9,6 +9,7 @@
       "releaseNotes": "",
       "version": "0.0.4"
     },
-    "releaseName": "integration-test-helm"
+    "releaseName": "integration-test-helm",
+    "upstream": "staging.replicated.app/integration"
   }
 }
