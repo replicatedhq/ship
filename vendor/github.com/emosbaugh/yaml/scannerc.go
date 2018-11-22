@@ -1495,6 +1495,17 @@ func yaml_parser_scan_to_next_token(parser *yaml_parser_t) bool {
 			if parser.unread < 2 && !yaml_parser_update_buffer(parser, 2) {
 				return false
 			}
+			if parser.mark.column == 0 && parser.parse_comments {
+				// This is an empty line.
+				token := yaml_token_t{
+					typ:        yaml_COMMENT_TOKEN,
+					start_mark: parser.mark,
+					end_mark:   parser.mark,
+					value:      []byte(""),
+					style:      yaml_PLAIN_SCALAR_STYLE,
+				}
+				yaml_insert_token(parser, -1, &token)
+			}
 			skip_line(parser)
 
 			// In the block context, a new line may start a simple key.

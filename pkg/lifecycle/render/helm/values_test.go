@@ -95,7 +95,74 @@ key3: modified-by-vendor
 key3: 4
 # another user comment`,
 			vendor:   "# comment prefix\nkey1: 1\n  # indented comment\n\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2 # inline comment\n  # nested comment line 3\nkey3: 3\n# comment suffix\n",
-			expected: "# comment prefix\nkey1: 1\n  # indented comment\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2\n          # inline comment\n  # nested comment line 3\nkey3: 4\n# comment suffix\n",
+			expected: "# comment prefix\nkey1: 1\n  # indented comment\n\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2\n          # inline comment\n  # nested comment line 3\nkey3: 4\n# comment suffix\n",
+		},
+		{
+			name: "mysql",
+			base: "",
+			user: "mysqlPassword: my-super-secret-password",
+			vendor: `## mysql image version
+## ref: https://hub.docker.com/r/library/mysql/tags/
+##
+image: "mysql"
+imageTag: "5.7.14"
+
+## Specify password for root user
+##
+## Default: random 10 character string
+# mysqlRootPassword: testing
+
+## Create a database user
+##
+# mysqlUser:
+## Default: random 10 character string
+# mysqlPassword:
+
+## Allow unauthenticated access, uncomment to enable
+##
+# mysqlAllowEmptyPassword: true
+
+## Create a database
+##
+# mysqlDatabase:
+
+## Specify an imagePullPolicy (Required)
+## It's recommended to change this to 'Always' if the image tag is 'latest'
+## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
+##
+imagePullPolicy: IfNotPresent`,
+			expected: `## mysql image version
+## ref: https://hub.docker.com/r/library/mysql/tags/
+##
+image: mysql
+imageTag: 5.7.14
+
+## Specify password for root user
+##
+## Default: random 10 character string
+# mysqlRootPassword: testing
+
+## Create a database user
+##
+# mysqlUser:
+## Default: random 10 character string
+# mysqlPassword:
+
+## Allow unauthenticated access, uncomment to enable
+##
+# mysqlAllowEmptyPassword: true
+
+## Create a database
+##
+# mysqlDatabase:
+
+## Specify an imagePullPolicy (Required)
+## It's recommended to change this to 'Always' if the image tag is 'latest'
+## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
+##
+imagePullPolicy: IfNotPresent
+mysqlPassword: my-super-secret-password
+`,
 		},
 	}
 
