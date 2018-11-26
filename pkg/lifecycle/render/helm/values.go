@@ -63,6 +63,12 @@ func deepMerge(base, user, vendor yaml.MapSlice) (yaml.MapSlice, error) {
 	allKeys := getAllKeys(vendor, user) // we can drop keys that have been dropped by the vendor
 
 	for _, k := range allKeys {
+		// don't merge comments
+		if _, ok := k.(yaml.Comment); ok {
+			merged = append(merged, yaml.MapItem{Key: k})
+			continue
+		}
+
 		baseVal, baseOk := getValueFromKey(base, k)
 		userVal, userOk := getValueFromKey(user, k)
 		vendorVal, vendorOk := getValueFromKey(vendor, k)
@@ -115,7 +121,10 @@ func getAllKeys(maps ...yaml.MapSlice) (allKeys []interface{}) {
 	seenKeys := map[interface{}]bool{}
 	for _, m := range maps {
 		for _, item := range m {
-			if _, ok := seenKeys[item.Key]; !ok {
+			// comments are unique
+			if _, ok := item.Key.(yaml.Comment); ok {
+				allKeys = append(allKeys, item.Key)
+			} else if _, ok := seenKeys[item.Key]; !ok {
 				seenKeys[item.Key] = true
 				allKeys = append(allKeys, item.Key)
 			}

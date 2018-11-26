@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 	"github.com/spf13/afero"
+	"golang.org/x/oauth2"
 )
 
 type GitHubFetcher interface {
@@ -34,7 +36,15 @@ type GithubClient struct {
 }
 
 func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
-	client := github.NewClient(nil)
+	var httpClient *http.Client
+	if accessToken := os.Getenv("GITHUB_TOKEN"); accessToken != "" {
+		level.Debug(logger).Log("msg", "using github access token from environment")
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: accessToken},
+		)
+		httpClient = oauth2.NewClient(context.Background(), ts)
+	}
+	client := github.NewClient(httpClient)
 	return &GithubClient{
 		Client: client,
 		Fs:     fs,

@@ -576,7 +576,7 @@ func yaml_emitter_emit_flow_mapping_value(emitter *yaml_emitter_t, event *yaml_e
 
 // Expect a block item node.
 func yaml_emitter_emit_block_sequence_item(emitter *yaml_emitter_t, event *yaml_event_t, first bool) bool {
-	if first {
+	if first && event.typ != yaml_COMMENT_EVENT {
 		if !yaml_emitter_increase_indent(emitter, false, emitter.mapping_context && !emitter.indention) {
 			return false
 		}

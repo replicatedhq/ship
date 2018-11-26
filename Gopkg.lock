@@ -330,11 +330,11 @@
 
 [[projects]]
   branch = "improve-comment-parsing"
-  digest = "1:044881d3282dd4e9ac8a2a8d77f6f802ea98a71d5894f8d6c3a817cceaf7adc9"
+  digest = "1:b19f021fce8ceef9284606de1375b68bde8ec3b4b72433ed724813195f4a12cb"
   name = "github.com/emosbaugh/yaml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "2abc69c54a5148a107ff1e82865daa42aa4e9d20"
+  revision = "8ed2da1637f01691123a80b59f56ac3e48e5db31"
 
 [[projects]]
   digest = "1:b48d19e79fa607e9e3715ff9a73cdd3777a9cac254b50b9af721466f687e850d"
@@ -1361,6 +1361,17 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:0142ef85bbc356750e329654ef29734ff05bd70ec9d8c1f46e39a3e97683318f"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "8f65e3013ebad444f13bc19536f7865efc793816"
+
+[[projects]]
+  branch = "master"
   digest = "1:d756534cd4124a2c7f9b349b2a70a63e53d4e32befae47d6a4bd938a64b92e14"
   name = "golang.org/x/sys"
   packages = [
@@ -1413,6 +1424,22 @@
   packages = ["rate"]
   pruneopts = "UT"
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+[[projects]]
+  digest = "1:08206298775e5b462e6c0333f4471b44e63f1a70e42952b6ede4ecc9572281eb"
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch",
+  ]
+  pruneopts = "UT"
+  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -2000,6 +2027,7 @@
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
     "go.uber.org/dig",
+    "golang.org/x/oauth2",
     "google.golang.org/grpc/status",
     "gopkg.in/yaml.v2",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
