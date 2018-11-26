@@ -607,7 +607,7 @@ func TestHeadlessDaemon(t *testing.T) {
 				req.NoError(err)
 				pretty, err := json.MarshalIndent(obj, "", "  ")
 				req.NoError(err)
-				req.Equal(updatedState, pretty)
+				req.Equal(pretty, updatedState)
 			}
 		})
 	}
