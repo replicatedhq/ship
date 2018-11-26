@@ -15,7 +15,6 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	"gopkg.in/yaml.v2"
 )
@@ -378,7 +377,7 @@ func (r *Resolver) maybeSplitMultidocYaml(ctx context.Context, localPath string)
 
 		thisOutputFile := outputYaml{contents: fileString}
 
-		thisMetadata := state.MinimalK8sYaml{}
+		thisMetadata := util.MinimalK8sYaml{}
 		_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 		if thisMetadata.Kind == "" {

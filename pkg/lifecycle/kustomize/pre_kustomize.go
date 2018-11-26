@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -56,9 +55,9 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 		}
 
 		if k8sYaml.Kind == "List" {
-			listItems := make([]state.MinimalK8sYaml, 0)
+			listItems := make([]util.MinimalK8sYaml, 0)
 			for idx, item := range k8sYaml.Items {
-				itemK8sYaml := state.MinimalK8sYaml{}
+				itemK8sYaml := util.MinimalK8sYaml{}
 				itemB, err := yaml.Marshal(item)
 				if err != nil {
 					return errors.Wrapf(err, "marshal item %d from %s", idx, filePath)
@@ -80,7 +79,7 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 				return errors.Wrapf(err, "remove k8s list %s", filePath)
 			}
 
-			list := state.List{
+			list := util.List{
 				APIVersion: k8sYaml.APIVersion,
 				Path:       filePath,
 				Items:      listItems,

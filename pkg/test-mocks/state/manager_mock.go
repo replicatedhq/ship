@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	state "github.com/replicatedhq/ship/pkg/state"
+	util "github.com/replicatedhq/ship/pkg/util"
 )
 
 // MockManager is a mock of Manager interface
@@ -132,7 +133,7 @@ func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *
 }
 
 // SerializeListsMetadata mocks base method
-func (m *MockManager) SerializeListsMetadata(arg0 state.List) error {
+func (m *MockManager) SerializeListsMetadata(arg0 util.List) error {
 	ret := m.ctrl.Call(m, "SerializeListsMetadata", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0

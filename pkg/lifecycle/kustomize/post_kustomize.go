@@ -8,13 +8,13 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
 
 type postKustomizeFile struct {
 	order   int
-	minimal state.MinimalK8sYaml
+	minimal util.MinimalK8sYaml
 	full    interface{}
 }
 
@@ -32,9 +32,9 @@ func (c postKustomizeFileCollection) Less(i, j int) bool {
 	return c[i].order < c[j].order
 }
 
-func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []postKustomizeFile) ([]postKustomizeFile, error) {
+func (l *Kustomizer) rebuildListYaml(lists []util.List, kustomizedYamlFiles []postKustomizeFile) ([]postKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "rebuildListYaml"))
-	yamlMap := make(map[state.MinimalK8sYaml]postKustomizeFile)
+	yamlMap := make(map[util.MinimalK8sYaml]postKustomizeFile)
 
 	for _, postKustomizeFile := range kustomizedYamlFiles {
 		yamlMap[postKustomizeFile.minimal] = postKustomizeFile
@@ -58,7 +58,7 @@ func (l *Kustomizer) rebuildListYaml(lists []state.List, kustomizedYamlFiles []p
 		}
 
 		postKustomizeList := postKustomizeFile{
-			minimal: state.MinimalK8sYaml{
+			minimal: util.MinimalK8sYaml{
 				Kind: "List",
 			},
 			full: reconstructedList,

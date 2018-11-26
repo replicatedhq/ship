@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/patch"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,7 +36,7 @@ type Manager interface {
 	SerializeContentSHA(contentSHA string) error
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
-	SerializeListsMetadata(List) error
+	SerializeListsMetadata(util.List) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
 }
@@ -189,7 +190,7 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	return m.serializeAndWriteState(versionedState)
 }
 
-func (m *MManager) SerializeListsMetadata(list List) error {
+func (m *MManager) SerializeListsMetadata(list util.List) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
 
 	debug.Log("event", "tryLoadState")
