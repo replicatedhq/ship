@@ -20,6 +20,8 @@ type State interface {
 	Upstream() string
 	Versioned() VersionedState
 	IsEmpty() bool
+	CurrentCAs() map[string]util.CAType
+	CurrentCerts() map[string]util.CertType
 }
 
 var _ State = VersionedState{}
@@ -34,6 +36,8 @@ func (Empty) CurrentConfig() map[string]interface{}         { return make(map[st
 func (Empty) CurrentHelmValues() string                     { return "" }
 func (Empty) CurrentHelmValuesDefaults() string             { return "" }
 func (Empty) CurrentReleaseName() string                    { return "" }
+func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
+func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
 func (Empty) Upstream() string                              { return "" }
 func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
 func (Empty) IsEmpty() bool                                 { return true }
@@ -46,6 +50,8 @@ func (v V0) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
 func (v V0) CurrentHelmValues() string                     { return "" }
 func (v V0) CurrentHelmValuesDefaults() string             { return "" }
 func (v V0) CurrentReleaseName() string                    { return "" }
+func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
+func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
 func (v V0) Upstream() string                              { return "" }
 func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
 func (v V0) IsEmpty() bool                                 { return false }
@@ -76,6 +82,8 @@ type V1 struct {
 	ContentSHA   string    `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
 	Lifecycle    *Lifeycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
 
+	CAs   map[string]util.CAType   `json:"cas,omitempty" yaml:"cas,omitempty" hcl:"cas,omitempty"`
+	Certs map[string]util.CertType `json:"certs,omitempty" yaml:"certs,omitempty" hcl:"certs,omitempty"`
 }
 
 type Metadata struct {
@@ -242,4 +250,18 @@ func (v VersionedState) migrateDeprecatedFields() VersionedState {
 		v.V1.ChartURL = ""
 	}
 	return v
+}
+
+func (v VersionedState) CurrentCAs() map[string]util.CAType {
+	if v.V1 != nil {
+		return v.V1.CAs
+	}
+	return nil
+}
+
+func (v VersionedState) CurrentCerts() map[string]util.CertType {
+	if v.V1 != nil {
+		return v.V1.Certs
+	}
+	return nil
 }

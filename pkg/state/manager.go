@@ -39,6 +39,9 @@ type Manager interface {
 	SerializeListsMetadata(util.List) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
+
+	AddCert(name string, newCert util.CertType) error
+	AddCA(name string, newCA util.CAType) error
 }
 
 var _ Manager = &MManager{}
@@ -448,4 +451,39 @@ func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
 	}
 
 	return nil
+}
+
+func (m *MManager) AddCert(name string, newCert util.CertType) error {
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+	versionedState := currentState.Versioned()
+	if versionedState.V1.Certs == nil {
+		versionedState.V1.Certs = make(map[string]util.CertType)
+	}
+	if _, ok := versionedState.V1.Certs[name]; ok {
+		return errors.New(fmt.Sprintf("Cert with name %s already exists in state", name))
+	}
+	versionedState.V1.Certs[name] = newCert
+
+	return errors.Wrap(m.serializeAndWriteState(versionedState), "write state")
+}
+
+func (m *MManager) AddCA(name string, newCA util.CAType) error {
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+	versionedState := currentState.Versioned()
+	if versionedState.V1.CAs == nil {
+		versionedState.V1.CAs = make(map[string]util.CAType)
+	}
+	if _, ok := versionedState.V1.CAs[name]; ok {
+		return errors.New(fmt.Sprintf("Cert with name %s already exists in state", name))
+	}
+	versionedState.V1.CAs[name] = newCA
+
+	return errors.Wrap(m.serializeAndWriteState(versionedState), "write state")
+
 }

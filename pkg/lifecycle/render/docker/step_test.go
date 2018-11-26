@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -54,7 +55,7 @@ func TestDockerStep(t *testing.T) {
 			saver := mocksaver.NewMockImageSaver(mc)
 			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			ctx := context.Background()
 
 			step := &DefaultStep{

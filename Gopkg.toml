@@ -116,3 +116,7 @@ ignored = [
 [[override]]
   name = "github.com/russross/blackfriday"
   version = "1.5.1"
+
+[[constraint]]
+  name = "github.com/cloudflare/cfssl"
+  version = "1.0.0"

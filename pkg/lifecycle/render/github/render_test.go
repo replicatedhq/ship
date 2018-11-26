@@ -7,6 +7,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -210,7 +211,7 @@ func Test_getDestPath(t *testing.T) {
 
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			builder, err := bb.FullBuilder(api.ReleaseMetadata{}, []libyaml.ConfigGroup{}, map[string]interface{}{})
 			req.NoError(err)
 
@@ -373,7 +374,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			builder, err := bb.FullBuilder(api.ReleaseMetadata{}, []libyaml.ConfigGroup{}, map[string]interface{}{})
 			req.NoError(err)
 

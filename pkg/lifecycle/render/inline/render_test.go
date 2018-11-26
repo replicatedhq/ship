@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -45,7 +46,7 @@ func TestInlineRender(t *testing.T) {
 			req := require.New(t)
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			rootFs := root.Fs{
 				Afero:    afero.Afero{Fs: afero.NewMemMapFs()},
 				RootPath: "",
