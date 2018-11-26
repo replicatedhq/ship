@@ -16,6 +16,9 @@ const (
 	UpstreamVersionToken = "_latest_"
 )
 
+// MaybeResolveVersionedUpstream returns an upstream with the UpstreamVersionToken replaced with the
+// latest version fetched from github unless the latest version is unable to be fetched or if the version
+// stored in state is greater than the latest version. All other upstreams will be returned unmodified.
 func (r *Resolver) MaybeResolveVersionedUpstream(ctx context.Context, upstream string, existingState state.State) (string, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveVersionedUpstream"))
 
