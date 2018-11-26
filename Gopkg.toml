@@ -116,3 +116,7 @@ ignored = [
 [[override]]
   name = "github.com/russross/blackfriday"
   version = "1.5.1"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"

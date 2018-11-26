@@ -37,8 +37,14 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	debug.Log("event", "applicationType.resolve", "type", applicationType)
 	r.ui.Info(fmt.Sprintf("Detected application type %s", applicationType))
 
-	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", upstream)
-	err = r.StateManager.SerializeUpstream(upstream)
+	debug.Log("event", "versionedUpstream.resolve", "type", applicationType)
+	versionedUpstream, err := r.maybeCreateVersionedUpstream(upstream)
+	if err != nil {
+		return nil, errors.Wrap(err, "resolve versioned upstream")
+	}
+
+	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", versionedUpstream)
+	err = r.StateManager.SerializeUpstream(versionedUpstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write upstream")
 	}

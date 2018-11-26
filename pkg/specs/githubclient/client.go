@@ -22,16 +22,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type GitHubReleaseNotesFetcher interface {
+type GitHubFetcher interface {
 	ResolveReleaseNotes(ctx context.Context, upstream string) (string, error)
+	ResolveLatestRelease(ctx context.Context, upstream string) (string, error)
 }
 
-var _ GitHubReleaseNotesFetcher = &GithubClient{}
+var _ GitHubFetcher = &GithubClient{}
 
 type GithubClient struct {
-	logger log.Logger
-	client *github.Client
-	fs     afero.Afero
+	Logger log.Logger
+	Client *github.Client
+	Fs     afero.Afero
 }
 
 func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
@@ -45,9 +46,9 @@ func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
 	}
 	client := github.NewClient(httpClient)
 	return &GithubClient{
-		client: client,
-		fs:     fs,
-		logger: logger,
+		Client: client,
+		Fs:     fs,
+		Logger: logger,
 	}
 }
 
@@ -56,7 +57,7 @@ func (g *GithubClient) GetFiles(
 	upstream string,
 	destinationPath string,
 ) (string, error) {
-	debug := level.Debug(log.With(g.logger, "method", "getRepoContents"))
+	debug := level.Debug(log.With(g.Logger, "method", "getRepoContents"))
 
 	debug.Log("event", "validateGithubURL")
 	validatedUpstreamURL, err := validateGithubURL(upstream)
@@ -71,7 +72,7 @@ func (g *GithubClient) GetFiles(
 	}
 
 	debug.Log("event", "removeAll", "destinationPath", destinationPath)
-	err = g.fs.RemoveAll(destinationPath)
+	err = g.Fs.RemoveAll(destinationPath)
 	if err != nil {
 		return "", errors.Wrap(err, "remove chart clone destination")
 	}
@@ -97,14 +98,14 @@ func (g *GithubClient) downloadAndExtractFiles(
 	basePath string,
 	filePath string,
 ) error {
-	debug := level.Debug(log.With(g.logger, "method", "downloadAndExtractFiles"))
+	debug := level.Debug(log.With(g.Logger, "method", "downloadAndExtractFiles"))
 
 	debug.Log("event", "getContents", "path", basePath)
 
 	archiveOpts := &github.RepositoryContentGetOptions{
 		Ref: branch,
 	}
-	archiveLink, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
+	archiveLink, _, err := g.Client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
 	if err != nil {
 		return errors.Wrapf(err, "get archive link for owner - %s repo - %s", owner, repo)
 	}
@@ -154,10 +155,10 @@ func (g *GithubClient) downloadAndExtractFiles(
 					fileName = strings.TrimPrefix(fileName, basePath)
 				}
 				dirPath, _ := path.Split(fileName)
-				if err := g.fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
+				if err := g.Fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
 					return errors.Wrapf(err, "extract tar gz, mkdir")
 				}
-				outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
+				outFile, err := g.Fs.Create(filepath.Join(filePath, fileName))
 				if err != nil {
 					return errors.Wrapf(err, "extract tar gz, create")
 				}
@@ -218,7 +219,7 @@ func validateGithubURL(upstream string) (*url.URL, error) {
 }
 
 func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string) (string, error) {
-	debug := level.Debug(log.With(g.logger, "method", "ResolveReleaseNotes"))
+	debug := level.Debug(log.With(g.Logger, "method", "ResolveReleaseNotes"))
 
 	debug.Log("event", "validateGithubURL")
 	validatedUpstreamURL, err := validateGithubURL(upstream)
@@ -232,7 +233,7 @@ func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string)
 		return "", err
 	}
 
-	commitList, _, err := g.client.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{
+	commitList, _, err := g.Client.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{
 		SHA:  branch,
 		Path: repoPath,
 	})
@@ -251,4 +252,23 @@ func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string)
 	}
 
 	return "", errors.New("No commit available")
+}
+
+func (g *GithubClient) ResolveLatestRelease(ctx context.Context, upstream string) (string, error) {
+	validatedUpstreamURL, err := validateGithubURL(upstream)
+	if err != nil {
+		return "", errors.Wrap(err, "not a valid github url")
+	}
+
+	owner, repo, _, _, err := decodeGitHubURL(validatedUpstreamURL.Path)
+	if err != nil {
+		return "", err
+	}
+
+	latest, _, err := g.Client.Repositories.GetLatestRelease(ctx, owner, repo)
+	if err != nil {
+		return "", errors.Wrap(err, "get latest release")
+	}
+
+	return latest.GetTagName(), nil
 }

@@ -195,7 +195,7 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 	}
 
 	if util.IsGithubURL(upstream) {
-		releaseNotes, err := r.GitHubReleaseNotesFetcher.ResolveReleaseNotes(ctx, upstream)
+		releaseNotes, err := r.GitHubFetcher.ResolveReleaseNotes(ctx, upstream)
 		if err != nil {
 			debug.Log("event", "releaseNotes.resolve.fail", "upstream", upstream, "err", err)
 		}

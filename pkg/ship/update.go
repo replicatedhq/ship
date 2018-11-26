@@ -44,17 +44,22 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, s.Viper.GetString("state-file")))
 	}
 
+	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
+	if err != nil {
+		return errors.New(`Unable to resolve versioned upstream ` + upstreamURL)
+	}
+
 	debug.Log("event", "fetch latest chart")
-	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+upstreamURL))
+	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `Downloading latest from upstream `+maybeVersionedUpstream))
 
 	debug.Log("event", "reset steps completed")
 	if err := s.StateManager.ResetLifecycle(); err != nil {
 		return errors.Wrap(err, "reset state.json completed lifecycle")
 	}
 
-	release, err := s.Resolver.ResolveRelease(ctx, upstreamURL)
+	release, err := s.Resolver.ResolveRelease(ctx, maybeVersionedUpstream)
 	if err != nil {
-		return errors.Wrapf(err, "resolve helm chart metadata for %s", upstreamURL)
+		return errors.Wrapf(err, "resolve helm chart metadata for %s", maybeVersionedUpstream)
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
