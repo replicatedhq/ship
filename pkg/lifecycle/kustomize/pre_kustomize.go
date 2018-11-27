@@ -162,6 +162,11 @@ func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFi
 			return errors.Wrap(err, "unmarshal original")
 		}
 
+		if originalMinimal.Kind == "CustomResourceDefinition" {
+			// Skip CRDs
+			return nil
+		}
+
 		initKustomized, exists := builtMap[originalMinimal]
 		if !exists {
 			// Skip if the file does not have a kustomized equivalent

@@ -497,6 +497,53 @@ spec:
 			},
 		},
 		{
+			name: "skip CRDs",
+			step: api.Kustomize{
+				Base: "",
+			},
+			built: []postKustomizeFile{
+				{
+					minimal: state.MinimalK8sYaml{
+						Kind: "CustomResourceDefinition",
+						Metadata: state.MinimalK8sMetadata{
+							Name: "strawberry",
+						},
+					},
+					full: map[string]interface{}{
+						"kind": "CustomResourceDefinition",
+						"metadata": map[string]interface{}{
+							"name": "strawberry",
+						},
+						"spec": map[string]interface{}{
+							"modified": "modified",
+						},
+					},
+				},
+			},
+			original: []testFile{
+				{
+					path: "strawberry.yaml",
+					contents: `kind: CustomResourceDefinition
+metadata:
+  name: strawberry
+spec:
+  original: original
+`,
+				},
+			},
+			expect: []testFile{
+				{
+					path: "strawberry.yaml",
+					contents: `kind: CustomResourceDefinition
+metadata:
+  name: strawberry
+spec:
+  original: original
+`,
+				},
+			},
+		},
+		{
 			name: "replace nested file",
 			step: api.Kustomize{
 				Base: "",
