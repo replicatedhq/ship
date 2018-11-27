@@ -1,21 +1,19 @@
----
-# Source: basic/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: basic
   labels:
     app: basic
     chart: basic-0.1.0
-    release: basic
     heritage: Tiller
+    release: basic
+  name: basic
 spec:
-  type: ClusterIP
   ports:
-    - port: 80
-      targetPort: http
-      protocol: TCP
-      name: http
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
   selector:
     app: basic
     release: basic
+  type: ClusterIP
