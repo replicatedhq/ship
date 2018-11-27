@@ -1,16 +1,13 @@
----
-# Source: istio/charts/prometheus/templates/deployment.yaml
-# TODO: the original template has service account, roles, etc
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: prometheus
-  namespace: default
   labels:
     app: prometheus
     chart: prometheus-1.0.3
-    release: istio
     heritage: Tiller
+    release: istio
+  name: prometheus
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -18,51 +15,36 @@ spec:
       app: prometheus
   template:
     metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+        sidecar.istio.io/inject: "false"
       labels:
         app: prometheus
-      annotations:
-        sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
-      serviceAccountName: prometheus
-      containers:
-        - name: prometheus
-          image: "docker.io/prom/prometheus:v2.3.1"
-          imagePullPolicy: IfNotPresent
-          args:
-            - '--storage.tsdb.retention=6h'
-            - '--config.file=/etc/prometheus/prometheus.yml'
-          ports:
-            - containerPort: 9090
-              name: http
-          livenessProbe:
-            httpGet:
-              path: /-/healthy
-              port: 9090
-          readinessProbe:
-            httpGet:
-              path: /-/ready
-              port: 9090
-          resources:
-            requests:
-              cpu: 10m
-            
-          volumeMounts:
-          - name: config-volume
-            mountPath: /etc/prometheus
-          - mountPath: /etc/istio-certs
-            name: istio-certs
-      volumes:
-      - name: config-volume
-        configMap:
-          name: prometheus
-      - name: istio-certs
-        secret:
-          defaultMode: 420
-          optional: true
-          secretName: istio.default
-      affinity:      
+      affinity:
         nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+            weight: 2
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - ppc64le
+            weight: 2
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - s390x
+            weight: 2
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
@@ -72,25 +54,39 @@ spec:
                 - amd64
                 - ppc64le
                 - s390x
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
+      containers:
+      - args:
+        - --storage.tsdb.retention=6h
+        - --config.file=/etc/prometheus/prometheus.yml
+        image: docker.io/prom/prometheus:v2.3.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+        name: prometheus
+        ports:
+        - containerPort: 9090
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+        resources:
+          requests:
+            cpu: 10m
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: config-volume
+        - mountPath: /etc/istio-certs
+          name: istio-certs
+      serviceAccountName: prometheus
+      volumes:
+      - configMap:
+          name: prometheus
+        name: config-volume
+      - name: istio-certs
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: istio.default

@@ -110,7 +110,7 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 		return errors.Wrap(err, "write base kustomization")
 	}
 
-	built, err := l.kustomizeBuild(step)
+	built, err := l.kustomizeBuild(step.Base)
 	if err != nil {
 		return errors.Wrap(err, "build overlay")
 	}
@@ -159,7 +159,8 @@ func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFi
 
 		initKustomized, exists := builtMap[originalMinimal]
 		if !exists {
-			return errors.New("No matching file found")
+			// Skip if the file does not have a kustomized equivalent
+			return nil
 		}
 
 		if err := l.FS.Remove(targetPath); err != nil {

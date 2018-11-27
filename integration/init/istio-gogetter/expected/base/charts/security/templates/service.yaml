@@ -1,25 +1,21 @@
----
-# Source: istio/charts/security/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  # we use the normal name here (e.g. 'prometheus')
-  # as grafana is configured to use this as a data source
-  name: istio-citadel
-  namespace: default
   labels:
     app: security
     chart: security
     heritage: Tiller
-    release: istio
     istio: citadel
+    release: istio
+  name: istio-citadel
+  namespace: default
 spec:
   ports:
-    - name: grpc-citadel
-      port: 8060
-      targetPort: 8060
-      protocol: TCP
-    - name: http-monitoring
-      port: 9093
+  - name: grpc-citadel
+    port: 8060
+    protocol: TCP
+    targetPort: 8060
+  - name: http-monitoring
+    port: 9093
   selector:
     istio: citadel

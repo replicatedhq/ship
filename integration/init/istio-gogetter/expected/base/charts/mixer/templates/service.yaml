@@ -1,17 +1,14 @@
----
-# Source: istio/charts/mixer/templates/service.yaml
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: istio-policy
-  namespace: default
   labels:
     app: mixer
     chart: mixer
     heritage: Tiller
-    release: istio
     istio: mixer
+    release: istio
+  name: istio-policy
+  namespace: default
 spec:
   ports:
   - name: grpc-mixer
@@ -23,29 +20,3 @@ spec:
   selector:
     istio: mixer
     istio-mixer-type: policy
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: istio-telemetry
-  namespace: default
-  labels:
-    app: mixer
-    chart: mixer
-    heritage: Tiller
-    release: istio
-    istio: mixer
-spec:
-  ports:
-  - name: grpc-mixer
-    port: 9091
-  - name: grpc-mixer-mtls
-    port: 15004
-  - name: http-monitoring
-    port: 9093
-  - name: prometheus
-    port: 42422
-  selector:
-    istio: mixer
-    istio-mixer-type: telemetry
----

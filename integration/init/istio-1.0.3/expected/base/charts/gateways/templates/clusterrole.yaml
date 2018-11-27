@@ -1,6 +1,3 @@
----
-# Source: istio/charts/gateways/templates/clusterrole.yaml
-
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -11,21 +8,15 @@ metadata:
     release: istio
   name: istio-egressgateway-default
 rules:
-- apiGroups: ["extensions"]
-  resources: ["thirdpartyresources", "virtualservices", "destinationrules", "gateways"]
-  verbs: ["get", "watch", "list", "update"]
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  labels:
-    app: gateways
-    chart: gateways-1.0.3
-    heritage: Tiller
-    release: istio
-  name: istio-ingressgateway-default
-rules:
-- apiGroups: ["extensions"]
-  resources: ["thirdpartyresources", "virtualservices", "destinationrules", "gateways"]
-  verbs: ["get", "watch", "list", "update"]
----
+- apiGroups:
+  - extensions
+  resources:
+  - thirdpartyresources
+  - virtualservices
+  - destinationrules
+  - gateways
+  verbs:
+  - get
+  - watch
+  - list
+  - update
