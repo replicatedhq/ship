@@ -1,20 +1,18 @@
----
-# Source: istio/charts/sidecarInjectorWebhook/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: istio-sidecar-injector-admin-role-binding-default
   labels:
     app: sidecarInjectorWebhook
     chart: sidecarInjectorWebhook
     heritage: Tiller
-    release: istio
     istio: sidecar-injector
+    release: istio
+  name: istio-sidecar-injector-admin-role-binding-default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: istio-sidecar-injector-default
 subjects:
-  - kind: ServiceAccount
-    name: istio-sidecar-injector-service-account
-    namespace: default
+- kind: ServiceAccount
+  name: istio-sidecar-injector-service-account
+  namespace: default

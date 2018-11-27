@@ -1,25 +1,23 @@
----
-# Source: istio/charts/pilot/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: istio-pilot
-  namespace: default
   labels:
     app: pilot
     chart: pilot
     heritage: Tiller
-    release: istio
     istio: pilot
+    release: istio
+  name: istio-pilot
+  namespace: default
 spec:
   ports:
-  - port: 15010
-    name: grpc-xds # direct
-  - port: 15011
-    name: https-xds # mTLS
-  - port: 8080
-    name: http-legacy-discovery # direct
-  - port: 9093
-    name: http-monitoring
+  - name: grpc-xds
+    port: 15010
+  - name: https-xds
+    port: 15011
+  - name: http-legacy-discovery
+    port: 8080
+  - name: http-monitoring
+    port: 9093
   selector:
     istio: pilot

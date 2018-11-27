@@ -1,23 +1,21 @@
----
-# Source: istio/charts/galley/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: istio-galley
-  namespace: default
   labels:
     app: galley
     chart: galley
     heritage: Tiller
-    release: istio
     istio: galley
+    release: istio
+  name: istio-galley
+  namespace: default
 spec:
   ports:
-  - port: 443
-    name: https-validation
-  - port: 9093
-    name: http-monitoring
-  - port: 9901
-    name: grpc-mcp
+  - name: https-validation
+    port: 443
+  - name: http-monitoring
+    port: 9093
+  - name: grpc-mcp
+    port: 9901
   selector:
     istio: galley

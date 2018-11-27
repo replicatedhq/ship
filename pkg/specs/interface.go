@@ -198,12 +198,6 @@ func (r *Resolver) resolveRelease(
 		spec = defaultSpec
 	}
 
-	if applicationType == "k8s" {
-		if err := r.maybeSplitMultidocYaml(ctx, destPath); err != nil {
-			return nil, errors.Wrap(err, "split multipath yaml")
-		}
-	}
-
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,

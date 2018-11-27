@@ -1,18 +1,6 @@
----
-# Source: istio/charts/security/templates/configmap.yaml
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: istio-security-custom-resources
-  namespace: default
-  labels:
-    app: istio-security
-    chart: security-1.0.3
-    release: istio
-    heritage: Tiller
-    istio: security
 data:
-  custom-resources.yaml: |-    
+  custom-resources.yaml: |-
     # Authentication policy to enable permissive mode for all services (that have sidecar) in the mesh.
     apiVersion: "authentication.istio.io/v1alpha1"
     kind: "MeshPolicy"
@@ -27,18 +15,18 @@ data:
       peers:
       - mtls:
           mode: PERMISSIVE
-  run.sh: |-    
+  run.sh: |-
     #!/bin/sh
-    
+
     set -x
-    
+
     if [ "$#" -ne "1" ]; then
         echo "first argument should be path to custom resource yaml"
         exit 1
     fi
-    
+
     pathToResourceYAML=${1}
-    
+
     /kubectl get validatingwebhookconfiguration istio-galley 2>/dev/null
     if [ "$?" -eq 0 ]; then
         echo "istio-galley validatingwebhookconfiguration found - waiting for istio-galley deployment to be ready"
@@ -58,4 +46,13 @@ data:
     fi
     sleep 5
     /kubectl apply -f ${pathToResourceYAML}
-    
+kind: ConfigMap
+metadata:
+  labels:
+    app: istio-security
+    chart: security-1.0.3
+    heritage: Tiller
+    istio: security
+    release: istio
+  name: istio-security-custom-resources
+  namespace: default

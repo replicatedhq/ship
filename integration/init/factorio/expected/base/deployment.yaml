@@ -1,14 +1,12 @@
----
-# Source: factorio/templates/deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: factorio-factorio
   labels:
     app: factorio-factorio
-    chart: "factorio-0.3.1"
-    release: "factorio"
-    heritage: "Tiller"
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
 spec:
   template:
     metadata:
@@ -16,19 +14,11 @@ spec:
         app: factorio-factorio
     spec:
       containers:
-      - name: factorio-factorio
-        image: "quay.io/games_on_k8s/factorio:0.14.22"
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: 500m
-            memory: 512Mi
-          
-        env:
+      - env:
         - name: FACTORIO_SERVER_NAME
-          value: "Kubernetes Server"
+          value: Kubernetes Server
         - name: FACTORIO_DESCRIPTION
-          value: "Factorio running on Kubernetes"
+          value: Factorio running on Kubernetes
         - name: FACTORIO_PORT
           value: "34197"
         - name: FACTORIO_MAX_PLAYERS
@@ -38,26 +28,32 @@ spec:
         - name: FACTORIO_REQUIRE_USER_VERIFICATION
           value: "false"
         - name: FACTORIO_ALLOW_COMMANDS
-          value: "admins-only"
+          value: admins-only
         - name: FACTORIO_NO_AUTO_PAUSE
           value: "false"
         - name: FACTORIO_AUTOSAVE_INTERVAL
           value: "2"
         - name: FACTORIO_AUTOSAVE_SLOTS
           value: "3"
-
+        image: quay.io/games_on_k8s/factorio:0.14.22
+        imagePullPolicy: Always
+        name: factorio-factorio
         ports:
-        - name: factorio
-          containerPort: 34197
+        - containerPort: 34197
+          name: factorio
           protocol: UDP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
         volumeMounts:
-        - name: saves
-          mountPath: /opt/factorio/saves
-        - name: mods
-          mountPath: /opt/factorio/mods
+        - mountPath: /opt/factorio/saves
+          name: saves
+        - mountPath: /opt/factorio/mods
+          name: mods
       volumes:
       - name: saves
         persistentVolumeClaim:
           claimName: factorio-factorio-savedgames
-      - name: mods
-        emptyDir: {}
+      - emptyDir: {}
+        name: mods
