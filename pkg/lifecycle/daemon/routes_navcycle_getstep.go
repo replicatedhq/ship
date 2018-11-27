@@ -27,7 +27,7 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				return
 			}
 
-			if preExecuteFunc, exists := d.PreExecuteFuncMap[step.ShortName()]; exists {
+			if preExecuteFunc, exists := d.PreExecuteFuncMap[step.Shared().ID]; exists {
 				if err := preExecuteFunc(context.Background(), step); err != nil {
 					level.Error(d.Logger).Log("event", "preExecute.fail", "err", err)
 					return
