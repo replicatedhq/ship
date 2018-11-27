@@ -19,6 +19,6 @@
       "installationID": "placeholder"
     },
     "contentSHA": "ec78ca854922f211c0d9f15223d31e634cead6d0661bba615f12a4d754650741",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

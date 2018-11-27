@@ -10,6 +10,6 @@
       "version": "0.0.4"
     },
     "releaseName": "integration-test-basic-and-docker",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

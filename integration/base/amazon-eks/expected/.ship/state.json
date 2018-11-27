@@ -10,6 +10,6 @@
       "version": "0.0.1-b"
     },
     "releaseName": "integration-test-aws-eks",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

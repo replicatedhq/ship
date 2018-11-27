@@ -15,6 +15,6 @@
       "version": "0.1.4"
     },
     "releaseName": "integration-test-default-vals",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

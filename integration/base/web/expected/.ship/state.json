@@ -13,6 +13,6 @@
       "version": "0.0.7"
     },
     "releaseName": "integration-test-web",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

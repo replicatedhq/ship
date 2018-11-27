@@ -58,13 +58,9 @@ Upstream can be one of:
 	cmd.Flags().Bool("rm-asset-dest", false, "Always remove asset destinations if already present")
 	cmd.Flags().Int("retries", 3, "Number of times to retry retrieving upstream")
 
-	// optional flags for "ship init replicated.app"
-	cmd.Flags().String("customer-id", "", "Customer ID for which to query app specs. Required for all ship operations.")
-	cmd.Flags().String("installation-id", "", "Installation ID for which to query app specs")
-	cmd.Flags().String("release-semver", "", "Specific release version to pin installation to. Requires channel-id")
-
 	// optional developer flags for "ship init replicated.app"
 	cmd.Flags().String("runbook", "", developerFlagUsage)
+	cmd.Flags().String("release-semver", "", fmt.Sprintf("Specific release version to pin installation to. Requires channel-id. %s. ", developerFlagUsage))
 	cmd.Flags().String("set-channel-name", "", developerFlagUsage)
 	cmd.Flags().String("set-channel-icon", "", developerFlagUsage)
 	cmd.Flags().StringSlice("set-github-contents", []string{}, fmt.Sprintf("Specify a REPO:REPO_PATH:REF:LOCAL_PATH to override github checkouts to use a local path on the filesystem. %s. ", developerFlagUsage))

@@ -83,15 +83,6 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			return nil, errors.Wrapf(err, "parse url %s", upstream)
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
-		if r.CustomerID != "" {
-			selector.CustomerID = r.CustomerID
-		}
-		if r.InstallationID != "" {
-			selector.InstallationID = r.InstallationID
-		}
-		if r.ReleaseSemver != "" {
-			selector.ReleaseSemver = r.ReleaseSemver
-		}
 		return r.AppResolver.ResolveAppRelease(ctx, selector)
 
 	case "inline.replicated.app":
@@ -147,15 +138,6 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 			return "", errors.Wrapf(err, "parse url %s", upstream)
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
-		if r.CustomerID != "" {
-			selector.CustomerID = r.CustomerID
-		}
-		if r.InstallationID != "" {
-			selector.InstallationID = r.InstallationID
-		}
-		if r.ReleaseSemver != "" {
-			selector.ReleaseSemver = r.ReleaseSemver
-		}
 		release, err := r.AppResolver.FetchRelease(ctx, selector)
 		if err != nil {
 			return "", errors.Wrap(err, "fetch release")

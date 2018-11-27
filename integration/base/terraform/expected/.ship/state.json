@@ -48,6 +48,6 @@
       "installationID": "lZk73HnLmatQ-s1nk7l3Q3QKA45orDFi"
     },
     "contentSHA": "f6d06c39a698b830ba4ffb02821447199639c8a6d4b74bdc3eb28082ac6a5605",
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }

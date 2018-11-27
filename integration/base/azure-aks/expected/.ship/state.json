@@ -23,6 +23,6 @@
         "render": true
       }
     },
-    "upstream": "staging.replicated.app/integration"
+    "upstream": "__upstream__"
   }
 }
