@@ -88,14 +88,13 @@ var _ = Describe("ship app", func() {
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
 					upstream := fmt.Sprintf(
-						"staging.replicated.app/integration?customer_id=%s&installation_id=%s&release_semver=%s",
+						"%s?customer_id=%s&installation_id=%s&release_semver=%s",
+						path.Join(testInputPath, ".ship/ship.yml"),
 						testMetadata.CustomerID, testMetadata.InstallationID, testMetadata.ReleaseVersion,
 					)
 					args := []string{
 						"init",
 						upstream,
-						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/ship.yml")),
-						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
 						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
 						fmt.Sprintf("--set-github-contents=%s", testMetadata.SetGitHubContents),
 						"--headless",

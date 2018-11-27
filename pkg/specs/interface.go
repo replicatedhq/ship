@@ -30,7 +30,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	r.ui.Info(fmt.Sprintf("Reading %s ...", upstream))
 
 	r.ui.Info("Determining application type ...")
-	applicationType, localPath, err := r.determineApplicationType(ctx, upstream)
+	applicationType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "determine type of %s", upstream)
 	}
@@ -76,6 +76,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		)
 
 	case "runbook.replicated.app":
+		r.AppResolver.SetRunbook(localPath)
 		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -103,7 +104,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 
 	debug := level.Debug(log.With(r.Logger, "method", "ReadContentSHAForWatch"))
 	debug.Log("event", "fetch latest chart")
-	appType, localPath, err := r.determineApplicationType(ctx, upstream)
+	appType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 	if err != nil {
 		return "", errors.Wrapf(err, "resolve app type for %s", upstream)
 	}
@@ -131,6 +132,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		return metadata.ContentSHA, nil
 
 	case "runbook.replicated.app":
+		r.AppResolver.SetRunbook(localPath)
 		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -280,11 +282,4 @@ func (r *Resolver) resolveInlineShipYAMLRelease(
 		return nil, errors.Wrapf(err, "serialize helm release name")
 	}
 	return release, nil
-}
-
-func (r *Resolver) determineApplicationType(ctx context.Context, upstream string) (string, string, error) {
-	if r.Runbook != "" {
-		return "runbook.replicated.app", r.Runbook, nil
-	}
-	return r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 }

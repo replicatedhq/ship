@@ -59,8 +59,6 @@ Upstream can be one of:
 	cmd.Flags().Int("retries", 3, "Number of times to retry retrieving upstream")
 
 	// optional developer flags for "ship init replicated.app"
-	cmd.Flags().String("runbook", "", developerFlagUsage)
-	cmd.Flags().String("release-semver", "", fmt.Sprintf("Specific release version to pin installation to. Requires channel-id. %s. ", developerFlagUsage))
 	cmd.Flags().String("set-channel-name", "", developerFlagUsage)
 	cmd.Flags().String("set-channel-icon", "", developerFlagUsage)
 	cmd.Flags().StringSlice("set-github-contents", []string{}, fmt.Sprintf("Specify a REPO:REPO_PATH:REF:LOCAL_PATH to override github checkouts to use a local path on the filesystem. %s. ", developerFlagUsage))

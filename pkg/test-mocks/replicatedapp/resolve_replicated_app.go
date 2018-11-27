@@ -73,3 +73,13 @@ func (m *MockResolver) ResolveAppRelease(arg0 context.Context, arg1 *replicateda
 func (mr *MockResolverMockRecorder) ResolveAppRelease(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveAppRelease", reflect.TypeOf((*MockResolver)(nil).ResolveAppRelease), arg0, arg1)
 }
+
+// SetRunbook mocks base method
+func (m *MockResolver) SetRunbook(arg0 string) {
+	m.ctrl.Call(m, "SetRunbook", arg0)
+}
+
+// SetRunbook indicates an expected call of SetRunbook
+func (mr *MockResolverMockRecorder) SetRunbook(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRunbook", reflect.TypeOf((*MockResolver)(nil).SetRunbook), arg0)
+}

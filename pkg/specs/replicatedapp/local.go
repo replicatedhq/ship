@@ -16,7 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 )
 
-func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
+func (r *resolver) resolveRunbookRelease(selector *Selector) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
 	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
@@ -41,11 +41,18 @@ func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
 		return nil, errors.Wrapf(err, "load fake entitlements")
 	}
 
+	var semver string
+	if r.RunbookReleaseSemver != "" {
+		semver = r.RunbookReleaseSemver
+	} else {
+		semver = selector.ReleaseSemver
+	}
+
 	return &ShipRelease{
 		Spec:           string(specYAML),
 		ChannelName:    r.SetChannelName,
 		ChannelIcon:    r.SetChannelIcon,
-		Semver:         r.RunbookReleaseSemver,
+		Semver:         semver,
 		GithubContents: fakeGithubContents,
 		Entitlements:   *fakeEntitlements,
 	}, nil
