@@ -288,7 +288,13 @@ export default class KustomizeOverlay extends React.Component {
       resource: `${fileTreeBasePath}${selectedFile}`,
     };
     await this.props.generatePatch(payload);
-    this.aceEditorOverlay.editor.find(PATCH_TOKEN);
+    
+    const position = this.aceEditorOverlay.editor.find(PATCH_TOKEN); // Find text for position
+    if(position) {
+      this.aceEditorOverlay.editor.focus();
+      this.aceEditorOverlay.editor.gotoLine(position.start.row + 1, position.start.column);
+      this.aceEditorOverlay.editor.find(PATCH_TOKEN); // Have to find text again to auto focus text
+    }
   }
 
   rebuildTooltip = () => {
