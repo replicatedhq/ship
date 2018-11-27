@@ -10,7 +10,6 @@ import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import map from "lodash/map";
 import defaultTo from "lodash/defaultTo";
-import debounce from "lodash/debounce";
 
 import FileTree from "./FileTree";
 import KustomizeModal from "./KustomizeModal";
@@ -20,6 +19,10 @@ import DiffEditor from "../../shared/DiffEditor";
 
 import "../../../../node_modules/brace/mode/yaml";
 import "../../../../node_modules/brace/theme/chrome";
+
+export const PATCH_OVERLAY = "PATCH";
+export const BASE_OVERLAY = "BASE";
+export const RESOURCE_OVERLAY = "RESOURCE";
 
 export default class KustomizeOverlay extends React.Component {
   constructor() {
@@ -48,23 +51,24 @@ export default class KustomizeOverlay extends React.Component {
     this.addResourceInput = React.createRef();
   }
 
-  toggleModal = (overlayPath) => {
-    this.setState({
-      displayConfirmModal: !this.state.displayConfirmModal,
-      overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
-      displayConfirmModalMessage: "Are you sure you want to discard this patch?",
-      displayConfirmModalDiscardMessage: "Discard patch",
-      modalAction: this.discardOverlay,
-    });
-  }
+  toggleModal = (overlayPath, overlayType) => {
+    let displayConfirmModalMessage = "Are you sure you want to discard this patch?";
+    let displayConfirmModalDiscardMessage = "Discard patch";
 
-  toggleModalForBase = (overlayPath) => {
+    if (overlayType === BASE_OVERLAY) {
+      displayConfirmModalMessage = "Are you sure you want to discard this base resource?";
+      displayConfirmModalDiscardMessage = "Discard base";
+    } else if (overlayType === RESOURCE_OVERLAY) {
+      displayConfirmModalMessage = "Are you sure you want to discard this resource?";
+      displayConfirmModalDiscardMessage = "Discard resource";
+    }
+
     this.setState({
       displayConfirmModal: !this.state.displayConfirmModal,
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
-      displayConfirmModalMessage: "Are you sure you want to discard this base resource?",
-      displayConfirmModalDiscardMessage: "Discard base",
-      modalAction: this.discardOverlay,
+      displayConfirmModalMessage,
+      displayConfirmModalDiscardMessage,
+      modalAction: () => (this.discardOverlay(overlayType)),
     });
   }
 
@@ -191,9 +195,9 @@ export default class KustomizeOverlay extends React.Component {
     }
   }
 
-  discardOverlay = async () => {
+  discardOverlay = async (overlayType) => {
     const { overlayToDelete } = this.state;
-    await this.deleteOverlay(overlayToDelete);
+    await this.deleteOverlay(overlayToDelete, overlayType);
     this.setState({
       patch: "",
       displayConfirmModal: false,
@@ -201,12 +205,14 @@ export default class KustomizeOverlay extends React.Component {
     });
   }
 
-  deleteOverlay = async (path) => {
+  deleteOverlay = async (path, overlayType) => {
     const { fileTree, selectedFile } = this.state;
-    const resources = find(fileTree, { name: "resources" });
-    const bases = find(fileTree, { name: "/" });
-    const isResource = resources && findIndex(resources.children, { path }) > -1;
-    const isBase = findIndex(bases.children, { path }) > -1;
+    const isResource = overlayType === RESOURCE_OVERLAY;
+    const isBase = overlayType === BASE_OVERLAY;
+
+    const overlays = find(fileTree, { name: "overlays" });
+    const overlayExists = overlays && findIndex(overlays.children, { path }) > -1;
+
     if (isResource) {
       await this.props.deleteOverlay(path, "resource");
       return;
@@ -220,8 +226,10 @@ export default class KustomizeOverlay extends React.Component {
       return;
     }
 
-    await this.props.deleteOverlay(path, "patch");
-    return;
+    if (overlayExists) {
+      await this.props.deleteOverlay(path, "patch");
+      return;
+    }
   }
 
   handleKustomizeSave = async (finalize) => {
@@ -369,7 +377,6 @@ export default class KustomizeOverlay extends React.Component {
                         basePath={tree.name}
                         handleFileSelect={(path) => this.setSelectedFile(path)}
                         handleDeleteOverlay={this.toggleModal}
-                        handleExcludeBase={this.toggleModalForBase}
                         handleClickExcludedBase={this.toggleModalForExcludedBase}
                         selectedFile={this.state.selectedFile}
                         isOverlayTree={tree.name === "overlays"}
@@ -450,7 +457,7 @@ export default class KustomizeOverlay extends React.Component {
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
-                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile)}></span> : null}
+                      {showOverlay && showBase ? <span data-tip="close-overlay-tooltip" data-for="close-overlay-tooltip" className="icon clickable u-closeOverlayIcon" onClick={() => this.toggleModal(this.state.selectedFile, PATCH_OVERLAY)}></span> : null}
                       <ReactTooltip id="close-overlay-tooltip" effect="solid" className="replicated-tooltip">Discard patch</ReactTooltip>
                       <AceEditor
                         ref={this.setAceEditor}
