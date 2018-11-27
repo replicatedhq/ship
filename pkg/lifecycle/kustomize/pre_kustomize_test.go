@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -395,6 +396,256 @@ spec:
 			}
 
 			req.ElementsMatch(tt.expectState, actualLists)
+		})
+	}
+}
+
+type testFile struct {
+	path     string
+	contents string
+}
+
+func addTestFiles(fs afero.Afero, testFiles []testFile) error {
+	for _, testFile := range testFiles {
+		if err := fs.MkdirAll(filepath.Dir(testFile.path), 0755); err != nil {
+			return err
+		}
+		if err := fs.WriteFile(testFile.path, []byte(testFile.contents), 0644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func readTestFiles(step api.Kustomize, fs afero.Afero) ([]testFile, error) {
+	files := []testFile{}
+	if err := fs.Walk(step.Base, func(targetPath string, info os.FileInfo, err error) error {
+		if filepath.Ext(targetPath) == ".yaml" {
+			contents, err := fs.ReadFile(targetPath)
+			if err != nil {
+				return err
+			}
+
+			files = append(files, testFile{
+				path:     targetPath,
+				contents: string(contents),
+			})
+		}
+		return nil
+	}); err != nil {
+		return files, err
+	}
+
+	return files, nil
+}
+
+func TestKustomizer_replaceOriginal(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		step     api.Kustomize
+		built    []postKustomizeFile
+		original []testFile
+		expect   []testFile
+		wantErr  bool
+	}{
+		{
+			name: "replace single file",
+			step: api.Kustomize{
+				Base: "",
+			},
+			built: []postKustomizeFile{
+				{
+					minimal: state.MinimalK8sYaml{
+						Kind: "Fruit",
+						Metadata: state.MinimalK8sMetadata{
+							Name: "strawberry",
+						},
+					},
+					full: map[string]interface{}{
+						"kind": "Fruit",
+						"metadata": map[string]interface{}{
+							"name": "strawberry",
+						},
+						"spec": map[string]interface{}{
+							"modified": "modified",
+						},
+					},
+				},
+			},
+			original: []testFile{
+				{
+					path: "strawberry.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: strawberry
+spec:
+  original: original
+`,
+				},
+			},
+			expect: []testFile{
+				{
+					path: "strawberry.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: strawberry
+spec:
+  modified: modified
+`,
+				},
+			},
+		},
+		{
+			name: "replace nested file",
+			step: api.Kustomize{
+				Base: "",
+			},
+			built: []postKustomizeFile{
+				{
+					minimal: state.MinimalK8sYaml{
+						Kind: "Fruit",
+						Metadata: state.MinimalK8sMetadata{
+							Name: "banana",
+						},
+					},
+					full: map[string]interface{}{
+						"kind": "Fruit",
+						"metadata": map[string]interface{}{
+							"name": "banana",
+						},
+						"spec": map[string]interface{}{
+							"modified": "modified",
+						},
+					},
+				},
+			},
+			original: []testFile{
+				{
+					path: "somedir/banana.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: banana
+spec:
+  original: original
+`,
+				},
+			},
+			expect: []testFile{
+				{
+					path: "somedir/banana.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: banana
+spec:
+  modified: modified
+`,
+				},
+			},
+		},
+		{
+			name: "replace multiple files",
+			step: api.Kustomize{
+				Base: "",
+			},
+			built: []postKustomizeFile{
+				{
+					minimal: state.MinimalK8sYaml{
+						Kind: "Fruit",
+						Metadata: state.MinimalK8sMetadata{
+							Name: "dragonfruit",
+						},
+					},
+					full: map[string]interface{}{
+						"kind": "Fruit",
+						"metadata": map[string]interface{}{
+							"name": "dragonfruit",
+						},
+						"spec": map[string]interface{}{
+							"modified": "modified dragonfruit",
+						},
+					},
+				},
+				{
+					minimal: state.MinimalK8sYaml{
+						Kind: "Fruit",
+						Metadata: state.MinimalK8sMetadata{
+							Name: "pomegranate",
+						},
+					},
+					full: map[string]interface{}{
+						"kind": "Fruit",
+						"metadata": map[string]interface{}{
+							"name": "pomegranate",
+						},
+						"spec": map[string]interface{}{
+							"modified": "modified pomegranate",
+						},
+					},
+				},
+			},
+			original: []testFile{
+				{
+					path: "somedir/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "pomegranate.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: pomegranate
+spec:
+  original: original pomegranate
+`,
+				},
+			},
+			expect: []testFile{
+				{
+					path: "somedir/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  modified: modified dragonfruit
+`,
+				},
+				{
+					path: "pomegranate.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: pomegranate
+spec:
+  modified: modified pomegranate
+`,
+				},
+			},
+		},
+	}
+
+	req := require.New(t)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			err := addTestFiles(mockFs, tt.original)
+			req.NoError(err)
+
+			l := &Kustomizer{
+				Logger: log.NewNopLogger(),
+				FS:     mockFs,
+			}
+
+			err = l.replaceOriginal(tt.step, tt.built)
+			req.NoError(err)
+
+			actual, err := readTestFiles(tt.step, mockFs)
+			req.NoError(err)
+
+			req.ElementsMatch(tt.expect, actual)
 		})
 	}
 }
