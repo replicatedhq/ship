@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-delete-policy: hook-succeeded
+  labels:
+    app: security
+    chart: security
+    heritage: Tiller
+    release: istio
+  name: istio-security-post-install
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: security
+        chart: security
+        heritage: Tiller
+        release: istio
+        version: 1.1.0
+      name: istio-security-post-install
+    spec:
+      containers:
+      - command:
+        - /bin/bash
+        - /tmp/security/run.sh
+        - /tmp/security/custom-resources.yaml
+        image: gcr.io/istio-release/kubectl:master-latest-daily
+        imagePullPolicy: IfNotPresent
+        name: kubectl
+        volumeMounts:
+        - mountPath: /tmp/security
+          name: tmp-configmap-security
+      restartPolicy: OnFailure
+      serviceAccountName: istio-security-post-install-account
+      volumes:
+      - configMap:
+          name: istio-security-custom-resources
+        name: tmp-configmap-security
