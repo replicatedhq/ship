@@ -457,9 +457,9 @@ func TestKustomizer_replaceOriginal(t *testing.T) {
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
@@ -504,9 +504,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "CustomResourceDefinition",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
@@ -551,9 +551,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "banana",
 						},
 					},
@@ -598,9 +598,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "dragonfruit",
 						},
 					},
@@ -615,9 +615,9 @@ spec:
 					},
 				},
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "pomegranate",
 						},
 					},

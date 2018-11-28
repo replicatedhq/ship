@@ -131,7 +131,7 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 }
 
 func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFile) error {
-	builtMap := make(map[state.MinimalK8sYaml]postKustomizeFile)
+	builtMap := make(map[util.MinimalK8sYaml]postKustomizeFile)
 	for _, builtFile := range built {
 		builtMap[builtFile.minimal] = builtFile
 	}
@@ -156,7 +156,7 @@ func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFi
 			return errors.Wrap(err, "read original file")
 		}
 
-		originalMinimal := state.MinimalK8sYaml{}
+		originalMinimal := util.MinimalK8sYaml{}
 		if err := yaml.Unmarshal(originalFileB, &originalMinimal); err != nil {
 			return errors.Wrap(err, "unmarshal original")
 		}
