@@ -28,6 +28,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 	tests := []struct {
 		name      string
 		upstream  string
+		unfork    bool
 		shaSummer shaSummer
 		expect    func(
 			t *testing.T,
@@ -43,6 +44,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 		{
 			name:     "helm chart in github",
 			upstream: "github.com/helm/charts/stable/x5",
+			unfork:   false,
 			shaSummer: func(resolver *Resolver, s string) (string, error) {
 				return "abcdef1234567890", nil
 			},
@@ -113,6 +115,7 @@ icon: https://kfbr.392/x5.png
 		{
 			name:     "replicated.app",
 			upstream: "replicated.app?customer_id=12345&installation_id=67890",
+			unfork:   false,
 			expect: func(
 				t *testing.T,
 				mockUi *ui.MockUi,
@@ -150,6 +153,7 @@ icon: https://kfbr.392/x5.png
 		{
 			name:     "plain k8s app",
 			upstream: "github.com/replicatedhq/test-charts/plain-k8s",
+			unfork:   false,
 			shaSummer: func(resolver *Resolver, s string) (string, error) {
 				return "abcdef1234567890", nil
 			},

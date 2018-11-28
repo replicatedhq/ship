@@ -21,6 +21,7 @@ type StepExecutor struct {
 	HelmValues   HelmValues
 	KubectlApply KubectlApply
 	Kustomizer   Kustomizer
+	Unforker     Unforker
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -49,6 +50,10 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		err := s.Kustomizer.Execute(ctx, release, *step.Kustomize)
 		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
 		return errors.Wrap(err, "execute kustomize step")
+	} else if step.Unfork != nil {
+		debug.Log("event", "step.resolve", "type", "unfork")
+		err := s.Unforker.Execute(ctx, release, *step.Unfork)
+		debug.Log("event", "step.complete", "type", "unfork", "err", err)
 	} else if step.HelmIntro != nil && release.Metadata.ShipAppMetadata.Readme != "" {
 		debug.Log("event", "step.helmIntro", "type", "helmIntro")
 		err := s.HelmIntro.Execute(ctx, release, step.HelmIntro)

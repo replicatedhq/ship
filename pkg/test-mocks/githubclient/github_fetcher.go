@@ -6,9 +6,8 @@ package githubclient
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockGitHubFetcher is a mock of GitHubFetcher interface

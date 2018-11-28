@@ -1,0 +1,8 @@
+args: ["--prefer-git"]
+upstream: https://github.com/helm/charts/tree/353ba5ef6467fd64035b7d5446df426f86d60153/stable/grafana
+fork: https://github.com/replicatedhq/test-charts/tree/2687f40789200c03c80df4831a56e9af77b2e701/grafana-forked
+ignoredFiles:
+  - base/secret.yaml  # this is a generated password that will change each time
+
+# ignoredKeys:
+#   - ./ship/state.json: ["v1", "kustomize", "overlays", "ship", "patches", "/secret.yaml"]

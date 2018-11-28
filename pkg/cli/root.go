@@ -77,6 +77,7 @@ func RootCmd() *cobra.Command {
 	cmd.AddCommand(Init())
 	cmd.AddCommand(Watch())
 	cmd.AddCommand(Update())
+	cmd.AddCommand(Unfork())
 	cmd.AddCommand(App())
 	cmd.AddCommand(Version())
 

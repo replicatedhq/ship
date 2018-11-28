@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -16,6 +18,66 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/util"
 )
+
+func (r *Resolver) ResolveUnforkReleases(ctx context.Context, upstream string, forked string) (*api.Release, error) {
+	debug := log.With(level.Debug(r.Logger), "method", "ResolveUnforkReleases")
+	r.ui.Info(fmt.Sprintf("Reading %s and %s ...", upstream, forked))
+
+	// Prepare the upstream
+	r.ui.Info("Determining upstream application type ...")
+	upstreamApplicationType, localUpstreamPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	if err != nil {
+		return nil, errors.Wrapf(err, "determine type of %s", upstream)
+	}
+	debug.Log("event", "applicationType.resolve", "type", upstreamApplicationType)
+	r.ui.Info(fmt.Sprintf("Detected upstream application type %s", upstreamApplicationType))
+
+	debug.Log("event", "versionedUpstream.resolve", "type", upstreamApplicationType)
+	versionedUpstream, err := r.maybeCreateVersionedUpstream(upstream)
+	if err != nil {
+		return nil, errors.Wrap(err, "resolve versioned upstream")
+	}
+
+	debug.Log("event", "upstream.Serialize", "for", localUpstreamPath, "upstream", versionedUpstream)
+	err = r.StateManager.SerializeUpstream(versionedUpstream)
+	if err != nil {
+		return nil, errors.Wrapf(err, "write upstream")
+	}
+
+	// Prepare the fork
+	r.ui.Info("Determining forked application type ...")
+	forkedApplicationType, localForkedPath, err := r.appTypeInspector.DetermineApplicationType(ctx, forked)
+	if err != nil {
+		return nil, errors.Wrapf(err, "determine type of %s", forked)
+	}
+	debug.Log("event", "applicationType.resolve", "type", forkedApplicationType)
+	r.ui.Info(fmt.Sprintf("Detected forked application type %s", forkedApplicationType))
+
+	if upstreamApplicationType != forkedApplicationType {
+		return nil, errors.Errorf("upstream and forked application types must be the same. found %s and %s", upstreamApplicationType, forkedApplicationType)
+	}
+
+	switch upstreamApplicationType {
+
+	case "helm":
+		defaultRelease := r.DefaultHelmUnforkRelease(constants.HelmChartForkedPath, constants.HelmChartPath)
+
+		return r.resolveUnforkReleases(
+			ctx,
+			upstream,
+			forked,
+			localUpstreamPath,
+			localForkedPath,
+			constants.HelmChartPath,
+			constants.HelmChartForkedPath,
+			&defaultRelease,
+			upstreamApplicationType,
+		)
+
+	}
+
+	return nil, errors.Errorf("unknown application type %q", upstreamApplicationType)
+}
 
 // A resolver turns a target string into a release.
 //
@@ -53,6 +115,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 
 	case "helm":
 		defaultRelease := r.DefaultHelmRelease(localPath)
+
 		return r.resolveRelease(
 			ctx,
 			upstream,
@@ -61,10 +124,12 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			&defaultRelease,
 			applicationType,
 			true,
+			true,
 		)
 
 	case "k8s":
 		defaultRelease := r.DefaultRawRelease(constants.KustomizeBasePath)
+
 		return r.resolveRelease(
 			ctx,
 			upstream,
@@ -73,6 +138,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			&defaultRelease,
 			applicationType,
 			false,
+			true,
 		)
 
 	case "runbook.replicated.app":
@@ -151,6 +217,82 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	return "", errors.Errorf("Could not continue with application type %q of upstream %s", appType, upstream)
 }
 
+func (r *Resolver) resolveUnforkReleases(
+	ctx context.Context,
+	upstream string,
+	forked string,
+	localUpstreamPath string,
+	localForkedPath string,
+	destUpstreamPath string,
+	destForkedPath string,
+	defaultSpec *api.Spec,
+	applicationType string,
+) (*api.Release, error) {
+	debug := log.With(level.Debug(r.Logger), "method", "resolveUnforkReleases")
+
+	if r.Viper.GetBool("rm-asset-dest") {
+		err := r.FS.RemoveAll(destUpstreamPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "remove asset dest %s", destUpstreamPath)
+		}
+
+		err = r.FS.RemoveAll(destForkedPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "remove asset dest %s", destForkedPath)
+		}
+	}
+
+	err := util.BailIfPresent(r.FS, destUpstreamPath, debug)
+	if err != nil {
+		return nil, errors.Wrapf(err, "backup %s", destUpstreamPath)
+	}
+
+	destUpstreamPathParts := strings.Split(destUpstreamPath, string(filepath.Separator))
+	err = r.FS.MkdirAll(path.Join(destUpstreamPathParts[:len(destUpstreamPathParts)-1]...), 0777)
+	if err != nil {
+		return nil, errors.Wrapf(err, "mkdir %s", localUpstreamPath)
+	}
+
+	err = r.FS.Rename(localUpstreamPath, destUpstreamPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "move %s to %s", localUpstreamPath, destUpstreamPath)
+	}
+
+	err = r.FS.Rename(localForkedPath, destForkedPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "move %s to %s", localForkedPath, destForkedPath)
+	}
+
+	upstreamMetadata, err := r.resolveMetadata(context.Background(), upstream, destUpstreamPath, applicationType)
+	if err != nil {
+		return nil, errors.Wrapf(err, "resolve metadata for %s", destUpstreamPath)
+	}
+
+	// forkedMetadata, err := r.resolveMetadata(context.Background(), upstream, destForkedPath)
+	// if err != nil {
+	// 	return nil, errors.Wrapf(err, "resolve metadata for %s", destForkedPath)
+	// }
+
+	// always use default spec
+
+	release := &api.Release{
+		Metadata: api.ReleaseMetadata{
+			ShipAppMetadata: *upstreamMetadata,
+		},
+		Spec: *defaultSpec,
+	}
+
+	releaseName := release.Metadata.ReleaseName()
+	debug.Log("event", "resolve.releaseName")
+
+	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
+		debug.Log("event", "serialize.releaseName.fail", "err", err)
+		return nil, errors.Wrapf(err, "serialize helm release name")
+	}
+
+	return release, nil
+}
+
 func (r *Resolver) resolveRelease(
 	ctx context.Context,
 	upstream,
@@ -159,8 +301,9 @@ func (r *Resolver) resolveRelease(
 	defaultSpec *api.Spec,
 	applicationType string,
 	keepOriginal bool,
+	tryUseUpstreamShipYAML bool,
 ) (*api.Release, error) {
-	debug := log.With(level.Debug(r.Logger), "method", "resolveChart")
+	debug := log.With(level.Debug(r.Logger), "method", "resolveRelease")
 
 	if r.Viper.GetBool("rm-asset-dest") {
 		err := r.FS.RemoveAll(destPath)
@@ -192,10 +335,13 @@ func (r *Resolver) resolveRelease(
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
 	}
 
-	debug.Log("event", "check upstream for ship.yaml")
-	spec, err := r.maybeGetShipYAML(ctx, destPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", destPath)
+	var spec *api.Spec
+	if tryUseUpstreamShipYAML {
+		debug.Log("event", "check upstream for ship.yaml")
+		spec, err = r.maybeGetShipYAML(ctx, destPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", destPath)
+		}
 	}
 
 	if spec == nil {

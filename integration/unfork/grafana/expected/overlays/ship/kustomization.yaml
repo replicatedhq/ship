@@ -1,0 +1,7 @@
+kind: ""
+apiversion: ""
+bases:
+- ../../base
+patchesStrategicMerge:
+- deployment.yaml
+- secret.yaml

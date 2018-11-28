@@ -6,11 +6,10 @@ package daemon
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	daemontypes "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	reflect "reflect"
 )
 
 // MockDaemon is a mock of Daemon interface
@@ -228,4 +227,16 @@ func (m *MockDaemon) TerraformConfirmedChan() chan bool {
 // TerraformConfirmedChan indicates an expected call of TerraformConfirmedChan
 func (mr *MockDaemonMockRecorder) TerraformConfirmedChan() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerraformConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).TerraformConfirmedChan))
+}
+
+// UnforkSavedChan mocks base method
+func (m *MockDaemon) UnforkSavedChan() chan interface{} {
+	ret := m.ctrl.Call(m, "UnforkSavedChan")
+	ret0, _ := ret[0].(chan interface{})
+	return ret0
+}
+
+// UnforkSavedChan indicates an expected call of UnforkSavedChan
+func (mr *MockDaemonMockRecorder) UnforkSavedChan() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnforkSavedChan", reflect.TypeOf((*MockDaemon)(nil).UnforkSavedChan))
 }

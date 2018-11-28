@@ -34,6 +34,7 @@ type Patcher interface {
 	MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error)
 	ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error)
 	ModifyField(original []byte, path []string) ([]byte, error)
+	RunKustomize(kustomizationPath string) ([]byte, error)
 }
 
 type ShipPatcher struct {

@@ -59,11 +59,7 @@ type FileFetcher interface {
 	GetFiles(ctx context.Context, upstream, savePath string) (string, error)
 }
 
-func (r *inspector) DetermineApplicationType(
-	ctx context.Context,
-	upstream string,
-) (appType string, localPath string, err error) {
-
+func (r *inspector) DetermineApplicationType(ctx context.Context, upstream string) (appType string, localPath string, err error) {
 	// hack hack hack
 	isReplicatedApp := strings.HasPrefix(upstream, "replicated.app") ||
 		strings.HasPrefix(upstream, "staging.replicated.app") ||
@@ -97,30 +93,19 @@ func (r *inspector) DetermineApplicationType(
 	return "", "", errors.New(fmt.Sprintf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream))
 }
 
-func (r *inspector) determineTypeFromContents(
-	ctx context.Context,
-	upstream string,
-	fetcher FileFetcher,
-) (
+func (r *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (
 	applicationType string,
 	checkoutPath string,
 	err error,
 ) {
 	debug := level.Debug(r.logger)
 
-	savedTmpRepoExists, err := r.fs.DirExists(constants.RepoSavePath)
+	repoSavePath, err := r.fs.TempDir(constants.ShipPathInternalTmp, "repo")
 	if err != nil {
-		return "", "", errors.Wrap(err, "saved tmp repo exists")
+		return "", "", errors.Wrap(err, "create tmp dir")
 	}
 
-	if savedTmpRepoExists {
-		debug.Log("event", "remove.saveTmpRepo")
-		if err := r.fs.RemoveAll(constants.RepoSavePath); err != nil {
-			return "", "", errors.Wrap(err, "remove existing saved tmp repo")
-		}
-	}
-
-	finalPath, err := fetcher.GetFiles(ctx, upstream, constants.RepoSavePath)
+	finalPath, err := fetcher.GetFiles(ctx, upstream, repoSavePath)
 	if err != nil {
 		if _, ok := err.(errors2.FetchFilesError); ok {
 			r.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
@@ -133,7 +118,7 @@ func (r *inspector) determineTypeFromContents(
 				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
 				time.Sleep(time.Second * 5)
-				finalPath, retryError = fetcher.GetFiles(ctx, upstream, constants.RepoSavePath)
+				finalPath, retryError = fetcher.GetFiles(ctx, upstream, repoSavePath)
 
 				if retryError != nil {
 					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))

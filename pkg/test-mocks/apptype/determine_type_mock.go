@@ -6,9 +6,8 @@ package apptype
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockInspector is a mock of Inspector interface

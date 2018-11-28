@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+    chart: grafana-1.19.0
+    heritage: Tiller
+    release: grafana
+  name: grafana
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: grafana
+      containers:
+      - $setElementOrder/env:
+        - name: NEEDED_TO_FORK
+        - name: GF_SECURITY_ADMIN_USER
+        - name: GF_SECURITY_ADMIN_PASSWORD
+        env:
+        - name: NEEDED_TO_FORK
+          value: had to fork
+        name: grafana

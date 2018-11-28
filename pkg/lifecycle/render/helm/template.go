@@ -105,7 +105,14 @@ func (f *LocalTemplater) Template(
 
 	debug.Log("event", "mkdirall.attempt")
 	renderDest := path.Join(constants.ShipPathInternalTmp, "chartrendered")
-	err := f.FS.MkdirAll(renderDest, 0755)
+
+	err := f.FS.RemoveAll(renderDest)
+	if err != nil {
+		debug.Log("event", "removeall.fail", "err", err, "helmtempdir", renderDest)
+		return errors.Wrapf(err, "remove tmp directory in %s", constants.ShipPathInternalTmp)
+	}
+
+	err = f.FS.MkdirAll(renderDest, 0755)
 	if err != nil {
 		debug.Log("event", "mkdirall.fail", "err", err, "helmtempdir", renderDest)
 		return errors.Wrapf(err, "create tmp directory in %s", constants.ShipPathInternalTmp)
