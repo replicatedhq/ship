@@ -220,7 +220,6 @@ func (f *LocalTemplater) getChartRequirements(chartRoot string) (chartutil.Requi
 		return requirements, errors.Wrap(err, "read requirements yaml")
 	}
 
-	fmt.Println("ACTUAL", string(requirementsB))
 	if err := yaml.Unmarshal(requirementsB, &requirements); err != nil {
 		return requirements, errors.Wrap(err, "unmarshal requirements yaml")
 	}
