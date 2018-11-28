@@ -2,6 +2,7 @@ package github
 
 import (
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/replicatedhq/libyaml"
@@ -386,6 +387,52 @@ func Test_getDestPathNoProxy(t *testing.T) {
 
 			// convert the returned file to forwardslash format before testing - otherwise this test fails when the separator isn't '/'
 			req.Equal(tt.want, filepath.ToSlash(got))
+		})
+	}
+}
+
+func Test_filterGithubContents(t *testing.T) {
+	type args struct {
+		githubContents []api.GithubContent
+		asset          api.GitHubAsset
+	}
+	tests := []struct {
+		name string
+		args args
+		want []api.GithubFile
+	}{
+		{
+			name: "has slash prefix and suffix",
+			args: args{
+				githubContents: []api.GithubContent{{
+					Path:  "subdir",
+					Files: []api.GithubFile{{Name: "1"}},
+				}},
+				asset: api.GitHubAsset{
+					Path: "/subdir/",
+				},
+			},
+			want: []api.GithubFile{{Name: "1"}},
+		},
+		{
+			name: "is root",
+			args: args{
+				githubContents: []api.GithubContent{{
+					Path:  "/",
+					Files: []api.GithubFile{{Name: "1"}},
+				}},
+				asset: api.GitHubAsset{
+					Path: "/",
+				},
+			},
+			want: []api.GithubFile{{Name: "1"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := filterGithubContents(tt.args.githubContents, tt.args.asset); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("filterGithubContent() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

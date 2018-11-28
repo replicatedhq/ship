@@ -88,14 +88,7 @@ func (r *LocalRenderer) Execute(
 		}
 
 		debug.Log("event", "resolveProxyGithubAssets")
-		var files []api.GithubFile
-		for _, c := range meta.GithubContents {
-			if c.Repo == asset.Repo && strings.Trim(c.Path, "/") == strings.Trim(asset.Path, "/") && c.Ref == asset.Ref {
-				files = c.Files
-				break
-			}
-		}
-
+		files := filterGithubContents(meta.GithubContents, asset)
 		if len(files) == 0 {
 			level.Info(r.Logger).Log("msg", "no files for asset", "repo", asset.Repo, "path", asset.Path)
 
@@ -112,6 +105,17 @@ func (r *LocalRenderer) Execute(
 
 		return r.resolveProxyGithubAssets(asset, builder, rootFs, files)
 	}
+}
+
+func filterGithubContents(githubContents []api.GithubContent, asset api.GitHubAsset) []api.GithubFile {
+	var filtered []api.GithubFile
+	for _, c := range githubContents {
+		if c.Repo == asset.Repo && strings.Trim(c.Path, "/") == strings.Trim(asset.Path, "/") && c.Ref == asset.Ref {
+			filtered = c.Files
+			break
+		}
+	}
+	return filtered
 }
 
 func (r *LocalRenderer) resolveProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder, rootFs root.Fs, files []api.GithubFile) error {
