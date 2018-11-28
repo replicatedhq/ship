@@ -21,6 +21,7 @@ type Commands interface {
 	MaybeDependencyUpdate(chartRoot string) error
 	Template(chartName string, args []string) error
 	Fetch(chartRef, repoURL, version, dest, home string) error
+	RepoAdd(name, url, home string) error
 }
 
 type helmCommands struct {
@@ -115,4 +116,12 @@ func (h *helmCommands) dependencyUpdate(chartRoot string) error {
 		return err
 	}
 	return dependencyCommand.Execute()
+}
+
+func (h *helmCommands) RepoAdd(name, url, home string) error {
+	outstring, err := helm.RepoAdd(name, url, home)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("helm repo add failed, output %q", outstring))
+	}
+	return nil
 }

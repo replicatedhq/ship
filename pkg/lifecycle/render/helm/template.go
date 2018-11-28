@@ -128,6 +128,15 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "init helm client")
 	}
 
+	debug.Log("event", "helm.repo.add")
+	absTempHelmHome, err := filepath.Abs(constants.InternalTempHelmHome)
+	if err != nil {
+		return errors.Wrap(err, "make absolute helm temp home")
+	}
+	if err := f.Commands.RepoAdd("incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/", absTempHelmHome); err != nil {
+		return errors.Wrap(err, "add helm repo")
+	}
+
 	debug.Log("event", "helm.dependency.update")
 	if err := f.Commands.MaybeDependencyUpdate(chartRoot); err != nil {
 		return errors.Wrap(err, "update helm dependencies")
