@@ -151,6 +151,7 @@ func (f *LocalTemplater) Template(
 			if err := f.Commands.RepoAdd("incubator", HelmChartIncubatorURL, absTempHelmHome); err != nil {
 				return errors.Wrap(err, "add helm repo")
 			}
+			break
 		}
 	}
 
