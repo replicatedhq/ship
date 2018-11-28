@@ -13,12 +13,12 @@ import (
 
 // A Resolver resolves specs
 type Resolver struct {
-	Logger                    log.Logger
-	Client                    *replicatedapp.GraphQLClient
-	StateManager              state.Manager
-	FS                        afero.Afero
-	AppResolver               replicatedapp.Resolver
-	GitHubReleaseNotesFetcher githubclient.GitHubReleaseNotesFetcher
+	Logger        log.Logger
+	Client        *replicatedapp.GraphQLClient
+	StateManager  state.Manager
+	FS            afero.Afero
+	AppResolver   replicatedapp.Resolver
+	GitHubFetcher githubclient.GitHubFetcher
 
 	ui               cli.Ui
 	appTypeInspector apptype.Inspector
@@ -52,8 +52,8 @@ func NewResolver(
 		shaSummer: func(resolver *Resolver, s string) (string, error) {
 			return resolver.calculateContentSHA(s)
 		},
-		AppResolver:               appresolver,
-		GitHubReleaseNotesFetcher: github,
-		NoOutro:                   v.GetBool("no-outro"),
+		AppResolver:   appresolver,
+		GitHubFetcher: github,
+		NoOutro:       v.GetBool("no-outro"),
 	}
 }

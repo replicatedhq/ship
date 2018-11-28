@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -20,7 +21,20 @@ type ListK8sYaml struct {
 }
 
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
-	return l.maybeSplitListYaml(ctx, step.Kustomize.Base)
+	// Split multi doc yaml first as it will be unmarshalled incorrectly in the following steps
+	if err := l.maybeSplitMultidocYaml(ctx, step.Kustomize.Base); err != nil {
+		return errors.Wrap(err, "maybe split multi doc yaml")
+	}
+
+	if err := l.maybeSplitListYaml(ctx, step.Kustomize.Base); err != nil {
+		return errors.Wrap(err, "maybe split list yaml")
+	}
+
+	if err := l.initialKustomizeRun(ctx, *step.Kustomize); err != nil {
+		return errors.Wrap(err, "initial kustomize run")
+	}
+
+	return nil
 }
 
 func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error {
@@ -90,6 +104,90 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 				return errors.Wrapf(err, "serialize list metadata")
 			}
 		}
+	}
+
+	return nil
+}
+
+func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize) error {
+	if err := l.writeBase(step); err != nil {
+		return errors.Wrap(err, "write base kustomization")
+	}
+
+	built, err := l.kustomizeBuild(step.Base)
+	if err != nil {
+		return errors.Wrap(err, "build overlay")
+	}
+
+	if err := l.writePostKustomizeFiles(step, built); err != nil {
+		return errors.Wrap(err, "write initial kustomized yaml")
+	}
+
+	if err := l.replaceOriginal(step, built); err != nil {
+		return errors.Wrap(err, "replace original yaml")
+	}
+
+	return nil
+}
+
+func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFile) error {
+	builtMap := make(map[state.MinimalK8sYaml]postKustomizeFile)
+	for _, builtFile := range built {
+		builtMap[builtFile.minimal] = builtFile
+	}
+
+	if err := l.FS.Walk(step.Base, func(targetPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrap(err, "failed to walk base path")
+		}
+
+		if !l.shouldAddFileToBase([]string{}, targetPath) {
+			if strings.HasSuffix(targetPath, "kustomization.yaml") {
+				if err := l.FS.Remove(targetPath); err != nil {
+					return errors.Wrap(err, "remove kustomization yaml")
+				}
+			}
+
+			return nil
+		}
+
+		originalFileB, err := l.FS.ReadFile(targetPath)
+		if err != nil {
+			return errors.Wrap(err, "read original file")
+		}
+
+		originalMinimal := state.MinimalK8sYaml{}
+		if err := yaml.Unmarshal(originalFileB, &originalMinimal); err != nil {
+			return errors.Wrap(err, "unmarshal original")
+		}
+
+		if originalMinimal.Kind == "CustomResourceDefinition" {
+			// Skip CRDs
+			return nil
+		}
+
+		initKustomized, exists := builtMap[originalMinimal]
+		if !exists {
+			// Skip if the file does not have a kustomized equivalent
+			return nil
+		}
+
+		if err := l.FS.Remove(targetPath); err != nil {
+			return errors.Wrap(err, "remove original file")
+		}
+
+		initKustomizedB, err := yaml.Marshal(initKustomized.full)
+		if err != nil {
+			return errors.Wrap(err, "marshal init kustomized")
+		}
+
+		if err := l.FS.WriteFile(targetPath, initKustomizedB, info.Mode()); err != nil {
+			return errors.Wrap(err, "write init kustomized file")
+		}
+
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "replace original with init kustomized")
 	}
 
 	return nil

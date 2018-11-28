@@ -120,3 +120,7 @@ ignored = [
 [[constraint]]
   name = "github.com/cloudflare/cfssl"
   version = "1.0.0"
+
+[[constraint]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"

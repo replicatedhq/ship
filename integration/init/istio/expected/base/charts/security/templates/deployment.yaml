@@ -1,51 +1,53 @@
----
-# Source: istio/charts/security/templates/deployment.yaml
-# istio CA watching all namespaces
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: istio-citadel
-  namespace: default
   labels:
     app: security
     chart: security
     heritage: Tiller
-    release: istio
     istio: citadel
+    release: istio
+  name: istio-citadel
+  namespace: default
 spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+        sidecar.istio.io/inject: "false"
       labels:
         app: security
         chart: security
         heritage: Tiller
+        istio: citadel
         release: istio
         version: 1.1.0
-        istio: citadel
-      annotations:
-        sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
-      serviceAccountName: istio-citadel-service-account
-      containers:
-        - name: citadel
-          image: "gcr.io/istio-release/citadel:master-latest-daily"
-          imagePullPolicy: IfNotPresent
-          args:
-            - --append-dns-names=true
-            - --grpc-port=8060
-            - --grpc-hostname=citadel
-            - --citadel-storage-namespace=default
-            - --custom-dns-names=istio-pilot-service-account.default:istio-pilot.default
-            - --self-signed-ca=true
-            - --identity-domain=cluster.local
-          resources:
-            requests:
-              cpu: 10m
-            
-      affinity:      
+      affinity:
         nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+            weight: 2
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - ppc64le
+            weight: 2
+          - preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - s390x
+            weight: 2
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
@@ -55,25 +57,19 @@ spec:
                 - amd64
                 - ppc64le
                 - s390x
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
+      containers:
+      - args:
+        - --append-dns-names=true
+        - --grpc-port=8060
+        - --grpc-hostname=citadel
+        - --citadel-storage-namespace=default
+        - --custom-dns-names=istio-pilot-service-account.default:istio-pilot.default
+        - --self-signed-ca=true
+        - --identity-domain=cluster.local
+        image: gcr.io/istio-release/citadel:master-latest-daily
+        imagePullPolicy: IfNotPresent
+        name: citadel
+        resources:
+          requests:
+            cpu: 10m
+      serviceAccountName: istio-citadel-service-account

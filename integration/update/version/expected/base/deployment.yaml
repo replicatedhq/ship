@@ -1,0 +1,38 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: version
+    chart: version-0.0.2
+    heritage: Tiller
+    release: version
+  name: version
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: version
+      release: version
+  template:
+    metadata:
+      labels:
+        app: version
+        release: version
+    spec:
+      containers:
+      - image: nginx:stable
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: version
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {}

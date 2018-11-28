@@ -68,7 +68,12 @@ func (s *Ship) Init(ctx context.Context) error {
 		return errors.New("No upstream provided")
 	}
 
-	release, err := s.Resolver.ResolveRelease(ctx, target)
+	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, target, existingState)
+	if err != nil {
+		return errors.Wrap(err, "create versioned release")
+	}
+
+	release, err := s.Resolver.ResolveRelease(ctx, maybeVersionedUpstream)
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
 	}

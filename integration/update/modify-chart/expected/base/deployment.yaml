@@ -1,14 +1,12 @@
----
-# Source: modify-chart/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: modify-chart
   labels:
     app: modify-chart
     chart: modify-chart-0.1.0
-    release: modify-chart
     heritage: Tiller
+    release: modify-chart
+  name: modify-chart
 spec:
   replicas: 1
   selector:
@@ -22,21 +20,19 @@ spec:
         release: modify-chart
     spec:
       containers:
-        - name: modify-chart
-          image: "nginx:stable"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {}
-            
+      - image: nginx:stable
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: modify-chart
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {}

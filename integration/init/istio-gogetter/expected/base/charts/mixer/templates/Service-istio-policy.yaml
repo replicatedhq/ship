@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    istio: mixer
+    release: istio
+  name: istio-policy
+  namespace: default
+spec:
+  ports:
+  - name: grpc-mixer
+    port: 9091
+  - name: grpc-mixer-mtls
+    port: 15004
+  - name: http-monitoring
+    port: 9093
+  selector:
+    istio: mixer
+    istio-mixer-type: policy

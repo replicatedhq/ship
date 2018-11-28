@@ -89,7 +89,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 
 	if step.Dest != "" {
 		debug.Log("event", "kustomize.build", "dest", step.Dest)
-		built, err := l.kustomizeBuild(step)
+		built, err := l.kustomizeBuild(step.OverlayPath())
 		if err != nil {
 			return errors.Wrap(err, "build overlay")
 		}
@@ -118,10 +118,10 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	return nil
 }
 
-func (l *Kustomizer) kustomizeBuild(kustomize api.Kustomize) ([]postKustomizeFile, error) {
+func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]postKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "kustomizeBuild"))
 
-	builtYAML, err := l.Patcher.RunKustomize(kustomize.OverlayPath())
+	builtYAML, err := l.Patcher.RunKustomize(kustomizePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "run kustomize")
 	}

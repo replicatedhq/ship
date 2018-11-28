@@ -1,20 +1,18 @@
----
-# Source: factorio/templates/factorio-svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: factorio-factorio
   labels:
     app: factorio-factorio
-    chart: "factorio-0.3.1"
-    release: "factorio"
-    heritage: "Tiller"
+    chart: factorio-0.3.1
+    heritage: Tiller
+    release: factorio
+  name: factorio-factorio
 spec:
-  type: LoadBalancer
   ports:
   - name: factorio
     port: 34197
-    targetPort: factorio
     protocol: UDP
+    targetPort: factorio
   selector:
     app: factorio-factorio
+  type: LoadBalancer

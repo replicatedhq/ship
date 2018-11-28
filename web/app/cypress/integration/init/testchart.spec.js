@@ -55,9 +55,8 @@ describe("Ship Init test-charts/modify-chart", () => {
       });
 
       it("allows the stubbed overlay to be edited", () => {
-        const backspacesToRemoveToBeModified = buildRepeatKeyString("{backspace}", 14);
         cy.get(".ace_text-input").last().type(
-          `${backspacesToRemoveToBeModified}10`,
+          `10`,
           { force: true }
         )
       });
