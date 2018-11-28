@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	chartutil "k8s.io/helm/pkg/chartutil"
 )
 
 // MockCommands is a mock of Commands interface
@@ -58,15 +59,27 @@ func (mr *MockCommandsMockRecorder) Init() *gomock.Call {
 }
 
 // MaybeDependencyUpdate mocks base method
-func (m *MockCommands) MaybeDependencyUpdate(arg0 string) error {
-	ret := m.ctrl.Call(m, "MaybeDependencyUpdate", arg0)
+func (m *MockCommands) MaybeDependencyUpdate(arg0 string, arg1 chartutil.Requirements) error {
+	ret := m.ctrl.Call(m, "MaybeDependencyUpdate", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MaybeDependencyUpdate indicates an expected call of MaybeDependencyUpdate
-func (mr *MockCommandsMockRecorder) MaybeDependencyUpdate(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeDependencyUpdate", reflect.TypeOf((*MockCommands)(nil).MaybeDependencyUpdate), arg0)
+func (mr *MockCommandsMockRecorder) MaybeDependencyUpdate(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeDependencyUpdate", reflect.TypeOf((*MockCommands)(nil).MaybeDependencyUpdate), arg0, arg1)
+}
+
+// RepoAdd mocks base method
+func (m *MockCommands) RepoAdd(arg0, arg1, arg2 string) error {
+	ret := m.ctrl.Call(m, "RepoAdd", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RepoAdd indicates an expected call of RepoAdd
+func (mr *MockCommandsMockRecorder) RepoAdd(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RepoAdd", reflect.TypeOf((*MockCommands)(nil).RepoAdd), arg0, arg1, arg2)
 }
 
 // Template mocks base method

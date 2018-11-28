@@ -10,6 +10,9 @@ import (
 	"regexp"
 	"strings"
 
+	"k8s.io/helm/pkg/chartutil"
+
+	"github.com/emosbaugh/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -23,6 +26,10 @@ import (
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+)
+
+const (
+	HelmChartIncubatorURL = "https://kubernetes-charts-incubator.storage.googleapis.com/"
 )
 
 // Templater is something that can consume and render a helm chart pulled by ship.
@@ -128,17 +135,27 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "init helm client")
 	}
 
+	debug.Log("event", "helm.get.requirements")
+	requirements, err := f.getChartRequirements(chartRoot)
+	if err != nil {
+		return errors.Wrap(err, "get chart requirements")
+	}
+
 	debug.Log("event", "helm.repo.add")
 	absTempHelmHome, err := filepath.Abs(constants.InternalTempHelmHome)
 	if err != nil {
 		return errors.Wrap(err, "make absolute helm temp home")
 	}
-	if err := f.Commands.RepoAdd("incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/", absTempHelmHome); err != nil {
-		return errors.Wrap(err, "add helm repo")
+	for _, dependency := range requirements.Dependencies {
+		if dependency.Repository == HelmChartIncubatorURL {
+			if err := f.Commands.RepoAdd("incubator", HelmChartIncubatorURL, absTempHelmHome); err != nil {
+				return errors.Wrap(err, "add helm repo")
+			}
+		}
 	}
 
 	debug.Log("event", "helm.dependency.update")
-	if err := f.Commands.MaybeDependencyUpdate(chartRoot); err != nil {
+	if err := f.Commands.MaybeDependencyUpdate(chartRoot, requirements); err != nil {
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
@@ -183,6 +200,31 @@ func (f *LocalTemplater) Template(
 		return err
 	}
 	return f.cleanUpAndOutputRenderedFiles(rootFs, asset, tempRenderedChartDir)
+}
+
+func (f *LocalTemplater) getChartRequirements(chartRoot string) (chartutil.Requirements, error) {
+	requirements := chartutil.Requirements{}
+
+	requirementsExists, err := f.FS.Exists(filepath.Join(chartRoot, "requirements.yaml"))
+	if err != nil {
+		return requirements, errors.Wrap(err, "check requirements yaml existence")
+	}
+
+	if !requirementsExists {
+		return requirements, nil
+	}
+
+	requirementsB, err := f.FS.ReadFile(filepath.Join(chartRoot, "requirements.yaml"))
+	if err != nil {
+		return requirements, errors.Wrap(err, "read requirements yaml")
+	}
+
+	fmt.Println("ACTUAL", string(requirementsB))
+	if err := yaml.Unmarshal(requirementsB, &requirements); err != nil {
+		return requirements, errors.Wrap(err, "unmarshal requirements yaml")
+	}
+
+	return requirements, nil
 }
 
 // checks to see if the specified arg is present in the list. If it is not, adds it set to the specified value

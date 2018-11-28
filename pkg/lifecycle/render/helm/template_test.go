@@ -3,7 +3,10 @@ package helm
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
+
+	"k8s.io/helm/pkg/chartutil"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
@@ -20,6 +23,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestLocalTemplater(t *testing.T) {
@@ -36,6 +40,8 @@ func TestLocalTemplater(t *testing.T) {
 		expectHelmOpts      *matchers.Is
 		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
 		state               state2.VersionedState
+		requirements        *chartutil.Requirements
+		repoAdd             []string
 	}{
 		{
 			name:        "helm test proper args",
@@ -101,6 +107,25 @@ func TestLocalTemplater(t *testing.T) {
 			channelName:         "1-2-3---------frobnitz",
 			expectedChannelName: "1-2-3---------frobnitz",
 		},
+		{
+			name:        "helm values from asset value with incubator requirement",
+			describe:    "calls helm repo add",
+			expectError: "",
+			helmValues: map[string]interface{}{
+				"service.clusterIP": "10.3.9.2",
+			},
+			expectedHelmValues: []string{
+				"--set", "service.clusterIP=10.3.9.2",
+			},
+			requirements: &chartutil.Requirements{
+				Dependencies: []*chartutil.Dependency{
+					{
+						Repository: "https://kubernetes-charts-incubator.storage.googleapis.com/",
+					},
+				},
+			},
+			repoAdd: []string{"incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/"},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -148,6 +173,13 @@ func TestLocalTemplater(t *testing.T) {
 				test.expectedHelmValues...,
 			)
 
+			if test.requirements != nil {
+				requirementsB, err := yaml.Marshal(test.requirements)
+				req.NoError(err)
+				err = mockFs.WriteFile(path.Join(chartRoot, "requirements.yaml"), requirementsB, 0755)
+				req.NoError(err)
+			}
+
 			templateArgs := append(
 				[]string{
 					"--output-dir", ".ship/tmp/chartrendered",
@@ -159,7 +191,22 @@ func TestLocalTemplater(t *testing.T) {
 			templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
 
 			mockCommands.EXPECT().Init().Return(nil)
-			mockCommands.EXPECT().MaybeDependencyUpdate(chartRoot).Return(nil)
+			if test.requirements != nil {
+				absTempHelmHome, err := filepath.Abs(constants.InternalTempHelmHome)
+				req.NoError(err)
+				mockCommands.EXPECT().RepoAdd(test.repoAdd[0], test.repoAdd[1], absTempHelmHome)
+
+				requirementsB, err := mockFs.ReadFile(filepath.Join(chartRoot, "requirements.yaml"))
+				req.NoError(err)
+				chartRequirements := chartutil.Requirements{}
+				err = yaml.Unmarshal(requirementsB, &chartRequirements)
+				req.NoError(err)
+
+				mockCommands.EXPECT().MaybeDependencyUpdate(chartRoot, chartRequirements).Return(nil)
+			} else {
+				mockCommands.EXPECT().MaybeDependencyUpdate(chartRoot, chartutil.Requirements{}).Return(nil)
+			}
+
 			if test.ontemplate != nil {
 				mockCommands.EXPECT().Template(chartRoot, templateArgs).DoAndReturn(test.ontemplate(req, mockFs))
 			} else {
