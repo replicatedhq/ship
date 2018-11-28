@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    chart: jaeger-0.7.0
+    component: agent
+    heritage: Tiller
+    jaeger-infra: agent-service
+    release: jaeger
+  name: jaeger-agent
+spec:
+  ports:
+  - name: agent-zipkin-thrift
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: agent-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: agent-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: agent-sampling
+    port: 5778
+    protocol: TCP
+    targetPort: 5778
+  selector:
+    app: jaeger
+    component: agent
+    jaeger-infra: agent-instance
+    release: jaeger
+  type: ClusterIP
