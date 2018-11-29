@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/util"
 )
 
 // now that we have Versioned(), we probably don't need nearly so broad an interface here
@@ -19,6 +20,8 @@ type State interface {
 	Upstream() string
 	Versioned() VersionedState
 	IsEmpty() bool
+	CurrentCAs() map[string]util.CAType
+	CurrentCerts() map[string]util.CertType
 }
 
 var _ State = VersionedState{}
@@ -33,6 +36,8 @@ func (Empty) CurrentConfig() map[string]interface{}         { return make(map[st
 func (Empty) CurrentHelmValues() string                     { return "" }
 func (Empty) CurrentHelmValuesDefaults() string             { return "" }
 func (Empty) CurrentReleaseName() string                    { return "" }
+func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
+func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
 func (Empty) Upstream() string                              { return "" }
 func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
 func (Empty) IsEmpty() bool                                 { return true }
@@ -45,6 +50,8 @@ func (v V0) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
 func (v V0) CurrentHelmValues() string                     { return "" }
 func (v V0) CurrentHelmValuesDefaults() string             { return "" }
 func (v V0) CurrentReleaseName() string                    { return "" }
+func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
+func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
 func (v V0) Upstream() string                              { return "" }
 func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
 func (v V0) IsEmpty() bool                                 { return false }
@@ -66,39 +73,28 @@ type V1 struct {
 	Kustomize          *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
 	Metadata           *Metadata              `json:"metadata" yaml:"metadata" hcl:"metadata"`
+
 	//deprecated in favor of upstream
-	ChartURL     string    `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+	ChartURL string `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
+
 	ChartRepoURL string    `json:"ChartRepoURL,omitempty" yaml:"ChartRepoURL,omitempty" hcl:"ChartRepoURL,omitempty"`
 	ChartVersion string    `json:"ChartVersion,omitempty" yaml:"ChartVersion,omitempty" hcl:"ChartVersion,omitempty"`
 	ContentSHA   string    `json:"contentSHA,omitempty" yaml:"contentSHA,omitempty" hcl:"contentSHA,omitempty"`
 	Lifecycle    *Lifeycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+
+	CAs   map[string]util.CAType   `json:"cas,omitempty" yaml:"cas,omitempty" hcl:"cas,omitempty"`
+	Certs map[string]util.CertType `json:"certs,omitempty" yaml:"certs,omitempty" hcl:"certs,omitempty"`
 }
 
 type Metadata struct {
-	ApplicationType string `json:"applicationType" yaml:"applicationType" hcl:"applicationType"`
-	Icon            string `json:"icon,omitempty" yaml:"icon,omitempty" hcl:"icon,omitempty"`
-	Name            string `json:"name,omitempty" yaml:"name,omitempty" hcl:"name,omitempty"`
-	ReleaseNotes    string `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes"`
-	Version         string `json:"version" yaml:"version" hcl:"version"`
-	CustomerID      string `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
-	InstallationID  string `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
-	Lists           []List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
-}
-
-type List struct {
-	APIVersion string           `json:"apiVersion" yaml:"apiVersion"`
-	Path       string           `json:"path" yaml:"path"`
-	Items      []MinimalK8sYaml `json:"items" yaml:"items"`
-}
-
-type MinimalK8sYaml struct {
-	Kind     string             `json:"kind" yaml:"kind" hcl:"kind"`
-	Metadata MinimalK8sMetadata `json:"metadata" yaml:"metadata" hcl:"metadata"`
-}
-
-type MinimalK8sMetadata struct {
-	Name      string `json:"name" yaml:"name" hcl:"name"`
-	Namespace string `json:"namespace" yaml:"namespace" hcl:"namespace"`
+	ApplicationType string      `json:"applicationType" yaml:"applicationType" hcl:"applicationType"`
+	Icon            string      `json:"icon,omitempty" yaml:"icon,omitempty" hcl:"icon,omitempty"`
+	Name            string      `json:"name,omitempty" yaml:"name,omitempty" hcl:"name,omitempty"`
+	ReleaseNotes    string      `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes"`
+	Version         string      `json:"version" yaml:"version" hcl:"version"`
+	CustomerID      string      `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
+	InstallationID  string      `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
+	Lists           []util.List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}
@@ -254,4 +250,18 @@ func (v VersionedState) migrateDeprecatedFields() VersionedState {
 		v.V1.ChartURL = ""
 	}
 	return v
+}
+
+func (v VersionedState) CurrentCAs() map[string]util.CAType {
+	if v.V1 != nil {
+		return v.V1.CAs
+	}
+	return nil
+}
+
+func (v VersionedState) CurrentCerts() map[string]util.CertType {
+	if v.V1 != nil {
+		return v.V1.Certs
+	}
+	return nil
 }

@@ -3,15 +3,10 @@ package cli
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-)
-
-const (
-	developerFlagUsage = "Useful for debugging your specs on the command line, without having to make round trips to the server"
 )
 
 func App() *cobra.Command {
@@ -19,6 +14,10 @@ func App() *cobra.Command {
 		Use:   "app",
 		Short: "Download and configure a licensed third party application",
 		Long:  `Download and configure a third party application using a supplied customer id.`,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.Flags())
+			viper.BindPFlags(cmd.PersistentFlags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			viper.Set("is-app", true)
 			s, err := ship.Get(viper.GetViper())
@@ -35,7 +34,6 @@ func App() *cobra.Command {
 
 	// optional
 	cmd.Flags().String("channel-id", "", "ship channel to install from")
-	cmd.Flags().StringP("customer-endpoint", "e", "https://pg.replicated.com/graphql", "Upstream application spec server address")
 	cmd.Flags().String("release-id", "", "specific Release ID to pin installation to.")
 	cmd.Flags().String("release-semver", "", "specific release version to pin installation to. Requires channel-id")
 	cmd.Flags().Bool("terraform-yes", false, "Automatically answer \"yes\" to all terraform prompts")
@@ -55,8 +53,5 @@ func App() *cobra.Command {
 	cmd.Flags().String("studio-channel-icon", "", developerFlagUsage)
 	cmd.Flags().MarkDeprecated("studio-channel-icon", "please upgrade to the --set-channel-icon flag")
 
-	viper.BindPFlags(cmd.Flags())
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd
 }

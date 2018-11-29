@@ -22,6 +22,7 @@
         "config": true,
         "render": true
       }
-    }
+    },
+    "upstream": "__upstream__"
   }
 }

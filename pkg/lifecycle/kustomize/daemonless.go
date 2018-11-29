@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -136,7 +137,7 @@ func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]postKustomizeFile, 
 		}
 
 		debug.Log("event", "unmarshal part of rendered to minimal")
-		minimal := state.MinimalK8sYaml{}
+		minimal := util.MinimalK8sYaml{}
 		if err := yaml.Unmarshal([]byte(file), &minimal); err != nil {
 			return postKustomizeFiles, errors.Wrap(err, "unmarshal part of rendered to minimal")
 		}

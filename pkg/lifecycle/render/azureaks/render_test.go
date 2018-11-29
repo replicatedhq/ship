@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
@@ -65,7 +66,7 @@ func TestRenderer(t *testing.T) {
 			mockInline := inline.NewMockRenderer(mc)
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			renderer := &LocalRenderer{
 				Logger:         testLogger,
 				BuilderBuilder: bb,
@@ -111,7 +112,7 @@ func TestRenderer(t *testing.T) {
 
 			// test that the template function returns the correct kubeconfig path
 			builder := templates.
-				NewBuilderBuilder(log.NewNopLogger(), viper.New()).
+				NewBuilderBuilder(log.NewNopLogger(), viper.New(), &state.MockManager{}).
 				NewBuilder(
 					&templates.ShipContext{},
 				)

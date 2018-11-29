@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -26,7 +27,7 @@ func Test_maybeSplitListYaml(t *testing.T) {
 		wantErr     bool
 		inputFiles  []fileStruct
 		outputFiles []fileStruct
-		expectState []state.List
+		expectState []util.List
 	}{
 		{
 			name:      "single list with two items",
@@ -100,20 +101,20 @@ spec:
 `,
 				},
 			},
-			expectState: []state.List{
-				state.List{
+			expectState: []util.List{
+				util.List{
 					APIVersion: "v1",
 					Path:       "/test/main.yml",
-					Items: []state.MinimalK8sYaml{
-						state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
+						util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "jaeger-collector",
 							},
 						},
-						state.MinimalK8sYaml{
+						util.MinimalK8sYaml{
 							Kind: "Service",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "jaeger-collector",
 							},
 						},
@@ -159,7 +160,7 @@ metadata:
 `,
 				},
 			},
-			expectState: []state.List{},
+			expectState: []util.List{},
 		},
 		{
 			name:      "multiple lists",
@@ -308,20 +309,20 @@ spec:
 `,
 				},
 			},
-			expectState: []state.List{
+			expectState: []util.List{
 				{
 					APIVersion: "v1",
 					Path:       "/test/main.yml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "jaeger-collector",
 							},
 						},
 						{
 							Kind: "Service",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "jaeger-collector",
 							},
 						},
@@ -330,10 +331,10 @@ spec:
 				{
 					APIVersion: "v1",
 					Path:       "/test/sub.yml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "jaeger-query",
 							},
 						},
@@ -390,7 +391,7 @@ spec:
 			currentState, err := l.State.TryLoad()
 			req.NoError(err)
 
-			actualLists := make([]state.List, 0)
+			actualLists := make([]util.List, 0)
 			if currentState.Versioned().V1.Metadata != nil {
 				actualLists = currentState.Versioned().V1.Metadata.Lists
 			}
@@ -456,9 +457,9 @@ func TestKustomizer_replaceOriginal(t *testing.T) {
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
@@ -503,9 +504,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "CustomResourceDefinition",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
@@ -550,9 +551,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "banana",
 						},
 					},
@@ -597,9 +598,9 @@ spec:
 			},
 			built: []postKustomizeFile{
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "dragonfruit",
 						},
 					},
@@ -614,9 +615,9 @@ spec:
 					},
 				},
 				{
-					minimal: state.MinimalK8sYaml{
+					minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
-						Metadata: state.MinimalK8sMetadata{
+						Metadata: util.MinimalK8sMetadata{
 							Name: "pomegranate",
 						},
 					},

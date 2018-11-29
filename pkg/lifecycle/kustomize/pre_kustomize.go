@@ -10,7 +10,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -70,9 +69,9 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 		}
 
 		if k8sYaml.Kind == "List" {
-			listItems := make([]state.MinimalK8sYaml, 0)
+			listItems := make([]util.MinimalK8sYaml, 0)
 			for idx, item := range k8sYaml.Items {
-				itemK8sYaml := state.MinimalK8sYaml{}
+				itemK8sYaml := util.MinimalK8sYaml{}
 				itemB, err := yaml.Marshal(item)
 				if err != nil {
 					return errors.Wrapf(err, "marshal item %d from %s", idx, filePath)
@@ -94,7 +93,7 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 				return errors.Wrapf(err, "remove k8s list %s", filePath)
 			}
 
-			list := state.List{
+			list := util.List{
 				APIVersion: k8sYaml.APIVersion,
 				Path:       filePath,
 				Items:      listItems,
@@ -132,7 +131,7 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 }
 
 func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFile) error {
-	builtMap := make(map[state.MinimalK8sYaml]postKustomizeFile)
+	builtMap := make(map[util.MinimalK8sYaml]postKustomizeFile)
 	for _, builtFile := range built {
 		builtMap[builtFile.minimal] = builtFile
 	}
@@ -157,7 +156,7 @@ func (l *Kustomizer) replaceOriginal(step api.Kustomize, built []postKustomizeFi
 			return errors.Wrap(err, "read original file")
 		}
 
-		originalMinimal := state.MinimalK8sYaml{}
+		originalMinimal := util.MinimalK8sYaml{}
 		if err := yaml.Unmarshal(originalFileB, &originalMinimal); err != nil {
 			return errors.Wrap(err, "unmarshal original")
 		}

@@ -196,6 +196,45 @@ icon: https://kfbr.392/x5.png
 				},
 			},
 		},
+		{
+			name:     "runbook",
+			upstream: "/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789",
+			expect: func(
+				t *testing.T,
+				mockUi *ui.MockUi,
+				appType *apptype.MockInspector,
+				mockState *state.MockManager,
+				mockFs afero.Afero,
+				mockAppResolver *replicatedapp.MockResolver,
+				mockGitHubFetcher *githubclient.MockGitHubFetcher,
+			) {
+				inOrder := mockUi.EXPECT().Info("Reading /path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789 ...")
+				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
+				inOrder = appType.EXPECT().
+					DetermineApplicationType(ctx, "/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789").
+					DoAndReturn(func(context.Context, string) (string, string, error) {
+						return "runbook.replicated.app", "/path/to/ship.yaml", nil
+					}).After(inOrder)
+
+				inOrder = mockUi.EXPECT().Info("Detected application type runbook.replicated.app").After(inOrder)
+				inOrder = mockState.EXPECT().SerializeUpstream("/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789").After(inOrder)
+				inOrder = mockAppResolver.EXPECT().SetRunbook("/path/to/ship.yaml").After(inOrder)
+				mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
+					CustomerID:     "123",
+					InstallationID: "456",
+					ReleaseSemver:  "789",
+				}).Return(&api.Release{
+					Metadata: api.ReleaseMetadata{
+						ChannelName: "appgraph-coolci",
+					},
+				}, nil).After(inOrder)
+			},
+			expectRelease: &api.Release{
+				Metadata: api.ReleaseMetadata{
+					ChannelName: "appgraph-coolci",
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

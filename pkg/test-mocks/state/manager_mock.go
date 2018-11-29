@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	state "github.com/replicatedhq/ship/pkg/state"
+	util "github.com/replicatedhq/ship/pkg/util"
 )
 
 // MockManager is a mock of Manager interface
@@ -33,6 +34,30 @@ func NewMockManager(ctrl *gomock.Controller) *MockManager {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
+}
+
+// AddCA mocks base method
+func (m *MockManager) AddCA(arg0 string, arg1 util.CAType) error {
+	ret := m.ctrl.Call(m, "AddCA", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCA indicates an expected call of AddCA
+func (mr *MockManagerMockRecorder) AddCA(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCA", reflect.TypeOf((*MockManager)(nil).AddCA), arg0, arg1)
+}
+
+// AddCert mocks base method
+func (m *MockManager) AddCert(arg0 string, arg1 util.CertType) error {
+	ret := m.ctrl.Call(m, "AddCert", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCert indicates an expected call of AddCert
+func (mr *MockManagerMockRecorder) AddCert(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCert", reflect.TypeOf((*MockManager)(nil).AddCert), arg0, arg1)
 }
 
 // RemoveStateFile mocks base method
@@ -132,7 +157,7 @@ func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *
 }
 
 // SerializeListsMetadata mocks base method
-func (m *MockManager) SerializeListsMetadata(arg0 state.List) error {
+func (m *MockManager) SerializeListsMetadata(arg0 util.List) error {
 	ret := m.ctrl.Call(m, "SerializeListsMetadata", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0

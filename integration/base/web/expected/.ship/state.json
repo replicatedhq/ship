@@ -12,6 +12,7 @@
       "releaseNotes": "",
       "version": "0.0.7"
     },
-    "releaseName": "integration-test-web"
+    "releaseName": "integration-test-web",
+    "upstream": "__upstream__"
   }
 }

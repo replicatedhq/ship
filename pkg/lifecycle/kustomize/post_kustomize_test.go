@@ -3,8 +3,8 @@ package kustomize
 import (
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -29,26 +29,26 @@ func (k kustomizeTestFile) toPostKustomizeFile() (postKustomizeFile, error) {
 func TestRebuildListyaml(t *testing.T) {
 	tests := []struct {
 		name            string
-		lists           []state.List
+		lists           []util.List
 		kustomizedFiles []kustomizeTestFile
 		expectFiles     []kustomizeTestFile
 	}{
 		{
 			name: "single list",
-			lists: []state.List{
+			lists: []util.List{
 				{
 					APIVersion: "v1",
 					Path:       "test/animal.yaml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -58,9 +58,9 @@ func TestRebuildListyaml(t *testing.T) {
 			kustomizedFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
@@ -71,9 +71,9 @@ hi: hello
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -86,7 +86,7 @@ bye: goodbye
 			expectFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "List",
 						},
 					},
@@ -101,13 +101,13 @@ items:
 		},
 		{
 			name:  "no list",
-			lists: []state.List{},
+			lists: []util.List{},
 			kustomizedFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
@@ -116,9 +116,9 @@ items:
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -129,9 +129,9 @@ items:
 			expectFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
@@ -141,9 +141,9 @@ items:
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -155,20 +155,20 @@ items:
 		},
 		{
 			name: "single list with other yaml",
-			lists: []state.List{
+			lists: []util.List{
 				{
 					APIVersion: "v1",
 					Path:       "test/animal.yaml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -178,9 +178,9 @@ items:
 			kustomizedFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
@@ -191,9 +191,9 @@ hi: hello
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -204,9 +204,9 @@ bye: goodbye
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "monkey",
 							},
 						},
@@ -219,7 +219,7 @@ icecream: great
 			expectFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "List",
 						},
 					},
@@ -232,9 +232,9 @@ items:
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "monkey",
 							},
 						},
@@ -246,20 +246,20 @@ items:
 		},
 		{
 			name: "multiple lists with other yaml",
-			lists: []state.List{
+			lists: []util.List{
 				{
 					APIVersion: "v1",
 					Path:       "test/animal.yaml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -268,16 +268,16 @@ items:
 				{
 					APIVersion: "v1",
 					Path:       "test/icecream.yaml",
-					Items: []state.MinimalK8sYaml{
+					Items: []util.MinimalK8sYaml{
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "chocolate",
 							},
 						},
 						{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "strawberry",
 							},
 						},
@@ -287,9 +287,9 @@ items:
 			kustomizedFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "cat",
 							},
 						},
@@ -300,9 +300,9 @@ hi: hello
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "dog",
 							},
 						},
@@ -313,9 +313,9 @@ bye: goodbye
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "strawberry",
 							},
 						},
@@ -326,9 +326,9 @@ icecream: great
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "chocolate",
 							},
 						},
@@ -339,9 +339,9 @@ cookies: wow
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "ghost",
 							},
 						},
@@ -354,7 +354,7 @@ mint: chocolate
 			expectFiles: []kustomizeTestFile{
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "List",
 						},
 					},
@@ -367,7 +367,7 @@ items:
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "List",
 						},
 					},
@@ -380,9 +380,9 @@ items:
 				},
 				{
 					kustomizedFile: postKustomizeFile{
-						minimal: state.MinimalK8sYaml{
+						minimal: util.MinimalK8sYaml{
 							Kind: "Deployment",
-							Metadata: state.MinimalK8sMetadata{
+							Metadata: util.MinimalK8sMetadata{
 								Name: "ghost",
 							},
 						},
@@ -413,9 +413,9 @@ items:
 			req.NoError(err)
 
 			actualContents := make([]string, 0)
-			actualMinimal := make([]state.MinimalK8sYaml, 0)
+			actualMinimal := make([]util.MinimalK8sYaml, 0)
 			expectedContents := make([]string, 0)
-			expectedMinimal := make([]state.MinimalK8sYaml, 0)
+			expectedMinimal := make([]util.MinimalK8sYaml, 0)
 			for idx, rebuiltFile := range rebuilt {
 				rebuiltFileB, err := yaml.Marshal(rebuiltFile.full)
 				req.NoError(err)

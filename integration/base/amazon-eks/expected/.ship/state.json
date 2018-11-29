@@ -9,6 +9,7 @@
       "releaseNotes": "",
       "version": "0.0.1-b"
     },
-    "releaseName": "integration-test-aws-eks"
+    "releaseName": "integration-test-aws-eks",
+    "upstream": "__upstream__"
   }
 }
