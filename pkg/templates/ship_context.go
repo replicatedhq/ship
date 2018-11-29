@@ -13,9 +13,6 @@ var amazonEKSPaths map[string]string
 var googleGKEPaths map[string]string
 var azureAKSPaths map[string]string
 
-var certs map[string]util.CertType
-var certAuthorities map[string]util.CAType
-
 // ShipContext is the context for builder functions that depend on what assets have been created.
 type ShipContext struct {
 	Logger  log.Logger

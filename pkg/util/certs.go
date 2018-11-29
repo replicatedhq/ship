@@ -49,7 +49,7 @@ func makeKeyRequest(certKind string) (csr.BasicKeyRequest, error) {
 		default:
 		}
 	}
-	return csr.BasicKeyRequest{}, errors.New(fmt.Sprintf("unable to parse kind %s", certKind))
+	return csr.BasicKeyRequest{}, fmt.Errorf("unable to parse kind %s", certKind)
 
 }
 
