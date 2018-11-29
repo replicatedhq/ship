@@ -11,11 +11,10 @@ import (
 
 func App() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:        "app",
-		Short:      "Download and configure a licensed third party application",
-		Long:       `Download and configure a third party application using a supplied customer id.`,
-		Hidden:     true,
-		Deprecated: "use \"ship init /path/to/ship.yaml\" instead.",
+		Use:    "app",
+		Short:  "Download and configure a licensed third party application",
+		Long:   `Download and configure a third party application using a supplied customer id.`,
+		Hidden: true,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			viper.BindPFlags(cmd.Flags())
 			viper.BindPFlags(cmd.PersistentFlags())
