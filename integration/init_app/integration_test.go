@@ -62,7 +62,6 @@ var _ = Describe("ship init replicated.app/...", func() {
 		if file.IsDir() {
 			When(fmt.Sprintf("the spec in %q is run", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
-				testInputPath := path.Join(testPath, "input")
 				var testOutputPath string
 				var testMetadata TestMetadata
 
@@ -111,7 +110,6 @@ var _ = Describe("ship init replicated.app/...", func() {
 						"init",
 						upstream,
 						"--headless",
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
 						"--log-level=off",
 					}))
 					err := cmd.Execute()

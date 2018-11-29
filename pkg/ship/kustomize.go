@@ -62,6 +62,10 @@ func (s *Ship) Init(ctx context.Context) error {
 		}
 	}
 
+	if err := s.maybeWriteStateFromFile(); err != nil {
+		return err
+	}
+
 	// we already check in the CMD, but no harm in being extra safe here
 	target := s.Viper.GetString("upstream")
 	if target == "" {

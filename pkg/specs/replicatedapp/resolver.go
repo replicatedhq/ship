@@ -73,6 +73,9 @@ type Resolver interface {
 		selector Selector,
 		release *api.Release,
 	) error
+	SetRunbook(
+		runbook string,
+	)
 }
 
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
@@ -108,7 +111,7 @@ func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*ShipR
 
 	debug := level.Debug(log.With(r.Logger, "method", "FetchRelease"))
 	if r.Runbook != "" {
-		release, err = r.resolveRunbookRelease()
+		release, err = r.resolveRunbookRelease(selector)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve runbook from %s", r.Runbook)
 		}
@@ -198,6 +201,11 @@ func (r *resolver) RegisterInstall(ctx context.Context, selector Selector, relea
 
 	return nil
 }
+
+func (r *resolver) SetRunbook(runbook string) {
+	r.Runbook = runbook
+}
+
 func (r *resolver) loadFakeEntitlements() (*api.Entitlements, error) {
 	var entitlements api.Entitlements
 	err := json.Unmarshal([]byte(r.SetEntitlementsJSON), &entitlements)

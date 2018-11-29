@@ -52,6 +52,8 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().IntP("api-port", "p", 8800, "port to start the API server on.")
 	cmd.PersistentFlags().Bool("no-open", false, "skip opening the ship console in the default browser--does not disable the UI, has no effect if `headless` is set to true.")
 
+	cmd.PersistentFlags().StringP("customer-endpoint", "e", "https://pg.replicated.com/graphql", "Upstream application spec server address")
+
 	cmd.PersistentFlags().BoolP("headless", "", false, "run ship in headless mode")
 	// TODO remove me, just always set this to true
 	cmd.PersistentFlags().BoolP("navcycle", "", true, "set to false to run ship in v1/non-navigable mode (deprecated)")
@@ -77,6 +79,7 @@ func RootCmd() *cobra.Command {
 	cmd.AddCommand(Update())
 	cmd.AddCommand(App())
 	cmd.AddCommand(Version())
+
 	viper.BindPFlags(cmd.Flags())
 	viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()

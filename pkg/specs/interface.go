@@ -75,6 +75,9 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			false,
 		)
 
+	case "runbook.replicated.app":
+		r.AppResolver.SetRunbook(localPath)
+		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
 		if err != nil {
@@ -82,6 +85,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
 		return r.AppResolver.ResolveAppRelease(ctx, selector)
+
 	case "inline.replicated.app":
 		return r.resolveInlineShipYAMLRelease(
 			ctx,
@@ -127,13 +131,15 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		}
 		return metadata.ContentSHA, nil
 
+	case "runbook.replicated.app":
+		r.AppResolver.SetRunbook(localPath)
+		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
 		if err != nil {
 			return "", errors.Wrapf(err, "parse url %s", upstream)
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
-
 		release, err := r.AppResolver.FetchRelease(ctx, selector)
 		if err != nil {
 			return "", errors.Wrap(err, "fetch release")
@@ -254,32 +260,26 @@ func (r *Resolver) resolveInlineShipYAMLRelease(
 	applicationType string,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveInlineShipYAMLRelease")
-
 	metadata, err := r.resolveMetadata(context.Background(), upstream, localPath, applicationType)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", localPath)
 	}
-
 	debug.Log("event", "check upstream for ship.yaml")
 	spec, err := r.maybeGetShipYAML(ctx, localPath)
 	if err != nil || spec == nil {
 		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", localPath)
 	}
-
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,
 		},
 		Spec: *spec,
 	}
-
 	releaseName := release.Metadata.ReleaseName()
 	debug.Log("event", "resolve.releaseName")
-
 	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
 		debug.Log("event", "serialize.releaseName.fail", "err", err)
 		return nil, errors.Wrapf(err, "serialize helm release name")
 	}
-
 	return release, nil
 }

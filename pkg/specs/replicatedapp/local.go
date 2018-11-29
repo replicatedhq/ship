@@ -16,7 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 )
 
-func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
+func (r *resolver) resolveRunbookRelease(selector *Selector) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
 	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
@@ -41,11 +41,18 @@ func (r *resolver) resolveRunbookRelease() (*ShipRelease, error) {
 		return nil, errors.Wrapf(err, "load fake entitlements")
 	}
 
+	var semver string
+	if r.RunbookReleaseSemver != "" {
+		semver = r.RunbookReleaseSemver
+	} else {
+		semver = selector.ReleaseSemver
+	}
+
 	return &ShipRelease{
 		Spec:           string(specYAML),
 		ChannelName:    r.SetChannelName,
 		ChannelIcon:    r.SetChannelIcon,
-		Semver:         r.RunbookReleaseSemver,
+		Semver:         semver,
 		GithubContents: fakeGithubContents,
 		Entitlements:   *fakeEntitlements,
 	}, nil
@@ -95,7 +102,7 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 		}
 
 		walkRepoPath := strings.TrimPrefix(path, localpath)
-		if !strings.HasPrefix(walkRepoPath, repoPath) {
+		if !strings.HasPrefix(strings.Trim(walkRepoPath, "/"), strings.Trim(repoPath, "/")) {
 			return nil
 		}
 
@@ -107,8 +114,8 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 
 		encodedData := &bytes.Buffer{}
 		encoder := base64.NewEncoder(base64.StdEncoding, encodedData)
-		defer encoder.Close()
 		encoder.Write(contents)
+		encoder.Close()
 		sha := fmt.Sprintf("%x", sha256.Sum256(contents))
 		files = append(files, GithubFile{
 			Name: info.Name(),

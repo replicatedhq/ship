@@ -3,6 +3,7 @@ package apptype
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -69,6 +70,11 @@ func (r *inspector) DetermineApplicationType(
 		strings.HasPrefix(upstream, "local.replicated.app")
 	if isReplicatedApp {
 		return "replicated.app", "", nil
+	}
+
+	parts := strings.SplitN(upstream, "?", 2)
+	if _, err := os.Stat(parts[0]); err == nil && gogetter.IsShipYaml(parts[0]) {
+		return "runbook.replicated.app", parts[0], nil
 	}
 
 	r.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))

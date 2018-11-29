@@ -10,6 +10,7 @@
       "releaseNotes": "",
       "version": ""
     },
-    "releaseName": "ship"
+    "releaseName": "ship",
+    "upstream": "__upstream__"
   }
 }
