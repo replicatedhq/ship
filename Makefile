@@ -290,21 +290,30 @@ run: build
 build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
-pkg/lifecycle/daemon/ui.bindatafs.go: .state/build-deps
+pkg/lifecycle/daemon/ui.bindatafs.go: .state/mark-ui-gitignored .state/build-deps web/app/.state/built-ui
 	go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix web/app \
 	  web/app/build/...
 
-mark-ui-gitignored:
-	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
+mark-ui-gitignored: .state/mark-ui-gitignored
 
+.state/mark-ui-gitignored:
+	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
+	@mkdir -p .state/
+	@touch .state/mark-ui-gitignored
 
 embed-ui: mark-ui-gitignored build-ui pkg/lifecycle/daemon/ui.bindatafs.go
 
 embed-ui-dev: mark-ui-gitignored build-ui-dev pkg/lifecycle/daemon/ui.bindatafs.go
 
 ci-embed-ui: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go
+
+# this file will be updated by build-ui and build-ui-dev, causing ui.bindata.fs to be regenerated
+web/app/.state/built-ui:
+	@mkdir -p web/app/.state/
+	@touch web/app/.state/built-ui
+
 build-ui:
 	$(MAKE) -C web/app build_ship
 
