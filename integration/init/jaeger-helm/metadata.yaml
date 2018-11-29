@@ -1,0 +1,3 @@
+upstream: "https://github.com/helm/charts/tree/f839d88d087511eb163b12a394c05a63f10d5ee4/incubator/jaeger"
+args: ["--prefer-git"]
+skip_cleanup: false
