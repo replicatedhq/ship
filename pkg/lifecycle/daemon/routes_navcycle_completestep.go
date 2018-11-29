@@ -36,12 +36,6 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		debug.Log("event", "check.stepAlreadyComplete")
-		progress, ok := d.StepProgress.Load(step.Shared().ID)
-		shouldExecute := !ok || progress.Detail == `{"status":"success"}`
-		if shouldExecute {
-			debug.Log("event", "re-execute")
-		}
 		errChan := make(chan error)
 		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
 			"status":  "working",
