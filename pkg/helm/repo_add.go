@@ -124,7 +124,7 @@ func addRepository(name, url, username, password string, home helmpath.Home, cer
 		KeyFile:  keyFile,
 		CAFile:   caFile,
 	}
-	fmt.Printf("REPO %v \n", c)
+
 	r, err := repo.NewChartRepository(&c, getter.All(settings))
 	if err != nil {
 		return err
