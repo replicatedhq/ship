@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/patch"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,9 +36,12 @@ type Manager interface {
 	SerializeContentSHA(contentSHA string) error
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
-	SerializeListsMetadata(List) error
+	SerializeListsMetadata(util.List) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
+
+	AddCert(name string, newCert util.CertType) error
+	AddCA(name string, newCA util.CAType) error
 }
 
 var _ Manager = &MManager{}
@@ -189,7 +193,7 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	return m.serializeAndWriteState(versionedState)
 }
 
-func (m *MManager) SerializeListsMetadata(list List) error {
+func (m *MManager) SerializeListsMetadata(list util.List) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
 
 	debug.Log("event", "tryLoadState")
@@ -447,4 +451,39 @@ func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
 	}
 
 	return nil
+}
+
+func (m *MManager) AddCert(name string, newCert util.CertType) error {
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+	versionedState := currentState.Versioned()
+	if versionedState.V1.Certs == nil {
+		versionedState.V1.Certs = make(map[string]util.CertType)
+	}
+	if _, ok := versionedState.V1.Certs[name]; ok {
+		return fmt.Errorf("cert with name %s already exists in state", name)
+	}
+	versionedState.V1.Certs[name] = newCert
+
+	return errors.Wrap(m.serializeAndWriteState(versionedState), "write state")
+}
+
+func (m *MManager) AddCA(name string, newCA util.CAType) error {
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrapf(err, "load state")
+	}
+	versionedState := currentState.Versioned()
+	if versionedState.V1.CAs == nil {
+		versionedState.V1.CAs = make(map[string]util.CAType)
+	}
+	if _, ok := versionedState.V1.CAs[name]; ok {
+		return fmt.Errorf("cert with name %s already exists in state", name)
+	}
+	versionedState.V1.CAs[name] = newCA
+
+	return errors.Wrap(m.serializeAndWriteState(versionedState), "write state")
+
 }

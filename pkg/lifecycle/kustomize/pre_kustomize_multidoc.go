@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -49,7 +48,7 @@ func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath strin
 
 			thisOutputFile := outputYaml{contents: fileString}
 
-			thisMetadata := state.MinimalK8sYaml{}
+			thisMetadata := util.MinimalK8sYaml{}
 			_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 			if thisMetadata.Kind == "" || thisMetadata.Kind == "CustomResourceDefinition" {
