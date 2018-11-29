@@ -29,7 +29,7 @@ func (b *binaryFileSystem) Exists(prefix string, filepath string) bool {
 			debug.Log("event", "file.open.err", "err", err)
 			return false
 		}
-		debug.Log("event", "file.open.sucess")
+		debug.Log("event", "file.open.success")
 		return true
 	}
 	debug.Log("event", "file.prefix.miss")

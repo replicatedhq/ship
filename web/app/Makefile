@@ -47,11 +47,13 @@ serve_ship:
 	yarn build
 	@mkdir -p .state
 	@touch .state/build_ship
+	@touch .state/built-ui
 
 .state/build_ship_dev: deps-dev
 	yarn build
 	@mkdir -p .state
 	@touch .state/build_ship_dev
+	@touch .state/built-ui
 
 build_ship: .state/build_ship
 
