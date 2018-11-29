@@ -44,6 +44,7 @@ export default class FileTree extends React.Component {
               handleDeleteOverlay={(path) => handleDeleteOverlay(path)}
               selectedFile={selectedFile}
               isOverlayTree={isOverlayTree}
+              isBaseTree={isBaseTree}
             />
           </li>
           :

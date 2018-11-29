@@ -12,7 +12,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
@@ -37,43 +36,25 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 			return
 		}
 
-		currentState, err := d.StateManager.TryLoad()
-		if err != nil {
-			c.AbortWithError(500, err)
-			return
-		}
-
 		debug.Log("event", "check.stepAlreadyComplete")
-		lifecycle := currentState.Versioned().V1.Lifecycle
-		if lifecycle == nil {
-			lifecycle = &state.Lifeycle{
-				StepsCompleted: make(map[string]interface{}),
-			}
-		}
-		_, stepAlreadyComplete := lifecycle.StepsCompleted[step.Shared().ID]
-
 		progress, ok := d.StepProgress.Load(step.Shared().ID)
-		shouldExecute := !ok || progress.Detail == `{"status":"success"}` && !stepAlreadyComplete
-
-		debug.Log("shouldExecute", shouldExecute)
+		shouldExecute := !ok || progress.Detail == `{"status":"success"}`
 		if shouldExecute {
-			errChan := make(chan error)
-			d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
-				"status":  "working",
-				"message": "working",
-			}))
-			go func() {
-				errChan <- d.StepExecutor(d, step)
-			}()
-			// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
-			time.Sleep(10 * time.Millisecond)
-
-			d.hydrateAndSend(daemontypes.NewStep(step), c)
-			go d.handleAsync(errChan, debug, step, stepID)
-			return
+			debug.Log("event", "re-execute")
 		}
+		errChan := make(chan error)
+		d.StepProgress.Store(stepID, daemontypes.JSONProgress("v2router", map[string]interface{}{
+			"status":  "working",
+			"message": "working",
+		}))
+		go func() {
+			errChan <- d.StepExecutor(d, step)
+		}()
+		// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
+		time.Sleep(10 * time.Millisecond)
 
 		d.hydrateAndSend(daemontypes.NewStep(step), c)
+		go d.handleAsync(errChan, debug, step, stepID)
 		return
 	}
 	d.errNotFound(c)
