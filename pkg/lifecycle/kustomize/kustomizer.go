@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -118,7 +119,15 @@ func (l *Kustomizer) writeResources(fs afero.Afero, shipOverlay state.Overlay, d
 func (l *Kustomizer) writeFileMap(fs afero.Afero, files map[string]string, destDir string) (paths []string, err error) {
 	debug := level.Debug(log.With(l.Logger, "method", "writeResources"))
 
-	for file, contents := range files {
+	var keys []string
+	for k := range files {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, file := range keys {
+		contents := files[file]
+
 		name := path.Join(destDir, file)
 		err := l.writeFile(fs, name, contents)
 		if err != nil {
@@ -132,6 +141,7 @@ func (l *Kustomizer) writeFileMap(fs afero.Afero, files map[string]string, destD
 		}
 		paths = append(paths, relativePatchPath)
 	}
+
 	return paths, nil
 
 }
