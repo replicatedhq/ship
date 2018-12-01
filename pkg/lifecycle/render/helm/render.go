@@ -48,7 +48,6 @@ func (r *LocalRenderer) Execute(
 	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-
 		chartLocation, err := r.Fetcher.FetchChart(
 			ctx,
 			asset,
@@ -65,6 +64,7 @@ func (r *LocalRenderer) Execute(
 		if err != nil {
 			return errors.Wrap(err, "execute templating")
 		}
+
 		return nil
 	}
 

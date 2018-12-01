@@ -18,6 +18,7 @@ type Step struct {
 	Render         *Render         `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
 	Terraform      *Terraform      `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	Kustomize      *Kustomize      `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
+	Unfork         *Unfork         `json:"unfork,omitempty" yaml:"unfork,omitempty" hcl:"unfork,omitempty"`
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty" yaml:"kustomizeIntro,omitempty" hcl:"kustomizeIntro,omitempty"`
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
@@ -48,6 +49,8 @@ func (s Step) GetStep() StepDetails {
 		return s.KustomizeIntro
 	} else if s.Kustomize != nil {
 		return s.Kustomize
+	} else if s.Unfork != nil {
+		return s.Unfork
 	} else if s.HelmIntro != nil {
 		return s.HelmIntro
 	} else if s.HelmValues != nil {
@@ -101,6 +104,26 @@ type Terraform struct {
 
 func (t *Terraform) Shared() *StepShared { return &t.StepShared }
 func (t *Terraform) ShortName() string   { return "terraform" }
+
+// Unfork is a lifecycle step to generate patches and overlays for
+// two generates assets that consist of raw K8S YAML
+type Unfork struct {
+	StepShared   `json:",inline" yaml:",inline" hcl:",inline"`
+	UpstreamBase string `json:"upstreamBase" yaml:"upstreamBase" hcl:"upstreamBase"`
+	ForkedBase   string `json:"forkedBase" yaml:"forkedBase" hcl:"forkedBase"`
+	Dest         string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	Overlay      string `json:"overlay,omitempty" yaml:"overlay,omitempty" hcl:"overlay,omitempty"`
+}
+
+func (k *Unfork) OverlayPath() string {
+	if k.Overlay == "" {
+		return "overlays/ship"
+	}
+	return k.Overlay
+}
+
+func (u *Unfork) Shared() *StepShared { return &u.StepShared }
+func (k *Unfork) ShortName() string   { return "unfork" }
 
 // Kustomize is a lifeycle step to generate overlays for generated assets.
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder

@@ -57,6 +57,7 @@ type V1Routes struct {
 	TerraformConfirmed chan bool
 
 	KustomizeSaved chan interface{}
+	UnforkSaved    chan interface{}
 }
 
 func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {

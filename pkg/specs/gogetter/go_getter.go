@@ -29,12 +29,18 @@ func (g *GoGetter) GetFiles(ctx context.Context, upstream, savePath string) (str
 	debug := level.Debug(g.Logger)
 	debug.Log("event", "gogetter.GetFiles", "upstream", upstream, "savePath", savePath)
 
+	// Remove the directory because go-getter wants to create it
+	err := g.FS.RemoveAll(savePath)
+	if err != nil {
+		return "", errors.Wrap(err, "remove dir")
+	}
+
 	if g.IsSingleFile {
 		debug.Log("event", "gogetter.GetSingleFile", "upstream", upstream, "savePath", savePath)
 		return g.GetSingleFile(ctx, upstream, savePath)
 	}
 
-	err := getter.GetAny(savePath, upstream)
+	err = getter.GetAny(savePath, upstream)
 	if err != nil {
 		return "", errors2.FetchFilesError{Message: err.Error()}
 	}

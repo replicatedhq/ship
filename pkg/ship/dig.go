@@ -38,6 +38,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	"github.com/replicatedhq/ship/pkg/lifecycle/unfork"
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/specs"
@@ -65,10 +66,10 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
-		patch.NewShipPatcher,
 		specs.NewIDPatcher,
 		apptype.NewInspector,
 		util.NewAssetUploader,
+		patch.NewShipPatcher,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
@@ -162,6 +163,7 @@ func headlessProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		unfork.NewDaemonUnforker,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
 		kubectl.NewKubectl,
@@ -180,6 +182,7 @@ func headedProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		unfork.NewDaemonUnforker,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
 		kubectl.NewKubectl,
@@ -199,6 +202,7 @@ func navcycleProviders() []interface{} {
 		helmValues.NewDaemonlessHelmValues,
 		kustomizeintro.NewKustomizeIntro,
 		kustomize.NewDaemonlessKustomizer,
+		unfork.NewDaemonlessUnforker,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		terraform2.NewDaemonlessTerraformer,

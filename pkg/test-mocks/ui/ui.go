@@ -5,9 +5,8 @@
 package ui
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockUi is a mock of Ui interface

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
@@ -22,12 +21,10 @@ func makeTestShipCtx(t *testing.T) ShipContext {
 	mmFs := afero.NewMemMapFs()
 	mmAfero := afero.Afero{Fs: mmFs}
 
-	testPatcher := patch.NewShipPatcher(&testLogger, mmAfero)
 	testManager := state.NewManager(
 		&testLogger,
 		mmAfero,
 		testViper,
-		testPatcher,
 	)
 
 	return ShipContext{

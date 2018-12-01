@@ -70,6 +70,7 @@ func (h *helmCommands) Template(chartName string, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	return templateCommand.Execute()
 }
 

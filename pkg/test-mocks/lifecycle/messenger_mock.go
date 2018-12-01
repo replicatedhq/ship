@@ -6,10 +6,9 @@ package lifecycle
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
+	reflect "reflect"
 )
 
 // MockMessenger is a mock of Messenger interface

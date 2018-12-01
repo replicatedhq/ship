@@ -11,12 +11,13 @@ import (
 func Update() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "Pull an updated helm chart",
-		Long:  `Pull an updated helm chart to be integrated into current application configuration`,
+		Short: "Fetch the latest upstream for a Ship application",
+		Long:  `Given an existing Ship state.json, fetch the latest upstream and merge`,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			viper.BindPFlags(cmd.Flags())
 			viper.BindPFlags(cmd.PersistentFlags())
 		},
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// update should run in headless mode by default
 			viper.Set("isUpdate", true)

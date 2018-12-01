@@ -51,7 +51,7 @@ type MManager struct {
 	Logger  log.Logger
 	FS      afero.Afero
 	V       *viper.Viper
-	Patcher patch.Patcher
+	patcher patch.Patcher
 }
 
 func (m *MManager) Save(v VersionedState) error {
@@ -62,13 +62,11 @@ func NewManager(
 	logger log.Logger,
 	fs afero.Afero,
 	v *viper.Viper,
-	patcher patch.Patcher,
 ) Manager {
 	return &MManager{
-		Logger:  logger,
-		FS:      fs,
-		V:       v,
-		Patcher: patcher,
+		Logger: logger,
+		FS:     fs,
+		V:      v,
 	}
 }
 
