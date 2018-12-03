@@ -3,6 +3,7 @@ package ship
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-kit/kit/log"
@@ -43,6 +44,13 @@ func (s *Ship) Init(ctx context.Context) error {
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
 		return s.execute(ctx, release, nil, true)
+	}
+
+	if s.Viper.GetString("helm-values-file") != "" {
+		_, err := filepath.Abs(s.Viper.GetString("helm-values-file"))
+		if err != nil {
+			return warnings.WarnFileNotFound(s.Viper.GetString("helm-values-file"))
+		}
 	}
 
 	existingState, _ := s.State.TryLoad()

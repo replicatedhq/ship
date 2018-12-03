@@ -72,6 +72,8 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("resource-type", "", "upstream application resource type")
 	cmd.PersistentFlags().BoolP("prefer-git", "", false, "prefer the git protocol instead of using http apis")
 
+	cmd.PersistentFlags().StringP("helm-values-file", "", "", "Optional file path to Values.yaml to be used when rendering Helm charts (only supported in headless mode)")
+
 	cmd.PersistentFlags().Bool("no-outro", false, "skip outro step in Ship UI")
 
 	cmd.AddCommand(Init())

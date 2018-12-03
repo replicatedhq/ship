@@ -24,7 +24,8 @@ type TestMetadata struct {
 	Args         []string `yaml:"args"`
 	MakeAbsolute bool     `yaml:"make_absolute"`
 	// debugging
-	SkipCleanup bool `yaml:"skip_cleanup"`
+	SkipCleanup bool   `yaml:"skip_cleanup"`
+	ValuesFile  string `yaml:"valuesFile"`
 }
 
 func TestInit(t *testing.T) {
@@ -92,6 +93,15 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(absolutePath, relativePath))
 						replacements["__upstream__"] = absoluteUpstream
 					}
+
+					if testMetadata.ValuesFile != "" {
+						relativePath := testMetadata.ValuesFile
+						absolutePath, err := filepath.Abs(path.Join(testPath, relativePath))
+						Expect(err).NotTo(HaveOccurred())
+						Expect(err).NotTo(HaveOccurred())
+						testMetadata.Args = append(testMetadata.Args, fmt.Sprintf("--helm-values-file=%s", absolutePath))
+					}
+
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
@@ -101,6 +111,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 						"--headless",
 						"--log-level=off",
 					}, testMetadata.Args...))
+
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 

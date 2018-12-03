@@ -6,10 +6,11 @@ package replicatedapp
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	replicatedapp "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
-	reflect "reflect"
 )
 
 // MockResolver is a mock of Resolver interface

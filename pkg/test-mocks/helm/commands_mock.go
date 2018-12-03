@@ -5,9 +5,10 @@
 package helm
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	chartutil "k8s.io/helm/pkg/chartutil"
-	reflect "reflect"
 )
 
 // MockCommands is a mock of Commands interface

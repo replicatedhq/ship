@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Merges user edited values from state file and vendor values from upstream Helm repo.
+// MergeHelmValues merges user edited values from state file and vendor values from upstream Helm repo.
 // base is the original config from state
 // user is the modified config from state
 // vendor is the new config from current chart
