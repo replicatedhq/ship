@@ -35,6 +35,7 @@ type Daemon interface {
 	ConfigSavedChan() chan interface{}
 	TerraformConfirmedChan() chan bool
 	KustomizeSavedChan() chan interface{}
+	UnforkSavedChan() chan interface{}
 	GetCurrentConfig() map[string]interface{}
 	AwaitShutdown() error
 }
@@ -52,6 +53,7 @@ const StepNameApply = "terraform.apply"
 const StepNameReport = "terraform.report"
 
 const StepNameKustomize = "kustomize"
+const StepNameUnfork = "unfork"
 
 // the api abstraction for objects written in the YAML
 // is starting to leak a little, so duplicating some stuff here
@@ -63,6 +65,7 @@ type Step struct {
 	HelmValues     *HelmValues     `json:"helmValues,omitempty"`
 	Kustomize      *Kustomize      `json:"kustomize,omitempty"`
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty"`
+	Unfork         *Unfork         `json:"unfork,omitempty"`
 	Config         *Config         `json:"config,omitempty"`
 }
 
@@ -93,6 +96,8 @@ func NewStep(apiStep api.Step) Step {
 		}
 	} else if apiStep.KustomizeIntro != nil {
 		step.KustomizeIntro = &KustomizeIntro{}
+	} else if apiStep.Unfork != nil {
+		step.Unfork = &Unfork{}
 	} else if apiStep.Config != nil {
 		step.Config = &Config{}
 	}
@@ -145,6 +150,9 @@ type Kustomize struct {
 }
 
 type KustomizeIntro struct {
+}
+
+type Unfork struct {
 }
 
 type Config struct {

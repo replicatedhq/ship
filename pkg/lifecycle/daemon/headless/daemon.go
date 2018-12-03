@@ -64,6 +64,12 @@ func (d *HeadlessDaemon) KustomizeSavedChan() chan interface{} {
 	return ch
 }
 
+func (d *HeadlessDaemon) UnforkSavedChan() chan interface{} {
+	ch := make(chan interface{}, 1)
+	ch <- nil
+	return ch
+}
+
 func (d *HeadlessDaemon) PushHelmIntroStep(context.Context, daemontypes.HelmIntro, []daemontypes.Action) {
 }
 

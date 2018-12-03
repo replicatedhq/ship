@@ -6,13 +6,12 @@ package docker
 
 import (
 	context "context"
-	reflect "reflect"
-
 	log "github.com/go-kit/kit/log"
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
 	root "github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	reflect "reflect"
 )
 
 // MockRenderer is a mock of Renderer interface

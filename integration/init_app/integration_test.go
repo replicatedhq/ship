@@ -123,7 +123,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, []map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 

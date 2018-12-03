@@ -3,9 +3,7 @@ package helm
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -18,9 +16,10 @@ import (
 // Commands are Helm commands that are available to the Ship binary.
 type Commands interface {
 	Init() error
-	MaybeDependencyUpdate(chartRoot string) error
+	MaybeDependencyUpdate(chartRoot string, requirements chartutil.Requirements) error
 	Template(chartName string, args []string) error
 	Fetch(chartRef, repoURL, version, dest, home string) error
+	RepoAdd(name, url, home string) error
 }
 
 type helmCommands struct {
@@ -45,28 +44,8 @@ func (h *helmCommands) Init() error {
 	return errors.Wrapf(err, "helm init: %s", output)
 }
 
-func (h *helmCommands) MaybeDependencyUpdate(chartRoot string) error {
+func (h *helmCommands) MaybeDependencyUpdate(chartRoot string, requirements chartutil.Requirements) error {
 	debug := level.Debug(log.With(h.logger, "method", "maybeDependencyUpdate"))
-
-	requirementsExists, err := h.fs.Exists(filepath.Join(chartRoot, "requirements.yaml"))
-	if err != nil {
-		return errors.Wrap(err, "check requirements yaml existence")
-	}
-
-	if !requirementsExists {
-		return nil
-	}
-
-	requirementsB, err := h.fs.ReadFile(filepath.Join(chartRoot, "requirements.yaml"))
-	if err != nil {
-		return errors.Wrap(err, "read requirements yaml")
-	}
-
-	requirements := chartutil.Requirements{}
-	if err := yaml.Unmarshal(requirementsB, &requirements); err != nil {
-		return errors.Wrap(err, "unmarshal requirements yaml")
-	}
-
 	allEmpty := true
 	for _, dependency := range requirements.Dependencies {
 		if dependency.Repository != "" {
@@ -91,6 +70,7 @@ func (h *helmCommands) Template(chartName string, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	return templateCommand.Execute()
 }
 
@@ -115,4 +95,12 @@ func (h *helmCommands) dependencyUpdate(chartRoot string) error {
 		return err
 	}
 	return dependencyCommand.Execute()
+}
+
+func (h *helmCommands) RepoAdd(name, url, home string) error {
+	outstring, err := helm.RepoAdd(name, url, home)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("helm repo add failed, output %q", outstring))
+	}
+	return nil
 }

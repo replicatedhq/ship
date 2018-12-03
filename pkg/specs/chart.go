@@ -18,6 +18,103 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func (r *Resolver) DefaultHelmUnforkRelease(forkedPath string, upstreamPath string) api.Spec {
+	spec := api.Spec{
+		Assets: api.Assets{
+			V1: []api.Asset{
+				{
+					Helm: &api.HelmAsset{
+						AssetShared: api.AssetShared{
+							Dest: constants.UnforkForkedBasePath,
+						},
+						Local: &api.LocalHelmOpts{
+							ChartRoot: forkedPath,
+						},
+						ValuesFrom: &api.ValuesFrom{
+							Lifecycle: &api.ValuesFromLifecycle{},
+						},
+					},
+				},
+				{
+					Helm: &api.HelmAsset{
+						AssetShared: api.AssetShared{
+							Dest: constants.KustomizeBasePath,
+						},
+						Local: &api.LocalHelmOpts{
+							ChartRoot: upstreamPath,
+						},
+						ValuesFrom: &api.ValuesFrom{
+							Lifecycle: &api.ValuesFromLifecycle{},
+						},
+					},
+				},
+			},
+		},
+		Lifecycle: api.Lifecycle{
+			V1: []api.Step{
+				{
+					HelmValues: &api.HelmValues{
+						StepShared: api.StepShared{
+							ID:          "values",
+							Requires:    []string{"intro"},
+							Invalidates: []string{"render"},
+						},
+					},
+				},
+				{
+					Render: &api.Render{
+						StepShared: api.StepShared{
+							ID:       "render",
+							Requires: []string{"values"},
+						},
+						Root: ".",
+					},
+				},
+				{
+					Unfork: &api.Unfork{
+						UpstreamBase: constants.KustomizeBasePath,
+						ForkedBase:   constants.UnforkForkedBasePath,
+						Overlay:      path.Join("overlays", "ship"),
+						StepShared: api.StepShared{
+							ID:       "kustomize",
+							Requires: []string{"render"},
+						},
+						Dest: "rendered.yaml",
+					},
+				},
+			},
+		},
+	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID: "outro",
+					// Requires: []string{"kustomize"},
+				},
+				Contents: `
+## Deploy
+
+The application is ready to be deployed. To deploy it now, you can run:
+
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
+`},
+		})
+	}
+
+	return spec
+}
+
 func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 	spec := api.Spec{
 		Assets: api.Assets{
@@ -114,6 +211,10 @@ For continuous notification and preparation of application updates via email, we
 	}
 
 	return spec
+}
+
+func (r *Resolver) DefaultRawUnforkRelease(forkedPath string, upstreamPath string) api.Spec {
+	return api.Spec{}
 }
 
 func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {

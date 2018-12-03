@@ -5,12 +5,11 @@
 package state
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	state "github.com/replicatedhq/ship/pkg/state"
 	util "github.com/replicatedhq/ship/pkg/util"
+	reflect "reflect"
 )
 
 // MockManager is a mock of Manager interface

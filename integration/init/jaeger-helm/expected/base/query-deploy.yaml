@@ -1,0 +1,69 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    chart: jaeger-0.7.0
+    component: query
+    heritage: Tiller
+    jaeger-infra: query-deployment
+    release: jaeger
+  name: jaeger-query
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: query
+        jaeger-infra: query-pod
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage.type
+              name: jaeger
+        - name: CASSANDRA_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.keyspace
+              name: jaeger
+        - name: QUERY_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: query.port
+              name: jaeger
+        - name: QUERY_HEALTH_CHECK_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: query.health-check-http-port
+              name: jaeger
+        image: jaegertracing/jaeger-query:1.4.1
+        imagePullPolicy: IfNotPresent
+        name: jaeger-query
+        ports:
+        - containerPort: 16686
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 16687
+        resources: {}
+      dnsPolicy: ClusterFirst
+      nodeSelector: {}
+      restartPolicy: Always

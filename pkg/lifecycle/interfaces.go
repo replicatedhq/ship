@@ -43,6 +43,10 @@ type KustomizeIntro interface {
 	Execute(ctx context.Context, release *api.Release, step api.KustomizeIntro) error
 }
 
+type Unforker interface {
+	Execute(ctx context.Context, release *api.Release, step api.Unfork) error
+}
+
 type KubectlApply interface {
 	Execute(ctx context.Context, release api.Release, step api.KubectlApply, confirmChan chan bool) error
 	WithStatusReceiver(receiver daemontypes.StatusReceiver) KubectlApply

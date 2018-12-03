@@ -1,13 +1,12 @@
 package integration
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"encoding/json"
 
 	. "github.com/onsi/gomega"
 	"github.com/pmezard/go-difflib/difflib"
@@ -20,9 +19,15 @@ var skipFiles = []string{
 	"installer/charts/rendered/secrets.yaml",
 }
 
-func skipCheck(filepath string) bool {
+func skipCheck(filePath string, ignoredFiles []string) bool {
+	for _, f := range ignoredFiles {
+		if strings.HasSuffix(filePath, f) {
+			return true
+		}
+	}
+
 	for _, f := range skipFiles {
-		if strings.HasSuffix(filepath, f) {
+		if strings.HasSuffix(filePath, f) {
 			return true
 		}
 	}
@@ -30,8 +35,8 @@ func skipCheck(filepath string) bool {
 }
 
 // CompareDir returns false if the two directories have different contents
-func CompareDir(expected, actual string, replacements map[string]string) (bool, error) {
-	if skipCheck(actual) {
+func CompareDir(expected, actual string, replacements map[string]string, ignoredFiles []string, ignoredKeys []map[string][]string) (bool, error) {
+	if skipCheck(actual, ignoredFiles) {
 		return true, nil
 	}
 
@@ -67,11 +72,11 @@ func CompareDir(expected, actual string, replacements map[string]string) (bool, 
 
 		if expectedFile.IsDir() {
 			// compare child items
-			result, err := CompareDir(expectedFilePath, actualFilePath, replacements)
+			result, err := CompareDir(expectedFilePath, actualFilePath, replacements, ignoredFiles, ignoredKeys)
 			if !result || err != nil {
 				return result, err
 			}
-		} else if skipCheck(expectedFilePath) {
+		} else if skipCheck(expectedFilePath, ignoredFiles) {
 			continue
 		} else {
 			// compare expectedFile contents
@@ -83,17 +88,24 @@ func CompareDir(expected, actual string, replacements map[string]string) (bool, 
 			// another hack for ease of testing -- pretty print json before comparing so diffs
 			// are easier to read
 			if strings.HasSuffix(actualFilePath, ".json") {
-				var obj interface{}
-				err = json.Unmarshal(expectedContentsBytes, &obj)
-				Expect(err).NotTo(HaveOccurred())
-				expectedContentsBytes, err = json.MarshalIndent(obj, "", "  ")
+				expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, nil)
+				actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, nil)
+
+				cwd, err := os.Getwd()
 				Expect(err).NotTo(HaveOccurred())
 
-				obj = nil
-				err = json.Unmarshal(actualContentsBytes, &obj)
-				Expect(err).NotTo(HaveOccurred())
-				actualContentsBytes, err = json.MarshalIndent(obj, "", "  ")
-				Expect(err).NotTo(HaveOccurred())
+				for _, paths := range ignoredKeys {
+					for path := range paths {
+						relativeActualFilePath, err := filepath.Rel(cwd, actualFilePath)
+						Expect(err).NotTo(HaveOccurred())
+
+						if path == relativeActualFilePath {
+							expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, paths[path])
+							actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, paths[path])
+						}
+					}
+				}
+
 			}
 
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
@@ -120,4 +132,15 @@ func CompareDir(expected, actual string, replacements map[string]string) (bool, 
 	}
 
 	return true, nil
+}
+
+func prettyAndCleanJSON(data []byte, keysToIgnore []string) []byte {
+	var obj interface{}
+	err := json.Unmarshal(data, &obj)
+	Expect(err).NotTo(HaveOccurred())
+
+	data, err = json.MarshalIndent(obj, "", "  ")
+	Expect(err).NotTo(HaveOccurred())
+
+	return data
 }

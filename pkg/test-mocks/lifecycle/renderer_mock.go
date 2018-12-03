@@ -6,13 +6,12 @@ package lifecycle
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	lifecycle "github.com/replicatedhq/ship/pkg/lifecycle"
 	daemontypes "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	planner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
+	reflect "reflect"
 )
 
 // MockRenderer is a mock of Renderer interface

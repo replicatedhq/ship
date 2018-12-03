@@ -19,3 +19,6 @@ cd ../init_app
 
 cd ../init
 ./init.test
+
+cd ../unfork
+./unfork.test

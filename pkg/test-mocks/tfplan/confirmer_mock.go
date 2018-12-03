@@ -6,12 +6,11 @@ package tfplan
 
 import (
 	context "context"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	daemontypes "github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	tfplan "github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	reflect "reflect"
 )
 
 // MockPlanConfirmer is a mock of PlanConfirmer interface

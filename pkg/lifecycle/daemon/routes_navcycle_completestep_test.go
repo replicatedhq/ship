@@ -22,14 +22,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type postTestCase struct {
+	POST         string
+	ExpectStatus int
+	ExpectBody   map[string]interface{}
+	ExpectState  *matchers.Is
+}
+
 type completestepTestCase struct {
 	Name           string
 	Lifecycle      []api.Step
-	POST           string
-	ExpectStatus   int
-	ExpectBody     map[string]interface{}
+	POSTS          []postTestCase
 	State          *state2.Lifeycle
-	ExpectState    *matchers.Is
 	OnExecute      func(d *NavcycleRoutes, step api.Step) error
 	WaitForCleanup func() <-chan time.Time
 }
@@ -37,15 +41,19 @@ type completestepTestCase struct {
 func TestV2CompleteStep(t *testing.T) {
 	tests := []completestepTestCase{
 		{
-			Name:         "empty",
-			Lifecycle:    []api.Step{},
-			POST:         "/api/v1/navcycle/step/foo",
-			ExpectStatus: 404,
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"notFound": map[string]interface{}{},
+			Name:      "empty",
+			Lifecycle: []api.Step{},
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/foo",
+					ExpectStatus: 404,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"notFound": map[string]interface{}{},
+						},
+						"phase": "notFound",
+					},
 				},
-				"phase": "notFound",
 			},
 		},
 		{
@@ -60,13 +68,17 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v1/navcycle/step/bar",
-			ExpectStatus: 404,
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"notFound": map[string]interface{}{},
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/bar",
+					ExpectStatus: 404,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"notFound": map[string]interface{}{},
+						},
+						"phase": "notFound",
+					},
 				},
-				"phase": "notFound",
 			},
 		},
 		{
@@ -81,30 +93,145 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v1/navcycle/step/foo",
-			ExpectStatus: 200,
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"message": map[string]interface{}{
-						"contents": "lol", "trusted_html": true,
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/foo",
+					ExpectStatus: 200,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"message": map[string]interface{}{
+								"contents": "lol", "trusted_html": true,
+							},
+						},
+						"phase": "message",
+						"progress": map[string]interface{}{
+							"source": "v2router",
+							"type":   "json",
+							"level":  "info",
+							"detail": `{"message":"working","status":"working"}`,
+						},
+					},
+					ExpectState: &matchers.Is{
+						Describe: "saved state has step foo completed",
+						Test: func(v interface{}) bool {
+							if versioned, ok := v.(state2.VersionedState); ok {
+								_, ok := versioned.V1.Lifecycle.StepsCompleted["foo"]
+								return ok
+							}
+							return false
+						},
 					},
 				},
-				"phase": "message",
-				"progress": map[string]interface{}{
-					"source": "v2router",
-					"type":   "json",
-					"level":  "info",
-					"detail": `{"message":"working","status":"working"}`,
+			},
+		},
+		{
+			Name: "completing step twice invalidates",
+			Lifecycle: []api.Step{
+				{
+					Message: &api.Message{
+						Contents: "lol",
+						StepShared: api.StepShared{
+							ID:          "foo",
+							Invalidates: []string{"bar"},
+						},
+					},
+				},
+				{
+					Message: &api.Message{
+						Contents: "baz",
+						StepShared: api.StepShared{
+							ID: "bar",
+						},
+					},
 				},
 			},
-			ExpectState: &matchers.Is{
-				Describe: "saved state has step foo completed",
-				Test: func(v interface{}) bool {
-					if versioned, ok := v.(state2.VersionedState); ok {
-						_, ok := versioned.V1.Lifecycle.StepsCompleted["foo"]
-						return ok
-					}
-					return false
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/foo",
+					ExpectStatus: 200,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"message": map[string]interface{}{
+								"contents": "lol", "trusted_html": true,
+							},
+						},
+						"phase": "message",
+						"progress": map[string]interface{}{
+							"source": "v2router",
+							"type":   "json",
+							"level":  "info",
+							"detail": `{"message":"working","status":"working"}`,
+						},
+					},
+					ExpectState: &matchers.Is{
+						Describe: "saved state has step foo completed and bar uncompleted",
+						Test: func(v interface{}) bool {
+							if versioned, ok := v.(state2.VersionedState); ok {
+								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
+								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
+								return fooOk && !barOk
+							}
+							return false
+						},
+					},
+				},
+				{
+					POST:         "/api/v1/navcycle/step/bar",
+					ExpectStatus: 200,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"message": map[string]interface{}{
+								"contents": "baz", "trusted_html": true,
+							},
+						},
+						"phase": "message",
+						"progress": map[string]interface{}{
+							"source": "v2router",
+							"type":   "json",
+							"level":  "info",
+							"detail": `{"message":"working","status":"working"}`,
+						},
+					},
+					ExpectState: &matchers.Is{
+						Describe: "saved state has step foo and bar completed",
+						Test: func(v interface{}) bool {
+							if versioned, ok := v.(state2.VersionedState); ok {
+								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
+								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
+								return fooOk && barOk
+							}
+							return false
+						},
+					},
+				},
+				{
+					POST:         "/api/v1/navcycle/step/foo",
+					ExpectStatus: 200,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"message": map[string]interface{}{
+								"contents": "lol", "trusted_html": true,
+							},
+						},
+						"phase": "message",
+						"progress": map[string]interface{}{
+							"source": "v2router",
+							"type":   "json",
+							"level":  "info",
+							"detail": `{"message":"working","status":"working"}`,
+						},
+					},
+					ExpectState: &matchers.Is{
+						Describe: "saved state has step foo completed and step bar invalidated",
+						Test: func(v interface{}) bool {
+							if versioned, ok := v.(state2.VersionedState); ok {
+								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
+								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
+								return fooOk && !barOk
+							}
+							return false
+						},
+					},
 				},
 			},
 		},
@@ -129,15 +256,19 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST:         "/api/v1/navcycle/step/foo",
-			ExpectStatus: 400,
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"requirementNotMet": map[string]interface{}{
-						"required": "spam",
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/foo",
+					ExpectStatus: 400,
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"requirementNotMet": map[string]interface{}{
+								"required": "spam",
+							},
+						},
+						"phase": "requirementNotMet",
 					},
 				},
-				"phase": "requirementNotMet",
 			},
 		},
 		{
@@ -151,7 +282,6 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			},
-			POST: "/api/v1/navcycle/step/make-the-things",
 			// need to wait until the async task completes before we check all the expected mock calls,
 			// otherwise the state won't have been saved yet
 			WaitForCleanup: func() <-chan time.Time { return time.After(300 * time.Millisecond) },
@@ -160,27 +290,32 @@ func TestV2CompleteStep(t *testing.T) {
 				time.Sleep(60 * time.Millisecond)
 				return nil
 			},
-			ExpectStatus: 200,
-			ExpectState: &matchers.Is{
-				Describe: "saved state has step make-the-things completed",
-				Test: func(v interface{}) bool {
-					if versioned, ok := v.(state2.VersionedState); ok {
-						_, ok := versioned.V1.Lifecycle.StepsCompleted["make-the-things"]
-						return ok
-					}
-					return false
-				},
-			},
-			ExpectBody: map[string]interface{}{
-				"currentStep": map[string]interface{}{
-					"render": map[string]interface{}{},
-				},
-				"phase": "render",
-				"progress": map[string]interface{}{
-					"source": "unittest",
-					"level":  "info",
-					"type":   "json",
-					"detail": `{"status":"workin on it"}`,
+			POSTS: []postTestCase{
+				{
+					POST:         "/api/v1/navcycle/step/make-the-things",
+					ExpectStatus: 200,
+					ExpectState: &matchers.Is{
+						Describe: "saved state has step make-the-things completed",
+						Test: func(v interface{}) bool {
+							if versioned, ok := v.(state2.VersionedState); ok {
+								_, ok := versioned.V1.Lifecycle.StepsCompleted["make-the-things"]
+								return ok
+							}
+							return false
+						},
+					},
+					ExpectBody: map[string]interface{}{
+						"currentStep": map[string]interface{}{
+							"render": map[string]interface{}{},
+						},
+						"phase": "render",
+						"progress": map[string]interface{}{
+							"source": "unittest",
+							"level":  "info",
+							"type":   "json",
+							"detail": `{"status":"workin on it"}`,
+						},
+					},
 				},
 			},
 		},
@@ -222,10 +357,6 @@ func TestV2CompleteStep(t *testing.T) {
 				},
 			}, nil).AnyTimes()
 
-			if test.ExpectState != nil && test.ExpectState.Test != nil {
-				fakeState.EXPECT().Save(test.ExpectState).Return(nil)
-			}
-
 			if test.OnExecute != nil {
 				v2.StepExecutor = test.OnExecute
 			}
@@ -244,22 +375,27 @@ func TestV2CompleteStep(t *testing.T) {
 				req := require.New(t)
 
 				// send request
-				resp, err := http.Post(fmt.Sprintf("%s%s", addr, test.POST), "application/json", strings.NewReader(""))
-				req.NoError(err)
-				req.Equal(test.ExpectStatus, resp.StatusCode)
-				bytes, err := ioutil.ReadAll(resp.Body)
-				req.NoError(err)
-				var deserializeTarget map[string]interface{}
-				err = json.Unmarshal(bytes, &deserializeTarget)
-				req.NoError(err)
+				for _, testCase := range test.POSTS {
+					if testCase.ExpectState != nil && testCase.ExpectState.Test != nil {
+						fakeState.EXPECT().Save(testCase.ExpectState).Return(nil)
+					}
 
-				diff := deep.Equal(test.ExpectBody, deserializeTarget)
-				bodyForDebug, err := json.Marshal(test.ExpectBody)
-				if err != nil {
-					bodyForDebug = []byte(err.Error())
+					resp, err := http.Post(fmt.Sprintf("%s%s", addr, testCase.POST), "application/json", strings.NewReader(""))
+					req.NoError(err)
+					req.Equal(testCase.ExpectStatus, resp.StatusCode)
+					bytes, err := ioutil.ReadAll(resp.Body)
+					req.NoError(err)
+					var deserializeTarget map[string]interface{}
+					err = json.Unmarshal(bytes, &deserializeTarget)
+					req.NoError(err)
+
+					diff := deep.Equal(testCase.ExpectBody, deserializeTarget)
+					bodyForDebug, err := json.Marshal(testCase.ExpectBody)
+					if err != nil {
+						bodyForDebug = []byte(err.Error())
+					}
+					req.Empty(diff, "\nexpect: %s\nactual: %s\ndiff: %s", bodyForDebug, string(bytes), strings.Join(diff, "\n"))
 				}
-				req.Empty(diff, "\nexpect: %s\nactual: %s\ndiff: %s", bodyForDebug, string(bytes), strings.Join(diff, "\n"))
-
 			}()
 		})
 	}

@@ -32,7 +32,8 @@ RUN cd /go/src/github.com/replicatedhq/ship && \
     go test -c ./integration/base && \
     go test -c ./integration/update && \
     go test -c ./integration/init_app && \
-    go test -c ./integration/init
+    go test -c ./integration/init && \
+    go test -c ./integration/unfork
 
 # package things up
 FROM node:8-alpine
@@ -55,6 +56,7 @@ COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init_app.test /test/init_app/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init.test /test/init/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/unfork.test /test/unfork
 CMD ./integration_docker_start.sh
 
 

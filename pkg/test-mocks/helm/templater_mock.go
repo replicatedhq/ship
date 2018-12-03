@@ -5,12 +5,11 @@
 package helm
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	libyaml "github.com/replicatedhq/libyaml"
 	api "github.com/replicatedhq/ship/pkg/api"
 	root "github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	reflect "reflect"
 )
 
 // MockTemplater is a mock of Templater interface
