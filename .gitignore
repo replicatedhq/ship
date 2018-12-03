@@ -15,3 +15,5 @@ integration/*/_test_*
 /base/
 web/.state/
 /rendered.yaml
+
+.DS_Store
