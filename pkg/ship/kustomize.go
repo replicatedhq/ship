@@ -47,12 +47,10 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	if s.Viper.GetString("helm-values-file") != "" {
-		valuesFile, err := filepath.Abs(s.Viper.GetString("helm-values-file"))
+		_, err := filepath.Abs(s.Viper.GetString("helm-values-file"))
 		if err != nil {
 			return warnings.WarnFileNotFound(s.Viper.GetString("helm-values-file"))
 		}
-
-		s.Viper.Set("helm-values-file", valuesFile)
 	}
 
 	existingState, _ := s.State.TryLoad()

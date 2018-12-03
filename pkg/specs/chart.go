@@ -116,6 +116,17 @@ For continuous notification and preparation of application updates via email, we
 }
 
 func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
+	valuesPath := ""
+
+	if r.Viper.GetString("helm-values-file") != "" {
+		valuesFile, err := filepath.Abs(r.Viper.GetString("helm-values-file"))
+		if err != nil {
+			level.Error(r.Logger).Log("event", "file not found", "file", r.Viper.GetString("helm-values-file"))
+		}
+
+		valuesPath = valuesFile
+	}
+
 	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
@@ -151,7 +162,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 							Requires:    []string{"intro"},
 							Invalidates: []string{"render"},
 						},
-						Path: r.Viper.GetString("helm-values-file"),
+						Path: valuesPath,
 					},
 				},
 				{
