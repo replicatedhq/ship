@@ -1,0 +1,6 @@
+upstream: "https://github.com/helm/charts/tree/353ba5ef6467fd64035b7d5446df426f86d60153/stable/grafana"
+args:
+  - --upload-assets-to=http://localhost:4569/some-bucket/some-key
+skip_cleanup: false
+valuesFile: input/values.yaml
+

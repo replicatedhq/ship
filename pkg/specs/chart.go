@@ -151,6 +151,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 							Requires:    []string{"intro"},
 							Invalidates: []string{"render"},
 						},
+						Path: r.Viper.GetString("helm-values-file"),
 					},
 				},
 				{

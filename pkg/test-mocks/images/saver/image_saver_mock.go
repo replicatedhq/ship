@@ -6,9 +6,10 @@ package saver
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	images "github.com/replicatedhq/ship/pkg/images"
-	reflect "reflect"
 )
 
 // MockImageSaver is a mock of ImageSaver interface

@@ -106,6 +106,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	}
 
 	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", versionedUpstream)
+
 	err = r.StateManager.SerializeUpstream(versionedUpstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write upstream")

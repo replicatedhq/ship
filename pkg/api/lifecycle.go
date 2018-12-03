@@ -165,6 +165,7 @@ func (h *HelmIntro) ShortName() string   { return "helm-intro" }
 // and save user input changes to values.yaml
 type HelmValues struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
 
 func (h *HelmValues) Shared() *StepShared { return &h.StepShared }

@@ -92,8 +92,7 @@ func (f *LocalTemplater) Template(
 	templateContext map[string]interface{},
 ) error {
 	debug := level.Debug(
-		log.With(
-			f.Logger,
+		log.With(f.Logger,
 			"step.type", "render",
 			"render.phase", "execute",
 			"asset.type", "helm",

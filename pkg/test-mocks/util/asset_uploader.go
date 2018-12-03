@@ -5,8 +5,9 @@
 package util
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockAssetUploader is a mock of AssetUploader interface
