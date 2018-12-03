@@ -291,7 +291,7 @@ build_ship_integration_test:
 	docker build -t $(DOCKER_REPO)/ship-e2e-test:latest -f ./integration/Dockerfile .
 
 pkg/lifecycle/daemon/ui.bindatafs.go: .state/build-deps
-	go-bindata-assetfs -pkg daemon \
+	export PATH=$(GOPATH)/bin:$$PATH; go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix web/app \
 	  web/app/build/...
@@ -328,7 +328,7 @@ cypress: build cypress_base
 # rather than folks just getting an old version of the UI
 dev-embed-ui:
 	mkdir -p .state/tmp/dist
-	go-bindata-assetfs -pkg daemon \
+	export PATH=$(GOPATH)/bin:$$PATH; go-bindata-assetfs -pkg daemon \
 	  -o pkg/lifecycle/daemon/ui.bindatafs.go \
 	  -prefix .state/tmp/ \
 	  -debug \
