@@ -1,0 +1,5 @@
+args: ["--prefer-git"]
+upstream: https://github.com/helm/charts/tree/b57cf383eb116f68dba938ce9c12ebc758b5a1f7/stable/redis
+fork: https://github.com/replicatedhq/test-charts/blob/e4946d743e9f769bb596909d8cc808138aa7990e/redis-forked/rendered.yaml
+# These files are ignored for changing values
+ignoredFiles: ["base/redis-master-statefulset.yaml", "base/redis-slave-deployment.yaml", "base/secret.yaml"]

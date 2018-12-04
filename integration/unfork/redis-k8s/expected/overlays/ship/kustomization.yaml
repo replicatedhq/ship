@@ -1,0 +1,8 @@
+kind: ""
+apiversion: ""
+bases:
+- ../../base
+patchesStrategicMerge:
+- Deployment-redis-slave.yaml
+- Secret-redis.yaml
+- StatefulSet-redis-master.yaml

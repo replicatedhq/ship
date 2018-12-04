@@ -1,0 +1,20 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  labels:
+    app: redis
+    chart: redis-5.0.0
+    heritage: Tiller
+    release: redis
+  name: redis-master
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 7d8062c935157159cd0e3392280371c8cca1f35ccc16548d3f806c4ce09764ee
+    spec:
+      $setElementOrder/initContainers:
+      - name: volume-permissions
+      initContainers:
+      - imagePullPolicy: HELLO_IM_FORKED
+        name: volume-permissions

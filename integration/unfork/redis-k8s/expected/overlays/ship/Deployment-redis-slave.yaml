@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: redis
+    chart: redis-5.0.0
+    heritage: Tiller
+    release: redis
+  name: redis-slave
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: FORKED_CHECKSUM
+    spec:
+      $setElementOrder/containers:
+      - name: redis
+      containers:
+      - livenessProbe:
+          failureThreshold: HI_IM_FORKED
+        name: redis
