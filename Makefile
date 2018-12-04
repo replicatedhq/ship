@@ -1,3 +1,5 @@
+.NOTPARALLEL:
+
 .PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
 
 
