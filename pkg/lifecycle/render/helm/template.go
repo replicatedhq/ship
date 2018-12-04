@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"strings"
 
-	"k8s.io/helm/pkg/chartutil"
-
 	"github.com/emosbaugh/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -26,6 +24,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"k8s.io/helm/pkg/chartutil"
 )
 
 const (

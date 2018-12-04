@@ -26,11 +26,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-
-	"github.com/pkg/errors"
-
 	"syscall"
 
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/helmpath"
