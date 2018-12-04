@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  run.sh: |-
+    @test "Testing Jenkins UI is accessible" {
+      curl --retry 48 --retry-delay 10 jenkins:8080/login
+    }
+kind: ConfigMap
+metadata:
+  name: jenkins-tests
