@@ -7,13 +7,17 @@ node_modules
 .vscode
 /installer/
 /installer.bak/
-.ship/
+/.ship/
 integration/*/_test_*
 
 /.state/
 /overlays/
-base/
+/base/
 web/.state/
 /rendered.yaml
 
 .DS_Store
+
+# delve
+cmd/ship/.ship
+cmd/ship/base
