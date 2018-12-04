@@ -1,0 +1,123 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    chart: jenkins-0.20.1
+    component: jenkins-jenkins-master
+    heritage: Tiller
+    release: jenkins
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: jenkins-jenkins-master
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        checksum/config: 1bfd2c8a4cc2fc9a42e0f171f338f8cbb9a0d68c221cf6759c9afaecadec26ac
+      labels:
+        app: jenkins
+        chart: jenkins-0.20.1
+        component: jenkins-jenkins-master
+        heritage: Tiller
+        release: jenkins
+    spec:
+      containers:
+      - args:
+        - --argumentsRealm.passwd.$(ADMIN_USER)=$(ADMIN_PASSWORD)
+        - --argumentsRealm.roles.$(ADMIN_USER)=admin
+        env:
+        - name: JAVA_TOOL_OPTIONS
+          value: ""
+        - name: JENKINS_OPTS
+          value: ""
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: jenkins-admin-password
+              name: jenkins
+        - name: ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              key: jenkins-admin-user
+              name: jenkins
+        image: jenkins/jenkins:lts
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /login
+            port: http
+          initialDelaySeconds: 90
+          timeoutSeconds: 5
+        name: jenkins
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 50000
+          name: slavelistener
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: http
+          initialDelaySeconds: 60
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-home
+          readOnly: false
+        - mountPath: /var/jenkins_config
+          name: jenkins-config
+          readOnly: true
+        - mountPath: /usr/share/jenkins/ref/plugins/
+          name: plugin-dir
+          readOnly: false
+        - mountPath: /usr/share/jenkins/ref/secrets/
+          name: secrets-dir
+          readOnly: false
+      initContainers:
+      - command:
+        - sh
+        - /var/jenkins_config/apply_config.sh
+        image: jenkins/jenkins:lts
+        imagePullPolicy: Always
+        name: copy-default-config
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-home
+        - mountPath: /var/jenkins_config
+          name: jenkins-config
+        - mountPath: /var/jenkins_plugins
+          name: plugin-dir
+        - mountPath: /usr/share/jenkins/ref/secrets/
+          name: secrets-dir
+      securityContext:
+        runAsUser: 0
+      serviceAccountName: default
+      volumes:
+      - configMap:
+          name: jenkins
+        name: jenkins-config
+      - emptyDir: {}
+        name: plugin-dir
+      - emptyDir: {}
+        name: secrets-dir
+      - name: jenkins-home
+        persistentVolumeClaim:
+          claimName: jenkins
