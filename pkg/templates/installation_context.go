@@ -39,7 +39,7 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 			case "state_file_path":
 				return constants.StatePath
 			case "customer_id":
-				return ctx.Viper.GetString("customer-id")
+				return ctx.Meta.CustomerID
 			case "semver":
 				return ctx.Meta.Semver
 			case "channel_name":
@@ -49,7 +49,7 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 			case "release_id":
 				return ctx.Meta.ReleaseID
 			case "installation_id":
-				return ctx.Viper.GetString("installation-id")
+				return ctx.Meta.InstallationID
 			case "release_notes":
 				return ctx.Meta.ReleaseNotes
 			}

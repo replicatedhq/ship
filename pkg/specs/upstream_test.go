@@ -8,11 +8,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/specs/githubclient"
-
-	"github.com/replicatedhq/ship/pkg/state"
-
 	"github.com/google/go-github/github"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/stretchr/testify/require"
 )

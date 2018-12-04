@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"k8s.io/helm/pkg/chartutil"
-
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -24,6 +22,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+	"k8s.io/helm/pkg/chartutil"
 )
 
 func TestLocalTemplater(t *testing.T) {
