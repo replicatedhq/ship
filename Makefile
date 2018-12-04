@@ -9,11 +9,26 @@ UI = $(shell find web/app/init/build -name "*.js")
 DOCKER_REPO ?= replicated
 
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
-VERSION ?=`git describe --tags &>/dev/null || echo "v0.0.1"`
-GIT_SHA ?=`git rev-parse HEAD`
+VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
-ifneq "$(GIT_SHA)" ""
+GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
+ifneq "$(GIT_TREE)" ""
+define GIT_UPDATE_INDEX_CMD
+git update-index --assume-unchanged
+endef
+define GIT_SHA
+`git rev-parse HEAD`
+endef
+else
+define GIT_UPDATE_INDEX_CMD
+echo "Not a git repo, skipping git update-index"
+endef
+define GIT_SHA
+""
+endef
+endif
+
 define LDFLAGS
 -ldflags "\
 	-X ${VERSION_PACKAGE}.version=${VERSION} \
@@ -21,14 +36,6 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
-else
-define LDFLAGS
--ldflags "\
-	-X ${VERSION_PACKAGE}.version=${VERSION} \
-	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
-"
-endef
-endif
 
 .state/build-deps: hack/get_build_deps.sh
 	./hack/get_build_deps.sh
@@ -299,7 +306,7 @@ pkg/lifecycle/daemon/ui.bindatafs.go: .state/mark-ui-gitignored .state/build-dep
 mark-ui-gitignored: .state/mark-ui-gitignored
 
 .state/mark-ui-gitignored:
-	cd pkg/lifecycle/daemon/; git update-index --assume-unchanged ui.bindatafs.go
+	cd pkg/lifecycle/daemon/; $(GIT_UPDATE_INDEX_CMD) ui.bindatafs.go
 	@mkdir -p .state/
 	@touch .state/mark-ui-gitignored
 
