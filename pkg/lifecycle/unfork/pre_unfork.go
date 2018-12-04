@@ -23,11 +23,19 @@ type ListK8sYaml struct {
 func (l *Unforker) PreExecute(ctx context.Context, step api.Step) error {
 	// Split multi doc forked base first as it will be unmarshalled incorrectly in the following steps
 	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.ForkedBase); err != nil {
-		return errors.Wrap(err, "maybe split multi doc yaml")
+		return errors.Wrap(err, "maybe split multi doc yaml forked base")
 	}
 
 	if err := l.maybeSplitListYaml(ctx, step.Unfork.ForkedBase); err != nil {
-		return errors.Wrap(err, "maybe split list yaml")
+		return errors.Wrap(err, "maybe split list yaml forked base")
+	}
+
+	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.UpstreamBase); err != nil {
+		return errors.Wrap(err, "maybe split multi doc yaml upstream base")
+	}
+
+	if err := l.maybeSplitListYaml(ctx, step.Unfork.UpstreamBase); err != nil {
+		return errors.Wrap(err, "maybe split list yaml upstream base")
 	}
 
 	return nil

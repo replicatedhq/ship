@@ -23,6 +23,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
+	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	"sigs.k8s.io/kustomize/pkg/types"
 )
@@ -285,6 +286,16 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 			forkedData, err := fs.ReadFile(targetPath)
 			if err != nil {
 				return errors.Wrap(err, "read forked")
+			}
+
+			forkedResoruce, err := util.NewKubernetesResource(forkedData)
+			if err != nil {
+				return errors.Wrap(err, "create new k8s resource")
+			}
+
+			if _, err := scheme.Scheme.New(forkedResoruce.Id().Gvk()); err != nil {
+				// Ignore all non-k8s resources
+				return nil
 			}
 
 			forkedMinimal := util.MinimalK8sYaml{}
