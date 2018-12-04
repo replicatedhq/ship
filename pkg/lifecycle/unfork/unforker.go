@@ -2,12 +2,15 @@ package unfork
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -255,7 +258,7 @@ func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizep
 	return nil
 }
 
-func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork) (*state.Kustomize, error) {
+func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap map[util.MinimalK8sYaml]string) (*state.Kustomize, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "unforker", "handler", "generatePatches"))
 
 	kustomize := &state.Kustomize{}
@@ -279,16 +282,24 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork) (*state.Kust
 				return errors.Wrap(err, "get relative path")
 			}
 
-			upstreamPath := path.Join(step.UpstreamBase, relativePath)
+			forkedData, err := fs.ReadFile(targetPath)
+			if err != nil {
+				return errors.Wrap(err, "read forked")
+			}
+
+			forkedMinimal := util.MinimalK8sYaml{}
+			if err := yaml.Unmarshal(forkedData, &forkedMinimal); err != nil {
+				return errors.Wrap(err, "read forked minimal")
+			}
+
+			upstreamPath, exists := upstreamMap[forkedMinimal]
+			if !exists {
+				return errors.New(fmt.Sprintf("No matching upstream file found for %s", targetPath))
+			}
 
 			upstreamData, err := fs.ReadFile(upstreamPath)
 			if err != nil {
 				return errors.Wrap(err, "read upstream")
-			}
-
-			forkedData, err := fs.ReadFile(targetPath)
-			if err != nil {
-				return errors.Wrap(err, "read forked")
 			}
 
 			patch, err := l.Patcher.CreateTwoWayMergePatch(upstreamData, forkedData)
@@ -326,6 +337,40 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork) (*state.Kust
 	}
 
 	return kustomize, nil
+}
+
+func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstreamPath string) (map[util.MinimalK8sYaml]string, error) {
+	isDir, err := l.FS.IsDir(upstreamPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "is dir %s", upstreamPath)
+	}
+
+	if isDir {
+		files, err := l.FS.ReadDir(upstreamPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "read dir %s", upstreamPath)
+		}
+
+		for _, file := range files {
+			if _, err := l.mapUpstream(upstreamMap, filepath.Join(upstreamPath, file.Name())); err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		upstreamB, err := l.FS.ReadFile(upstreamPath)
+		if err != nil {
+			return upstreamMap, errors.Wrapf(err, "read file %s", upstreamPath)
+		}
+
+		upstreamMinimal := util.MinimalK8sYaml{}
+		if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
+			return upstreamMap, errors.Wrapf(err, "unmarshal file %s", upstreamPath)
+		}
+
+		upstreamMap[upstreamMinimal] = upstreamPath
+	}
+
+	return upstreamMap, nil
 }
 
 func containsNonGVK(data []byte) (bool, error) {

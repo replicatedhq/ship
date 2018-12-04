@@ -21,17 +21,13 @@ type ListK8sYaml struct {
 }
 
 func (l *Unforker) PreExecute(ctx context.Context, step api.Step) error {
-	// Split multi doc yaml first as it will be unmarshalled incorrectly in the following steps
-	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.UpstreamBase); err != nil {
+	// Split multi doc forked base first as it will be unmarshalled incorrectly in the following steps
+	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.ForkedBase); err != nil {
 		return errors.Wrap(err, "maybe split multi doc yaml")
 	}
 
-	if err := l.maybeSplitListYaml(ctx, step.Kustomize.Base); err != nil {
+	if err := l.maybeSplitListYaml(ctx, step.Unfork.ForkedBase); err != nil {
 		return errors.Wrap(err, "maybe split list yaml")
-	}
-
-	if err := l.initialKustomizeRun(ctx, *step.Unfork); err != nil {
-		return errors.Wrap(err, "initial kustomize run")
 	}
 
 	return nil
@@ -109,6 +105,7 @@ func (l *Unforker) maybeSplitListYaml(ctx context.Context, path string) error {
 	return nil
 }
 
+// TODO(Robert): Unused
 func (l *Unforker) initialKustomizeRun(ctx context.Context, step api.Unfork) error {
 	if err := l.writeBase(step); err != nil {
 		return errors.Wrap(err, "write base kustomization")

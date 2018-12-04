@@ -12,7 +12,7 @@ integration/*/_test_*
 
 /.state/
 /overlays/
-/base/
+base/
 web/.state/
 /rendered.yaml
 
