@@ -2,3 +2,5 @@ kind: ""
 apiversion: ""
 bases:
 - ../../base
+patchesStrategicMerge:
+- jenkins-master-deployment.yaml

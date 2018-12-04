@@ -9,7 +9,10 @@
         "ship": {
           "excludedBases": [
             "/jenkins-test.yaml"
-          ]
+          ],
+          "patches": {
+            "/jenkins-master-deployment.yaml": "apiVersion: apps/v1beta1\nkind: Deployment\nmetadata:\n  labels:\n    chart: jenkins-0.20.1\n    component: jenkins-jenkins-master\n    heritage: Tiller\n    release: jenkins\n    custom: label\n    key: value\n  name: jenkins\n"
+          }
         }
       }
     },

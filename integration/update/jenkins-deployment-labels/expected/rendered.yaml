@@ -219,7 +219,9 @@ metadata:
   labels:
     chart: jenkins-0.20.1
     component: jenkins-jenkins-master
+    custom: label
     heritage: Tiller
+    key: value
     release: jenkins
   name: jenkins
 spec:
