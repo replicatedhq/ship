@@ -7,7 +7,7 @@ node_modules
 .vscode
 /installer/
 /installer.bak/
-/.ship/
+.ship/
 integration/*/_test_*
 
 /.state/

@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -19,7 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/util"
 )
 
-func (r *Resolver) ResolveUnforkReleases(ctx context.Context, upstream string, forked string) (*api.Release, error) {
+func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, forked string) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "ResolveUnforkReleases")
 	r.ui.Info(fmt.Sprintf("Reading %s and %s ...", upstream, forked))
 
@@ -50,33 +48,51 @@ func (r *Resolver) ResolveUnforkReleases(ctx context.Context, upstream string, f
 	if err != nil {
 		return nil, errors.Wrapf(err, "determine type of %s", forked)
 	}
+
 	debug.Log("event", "applicationType.resolve", "type", forkedApplicationType)
 	r.ui.Info(fmt.Sprintf("Detected forked application type %s", forkedApplicationType))
-
-	if upstreamApplicationType != forkedApplicationType {
-		return nil, errors.Errorf("upstream and forked application types must be the same. found %s and %s", upstreamApplicationType, forkedApplicationType)
-	}
-
-	switch upstreamApplicationType {
-
+	forkedAsset := api.Asset{}
+	switch forkedApplicationType {
 	case "helm":
-		defaultRelease := r.DefaultHelmUnforkRelease(constants.HelmChartForkedPath, constants.HelmChartPath)
-
-		return r.resolveUnforkReleases(
-			ctx,
-			upstream,
-			forked,
-			localUpstreamPath,
-			localForkedPath,
-			constants.HelmChartPath,
-			constants.HelmChartForkedPath,
-			&defaultRelease,
-			upstreamApplicationType,
-		)
-
+		forkedAsset = api.Asset{
+			Helm: &api.HelmAsset{
+				AssetShared: api.AssetShared{
+					Dest: constants.UnforkForkedBasePath,
+				},
+				Local: &api.LocalHelmOpts{
+					ChartRoot: constants.HelmChartForkedPath,
+				},
+				ValuesFrom: &api.ValuesFrom{
+					Lifecycle: &api.ValuesFromLifecycle{},
+				},
+			},
+		}
+	case "k8s":
+		forkedAsset = api.Asset{
+			Local: &api.LocalAsset{
+				AssetShared: api.AssetShared{
+					Dest: constants.UnforkForkedBasePath,
+				},
+				Path: constants.HelmChartForkedPath,
+			},
+		}
+	default:
+		return nil, errors.Errorf("unknown application type %q", forkedApplicationType)
 	}
 
-	return nil, errors.Errorf("unknown application type %q", upstreamApplicationType)
+	defaultRelease := r.DefaultHelmUnforkRelease(forkedAsset, constants.HelmChartPath)
+
+	return r.resolveUnforkRelease(
+		ctx,
+		upstream,
+		forked,
+		localUpstreamPath,
+		localForkedPath,
+		constants.HelmChartPath,
+		constants.HelmChartForkedPath,
+		&defaultRelease,
+		upstreamApplicationType,
+	)
 }
 
 // A resolver turns a target string into a release.
@@ -218,7 +234,7 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	return "", errors.Errorf("Could not continue with application type %q of upstream %s", appType, upstream)
 }
 
-func (r *Resolver) resolveUnforkReleases(
+func (r *Resolver) resolveUnforkRelease(
 	ctx context.Context,
 	upstream string,
 	forked string,
@@ -248,10 +264,14 @@ func (r *Resolver) resolveUnforkReleases(
 		return nil, errors.Wrapf(err, "backup %s", destUpstreamPath)
 	}
 
-	destUpstreamPathParts := strings.Split(destUpstreamPath, string(filepath.Separator))
-	err = r.FS.MkdirAll(path.Join(destUpstreamPathParts[:len(destUpstreamPathParts)-1]...), 0777)
+	err = r.FS.MkdirAll(filepath.Dir(destUpstreamPath), 0777)
 	if err != nil {
 		return nil, errors.Wrapf(err, "mkdir %s", localUpstreamPath)
+	}
+
+	err = r.FS.MkdirAll(filepath.Dir(destForkedPath), 0777)
+	if err != nil {
+		return nil, errors.Wrapf(err, "mkdir %s", destForkedPath)
 	}
 
 	err = r.FS.Rename(localUpstreamPath, destUpstreamPath)

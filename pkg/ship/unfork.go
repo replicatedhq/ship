@@ -59,7 +59,7 @@ func (s *Ship) Unfork(ctx context.Context) error {
 		return errors.Wrap(err, "create versioned fork release")
 	}
 
-	release, err := s.Resolver.ResolveUnforkReleases(ctx, maybeVersionedUpstream, maybeVersionedFork)
+	release, err := s.Resolver.ResolveUnforkRelease(ctx, maybeVersionedUpstream, maybeVersionedFork)
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
 	}
