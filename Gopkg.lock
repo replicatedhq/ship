@@ -353,11 +353,11 @@
 
 [[projects]]
   branch = "improve-comment-parsing"
-  digest = "1:b19f021fce8ceef9284606de1375b68bde8ec3b4b72433ed724813195f4a12cb"
+  digest = "1:3cb2828c888836614087aaf50be0d5e511806ee8339d1731282cbfea746a5581"
   name = "github.com/emosbaugh/yaml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8ed2da1637f01691123a80b59f56ac3e48e5db31"
+  revision = "5e4a83743e09107589c4666b5fecad255e20ca37"
 
 [[projects]]
   digest = "1:b48d19e79fa607e9e3715ff9a73cdd3777a9cac254b50b9af721466f687e850d"

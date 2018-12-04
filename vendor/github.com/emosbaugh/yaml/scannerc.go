@@ -1495,7 +1495,7 @@ func yaml_parser_scan_to_next_token(parser *yaml_parser_t) bool {
 			if parser.unread < 2 && !yaml_parser_update_buffer(parser, 2) {
 				return false
 			}
-			if parser.mark.column == 0 && parser.parse_comments {
+			if parser.mark.column == 0 && parser.parse_comments && parser.state != yaml_PARSE_BLOCK_MAPPING_VALUE_STATE {
 				// This is an empty line.
 				token := yaml_token_t{
 					typ:        yaml_COMMENT_TOKEN,
