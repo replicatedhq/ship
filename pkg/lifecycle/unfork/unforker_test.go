@@ -3,6 +3,9 @@ package unfork
 import (
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/util"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,4 +33,138 @@ spec:
 	check, err = containsNonGVK([]byte(extraKeys))
 	req.NoError(err)
 	req.True(check, "yaml with non gvk keys should report that it contains extra keys")
+}
+
+type testFile struct {
+	path     string
+	contents string
+}
+
+func TestUnforker_mapUpstream(t *testing.T) {
+	tests := []struct {
+		name         string
+		testFiles    []testFile
+		upstreamPath string
+		want         map[util.MinimalK8sYaml]string
+	}{
+		{
+			name: "simple",
+			testFiles: []testFile{
+				{
+					path: "base/strawberry.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: strawberry
+spec:
+  hi: hello
+`,
+				},
+			},
+			upstreamPath: "base",
+			want: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Fruit",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "strawberry",
+					},
+				}: "base/strawberry.yaml",
+			},
+		},
+		{
+			name: "complex",
+			testFiles: []testFile{
+				{
+					path: "base/strawberry.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: strawberry
+spec:
+  hi: hello
+`,
+				},
+				{
+					path: "base/nested/banana.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: banana
+spec:
+  bye: goodbye
+`,
+				},
+				{
+					path: "base/nested/avocado.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: avocado
+spec:
+  what: ami
+`,
+				},
+				{
+					path: "base/another/pomegranate.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: pomegranate
+spec:
+  laugh: lol
+`,
+				},
+			},
+			upstreamPath: "base",
+			want: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Fruit",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "strawberry",
+					},
+				}: "base/strawberry.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Fruit",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "banana",
+					},
+				}: "base/nested/banana.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Fruit",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "avocado",
+					},
+				}: "base/nested/avocado.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Fruit",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "pomegranate",
+					},
+				}: "base/another/pomegranate.yaml",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		req := require.New(t)
+		mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
+		err := addTestFiles(mockFS, tt.testFiles)
+		req.NoError(err)
+
+		t.Run(tt.name, func(t *testing.T) {
+			l := &Unforker{
+				Logger: &logger.TestLogger{T: t},
+				FS:     mockFS,
+			}
+			upstreamMap := map[util.MinimalK8sYaml]string{}
+			err := l.mapUpstream(upstreamMap, tt.upstreamPath)
+			req.NoError(err)
+
+			req.Equal(tt.want, upstreamMap)
+		})
+	}
+}
+
+func addTestFiles(fs afero.Afero, testFiles []testFile) error {
+	for _, testFile := range testFiles {
+		if err := fs.WriteFile(testFile.path, []byte(testFile.contents), 0777); err != nil {
+			return err
+		}
+	}
+	return nil
 }

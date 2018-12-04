@@ -33,6 +33,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/local"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
@@ -110,6 +111,8 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		googlegke.NewRenderer,
 
 		azureaks.NewRenderer,
+
+		local.NewRenderer,
 
 		NewShip,
 	}

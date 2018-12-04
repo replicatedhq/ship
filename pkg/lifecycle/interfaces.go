@@ -44,6 +44,7 @@ type KustomizeIntro interface {
 }
 
 type Unforker interface {
+	PreExecute(ctx context.Context, step api.Step) error
 	Execute(ctx context.Context, release *api.Release, step api.Unfork) error
 }
 

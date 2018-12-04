@@ -17,3 +17,7 @@ web/.state/
 /rendered.yaml
 
 .DS_Store
+
+# delve
+cmd/ship/.ship
+cmd/ship/base

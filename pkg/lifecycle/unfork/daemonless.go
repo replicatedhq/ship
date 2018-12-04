@@ -35,9 +35,14 @@ func NewDaemonlessUnforker(logger log.Logger, fs afero.Afero, state state.Manage
 func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.Unfork) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.unforker", "method", "execute"))
 
+	debug.Log("event", "upstream.map")
+	upstreamMap := map[util.MinimalK8sYaml]string{}
+	if err := l.mapUpstream(upstreamMap, step.UpstreamBase); err != nil {
+		return errors.Wrap(err, "map upstream")
+	}
+
 	debug.Log("event", "write.base.kustomization.yaml")
-	err := l.writeBase(step)
-	if err != nil {
+	if err := l.writeBase(step); err != nil {
 		return errors.Wrap(err, "write base kustomization")
 	}
 
@@ -56,7 +61,7 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 	}
 
 	// this isn't in the right place, but it works until we figure out the right workflow...
-	kustomizeState, err := l.generatePatches(fs, step)
+	kustomizeState, err := l.generatePatches(fs, step, upstreamMap)
 	if err != nil {
 		debug.Log("event", "generate.patches.fail", "err", err)
 		return errors.Wrapf(err, "generate patches")

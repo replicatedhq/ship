@@ -31,6 +31,7 @@ type Asset struct {
 	GitHub      *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 	Web         *WebAsset         `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
 	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
+	Local       *LocalAsset       `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	AmazonEKS   *EKSAsset         `json:"amazon_eks,omitempty" yaml:"amazon_eks,omitempty" hcl:"amazon_eks,omitempty"`
 	GoogleGKE   *GKEAsset         `json:"google_gke,omitempty" yaml:"google_gke,omitempty" hcl:"google_gke,omitempty"`
@@ -89,6 +90,12 @@ type HelmAsset struct {
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local      *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 	ValuesFrom *ValuesFrom    `json:"values_from,omitempty" yaml:"values_from,omitempty" hcl:"values_from,omitempty"`
+}
+
+// LocalAsset is an asset whose contents are on the local fs
+type LocalAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path        string `json:"path" yaml:"path" hcl:"path"`
 }
 
 type ValuesFrom struct {

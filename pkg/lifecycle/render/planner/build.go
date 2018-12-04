@@ -70,6 +70,16 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			if evaluatedWhen {
 				plan = append(plan, p.helmStep(rootFs, *asset.Helm, meta, templateContext, configGroups))
 			}
+		} else if asset.Local != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Local.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "local")
+			if evaluatedWhen {
+				plan = append(plan, p.localStep(*asset.Local, meta, templateContext, configGroups))
+			}
 		} else if asset.DockerLayer != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.DockerLayer.AssetShared.When)
 			if err != nil {
@@ -209,6 +219,19 @@ func (p *CLIPlanner) helmStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.Helm.Execute(rootFs, asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) localStep(
+	asset api.LocalAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Local.Execute(asset, meta, templateContext, configGroups),
 	}
 }
 

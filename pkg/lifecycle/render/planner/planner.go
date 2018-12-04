@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/local"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -106,6 +107,7 @@ type CLIPlanner struct {
 
 	Inline      inline.Renderer
 	Helm        helm.Renderer
+	Local       local.Renderer
 	Docker      docker.Renderer
 	DockerLayer *dockerlayer.Unpacker
 	Web         web.Renderer
@@ -126,6 +128,7 @@ func NewFactory(
 	inlineRenderer inline.Renderer,
 	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
+	localRenderer local.Renderer,
 	dockerlayers *dockerlayer.Unpacker,
 	gh github.Renderer,
 	tf terraform.Renderer,
@@ -145,6 +148,7 @@ func NewFactory(
 
 			Inline:      inlineRenderer,
 			Helm:        helmRenderer,
+			Local:       localRenderer,
 			Docker:      dockerRenderer,
 			DockerLayer: dockerlayers,
 			GitHub:      gh,

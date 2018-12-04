@@ -1,0 +1,10 @@
+kind: ""
+apiversion: ""
+resources:
+- configmap.yaml
+- health-configmap.yaml
+- redis-master-statefulset.yaml
+- redis-master-svc.yaml
+- redis-slave-deployment.yaml
+- redis-slave-svc.yaml
+- secret.yaml

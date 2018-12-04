@@ -51,6 +51,9 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
 		return errors.Wrap(err, "execute kustomize step")
 	} else if step.Unfork != nil {
+		if err := s.Unforker.PreExecute(ctx, *step); err != nil {
+			return errors.Wrap(err, "preExecute unforker step")
+		}
 		debug.Log("event", "step.resolve", "type", "unfork")
 		err := s.Unforker.Execute(ctx, release, *step.Unfork)
 		debug.Log("event", "step.complete", "type", "unfork", "err", err)
