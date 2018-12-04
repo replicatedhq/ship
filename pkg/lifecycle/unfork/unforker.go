@@ -339,38 +339,38 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 	return kustomize, nil
 }
 
-func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstreamPath string) (map[util.MinimalK8sYaml]string, error) {
+func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstreamPath string) error {
 	isDir, err := l.FS.IsDir(upstreamPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "is dir %s", upstreamPath)
+		return errors.Wrapf(err, "is dir %s", upstreamPath)
 	}
 
 	if isDir {
 		files, err := l.FS.ReadDir(upstreamPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "read dir %s", upstreamPath)
+			return errors.Wrapf(err, "read dir %s", upstreamPath)
 		}
 
 		for _, file := range files {
-			if _, err := l.mapUpstream(upstreamMap, filepath.Join(upstreamPath, file.Name())); err != nil {
-				return nil, err
+			if err := l.mapUpstream(upstreamMap, filepath.Join(upstreamPath, file.Name())); err != nil {
+				return err
 			}
 		}
 	} else {
 		upstreamB, err := l.FS.ReadFile(upstreamPath)
 		if err != nil {
-			return upstreamMap, errors.Wrapf(err, "read file %s", upstreamPath)
+			return errors.Wrapf(err, "read file %s", upstreamPath)
 		}
 
 		upstreamMinimal := util.MinimalK8sYaml{}
 		if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
-			return upstreamMap, errors.Wrapf(err, "unmarshal file %s", upstreamPath)
+			return errors.Wrapf(err, "unmarshal file %s", upstreamPath)
 		}
 
 		upstreamMap[upstreamMinimal] = upstreamPath
 	}
 
-	return upstreamMap, nil
+	return nil
 }
 
 func containsNonGVK(data []byte) (bool, error) {

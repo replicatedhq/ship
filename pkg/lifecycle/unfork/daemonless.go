@@ -37,8 +37,7 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 
 	debug.Log("event", "upstream.map")
 	upstreamMap := map[util.MinimalK8sYaml]string{}
-	upstreamMap, err := l.mapUpstream(upstreamMap, step.UpstreamBase)
-	if err != nil {
+	if err := l.mapUpstream(upstreamMap, step.UpstreamBase); err != nil {
 		return errors.Wrap(err, "map upstream")
 	}
 
