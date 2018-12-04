@@ -98,14 +98,18 @@ func testCases() []TestInstallation {
 			Expected: "It's " + constants.StatePath,
 		},
 		{
-			Name:     "customer_id",
-			Meta:     api.ReleaseMetadata{},
+			Name: "customer_id",
+			Meta: api.ReleaseMetadata{
+				CustomerID: "abc",
+			},
 			Tpl:      `It's {{repl Installation "customer_id" }}`,
 			Expected: `It's abc`,
 		},
 		{
-			Name:     "installation_id",
-			Meta:     api.ReleaseMetadata{},
+			Name: "installation_id",
+			Meta: api.ReleaseMetadata{
+				InstallationID: "xyz",
+			},
 			Tpl:      `It's {{repl Installation "installation_id" }}`,
 			Expected: `It's xyz`,
 		},

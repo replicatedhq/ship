@@ -12,6 +12,8 @@ assets:
         contents: |
           #!/bin/bash
           echo "tested nothing"
+          echo "customer {{repl Installation "customer_id" }}"
+          echo "install {{repl Installation "installation_id" }}"
         dest: ./scripts/test.sh
         mode: 0777
 config:
