@@ -1,0 +1,15 @@
+---
+# Source: istio/charts/mixer/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-statsd-prom-bridge
+  namespace: default
+  labels:
+    app: istio-statsd-prom-bridge
+    chart: mixer-1.0.3
+    release: istio
+    heritage: Tiller
+    istio: mixer
+data:
+  mapping.conf: |-

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-telemetry
+  namespace: default
+  labels:
+    chart: mixer-1.0.3
+    release: istio
+    istio: mixer
+spec:
+  ports:
+  - name: grpc-mixer
+    port: 9091
+  - name: grpc-mixer-mtls
+    port: 15004
+  - name: http-monitoring
+    port: 9093
+  - name: prometheus
+    port: 42422
+  selector:
+    istio: mixer
+    istio-mixer-type: telemetry
