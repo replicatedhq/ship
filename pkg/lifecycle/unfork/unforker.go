@@ -2,7 +2,6 @@ package unfork
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -273,6 +272,11 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				return errors.Wrap(err, "walk path")
 			}
 
+			// ignore non-yaml
+			if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
+				return nil
+			}
+
 			if info.Mode().IsDir() {
 				return nil
 			}
@@ -290,7 +294,7 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 
 			forkedResoruce, err := util.NewKubernetesResource(forkedData)
 			if err != nil {
-				return errors.Wrap(err, "create new k8s resource")
+				return errors.Wrapf(err, "create new k8s resource %s", targetPath)
 			}
 
 			if _, err := scheme.Scheme.New(forkedResoruce.Id().Gvk()); err != nil {
@@ -305,7 +309,11 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 
 			upstreamPath, exists := upstreamMap[forkedMinimal]
 			if !exists {
-				return errors.New(fmt.Sprintf("No matching upstream file found for %s", targetPath))
+				// If no equivalent upstream file exists, it must be a brand new file.
+				_, fileName := path.Split(relativePath)
+				overlay.Resources[string(filepath.Separator)+fileName] = string(forkedData)
+				debug.Log("event", "resource.saved", "resource", fileName)
+				return nil
 			}
 
 			upstreamData, err := fs.ReadFile(upstreamPath)
