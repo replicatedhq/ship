@@ -8,7 +8,7 @@ $SRC = $(shell find . -path "./node_modules" -prune -o -path "./build" -prune -o
 	@mkdir -p .state
 	@touch .state/package
 
-.state/package-init: ../init/package.json ../init/yarn.lock
+.state/package-init: ../init/package.json ../init/yarn.lock .state/package
 	cd ../init && \
 		yarn --pure-lockfile && \
 		yarn build && \
@@ -17,7 +17,7 @@ $SRC = $(shell find . -path "./node_modules" -prune -o -path "./build" -prune -o
 	@mkdir -p .state
 	@touch .state/package-init
 
-.state/package-init-dev: ../init/package.json ../init/yarn.lock
+.state/package-init-dev: ../init/package.json ../init/yarn.lock .state/package
 	cd ../init && \
 		yarn --pure-lockfile && \
 		yarn build-dev && \
