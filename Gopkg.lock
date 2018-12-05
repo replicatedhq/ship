@@ -1610,8 +1610,8 @@
     "storage/v1beta1",
   ]
   pruneopts = "UT"
-  revision = "4e7be11eab3ffcfc1876898b8272df53785a9504"
-  version = "kubernetes-1.11.3"
+  revision = "95336914c664590c72e583850a44daa9520cc1d6"
+  version = "kubernetes-1.11.5"
 
 [[projects]]
   branch = "master"
@@ -1679,8 +1679,8 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "def12e63c512da17043b4f0293f52d1006603d9f"
-  version = "kubernetes-1.11.3"
+  revision = "70adfbae261eebb795b76321790745ad0e3c523f"
+  version = "kubernetes-1.11.5"
 
 [[projects]]
   digest = "1:41151067c0a08f391ac3b9aaf7b24a4e7f5fc29fb829f0d7cec899abbcfe4288"
@@ -1695,11 +1695,11 @@
     "pkg/util/feature",
   ]
   pruneopts = "UT"
-  revision = "386115dd78fde3efc2366cb381420a4dd0157348"
-  version = "kubernetes-1.11.3"
+  revision = "8afb6ff1462d6263f85608463d369fe0e7347fd8"
+  version = "kubernetes-1.11.5"
 
 [[projects]]
-  digest = "1:2bbbb2b9d10100e0a01f2c995f1bf6f806950f5717b020e4a8f719782106455f"
+  digest = "1:48591b685d24a1976be2a95584e55510179b617d3aa200b8e2b3c80513858763"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1779,8 +1779,8 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "2cefa64ff137e128daeddbd1775cd775708a05bf"
-  version = "kubernetes-1.11.3"
+  revision = "d4cbff6e80d2455e23aeeade2870c62007a7f5b4"
+  version = "kubernetes-1.11.5"
 
 [[projects]]
   digest = "1:190ead723ad8a72162fb04feafa17de9afd9d7de40564e833fcdd9608e584a3e"
@@ -1841,7 +1841,7 @@
   revision = "d8ea2fe547a448256204cfc68dfee7b26c720acb"
 
 [[projects]]
-  digest = "1:198caf25dffff2b9dccfb54ef347d1b24686261159019b621513b100fd11f7a7"
+  digest = "1:6ace6206bd8a51ce08c1c2fae18b1e1e1f1e3a4f6016376012b3314aaab4e15f"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/events",
@@ -1989,8 +1989,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "a4529464e4629c21224b3d52edfe0ea91b072862"
-  version = "v1.11.3"
+  revision = "753b2dbc622f5cc417845f0ff8a77f539a4213ea"
+  version = "v1.11.5"
 
 [[projects]]
   branch = "master"
