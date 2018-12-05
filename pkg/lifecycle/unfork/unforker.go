@@ -2,7 +2,6 @@ package unfork
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -23,6 +22,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
+	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	"sigs.k8s.io/kustomize/pkg/types"
 )
@@ -272,6 +272,11 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				return errors.Wrap(err, "walk path")
 			}
 
+			// ignore non-yaml
+			if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
+				return nil
+			}
+
 			if info.Mode().IsDir() {
 				return nil
 			}
@@ -287,14 +292,29 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				return errors.Wrap(err, "read forked")
 			}
 
+			forkedResource, err := util.NewKubernetesResource(forkedData)
+			if err != nil {
+				return errors.Wrapf(err, "create new k8s resource %s", targetPath)
+			}
+
+			if _, err := scheme.Scheme.New(forkedResource.Id().Gvk()); err != nil {
+				// Ignore all non-k8s resources
+				return nil
+			}
+
 			forkedMinimal := util.MinimalK8sYaml{}
 			if err := yaml.Unmarshal(forkedData, &forkedMinimal); err != nil {
 				return errors.Wrap(err, "read forked minimal")
 			}
 
+			_, fileName := path.Split(relativePath)
+			fileName = string(filepath.Separator) + fileName
 			upstreamPath, exists := upstreamMap[forkedMinimal]
 			if !exists {
-				return errors.New(fmt.Sprintf("No matching upstream file found for %s", targetPath))
+				// If no equivalent upstream file exists, it must be a brand new file.
+				overlay.Resources[fileName] = string(forkedData)
+				debug.Log("event", "resource.saved", "resource", fileName)
+				return nil
 			}
 
 			upstreamData, err := fs.ReadFile(upstreamPath)
@@ -313,9 +333,7 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 			}
 
 			if includePatch {
-				_, fileName := path.Split(relativePath)
-				overlay.Patches[string(filepath.Separator)+fileName] = string(patch)
-
+				overlay.Patches[fileName] = string(patch)
 				if err := l.FS.WriteFile(path.Join(step.OverlayPath(), fileName), patch, 0755); err != nil {
 					return errors.Wrap(err, "write overlay")
 				}

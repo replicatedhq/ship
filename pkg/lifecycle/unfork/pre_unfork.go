@@ -23,17 +23,26 @@ type ListK8sYaml struct {
 func (l *Unforker) PreExecute(ctx context.Context, step api.Step) error {
 	// Split multi doc forked base first as it will be unmarshalled incorrectly in the following steps
 	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.ForkedBase); err != nil {
-		return errors.Wrap(err, "maybe split multi doc yaml")
+		return errors.Wrap(err, "maybe split multi doc yaml forked base")
 	}
 
-	if err := l.maybeSplitListYaml(ctx, step.Unfork.ForkedBase); err != nil {
-		return errors.Wrap(err, "maybe split list yaml")
+	// Split the forked list and only save this result to state to reconstruct the rendered
+	if err := l.maybeSplitListYaml(ctx, step.Unfork.ForkedBase, true); err != nil {
+		return errors.Wrap(err, "maybe split list yaml forked base")
+	}
+
+	if err := l.maybeSplitMultidocYaml(ctx, step.Unfork.UpstreamBase); err != nil {
+		return errors.Wrap(err, "maybe split multi doc yaml upstream base")
+	}
+
+	if err := l.maybeSplitListYaml(ctx, step.Unfork.UpstreamBase, false); err != nil {
+		return errors.Wrap(err, "maybe split list yaml upstream base")
 	}
 
 	return nil
 }
 
-func (l *Unforker) maybeSplitListYaml(ctx context.Context, path string) error {
+func (l *Unforker) maybeSplitListYaml(ctx context.Context, path string, saveList bool) error {
 	debug := level.Debug(log.With(l.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github"))
 
 	debug.Log("event", "readDir", "path", path)
@@ -46,7 +55,7 @@ func (l *Unforker) maybeSplitListYaml(ctx context.Context, path string) error {
 		filePath := filepath.Join(path, file.Name())
 
 		if file.IsDir() {
-			return l.maybeSplitListYaml(ctx, filepath.Join(path, file.Name()))
+			return l.maybeSplitListYaml(ctx, filepath.Join(path, file.Name()), saveList)
 		}
 
 		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
@@ -95,9 +104,11 @@ func (l *Unforker) maybeSplitListYaml(ctx context.Context, path string) error {
 				Items:      listItems,
 			}
 
-			debug.Log("event", "serializeListsMetadata")
-			if err := l.State.SerializeListsMetadata(list); err != nil {
-				return errors.Wrapf(err, "serialize list metadata")
+			if saveList {
+				debug.Log("event", "serializeListsMetadata")
+				if err := l.State.SerializeListsMetadata(list); err != nil {
+					return errors.Wrapf(err, "serialize list metadata")
+				}
 			}
 		}
 	}

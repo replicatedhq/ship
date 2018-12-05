@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -22,6 +23,7 @@ type TestMetadata struct {
 	Upstream     string                `yaml:"upstream"`
 	Fork         string                `yaml:"fork"`
 	Args         []string              `yaml:"args"`
+	MakeAbsolute bool                  `yaml:"make_absolute"`
 	IgnoredKeys  []map[string][]string `yaml:"ignoredKeys"`
 	IgnoredFiles []string              `yaml:"ignoredFiles"`
 }
@@ -74,6 +76,18 @@ var _ = Describe("ship unfork", func() {
 
 				It("Should output the expected files", func() {
 					replacements := map[string]string{}
+					absoluteUpstream := testMetadata.Upstream
+
+					if testMetadata.MakeAbsolute {
+						relativePath := testMetadata.Upstream
+						pwdRoot, err := os.Getwd()
+						Expect(err).NotTo(HaveOccurred())
+						pwdRoot, err = filepath.Abs(pwdRoot)
+						Expect(err).NotTo(HaveOccurred())
+						absolutePath := filepath.Join(pwdRoot, "..")
+						absoluteUpstream = fmt.Sprintf("file::%s", filepath.Join(absolutePath, relativePath))
+						replacements["__upstream__"] = absoluteUpstream
+					}
 
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
@@ -81,7 +95,7 @@ var _ = Describe("ship unfork", func() {
 					cmd.SetArgs(append([]string{
 						"unfork",
 						"--upstream",
-						testMetadata.Upstream,
+						absoluteUpstream,
 						testMetadata.Fork,
 						"--log-level=off",
 					}, testMetadata.Args...))

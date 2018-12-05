@@ -18,24 +18,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func (r *Resolver) DefaultHelmUnforkRelease(forkedAsset api.Asset, upstreamPath string) api.Spec {
+func (r *Resolver) DefaultHelmUnforkRelease(upstreamAsset api.Asset, forkedAsset api.Asset) api.Spec {
 	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
+				upstreamAsset,
 				forkedAsset,
-				{
-					Helm: &api.HelmAsset{
-						AssetShared: api.AssetShared{
-							Dest: constants.KustomizeBasePath,
-						},
-						Local: &api.LocalHelmOpts{
-							ChartRoot: upstreamPath,
-						},
-						ValuesFrom: &api.ValuesFrom{
-							Lifecycle: &api.ValuesFromLifecycle{},
-						},
-					},
-				},
 			},
 		},
 		Lifecycle: api.Lifecycle{

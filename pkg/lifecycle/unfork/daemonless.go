@@ -104,6 +104,12 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 				if built, err = l.rebuildListYaml(lists, built); err != nil {
 					return errors.Wrap(err, "rebuild list yaml")
 				}
+				// Deleting all the list metadata here as it'll be recreated
+				// during the update flow.
+				currentState.Versioned().V1.Metadata.Lists = []util.List{}
+				if err := l.State.Save(currentState.Versioned()); err != nil {
+					return errors.Wrap(err, "remove lists metadata")
+				}
 			}
 		}
 

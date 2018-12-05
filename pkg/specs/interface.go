@@ -51,6 +51,11 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 
 	debug.Log("event", "applicationType.resolve", "type", forkedApplicationType)
 	r.ui.Info(fmt.Sprintf("Detected forked application type %s", forkedApplicationType))
+
+	if forkedApplicationType == "helm" && upstreamApplicationType == "k8s" {
+		return nil, errors.New("Unsupported fork and upstream combination")
+	}
+
 	forkedAsset := api.Asset{}
 	switch forkedApplicationType {
 	case "helm":
@@ -77,10 +82,39 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 			},
 		}
 	default:
-		return nil, errors.Errorf("unknown application type %q", forkedApplicationType)
+		return nil, errors.Errorf("unknown forked application type %q", forkedApplicationType)
 	}
 
-	defaultRelease := r.DefaultHelmUnforkRelease(forkedAsset, constants.HelmChartPath)
+	upstreamAsset := api.Asset{}
+	switch upstreamApplicationType {
+	case "helm":
+		upstreamAsset = api.Asset{
+			Helm: &api.HelmAsset{
+				AssetShared: api.AssetShared{
+					Dest: constants.KustomizeBasePath,
+				},
+				Local: &api.LocalHelmOpts{
+					ChartRoot: constants.HelmChartPath,
+				},
+				ValuesFrom: &api.ValuesFrom{
+					Lifecycle: &api.ValuesFromLifecycle{},
+				},
+			},
+		}
+	case "k8s":
+		upstreamAsset = api.Asset{
+			Local: &api.LocalAsset{
+				AssetShared: api.AssetShared{
+					Dest: constants.KustomizeBasePath,
+				},
+				Path: constants.HelmChartPath,
+			},
+		}
+	default:
+		return nil, errors.Errorf("unknown upstream application type %q", forkedApplicationType)
+	}
+
+	defaultRelease := r.DefaultHelmUnforkRelease(upstreamAsset, forkedAsset)
 
 	return r.resolveUnforkRelease(
 		ctx,

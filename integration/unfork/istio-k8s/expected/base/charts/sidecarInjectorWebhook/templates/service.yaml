@@ -1,0 +1,14 @@
+---
+# Source: istio/charts/sidecarInjectorWebhook/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-sidecar-injector
+  namespace: default
+  labels:
+    istio: sidecar-injector
+spec:
+  ports:
+  - port: 443
+  selector:
+    istio: sidecar-injector

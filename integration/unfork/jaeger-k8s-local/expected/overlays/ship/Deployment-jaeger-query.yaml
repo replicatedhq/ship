@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: query-deployment
+  name: jaeger-query
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: jaeger-query
+      containers:
+      - $setElementOrder/env:
+        - name: SPAN_STORAGE_TYPE
+        env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage-type
+              name: jaeger-configuration
+        - $patch: delete
+          name: FORKED_ENV
+        name: jaeger-query

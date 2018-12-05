@@ -21,3 +21,4 @@ web/.state/
 # delve
 cmd/ship/.ship
 cmd/ship/base
+cmd/ship/overlays

@@ -1,0 +1,11 @@
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: stdio
+  namespace: default
+spec:
+  match: context.protocol == "http" || context.protocol == "grpc"
+  actions:
+  - handler: handler.stdio
+    instances:
+    - accesslog.logentry

@@ -1,13 +1,14 @@
 package patch
 
 import (
-	"bytes"
 	"encoding/json"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
 	"strconv"
+
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
@@ -16,12 +17,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/resource"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
@@ -47,18 +45,6 @@ func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
 		Logger: logger,
 		FS:     fs,
 	}
-}
-
-func (p *ShipPatcher) newKubernetesResource(in []byte) (*resource.Resource, error) {
-	var out unstructured.Unstructured
-
-	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(in), 1024)
-	err := decoder.Decode(&out)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode json")
-	}
-
-	return resource.NewResourceFromUnstruct(out), nil
 }
 
 func (p *ShipPatcher) writeHeaderToPatch(originalJSON, patchJSON []byte) ([]byte, error) {
@@ -118,7 +104,7 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte,
 	}
 
 	debug.Log("event", "createKubeResource.original")
-	r, err := p.newKubernetesResource(originalJSON)
+	r, err := util.NewKubernetesResource(originalJSON)
 	if err != nil {
 		return nil, errors.Wrap(err, "create kube resource with original json")
 	}
