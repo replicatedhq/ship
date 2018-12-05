@@ -292,12 +292,12 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				return errors.Wrap(err, "read forked")
 			}
 
-			forkedResoruce, err := util.NewKubernetesResource(forkedData)
+			forkedResource, err := util.NewKubernetesResource(forkedData)
 			if err != nil {
 				return errors.Wrapf(err, "create new k8s resource %s", targetPath)
 			}
 
-			if _, err := scheme.Scheme.New(forkedResoruce.Id().Gvk()); err != nil {
+			if _, err := scheme.Scheme.New(forkedResource.Id().Gvk()); err != nil {
 				// Ignore all non-k8s resources
 				return nil
 			}
@@ -307,11 +307,12 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				return errors.Wrap(err, "read forked minimal")
 			}
 
+			_, fileName := path.Split(relativePath)
+			fileName = string(filepath.Separator) + fileName
 			upstreamPath, exists := upstreamMap[forkedMinimal]
 			if !exists {
 				// If no equivalent upstream file exists, it must be a brand new file.
-				_, fileName := path.Split(relativePath)
-				overlay.Resources[string(filepath.Separator)+fileName] = string(forkedData)
+				overlay.Resources[fileName] = string(forkedData)
 				debug.Log("event", "resource.saved", "resource", fileName)
 				return nil
 			}
@@ -332,9 +333,7 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 			}
 
 			if includePatch {
-				_, fileName := path.Split(relativePath)
-				overlay.Patches[string(filepath.Separator)+fileName] = string(patch)
-
+				overlay.Patches[fileName] = string(patch)
 				if err := l.FS.WriteFile(path.Join(step.OverlayPath(), fileName), patch, 0755); err != nil {
 					return errors.Wrap(err, "write overlay")
 				}
