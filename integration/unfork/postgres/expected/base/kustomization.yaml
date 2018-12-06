@@ -1,0 +1,8 @@
+kind: ""
+apiversion: ""
+resources:
+- initialization-configmap.yaml
+- secrets.yaml
+- statefulset.yaml
+- svc-headless.yaml
+- svc.yaml
