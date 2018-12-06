@@ -459,3 +459,63 @@ func TestResolver_recursiveCopy(t *testing.T) {
 		})
 	}
 }
+
+func TestResolver_maybeGetReleaseName(t *testing.T) {
+	type testFile struct {
+		filePath string
+		contents string
+	}
+
+	tests := []struct {
+		name        string
+		pathToStart string
+		testFiles   []testFile
+		want        string
+	}{
+		{
+			name:        "simple",
+			pathToStart: "random",
+			testFiles: []testFile{
+				{
+					filePath: "random/a.yaml",
+					contents: `
+kind: Fruit
+metadata:
+  labels:
+    release: pasta`,
+				},
+			},
+			want: "pasta",
+		},
+		{
+			name:        "yaml with no release",
+			pathToStart: "random",
+			testFiles: []testFile{
+				{
+					filePath: "random/b.yaml",
+					contents: `
+kind: Fruit
+`,
+				},
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		req := require.New(t)
+		t.Run(tt.name, func(t *testing.T) {
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			for _, file := range tt.testFiles {
+				err := mockFs.WriteFile(file.filePath, []byte(file.contents), 0755)
+				req.NoError(err)
+			}
+			r := &Resolver{
+				FS: mockFs,
+			}
+
+			got, err := r.maybeGetReleaseName(tt.pathToStart)
+			req.NoError(err)
+			req.Equal(tt.want, got)
+		})
+	}
+}
