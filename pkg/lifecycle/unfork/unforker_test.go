@@ -190,3 +190,117 @@ func addTestFiles(fs afero.Afero, testFiles []testFile) error {
 	}
 	return nil
 }
+
+func TestUnforker_findMatchingUpstreamPath(t *testing.T) {
+	tests := []struct {
+		name          string
+		upstreamMap   map[util.MinimalK8sYaml]string
+		forkedMinimal util.MinimalK8sYaml
+		want          string
+	}{
+		{
+			name: "matching names",
+			upstreamMap: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-deployment",
+					},
+				}: "some/deployment.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-service",
+					},
+				}: "some/service.yaml",
+			},
+			forkedMinimal: util.MinimalK8sYaml{
+				Kind: "Deployment",
+				Metadata: util.MinimalK8sMetadata{
+					Name: "some-deployment",
+				},
+			},
+			want: "some/deployment.yaml",
+		},
+		{
+			name: "forked minimal name has a prefix",
+			upstreamMap: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "deployment",
+					},
+				}: "some/deployment.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "service",
+					},
+				}: "some/service.yaml",
+			},
+			forkedMinimal: util.MinimalK8sYaml{
+				Kind: "Deployment",
+				Metadata: util.MinimalK8sMetadata{
+					Name: "some-deployment",
+				},
+			},
+			want: "some/deployment.yaml",
+		},
+		{
+			name: "upstream resources have a prefix",
+			upstreamMap: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-deployment",
+					},
+				}: "some/deployment.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Service",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-service",
+					},
+				}: "some/service.yaml",
+			},
+			forkedMinimal: util.MinimalK8sYaml{
+				Kind: "Service",
+				Metadata: util.MinimalK8sMetadata{
+					Name: "service",
+				},
+			},
+			want: "some/service.yaml",
+		},
+		{
+			name: "no matching resource",
+			upstreamMap: map[util.MinimalK8sYaml]string{
+				util.MinimalK8sYaml{
+					Kind: "Deployment",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-deployment",
+					},
+				}: "some/deployment.yaml",
+				util.MinimalK8sYaml{
+					Kind: "Service",
+					Metadata: util.MinimalK8sMetadata{
+						Name: "some-service",
+					},
+				}: "some/service.yaml",
+			},
+			forkedMinimal: util.MinimalK8sYaml{
+				Kind: "ConfigMap",
+				Metadata: util.MinimalK8sMetadata{
+					Name: "some-configmap",
+				},
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		req := require.New(t)
+		t.Run(tt.name, func(t *testing.T) {
+			l := &Unforker{}
+			got := l.findMatchingUpstreamPath(tt.upstreamMap, tt.forkedMinimal)
+			req.Equal(tt.want, got)
+		})
+	}
+}

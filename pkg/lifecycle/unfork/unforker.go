@@ -309,14 +309,13 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 
 			_, fileName := path.Split(relativePath)
 			fileName = string(filepath.Separator) + fileName
-			upstreamPath, exists := upstreamMap[forkedMinimal]
-			if !exists {
+			upstreamPath := l.findMatchingUpstreamPath(upstreamMap, forkedMinimal)
+			if upstreamPath == "" {
 				// If no equivalent upstream file exists, it must be a brand new file.
 				overlay.Resources[fileName] = string(forkedData)
 				debug.Log("event", "resource.saved", "resource", fileName)
 				return nil
 			}
-			delete(upstreamMap, forkedMinimal)
 
 			upstreamData, err := fs.ReadFile(upstreamPath)
 			if err != nil {
@@ -406,6 +405,31 @@ func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstr
 	}
 
 	return nil
+}
+
+func (l *Unforker) findMatchingUpstreamPath(upstreamMap map[util.MinimalK8sYaml]string, forkedMinimal util.MinimalK8sYaml) string {
+	for upstreamMinimal, upstreamPath := range upstreamMap {
+		kindsMatch := upstreamMinimal.Kind == forkedMinimal.Kind
+		namespacesMatch := upstreamMinimal.Metadata.Namespace == forkedMinimal.Metadata.Namespace
+
+		upstreamNameLen := len(upstreamMinimal.Metadata.Name)
+		forkedNameLen := len(forkedMinimal.Metadata.Name)
+
+		nameSuffix := strings.TrimSpace(upstreamMinimal.Metadata.Name)
+		longerName := forkedMinimal.Metadata.Name
+		if upstreamNameLen > forkedNameLen {
+			nameSuffix = strings.TrimSpace(forkedMinimal.Metadata.Name)
+			longerName = upstreamMinimal.Metadata.Name
+		}
+
+		namesMatch := strings.HasSuffix(longerName, nameSuffix)
+		if kindsMatch && namespacesMatch && namesMatch {
+			delete(upstreamMap, upstreamMinimal)
+			return upstreamPath
+		}
+	}
+
+	return ""
 }
 
 func containsNonGVK(data []byte) (bool, error) {
