@@ -7,6 +7,9 @@
     "kustomize": {
       "overlays": {
         "ship": {
+          "excludedBases": [
+            "/statefulset.yaml"
+          ],
           "patches": {
             "/secret.yaml": "apiVersion: v1\ndata:\n  postgresql-password: FORKED_PASSWORD\nkind: Secret\nmetadata:\n  labels:\n    app: postgresql\n    chart: postgresql-2.6.6\n    heritage: Tiller\n    release: postgres\n  name: postgres-postgresql\n"
           },
