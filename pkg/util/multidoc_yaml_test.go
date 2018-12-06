@@ -1,4 +1,4 @@
-package kustomize
+package util
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/go-kit/kit/log"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -395,13 +394,8 @@ spec:
 				req.NoError(mockFs.WriteFile(inFile.name, []byte(inFile.data), os.FileMode(0644)))
 			}
 
-			l := Kustomizer{
-				FS:     mockFs,
-				Logger: log.NewNopLogger(),
-			}
-
 			// run split function
-			if err := l.maybeSplitMultidocYaml(context.Background(), tt.localPath); (err != nil) != tt.wantErr {
+			if err := MaybeSplitMultidocYaml(context.Background(), mockFs, tt.localPath); (err != nil) != tt.wantErr {
 				t.Errorf("Resolver.maybeSplitMultidocYaml() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

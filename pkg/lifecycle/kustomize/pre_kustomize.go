@@ -22,7 +22,7 @@ type ListK8sYaml struct {
 
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
 	// Split multi doc yaml first as it will be unmarshalled incorrectly in the following steps
-	if err := l.maybeSplitMultidocYaml(ctx, step.Kustomize.Base); err != nil {
+	if err := util.MaybeSplitMultidocYaml(ctx, l.FS, step.Kustomize.Base); err != nil {
 		return errors.Wrap(err, "maybe split multi doc yaml")
 	}
 
