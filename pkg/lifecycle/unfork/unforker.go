@@ -392,12 +392,17 @@ func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstr
 			return errors.Wrapf(err, "read file %s", upstreamPath)
 		}
 
-		upstreamMinimal := util.MinimalK8sYaml{}
-		if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
-			return errors.Wrapf(err, "unmarshal file %s", upstreamPath)
-		}
+		upstreamResource, err := util.NewKubernetesResource(upstreamB)
+		if err == nil {
+			if _, err := scheme.Scheme.New(upstreamResource.Id().Gvk()); err == nil {
+				upstreamMinimal := util.MinimalK8sYaml{}
+				if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
+					return errors.Wrapf(err, "unmarshal file %s", upstreamPath)
+				}
 
-		upstreamMap[upstreamMinimal] = upstreamPath
+				upstreamMap[upstreamMinimal] = upstreamPath
+			}
+		}
 	}
 
 	return nil

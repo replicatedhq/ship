@@ -2,4 +2,4 @@ args: ["--prefer-git"]
 upstream: https://github.com/helm/charts/tree/728d045380deec925e044f6d407844269d9bc8f5/stable/postgresql
 fork: https://github.com/replicatedhq/test-charts/tree/eb834c80b4a381d7c99798935ee386107619b2a1/postgres-forked
 # These files are ignored for changing values
-ignoredFiles: ["base/secrets.yaml"]
+ignoredFiles: ["base/statefulset.yaml", "base/secrets.yaml"]
