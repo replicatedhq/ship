@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -126,6 +128,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 		constants.HelmChartForkedPath,
 		&defaultRelease,
 		upstreamApplicationType,
+		forkedApplicationType,
 	)
 }
 
@@ -278,7 +281,9 @@ func (r *Resolver) resolveUnforkRelease(
 	destForkedPath string,
 	defaultSpec *api.Spec,
 	applicationType string,
+	forkedApplicationType string,
 ) (*api.Release, error) {
+	var releaseName string
 	debug := log.With(level.Debug(r.Logger), "method", "resolveUnforkReleases")
 
 	if r.Viper.GetBool("rm-asset-dest") {
@@ -318,6 +323,20 @@ func (r *Resolver) resolveUnforkRelease(
 		return nil, errors.Wrapf(err, "move %s to %s", localForkedPath, destForkedPath)
 	}
 
+	if forkedApplicationType == "k8s" {
+		// Pre-emptively need to split here in order to get the release name before
+		// helm template is run on the upstream
+		if err := util.MaybeSplitMultidocYaml(ctx, r.FS, destForkedPath); err != nil {
+			return nil, errors.Wrapf(err, "maybe split multidoc in %s", destForkedPath)
+		}
+
+		debug.Log("event", "maybeGetReleaseName")
+		releaseName, err = r.maybeGetReleaseName(destForkedPath)
+		if err != nil {
+			return nil, errors.Wrap(err, "maybe get release name")
+		}
+	}
+
 	upstreamMetadata, err := r.resolveMetadata(context.Background(), upstream, destUpstreamPath, applicationType)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destUpstreamPath)
@@ -337,8 +356,9 @@ func (r *Resolver) resolveUnforkRelease(
 		Spec: *defaultSpec,
 	}
 
-	releaseName := release.Metadata.ReleaseName()
-	debug.Log("event", "resolve.releaseName")
+	if releaseName == "" {
+		releaseName = release.Metadata.ReleaseName()
+	}
 
 	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
 		debug.Log("event", "serialize.releaseName.fail", "err", err)
@@ -346,6 +366,41 @@ func (r *Resolver) resolveUnforkRelease(
 	}
 
 	return release, nil
+}
+
+func (r *Resolver) maybeGetReleaseName(path string) (string, error) {
+	type k8sReleaseMetadata struct {
+		Metadata struct {
+			Labels struct {
+				Release string `yaml:"release"`
+			} `yaml:"labels"`
+		} `yaml:"metadata"`
+	}
+
+	files, err := r.FS.ReadDir(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "read dir %s", path)
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".yaml" || filepath.Ext(file.Name()) == ".yml" {
+			fileB, err := r.FS.ReadFile(filepath.Join(path, file.Name()))
+			if err != nil {
+				return "", errors.Wrapf(err, "read file %s", path)
+			}
+
+			releaseMetadata := k8sReleaseMetadata{}
+			if err := yaml.Unmarshal(fileB, &releaseMetadata); err != nil {
+				return "", errors.Wrapf(err, "unmarshal for release metadata %s", path)
+			}
+
+			if releaseMetadata.Metadata.Labels.Release != "" {
+				return releaseMetadata.Metadata.Labels.Release, nil
+			}
+		}
+	}
+
+	return "", nil
 }
 
 func (r *Resolver) resolveRelease(
@@ -412,8 +467,16 @@ func (r *Resolver) resolveRelease(
 		Spec: *spec,
 	}
 
-	releaseName := release.Metadata.ReleaseName()
-	debug.Log("event", "resolve.releaseName")
+	currentState, err := r.StateManager.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "try load")
+	}
+
+	releaseName := currentState.CurrentReleaseName()
+	if releaseName == "" {
+		debug.Log("event", "resolve.releaseName.fromRelease")
+		releaseName = release.Metadata.ReleaseName()
+	}
 
 	if err := r.StateManager.SerializeReleaseName(releaseName); err != nil {
 		debug.Log("event", "serialize.releaseName.fail", "err", err)

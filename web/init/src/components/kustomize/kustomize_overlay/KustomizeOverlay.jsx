@@ -45,6 +45,7 @@ export default class KustomizeOverlay extends React.Component {
       lastSavedPatch: null,
       displayConfirmModalMessage: "",
       displayConfirmModalDiscardMessage: "",
+      displayConfirmModalSubMessage: "",
       modalAction: this.discardOverlay,
     };
     this.addResourceWrapper = React.createRef();
@@ -52,6 +53,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   toggleModal = (overlayPath, overlayType) => {
+    const displayConfirmModalSubMessage = "It will not be applied to the kustomization.yaml file that is generated for you.";
     let displayConfirmModalMessage = "Are you sure you want to discard this patch?";
     let displayConfirmModalDiscardMessage = "Discard patch";
 
@@ -68,6 +70,7 @@ export default class KustomizeOverlay extends React.Component {
       overlayToDelete: this.state.displayConfirmModal ? "" : overlayPath,
       displayConfirmModalMessage,
       displayConfirmModalDiscardMessage,
+      displayConfirmModalSubMessage,
       modalAction: () => (this.discardOverlay(overlayType)),
     });
   }
@@ -77,6 +80,7 @@ export default class KustomizeOverlay extends React.Component {
       displayConfirmModal: !this.state.displayConfirmModal,
       displayConfirmModalMessage: "Are you sure you want to include this base resource?",
       displayConfirmModalDiscardMessage: "Include base",
+      displayConfirmModalSubMessage: "It will be included in the kustomization.yaml file that is generated for you.",
       modalAction: () => (this.includeBase(basePath)),
     });
   }
@@ -288,7 +292,7 @@ export default class KustomizeOverlay extends React.Component {
       resource: `${fileTreeBasePath}${selectedFile}`,
     };
     await this.props.generatePatch(payload);
-    
+
     const position = this.aceEditorOverlay.editor.find(PATCH_TOKEN); // Find text for position
     if(position) {
       this.aceEditorOverlay.editor.focus();
@@ -533,6 +537,7 @@ export default class KustomizeOverlay extends React.Component {
           onRequestClose={this.toggleModal}
           discardOverlay={modalAction}
           message={this.state.displayConfirmModalMessage}
+          subMessage={this.state.displayConfirmModalSubMessage}
           discardMessage={this.state.displayConfirmModalDiscardMessage}
         />
       </div>

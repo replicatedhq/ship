@@ -41,11 +41,6 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 		return errors.Wrap(err, "map upstream")
 	}
 
-	debug.Log("event", "write.base.kustomization.yaml")
-	if err := l.writeBase(step); err != nil {
-		return errors.Wrap(err, "write base kustomization")
-	}
-
 	debug.Log("event", "state.loaded")
 	fs, err := l.getPotentiallyChrootedFs(release)
 	if err != nil {
@@ -61,10 +56,15 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 	}
 
 	// this isn't in the right place, but it works until we figure out the right workflow...
-	kustomizeState, err := l.generatePatches(fs, step, upstreamMap)
+	kustomizeState, err := l.generatePatchesAndExcludeBases(fs, step, upstreamMap)
 	if err != nil {
 		debug.Log("event", "generate.patches.fail", "err", err)
 		return errors.Wrapf(err, "generate patches")
+	}
+
+	debug.Log("event", "write.base.kustomization.yaml")
+	if err := l.writeBase(step); err != nil {
+		return errors.Wrap(err, "write base kustomization")
 	}
 
 	shipOverlay := kustomizeState.Ship()

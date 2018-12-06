@@ -258,8 +258,8 @@ func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizep
 	return nil
 }
 
-func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap map[util.MinimalK8sYaml]string) (*state.Kustomize, error) {
-	debug := level.Debug(log.With(l.Logger, "struct", "unforker", "handler", "generatePatches"))
+func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfork, upstreamMap map[util.MinimalK8sYaml]string) (*state.Kustomize, error) {
+	debug := level.Debug(log.With(l.Logger, "struct", "unforker", "handler", "generatePatchesAndExcludeBases"))
 
 	kustomize := &state.Kustomize{}
 	overlay := kustomize.Ship()
@@ -316,6 +316,7 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 				debug.Log("event", "resource.saved", "resource", fileName)
 				return nil
 			}
+			delete(upstreamMap, forkedMinimal)
 
 			upstreamData, err := fs.ReadFile(upstreamPath)
 			if err != nil {
@@ -344,6 +345,17 @@ func (l *Unforker) generatePatches(fs afero.Afero, step api.Unfork, upstreamMap 
 	); err != nil {
 		return nil, err
 	}
+
+	excludedBases := []string{}
+	for _, upstream := range upstreamMap {
+		relPathToBase, err := filepath.Rel(constants.KustomizeBasePath, upstream)
+		if err != nil {
+			return nil, errors.Wrapf(err, "relative path to base %s", upstream)
+		}
+		excludedBases = append(excludedBases, string(filepath.Separator)+relPathToBase)
+	}
+
+	overlay.ExcludedBases = excludedBases
 
 	kustomize.Overlays = map[string]state.Overlay{
 		"ship": overlay,
@@ -380,12 +392,17 @@ func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstr
 			return errors.Wrapf(err, "read file %s", upstreamPath)
 		}
 
-		upstreamMinimal := util.MinimalK8sYaml{}
-		if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
-			return errors.Wrapf(err, "unmarshal file %s", upstreamPath)
-		}
+		upstreamResource, err := util.NewKubernetesResource(upstreamB)
+		if err == nil {
+			if _, err := scheme.Scheme.New(upstreamResource.Id().Gvk()); err == nil {
+				upstreamMinimal := util.MinimalK8sYaml{}
+				if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
+					return errors.Wrapf(err, "unmarshal file %s", upstreamPath)
+				}
 
-		upstreamMap[upstreamMinimal] = upstreamPath
+				upstreamMap[upstreamMinimal] = upstreamPath
+			}
+		}
 	}
 
 	return nil

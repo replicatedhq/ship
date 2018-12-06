@@ -52,7 +52,8 @@ func TestUnforker_mapUpstream(t *testing.T) {
 			testFiles: []testFile{
 				{
 					path: "base/strawberry.yaml",
-					contents: `kind: Fruit
+					contents: `kind: Deployment
+apiVersion: extensions/v1beta1
 metadata:
   name: strawberry
 spec:
@@ -63,7 +64,7 @@ spec:
 			upstreamPath: "base",
 			want: map[util.MinimalK8sYaml]string{
 				util.MinimalK8sYaml{
-					Kind: "Fruit",
+					Kind: "Deployment",
 					Metadata: util.MinimalK8sMetadata{
 						Name: "strawberry",
 					},
@@ -71,11 +72,29 @@ spec:
 			},
 		},
 		{
+			name: "not native k8s",
+			testFiles: []testFile{
+				{
+					path: "base/apple.yaml",
+					contents: `kind: Fruit
+apiVersion: fruity
+metadata:
+  name: apple
+spec:
+  late: night
+`,
+				},
+			},
+			upstreamPath: "base",
+			want:         map[util.MinimalK8sYaml]string{},
+		},
+		{
 			name: "complex",
 			testFiles: []testFile{
 				{
 					path: "base/strawberry.yaml",
-					contents: `kind: Fruit
+					contents: `kind: Service
+apiVersion: v1
 metadata:
   name: strawberry
 spec:
@@ -84,7 +103,8 @@ spec:
 				},
 				{
 					path: "base/nested/banana.yaml",
-					contents: `kind: Fruit
+					contents: `kind: StatefulSet
+apiVersion: apps/v1beta1
 metadata:
   name: banana
 spec:
@@ -93,7 +113,8 @@ spec:
 				},
 				{
 					path: "base/nested/avocado.yaml",
-					contents: `kind: Fruit
+					contents: `kind: ConfigMap
+apiVersion: v1
 metadata:
   name: avocado
 spec:
@@ -102,7 +123,8 @@ spec:
 				},
 				{
 					path: "base/another/pomegranate.yaml",
-					contents: `kind: Fruit
+					contents: `kind: Service
+apiVersion: v1
 metadata:
   name: pomegranate
 spec:
@@ -113,25 +135,25 @@ spec:
 			upstreamPath: "base",
 			want: map[util.MinimalK8sYaml]string{
 				util.MinimalK8sYaml{
-					Kind: "Fruit",
+					Kind: "Service",
 					Metadata: util.MinimalK8sMetadata{
 						Name: "strawberry",
 					},
 				}: "base/strawberry.yaml",
 				util.MinimalK8sYaml{
-					Kind: "Fruit",
+					Kind: "StatefulSet",
 					Metadata: util.MinimalK8sMetadata{
 						Name: "banana",
 					},
 				}: "base/nested/banana.yaml",
 				util.MinimalK8sYaml{
-					Kind: "Fruit",
+					Kind: "ConfigMap",
 					Metadata: util.MinimalK8sMetadata{
 						Name: "avocado",
 					},
 				}: "base/nested/avocado.yaml",
 				util.MinimalK8sYaml{
-					Kind: "Fruit",
+					Kind: "Service",
 					Metadata: util.MinimalK8sMetadata{
 						Name: "pomegranate",
 					},

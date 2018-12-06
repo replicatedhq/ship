@@ -1,0 +1,120 @@
+---
+# Source: postgresql/templates/statefulset.yaml
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: postgres-postgresql
+  labels:
+    app: postgresql
+    chart: postgresql-2.6.6
+    release: "postgres"
+    heritage: "Tiller"
+spec:
+  serviceName: postgres-postgresql-headless
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: postgresql
+      release: "postgres"
+      role: master
+  template:
+    metadata:
+      name: postgres-postgresql
+      labels:
+        app: postgresql
+        chart: postgresql-2.6.6
+        release: "postgres"
+        heritage: "Tiller"
+        role: master
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      initContainers:
+      - name: init-chmod-data
+        image: docker.io/bitnami/minideb:latest
+        imagePullPolicy: "Always"
+        command:
+          - sh
+          - -c
+          - |
+            chown -R 1001:1001 /bitnami
+            if [ -d /bitnami/postgresql/data ]; then
+              chmod  0700 /bitnami/postgresql/data;
+            fi
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: data
+          mountPath: /bitnami/postgresql
+      
+      containers:
+      - name: postgres-postgresql
+        image: docker.io/bitnami/postgresql:10.6.0
+        imagePullPolicy: "Always"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          
+        env:
+        - name: POSTGRESQL_USERNAME
+          value: "postgres"
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-postgresql
+              key: postgresql-password
+        - name: POSTGRESQL_DATABASE
+          value: "<nil>"
+        - name: POD_IP
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        ports:
+        - name: postgresql
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready -U "postgres" --host $POD_IP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready -U "postgres" --host $POD_IP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        volumeMounts:
+        - name: custom-init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        - name: data
+          mountPath: /bitnami/postgresql
+        
+        
+        
+      volumes:
+      
+      - name: custom-init-scripts
+        configMap:
+          name: postgres-postgresql-init-scripts
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"

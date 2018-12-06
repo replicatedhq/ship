@@ -1,4 +1,4 @@
-package kustomize
+package util
 
 import (
 	"context"
@@ -7,25 +7,25 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/util"
+	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
 
 // this function is not perfect, and has known limitations. One of these is that it does not account for `\n---\n` in multiline strings.
-func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath string) error {
+func MaybeSplitMultidocYaml(ctx context.Context, fs afero.Afero, localPath string) error {
 	type outputYaml struct {
 		name     string
 		contents string
 	}
 
-	files, err := l.FS.ReadDir(localPath)
+	files, err := fs.ReadDir(localPath)
 	if err != nil {
 		return errors.Wrapf(err, "read files in %s", localPath)
 	}
 
 	for _, file := range files {
 		if file.IsDir() {
-			if err := l.maybeSplitMultidocYaml(ctx, filepath.Join(localPath, file.Name())); err != nil {
+			if err := MaybeSplitMultidocYaml(ctx, fs, filepath.Join(localPath, file.Name())); err != nil {
 				return err
 			}
 		}
@@ -35,7 +35,7 @@ func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath strin
 			continue
 		}
 
-		inFileBytes, err := l.FS.ReadFile(filepath.Join(localPath, file.Name()))
+		inFileBytes, err := fs.ReadFile(filepath.Join(localPath, file.Name()))
 		if err != nil {
 			return errors.Wrapf(err, "read %s", filepath.Join(localPath, file.Name()))
 		}
@@ -48,7 +48,7 @@ func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath strin
 
 			thisOutputFile := outputYaml{contents: fileString}
 
-			thisMetadata := util.MinimalK8sYaml{}
+			thisMetadata := MinimalK8sYaml{}
 			_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
 			if thisMetadata.Kind == "" || thisMetadata.Kind == "CustomResourceDefinition" {
@@ -56,7 +56,7 @@ func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath strin
 				continue
 			}
 
-			fileName := util.GenerateNameFromMetadata(thisMetadata, idx)
+			fileName := GenerateNameFromMetadata(thisMetadata, idx)
 			thisOutputFile.name = fileName
 			outputFiles = append(outputFiles, thisOutputFile)
 		}
@@ -67,14 +67,14 @@ func (l *Kustomizer) maybeSplitMultidocYaml(ctx context.Context, localPath strin
 		}
 
 		// delete multidoc yaml file
-		err = l.FS.Remove(filepath.Join(localPath, file.Name()))
+		err = fs.Remove(filepath.Join(localPath, file.Name()))
 		if err != nil {
 			return errors.Wrapf(err, "unable to remove %s", filepath.Join(localPath, file.Name()))
 		}
 
 		// write replacement yaml
 		for _, outputFile := range outputFiles {
-			err = l.FS.WriteFile(filepath.Join(localPath, outputFile.name+".yaml"), []byte(outputFile.contents), os.FileMode(0644))
+			err = fs.WriteFile(filepath.Join(localPath, outputFile.name+".yaml"), []byte(outputFile.contents), os.FileMode(0644))
 			if err != nil {
 				return errors.Wrapf(err, "write %s", outputFile.name)
 			}
