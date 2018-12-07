@@ -303,7 +303,13 @@
   {
     "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.source",
     "merge": {
-      "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation"
+      "description": "Deprecated"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.github.properties.proxy",
+    "merge": {
+      "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos."
     }
   },
   {
@@ -467,7 +473,13 @@
   {
     "path": "properties.assets.properties.v1.items.properties.github.properties.source",
     "merge": {
-      "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation"
+      "description": "Deprecated"
+    }
+  },
+  {
+    "path": "properties.assets.properties.v1.items.properties.github.properties.proxy",
+    "merge": {
+      "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos."
     }
   },
   {
@@ -1196,13 +1208,19 @@
     }
   },
   { "comment": "last step -- delete internal spec types"},
-
+  {
+    "path": "properties.assets.properties.v1.items.properties",
+    "delete": [
+      "local"
+    ]
+  },
   {
     "path": "properties.lifecycle.properties.v1.items.properties",
     "delete": [
       "helmIntro",
       "helmValues",
-      "kubectlApply.properties.StepShared"
+      "kubectlApply.properties.StepShared",
+      "unfork"
     ]
   }
 ]
