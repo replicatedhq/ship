@@ -70,7 +70,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 					ChartRoot: constants.HelmChartForkedPath,
 				},
 				ValuesFrom: &api.ValuesFrom{
-					Lifecycle: &api.ValuesFromLifecycle{},
+					Path: filepath.Join(constants.HelmChartForkedPath, "values.yaml"),
 				},
 			},
 		}

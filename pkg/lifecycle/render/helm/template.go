@@ -165,19 +165,26 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
-	if asset.ValuesFrom != nil && asset.ValuesFrom.Lifecycle != nil {
-		tmpValuesPath := path.Join(constants.ShipPathInternalTmp, "values.yaml")
-		defaultValuesPath := path.Join(chartRoot, "values.yaml")
-		debug.Log("event", "writeTmpValues", "to", tmpValuesPath, "default", defaultValuesPath)
-		if err := f.writeStateHelmValuesTo(tmpValuesPath, defaultValuesPath); err != nil {
-			return errors.Wrapf(err, "copy state value to tmp directory %s", renderDest)
+	if asset.ValuesFrom != nil {
+		if asset.ValuesFrom.Path != "" {
+			templateArgs = append(templateArgs,
+				"--values",
+				asset.ValuesFrom.Path,
+			)
 		}
+		if asset.ValuesFrom.Lifecycle != nil {
+			tmpValuesPath := path.Join(constants.ShipPathInternalTmp, "values.yaml")
+			defaultValuesPath := path.Join(chartRoot, "values.yaml")
+			debug.Log("event", "writeTmpValues", "to", tmpValuesPath, "default", defaultValuesPath)
+			if err := f.writeStateHelmValuesTo(tmpValuesPath, defaultValuesPath); err != nil {
+				return errors.Wrapf(err, "copy state value to tmp directory %s", renderDest)
+			}
 
-		templateArgs = append(templateArgs,
-			"--values",
-			tmpValuesPath,
-		)
-
+			templateArgs = append(templateArgs,
+				"--values",
+				tmpValuesPath,
+			)
+		}
 	}
 
 	if len(asset.Values) > 0 {
@@ -261,7 +268,7 @@ func (f *LocalTemplater) appendHelmValues(
 
 	if asset.Values != nil {
 		for key, value := range asset.Values {
-			args, err := appendHelmValue(value, *builder, cmdArgs, key)
+			args, err := appendHelmValue(value, *builder, key)
 			if err != nil {
 				return nil, errors.Wrapf(err, "append helm value %s", key)
 			}
@@ -274,9 +281,9 @@ func (f *LocalTemplater) appendHelmValues(
 func appendHelmValue(
 	value interface{},
 	builder templates.Builder,
-	args []string,
 	key string,
 ) ([]string, error) {
+	args := []string{}
 	stringValue, ok := value.(string)
 	if !ok {
 		args = append(args, "--set")
