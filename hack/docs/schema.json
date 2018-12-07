@@ -436,6 +436,10 @@
                     "description": "Path in repo from which to pull file or directory",
                     "type": "string"
                   },
+                  "proxy": {
+                    "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos.",
+                    "type": "boolean"
+                  },
                   "ref": {
                     "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
                     "type": "string"
@@ -445,7 +449,7 @@
                     "type": "string"
                   },
                   "source": {
-                    "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                    "description": "Deprecated",
                     "type": "string"
                   },
                   "strip_path": {
@@ -585,6 +589,10 @@
                         "description": "Path in repo from which to pull file or directory",
                         "type": "string"
                       },
+                      "proxy": {
+                        "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos.",
+                        "type": "boolean"
+                      },
                       "ref": {
                         "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
                         "type": "string"
@@ -594,7 +602,7 @@
                         "type": "string"
                       },
                       "source": {
-                        "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                        "description": "Deprecated",
                         "type": "string"
                       },
                       "when": {
