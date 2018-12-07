@@ -3,10 +3,9 @@ package util
 import (
 	"bytes"
 
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
-
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/kustomize/pkg/resource"
 )
 

@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -17,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/util"
+	"gopkg.in/yaml.v2"
 )
 
 func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, forked string) (*api.Release, error) {

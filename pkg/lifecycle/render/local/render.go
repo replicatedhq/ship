@@ -4,11 +4,9 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/pkg/errors"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/afero"

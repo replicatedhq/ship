@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -31,6 +32,19 @@ type GithubContent struct {
 	Files []GithubFile `json:"files" yaml:"files" hcl:"files" meta:"files"`
 }
 
+// Not using json.Marshal because I want to omit the file data, and don't feel like
+// writing a custom marshaller
+func (g GithubContent) String() string {
+
+	fileStr := "["
+	for _, file := range g.Files {
+		fileStr += fmt.Sprintf("%s, ", file.String())
+	}
+	fileStr += "]"
+
+	return fmt.Sprintf("GithubContent{ repo:%s path:%s ref:%s files:%s }", g.Repo, g.Path, g.Ref, fileStr)
+}
+
 // GithubFile
 type GithubFile struct {
 	Name string `json:"name" yaml:"name" hcl:"name" meta:"name"`
@@ -38,6 +52,12 @@ type GithubFile struct {
 	Sha  string `json:"sha" yaml:"sha" hcl:"sha" meta:"sha"`
 	Size int64  `json:"size" yaml:"size" hcl:"size" meta:"size"`
 	Data string `json:"data" yaml:"data" hcl:"data" meta:"data"`
+}
+
+func (file GithubFile) String() string {
+	return fmt.Sprintf("GitHubFile{ name:%s path:%s sha:%s size:%d dataLen:%d }",
+		file.Name, file.Path, file.Sha, file.Size, len(file.Data))
+
 }
 
 type ShipAppMetadata struct {
