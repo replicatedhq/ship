@@ -344,6 +344,12 @@
     }
   },
   {
+    "path": "properties.assets.properties.v1.items.properties.helm.properties.values_from.properties",
+    "delete": [
+      "path"
+    ]
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.helm.properties.when",
     "merge": {
       "description": "This asset will be included when 'when' is omitted or true"
