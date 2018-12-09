@@ -346,7 +346,8 @@
   {
     "path": "properties.assets.properties.v1.items.properties.helm.properties.values_from.properties",
     "delete": [
-      "path"
+      "path",
+      "save_to_state"
     ]
   },
   {

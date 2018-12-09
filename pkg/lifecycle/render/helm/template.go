@@ -273,7 +273,7 @@ func (f *LocalTemplater) appendHelmValues(
 
 	if asset.Values != nil {
 		for key, value := range asset.Values {
-			args, err := appendHelmValue(value, *builder, key)
+			args, err := appendHelmValue(value, *builder, cmdArgs, key)
 			if err != nil {
 				return nil, errors.Wrapf(err, "append helm value %s", key)
 			}
@@ -286,9 +286,9 @@ func (f *LocalTemplater) appendHelmValues(
 func appendHelmValue(
 	value interface{},
 	builder templates.Builder,
+	args []string,
 	key string,
 ) ([]string, error) {
-	args := []string{}
 	stringValue, ok := value.(string)
 	if !ok {
 		args = append(args, "--set")

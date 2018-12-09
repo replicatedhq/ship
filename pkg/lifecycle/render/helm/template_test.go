@@ -737,3 +737,44 @@ func Test_validateGeneratedFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestLocalTemplater_writeStateHelmValuesTo(t *testing.T) {
+	tests := []struct {
+		name                 string
+		dest                 string
+		defaultValuesPath    string
+		defaultValuesContent string
+	}{
+		{
+			name:              "simple",
+			dest:              "some/values.yaml",
+			defaultValuesPath: "random/values.yaml",
+			defaultValuesContent: `
+something: maybe
+`,
+		},
+	}
+	for _, tt := range tests {
+		req := require.New(t)
+		t.Run(tt.name, func(t *testing.T) {
+			mc := gomock.NewController(t)
+			mockState := state.NewMockManager(mc)
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			err := mockFs.WriteFile(tt.defaultValuesPath, []byte(tt.defaultValuesContent), 0755)
+			req.NoError(err)
+
+			mockState.EXPECT().TryLoad().Return(state2.VersionedState{V1: &state2.V1{}}, nil)
+			f := &LocalTemplater{
+				Logger:       &logger.TestLogger{T: t},
+				FS:           mockFs,
+				StateManager: mockState,
+			}
+			err = f.writeStateHelmValuesTo(tt.dest, tt.defaultValuesPath)
+			req.NoError(err)
+
+			readFileB, err := mockFs.ReadFile(tt.dest)
+			req.NoError(err)
+			req.Equal(tt.defaultValuesContent, string(readFileB))
+		})
+	}
+}
