@@ -115,7 +115,8 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 							ChartRoot: chartPath,
 						},
 						ValuesFrom: &api.ValuesFrom{
-							Lifecycle: &api.ValuesFromLifecycle{},
+							Lifecycle:   &api.ValuesFromLifecycle{},
+							SaveToState: true,
 						},
 					},
 				},
