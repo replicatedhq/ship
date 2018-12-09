@@ -343,13 +343,6 @@ func (r *Resolver) resolveUnforkRelease(
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destUpstreamPath)
 	}
 
-	// forkedMetadata, err := r.resolveMetadata(context.Background(), upstream, destForkedPath)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "resolve metadata for %s", destForkedPath)
-	// }
-
-	// always use default spec
-
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *upstreamMetadata,
