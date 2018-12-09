@@ -169,9 +169,6 @@ func (f *LocalTemplater) Template(
 		var valuesPath string
 		defaultValuesPath := path.Join(chartRoot, "values.yaml")
 
-		if asset.ValuesFrom.Lifecycle != nil {
-			valuesPath = path.Join(constants.ShipPathInternalTmp, "values.yaml")
-		}
 		if asset.ValuesFrom.Path != "" {
 			valuesPath = path.Join(asset.ValuesFrom.Path, "values.yaml")
 		}
