@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/replicatedhq/ship/pkg/util"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -20,6 +18,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes/scheme"

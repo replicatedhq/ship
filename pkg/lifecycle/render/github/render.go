@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -90,7 +91,8 @@ func (r *LocalRenderer) Execute(
 		debug.Log("event", "resolveProxyGithubAssets")
 		files := filterGithubContents(meta.GithubContents, asset)
 		if len(files) == 0 {
-			level.Info(r.Logger).Log("msg", "no files for asset", "repo", asset.Repo, "path", asset.Path)
+			level.Info(r.Logger).Log("msg", "no proxy files for asset", "repo", asset.Repo, "path", asset.Path)
+			r.debugDumpKnownGithubFiles(meta, asset)
 
 			if asset.Source == "public" || !asset.Proxy {
 				debug.Log("event", "resolveNoProxyGithubAssets")
@@ -105,6 +107,22 @@ func (r *LocalRenderer) Execute(
 
 		return r.resolveProxyGithubAssets(asset, builder, rootFs, files)
 	}
+}
+
+func (r *LocalRenderer) debugDumpKnownGithubFiles(meta api.ReleaseMetadata, asset api.GitHubAsset) {
+	debugStr := "["
+	for _, content := range meta.GithubContents {
+		debugStr += fmt.Sprintf("%s, ", content.String())
+
+	}
+	debugStr += "]"
+
+	level.Debug(r.Logger).Log(
+		"msg", "github contents",
+		"repo", asset.Repo,
+		"path", asset.Path,
+		"releaseMeta", debugStr,
+	)
 }
 
 func filterGithubContents(githubContents []api.GithubContent, asset api.GitHubAsset) []api.GithubFile {
