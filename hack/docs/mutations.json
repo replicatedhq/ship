@@ -181,7 +181,7 @@
             "repo": "github.com/replicatedhq/superbigtool-k8s",
             "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
             "path": "k8s-yamls/",
-            "source": "private"
+            "proxy": true
           },
           "dest": "charts/rendered/"
         },
@@ -424,7 +424,7 @@
           "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
           "path": "k8s-yamls/",
           "dest": "./k8s/",
-          "source": "private",
+          "proxy": true,
           "strip_path": ""
         },
         {
@@ -432,7 +432,7 @@
           "ref": "master",
           "path": "hack/docs/",
           "dest": "./docs{{repl Add 1 1}}/",
-          "source": "public",
+          "proxy": false,
           "mode": 644,
           "strip_path": "{{repl ParseBool \"true\"}}"
         }
@@ -442,8 +442,7 @@
       "required": [
         "repo",
         "path",
-        "dest",
-        "source"
+        "dest"
       ]
     }
   },
