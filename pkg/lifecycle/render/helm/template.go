@@ -165,19 +165,28 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "update helm dependencies")
 	}
 
-	if asset.ValuesFrom != nil && asset.ValuesFrom.Lifecycle != nil {
-		tmpValuesPath := path.Join(constants.ShipPathInternalTmp, "values.yaml")
+	if asset.ValuesFrom != nil {
+		var valuesPath string
 		defaultValuesPath := path.Join(chartRoot, "values.yaml")
-		debug.Log("event", "writeTmpValues", "to", tmpValuesPath, "default", defaultValuesPath)
-		if err := f.writeStateHelmValuesTo(tmpValuesPath, defaultValuesPath); err != nil {
-			return errors.Wrapf(err, "copy state value to tmp directory %s", renderDest)
+
+		if asset.ValuesFrom.Path != "" {
+			valuesPath = path.Join(asset.ValuesFrom.Path, "values.yaml")
 		}
 
+		debug.Log("event", "writeTmpValues", "to", valuesPath, "default", defaultValuesPath)
+		if err := f.writeStateHelmValuesTo(valuesPath, defaultValuesPath); err != nil {
+			return errors.Wrapf(err, "copy state value to tmp directory %s", renderDest)
+		}
 		templateArgs = append(templateArgs,
 			"--values",
-			tmpValuesPath,
+			valuesPath,
 		)
 
+		if asset.ValuesFrom.SaveToState {
+			if err := f.writeMergedAndDefaultHelmValues(valuesPath, defaultValuesPath); err != nil {
+				return errors.Wrap(err, "write merged and default helm values")
+			}
+		}
 	}
 
 	if len(asset.Values) > 0 {
@@ -375,6 +384,24 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	return nil
 }
 
+func (f *LocalTemplater) writeMergedAndDefaultHelmValues(valuesPath, defaultValuesPath string) error {
+	valuesB, err := f.FS.ReadFile(valuesPath)
+	if err != nil {
+		return errors.Wrapf(err, "read values path %s", valuesPath)
+	}
+
+	defaultValuesB, err := f.FS.ReadFile(defaultValuesPath)
+	if err != nil {
+		return errors.Wrapf(err, "read default values path %s", defaultValuesPath)
+	}
+
+	if err := f.StateManager.SerializeHelmValues(string(valuesB), string(defaultValuesB)); err != nil {
+		return errors.Wrap(err, "serialize helm values")
+	}
+
+	return nil
+}
+
 // dest should be a path to a file, and its parent directory should already exist
 // if there are no values in state, defaultValuesPath will be copied into dest
 func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath string) error {
@@ -387,9 +414,9 @@ func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath s
 	helmValues := editState.CurrentHelmValues()
 	defaultHelmValues := editState.CurrentHelmValuesDefaults()
 
-	defaultValuesShippedWithChartBytes, err := f.FS.ReadFile(filepath.Join(constants.HelmChartPath, "values.yaml"))
+	defaultValuesShippedWithChartBytes, err := f.FS.ReadFile(defaultValuesPath)
 	if err != nil {
-		return errors.Wrapf(err, "read helm values from %s", filepath.Join(constants.HelmChartPath, "values.yaml"))
+		return errors.Wrapf(err, "read helm values from %s", defaultValuesPath)
 	}
 	defaultValuesShippedWithChart := string(defaultValuesShippedWithChartBytes)
 
@@ -411,11 +438,6 @@ func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath s
 	err = f.FS.WriteFile(dest, []byte(mergedValues), 0644)
 	if err != nil {
 		return errors.Wrapf(err, "write values.yaml to %s", dest)
-	}
-
-	err = f.StateManager.SerializeHelmValues(mergedValues, string(defaultValuesShippedWithChartBytes))
-	if err != nil {
-		return errors.Wrapf(err, "serialize helm values to state")
 	}
 
 	return nil

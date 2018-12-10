@@ -1,0 +1,19 @@
+---
+# Source: gcloud-sqlproxy/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: gcloud-sqlproxy-gcloud-sqlproxy
+  labels:
+    app: gcloud-sqlproxy-gcloud-sqlproxy
+    chart: "gcloud-sqlproxy-0.6.3"
+    release: "gcloud-sqlproxy"
+    heritage: "Tiller"
+spec:
+  ports:
+  - name: instance
+    protocol: TCP
+    port: 5432
+    targetPort: instance
+  selector:
+    app: gcloud-sqlproxy-gcloud-sqlproxy

@@ -70,7 +70,8 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 					ChartRoot: constants.HelmChartForkedPath,
 				},
 				ValuesFrom: &api.ValuesFrom{
-					Lifecycle: &api.ValuesFromLifecycle{},
+					Path:        constants.HelmChartForkedPath,
+					SaveToState: true,
 				},
 			},
 		}
@@ -99,7 +100,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 					ChartRoot: constants.HelmChartPath,
 				},
 				ValuesFrom: &api.ValuesFrom{
-					Lifecycle: &api.ValuesFromLifecycle{},
+					Path: constants.HelmChartPath,
 				},
 			},
 		}
@@ -341,13 +342,6 @@ func (r *Resolver) resolveUnforkRelease(
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destUpstreamPath)
 	}
-
-	// forkedMetadata, err := r.resolveMetadata(context.Background(), upstream, destForkedPath)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "resolve metadata for %s", destForkedPath)
-	// }
-
-	// always use default spec
 
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{

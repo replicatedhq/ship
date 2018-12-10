@@ -29,15 +29,6 @@ func (r *Resolver) DefaultHelmUnforkRelease(upstreamAsset api.Asset, forkedAsset
 		Lifecycle: api.Lifecycle{
 			V1: []api.Step{
 				{
-					HelmValues: &api.HelmValues{
-						StepShared: api.StepShared{
-							ID:          "values",
-							Requires:    []string{"intro"},
-							Invalidates: []string{"render"},
-						},
-					},
-				},
-				{
 					Render: &api.Render{
 						StepShared: api.StepShared{
 							ID:       "render",
@@ -115,7 +106,8 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 							ChartRoot: chartPath,
 						},
 						ValuesFrom: &api.ValuesFrom{
-							Lifecycle: &api.ValuesFromLifecycle{},
+							Path:        constants.ShipPathInternalTmp,
+							SaveToState: true,
 						},
 					},
 				},

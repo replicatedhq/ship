@@ -99,7 +99,8 @@ type LocalAsset struct {
 }
 
 type ValuesFrom struct {
-	Lifecycle *ValuesFromLifecycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+	Path        string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	SaveToState bool   `json:"save_to_state,omitempty" yaml:"save_to_state,omitempty" hcl:"save_to_state,omitempty"`
 }
 
 type ValuesFromLifecycle struct{}

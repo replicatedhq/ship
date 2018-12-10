@@ -1,0 +1,3 @@
+args: ["--prefer-git"]
+upstream: https://github.com/rimusz/charts/tree/44e2acc78cd7b621ca306661770828f32e9a2820/stable/gcloud-sqlproxy
+fork: https://github.com/replicatedhq/test-charts/tree/859cd8dbed96e952a2c6901392e6fe341e56bdf3/gcloud-sqlproxy-forked
