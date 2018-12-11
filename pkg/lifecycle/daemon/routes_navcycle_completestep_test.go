@@ -14,11 +14,13 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	state2 "github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/lifecycle"
 	planner2 "github.com/replicatedhq/ship/pkg/test-mocks/planner"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -338,11 +340,12 @@ func TestV2CompleteStep(t *testing.T) {
 			renderer := lifecycle.NewMockRenderer(mc)
 			mockPlanner := planner2.NewMockPlanner(mc)
 			v2 := &NavcycleRoutes{
-				Logger:       testLogger,
-				StateManager: fakeState,
-				Messenger:    messenger,
-				Renderer:     renderer,
-				Planner:      mockPlanner,
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New(), fakeState),
+				Logger:         testLogger,
+				StateManager:   fakeState,
+				Messenger:      messenger,
+				Renderer:       renderer,
+				Planner:        mockPlanner,
 				StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 					return nil
 				},
