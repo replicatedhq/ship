@@ -178,7 +178,10 @@ func (r *LocalRenderer) resolveProxyGithubAssets(asset api.GitHubAsset, builder 
 func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builder *templates.Builder) error {
 	debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "github", "dest", asset.Dest, "description", asset.Description))
 	debug.Log("event", "createUpstream")
-	upstream := createUpstreamURL(asset)
+	upstream, err := createUpstreamURL(asset, builder)
+	if err != nil {
+		return errors.Wrapf(err, "create upstream url")
+	}
 
 	var fetcher apptype.FileFetcher
 	localFetchPath := filepath.Join(constants.InstallerPrefixPath, constants.GithubAssetSavePath)
@@ -279,9 +282,13 @@ func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder) (stri
 	return filepath.Join(constants.InstallerPrefixPath, destDir, assetPath), nil
 }
 
-func createUpstreamURL(asset api.GitHubAsset) string {
+func createUpstreamURL(asset api.GitHubAsset, builder *templates.Builder) (string, error) {
 	var assetType string
-	assetBasePath := filepath.Base(asset.Path)
+	assetPath, err := builder.String(asset.Path)
+	if err != nil {
+		return "", errors.Wrapf(err, "build asset path %s", asset.Path)
+	}
+	assetBasePath := filepath.Base(assetPath)
 	if filepath.Ext(assetBasePath) != "" {
 		assetType = "blob"
 	} else {
@@ -289,9 +296,19 @@ func createUpstreamURL(asset api.GitHubAsset) string {
 	}
 
 	assetRef := "master"
-	if asset.Ref != "" {
-		assetRef = asset.Ref
+	templatedAssetRef, err := builder.String(asset.Ref)
+	if err != nil {
+		return "", errors.Wrapf(err, "build asset ref %s", asset.Ref)
 	}
 
-	return path.Join("github.com", asset.Repo, assetType, assetRef, asset.Path)
+	if templatedAssetRef != "" {
+		assetRef = templatedAssetRef
+	}
+
+	assetRepo, err := builder.String(asset.Repo)
+	if err != nil {
+		return "", errors.Wrapf(err, "build asset repo %s", asset.Repo)
+	}
+
+	return path.Join("github.com", assetRepo, assetType, assetRef, assetPath), nil
 }
