@@ -1,0 +1,18 @@
+---
+# Source: minio/templates/pvc.yaml
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: integration-replicated-app-helm-github
+  labels:
+    app: minio
+    chart: minio-2.2.0
+    release: integration-replicated-app-helm-github
+    heritage: Tiller
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"

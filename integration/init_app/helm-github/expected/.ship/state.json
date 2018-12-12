@@ -1,15 +1,15 @@
 {
   "v1": {
     "config": {},
+    "releaseName": "integration-replicated-app-helm-github",
     "upstream": "__upstream__",
-    "contentSHA": "3f27933df35c90e60a3c943e6fa765bc6116e8e6e17f89cdb6976ccc52e1cb65",
     "metadata": {
       "applicationType": "replicated.app",
+      "releaseNotes": "",
+      "version": "1.0.1-SNAPSHOT",
       "customerID": "__customerID__",
-      "installationID": "__installationID__",
-      "releaseNotes": "integration tests",
-      "version": "1.0.0-SNAPSHOT"
+      "installationID": "__installationID__"
     },
-    "releaseName": "integration-replicated-app-helm-github"
+    "contentSHA": "275a18f485ae78a3e0c723da1625fa08d12bb27dc401c49f15231a31d939676e"
   }
 }

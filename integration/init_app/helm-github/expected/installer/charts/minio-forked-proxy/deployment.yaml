@@ -1,0 +1,95 @@
+---
+# Source: minio/templates/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-replicated-app-helm-github
+  labels:
+    app: minio
+    chart: minio-2.2.0
+    release: integration-replicated-app-helm-github
+    heritage: Tiller
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: minio
+      release: integration-replicated-app-helm-github
+  template:
+    metadata:
+      name: integration-replicated-app-helm-github
+      labels:
+        app: minio
+        release: integration-replicated-app-helm-github
+    spec:
+      containers:
+        - name: minio
+          image: "minio/minio:RELEASE.2018-12-06T01-27-43Z"
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh", 
+          "-ce", 
+          "cp /tmp/config.json /root/.minio/ && 
+          /usr/bin/docker-entrypoint.sh minio -C /root/.minio/ server /export" ]
+          volumeMounts:
+            - name: export
+              mountPath: /export
+            - name: minio-server-config
+              mountPath: "/tmp/config.json"
+              subPath: config.json
+            - name: minio-config-dir
+              mountPath: /root/.minio/
+          ports:
+            - name: service
+              containerPort: 9000
+          env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: integration-replicated-app-helm-github
+                  key: accesskey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: integration-replicated-app-helm-github
+                  key: secretkey
+            - name: MINIO_BROWSER
+              value: "on"
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: service
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /minio/health/ready
+              port: service
+            periodSeconds: 15
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            
+      volumes:
+        - name: export
+          persistentVolumeClaim:
+            claimName: integration-replicated-app-helm-github
+        - name: minio-server-config
+          configMap:
+            name: integration-replicated-app-helm-github
+        - name: minio-user
+          secret:
+            secretName: integration-replicated-app-helm-github
+        - name: minio-config-dir
+          emptyDir: {}
