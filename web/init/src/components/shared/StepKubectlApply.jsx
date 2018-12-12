@@ -7,12 +7,17 @@ import { Utilities } from "../../utilities/utilities";
 import Loader from "./Loader";
 import StepMessage from "./StepMessage";
 
-export default class StepKubectlApply extends React.Component {
+export const KUBECTL_PHASE = "kubectl";
+
+export class StepKubectlApply extends React.Component {
   static propTypes = {
     location: PropTypes.shape({
       pathname: PropTypes.string,
     }).isRequired,
-    routeId: PropTypes.string.isRequired,
+    currentRoute: PropTypes.shape({
+      id: PropTypes.string,
+      phase: PropTypes.string,
+    }).isRequired,
     startPoll: PropTypes.func.isRequired,
     gotoRoute: PropTypes.func.isRequired,
     initializeStep: PropTypes.func.isRequired,
@@ -30,12 +35,13 @@ export default class StepKubectlApply extends React.Component {
 
   componentDidMount() {
     const {
-      routeId,
-      location,
+      currentRoute,
       startPollingStep,
     } = this.props;
 
-    startPollingStep(location, routeId);
+    if (currentRoute.phase === KUBECTL_PHASE) {
+      startPollingStep(currentRoute.id);
+    }
   }
 
   parseStatus = () => {
@@ -86,11 +92,11 @@ export default class StepKubectlApply extends React.Component {
     const {
       handleAction,
       startPoll,
-      routeId,
+      currentRoute,
       gotoRoute,
     } = this.props;
     handleAction(action, false);
-    startPoll(routeId, gotoRoute);
+    startPoll(currentRoute.id, gotoRoute);
   }
 
   render() {

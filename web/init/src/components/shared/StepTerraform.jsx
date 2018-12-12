@@ -8,12 +8,17 @@ import { Utilities } from "../../utilities/utilities";
 import Loader from "./Loader";
 import StepMessage from "./StepMessage";
 
-export default class StepPreparingTerraform extends React.Component {
+export const TERRAFORM_PHASE = "terraform";
+
+export class StepTerraform extends React.Component {
   static propTypes = {
     location: PropTypes.shape({
       pathname: PropTypes.string,
     }).isRequired,
-    routeId: PropTypes.string.isRequired,
+    currentRoute: PropTypes.shape({
+      id: PropTypes.string,
+      phase: PropTypes.string,
+    }).isRequired,
     startPoll: PropTypes.func.isRequired,
     gotoRoute: PropTypes.func.isRequired,
     initializeStep: PropTypes.func.isRequired,
@@ -27,12 +32,13 @@ export default class StepPreparingTerraform extends React.Component {
 
   componentDidMount() {
     const {
-      routeId,
-      location,
       startPollingStep,
+      currentRoute,
     } = this.props;
 
-    startPollingStep(location, routeId);
+    if (currentRoute.phase === TERRAFORM_PHASE) {
+      startPollingStep(currentRoute.id);
+    }
   }
 
   componentDidUpdate() {
@@ -87,11 +93,11 @@ export default class StepPreparingTerraform extends React.Component {
     const {
       handleAction,
       startPoll,
-      routeId,
+      currentRoute,
       gotoRoute,
     } = this.props;
     handleAction(action, false);
-    startPoll(routeId, gotoRoute);
+    startPoll(currentRoute.id, gotoRoute);
   }
 
   scrollToLogsBottom = (elm) => {
@@ -153,7 +159,7 @@ export default class StepPreparingTerraform extends React.Component {
           : null
         }
         {status === "error" ?
-          <div className="Error--wrapper flex flex-column alignItems--center"> 
+          <div className="Error--wrapper flex flex-column alignItems--center">
             <div className="icon progress-detail-error"></div>
             <p className="u-fontSizer--larger u-color--tundora u-lineHeight--normal u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
           </div>

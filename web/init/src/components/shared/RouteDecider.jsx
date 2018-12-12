@@ -36,7 +36,7 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, basePath, onCompletion }) =>
                     onCompletion={onCompletion}
                     basePath={basePath}
                     routes={routes}
-                    routeId={route.id}
+                    currentRoute={route}
                   />}
                 />
               ))}
