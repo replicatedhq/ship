@@ -1,13 +1,16 @@
 import React from "react";
 
-import StepTerraform from "./StepTerraform";
+import { TERRAFORM_PHASE, StepTerraform } from "./StepTerraform";
 import renderer from "react-test-renderer";
 
 const mockProps = {
   location: {
     pathname: "",
   },
-  routeId: "",
+  currentRoute: {
+    phase: TERRAFORM_PHASE,
+    id: "hotdog",
+  },
   startPoll: jest.fn(),
   gotoRoute: jest.fn(),
   initializeStep: jest.fn(),
