@@ -80,7 +80,7 @@ export class StepKubectlApply extends React.Component {
       const clampedPercent = clamp(percent, 0, 100);
       return {
         isJSON,
-        status: parsedDetailStatus,
+        status: "working",
         percent: clampedPercent,
         progressDetail,
         message,
@@ -128,7 +128,7 @@ export class StepKubectlApply extends React.Component {
                 }
               </div>
               :
-              <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--normal u-textAlign--center">{status}</p>
+              null
             }
           </div>: null
         }
