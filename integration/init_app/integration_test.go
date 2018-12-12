@@ -25,11 +25,12 @@ import (
 )
 
 type TestMetadata struct {
-	InstallationID string `yaml:"installation_id"`
-	CustomerID     string `yaml:"customer_id"`
-	ReleaseVersion string `yaml:"release_version"`
-	SetChannelName string `yaml:"set_channel_name"`
-	Flavor         string `yaml:"flavor"`
+	InstallationID string   `yaml:"installation_id"`
+	CustomerID     string   `yaml:"customer_id"`
+	ReleaseVersion string   `yaml:"release_version"`
+	SetChannelName string   `yaml:"set_channel_name"`
+	Flavor         string   `yaml:"flavor"`
+	Args           []string `yaml:"args"`
 
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -111,7 +112,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 						upstream,
 						"--headless",
 						"--log-level=off",
-					}))
+					}, testMetadata.Args...))
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
@@ -131,7 +132,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					watchCmd := cli.RootCmd()
 					watchBuf := new(bytes.Buffer)
 					watchCmd.SetOutput(watchBuf)
-					watchCmd.SetArgs([]string{"watch", "--exit"})
+					watchCmd.SetArgs(append([]string{"watch", "--exit"}, testMetadata.Args...))
 					err = watchCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 				}, 60)

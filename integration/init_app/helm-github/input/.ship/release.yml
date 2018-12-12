@@ -2,12 +2,31 @@
 assets:
   v1:
   - helm:
-      dest: charts/rendered
+      dest: charts/values-static-public-source
       github:
         repo: replicatedhq/test-charts
         ref: ff4868c3329dca771f773b36afe0451b773eff3f
         path: values-static
         source: public
+  - helm:
+      dest: charts/minio-forked-proxy
+      github:
+        repo: replicatedhq/test-charts
+        ref: 04c90a93df7765f5cd896ca2f95a2801146543b0
+        path: minio-forked
+        proxy: true
+  - github:
+      dest: plain-k8s-no-proxy
+      repo: replicatedhq/test-charts
+      ref: 3427d6997bd150c60caa00ba0298fdfe17e3ed04
+      path: plain-k8s
+      proxy: false
+  - github:
+      dest: postgres-forked-private-source
+      repo: replicatedhq/test-charts
+      ref: eb834c80b4a381d7c99798935ee386107619b2a1
+      path: postgres-forked
+      source: private
 config: {}
 lifecycle:
   v1:

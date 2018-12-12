@@ -1,0 +1,21 @@
+---
+# Source: minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: integration-replicated-app-helm-github
+  labels:
+    app: minio
+    chart: minio-2.2.0
+    release: integration-replicated-app-helm-github
+    heritage: Tiller
+spec:
+  type: ClusterIP
+  ports:
+    - name: service
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: minio
+    release: integration-replicated-app-helm-github

@@ -1,0 +1,15 @@
+# Source: postgresql/templates/initialization-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-postgresql-init-scripts
+  labels:
+    app: postgresql
+    chart: postgresql-2.6.6
+    release: "postgres"
+    heritage: "Tiller"
+data:
+  README.md: |-
+    You can copy here your custom `.sh`, `.sql` or `.sql.gz` file so they are executed during the first boot of the image.
+
+    More info in the [bitnami-docker-postgresql](https://github.com/bitnami/bitnami-docker-postgresql#initializing-a-new-instance) repository.
