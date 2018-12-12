@@ -83,6 +83,17 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		step.HelmValues.DefaultValues = vendorValues
 		step.HelmValues.ReleaseName = releaseName
 	}
+	if step.Message != nil {
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		if err != nil {
+			return nil, errors.Wrap(err, "create message template builder")
+		}
+		rendered, err := builder.String(step.Source.Message.Contents)
+		if err != nil {
+			return nil, errors.Wrap(err, "render message contents")
+		}
+		step.Message.Contents = rendered
+	}
 
 	result := &daemontypes.StepResponse{
 		CurrentStep: step,

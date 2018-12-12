@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
@@ -53,6 +54,7 @@ func NewV2Router(
 	patcher patch.Patcher,
 	renderer lifecycle.Renderer,
 	treeLoader filetree.Loader,
+	builderBuilder *templates.BuilderBuilder,
 	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
@@ -73,6 +75,7 @@ func NewV2Router(
 		ConfigRenderer: configRenderer,
 		Patcher:        patcher,
 		Renderer:       renderer,
+		BuilderBuilder: builderBuilder,
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},

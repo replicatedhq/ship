@@ -17,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
 
@@ -39,6 +40,7 @@ type NavcycleRoutes struct {
 	Renderer       lifecycle.Renderer
 	Terraformer    lifecycle.Terraformer
 	Planner        planner.Planner
+	BuilderBuilder *templates.BuilderBuilder
 	Patcher        patch.Patcher
 	ConfigRenderer *resolve.APIConfigRenderer
 	KubectlApply   lifecycle.KubectlApply
