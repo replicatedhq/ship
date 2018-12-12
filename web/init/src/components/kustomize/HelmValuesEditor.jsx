@@ -31,7 +31,8 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   componentDidMount() {
-    if(this.props.getStep.values) {
+    window.addEventListener("keydown", this.handleKeyboardSave);
+    if (this.props.getStep.values) {
       this.setState({
         initialSpecValue: this.props.getStep.values,
         specValue: this.props.getStep.values,
@@ -40,6 +41,8 @@ export default class HelmValuesEditor extends React.Component {
       });
     }
   }
+
+  
 
   getLinterErrors = (specContents) => {
     if (specContents === "") return;
@@ -136,6 +139,18 @@ export default class HelmValuesEditor extends React.Component {
           console.log(err);
         })
     }
+  }
+
+  handleKeyboardSave = (e) => {
+    if (e.keyCode == 83 && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.handleSaveValues(false);
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleKeyboardSave);
   }
 
   handleOnChangehelmReleaseName = (helmReleaseName) => this.setState({ helmReleaseName })

@@ -20,7 +20,7 @@
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.11",
     "rc-progress": "^2.2.5",
-    "react-ace": "^6.1.4",
+    "react-ace": "^6.2.0",
     "react-document-title": "^2.0.3",
     "react-modal": "^3.5.1",
     "react-monaco-editor": "^0.18.0",
