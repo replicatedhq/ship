@@ -2,16 +2,15 @@ import React from "react";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
 import find from "lodash/find";
-import findIndex from "lodash/findIndex";
 import indexOf from "lodash/indexOf";
 
 import Loader from "./Loader";
 import StepMessage from "./StepMessage";
-import StepBuildingAssets from "./StepBuildingAssets";
+import { RENDER_PHASE, StepBuildingAssets } from "./StepBuildingAssets";
 import StepHelmIntro from "../../containers/HelmChartInfo";
 import StepHelmValues from "../kustomize/HelmValuesEditor";
-import StepTerraform from "./StepTerraform";
-import StepKubectlApply from "./StepKubectlApply";
+import { TERRAFORM_PHASE, StepTerraform } from "./StepTerraform";
+import { KUBECTL_PHASE, StepKubectlApply } from "./StepKubectlApply";
 import KustomizeEmpty from "../kustomize/kustomize_overlay/KustomizeEmpty";
 import KustomizeOverlay from "../../containers/KustomizeOverlay";
 import ConfigOnly from "../../containers/ConfigOnly";
@@ -31,8 +30,7 @@ export class DetermineComponentForRoute extends React.Component {
   }
 
   componentDidMount() {
-    const { getContentForStep, routeId } = this.props;
-    getContentForStep(routeId);
+    this.getContentForStep();
   }
 
   handleAction = async (action, gotoNext) => {
@@ -43,16 +41,17 @@ export class DetermineComponentForRoute extends React.Component {
   }
 
   getContentForStep = () => {
-    const { getContentForStep, routeId } = this.props;
+    const { getContentForStep, currentRoute } = this.props;
+    const { id: routeId } = currentRoute;
     getContentForStep(routeId);
   }
 
   gotoRoute = async(route) => {
     let nextRoute = route;
-    const { basePath, routes, routeId, history, onCompletion } = this.props;
+    const { basePath, routes, currentRoute, history, onCompletion } = this.props;
 
     if (!nextRoute) {
-      const currRoute = find(routes, ["id", routeId]);
+      const currRoute = find(routes, ["id", currentRoute.id]);
       const currIndex = indexOf(routes, currRoute);
       nextRoute = routes[currIndex + 1];
     }
@@ -119,27 +118,26 @@ export class DetermineComponentForRoute extends React.Component {
     }
   }
 
-  startPollingStep = (location, routeId) => {
-    const { initializeStep, basePath } = this.props;
-    if (location.pathname === `${basePath}/${routeId}`) {
-      initializeStep(routeId);
-      this.startPoll(routeId, () => {
-        // Timeout to wait a little bit before transitioning to the next step
-        setTimeout(this.gotoRoute, 500);
-      });
-    }
+  startPollingStep = (routeId) => {
+    const { initializeStep } = this.props;
+    initializeStep(routeId);
+    this.startPoll(routeId, () => {
+      // Timeout to wait a little bit before transitioning to the next step
+      setTimeout(this.gotoRoute, 500);
+    });
   }
 
-  renderStep = (phase) => {
+  renderStep = () => {
     const {
-      currentStep,
+      currentStep = {},
       progress,
       actions,
       location,
       initializeStep,
-      routes,
+      phase,
+      currentRoute,
     } = this.props;
-    const { id: routeId } = find(routes, { phase }) || {};
+    const routeId = currentRoute.id;
 
     if (!phase || !phase.length) return null;
     switch (phase) {
@@ -165,7 +163,7 @@ export class DetermineComponentForRoute extends React.Component {
         <ConfigOnly
           actions={actions}
           handleAction={this.handleAction}
-          routeId={this.props.routeId}
+          routeId={routeId}
         />
       );
     case "stream":
@@ -178,20 +176,20 @@ export class DetermineComponentForRoute extends React.Component {
           isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents}
         />
       );
-    case "render":
+    case RENDER_PHASE:
       return (
         <StepBuildingAssets
           startPollingStep={this.startPollingStep}
-          routeId={routeId}
           location={location}
           status={progress || currentStep.status}
+          currentRoute={currentRoute}
         />
       );
-    case "terraform":
+    case TERRAFORM_PHASE:
       return (
         <StepTerraform
           startPollingStep={this.startPollingStep}
-          routeId={routeId}
+          currentRoute={currentRoute}
           startPoll={this.startPoll}
           location={location}
           status={progress || currentStep.status}
@@ -200,11 +198,11 @@ export class DetermineComponentForRoute extends React.Component {
           initializeStep={initializeStep}
         />
       );
-    case "kubectl":
+    case KUBECTL_PHASE:
       return (
         <StepKubectlApply
           startPollingStep={this.startPollingStep}
-          routeId={routeId}
+          currentRoute={currentRoute}
           startPoll={this.startPoll}
           location={location}
           status={progress || currentStep.status}
@@ -233,7 +231,7 @@ export class DetermineComponentForRoute extends React.Component {
           handleAction={this.handleAction}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
-      );
+    );
     case "kustomize-intro":
       return (
         <KustomizeEmpty
@@ -248,7 +246,7 @@ export class DetermineComponentForRoute extends React.Component {
           startPoll={this.startPoll}
           getCurrentStep={this.getContentForStep}
           pollCallback={this.gotoRoute}
-          routeId={this.props.routeId}
+          routeId={routeId}
           actions={actions}
           isNavcycle={true}
           finalizeStep={this.props.finalizeStep}
@@ -283,7 +281,7 @@ export class DetermineComponentForRoute extends React.Component {
                   <p className="u-fontSize--large u-fontWeight--medium u-color--tundora">Oops, something isn't quite right. If you continue to experience this problem contact <a href="mailto:support@replicated.com">support@replicated.com</a></p>
                 </div>
                 :
-                this.renderStep(phase)
+                this.renderStep()
             }
           </div>
         </div>

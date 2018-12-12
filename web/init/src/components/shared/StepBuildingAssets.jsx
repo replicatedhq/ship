@@ -5,12 +5,17 @@ import { Line } from "rc-progress";
 import { Utilities } from "../../utilities/utilities";
 import Loader from "./Loader";
 
-export default class StepBuildingAssets extends React.Component {
+export const RENDER_PHASE = "render";
+
+export class StepBuildingAssets extends React.Component {
   static propTypes = {
     location: PropTypes.shape({
       pathname: PropTypes.string,
     }).isRequired,
-    routeId: PropTypes.string.isRequired,
+    currentRoute: PropTypes.shape({
+      id: PropTypes.string,
+      phase: PropTypes.string,
+    }).isRequired,
     startPollingStep: PropTypes.func.isRequired,
     status: PropTypes.shape({
       type: PropTypes.string,
@@ -19,8 +24,10 @@ export default class StepBuildingAssets extends React.Component {
   }
 
   componentDidMount() {
-    const { startPollingStep, location, routeId } = this.props;
-    startPollingStep(location, routeId);
+    const { startPollingStep, currentRoute } = this.props;
+    if (currentRoute.phase === RENDER_PHASE) {
+      startPollingStep(currentRoute.id);
+    }
   }
 
   render() {
