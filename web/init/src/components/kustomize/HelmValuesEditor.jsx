@@ -39,6 +39,7 @@ export default class HelmValuesEditor extends React.Component {
         initialHelmReleaseName: this.props.getStep.helmName,
         helmReleaseName: this.props.getStep.helmName,
       });
+      this.helmEditor.editor.getSession().setValue(this.props.getStep.values); // this resets the UndoManager and prevents the editor from being able to be wiped out by too many CMD+Z's
     }
   }
 
