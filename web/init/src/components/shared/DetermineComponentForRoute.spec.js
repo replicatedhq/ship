@@ -24,6 +24,9 @@ const mockKustomizeIntroProps = {
   ],
   finalizeStep: jest.fn(),
   pollContentForStep: mockPollContentForStep,
+  currentRoute: {
+    id: "mockKustomizeIntroId",
+  },
 };
 
 describe("DetermineComponentForRoute", () => {
