@@ -437,3 +437,121 @@ func Test_filterGithubContents(t *testing.T) {
 		})
 	}
 }
+
+func Test_createUpstreamURL(t *testing.T) {
+	tests := []struct {
+		name         string
+		asset        api.GitHubAsset
+		configGroups []libyaml.ConfigGroup
+		want         string
+	}{
+		{
+			name: "no templated values",
+			asset: api.GitHubAsset{
+				Repo: "org/repo",
+				Ref:  "some-ref",
+				Path: "a-path",
+			},
+			configGroups: []libyaml.ConfigGroup{},
+			want:         "github.com/org/repo/tree/some-ref/a-path",
+		},
+		{
+			name: "templated repo, ref, and path",
+			asset: api.GitHubAsset{
+				Repo: "{{repl ConfigOption \"drink\"}}",
+				Ref:  "{{repl ConfigOption \"fruity\"}}",
+				Path: "{{repl ConfigOption \"cinammon\"}}",
+			},
+			configGroups: []libyaml.ConfigGroup{
+				{
+					Name: "cereal",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:  "drink",
+							Value: "org/repo",
+						},
+						{
+							Name:  "fruity",
+							Value: "pomegranate",
+						},
+						{
+							Name:  "cinammon",
+							Value: "horchata",
+						},
+					},
+				},
+			},
+			want: "github.com/org/repo/tree/pomegranate/horchata",
+		},
+		{
+			name: "templated path to file",
+			asset: api.GitHubAsset{
+				Repo: "org/repo",
+				Ref:  "{{repl ConfigOption \"fruity\"}}",
+				Path: "{{repl ConfigOption \"hotdog\"}}",
+			},
+			configGroups: []libyaml.ConfigGroup{
+				{
+					Name: "cereal",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:  "drink",
+							Value: "org/repo",
+						},
+						{
+							Name:  "fruity",
+							Value: "pomegranate",
+						},
+						{
+							Name:  "hotdog",
+							Value: "/some/another/file.yml",
+						},
+					},
+				},
+			},
+			want: "github.com/org/repo/blob/pomegranate/some/another/file.yml",
+		},
+		{
+			name: "templated values with empty ref defaults to master",
+			asset: api.GitHubAsset{
+				Repo: "{{repl ConfigOption \"drink\"}}",
+				Ref:  "{{repl ConfigOption \"fruity\"}}",
+				Path: "{{repl ConfigOption \"hotdog\"}}",
+			},
+			configGroups: []libyaml.ConfigGroup{
+				{
+					Name: "cereal",
+					Items: []*libyaml.ConfigItem{
+						{
+							Name:  "drink",
+							Value: "another/some-other",
+						},
+						{
+							Name:  "fruity",
+							Value: "",
+						},
+						{
+							Name:  "hotdog",
+							Value: "/going/places/ship.yml",
+						},
+					},
+				},
+			},
+			want: "github.com/another/some-other/blob/master/going/places/ship.yml",
+		},
+	}
+	for _, tt := range tests {
+		req := require.New(t)
+		t.Run(tt.name, func(t *testing.T) {
+			v := viper.New()
+			testLogger := &logger.TestLogger{T: t}
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
+			builder, err := bb.FullBuilder(api.ReleaseMetadata{}, tt.configGroups, map[string]interface{}{})
+			req.NoError(err)
+
+			got, err := createUpstreamURL(tt.asset, builder)
+			req.NoError(err)
+			req.Equal(tt.want, got)
+		})
+	}
+}
