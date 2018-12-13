@@ -22,13 +22,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+type LocalAppCopy interface {
+	GetType() string
+	GetLocalPath() string
+	Remove(FS afero.Afero) error
+}
+
 type Inspector interface {
 	// DetermineApplicationType loads and application from upstream,
 	// returning the app type and the local path where its been downloaded (when applicable),
 	DetermineApplicationType(
 		ctx context.Context,
 		upstream string,
-	) (appType string, localPath string, err error)
+	) (app LocalAppCopy, err error)
 }
 
 func NewInspector(
@@ -59,18 +65,18 @@ type FileFetcher interface {
 	GetFiles(ctx context.Context, upstream, savePath string) (string, error)
 }
 
-func (r *inspector) DetermineApplicationType(ctx context.Context, upstream string) (appType string, localPath string, err error) {
+func (r *inspector) DetermineApplicationType(ctx context.Context, upstream string) (app LocalAppCopy, err error) {
 	// hack hack hack
 	isReplicatedApp := strings.HasPrefix(upstream, "replicated.app") ||
 		strings.HasPrefix(upstream, "staging.replicated.app") ||
 		strings.HasPrefix(upstream, "local.replicated.app")
 	if isReplicatedApp {
-		return "replicated.app", "", nil
+		return &localAppCopy{AppType: "replicated.app"}, nil
 	}
 
 	parts := strings.SplitN(upstream, "?", 2)
 	if _, err := os.Stat(parts[0]); err == nil && gogetter.IsShipYaml(parts[0]) {
-		return "runbook.replicated.app", parts[0], nil
+		return &localAppCopy{AppType: "runbook.replicated.app", LocalPath: parts[0]}, nil
 	}
 
 	r.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
@@ -90,19 +96,15 @@ func (r *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		return r.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
-	return "", "", errors.New(fmt.Sprintf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream))
+	return nil, errors.New(fmt.Sprintf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream))
 }
 
-func (r *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (
-	applicationType string,
-	checkoutPath string,
-	err error,
-) {
+func (r *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (app LocalAppCopy, err error) {
 	debug := level.Debug(r.logger)
 
 	repoSavePath, err := r.fs.TempDir(constants.ShipPathInternalTmp, "repo")
 	if err != nil {
-		return "", "", errors.Wrap(err, "create tmp dir")
+		return nil, errors.Wrap(err, "create tmp dir")
 	}
 
 	finalPath, err := fetcher.GetFiles(ctx, upstream, repoSavePath)
@@ -129,10 +131,10 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 			}
 
 			if !hasSucceeded {
-				return "", "", retryError
+				return nil, retryError
 			}
 		} else {
-			return "", "", err
+			return nil, err
 		}
 	}
 
@@ -141,10 +143,10 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	for _, filename := range []string{"ship.yaml", "ship.yml"} {
 		isReplicatedApp, err = r.fs.Exists(path.Join(finalPath, filename))
 		if err != nil {
-			return "", "", errors.Wrapf(err, "check for %s", filename)
+			return nil, errors.Wrapf(err, "check for %s", filename)
 		}
 		if isReplicatedApp {
-			return "inline.replicated.app", finalPath, nil
+			return &localAppCopy{AppType: "inline.replicated.app", LocalPath: finalPath, rootTempDir: repoSavePath}, nil
 		}
 	}
 
@@ -156,8 +158,41 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	debug.Log("event", "isChart.check", "isChart", isChart)
 
 	if isChart {
-		return "helm", finalPath, nil
+		return &localAppCopy{AppType: "helm", LocalPath: finalPath, rootTempDir: repoSavePath}, nil
 	}
 
-	return "k8s", finalPath, nil
+	return &localAppCopy{AppType: "k8s", LocalPath: finalPath, rootTempDir: repoSavePath}, nil
+}
+
+func NewLocalAppCopy(
+	appType string,
+	localPath string,
+	rootTempDir string,
+) LocalAppCopy {
+	return &localAppCopy{
+		AppType:     appType,
+		LocalPath:   localPath,
+		rootTempDir: rootTempDir,
+	}
+}
+
+type localAppCopy struct {
+	AppType     string
+	LocalPath   string
+	rootTempDir string
+}
+
+func (c *localAppCopy) GetType() string {
+	return c.AppType
+}
+
+func (c *localAppCopy) GetLocalPath() string {
+	return c.LocalPath
+}
+
+func (c *localAppCopy) Remove(fs afero.Afero) error {
+	if c.rootTempDir == "" {
+		return nil
+	}
+	return fs.RemoveAll(c.rootTempDir)
 }

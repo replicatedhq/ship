@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/mcuadros/go-jsonschema-generator"
+	jsonschema "github.com/mcuadros/go-jsonschema-generator"
 	"github.com/replicatedhq/ship/pkg/api"
 )
 

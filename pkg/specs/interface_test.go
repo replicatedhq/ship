@@ -34,7 +34,8 @@ func TestResolver_ResolveRelease(t *testing.T) {
 		expect    func(
 			t *testing.T,
 			mockUi *ui.MockUi,
-			appType *apptype.MockInspector,
+			inspector *apptype.MockInspector,
+			localApp *apptype.MockLocalAppCopy,
 			mockState *state.MockManager,
 			mockFs afero.Afero,
 			mockAppResolver *replicatedapp.MockResolver,
@@ -52,7 +53,8 @@ func TestResolver_ResolveRelease(t *testing.T) {
 			expect: func(
 				t *testing.T,
 				mockUi *ui.MockUi,
-				appType *apptype.MockInspector,
+				inspector *apptype.MockInspector,
+				localApp *apptype.MockLocalAppCopy,
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
@@ -61,9 +63,9 @@ func TestResolver_ResolveRelease(t *testing.T) {
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/helm/charts/stable/x5 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
-				inOrder = appType.EXPECT().
+				inOrder = inspector.EXPECT().
 					DetermineApplicationType(ctx, "github.com/helm/charts/stable/x5").
-					DoAndReturn(func(context.Context, string) (string, string, error) {
+					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
 						err := mockFs.MkdirAll("fake-tmp", 0755)
 						req.NoError(err)
 						err = mockFs.WriteFile(path.Join("fake-tmp", "README.md"), []byte("its the readme"), 0666)
@@ -76,7 +78,10 @@ name: i know what the x5 is
 icon: https://kfbr.392/x5.png
 `), 0666)
 						req.NoError(err)
-						return "helm", "fake-tmp", nil
+
+						localApp.EXPECT().GetType().Return("helm").AnyTimes()
+						localApp.EXPECT().GetLocalPath().Return("fake-tmp").AnyTimes()
+						return localApp, nil
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
@@ -121,7 +126,8 @@ icon: https://kfbr.392/x5.png
 			expect: func(
 				t *testing.T,
 				mockUi *ui.MockUi,
-				appType *apptype.MockInspector,
+				inspector *apptype.MockInspector,
+				localApp *apptype.MockLocalAppCopy,
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
@@ -129,10 +135,12 @@ icon: https://kfbr.392/x5.png
 			) {
 				inOrder := mockUi.EXPECT().Info("Reading replicated.app?customer_id=12345&installation_id=67890 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
-				inOrder = appType.EXPECT().
+				inOrder = inspector.EXPECT().
 					DetermineApplicationType(ctx, "replicated.app?customer_id=12345&installation_id=67890").
-					DoAndReturn(func(context.Context, string) (string, string, error) {
-						return "replicated.app", "", nil
+					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
+						localApp.EXPECT().GetType().Return("replicated.app").AnyTimes()
+						localApp.EXPECT().GetLocalPath().Return("").AnyTimes()
+						return localApp, nil
 					}).After(inOrder)
 
 				inOrder = mockUi.EXPECT().Info("Detected application type replicated.app").After(inOrder)
@@ -162,7 +170,8 @@ icon: https://kfbr.392/x5.png
 			expect: func(
 				t *testing.T,
 				mockUi *ui.MockUi,
-				appType *apptype.MockInspector,
+				inspector *apptype.MockInspector,
+				localApp *apptype.MockLocalAppCopy,
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
@@ -171,14 +180,17 @@ icon: https://kfbr.392/x5.png
 				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading github.com/replicatedhq/test-charts/plain-k8s ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
-				inOrder = appType.EXPECT().
+				inOrder = inspector.EXPECT().
 					DetermineApplicationType(ctx, "github.com/replicatedhq/test-charts/plain-k8s").
-					DoAndReturn(func(context.Context, string) (string, string, error) {
+					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
 						err := mockFs.MkdirAll("fake-tmp", 0755)
 						req.NoError(err)
 						err = mockFs.WriteFile(path.Join("fake-tmp", "README.md"), []byte("its the readme"), 0644)
 						req.NoError(err)
-						return "k8s", "fake-tmp", nil
+
+						localApp.EXPECT().GetType().Return("k8s").AnyTimes()
+						localApp.EXPECT().GetLocalPath().Return("fake-tmp").AnyTimes()
+						return localApp, nil
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
@@ -209,7 +221,8 @@ icon: https://kfbr.392/x5.png
 			expect: func(
 				t *testing.T,
 				mockUi *ui.MockUi,
-				appType *apptype.MockInspector,
+				inspector *apptype.MockInspector,
+				localApp *apptype.MockLocalAppCopy,
 				mockState *state.MockManager,
 				mockFs afero.Afero,
 				mockAppResolver *replicatedapp.MockResolver,
@@ -217,10 +230,12 @@ icon: https://kfbr.392/x5.png
 			) {
 				inOrder := mockUi.EXPECT().Info("Reading /path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
-				inOrder = appType.EXPECT().
+				inOrder = inspector.EXPECT().
 					DetermineApplicationType(ctx, "/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789").
-					DoAndReturn(func(context.Context, string) (string, string, error) {
-						return "runbook.replicated.app", "/path/to/ship.yaml", nil
+					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
+						localApp.EXPECT().GetType().Return("runbook.replicated.app").AnyTimes()
+						localApp.EXPECT().GetLocalPath().Return("/path/to/ship.yaml").AnyTimes()
+						return localApp, nil
 					}).After(inOrder)
 
 				inOrder = mockUi.EXPECT().Info("Detected application type runbook.replicated.app").After(inOrder)
@@ -248,7 +263,8 @@ icon: https://kfbr.392/x5.png
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			mockUI := ui.NewMockUi(mc)
-			appType := apptype.NewMockInspector(mc)
+			inspector := apptype.NewMockInspector(mc)
+			appCopy := apptype.NewMockLocalAppCopy(mc)
 			mockState := state.NewMockManager(mc)
 			mockAppResolver := replicatedapp.NewMockResolver(mc)
 			mockGitHubFetcher := githubclient.NewMockGitHubFetcher(mc)
@@ -271,11 +287,11 @@ icon: https://kfbr.392/x5.png
 				AppResolver:      mockAppResolver,
 				Viper:            viper.New(),
 				ui:               mockUI,
-				appTypeInspector: appType,
+				appTypeInspector: inspector,
 				shaSummer:        test.shaSummer,
 				GitHubFetcher:    mockGitHubFetcher,
 			}
-			test.expect(t, mockUI, appType, mockState, mockFs, mockAppResolver, mockGitHubFetcher)
+			test.expect(t, mockUI, inspector, appCopy, mockState, mockFs, mockAppResolver, mockGitHubFetcher)
 
 			func() {
 				defer mc.Finish()
@@ -296,7 +312,9 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 		shaSummer shaSummer
 		expect    func(
 			t *testing.T,
-			appType *apptype.MockInspector,
+			inspector *apptype.MockInspector,
+			localApp *apptype.MockLocalAppCopy,
+			mockFs afero.Afero,
 			mockAppResolver *replicatedapp.MockResolver,
 		)
 		expectSHA string
@@ -304,10 +322,20 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 		{
 			name:     "happy path replicated.app",
 			upstream: "replicated.app/some-tool?customer_id=foo&installation_id=bar",
-			expect: func(t *testing.T, appType *apptype.MockInspector, mockAppResolver *replicatedapp.MockResolver) {
-				appType.EXPECT().
+			expect: func(
+				t *testing.T,
+				inspector *apptype.MockInspector,
+				localApp *apptype.MockLocalAppCopy,
+				mockFs afero.Afero,
+				mockAppResolver *replicatedapp.MockResolver) {
+				inspector.EXPECT().
 					DetermineApplicationType(ctx, "replicated.app/some-tool?customer_id=foo&installation_id=bar").
-					Return("replicated.app", "fake", nil)
+					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
+						localApp.EXPECT().GetType().Return("replicated.app").AnyTimes()
+						localApp.EXPECT().GetLocalPath().Return("fake").AnyTimes()
+						return localApp, nil
+					})
+				localApp.EXPECT().Remove(mockFs).Return(nil)
 				mockAppResolver.EXPECT().FetchRelease(ctx, &replicatedapp2.Selector{
 					CustomerID:     "foo",
 					InstallationID: "bar",
@@ -321,16 +349,18 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 			req := require.New(t)
 			mc := gomock.NewController(t)
 			inspector := apptype.NewMockInspector(mc)
+			localApp := apptype.NewMockLocalAppCopy(mc)
 			resolver := replicatedapp.NewMockResolver(mc)
+			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			test.expect(t, inspector, resolver)
+			test.expect(t, inspector, localApp, fs, resolver)
 
 			r := &Resolver{
 				Logger:           &logger.TestLogger{T: t},
 				appTypeInspector: inspector,
 				AppResolver:      resolver,
 				shaSummer:        test.shaSummer,
-				FS:               afero.Afero{Fs: afero.NewMemMapFs()},
+				FS:               fs,
 			}
 
 			sha, err := r.ReadContentSHAForWatch(ctx, test.upstream)

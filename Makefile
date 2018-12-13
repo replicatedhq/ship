@@ -185,7 +185,7 @@ _mockgen:
 		-destination pkg/test-mocks/apptype/determine_type_mock.go \
 		-package apptype \
 		github.com/replicatedhq/ship/pkg/specs/apptype \
-		Inspector & \
+		Inspector,LocalAppCopy & \
 	mockgen \
 		-destination pkg/test-mocks/replicatedapp/resolve_replicated_app.go \
 		-package replicatedapp \

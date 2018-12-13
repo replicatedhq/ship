@@ -78,6 +78,10 @@ ignored = [
   name = "github.com/ghodss/yaml"
   version = "1.0.0"
 
+[[constraint]]
+  name = "github.com/golang/mock"
+  version = "v1.2.0"
+
 # Overrides for Kustomize & Helm
 [[constraint]]
   name = "k8s.io/helm"
