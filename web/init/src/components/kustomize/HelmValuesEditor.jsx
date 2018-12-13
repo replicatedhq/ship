@@ -43,7 +43,7 @@ export default class HelmValuesEditor extends React.Component {
     }
   }
 
-  
+
 
   getLinterErrors = (specContents) => {
     if (specContents === "") return;
@@ -120,7 +120,8 @@ export default class HelmValuesEditor extends React.Component {
           if (errors) {
             return this.setState({
               saving: false,
-              helmLintErrors: errors
+              helmLintErrors: errors,
+              saveFinal: false,
             });
           }
           this.setState({ saving: false, savedYaml: true });
