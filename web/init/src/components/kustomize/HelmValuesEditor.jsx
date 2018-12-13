@@ -47,7 +47,6 @@ export default class HelmValuesEditor extends React.Component {
 
   getLinterErrors = (specContents) => {
     if (specContents === "") return;
-
     const errors = new linter.Linter(specContents).lint();
     let markers = [];
     for (let error of errors) {
