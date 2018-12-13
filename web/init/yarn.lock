@@ -2234,7 +2234,7 @@ brace-expansion@^1.1.7:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
 
-brace@^0.11.0, brace@^0.11.1:
+brace@^0.11.1:
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/brace/-/brace-0.11.1.tgz#4896fcc9d544eef45f4bb7660db320d3b379fe58"
   integrity sha1-SJb8ydVE7vRfS7dmDbMg07N5/lg=
@@ -3469,7 +3469,7 @@ dezalgo@^1.0.0, dezalgo@^1.0.1, dezalgo@^1.0.2, dezalgo@~1.0.3:
     asap "^2.0.0"
     wrappy "1"
 
-diff-match-patch@^1.0.0:
+diff-match-patch@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.4.tgz#6ac4b55237463761c4daf0dc603eb869124744b1"
   integrity sha512-Uv3SW8bmH9nAtHKaKSanOQmj2DnlH65fUpcrMdfdaOxUG02QQ4YGZ8AE7kKOMisF7UqvOlGKVYWRvezdncW9lg==
@@ -6339,7 +6339,7 @@ lodash.isequal@^3.0:
     lodash._baseisequal "^3.0.0"
     lodash._bindcallback "^3.0.0"
 
-lodash.isequal@^4.1.1, lodash.isequal@^4.5.0:
+lodash.isequal@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
   integrity sha1-QVxEePK8wwEgwizhDtMib30+GOA=
@@ -8347,16 +8347,16 @@ rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-ace@^6.1.4:
-  version "6.1.4"
-  resolved "https://registry.yarnpkg.com/react-ace/-/react-ace-6.1.4.tgz#33d93a83ae46c61f23b1801df79b71837a328b75"
-  integrity sha512-a8/lAsy2bfi7Ho+3Kaj8hBPR+PEiCTG9xFG9LIjCJrv5WQFYFpeFTiPWA96M3t+LgIDFFltwfVTwD2pmdAVOxQ==
+react-ace@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/react-ace/-/react-ace-6.2.0.tgz#9ab0fd88cd1ef6712fec4b243b61431964481c11"
+  integrity sha512-Cr27xFNZV2wlQi+mFjgUWfd3yPZV84Sf7XVrEXkDBZmQ5I/oY3x4KvtBjX6ImN7SCWu3sU6z9F3Zh6jH3/jtzw==
   dependencies:
-    brace "^0.11.0"
-    diff-match-patch "^1.0.0"
+    brace "^0.11.1"
+    diff-match-patch "^1.0.4"
     lodash.get "^4.4.2"
-    lodash.isequal "^4.1.1"
-    prop-types "^15.5.8"
+    lodash.isequal "^4.5.0"
+    prop-types "^15.6.2"
 
 react-docgen@^2.7.0:
   version "2.21.0"

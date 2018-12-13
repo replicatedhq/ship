@@ -31,19 +31,22 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   componentDidMount() {
-    if(this.props.getStep.values) {
+    window.addEventListener("keydown", this.handleKeyboardSave);
+    if (this.props.getStep.values) {
       this.setState({
         initialSpecValue: this.props.getStep.values,
         specValue: this.props.getStep.values,
         initialHelmReleaseName: this.props.getStep.helmName,
         helmReleaseName: this.props.getStep.helmName,
       });
+      this.helmEditor.editor.getSession().setValue(this.props.getStep.values); // this resets the UndoManager and prevents the editor from being able to be wiped out by too many CMD+Z's
     }
   }
 
+  
+
   getLinterErrors = (specContents) => {
     if (specContents === "") return;
-
     const errors = new linter.Linter(specContents).lint();
     let markers = [];
     for (let error of errors) {
@@ -136,6 +139,19 @@ export default class HelmValuesEditor extends React.Component {
           console.log(err);
         })
     }
+  }
+
+  handleKeyboardSave = (e) => {
+    const sKey = e.keyCode === 83;
+    if (sKey && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.handleSaveValues(false);
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleKeyboardSave);
   }
 
   handleOnChangehelmReleaseName = (helmReleaseName) => this.setState({ helmReleaseName })
