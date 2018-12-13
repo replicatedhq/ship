@@ -143,7 +143,8 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   handleKeyboardSave = (e) => {
-    if (e.keyCode == 83 && (e.ctrlKey || e.metaKey)) {
+    const sKey = e.keyCode === 83;
+    if (sKey && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       e.stopPropagation();
       this.handleSaveValues(false);
