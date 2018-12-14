@@ -37,6 +37,7 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 
 // ResolveConfig mocks base method
 func (m *MockResolver) ResolveConfig(arg0 context.Context, arg1 *api.Release, arg2 map[string]interface{}) (map[string]interface{}, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveConfig", arg0, arg1, arg2)
 	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(error)
@@ -45,5 +46,6 @@ func (m *MockResolver) ResolveConfig(arg0 context.Context, arg1 *api.Release, ar
 
 // ResolveConfig indicates an expected call of ResolveConfig
 func (mr *MockResolverMockRecorder) ResolveConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveConfig", reflect.TypeOf((*MockResolver)(nil).ResolveConfig), arg0, arg1, arg2)
 }

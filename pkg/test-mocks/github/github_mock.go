@@ -39,6 +39,7 @@ func (m *MockRenderer) EXPECT() *MockRendererMockRecorder {
 
 // Execute mocks base method
 func (m *MockRenderer) Execute(arg0 root.Fs, arg1 api.GitHubAsset, arg2 []libyaml.ConfigGroup, arg3 api.ReleaseMetadata, arg4 map[string]interface{}) func(context.Context) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(func(context.Context) error)
 	return ret0
@@ -46,5 +47,6 @@ func (m *MockRenderer) Execute(arg0 root.Fs, arg1 api.GitHubAsset, arg2 []libyam
 
 // Execute indicates an expected call of Execute
 func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2, arg3, arg4)
 }

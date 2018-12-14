@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elazarl/go-bindata-assetfs"
+	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 )

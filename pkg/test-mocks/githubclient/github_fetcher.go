@@ -36,6 +36,7 @@ func (m *MockGitHubFetcher) EXPECT() *MockGitHubFetcherMockRecorder {
 
 // ResolveLatestRelease mocks base method
 func (m *MockGitHubFetcher) ResolveLatestRelease(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveLatestRelease", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -44,11 +45,13 @@ func (m *MockGitHubFetcher) ResolveLatestRelease(arg0 context.Context, arg1 stri
 
 // ResolveLatestRelease indicates an expected call of ResolveLatestRelease
 func (mr *MockGitHubFetcherMockRecorder) ResolveLatestRelease(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveLatestRelease", reflect.TypeOf((*MockGitHubFetcher)(nil).ResolveLatestRelease), arg0, arg1)
 }
 
 // ResolveReleaseNotes mocks base method
 func (m *MockGitHubFetcher) ResolveReleaseNotes(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveReleaseNotes", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -57,5 +60,6 @@ func (m *MockGitHubFetcher) ResolveReleaseNotes(arg0 context.Context, arg1 strin
 
 // ResolveReleaseNotes indicates an expected call of ResolveReleaseNotes
 func (mr *MockGitHubFetcherMockRecorder) ResolveReleaseNotes(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveReleaseNotes", reflect.TypeOf((*MockGitHubFetcher)(nil).ResolveReleaseNotes), arg0, arg1)
 }

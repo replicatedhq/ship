@@ -69,6 +69,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		templates.NewBuilderBuilder,
 		specs.NewIDPatcher,
 		apptype.NewInspector,
+		apptype.NewLocalAppCopy,
 		util.NewAssetUploader,
 		patch.NewShipPatcher,
 
