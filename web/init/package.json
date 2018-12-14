@@ -32,7 +32,7 @@
     "redux": "^3.7.2",
     "redux-segment": "^1.6.2",
     "redux-thunk": "2.2.0",
-    "replicated-lint": "^0.12.12",
+    "replicated-lint": "0.14.9",
     "yaml-ast-parser": "^0.0.41"
   },
   "peerDependencies": {
