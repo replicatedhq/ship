@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"

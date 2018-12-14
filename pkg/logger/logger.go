@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-stack/stack"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"

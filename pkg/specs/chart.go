@@ -15,7 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/util"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func (r *Resolver) DefaultHelmUnforkRelease(upstreamAsset api.Asset, forkedAsset api.Asset) api.Spec {

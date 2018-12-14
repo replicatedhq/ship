@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/go-kit/kit/log"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"

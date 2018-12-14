@@ -13,9 +13,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/util"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, forked string) (*api.Release, error) {
@@ -24,20 +25,20 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 
 	// Prepare the upstream
 	r.ui.Info("Determining upstream application type ...")
-	upstreamApplicationType, localUpstreamPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	upstreamApp, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "determine type of %s", upstream)
 	}
-	debug.Log("event", "applicationType.resolve", "type", upstreamApplicationType)
-	r.ui.Info(fmt.Sprintf("Detected upstream application type %s", upstreamApplicationType))
+	debug.Log("event", "applicationType.resolve", "type", upstreamApp.GetType())
+	r.ui.Info(fmt.Sprintf("Detected upstream application type %s", upstreamApp.GetType()))
 
-	debug.Log("event", "versionedUpstream.resolve", "type", upstreamApplicationType)
+	debug.Log("event", "versionedUpstream.resolve", "type", upstreamApp.GetType())
 	versionedUpstream, err := r.maybeCreateVersionedUpstream(upstream)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve versioned upstream")
 	}
 
-	debug.Log("event", "upstream.Serialize", "for", localUpstreamPath, "upstream", versionedUpstream)
+	debug.Log("event", "upstream.Serialize", "for", upstreamApp.GetLocalPath(), "upstream", versionedUpstream)
 	err = r.StateManager.SerializeUpstream(versionedUpstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write upstream")
@@ -45,20 +46,20 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 
 	// Prepare the fork
 	r.ui.Info("Determining forked application type ...")
-	forkedApplicationType, localForkedPath, err := r.appTypeInspector.DetermineApplicationType(ctx, forked)
+	forkedApp, err := r.appTypeInspector.DetermineApplicationType(ctx, forked)
 	if err != nil {
 		return nil, errors.Wrapf(err, "determine type of %s", forked)
 	}
 
-	debug.Log("event", "applicationType.resolve", "type", forkedApplicationType)
-	r.ui.Info(fmt.Sprintf("Detected forked application type %s", forkedApplicationType))
+	debug.Log("event", "applicationType.resolve", "type", forkedApp.GetType())
+	r.ui.Info(fmt.Sprintf("Detected forked application type %s", forkedApp.GetType()))
 
-	if forkedApplicationType == "helm" && upstreamApplicationType == "k8s" {
+	if forkedApp.GetType() == "helm" && upstreamApp.GetType() == "k8s" {
 		return nil, errors.New("Unsupported fork and upstream combination")
 	}
 
 	forkedAsset := api.Asset{}
-	switch forkedApplicationType {
+	switch forkedApp.GetType() {
 	case "helm":
 		forkedAsset = api.Asset{
 			Helm: &api.HelmAsset{
@@ -84,11 +85,11 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 			},
 		}
 	default:
-		return nil, errors.Errorf("unknown forked application type %q", forkedApplicationType)
+		return nil, errors.Errorf("unknown forked application type %q", forkedApp.GetType())
 	}
 
 	upstreamAsset := api.Asset{}
-	switch upstreamApplicationType {
+	switch upstreamApp.GetType() {
 	case "helm":
 		upstreamAsset = api.Asset{
 			Helm: &api.HelmAsset{
@@ -113,7 +114,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 			},
 		}
 	default:
-		return nil, errors.Errorf("unknown upstream application type %q", forkedApplicationType)
+		return nil, errors.Errorf("unknown upstream application type %q", upstreamApp.GetType())
 	}
 
 	defaultRelease := r.DefaultHelmUnforkRelease(upstreamAsset, forkedAsset)
@@ -122,13 +123,11 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 		ctx,
 		upstream,
 		forked,
-		localUpstreamPath,
-		localForkedPath,
+		upstreamApp,
+		forkedApp,
 		constants.HelmChartPath,
 		constants.HelmChartForkedPath,
 		&defaultRelease,
-		upstreamApplicationType,
-		forkedApplicationType,
 	)
 }
 
@@ -145,38 +144,37 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	r.ui.Info(fmt.Sprintf("Reading %s ...", upstream))
 
 	r.ui.Info("Determining application type ...")
-	applicationType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	app, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "determine type of %s", upstream)
 	}
-	debug.Log("event", "applicationType.resolve", "type", applicationType)
-	r.ui.Info(fmt.Sprintf("Detected application type %s", applicationType))
+	debug.Log("event", "applicationType.resolve", "type", app.GetType())
+	r.ui.Info(fmt.Sprintf("Detected application type %s", app.GetType()))
 
-	debug.Log("event", "versionedUpstream.resolve", "type", applicationType)
+	debug.Log("event", "versionedUpstream.resolve", "type", app.GetType())
 	versionedUpstream, err := r.maybeCreateVersionedUpstream(upstream)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve versioned upstream")
 	}
 
-	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", versionedUpstream)
+	debug.Log("event", "upstream.Serialize", "for", app.GetLocalPath(), "upstream", versionedUpstream)
 
 	err = r.StateManager.SerializeUpstream(versionedUpstream)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write upstream")
 	}
 
-	switch applicationType {
+	switch app.GetType() {
 
 	case "helm":
-		defaultRelease := r.DefaultHelmRelease(localPath)
+		defaultRelease := r.DefaultHelmRelease(app.GetLocalPath())
 
 		return r.resolveRelease(
 			ctx,
 			upstream,
-			localPath,
+			app,
 			constants.HelmChartPath,
 			&defaultRelease,
-			applicationType,
 			true,
 			true,
 		)
@@ -187,16 +185,15 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		return r.resolveRelease(
 			ctx,
 			upstream,
-			localPath,
+			app,
 			constants.KustomizeBasePath,
 			&defaultRelease,
-			applicationType,
 			false,
 			true,
 		)
 
 	case "runbook.replicated.app":
-		r.AppResolver.SetRunbook(localPath)
+		r.AppResolver.SetRunbook(app.GetLocalPath())
 		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -210,13 +207,12 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		return r.resolveInlineShipYAMLRelease(
 			ctx,
 			upstream,
-			localPath,
-			applicationType,
+			app,
 		)
 
 	}
 
-	return nil, errors.Errorf("unknown application type %q for upstream %q", applicationType, upstream)
+	return nil, errors.Errorf("unknown application type %q for upstream %q", app.GetType(), upstream)
 }
 
 // read the content sha without writing anything to state
@@ -224,14 +220,14 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 
 	debug := level.Debug(log.With(r.Logger, "method", "ReadContentSHAForWatch"))
 	debug.Log("event", "fetch latest chart")
-	appType, localPath, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
+	app, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
 	if err != nil {
 		return "", errors.Wrapf(err, "resolve app type for %s", upstream)
 	}
-	debug.Log("event", "apptype.inspect", "type", appType, "localPath", localPath)
+	debug.Log("event", "apptype.inspect", "type", app.GetType(), "localPath", app.GetLocalPath())
 
 	defer func() {
-		if err := r.FS.RemoveAll(localPath); err != nil {
+		if err := app.Remove(r.FS); err != nil {
 			level.Error(r.Logger).Log("event", "remove watch dir", "err", err)
 		}
 	}()
@@ -239,20 +235,20 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 	// this switch block is kinda duped from above, and we ought to centralize parts of this,
 	// but in this case we only want to read the metadata without persisting anything to state,
 	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
-	switch appType {
+	switch app.GetType() {
 	case "helm":
 		fallthrough
 	case "k8s":
 		fallthrough
 	case "inline.replicated.app":
-		metadata, err := r.ResolveBaseMetadata(upstream, localPath)
+		metadata, err := r.ResolveBaseMetadata(upstream, app.GetLocalPath())
 		if err != nil {
-			return "", errors.Wrapf(err, "resolve metadata and content sha for %s %s", appType, upstream)
+			return "", errors.Wrapf(err, "resolve metadata and content sha for %s %s", app.GetType(), upstream)
 		}
 		return metadata.ContentSHA, nil
 
 	case "runbook.replicated.app":
-		r.AppResolver.SetRunbook(localPath)
+		r.AppResolver.SetRunbook(app.GetLocalPath())
 		fallthrough
 	case "replicated.app":
 		parsed, err := url.Parse(upstream)
@@ -268,20 +264,18 @@ func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) 
 		return fmt.Sprintf("%x", sha256.Sum256([]byte(release.Spec))), nil
 	}
 
-	return "", errors.Errorf("Could not continue with application type %q of upstream %s", appType, upstream)
+	return "", errors.Errorf("Could not continue with application type %q of upstream %s", app.GetType(), upstream)
 }
 
 func (r *Resolver) resolveUnforkRelease(
 	ctx context.Context,
 	upstream string,
 	forked string,
-	localUpstreamPath string,
-	localForkedPath string,
+	upstreamApp apptype.LocalAppCopy,
+	forkedApp apptype.LocalAppCopy,
 	destUpstreamPath string,
 	destForkedPath string,
 	defaultSpec *api.Spec,
-	applicationType string,
-	forkedApplicationType string,
 ) (*api.Release, error) {
 	var releaseName string
 	debug := log.With(level.Debug(r.Logger), "method", "resolveUnforkReleases")
@@ -305,7 +299,7 @@ func (r *Resolver) resolveUnforkRelease(
 
 	err = r.FS.MkdirAll(filepath.Dir(destUpstreamPath), 0777)
 	if err != nil {
-		return nil, errors.Wrapf(err, "mkdir %s", localUpstreamPath)
+		return nil, errors.Wrapf(err, "mkdir %s", destUpstreamPath)
 	}
 
 	err = r.FS.MkdirAll(filepath.Dir(destForkedPath), 0777)
@@ -313,17 +307,17 @@ func (r *Resolver) resolveUnforkRelease(
 		return nil, errors.Wrapf(err, "mkdir %s", destForkedPath)
 	}
 
-	err = r.FS.Rename(localUpstreamPath, destUpstreamPath)
+	err = r.FS.Rename(upstreamApp.GetLocalPath(), destUpstreamPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "move %s to %s", localUpstreamPath, destUpstreamPath)
+		return nil, errors.Wrapf(err, "move %s to %s", upstreamApp.GetLocalPath(), destUpstreamPath)
 	}
 
-	err = r.FS.Rename(localForkedPath, destForkedPath)
+	err = r.FS.Rename(forkedApp.GetLocalPath(), destForkedPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "move %s to %s", localForkedPath, destForkedPath)
+		return nil, errors.Wrapf(err, "move %s to %s", forkedApp.GetLocalPath(), destForkedPath)
 	}
 
-	if forkedApplicationType == "k8s" {
+	if forkedApp.GetType() == "k8s" {
 		// Pre-emptively need to split here in order to get the release name before
 		// helm template is run on the upstream
 		if err := util.MaybeSplitMultidocYaml(ctx, r.FS, destForkedPath); err != nil {
@@ -337,7 +331,7 @@ func (r *Resolver) resolveUnforkRelease(
 		}
 	}
 
-	upstreamMetadata, err := r.resolveMetadata(context.Background(), upstream, destUpstreamPath, applicationType)
+	upstreamMetadata, err := r.resolveMetadata(context.Background(), upstream, destUpstreamPath, upstreamApp.GetType())
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destUpstreamPath)
 	}
@@ -398,11 +392,10 @@ func (r *Resolver) maybeGetReleaseName(path string) (string, error) {
 
 func (r *Resolver) resolveRelease(
 	ctx context.Context,
-	upstream,
-	localPath string,
+	upstream string,
+	app apptype.LocalAppCopy,
 	destPath string,
 	defaultSpec *api.Spec,
-	applicationType string,
 	keepOriginal bool,
 	tryUseUpstreamShipYAML bool,
 ) (*api.Release, error) {
@@ -421,19 +414,19 @@ func (r *Resolver) resolveRelease(
 	}
 
 	if !keepOriginal {
-		err = r.FS.Rename(localPath, destPath)
+		err = r.FS.Rename(app.GetLocalPath(), destPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "move %s to %s", localPath, destPath)
+			return nil, errors.Wrapf(err, "move %s to %s", app.GetLocalPath(), destPath)
 		}
 	} else {
 		// instead of renaming, copy files from localPath to destPath
-		err = r.recursiveCopy(localPath, destPath)
+		err = r.recursiveCopy(app.GetLocalPath(), destPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "copy %s to %s", localPath, destPath)
+			return nil, errors.Wrapf(err, "copy %s to %s", app.GetLocalPath(), destPath)
 		}
 	}
 
-	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath, applicationType)
+	metadata, err := r.resolveMetadata(context.Background(), upstream, destPath, app.GetType())
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolve metadata for %s", destPath)
 	}
@@ -512,19 +505,18 @@ func (r *Resolver) recursiveCopy(sourceDir, destDir string) error {
 
 func (r *Resolver) resolveInlineShipYAMLRelease(
 	ctx context.Context,
-	upstream,
-	localPath string,
-	applicationType string,
+	upstream string,
+	app apptype.LocalAppCopy,
 ) (*api.Release, error) {
 	debug := log.With(level.Debug(r.Logger), "method", "resolveInlineShipYAMLRelease")
-	metadata, err := r.resolveMetadata(context.Background(), upstream, localPath, applicationType)
+	metadata, err := r.resolveMetadata(context.Background(), upstream, app.GetLocalPath(), app.GetType())
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolve metadata for %s", localPath)
+		return nil, errors.Wrapf(err, "resolve metadata for %s", app.GetLocalPath())
 	}
 	debug.Log("event", "check upstream for ship.yaml")
-	spec, err := r.maybeGetShipYAML(ctx, localPath)
+	spec, err := r.maybeGetShipYAML(ctx, app.GetLocalPath())
 	if err != nil || spec == nil {
-		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", localPath)
+		return nil, errors.Wrapf(err, "resolve ship.yaml release for %s", app.GetLocalPath())
 	}
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{

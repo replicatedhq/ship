@@ -6,7 +6,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type kustomizeTestFile struct {
