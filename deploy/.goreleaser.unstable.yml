@@ -48,5 +48,6 @@ dockers:
     dockerfile: deploy/Dockerfile
     tag_templates:
       - "alpha"
+      - "alpha-slim"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
