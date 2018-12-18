@@ -68,11 +68,9 @@ brew tap replicatedhq/ship
 brew install ship
 ```
 
-Alternately, you can run Ship in Docker, but you will need to mount and configure a shared volume, in order to persist any changes made within the Ship admin console when launched via Docker.
-
-- To run Ship in Docker:
+Alternately, you can run Ship in Docker, in which case you can pull the latest ship image with:
 ```shell
-docker run -p 8800:8800 replicated/ship init <path-to-chart> # github.com/helm/charts/stable/mysql
+docker pull replicated/ship
 ```
 
 ## Initializing 
@@ -83,6 +81,15 @@ mkdir -p ~/my-ship/example
 cd ~/my-ship/example
 ship init <path-to-chart> # github.com/helm/charts/tree/master/stable/grafana
 ```
+
+Alternately, the same command run through Docker:
+```shell
+mkdir -p ~/my-ship/example
+cd ~/my-ship/example
+docker run -p 8800:8800 -v "$PWD":/wd -w /wd \
+    replicated/ship init <path-to-chart> # github.com/helm/charts/tree/master/stable/grafana
+```
+_Note: you may need to point your browser to http://127.0.0.1:8800 if ship's suggested localhost URL doesn't resolve._
 
 You'll be prompted to open a browser and walk through the steps to configure site-specific values for your installation, updating Helm values (if it's a chart), and making direct edits to the Kubernetes yaml (or Helm-generated yaml), which will be converted to patches to apply via Kustomize.
 
@@ -119,6 +126,14 @@ Another initialization option is to start with a Helm chart or Kubernetes manife
 ```shell
 ship unfork <path-to-forked> --upstream <path-to-upstream>
 ```
+or
+
+```shell
+docker run -v "$PWD":/wd -w /wd \
+    replicated/ship unfork <path-to-forked> \
+    --upstream <path-to-upstream>
+```
+
 With this workflow, Ship will attempt to move the changes that prompted the fork into 'overlays' that can be applied as patches onto the unmodified upstream base.  You can inspect the `rendered.yaml` to verify the final output, or run through `ship update --headed` to review the generated overlays in the Ship admin console.
 
 
@@ -129,9 +144,15 @@ Once you've prepared an application using `ship init`, a simple starting CI/CD w
 ship watch && ship update 
 ```
 
-The `watch` command is a trigger for CI/CD processes, watching the upstream application for changes. Running `ship watch` will load the local state file (which includes a content hash of the most recently used upstream) and periodically poll the upstream application and exit when it finds a change. `ship update` will regenerate the deployable application assets, using the most recent upstream version of the application, and any local configuration from `state.json`.  The new `rendered.yaml` output can be deployed directly to the cluster, or submitted as a pull request into a 'GitOps' repo.
+or
+```shell
+docker run -v "$PWD":/wd -w /wd replicated/ship watch && \
+    docker run -v "$PWD":/wd -w /wd replicated/ship update
+```
 
-You can see this flow in action by running `ship init <path-to-chart>` with a chart repo you have commit privileges on, then `ship watch --interval 10s && ship update` to start polling, then commit a change to the upstream chart and see the `ship watch` process exit, with rendered.yaml updated to reflect the change.  
+The `watch` command is a trigger for CI/CD processes, watching the upstream application for changes. Running `ship watch` will load the local state file (which includes a content hash of the most recently used upstream) and periodically poll the upstream application and exit when it finds a change. `ship update` will regenerate the deployable application assets, using the most recent upstream version of the application, and any local configuration from `state.json`.  The new `rendered.yaml` output can be deployed directly to the cluster, or submitted as a pull request into a [GitOps](https://www.weave.works/blog/what-is-gitops-really) repo.
+
+With chart repo you have commit privileges on, you, you can see this flow in action by running `ship init <path-to-chart>` and going through the workflow, then `ship watch --interval 10s && ship update` to start polling, then commit a change to the upstream chart and see the `ship watch` process exit, with `rendered.yaml` updated to reflect the change.  
 
 # Customizing the Configuration Experience
 
