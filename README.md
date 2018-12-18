@@ -19,6 +19,8 @@ This is possible because of how the three operating modes of Ship invoke, store,
 
 # Three operating modes
 
+![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow.png)
+
 ## ship init
 Prepares a new application for deployment. Use for:
 - Specifying the upstream source for an application to be managed -- typically a repo with raw Kubernetes yaml or a Helm chart
@@ -33,8 +35,6 @@ Polls an upstream source, blocking until any change has been published.  Use for
 Updates an existing application by merging the latest release with the local state and overlays. Use for:
 - Preparing an update to be deployed to a third party application
 - Automating the update process to start from a continuous integration (CI) service
-
-![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow.png)
 
 # Features
 Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications.
@@ -81,7 +81,7 @@ After Ship is installed, create a directory for the application you'll be managi
 ```shell
 mkdir -p ~/my-ship/example
 cd ~/my-ship/example
-ship init <path-to-chart> # github.com/helm/charts/stable/grafana
+ship init <path-to-chart> # github.com/helm/charts/tree/master/stable/grafana
 ```
 
 You'll be prompted to open a browser and walk through the steps to configure site-specific values for your installation, updating Helm values (if it's a chart), and making direct edits to the Kubernetes yaml (or Helm-generated yaml), which will be converted to patches to apply via Kustomize.
@@ -123,15 +123,15 @@ With this workflow, Ship will attempt to move the changes that prompted the fork
 
 
 # CI/CD Integration
-Once you've prepared an application using `ship init`, the deployable application assets can be regenerated, using the most recent upstream version of the application, by running:
+Once you've prepared an application using `ship init`, a simple starting CI/CD workflow could be:
 
 ```shell
-ship update
+ship watch && ship update 
 ```
 
-The `watch` command is a trigger for CI/CD processes, watching the upstream application for changes. Running `ship watch` will load the local state file (which includes a content hash of the most recently used upstream) and periodically poll the upstream application and exit when it finds a change.
-A simple, starting workflow could be to run `ship watch && ship update` after completing `ship init`.
-This will apply an update to the base directory, generating new rendered.yaml output that can be deployed directly, or submitted as a pull request into a 'GitOps' repo.
+The `watch` command is a trigger for CI/CD processes, watching the upstream application for changes. Running `ship watch` will load the local state file (which includes a content hash of the most recently used upstream) and periodically poll the upstream application and exit when it finds a change. `ship update` will regenerate the deployable application assets, using the most recent upstream version of the application, and any local configuration from `state.json`.  The new `rendered.yaml` output can be deployed directly to the cluster, or submitted as a pull request into a 'GitOps' repo.
+
+You can see this flow in action by running `ship init <path-to-chart>` with a chart repo you have commit privileges on, then `ship watch --interval 10s && ship update` to start polling, then commit a change to the upstream chart and see the `ship watch` process exit, with rendered.yaml updated to reflect the change.  
 
 # Customizing the Configuration Experience
 
@@ -139,7 +139,7 @@ Maintainers of OTS (Off the Shelf) software can customize the `ship init` experi
 
 # Ship Cloud
 
-[Ship Cloud](https://www.replicated.com/ship) is available as a hosted solution, enabling teams to collaborate and manage multiple OTS Kubernetes application settings in one place, with Ship watching and updating on upstream changes, and creating Pull Requests and other integrations into CI/CD systems.
+For those not interested in operating and maintaining a fleet of Ship instances, [Ship Cloud](https://www.replicated.com/ship) is available as a hosted solution.   With Ship Cloud, teams can collaborate and manage multiple OTS Kubernetes application settings in one place, with Ship watching and updating on any upstream or local configuration changes, and creating Pull Requests and other integrations into CI/CD systems.
 
 # Community
 
