@@ -8,6 +8,23 @@ Ship
 [![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 [![GitHub stars](https://img.shields.io/github/stars/replicatedhq/ship.svg)](https://github.com/replicatedhq/ship/stargazers)
 
+Table of Contents
+=================
+
+   * [Ship](#ship)
+   * [Three operating modes](#three-operating-modes)
+      * [ship init](#ship-init)
+      * [ship watch](#ship-watch)
+      * [ship update](#ship-update)
+   * [Features](#features)
+   * [Getting Started](#getting-started)
+      * [Installation](#installation)
+      * [Initializing](#initializing)
+      * [Unforking](#unforking)
+   * [CI/CD Integration](#cicd-integration)
+   * [Customizing the Configuration Experience](#customizing-the-configuration-experience)
+   * [Ship Cloud](#ship-cloud)
+   * [Community](#community)
 
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
