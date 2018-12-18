@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: cassandra
-    chart: cassandra-0.9.4
+    chart: cassandra-0.9.5
     heritage: Tiller
     release: jaeger
   name: jaeger-cassandra

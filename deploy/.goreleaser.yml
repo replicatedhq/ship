@@ -51,5 +51,9 @@ dockers:
       - "{{ .Major }}"
       - "{{ .Major }}.{{ .Minor }}"
       - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+      - "slim"
+      - "{{ .Major }}-slim"
+      - "{{ .Major }}.{{ .Minor }}-slim"
+      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}-slim"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}

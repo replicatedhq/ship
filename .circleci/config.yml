@@ -444,6 +444,10 @@ jobs:
               curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
               docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
               docker push replicated/ship:alpha
+
+              # build terraform/eks enabled version
+              docker build --build-arg=source_tag=alpha-slim -t replicated/ship:alpha-full -f deploy/Dockerfile-full deploy
+              docker push replicated/ship:alpha-full
             fi
 
   deploy_integration:
@@ -478,7 +482,13 @@ jobs:
           command: |
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
                docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
-              curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+               curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+
+               # build terraform/eks enabled version.  TODO semver, for now just expose latest
+               docker pull replicated/ship:slim # this should be a no-op since we just built it, but just in case
+               docker build -t replicated/ship:full -f deploy/Dockerfile-full deploy
+               docker push replicated/ship:full
+
             fi
       # todo drop a release-api message to bump a version in the DB
 
