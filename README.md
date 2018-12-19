@@ -8,24 +8,6 @@ Ship
 [![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 [![GitHub stars](https://img.shields.io/github/stars/replicatedhq/ship.svg)](https://github.com/replicatedhq/ship/stargazers)
 
-Table of Contents
-=================
-
-   * [Ship](#ship)
-   * [Three operating modes](#three-operating-modes)
-      * [ship init](#ship-init)
-      * [ship watch](#ship-watch)
-      * [ship update](#ship-update)
-   * [Features](#features)
-   * [Getting Started](#getting-started)
-      * [Installation](#installation)
-      * [Initializing](#initializing)
-      * [Unforking](#unforking)
-   * [CI/CD Integration](#cicd-integration)
-   * [Customizing the Configuration Experience](#customizing-the-configuration-experience)
-   * [Ship Cloud](#ship-cloud)
-   * [Community](#community)
-
 ![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
 
 Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](https://www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
@@ -33,6 +15,8 @@ Replicated Ship is an open source project by [Replicated](https://www.replicated
 The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications.
 With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts.
 This is possible because of how the three operating modes of Ship invoke, store, and apply Kustomizations made by the cluster operator.
+
+Read on for more details on Ship features and operating modes, or skip ahead to [getting started](#getting-started).
 
 # Three operating modes
 
