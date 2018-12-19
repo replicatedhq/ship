@@ -1,0 +1,73 @@
+assets:
+  v1:
+  - inline:
+      contents: |
+        base/deployment.yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: example-nginx
+          labels:
+            component: nginx
+        spec:
+          replicas: {{repl ConfigOption "nginx_replicas" }}
+          selector:
+            matchLabels:
+              component: nginx
+          template:
+            metadata:
+              labels:
+                component: nginx
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx
+      dest: ./nginx.yaml
+      mode: 0777
+
+config:
+  v1:
+    - name: nginx
+      title: Nginx Settings
+      description: Nginx configuration
+      items:
+      - name: nginx_replicas
+        title: Nginx Replicas
+        help_text: How many replicas do you need to run?
+        type: text
+        default: 3
+      - name: nginx_memory
+        title: Nginx Memory
+        type: text
+        default: 100Mi
+
+lifecycle:
+  v1:
+    # custom markdown messaging
+    - message:
+        contents: |
+          # Nginx Installer
+
+          This installer will walk you through setting up a scalable nginx pool
+          that will serve high-quality, relevant web content.
+    - message:
+        contents: |
+          # Prerequisites
+
+          This installer assumes you already have a Kubernetes cluster up and running,
+          and that you have `kubectl` configured to access that cluster.
+
+    # collect info according to the `config` section
+    - config:
+        invalidates: ["render"]
+    # render assets
+    - render:
+        requires: ["config"]
+    - message:
+        id: outro
+        contents: |
+          ## You're all set!
+
+          If you have `kubectl` configured locally, you can deploy nginx by running
+
+              kubectl apply -f installer/nginx.yaml
