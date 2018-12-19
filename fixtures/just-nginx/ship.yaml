@@ -2,7 +2,6 @@ assets:
   v1:
   - inline:
       contents: |
-        base/deployment.yaml
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -22,8 +21,24 @@ assets:
               containers:
                 - name: nginx
                   image: nginx
-      dest: ./nginx.yaml
-      mode: 0777
+      dest: k8s/nginx-deployment.yaml
+      mode: 0644
+  - inline:
+      contents: |
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: example-nginx
+          labels:
+            component: nginx
+        spec:
+          type: LoadBalancer
+          ports:
+          - port: 80
+          selector:
+            component: nginx
+      dest: k8s/nginx-service.yaml
+      mode: 0644
 
 config:
   v1:
