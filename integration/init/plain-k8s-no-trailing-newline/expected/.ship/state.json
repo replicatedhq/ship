@@ -1,0 +1,9 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "https://github.com/replicatedhq/test-charts/tree/960955cdcf61891c3b5ff27c25dcde0184926add/plain-k8s-no-trailing-newline",
+    "metadata": null,
+    "contentSHA": "e03f03a48d619be6a9ff2c56c19808b0cfa2cb84615346b1c867eeca20ff92d0"
+  }
+}
