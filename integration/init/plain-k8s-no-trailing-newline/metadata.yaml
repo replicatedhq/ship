@@ -1,0 +1,3 @@
+upstream: "https://github.com/replicatedhq/test-charts/tree/960955cdcf61891c3b5ff27c25dcde0184926add/plain-k8s-no-trailing-newline"
+args: ["--prefer-git"]
+skip_cleanup: false
