@@ -85,4 +85,4 @@ lifecycle:
 
           If you have `kubectl` configured locally, you can deploy nginx by running
 
-              kubectl apply -f installer/nginx.yaml
+              kubectl apply -f installer/k8s/nginx.yaml
