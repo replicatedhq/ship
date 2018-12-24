@@ -59,6 +59,14 @@ for example,
 ./bin/ship init github.com/helm/charts/stable/nginx-ingress
 ```
 
+### Writing tests
+
+Tests make extensive use of mocks.   To add mocks for new types, the type needs to be added to the `mockgen` target in the make file.  The following command will generate new mocks and update existing ones:
+
+```
+make mockgen
+```
+
 ### Using the UI
 
 A webpack development server can be started for iterating on the ui with the following command:
