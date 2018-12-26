@@ -3,7 +3,6 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/replicatedhq/test-charts/tree/565a3003a45e369ec66035a899e36061da9a0fc4/cert-generation",
-    "metadata": null,
     "contentSHA": "a23a4f2e28da5bd6534057d3bd89ecaf43de832d7ad42707141d372dc7938b8a",
     "cas": {
       "ca1": {
