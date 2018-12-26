@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/replicatedhq/ship/pkg/constants"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -114,7 +116,13 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 		return errors.Wrap(err, "write base kustomization")
 	}
 
-	built, err := l.kustomizeBuild(step.Base)
+	if err := l.generateTillerPatches(step); err != nil {
+		return errors.Wrap(err, "generate tiller patches")
+	}
+
+	defer l.FS.RemoveAll(constants.TempApplyOverlayPath)
+
+	built, err := l.kustomizeBuild(constants.TempApplyOverlayPath)
 	if err != nil {
 		return errors.Wrap(err, "build overlay")
 	}
