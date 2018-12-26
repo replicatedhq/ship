@@ -72,7 +72,7 @@ type V1 struct {
 	HelmValuesDefaults string                 `json:"helmValuesDefaults,omitempty" yaml:"helmValuesDefaults,omitempty" hcl:"helmValuesDefaults,omitempty"`
 	Kustomize          *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
-	Metadata           *Metadata              `json:"metadata" yaml:"metadata" hcl:"metadata"`
+	Metadata           *Metadata              `json:"metadata,omitempty" yaml:"metadata,omitempty" hcl:"metadata,omitempty"`
 
 	//deprecated in favor of upstream
 	ChartURL string `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`

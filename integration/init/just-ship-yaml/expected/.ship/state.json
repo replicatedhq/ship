@@ -3,7 +3,6 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/replicatedhq/test-charts/tree/ebebc9e692db3caeadb308ddeec37e9565acba1e/just-ship-yaml",
-    "metadata": null,
     "contentSHA": "b2234e03feee0754ad02d0a8542c467829da12d13407e268926771f6b560ac83"
   }
 }
