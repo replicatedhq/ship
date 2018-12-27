@@ -3,8 +3,6 @@ kind: Service
 metadata:
   labels:
     app: basic
-    chart: basic-0.1.0
-    heritage: Tiller
     release: basic
   name: basic
 spec:
@@ -23,8 +21,6 @@ kind: Deployment
 metadata:
   labels:
     app: basic
-    chart: basic-0.1.0
-    heritage: Tiller
     release: basic
   name: basic
 spec:

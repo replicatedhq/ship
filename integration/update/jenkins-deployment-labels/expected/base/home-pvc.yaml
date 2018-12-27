@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     app: jenkins
-    chart: jenkins-0.20.1
-    heritage: Tiller
     release: jenkins
   name: jenkins
 spec:

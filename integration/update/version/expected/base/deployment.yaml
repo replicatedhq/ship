@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: version
-    chart: version-0.0.2
-    heritage: Tiller
     release: version
   name: version
 spec:

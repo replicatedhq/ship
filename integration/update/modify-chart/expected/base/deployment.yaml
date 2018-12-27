@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: modify-chart
-    chart: modify-chart-0.1.0
-    heritage: Tiller
     release: modify-chart
   name: modify-chart
 spec:

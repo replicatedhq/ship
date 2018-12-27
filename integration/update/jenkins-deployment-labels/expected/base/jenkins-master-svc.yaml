@@ -3,9 +3,7 @@ kind: Service
 metadata:
   labels:
     app: jenkins
-    chart: jenkins-0.20.1
     component: jenkins-jenkins-master
-    heritage: Tiller
     release: jenkins
   name: jenkins
 spec:
