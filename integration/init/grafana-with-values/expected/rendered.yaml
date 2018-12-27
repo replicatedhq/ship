@@ -3,8 +3,6 @@ kind: ServiceAccount
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 ---
@@ -13,8 +11,6 @@ kind: Role
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 rules:
@@ -32,8 +28,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana-clusterrole
 rules: []
@@ -43,8 +37,6 @@ kind: RoleBinding
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 roleRef:
@@ -60,8 +52,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana-clusterrolebinding
 roleRef:
@@ -91,8 +81,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 ---
@@ -101,8 +89,6 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 spec:
@@ -122,8 +108,6 @@ kind: Secret
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 type: Opaque
@@ -133,8 +117,6 @@ kind: Service
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 spec:
@@ -153,8 +135,6 @@ kind: Deployment
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 spec:
@@ -243,8 +223,6 @@ metadata:
     seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 spec:

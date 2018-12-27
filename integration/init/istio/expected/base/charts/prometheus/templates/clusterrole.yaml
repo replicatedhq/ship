@@ -3,8 +3,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: prometheus
-    chart: prometheus
-    heritage: Tiller
     release: istio
   name: prometheus-default
 rules:

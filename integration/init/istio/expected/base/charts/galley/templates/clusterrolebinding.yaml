@@ -3,8 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: galley
-    chart: galley
-    heritage: Tiller
     release: istio
   name: istio-galley-admin-role-binding-default
 roleRef:

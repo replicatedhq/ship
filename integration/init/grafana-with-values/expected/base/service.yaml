@@ -3,8 +3,6 @@ kind: Service
 metadata:
   labels:
     app: grafana
-    chart: grafana-1.19.0
-    heritage: Tiller
     release: grafana
   name: grafana
 spec:

@@ -1186,8 +1186,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-citadel-default
 rules:
@@ -1228,8 +1226,6 @@ metadata:
     helm.sh/hook-weight: "1"
   labels:
     app: security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-cleanup-secrets-default
 rules:
@@ -1246,8 +1242,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: gateways
-    chart: gateways-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-egressgateway-default
 rules:
@@ -1269,8 +1263,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-galley
-    chart: galley-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-galley-default
 rules:
@@ -1310,8 +1302,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: gateways
-    chart: gateways-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-ingressgateway-default
 rules:
@@ -1333,8 +1323,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: mixer
-    chart: mixer-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-mixer-default
 rules:
@@ -1400,8 +1388,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-pilot
-    chart: pilot-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-pilot-default
 rules:
@@ -1482,8 +1468,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-security-post-install-default
 rules:
@@ -1520,8 +1504,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-sidecar-injector
-    chart: sidecarInjectorWebhook-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-sidecar-injector-default
 rules:
@@ -1576,8 +1558,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-citadel-default
 roleRef:
@@ -1598,8 +1578,6 @@ metadata:
     helm.sh/hook-weight: "2"
   labels:
     app: security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-cleanup-secrets-default
 roleRef:
@@ -1629,8 +1607,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-galley
-    chart: galley-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-galley-admin-role-binding-default
 roleRef:
@@ -1660,8 +1636,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: mixer
-    chart: mixer-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-mixer-admin-role-binding-default
 roleRef:
@@ -1678,8 +1652,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-pilot
-    chart: pilot-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-pilot-default
 roleRef:
@@ -1696,8 +1668,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-security
-    chart: security-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-security-post-install-role-binding-default
 roleRef:
@@ -1714,8 +1684,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-sidecar-injector
-    chart: sidecarInjectorWebhook-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-sidecar-injector-admin-role-binding-default
 roleRef:

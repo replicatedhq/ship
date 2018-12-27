@@ -3,8 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: gateways
-    chart: gateways
-    heritage: Tiller
     release: istio
   name: istio-egressgateway-default
 roleRef:

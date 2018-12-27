@@ -44,24 +44,12 @@ metadata:
   name: strawberry
 `,
 				},
-				{
-					path: "strawberry/service.yaml",
-					contents: `apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: strawberry
-    heritage: Tiller
-    chart: strawberry-1.0.0
-  name: strawberry
-`,
-				},
 			},
 			expectKustomization: k8stypes.Kustomization{
 				Bases: []string{"../../strawberry"},
 				PatchesJson6902: []kustomizepatch.PatchJson6902{
 					{
-						Path: "tiller-patch.json",
+						Path: "chart-patch.json",
 						Target: &kustomizepatch.Target{
 							Group:   "apps",
 							Kind:    "Deployment",
@@ -70,11 +58,78 @@ metadata:
 						},
 					},
 					{
-						Path: "tiller-patch.json",
+						Path: "heritage-patch.json",
 						Target: &kustomizepatch.Target{
-							Kind:    "Service",
+							Group:   "apps",
+							Kind:    "Deployment",
 							Name:    "strawberry",
-							Version: "v1",
+							Version: "v1beta2",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "yaml with only heritage label",
+			step: api.Kustomize{
+				Base: "pomegranate",
+			},
+			testFiles: []testFile{
+				{
+					path: "pomegranate/deployment.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: pomegranate
+    heritage: Tiller
+  name: pomegranate
+`,
+				},
+			},
+			expectKustomization: k8stypes.Kustomization{
+				Bases: []string{"../../pomegranate"},
+				PatchesJson6902: []kustomizepatch.PatchJson6902{
+					{
+						Path: "heritage-patch.json",
+						Target: &kustomizepatch.Target{
+							Group:   "apps",
+							Kind:    "Deployment",
+							Name:    "pomegranate",
+							Version: "v1beta2",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "yaml with only chart label",
+			step: api.Kustomize{
+				Base: "apple",
+			},
+			testFiles: []testFile{
+				{
+					path: "apple/deployment.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: apple
+    chart: apple-1.0.0
+  name: apple
+`,
+				},
+			},
+			expectKustomization: k8stypes.Kustomization{
+				Bases: []string{"../../apple"},
+				PatchesJson6902: []kustomizepatch.PatchJson6902{
+					{
+						Path: "chart-patch.json",
+						Target: &kustomizepatch.Target{
+							Group:   "apps",
+							Kind:    "Deployment",
+							Name:    "apple",
+							Version: "v1beta2",
 						},
 					},
 				},
@@ -109,25 +164,6 @@ metadata:
 			},
 			expectKustomization: k8stypes.Kustomization{
 				Bases: []string{"../../banana"},
-				PatchesJson6902: []kustomizepatch.PatchJson6902{
-					{
-						Path: "tiller-patch.json",
-						Target: &kustomizepatch.Target{
-							Group:   "apps",
-							Kind:    "Deployment",
-							Name:    "banana",
-							Version: "v1beta2",
-						},
-					},
-					{
-						Path: "tiller-patch.json",
-						Target: &kustomizepatch.Target{
-							Kind:    "Service",
-							Name:    "banana",
-							Version: "v1",
-						},
-					},
-				},
 			},
 		},
 	}

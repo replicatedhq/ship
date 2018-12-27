@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: my-app
-    chart: values-update
-    heritage: Tiller
     release: values-update
   name: deployment
 spec:

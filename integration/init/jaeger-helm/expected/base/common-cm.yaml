@@ -22,8 +22,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
-    heritage: Tiller
     jaeger-infra: common-configmap
     release: jaeger
   name: jaeger

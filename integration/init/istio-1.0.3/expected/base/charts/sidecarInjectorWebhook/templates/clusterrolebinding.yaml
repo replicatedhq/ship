@@ -3,8 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-sidecar-injector
-    chart: sidecarInjectorWebhook-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-sidecar-injector-admin-role-binding-default
 roleRef:

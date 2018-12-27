@@ -22,8 +22,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
-    heritage: Tiller
     jaeger-infra: common-configmap
     release: jaeger
   name: jaeger
@@ -33,9 +31,7 @@ kind: Service
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: agent
-    heritage: Tiller
     jaeger-infra: agent-service
     release: jaeger
   name: jaeger-agent
@@ -69,8 +65,6 @@ kind: Service
 metadata:
   labels:
     app: cassandra
-    chart: cassandra-0.10.0
-    heritage: Tiller
     release: jaeger
   name: jaeger-cassandra
 spec:
@@ -101,9 +95,7 @@ kind: Service
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: collector
-    heritage: Tiller
     jaeger-infra: collector-service
     release: jaeger
   name: jaeger-collector
@@ -133,9 +125,7 @@ kind: Service
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: query
-    heritage: Tiller
     jaeger-infra: query-service
     release: jaeger
   name: jaeger-query
@@ -157,8 +147,6 @@ kind: StatefulSet
 metadata:
   labels:
     app: cassandra
-    chart: cassandra-0.10.0
-    heritage: Tiller
     release: jaeger
   name: jaeger-cassandra
 spec:
@@ -256,9 +244,7 @@ kind: Job
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: cassandra-schema
-    heritage: Tiller
     jaeger-infra: cassandra-schema-job
     release: jaeger
   name: jaeger-cassandra-schema
@@ -301,9 +287,7 @@ kind: DaemonSet
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: agent
-    heritage: Tiller
     jaeger-infra: agent-daemonset
     release: jaeger
   name: jaeger-agent
@@ -344,9 +328,7 @@ kind: Deployment
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: collector
-    heritage: Tiller
     jaeger-infra: collector-deployment
     release: jaeger
   name: jaeger-collector
@@ -433,9 +415,7 @@ kind: Deployment
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: query
-    heritage: Tiller
     jaeger-infra: query-deployment
     release: jaeger
   name: jaeger-query

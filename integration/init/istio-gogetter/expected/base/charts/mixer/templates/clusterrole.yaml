@@ -3,8 +3,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: mixer
-    chart: mixer
-    heritage: Tiller
     release: istio
   name: istio-mixer-default
 rules:

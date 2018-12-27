@@ -3,8 +3,6 @@ kind: StatefulSet
 metadata:
   labels:
     app: cassandra
-    chart: cassandra-0.10.0
-    heritage: Tiller
     release: jaeger
   name: jaeger-cassandra
 spec:
