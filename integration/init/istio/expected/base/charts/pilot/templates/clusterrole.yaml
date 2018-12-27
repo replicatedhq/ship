@@ -3,8 +3,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: pilot
-    chart: pilot
-    heritage: Tiller
     release: istio
   name: istio-pilot-default
 rules:

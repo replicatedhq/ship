@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "jenkins-ui-test-0icpm"
+  name: "jenkins-ui-test-ebw3x"
   annotations:
     "helm.sh/hook": test-success
 spec:

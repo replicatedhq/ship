@@ -3,8 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: mixer
-    chart: mixer-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-mixer-admin-role-binding-default
 roleRef:

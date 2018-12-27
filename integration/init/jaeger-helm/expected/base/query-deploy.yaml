@@ -3,9 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: query
-    heritage: Tiller
     jaeger-infra: query-deployment
     release: jaeger
   name: jaeger-query

@@ -3,8 +3,6 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-galley
-    chart: galley-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-galley-default
 rules:

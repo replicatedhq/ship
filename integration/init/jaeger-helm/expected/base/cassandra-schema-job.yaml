@@ -3,9 +3,7 @@ kind: Job
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: cassandra-schema
-    heritage: Tiller
     jaeger-infra: cassandra-schema-job
     release: jaeger
   name: jaeger-cassandra-schema

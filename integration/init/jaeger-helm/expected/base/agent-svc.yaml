@@ -3,9 +3,7 @@ kind: Service
 metadata:
   labels:
     app: jaeger
-    chart: jaeger-0.7.0
     component: agent
-    heritage: Tiller
     jaeger-infra: agent-service
     release: jaeger
   name: jaeger-agent

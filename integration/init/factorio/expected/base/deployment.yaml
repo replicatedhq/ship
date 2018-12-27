@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: factorio-factorio
-    chart: factorio-0.3.1
-    heritage: Tiller
     release: factorio
   name: factorio-factorio
 spec:

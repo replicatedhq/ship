@@ -3,8 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: security
-    chart: security
-    heritage: Tiller
     release: istio
   name: istio-citadel-default
 roleRef:
