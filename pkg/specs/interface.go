@@ -73,6 +73,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 					Path:        constants.HelmChartForkedPath,
 					SaveToState: true,
 				},
+				Upstream: forked,
 			},
 		}
 	case "k8s":
@@ -102,6 +103,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 				ValuesFrom: &api.ValuesFrom{
 					Path: constants.HelmChartPath,
 				},
+				Upstream: upstream,
 			},
 		}
 	case "k8s":
@@ -167,7 +169,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	switch app.GetType() {
 
 	case "helm":
-		defaultRelease := r.DefaultHelmRelease(app.GetLocalPath())
+		defaultRelease := r.DefaultHelmRelease(app.GetLocalPath(), upstream)
 
 		return r.resolveRelease(
 			ctx,

@@ -27,10 +27,6 @@ import (
 	"k8s.io/helm/pkg/chartutil"
 )
 
-const (
-	HelmChartIncubatorURL = "https://kubernetes-charts-incubator.storage.googleapis.com/"
-)
-
 // Templater is something that can consume and render a helm chart pulled by ship.
 // the chart should already be present at the specified path.
 type Templater interface {
@@ -151,13 +147,14 @@ func (f *LocalTemplater) Template(
 	if err != nil {
 		return errors.Wrap(err, "make absolute helm temp home")
 	}
-	for _, dependency := range requirements.Dependencies {
-		if dependency.Repository == HelmChartIncubatorURL {
-			if err := f.Commands.RepoAdd("incubator", HelmChartIncubatorURL, absTempHelmHome); err != nil {
-				return errors.Wrap(err, "add helm repo")
-			}
-			break
-		}
+
+	if err := f.addDependencies(
+		requirements.Dependencies,
+		absTempHelmHome,
+		chartRoot,
+		asset,
+	); err != nil {
+		return errors.Wrap(err, "add requirements deps")
 	}
 
 	debug.Log("event", "helm.dependency.update")
@@ -332,42 +329,45 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	if err := util.BailIfPresent(f.FS, asset.Dest, f.Logger); err != nil {
 		return err
 	}
-	debug.Log("event", "mkdirall", "path", asset.Dest)
 
+	debug.Log("event", "mkdirall", "path", asset.Dest)
 	if err := rootFs.MkdirAll(asset.Dest, 0755); err != nil {
 		debug.Log("event", "mkdirall.fail", "path", asset.Dest)
 		return errors.Wrap(err, "failed to make asset destination base directory")
 	}
 
-	if templatesDirExists, err := f.FS.IsDir(tempRenderedChartTemplatesDir); err != nil || !templatesDirExists {
-		return errors.Wrap(err, "unable to find tmp rendered chart")
+	templatesDirExists, err := f.FS.DirExists(tempRenderedChartTemplatesDir)
+	if err != nil || !templatesDirExists {
+		// Sometimes the template dir doesn't exist
+		debug.Log("event", "templateDirNotFound")
 	}
 
-	err := f.validateGeneratedFiles(f.FS, tempRenderedChartDir)
-	if err != nil {
+	if err := f.validateGeneratedFiles(f.FS, tempRenderedChartDir); err != nil {
 		return errors.Wrapf(err, "unable to validate chart dir")
 	}
 
-	debug.Log("event", "readdir", "folder", tempRenderedChartTemplatesDir)
-	files, err := f.FS.ReadDir(tempRenderedChartTemplatesDir)
-	if err != nil {
-		debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
-		return errors.Wrap(err, "failed to read temp rendered charts folder")
-	}
-
-	for _, file := range files {
-		originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
-		renderedPath := path.Join(rootFs.RootPath, asset.Dest, file.Name())
-		if err := f.FS.Rename(originalPath, renderedPath); err != nil {
-			fileType := "file"
-			if file.IsDir() {
-				fileType = "directory"
+	if templatesDirExists {
+		debug.Log("event", "readdir", "folder", tempRenderedChartTemplatesDir)
+		files, err := f.FS.ReadDir(tempRenderedChartTemplatesDir)
+		if err != nil {
+			debug.Log("event", "readdir.fail", "folder", tempRenderedChartTemplatesDir)
+			return errors.Wrap(err, "failed to read temp rendered charts folder")
+		}
+		for _, file := range files {
+			originalPath := path.Join(tempRenderedChartTemplatesDir, file.Name())
+			renderedPath := path.Join(rootFs.RootPath, asset.Dest, file.Name())
+			if err := f.FS.Rename(originalPath, renderedPath); err != nil {
+				fileType := "file"
+				if file.IsDir() {
+					fileType = "directory"
+				}
+				return errors.Wrapf(err, "failed to rename %s at path %s", fileType, originalPath)
 			}
-			return errors.Wrapf(err, "failed to rename %s at path %s", fileType, originalPath)
 		}
 	}
 
 	if subChartsExist, err := rootFs.IsDir(tempRenderedSubChartsDir); err == nil && subChartsExist {
+		debug.Log("event", "rename", "folder", tempRenderedSubChartsDir)
 		if err := rootFs.Rename(tempRenderedSubChartsDir, path.Join(asset.Dest, subChartsDirName)); err != nil {
 			return errors.Wrap(err, "failed to rename subcharts dir")
 		}

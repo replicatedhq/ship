@@ -1,6 +1,10 @@
 package util
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestIsGithubURL(t *testing.T) {
 	tests := []struct {
@@ -230,6 +234,52 @@ func TestParseGithubURL(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("untreeGithub(%q) = %v, want %v", tt.path, got, tt.want)
 			}
+		})
+	}
+}
+
+func TestGithubURL_URL(t *testing.T) {
+	tests := []struct {
+		name      string
+		githubURL GithubURL
+		want      string
+	}{
+		{
+			name: "github tree with no subdir",
+			githubURL: GithubURL{
+				Owner: "o",
+				Repo:  "r",
+				Ref:   "master",
+			},
+			want: "github.com/o/r/tree/master/",
+		},
+		{
+			name: "github tree with a subdir",
+			githubURL: GithubURL{
+				Owner:  "o",
+				Repo:   "r",
+				Ref:    "master",
+				Subdir: "something/maybe",
+			},
+			want: "github.com/o/r/tree/master/something/maybe",
+		},
+		{
+			name: "github blob to a file",
+			githubURL: GithubURL{
+				Owner:  "o",
+				Repo:   "r",
+				Ref:    "master",
+				Subdir: "file.yaml",
+				IsBlob: true,
+			},
+			want: "github.com/o/r/blob/master/file.yaml",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			got := tt.githubURL.URL()
+			req.Equal(tt.want, got)
 		})
 	}
 }

@@ -34,4 +34,6 @@ var (
 	HelmChartForkedPath = path.Join(ShipPathInternalTmp, "chart-forked")
 	// UnforkForkedBasePath is the path that unfork will save the forked in when unforking
 	UnforkForkedBasePath = path.Join(ShipPathInternalTmp, "fork", "base")
+	// HelmLocalDependencyPath is the local temp path that local dependencies are initially saved to
+	HelmLocalDependencyPath = path.Join(ShipPathInternalTmp, "dependencies")
 )
