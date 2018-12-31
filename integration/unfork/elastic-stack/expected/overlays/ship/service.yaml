@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kibana
+    chart: kibana-0.20.0
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-kibana
+spec:
+  $setElementOrder/ports:
+  - port: 80
+  ports:
+  - name: kibana
+    port: 80
+    protocol: TCP
+    targetPort: 5601
+  - $patch: delete
+    port: 443

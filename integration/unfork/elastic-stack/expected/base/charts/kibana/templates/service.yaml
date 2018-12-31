@@ -1,0 +1,21 @@
+---
+# Source: elastic-stack/charts/kibana/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kibana
+    chart: kibana-0.20.0
+    release: elastic-stack
+    heritage: Tiller
+  name: elastic-stack-kibana
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: 5601
+      protocol: TCP
+
+  selector:
+    app: kibana
+    release: elastic-stack

@@ -1,0 +1,75 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-1.15.1
+    component: client
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-elasticsearch-client
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: elasticsearch
+      $setElementOrder/initContainers:
+      - name: sysctl
+      containers:
+      - $setElementOrder/env:
+        - name: SERVICE
+        - name: KUBERNETES_MASTER
+        - name: KUBERNETES_NAMESPACE
+        - name: NODE_DATA
+        - name: NODE_INGEST
+        - name: NODE_MASTER
+        - name: PROCESSORS
+        - name: ES_JAVA_OPTS
+        - name: MINIMUM_MASTER_NODES
+        $setElementOrder/volumeMounts:
+        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+        - mountPath: /usr/share/elasticsearch/config/log4j2.properties
+        env:
+        - name: SERVICE
+          value: elastic-stack-elasticsearch-master
+        - name: KUBERNETES_MASTER
+          value: kubernetes.default.svc.cluster.local
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_INGEST
+          value: "false"
+        - name: ES_JAVA_OPTS
+          value: -Djava.net.preferIPv4Stack=true -Xms512m -Xmx512m
+        - $patch: delete
+          name: DISCOVERY_SERVICE
+        image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - curl --request GET --silent --output /dev/null http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow
+          httpGet: null
+        name: elasticsearch
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - curl --request GET --silent --output /dev/null http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow
+          httpGet: null
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          readOnly: true
+        - mountPath: /usr/share/elasticsearch/config/log4j2.properties
+          name: config
+          readOnly: true
+          subPath: log4j2.properties
+      initContainers:
+      - image: busybox
+        name: sysctl
+      securityContext: null
+      serviceAccountName: elastic-stack-elasticsearch

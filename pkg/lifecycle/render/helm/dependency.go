@@ -68,6 +68,9 @@ func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, origi
 		if err != nil {
 			return errors.Wrap(err, "fetch local helm dependency")
 		}
+		if err := f.FS.MkdirAll(filepath.Dir(depPath), 0755); err != nil {
+			return errors.Wrap(err, "mkdirall dep path")
+		}
 		if err := f.FS.Rename(savedPath, depPath); err != nil {
 			return errors.Wrap(err, "rename to dep path")
 		}

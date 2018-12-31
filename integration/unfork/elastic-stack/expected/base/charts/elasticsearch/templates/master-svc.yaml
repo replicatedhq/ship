@@ -1,0 +1,21 @@
+---
+# Source: elastic-stack/charts/elasticsearch/templates/master-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-1.15.1
+    component: "master"
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-elasticsearch-discovery
+spec:
+  clusterIP: None
+  ports:
+    - port: 9300
+      targetPort: transport
+  selector:
+    app: elasticsearch
+    component: "master"
+    release: elastic-stack
