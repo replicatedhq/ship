@@ -8,16 +8,16 @@
       "overlays": {
         "ship": {
           "excludedBases": [
-            "/charts/kibana/templates/configmap.yaml",
-            "/charts/logstash/templates/pipeline-config.yaml",
-            "/charts/logstash/templates/service.yaml",
-            "/charts/logstash/templates/statefulset.yaml",
-            "/charts/elasticsearch/templates/master-svc.yaml",
+            "/charts/elasticsearch/templates/client-serviceaccount.yaml",
             "/charts/elasticsearch/templates/data-serviceaccount.yaml",
             "/charts/elasticsearch/templates/master-serviceaccount.yaml",
+            "/charts/elasticsearch/templates/master-svc.yaml",
+            "/charts/kibana/templates/configmap.yaml",
             "/charts/logstash/templates/patterns-config.yaml",
-            "/charts/elasticsearch/templates/client-serviceaccount.yaml",
-            "/charts/logstash/templates/poddisruptionbudget.yaml"
+            "/charts/logstash/templates/pipeline-config.yaml",
+            "/charts/logstash/templates/poddisruptionbudget.yaml",
+            "/charts/logstash/templates/service.yaml",
+            "/charts/logstash/templates/statefulset.yaml"
           ],
           "patches": {
             "/client-deployment.yaml": "apiVersion: apps/v1beta1\nkind: Deployment\nmetadata:\n  labels:\n    app: elasticsearch\n    chart: elasticsearch-1.15.1\n    component: client\n    heritage: Tiller\n    release: elastic-stack\n  name: elastic-stack-elasticsearch-client\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: elasticsearch\n      $setElementOrder/initContainers:\n      - name: sysctl\n      containers:\n      - $setElementOrder/env:\n        - name: SERVICE\n        - name: KUBERNETES_MASTER\n        - name: KUBERNETES_NAMESPACE\n        - name: NODE_DATA\n        - name: NODE_INGEST\n        - name: NODE_MASTER\n        - name: PROCESSORS\n        - name: ES_JAVA_OPTS\n        - name: MINIMUM_MASTER_NODES\n        $setElementOrder/volumeMounts:\n        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml\n        - mountPath: /usr/share/elasticsearch/config/log4j2.properties\n        env:\n        - name: SERVICE\n          value: elastic-stack-elasticsearch-master\n        - name: KUBERNETES_MASTER\n          value: kubernetes.default.svc.cluster.local\n        - name: KUBERNETES_NAMESPACE\n          valueFrom:\n            fieldRef:\n              fieldPath: metadata.namespace\n        - name: NODE_INGEST\n          value: \"false\"\n        - name: ES_JAVA_OPTS\n          value: -Djava.net.preferIPv4Stack=true -Xms512m -Xmx512m\n        - $patch: delete\n          name: DISCOVERY_SERVICE\n        image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack\n        imagePullPolicy: Always\n        livenessProbe:\n          exec:\n            command:\n            - sh\n            - -c\n            - curl --request GET --silent --output /dev/null http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow\n          httpGet: null\n        name: elasticsearch\n        readinessProbe:\n          exec:\n            command:\n            - sh\n            - -c\n            - curl --request GET --silent --output /dev/null http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow\n          httpGet: null\n        volumeMounts:\n        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml\n          readOnly: true\n        - mountPath: /usr/share/elasticsearch/config/log4j2.properties\n          name: config\n          readOnly: true\n          subPath: log4j2.properties\n      initContainers:\n      - image: busybox\n        name: sysctl\n      securityContext: null\n      serviceAccountName: elastic-stack-elasticsearch\n",
