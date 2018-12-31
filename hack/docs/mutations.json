@@ -315,7 +315,8 @@
   {
     "path": "properties.assets.properties.v1.items.properties.helm.properties",
     "delete": [
-      "mode"
+      "mode",
+      "upstream"
     ]
   },
   {

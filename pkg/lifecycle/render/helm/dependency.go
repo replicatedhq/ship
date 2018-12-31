@@ -25,18 +25,20 @@ func (f *LocalTemplater) addDependencies(
 	asset api.HelmAsset,
 ) error {
 	for _, dependency := range dependencies {
-		repoURL, err := url.Parse(dependency.Repository)
-		if err != nil {
-			return errors.Wrapf(err, "parse dependency repo %s", dependency.Repository)
-		}
-		if repoURL.Scheme == "file" {
-			if err := f.getLocalDependency(dependency.Repository, chartRoot, asset, helmHome); err != nil {
-				return errors.Wrapf(err, "get local dep %s", dependency.Repository)
+		if dependency.Repository != "" {
+			repoURL, err := url.Parse(dependency.Repository)
+			if err != nil {
+				return errors.Wrapf(err, "parse dependency repo %s", dependency.Repository)
 			}
-		} else {
-			repoName := strings.Split(repoURL.Hostname(), ".")[0]
-			if err := f.Commands.RepoAdd(repoName, dependency.Repository, helmHome); err != nil {
-				return errors.Wrapf(err, "add helm repo %s", dependency.Repository)
+			if repoURL.Scheme == "file" {
+				if err := f.getLocalDependency(dependency.Repository, chartRoot, asset, helmHome); err != nil {
+					return errors.Wrapf(err, "get local dep %s", dependency.Repository)
+				}
+			} else {
+				repoName := strings.Split(repoURL.Hostname(), ".")[0]
+				if err := f.Commands.RepoAdd(repoName, dependency.Repository, helmHome); err != nil {
+					return errors.Wrapf(err, "add helm repo %s", dependency.Repository)
+				}
 			}
 		}
 	}
