@@ -123,7 +123,7 @@ func TestLocalTemplater(t *testing.T) {
 					},
 				},
 			},
-			repoAdd: []string{"incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/"},
+			repoAdd: []string{"kubernetes-charts-incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/"},
 		},
 	}
 	for _, test := range tests {

@@ -51,3 +51,11 @@ func ParseGithubURL(url string, defaultRef string) (GithubURL, error) {
 func IsGithubURL(url string) bool {
 	return githubRegex.MatchString(url)
 }
+
+func (g GithubURL) URL() string {
+	blobOrTree := "tree"
+	if g.IsBlob {
+		blobOrTree = "blob"
+	}
+	return fmt.Sprintf("github.com/%s/%s/%s/%s/%s", g.Owner, g.Repo, blobOrTree, g.Ref, g.Subdir)
+}

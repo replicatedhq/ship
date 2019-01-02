@@ -1,0 +1,19 @@
+---
+# Source: elastic-stack/charts/elasticsearch/templates/master-pdb.yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: "elastic-stack-elasticsearch-master"
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-0.1.10
+    component: "master"
+    heritage: Tiller
+    release: elastic-stack
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: "master"
+      release: elastic-stack
+  minAvailable: 1

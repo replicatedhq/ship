@@ -1,0 +1,19 @@
+---
+# Source: elastic-stack/charts/elasticsearch/templates/data-pdb.yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: "elastic-stack-elasticsearch-data"
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-0.1.10
+    component: "data"
+    heritage: Tiller
+    release: elastic-stack
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: "data"
+      release: elastic-stack
+  minAvailable: 1

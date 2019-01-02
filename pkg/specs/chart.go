@@ -82,7 +82,7 @@ For continuous notification and preparation of application updates via email, we
 	return spec
 }
 
-func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
+func (r *Resolver) DefaultHelmRelease(chartPath string, upstream string) api.Spec {
 	valuesPath := ""
 
 	if r.Viper.GetString("helm-values-file") != "" {
@@ -109,6 +109,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string) api.Spec {
 							Path:        constants.ShipPathInternalTmp,
 							SaveToState: true,
 						},
+						Upstream: upstream,
 					},
 				},
 			},

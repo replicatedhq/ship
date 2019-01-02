@@ -1,0 +1,53 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+    chart: kibana-0.20.0
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-kibana
+spec:
+  revisionHistoryLimit: null
+  template:
+    metadata:
+      annotations: null
+    spec:
+      $setElementOrder/containers:
+      - name: kibana
+      containers:
+      - $setElementOrder/env:
+        - name: XPACK_MONITORING_ENABLED
+        - name: ELASTICSEARCH_URL
+        $setElementOrder/ports:
+        - containerPort: 5601
+        env:
+        - name: XPACK_MONITORING_ENABLED
+          value: "true"
+        - name: ELASTICSEARCH_URL
+          value: http://elastic-stack-elasticsearch:9200
+        image: docker.elastic.co/kibana/kibana:5.4.2
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5601
+          initialDelaySeconds: 180
+        name: kibana
+        ports:
+        - containerPort: 5601
+          name: http
+          protocol: null
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 5601
+          initialDelaySeconds: 180
+          periodSeconds: 10
+        resources: null
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts: null
+      serviceAccountName: null
+      tolerations: null
+      volumes: null

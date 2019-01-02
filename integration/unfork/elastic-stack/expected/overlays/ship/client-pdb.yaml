@@ -1,0 +1,19 @@
+---
+# Source: elastic-stack/charts/elasticsearch/templates/client-pdb.yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: "elastic-stack-elasticsearch-client"
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-0.1.10
+    component: "client"
+    heritage: Tiller
+    release: elastic-stack
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: "client"
+      release: elastic-stack
+  minAvailable: 1

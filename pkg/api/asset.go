@@ -90,6 +90,7 @@ type HelmAsset struct {
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local      *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 	ValuesFrom *ValuesFrom    `json:"values_from,omitempty" yaml:"values_from,omitempty" hcl:"values_from,omitempty"`
+	Upstream   string         `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
 }
 
 // LocalAsset is an asset whose contents are on the local fs

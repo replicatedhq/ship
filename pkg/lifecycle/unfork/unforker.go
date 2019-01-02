@@ -353,6 +353,7 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 		excludedBases = append(excludedBases, string(filepath.Separator)+relPathToBase)
 	}
 
+	sort.Sort(sort.StringSlice(excludedBases))
 	overlay.ExcludedBases = excludedBases
 
 	kustomize.Overlays = map[string]state.Overlay{

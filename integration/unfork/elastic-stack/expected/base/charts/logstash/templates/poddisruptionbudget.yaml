@@ -1,0 +1,18 @@
+---
+# Source: elastic-stack/charts/logstash/templates/poddisruptionbudget.yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: elastic-stack-logstash
+  labels:
+    app: logstash
+    chart: logstash-1.4.1
+    release: elastic-stack
+    heritage: Tiller
+spec:
+  selector:
+    matchLabels:
+      app: logstash
+      release: elastic-stack
+  maxUnavailable: 1
+  
