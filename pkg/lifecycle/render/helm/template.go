@@ -120,13 +120,11 @@ func (f *LocalTemplater) Template(
 
 	versioned := state.Versioned()
 	releaseName := versioned.CurrentReleaseName()
-	namespace := versioned.CurrentNamespace()
 	debug.Log("event", "releasename.resolve.fromState", "releasename", releaseName)
 
 	templateArgs := []string{
 		"--output-dir", renderDest,
 		"--name", releaseName,
-		"--namespace", namespace,
 	}
 
 	if asset.HelmOpts != nil {
@@ -201,7 +199,12 @@ func (f *LocalTemplater) Template(
 		templateArgs = append(templateArgs, args...)
 	}
 
-	templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+	namespace := versioned.CurrentNamespace()
+	if len(namespace) > 0 {
+		templateArgs = addArgIfNotPresent(templateArgs, "--namespace", namespace)
+	} else {
+		templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+	}
 
 	debug.Log("event", "helm.template")
 	if err := f.Commands.Template(chartRoot, templateArgs); err != nil {
