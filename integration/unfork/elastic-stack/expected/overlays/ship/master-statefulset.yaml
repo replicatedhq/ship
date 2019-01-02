@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: master
     heritage: Tiller
     release: elastic-stack
@@ -11,6 +11,9 @@ metadata:
 spec:
   replicas: 2
   template:
+    metadata:
+      labels:
+        role: null
     spec:
       $setElementOrder/containers:
       - name: elasticsearch

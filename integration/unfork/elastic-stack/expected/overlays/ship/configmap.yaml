@@ -118,7 +118,7 @@ kind: ConfigMap
 metadata:
   labels:
     app: elastic-stack-elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch

@@ -5,7 +5,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: "data"
     heritage: Tiller
     release: elastic-stack
@@ -19,6 +19,7 @@ spec:
         app: elasticsearch
         component: "data"
         release: elastic-stack
+        role: data
     spec:
       serviceAccountName: elastic-stack-elasticsearch-data
       securityContext:
@@ -44,7 +45,7 @@ spec:
         securityContext:
           privileged: true
       - name: "chown"
-        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.3"
+        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.4"
         imagePullPolicy: "IfNotPresent"
         command:
         - /bin/bash
@@ -71,7 +72,7 @@ spec:
           value: "-Djava.net.preferIPv4Stack=true -Xms1536m -Xmx1536m "
         - name: MINIMUM_MASTER_NODES
           value: "2"
-        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.3"
+        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.4"
         imagePullPolicy: "IfNotPresent"
         ports:
         - containerPort: 9300

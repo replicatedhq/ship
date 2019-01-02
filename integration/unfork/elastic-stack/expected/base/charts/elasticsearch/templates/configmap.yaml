@@ -6,7 +6,7 @@ metadata:
   name: elastic-stack-elasticsearch
   labels:
     app: elastic-stack-elasticsearch
-    chart: "elasticsearch-1.15.1"
+    chart: "elasticsearch-1.15.3"
     release: "elastic-stack"
     heritage: "Tiller"
 data:

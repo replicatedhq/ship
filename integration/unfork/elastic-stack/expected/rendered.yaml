@@ -127,7 +127,7 @@ kind: ConfigMap
 metadata:
   labels:
     app: elastic-stack-elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch
@@ -137,7 +137,7 @@ kind: Service
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: client
     heritage: Tiller
     release: elastic-stack
@@ -197,7 +197,7 @@ kind: Deployment
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: client
     heritage: Tiller
     release: elastic-stack
@@ -348,7 +348,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: data
     heritage: Tiller
     release: elastic-stack
@@ -477,7 +477,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: master
     heritage: Tiller
     release: elastic-stack

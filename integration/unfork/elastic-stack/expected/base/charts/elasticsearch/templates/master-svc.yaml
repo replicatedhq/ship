@@ -5,7 +5,7 @@ kind: Service
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: "master"
     heritage: Tiller
     release: elastic-stack

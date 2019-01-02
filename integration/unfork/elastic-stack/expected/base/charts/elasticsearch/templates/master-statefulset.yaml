@@ -5,7 +5,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.1
+    chart: elasticsearch-1.15.3
     component: "master"
     heritage: Tiller
     release: elastic-stack
@@ -19,6 +19,7 @@ spec:
         app: elasticsearch
         component: "master"
         release: elastic-stack
+        role: master
     spec:
       serviceAccountName: elastic-stack-elasticsearch-master
       securityContext:
@@ -44,7 +45,7 @@ spec:
         securityContext:
           privileged: true
       - name: "chown"
-        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.3"
+        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.4"
         imagePullPolicy: "IfNotPresent"
         command:
         - /bin/bash
@@ -83,7 +84,7 @@ spec:
             path: /_cluster/health?local=true
             port: 9200
           initialDelaySeconds: 5
-        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.3"
+        image: "docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.4"
         imagePullPolicy: "IfNotPresent"
         ports:
         - containerPort: 9300
