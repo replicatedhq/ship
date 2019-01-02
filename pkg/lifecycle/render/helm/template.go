@@ -120,11 +120,13 @@ func (f *LocalTemplater) Template(
 
 	versioned := state.Versioned()
 	releaseName := versioned.CurrentReleaseName()
+	namespace := versioned.CurrentNamespace()
 	debug.Log("event", "releasename.resolve.fromState", "releasename", releaseName)
 
 	templateArgs := []string{
 		"--output-dir", renderDest,
 		"--name", releaseName,
+		"--namespace", namespace,
 	}
 
 	if asset.HelmOpts != nil {
