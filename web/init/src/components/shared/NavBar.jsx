@@ -129,7 +129,7 @@ export class NavBar extends React.Component {
         .catch(() => this.setState({ ...updatedState, imageLoaded: true }))
     } else {
       if (!isEmpty(updatedState)) {
-        this.setState(...updatedState);
+        this.setState(updatedState);
       }
     }
   }
