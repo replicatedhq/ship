@@ -190,6 +190,20 @@ func (mr *MockManagerMockRecorder) SerializeListsMetadata(arg0 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeListsMetadata", reflect.TypeOf((*MockManager)(nil).SerializeListsMetadata), arg0)
 }
 
+// SerializeNamespace mocks base method
+func (m *MockManager) SerializeNamespace(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeNamespace", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeNamespace indicates an expected call of SerializeNamespace
+func (mr *MockManagerMockRecorder) SerializeNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeNamespace", reflect.TypeOf((*MockManager)(nil).SerializeNamespace), arg0)
+}
+
 // SerializeReleaseName mocks base method
 func (m *MockManager) SerializeReleaseName(arg0 string) error {
 	m.ctrl.T.Helper()

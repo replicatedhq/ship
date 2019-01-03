@@ -100,6 +100,7 @@ func (d *V1Routes) getHelmMetadata(release *api.Release) gin.HandlerFunc {
 type SaveValuesRequest struct {
 	Values      string `json:"values"`
 	ReleaseName string `json:"releaseName"`
+	Namespace   string `json:"namespace"`
 }
 
 func (d *V1Routes) saveHelmValues(c *gin.Context) {
@@ -129,7 +130,7 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	debug.Log("event", "serialize.helmValues")
 	if err := d.StateManager.SerializeHelmValues(request.Values, string(chartDefaultValues)); err != nil {
 		debug.Log("event", "seralize.helmValues.fail", "err", err)
-		c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+		c.AbortWithError(http.StatusInternalServerError, errInternal)
 		return
 	}
 
@@ -137,7 +138,14 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	if len(request.ReleaseName) > 0 {
 		if err := d.StateManager.SerializeReleaseName(request.ReleaseName); err != nil {
 			debug.Log("event", "serialize.helmReleaseName.fail", "err", err)
-			c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+			c.AbortWithError(http.StatusInternalServerError, errInternal)
+			return
+		}
+	}
+	if len(request.Namespace) > 0 {
+		if err := d.StateManager.SerializeNamespace(request.Namespace); err != nil {
+			debug.Log("event", "serialize.namespace.fail", "err", err)
+			c.AbortWithError(http.StatusInternalServerError, errInternal)
 			return
 		}
 	}
