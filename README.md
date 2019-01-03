@@ -65,7 +65,6 @@ curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.29.0/ship_0.
 
 - ... or you can install with [Homebrew](https://brew.sh/):
 ```shell
-brew tap replicatedhq/ship
 brew install ship
 ```
 
