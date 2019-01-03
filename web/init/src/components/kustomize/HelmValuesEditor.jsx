@@ -3,7 +3,7 @@ import * as linter from "replicated-lint";
 import Linter from "../shared/Linter";
 import AceEditor from "react-ace";
 import ErrorBoundary from "../../ErrorBoundary";
-import HelmReleaseNameInput from "./HelmReleaseNameInput";
+import HelmAdvancedInput from "./HelmAdvancedInput";
 import get from "lodash/get";
 import find from "lodash/find";
 
@@ -25,8 +25,10 @@ export default class HelmValuesEditor extends React.Component {
       saveFinal: false,
       unsavedChanges: false,
       initialHelmReleaseName: "",
+      initialHelmNamespace: "",
       helmReleaseName: "",
-      displaySettings: false
+      displaySettings: false,
+      helmNamespace: "",
     }
   }
 
@@ -37,7 +39,9 @@ export default class HelmValuesEditor extends React.Component {
         initialSpecValue: this.props.getStep.values,
         specValue: this.props.getStep.values,
         initialHelmReleaseName: this.props.getStep.helmName,
+        initialHelmNamespace: this.props.getStep.namespace,
         helmReleaseName: this.props.getStep.helmName,
+        helmNamespace: this.props.getStep.namespace,
       });
       this.helmEditor.editor.getSession().setValue(this.props.getStep.values); // this resets the UndoManager and prevents the editor from being able to be wiped out by too many CMD+Z's
     }
@@ -108,10 +112,11 @@ export default class HelmValuesEditor extends React.Component {
   }
 
   handleSaveValues = (finalize) => {
-    const { specValue, helmReleaseName } = this.state;
+    const { specValue, helmReleaseName, helmNamespace } = this.state;
     const payload = {
       values: specValue,
       releaseName: helmReleaseName,
+      namespace: helmNamespace,
     };
     if (payload.values !== "") {
       this.setState({ saving: true, savedYaml: false, saveFinal: finalize, helmLintErrors: [] });
@@ -157,6 +162,8 @@ export default class HelmValuesEditor extends React.Component {
 
   handleOnChangehelmReleaseName = (helmReleaseName) => this.setState({ helmReleaseName })
 
+  handleOnChangehelmNamespace = (helmNamespace) => this.setState({ helmNamespace })
+
   render() {
     const {
       readOnly,
@@ -168,7 +175,9 @@ export default class HelmValuesEditor extends React.Component {
       helmLintErrors,
       initialHelmReleaseName,
       helmReleaseName,
-      displaySettings
+      displaySettings,
+      helmNamespace,
+      initialHelmNamespace,
     } = this.state;
     const {
       values,
@@ -190,7 +199,19 @@ export default class HelmValuesEditor extends React.Component {
                 <p className="flex-auto u-fontSize--small u-color--tundora u-fontWeight--medium u-cursor--pointer" onClick={() => { this.setState({ displaySettings: !this.state.displaySettings }) }}>{displaySettings ? "Close Advanced Settings" : "Show Advanced Settings"}</p>
               </div>
               {displaySettings ? <div className="settings u-marginBottom--20">
-                <HelmReleaseNameInput value={helmReleaseName} onChange={this.handleOnChangehelmReleaseName} />
+                <HelmAdvancedInput
+                  value={helmReleaseName}
+                  onChange={this.handleOnChangehelmReleaseName}
+                  title="Helm Name"
+                  subTitle="This is the name that will be used to template your Helm chart."
+                />
+                <HelmAdvancedInput
+                  value={helmNamespace}
+                  onChange={this.handleOnChangehelmNamespace}
+                  title="Helm Namespace"
+                  subTitle="This is the namespace that will be used to template your Helm chart."
+                  placeholder="default"
+                />
               </div> : null}
             </div>
             <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
@@ -231,7 +252,7 @@ export default class HelmValuesEditor extends React.Component {
                 : null}
             </div>
             <div className="flex flex-auto alignItems--center">
-              {initialSpecValue === specValue && initialHelmReleaseName === helmReleaseName ?
+              {initialSpecValue === specValue && initialHelmReleaseName === helmReleaseName && helmNamespace === initialHelmNamespace ?
                 <button className="btn primary" onClick={() => { this.handleSkip() }}>Continue</button>
                 :
                 <div className="flex">

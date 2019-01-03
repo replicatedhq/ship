@@ -6,7 +6,7 @@ metadata:
   name: elastic-stack-logstash
   labels:
     app: logstash
-    chart: logstash-1.4.1
+    chart: logstash-1.4.2
     release: elastic-stack
     heritage: Tiller
 spec:
@@ -22,8 +22,8 @@ spec:
         app: logstash
         release: elastic-stack
       annotations:
-        checksum/patterns: 255c54b12cee0571c080899fbac976e2ed5cc283aeb4b4b2c07d9cb51fad8892
-        checksum/pipeline: c2456578e00b38ca377666170940e956f2cda90645e25011d9e6f1d4a6e53757
+        checksum/patterns: 492af6d41f1f75247db63d43528891e63116194e966816fcb1dfcf8a47f209c2
+        checksum/pipeline: 82018b735099c37c4c3a2c86aa2d105e61ff008c76093ed3c3d16a0a302abe38
     spec:
       securityContext:
         runAsUser: 1000
@@ -32,7 +32,7 @@ spec:
 
         ## logstash
         - name: logstash
-          image: "docker.elastic.co/logstash/logstash-oss:6.5.3"
+          image: "docker.elastic.co/logstash/logstash-oss:6.5.4"
           imagePullPolicy: IfNotPresent
           ports:
             - name: monitor
