@@ -6,7 +6,7 @@ metadata:
   name: elastic-stack-logstash-pipeline
   labels:
     app: logstash
-    chart: logstash-1.4.1
+    chart: logstash-1.4.2
     release: elastic-stack
     heritage: Tiller
 data:
