@@ -16,10 +16,15 @@ const (
 )
 
 // stolen from https://github.com/replicatedhq/replicated/blob/8ce3ed40436e38b8089387d103623dbe09bbf1c0/pkg/commands/random.go#L22
-func (ctx *StaticCtx) RandomString(length uint64) string {
+func (ctx *StaticCtx) RandomString(length uint64, providedCharset ...string) string {
 	debug := log.With(level.Debug(ctx.Logger), "func", "random")
 	debug.Log("event", "start")
-	regExp, err := syntax.Parse(DefaultCharset, syntax.Perl)
+
+	charset := DefaultCharset
+	if len(providedCharset) >= 1 {
+		charset = providedCharset[0]
+	}
+	regExp, err := syntax.Parse(charset, syntax.Perl)
 	if err != nil {
 		debug.Log("event", "regexParse.fail", "err", err)
 		return ""
