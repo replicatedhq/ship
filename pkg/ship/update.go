@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 )
@@ -33,15 +34,20 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Wrap(err, "load state")
 	}
 
+	uiPrintableStatePath := s.Viper.GetString("state-file")
+	if uiPrintableStatePath == "" {
+		uiPrintableStatePath = constants.StatePath
+	}
+
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
-		return errors.New(`No state file found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
+		return errors.New(fmt.Sprintf(`No state file found at %s please run "ship init"`, uiPrintableStatePath))
 	}
 
 	debug.Log("event", "read.upstream")
 	upstreamURL := existingState.Upstream()
 	if upstreamURL == "" {
-		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, s.Viper.GetString("state-file")))
+		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, uiPrintableStatePath))
 	}
 
 	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
