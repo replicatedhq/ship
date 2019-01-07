@@ -8,8 +8,6 @@ Ship
 [![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 [![GitHub stars](https://img.shields.io/github/stars/replicatedhq/ship.svg)](https://github.com/replicatedhq/ship/stargazers)
 
-![Replicated Ship](https://github.com/replicatedhq/ship/blob/master/logo/logo.png)
-
 Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](https://www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
 
 The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications.
@@ -73,7 +71,7 @@ Alternately, you can run Ship in Docker, in which case you can pull the latest s
 docker pull replicated/ship
 ```
 
-## Initializing 
+## Initializing
 After Ship is installed, create a directory for the application you'll be managing with Ship, and launch Ship from there, specifying an upstream Helm chart or Kubernetes yaml:
 
 ```shell
@@ -112,7 +110,7 @@ After completing the guided 'ship init' workflow, you'll see that Ship has gener
 
 The `base/` and `overlays/` folders contain the various files that drive the Kustomization process.
 
-The `rendered.yaml` file is the final output, suitable to deploy to your Kubernetes cluster via 
+The `rendered.yaml` file is the final output, suitable to deploy to your Kubernetes cluster via
 
 ```shell
 kubectl apply -f rendered.yaml
@@ -141,7 +139,7 @@ With this workflow, Ship will attempt to move the changes that prompted the fork
 Once you've prepared an application using `ship init`, a simple starting CI/CD workflow could be:
 
 ```shell
-ship watch && ship update 
+ship watch && ship update
 ```
 
 or
@@ -152,7 +150,7 @@ docker run -v "$PWD":/wd -w /wd replicated/ship watch && \
 
 The `watch` command is a trigger for CI/CD processes, watching the upstream application for changes. Running `ship watch` will load the local state file (which includes a content hash of the most recently used upstream) and periodically poll the upstream application and exit when it finds a change. `ship update` will regenerate the deployable application assets, using the most recent upstream version of the application, and any local configuration from `state.json`.  The new `rendered.yaml` output can be deployed directly to the cluster, or submitted as a pull request into a [GitOps](https://www.weave.works/blog/what-is-gitops-really) repo.
 
-With chart repo you have commit privileges on, you, you can see this flow in action by running `ship init <path-to-chart>` and going through the workflow, then `ship watch --interval 10s && ship update` to start polling, then commit a change to the upstream chart and see the `ship watch` process exit, with `rendered.yaml` updated to reflect the change.  
+With chart repo you have commit privileges on, you, you can see this flow in action by running `ship init <path-to-chart>` and going through the workflow, then `ship watch --interval 10s && ship update` to start polling, then commit a change to the upstream chart and see the `ship watch` process exit, with `rendered.yaml` updated to reflect the change.
 
 # Customizing the Configuration Experience
 
