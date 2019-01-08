@@ -525,7 +525,7 @@ func fixLines(lines []string) []string {
 			// line has `env:` and nothing else but whitespace
 			if !checkIsChild(line, nextLine(idx, lines)) {
 				// next line is not a child, so env has no contents, add an empty object
-				lines[idx] = line + " {}"
+				lines[idx] = line + " []"
 			}
 		} else if valueLineRegex.MatchString(line) {
 			// line has `value:` and nothing else but whitespace
