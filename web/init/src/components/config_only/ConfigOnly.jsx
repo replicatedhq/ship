@@ -1,14 +1,17 @@
 import React from "react";
 import ErrorBoundary from "../../ErrorBoundary";
 
-import isEmpty from "lodash/isEmpty";
-import map from "lodash/map";
-import partialRight from "lodash/partialRight";
-import omit from "lodash/omit";
-import has from "lodash/has";
-import forEach from "lodash/forEach";
-import includes from "lodash/includes";
-import _ from "lodash";
+import { 
+  each, 
+  isEmpty, 
+  map, 
+  partialRight, 
+  omit, 
+  has, 
+  forEach, 
+  includes
+} from "lodash";
+import { ConfigService } from "../../services/ConfigService";
 
 import Layout from "../../Layout";
 import ConfigRender from "../config_render/ConfigRender";
@@ -26,7 +29,7 @@ export default class ConfigOnly extends React.Component {
     this.state = {
       toastDetails: {
         opts: {}
-      }
+      },
     };
   }
 
@@ -43,72 +46,65 @@ export default class ConfigOnly extends React.Component {
         this.props.history.push("/");
       }
     }
+    if (this.props.settingsFields !== lastProps.settingsFields) {
+      const data = this.getData(this.props.settingsFields);
+      this.setState({ itemData: data });
+    }
   }
 
-  mergeItemData = (groups, data) => {
-    const nextGroups = map(groups, function(group) {
-      group.items = map(group.items, function(item) {
-        if (item.name === data.name) {
-          item.value = data.value;
-          item.multi_value = data.multi_value;
-          if (has(data, "data")) {
-            item.data = data.data;
-          }
-          if (has(data, "multi_data")) {
-            item.multi_data = data.multi_data;
-          }
-        } else {
-          item.items = map(item.items, function(childItem) {
-            if (childItem.name === data.name) {
-              childItem.value = data.value;
-              childItem.multi_value = data.multi_value;
-              if (has(data, "data")) {
-                childItem.data = data.data;
-              }
-              if (has(data, "multi_data")) {
-                childItem.multi_data = data.multi_data;
-              }
-            }
-            return childItem;
-          });
-        }
-        return item;
-      });
-      return group;
-    });
-    return nextGroups;
-  }
-
-  mergeGroupItemData = (groups, currentGroups) => {
+  getData = (groups) => {
     const getItemData = (item) => {
       let data = {
         name: item.name,
         value: item.value,
         multi_value: item.multi_value,
       };
-      if (has(item, "data")) {
-        data.data = item.data;
+      if (item.multiple) {
+        if (item.multi_value && item.multi_value.length) {
+          data.multi_value = item.multi_value;
+        } else if (item.default) {
+          data.multi_value = [item.default];
+        }
+      } else {
+        if (item.value && item.value.length) {
+          data.value = item.value;
+        } else {
+          data.value = item.default;
+        }
       }
-      if (has(item, "multi_data")) {
-        data.multi_data = item.multi_data;
+      if (item.type === "file") {
+        data.data = "";
+        if (item.multiple) {
+          if (item.multi_data && item.multi_data.length) {
+            data.multi_data = item.multi_data;
+          } else {
+            data.multi_data = [];
+          }
+        } else {
+          data.data = item.data;
+        }
       }
       return data;
     };
 
-    let nextGroups = _.cloneDeep(groups);
-    forEach(currentGroups, (group) => {
-      forEach(group.items, (item) => {
-        if (includes(EDITABLE_ITEM_TYPES, item.type) && !item.readonly) {
-          nextGroups = this.mergeItemData(nextGroups, getItemData(item));
-        }
-        forEach(item.items, (childItem) => {
-          if (includes(EDITABLE_ITEM_TYPES, childItem.type) && !childItem.readonly) {
-            nextGroups = this.mergeItemData(nextGroups, getItemData(childItem));
+    let data = [];
+    each(groups, (group) => {
+      if (ConfigService.isEnabled(groups, group)) {
+        each(group.items, (item) => {
+          if (ConfigService.isEnabled(groups, item)) {
+            if (item.type !== "select_many") {
+              data.push(getItemData(item));
+            }
+            if (item.type !== "select_one") {
+              each(item.items, (childItem) => {
+                data.push(getItemData(childItem));
+              });
+            }
           }
         });
-      });
+      }
     });
-    return nextGroups;
+    return data;
   }
 
   cancelToast = () => {
@@ -161,7 +157,7 @@ export default class ConfigOnly extends React.Component {
     })
   }
 
-  handleConfigSave = async () => {
+  handleConfigSave = async (e, nextStep = false) => {
     let errs = document.getElementsByClassName("config-errblock");
     for (let i = 0; i < errs.length; i++) {
       errs[i].classList.remove("visible");
@@ -173,6 +169,7 @@ export default class ConfigOnly extends React.Component {
           return;
         }
         this.onConfigSaved();
+        if(nextStep) this.state.toastDetails.opts.confirmAction();
       })
       .catch()
   }
@@ -214,12 +211,13 @@ export default class ConfigOnly extends React.Component {
                     fieldsList={settingsFieldsList}
                     fields={settingsFields}
                     handleChange={this.handleConfigChange}
+                    getData={this.getData}
                   />
                 }
               </div>
               <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn primary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
-                <button type="button" disabled={!toastDetails.showToast} onClick={toastDetails.opts.confirmAction} className="btn primary">Continue to next step</button>
+                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn secondary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                <button type="button" onClick={(e) => this.handleConfigSave(e, true)} className="btn primary">Save and continue to next step</button>
               </div>
             </div>
           </div>
