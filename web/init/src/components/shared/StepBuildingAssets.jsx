@@ -31,9 +31,27 @@ export class StepBuildingAssets extends React.Component {
   }
 
   render() {
+    /* status json looks something like
+
+{
+  "currentStep": {
+    "render": {}
+  },
+  "phase": "render",
+  "progress": {
+    "source": "docker",
+    "type": "json",
+    "level": "info",
+    "detail": "{\"id\":\"5523988621d2\",\"status\":\"Downloading\",\"image\":\"registry.replicated.com/myapp/some-image:latest\",\"progressDetail\":{\"current\":31129230,\"total\":31378422}}"
+  }
+}
+
+     */
     const { status = {} } = this.props;
     const isJSON = status.type === "json";
     const parsed = isJSON ? JSON.parse(status.detail) : {};
+    console.log(parsed);
+
     const message = parsed.message ? parsed.message : "";
     const isError = parsed && parsed.status === "error";
     const isSuccess = parsed && parsed.status === "success";
@@ -48,7 +66,7 @@ export class StepBuildingAssets extends React.Component {
           <div className="icon progress-detail-success"></div> :
           isError ?
             <div className="icon progress-detail-error"></div> :
-            <Loader size="60" />
+          <Loader size="60" />
         }
         {status.source === "render" ?
           <div>
@@ -62,12 +80,12 @@ export class StepBuildingAssets extends React.Component {
               <div>
                 <p className="u-fontSizer--larger u-color--tundora u-fontWeight--bold u-marginTop--20 u-lineHeight--more u-textAlign--center">
                   {message.length > 500 ?
-                    <span>There was an unexpected error! Please check <code className="language-bash">.ship/debug.log</code> for more details</span> : message} {progressDetail && <span>{percent > 0 ? `${percent}%` : ""}</span>}
+                    <span>There was an unexpected error! Please check <code className="language-bash">.ship/debug.log</code> for more details</span> : message} {progressDetail && <span> {parsed.status || "Saving"} {parsed.image} </span>}
                 </p>
-                {!progressDetail ? null :
+                {!progressDetail || percent <= 0 ? null :
                   <div className="u-marginTop--20">
                     <div className="progressBar-wrapper">
-                      <Line percent={percent} strokeWidth="1" strokeColor="#337AB7" />
+                      <Line percent={percent} strokeWidth="1" strokeColor="#337AB7" />{parsed.id}
                     </div>
                   </div>
                 }
