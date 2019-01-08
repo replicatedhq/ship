@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/util"
 	yaml "gopkg.in/yaml.v2"
 )
