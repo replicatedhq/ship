@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: kibana
-    chart: kibana-0.20.0
+    chart: kibana-1.1.2
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-kibana

@@ -5,7 +5,7 @@ kind: Deployment
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: "client"
     heritage: Tiller
     release: elastic-stack
@@ -39,6 +39,9 @@ spec:
       - name: "sysctl"
         image: "busybox:latest"
         imagePullPolicy: "Always"
+        resources:
+            {}
+            
         command: ["sysctl", "-w", "vm.max_map_count=262144"]
         securityContext:
           privileged: true

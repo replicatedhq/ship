@@ -3,7 +3,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-0.1.10
+    chart: elasticsearch-0.5.1
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch
@@ -19,28 +19,13 @@ data:
     node.name: ${HOSTNAME}
 
     network.host: 0.0.0.0
-
-    cloud:
-      kubernetes:
-        service: ${SERVICE}
-        namespace: ${KUBERNETES_NAMESPACE}
     # see https://github.com/kubernetes/kubernetes/issues/3595
     bootstrap.memory_lock: ${BOOTSTRAP_MEMORY_LOCK:false}
 
     discovery:
       zen:
-        hosts_provider: kubernetes
+        ping.unicast.hosts: ${DISCOVERY_SERVICE:}
         minimum_master_nodes: ${MINIMUM_MASTER_NODES:2}
-
-    # see https://www.elastic.co/guide/en/x-pack/current/xpack-settings.html
-    xpack.ml.enabled: ${XPACK_ML_ENABLED:false}
-    xpack.monitoring.enabled: ${XPACK_MONITORING_ENABLED:false}
-    xpack.security.enabled: ${XPACK_SECURITY_ENABLED:false}
-    xpack.watcher.enabled: ${XPACK_WATCHER_ENABLED:false}
-
-    # see https://github.com/floragunncom/search-guard-ssl/blob/master/src/main/java/com/floragunn/searchguard/ssl/util/SSLConfigConstants.java#L28
-    searchguard.ssl.http.enabled: ${SEARCHGUARD_SSL_HTTP_ENABLED:false}
-    searchguard.ssl.transport.enabled: ${SEARCHGUARD_SSL_TRANSPORT_ENABLED:false}
 
     # see https://github.com/elastic/elasticsearch-definitive-guide/pull/679
     processors: ${PROCESSORS:}
@@ -51,6 +36,12 @@ data:
     gateway.recover_after_time: ${RECOVER_AFTER_TIME:5m}
     gateway.recover_after_master_nodes: ${RECOVER_AFTER_MASTER_NODES:2}
     gateway.recover_after_data_nodes: ${RECOVER_AFTER_DATA_NODES:1}
+
+    # Extra Configuration
+
+    # X-Pack
+
+    # Search Guard
   log4j2.properties: |-
     status = error
 
@@ -61,73 +52,48 @@ data:
 
     rootLogger.level = info
     rootLogger.appenderRef.console.ref = console
-
-    logger.searchguard.name = com.floragunn
-    logger.searchguard.level = info
-  pre-stop-hook.sh: |-
-    #!/bin/bash
-    set -e
-
-    SERVICE_ACCOUNT_PATH=/var/run/secrets/kubernetes.io/serviceaccount
-    KUBE_TOKEN=$(<${SERVICE_ACCOUNT_PATH}/token)
-    KUBE_NAMESPACE=$(<${SERVICE_ACCOUNT_PATH}/namespace)
-
-    STATEFULSET_NAME=$(echo "${HOSTNAME}" | sed 's/-[0-9]*$//g')
-    INSTANCE_ID=$(echo "${HOSTNAME}" | grep -o '[0-9]*$')
-
-    echo "Prepare stopping of Pet ${KUBE_NAMESPACE}/${HOSTNAME} of StatefulSet ${KUBE_NAMESPACE}/${STATEFULSET_NAME} instance_id ${INSTANCE_ID}"
-
-    INSTANCES_DESIRED=$(curl -s \
-      --cacert ${SERVICE_ACCOUNT_PATH}/ca.crt \
-      -H "Authorization: Bearer $KUBE_TOKEN" \
-      "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_PORT_443_TCP_PORT}/apis/apps/v1beta1/namespaces/${KUBE_NAMESPACE}/statefulsets/${STATEFULSET_NAME}/status" | jq -r '.spec.replicas')
-
-    echo "Desired instance count is ${INSTANCES_DESIRED}"
-
-    if [ "${INSTANCE_ID}" -lt "${INSTANCES_DESIRED}" ]; then
-      echo "No data migration needed"
-      exit 0
-    fi
-
-    echo "Prepare to migrate data of the node"
-
-    NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
-    NODE_IP=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .host")
-
-    echo "Move all data from node ${NODE_IP}"
-
-    curl -s -XPUT localhost:9200/_cluster/settings -d "{
-      \"transient\" :{
-          \"cluster.routing.allocation.exclude._ip\" : \"${NODE_IP}\"
-      }
-    }"
-    echo
-
-    echo "Wait for node to become empty"
-    DOC_COUNT=$(echo "${NODE_STATS}" | jq ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
-    while [ "${DOC_COUNT}" -gt 0 ]; do
-      NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
-      DOC_COUNT=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
-      echo "Node contains ${DOC_COUNT} documents"
-      sleep 1
-    done
-
-    echo "Wait for node shards to become empty"
-    SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
-    SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
-    while [ "${SHARD_COUNT}" -gt 0 ]; do
-      SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
-      SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
-      echo "Node contains ${SHARD_COUNT} shards"
-      sleep 1
-    done
-
-    echo "Node clear to shutdown"
+  pre-stop-hook.sh: "#!/bin/bash\nset -e\n\nSERVICE_ACCOUNT_PATH=/var/run/secrets/kubernetes.io/serviceaccount\nKUBE_TOKEN=$(<${SERVICE_ACCOUNT_PATH}/token)\nKUBE_NAMESPACE=$(<${SERVICE_ACCOUNT_PATH}/namespace)\n\nSTATEFULSET_NAME=$(echo
+    \"${HOSTNAME}\" | sed 's/-[0-9]*$//g')\nINSTANCE_ID=$(echo \"${HOSTNAME}\" | grep
+    -o '[0-9]*$')\n\necho \"Prepare stopping of Pet ${KUBE_NAMESPACE}/${HOSTNAME}
+    of StatefulSet ${KUBE_NAMESPACE}/${STATEFULSET_NAME} instance_id ${INSTANCE_ID}\"\n\nexport
+    STATEFULSET_STATUS=$(\n  curl -s \\\n    --cacert ${SERVICE_ACCOUNT_PATH}/ca.crt
+    \\\n    -H \"Authorization: Bearer $KUBE_TOKEN\" \\\n    \"https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_PORT_443_TCP_PORT}/apis/apps/v1beta1/namespaces/${KUBE_NAMESPACE}/statefulsets/${STATEFULSET_NAME}/status\"\n)\nINSTANCES_DESIRED=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('STATEFULSET_STATUS'))\n\t\tprint(obj['spec']['replicas'])\n\tEOF\n)\n\necho
+    \"Desired instance count is ${INSTANCES_DESIRED}\"\n\nif [ \"${INSTANCE_ID}\"
+    -lt \"${INSTANCES_DESIRED}\" ]; then\n  echo \"No data migration needed\"\n  exit
+    0\nfi\n\necho \"Prepare to migrate data of the node\"\n\nexport NODE_STATS=$(\n
+    \ curl -X GET -s \\\n    http://127.0.0.1:9200/_nodes/stats\n)\nNODE_IP=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\tnode = obj['nodes'][key]\n\t\tprint(node['host'])\n\tEOF\n)\n\necho
+    \"Move all data from node ${NODE_IP}\"\n\ncurl -X PUT -H \"Content-Type: application/json\"
+    -s \\\n  http://127.0.0.1:9200/_cluster/settings \\\n  --data \"{\n      \\\"transient\\\"
+    :{\n          \\\"cluster.routing.allocation.exclude._ip\\\" : \\\"${NODE_IP}\\\"\n
+    \     }\n    }\"\necho\n\necho \"Wait for node documents to become empty\"\nDOC_COUNT=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\tnode = obj['nodes'][key]\n\t\tprint(node['indices']['docs']['count'])\n\tEOF\n)\n\nwhile
+    [ \"${DOC_COUNT}\" -gt 0 ]; do\n  export NODE_STATS=$(\n    curl -X GET -s \\\n
+    \     http://127.0.0.1:9200/_nodes/stats\n  )\n  DOC_COUNT=$(\n\t\tpython - <<-EOF\n\t\t\timport
+    json\n\t\t\timport os\n\n\t\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\t\tnode = obj['nodes'][key]\n\t\t\tcount = node['indices']['docs']['count']\n\t\t\tprint(count)\n\t\tEOF\n
+    \ )\n  echo \"Node contains ${DOC_COUNT} documents\"\n  sleep 1\ndone\n\necho
+    \"Wait for node shards to become empty\"\nexport SHARD_STATS=$(\n  curl -X GET
+    -s \\\n    http://127.0.0.1:9200/_cat/shards?format=json\n)\nSHARD_COUNT=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('SHARD_STATS'))\n\t\tcount
+    = len(filter(lambda datum: datum['node'] == os.environ.get('HOSTNAME'), obj))\n\t\tprint(count)\n\tEOF\n)\nwhile
+    [ \"${SHARD_COUNT}\" -gt 0 ]; do\n  export SHARD_STATS=$(\n    curl -X GET -s
+    \\\n      http://127.0.0.1:9200/_cat/shards?format=json\n  )\n  SHARD_COUNT=$(\n\t\tpython
+    - <<-EOF\n\t\t\timport json\n\t\t\timport os\n\n\t\t\tobj = json.loads(os.environ.get('SHARD_STATS'))\n\t\t\tcount
+    = len(filter(lambda datum: datum['node'] == os.environ.get('HOSTNAME'), obj))\n\t\t\tprint(count)\n\t\tEOF\n
+    \ )\n  echo \"Node contains ${SHARD_COUNT} shards\"\n  sleep 1\ndone\n\necho \"Node
+    clear to shutdown\""
 kind: ConfigMap
 metadata:
   labels:
     app: elastic-stack-elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch
@@ -137,7 +103,7 @@ kind: Service
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: client
     heritage: Tiller
     release: elastic-stack
@@ -157,7 +123,7 @@ kind: Service
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-0.1.10
+    chart: elasticsearch-0.5.1
     component: master
     heritage: Tiller
     release: elastic-stack
@@ -177,7 +143,7 @@ kind: Service
 metadata:
   labels:
     app: kibana
-    chart: kibana-0.20.0
+    chart: kibana-1.1.2
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-kibana
@@ -197,7 +163,7 @@ kind: Deployment
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: client
     heritage: Tiller
     release: elastic-stack
@@ -206,6 +172,9 @@ spec:
   replicas: 2
   template:
     metadata:
+      annotations:
+        checksum/config: 4f07b9e19327171c37a9c353906c75a1f454cd31c3dfc600a8882d6e36713c49
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app: elasticsearch
         component: client
@@ -224,18 +193,14 @@ spec:
             weight: 1
       containers:
       - env:
-        - name: SERVICE
-          value: elastic-stack-elasticsearch-master
-        - name: KUBERNETES_MASTER
-          value: kubernetes.default.svc.cluster.local
-        - name: KUBERNETES_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        - name: DISCOVERY_SERVICE
+          value: elastic-stack-elasticsearch-master.default.svc.cluster.local
         - name: NODE_DATA
           value: "false"
         - name: NODE_INGEST
           value: "false"
+        - name: ES_HEAP_SIZE
+          value: 512m
         - name: NODE_MASTER
           value: "false"
         - name: PROCESSORS
@@ -243,7 +208,7 @@ spec:
             resourceFieldRef:
               resource: limits.cpu
         - name: ES_JAVA_OPTS
-          value: -Djava.net.preferIPv4Stack=true -Xms512m -Xmx512m
+          value: -Djava.net.preferIPv4Stack=true
         - name: MINIMUM_MASTER_NODES
           value: "2"
         image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
@@ -285,14 +250,22 @@ spec:
           subPath: log4j2.properties
       initContainers:
       - command:
-        - sysctl
-        - -w
-        - vm.max_map_count=262144
+        - sh
+        - -c
+        - |-
+          # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+          sysctl -w vm.max_map_count=262144
+          # To increase the ulimit
+          # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_notes_for_production_use_and_defaults
+          ulimit -l unlimited
         image: busybox
-        imagePullPolicy: Always
-        name: sysctl
+        name: increase-memory-limits
         securityContext:
           privileged: true
+      securityContext:
+        fsGroup: 1000
       serviceAccountName: elastic-stack-elasticsearch
       volumes:
       - configMap:
@@ -304,7 +277,7 @@ kind: Deployment
 metadata:
   labels:
     app: kibana
-    chart: kibana-0.20.0
+    chart: kibana-1.1.2
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-kibana
@@ -348,7 +321,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: data
     heritage: Tiller
     release: elastic-stack
@@ -358,6 +331,9 @@ spec:
   serviceName: elastic-stack-elasticsearch-data
   template:
     metadata:
+      annotations:
+        checksum/config: 4f07b9e19327171c37a9c353906c75a1f454cd31c3dfc600a8882d6e36713c49
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app: elasticsearch
         component: data
@@ -376,22 +352,18 @@ spec:
             weight: 1
       containers:
       - env:
-        - name: SERVICE
-          value: elastic-stack-elasticsearch-master
-        - name: KUBERNETES_MASTER
-          value: kubernetes.default.svc.cluster.local
-        - name: KUBERNETES_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        - name: DISCOVERY_SERVICE
+          value: elastic-stack-elasticsearch-master.default.svc.cluster.local
         - name: NODE_MASTER
           value: "false"
         - name: PROCESSORS
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
+        - name: ES_HEAP_SIZE
+          value: 1536m
         - name: ES_JAVA_OPTS
-          value: -Djava.net.preferIPv4Stack=true -Xms1536m -Xmx1536m
+          value: -Djava.net.preferIPv4Stack=true
         - name: MINIMUM_MASTER_NODES
           value: "2"
         image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
@@ -435,27 +407,22 @@ spec:
           subPath: pre-stop-hook.sh
       initContainers:
       - command:
-        - sysctl
-        - -w
-        - vm.max_map_count=262144
+        - sh
+        - -c
+        - |-
+          # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+          sysctl -w vm.max_map_count=262144
+          # To increase the ulimit
+          # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_notes_for_production_use_and_defaults
+          ulimit -l unlimited
         image: busybox
-        imagePullPolicy: Always
-        name: sysctl
+        name: increase-memory-limits
         securityContext:
           privileged: true
-      - command:
-        - /bin/bash
-        - -c
-        - chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data && chown
-          -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
-        image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
-        imagePullPolicy: Always
-        name: chown
-        securityContext:
-          runAsUser: 0
-        volumeMounts:
-        - mountPath: /usr/share/elasticsearch/data
-          name: data
+      securityContext:
+        fsGroup: 1000
       serviceAccountName: elastic-stack-elasticsearch
       terminationGracePeriodSeconds: 3600
       volumes:
@@ -477,7 +444,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: master
     heritage: Tiller
     release: elastic-stack
@@ -487,6 +454,9 @@ spec:
   serviceName: elastic-stack-elasticsearch-master
   template:
     metadata:
+      annotations:
+        checksum/config: 4f07b9e19327171c37a9c353906c75a1f454cd31c3dfc600a8882d6e36713c49
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       labels:
         app: elasticsearch
         component: master
@@ -505,24 +475,20 @@ spec:
             weight: 1
       containers:
       - env:
-        - name: SERVICE
-          value: elastic-stack-elasticsearch-master
-        - name: KUBERNETES_MASTER
-          value: kubernetes.default.svc.cluster.local
-        - name: KUBERNETES_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+        - name: DISCOVERY_SERVICE
+          value: elastic-stack-elasticsearch-master.default.svc.cluster.local
         - name: NODE_DATA
           value: "false"
         - name: NODE_INGEST
           value: "false"
+        - name: ES_HEAP_SIZE
+          value: 512m
         - name: PROCESSORS
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
         - name: ES_JAVA_OPTS
-          value: -Djava.net.preferIPv4Stack=true -Xms512m -Xmx512m
+          value: -Djava.net.preferIPv4Stack=true
         - name: MINIMUM_MASTER_NODES
           value: "2"
         image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
@@ -557,27 +523,22 @@ spec:
           subPath: log4j2.properties
       initContainers:
       - command:
-        - sysctl
-        - -w
-        - vm.max_map_count=262144
+        - sh
+        - -c
+        - |-
+          # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+          sysctl -w vm.max_map_count=262144
+          # To increase the ulimit
+          # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_notes_for_production_use_and_defaults
+          ulimit -l unlimited
         image: busybox
-        imagePullPolicy: Always
-        name: sysctl
+        name: increase-memory-limits
         securityContext:
           privileged: true
-      - command:
-        - /bin/bash
-        - -c
-        - chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data && chown
-          -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
-        image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
-        imagePullPolicy: Always
-        name: chown
-        securityContext:
-          runAsUser: 0
-        volumeMounts:
-        - mountPath: /usr/share/elasticsearch/data
-          name: data
+      securityContext:
+        fsGroup: 1000
       serviceAccountName: elastic-stack-elasticsearch
       volumes:
       - configMap:
@@ -598,13 +559,13 @@ kind: PodDisruptionBudget
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-0.1.10
+    chart: elasticsearch-0.5.1
     component: client
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch-client
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: elasticsearch
@@ -616,13 +577,13 @@ kind: PodDisruptionBudget
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-0.1.10
+    chart: elasticsearch-0.5.1
     component: data
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch-data
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: elasticsearch
@@ -634,13 +595,13 @@ kind: PodDisruptionBudget
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-0.1.10
+    chart: elasticsearch-0.5.1
     component: master
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-elasticsearch-master
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: elasticsearch

@@ -5,7 +5,7 @@ kind: Deployment
 metadata:
   labels:
     app: kibana
-    chart: "kibana-0.20.0"
+    chart: "kibana-1.1.2"
     heritage: Tiller
     release: elastic-stack
   name: elastic-stack-kibana
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: a02dcccc40a80cd9defbdd80540c145c5b0e7259c0fc164f0c1d469fedff01c8
+        checksum/config: f9c4dee387de17d65146bb7640d629b057d6b1251107085ec4f3a80c0c09bd79
       labels:
         app: kibana
         release: "elastic-stack"
@@ -23,7 +23,7 @@ spec:
       serviceAccountName: default
       containers:
       - name: kibana
-        image: "docker.elastic.co/kibana/kibana-oss:6.5.0"
+        image: "docker.elastic.co/kibana/kibana-oss:6.5.4"
         imagePullPolicy: IfNotPresent
         env:
         - name: "ELASTICSEARCH_URL"

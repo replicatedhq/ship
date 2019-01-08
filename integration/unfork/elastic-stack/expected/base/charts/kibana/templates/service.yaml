@@ -5,7 +5,7 @@ kind: Service
 metadata:
   labels:
     app: kibana
-    chart: kibana-0.20.0
+    chart: kibana-1.1.2
     release: elastic-stack
     heritage: Tiller
   name: elastic-stack-kibana

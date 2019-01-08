@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: elasticsearch
-    chart: elasticsearch-1.15.3
+    chart: elasticsearch-1.16.0
     component: client
     heritage: Tiller
     release: elastic-stack
