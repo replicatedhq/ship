@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -21,30 +23,33 @@ func (f *LocalTemplater) addDependencies(
 	helmHome string,
 	chartRoot string,
 	asset api.HelmAsset,
-) error {
+) (depPaths []string, err error) {
 	for _, dependency := range dependencies {
 		if dependency.Repository != "" {
 			repoURL, err := url.Parse(dependency.Repository)
 			if err != nil {
-				return errors.Wrapf(err, "parse dependency repo %s", dependency.Repository)
+				return depPaths, errors.Wrapf(err, "parse dependency repo %s", dependency.Repository)
 			}
 			if repoURL.Scheme == "file" {
-				if err := f.getLocalDependency(dependency.Repository, chartRoot, asset, helmHome); err != nil {
-					return errors.Wrapf(err, "get local dep %s", dependency.Repository)
+				depPath, err := f.getLocalDependency(dependency.Repository, chartRoot, asset, helmHome)
+				if err != nil {
+					return depPaths, errors.Wrapf(err, "get local dep %s", dependency.Repository)
 				}
+				depPaths = append(depPaths, depPath)
 			} else {
 				repoName := strings.Split(repoURL.Hostname(), ".")[0]
 				if err := f.Commands.RepoAdd(repoName, dependency.Repository, helmHome); err != nil {
-					return errors.Wrapf(err, "add helm repo %s", dependency.Repository)
+					return depPaths, errors.Wrapf(err, "add helm repo %s", dependency.Repository)
 				}
 			}
 		}
 	}
 
-	return nil
+	return depPaths, nil
 }
 
-func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, originalAsset api.HelmAsset, helmHome string) error {
+func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, originalAsset api.HelmAsset, helmHome string) (string, error) {
+	debug := level.Debug(log.With(f.Logger, "method", "getLocalDependency"))
 	var depPath string
 	var err error
 	p := strings.TrimPrefix(repo, "file://")
@@ -52,7 +57,7 @@ func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, origi
 	// root path is absolute
 	if strings.HasPrefix(p, "/") {
 		if depPath, err = filepath.Abs(p); err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		depPath = filepath.Join(chartRoot, p)
@@ -62,24 +67,25 @@ func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, origi
 	if err != nil || !depPathExists {
 		depUpstream, err := f.createDependencyUpstreamFromAsset(originalAsset, p)
 		if err != nil {
-			return errors.Wrap(err, "create dependency upstream")
+			return "", errors.Wrap(err, "create dependency upstream")
 		}
+		debug.Log("event", "fetchLocalHelmDependency", "depUpstream", depUpstream)
 		savedPath, err := f.fetchLocalHelmDependency(depUpstream, constants.HelmLocalDependencyPath)
 		if err != nil {
-			return errors.Wrap(err, "fetch local helm dependency")
+			return "", errors.Wrap(err, "fetch local helm dependency")
 		}
 		if err := f.FS.MkdirAll(filepath.Dir(depPath), 0755); err != nil {
-			return errors.Wrap(err, "mkdirall dep path")
+			return "", errors.Wrap(err, "mkdirall dep path")
 		}
 		if err := f.FS.Rename(savedPath, depPath); err != nil {
-			return errors.Wrap(err, "rename to dep path")
+			return "", errors.Wrap(err, "rename to dep path")
 		}
 		if err := f.FS.RemoveAll(constants.HelmLocalDependencyPath); err != nil {
-			return errors.Wrap(err, "remove tmp local helm dependency")
+			return "", errors.Wrap(err, "remove tmp local helm dependency")
 		}
 	}
 
-	return nil
+	return depPath, nil
 }
 
 // Local path creation logic taken from

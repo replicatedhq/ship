@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-1.16.0
+    component: client
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-elasticsearch-client
+spec:
+  $setElementOrder/ports:
+  - port: 9200
+  ports:
+  - name: null
+    port: 9200

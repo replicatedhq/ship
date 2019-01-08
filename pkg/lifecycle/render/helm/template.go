@@ -148,18 +148,19 @@ func (f *LocalTemplater) Template(
 		return errors.Wrap(err, "make absolute helm temp home")
 	}
 
-	if err := f.addDependencies(
+	depPaths, err := f.addDependencies(
 		requirements.Dependencies,
 		absTempHelmHome,
 		chartRoot,
 		asset,
-	); err != nil {
-		return errors.Wrap(err, "add requirements deps")
+	)
+	if err != nil {
+		return errors.Wrapf(err, "add requirements deps for %s", asset.Upstream)
 	}
 
 	debug.Log("event", "helm.dependency.update")
 	if err := f.Commands.MaybeDependencyUpdate(chartRoot, requirements); err != nil {
-		return errors.Wrap(err, "update helm dependencies")
+		return errors.Wrapf(err, "update helm dependencies for %s", asset.Upstream)
 	}
 
 	if asset.ValuesFrom != nil {
@@ -216,7 +217,7 @@ func (f *LocalTemplater) Template(
 	if err != nil {
 		return err
 	}
-	return f.cleanUpAndOutputRenderedFiles(rootFs, asset, tempRenderedChartDir)
+	return f.cleanUpAndOutputRenderedFiles(rootFs, asset, tempRenderedChartDir, depPaths)
 }
 
 func (f *LocalTemplater) getChartRequirements(chartRoot string) (chartutil.Requirements, error) {
@@ -316,6 +317,7 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	rootFs root.Fs,
 	asset api.HelmAsset,
 	tempRenderedChartDir string,
+	depPaths []string,
 ) error {
 	debug := level.Debug(log.With(f.Logger, "method", "cleanUpAndOutputRenderedFiles"))
 
@@ -384,6 +386,13 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	if err := f.FS.RemoveAll(constants.TempHelmValuesPath); err != nil {
 		debug.Log("event", "removeall.fail", "path", constants.TempHelmValuesPath)
 		return errors.Wrap(err, "failed to remove Helm values tmp dir")
+	}
+
+	for _, depPath := range depPaths {
+		debug.Log("event", "removeall", "path", depPath)
+		if err := f.FS.RemoveAll(depPath); err != nil {
+			return errors.Wrapf(err, "failed to remove chart dep %s", depPath)
+		}
 	}
 
 	return nil

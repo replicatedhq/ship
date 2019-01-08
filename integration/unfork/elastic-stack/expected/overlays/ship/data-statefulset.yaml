@@ -1,0 +1,95 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  labels:
+    app: elasticsearch
+    chart: elasticsearch-1.16.0
+    component: data
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-elasticsearch-data
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/config: 4f07b9e19327171c37a9c353906c75a1f454cd31c3dfc600a8882d6e36713c49
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      labels:
+        role: null
+    spec:
+      $setElementOrder/containers:
+      - name: elasticsearch
+      $setElementOrder/initContainers:
+      - name: increase-memory-limits
+      containers:
+      - $setElementOrder/env:
+        - name: DISCOVERY_SERVICE
+        - name: NODE_MASTER
+        - name: PROCESSORS
+        - name: ES_HEAP_SIZE
+        - name: ES_JAVA_OPTS
+        - name: MINIMUM_MASTER_NODES
+        $setElementOrder/volumeMounts:
+        - mountPath: /usr/share/elasticsearch/data
+        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+        - mountPath: /usr/share/elasticsearch/config/log4j2.properties
+        - mountPath: /pre-stop-hook.sh
+        env:
+        - name: DISCOVERY_SERVICE
+          value: elastic-stack-elasticsearch-master.default.svc.cluster.local
+        - name: ES_HEAP_SIZE
+          value: 1536m
+        - name: ES_JAVA_OPTS
+          value: -Djava.net.preferIPv4Stack=true
+        image: gcr.io/cos-containers/elasticsearch:5.4.2-xpack
+        imagePullPolicy: Always
+        lifecycle:
+          postStart: null
+        name: elasticsearch
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - curl --request GET --silent --output /dev/null http://127.0.0.1:9200/_cluster/health?local=true
+          httpGet: null
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          readOnly: true
+        - mountPath: /usr/share/elasticsearch/config/log4j2.properties
+          name: config
+          readOnly: true
+          subPath: log4j2.properties
+        - $patch: delete
+          mountPath: /post-start-hook.sh
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |-
+          # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
+          # and https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+          sysctl -w vm.max_map_count=262144
+          # To increase the ulimit
+          # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_notes_for_production_use_and_defaults
+          ulimit -l unlimited
+        image: busybox
+        name: increase-memory-limits
+        securityContext:
+          privileged: true
+      - $patch: delete
+        name: chown
+      - $patch: delete
+        name: sysctl
+      serviceAccountName: elastic-stack-elasticsearch
+  updateStrategy: null
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 4Gi

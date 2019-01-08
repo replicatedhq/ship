@@ -1,0 +1,90 @@
+apiVersion: v1
+data:
+  elasticsearch.yml: |-
+    cluster.name: elasticsearch
+
+    node.data: ${NODE_DATA:true}
+    node.master: ${NODE_MASTER:true}
+    node.ingest: ${NODE_INGEST:true}
+    node.name: ${HOSTNAME}
+
+    network.host: 0.0.0.0
+    # see https://github.com/kubernetes/kubernetes/issues/3595
+    bootstrap.memory_lock: ${BOOTSTRAP_MEMORY_LOCK:false}
+
+    discovery:
+      zen:
+        ping.unicast.hosts: ${DISCOVERY_SERVICE:}
+        minimum_master_nodes: ${MINIMUM_MASTER_NODES:2}
+
+    # see https://github.com/elastic/elasticsearch-definitive-guide/pull/679
+    processors: ${PROCESSORS:}
+
+    # avoid split-brain w/ a minimum consensus of two masters plus a data node
+    gateway.expected_master_nodes: ${EXPECTED_MASTER_NODES:2}
+    gateway.expected_data_nodes: ${EXPECTED_DATA_NODES:1}
+    gateway.recover_after_time: ${RECOVER_AFTER_TIME:5m}
+    gateway.recover_after_master_nodes: ${RECOVER_AFTER_MASTER_NODES:2}
+    gateway.recover_after_data_nodes: ${RECOVER_AFTER_DATA_NODES:1}
+
+    # Extra Configuration
+
+    # X-Pack
+
+    # Search Guard
+  log4j2.properties: |-
+    status = error
+
+    appender.console.type = Console
+    appender.console.name = console
+    appender.console.layout.type = PatternLayout
+    appender.console.layout.pattern = [%d{ISO8601}][%-5p][%-25c{1.}] %marker%m%n
+
+    rootLogger.level = info
+    rootLogger.appenderRef.console.ref = console
+  post-start-hook.sh: null
+  pre-stop-hook.sh: "#!/bin/bash\nset -e\n\nSERVICE_ACCOUNT_PATH=/var/run/secrets/kubernetes.io/serviceaccount\nKUBE_TOKEN=$(<${SERVICE_ACCOUNT_PATH}/token)\nKUBE_NAMESPACE=$(<${SERVICE_ACCOUNT_PATH}/namespace)\n\nSTATEFULSET_NAME=$(echo
+    \"${HOSTNAME}\" | sed 's/-[0-9]*$//g')\nINSTANCE_ID=$(echo \"${HOSTNAME}\" | grep
+    -o '[0-9]*$')\n\necho \"Prepare stopping of Pet ${KUBE_NAMESPACE}/${HOSTNAME}
+    of StatefulSet ${KUBE_NAMESPACE}/${STATEFULSET_NAME} instance_id ${INSTANCE_ID}\"\n\nexport
+    STATEFULSET_STATUS=$(\n  curl -s \\\n    --cacert ${SERVICE_ACCOUNT_PATH}/ca.crt
+    \\\n    -H \"Authorization: Bearer $KUBE_TOKEN\" \\\n    \"https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_PORT_443_TCP_PORT}/apis/apps/v1beta1/namespaces/${KUBE_NAMESPACE}/statefulsets/${STATEFULSET_NAME}/status\"\n)\nINSTANCES_DESIRED=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('STATEFULSET_STATUS'))\n\t\tprint(obj['spec']['replicas'])\n\tEOF\n)\n\necho
+    \"Desired instance count is ${INSTANCES_DESIRED}\"\n\nif [ \"${INSTANCE_ID}\"
+    -lt \"${INSTANCES_DESIRED}\" ]; then\n  echo \"No data migration needed\"\n  exit
+    0\nfi\n\necho \"Prepare to migrate data of the node\"\n\nexport NODE_STATS=$(\n
+    \ curl -X GET -s \\\n    http://127.0.0.1:9200/_nodes/stats\n)\nNODE_IP=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\tnode = obj['nodes'][key]\n\t\tprint(node['host'])\n\tEOF\n)\n\necho
+    \"Move all data from node ${NODE_IP}\"\n\ncurl -X PUT -H \"Content-Type: application/json\"
+    -s \\\n  http://127.0.0.1:9200/_cluster/settings \\\n  --data \"{\n      \\\"transient\\\"
+    :{\n          \\\"cluster.routing.allocation.exclude._ip\\\" : \\\"${NODE_IP}\\\"\n
+    \     }\n    }\"\necho\n\necho \"Wait for node documents to become empty\"\nDOC_COUNT=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\tnode = obj['nodes'][key]\n\t\tprint(node['indices']['docs']['count'])\n\tEOF\n)\n\nwhile
+    [ \"${DOC_COUNT}\" -gt 0 ]; do\n  export NODE_STATS=$(\n    curl -X GET -s \\\n
+    \     http://127.0.0.1:9200/_nodes/stats\n  )\n  DOC_COUNT=$(\n\t\tpython - <<-EOF\n\t\t\timport
+    json\n\t\t\timport os\n\n\t\t\tobj = json.loads(os.environ.get('NODE_STATS'))\n\t\t\tkey
+    = list(filter(lambda datum: obj['nodes'][datum]['name'] == os.environ.get('HOSTNAME'),
+    obj['nodes'].keys()))[0]\n\t\t\tnode = obj['nodes'][key]\n\t\t\tcount = node['indices']['docs']['count']\n\t\t\tprint(count)\n\t\tEOF\n
+    \ )\n  echo \"Node contains ${DOC_COUNT} documents\"\n  sleep 1\ndone\n\necho
+    \"Wait for node shards to become empty\"\nexport SHARD_STATS=$(\n  curl -X GET
+    -s \\\n    http://127.0.0.1:9200/_cat/shards?format=json\n)\nSHARD_COUNT=$(\n\tpython
+    - <<-EOF\n\t\timport json\n\t\timport os\n\n\t\tobj = json.loads(os.environ.get('SHARD_STATS'))\n\t\tcount
+    = len(filter(lambda datum: datum['node'] == os.environ.get('HOSTNAME'), obj))\n\t\tprint(count)\n\tEOF\n)\nwhile
+    [ \"${SHARD_COUNT}\" -gt 0 ]; do\n  export SHARD_STATS=$(\n    curl -X GET -s
+    \\\n      http://127.0.0.1:9200/_cat/shards?format=json\n  )\n  SHARD_COUNT=$(\n\t\tpython
+    - <<-EOF\n\t\t\timport json\n\t\t\timport os\n\n\t\t\tobj = json.loads(os.environ.get('SHARD_STATS'))\n\t\t\tcount
+    = len(filter(lambda datum: datum['node'] == os.environ.get('HOSTNAME'), obj))\n\t\t\tprint(count)\n\t\tEOF\n
+    \ )\n  echo \"Node contains ${SHARD_COUNT} shards\"\n  sleep 1\ndone\n\necho \"Node
+    clear to shutdown\""
+kind: ConfigMap
+metadata:
+  labels:
+    app: elastic-stack-elasticsearch
+    chart: elasticsearch-1.16.0
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-elasticsearch
