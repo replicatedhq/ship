@@ -2,7 +2,6 @@ package ship
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -41,13 +40,13 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	if _, noExistingState := existingState.(state.Empty); noExistingState {
 		debug.Log("event", "state.missing")
-		return errors.New(fmt.Sprintf(`No state file found at %s please run "ship init"`, uiPrintableStatePath))
+		return errors.Errorf(`No state file found at %s please run "ship init"`, uiPrintableStatePath)
 	}
 
 	debug.Log("event", "read.upstream")
 	upstreamURL := existingState.Upstream()
 	if upstreamURL == "" {
-		return errors.New(fmt.Sprintf(`No upstream URL found at %s, please run "ship init"`, uiPrintableStatePath))
+		return errors.Errorf(`No upstream URL found at %s, please run "ship init"`, uiPrintableStatePath)
 	}
 
 	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)

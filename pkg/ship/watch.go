@@ -39,7 +39,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 		if _, noExistingState := existingState.(state.Empty); noExistingState {
 			debug.Log("event", "state.missing")
-			return errors.New(fmt.Sprintf(`No state found at %s, please run "ship init"`, uiPrintableStatePath))
+			return errors.Errorf(`No state found at %s, please run "ship init"`, uiPrintableStatePath)
 		}
 
 		debug.Log("event", "read.upstream")

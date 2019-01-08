@@ -41,7 +41,7 @@ func ParseGithubURL(url string, defaultRef string) (GithubURL, error) {
 	}
 
 	if parsed.Owner == "" {
-		return GithubURL{}, errors.New(fmt.Sprintf("Unable to parse %q as a github url", url))
+		return GithubURL{}, errors.Errorf("Unable to parse %q as a github url", url)
 	}
 
 	return parsed, nil
