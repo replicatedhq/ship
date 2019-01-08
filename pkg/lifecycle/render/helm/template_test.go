@@ -38,9 +38,10 @@ func TestLocalTemplater(t *testing.T) {
 		expectedChannelName string
 		expectHelmOpts      *matchers.Is
 		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
-		state               state2.VersionedState
+		state               *state2.VersionedState
 		requirements        *chartutil.Requirements
 		repoAdd             []string
+		namespace           string
 	}{
 		{
 			name:        "helm test proper args",
@@ -125,6 +126,17 @@ func TestLocalTemplater(t *testing.T) {
 			},
 			repoAdd: []string{"kubernetes-charts-incubator", "https://kubernetes-charts-incubator.storage.googleapis.com/"},
 		},
+		{
+			name:        "helm template with namespace in state",
+			describe:    "template uses namespace from state",
+			expectError: "",
+			state: &state2.VersionedState{
+				V1: &state2.V1{
+					Namespace: "test-namespace",
+				},
+			},
+			namespace: "test-namespace",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -159,12 +171,18 @@ func TestLocalTemplater(t *testing.T) {
 				test.templateContext = map[string]interface{}{}
 			}
 
-			mockState.EXPECT().TryLoad().Return(state2.VersionedState{
-				V1: &state2.V1{
-					HelmValues:  "we fake",
-					ReleaseName: channelName,
-				},
-			}, nil)
+			if test.state == nil {
+				mockState.EXPECT().TryLoad().Return(state2.VersionedState{
+					V1: &state2.V1{
+						HelmValues:  "we fake",
+						ReleaseName: channelName,
+					},
+				}, nil)
+			} else {
+				testState := *test.state
+				testState.V1.ReleaseName = channelName
+				mockState.EXPECT().TryLoad().Return(testState, nil)
+			}
 
 			chartRoot := "/tmp/chartroot"
 			optionAndValuesArgs := append(
@@ -187,7 +205,11 @@ func TestLocalTemplater(t *testing.T) {
 				optionAndValuesArgs...,
 			)
 
-			templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+			if len(test.namespace) > 0 {
+				templateArgs = addArgIfNotPresent(templateArgs, "--namespace", test.namespace)
+			} else {
+				templateArgs = addArgIfNotPresent(templateArgs, "--namespace", "default")
+			}
 
 			mockCommands.EXPECT().Init().Return(nil)
 			if test.requirements != nil {

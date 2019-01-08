@@ -22,61 +22,6 @@ export default class ConfigRender extends React.Component {
     }
   }
 
-  getData = (groups) => {
-    const getItemData = (item) => {
-      let data = {
-        name: item.name,
-        value: "",
-        multi_value: [],
-      };
-      if (item.multiple) {
-        if (item.multi_value && item.multi_value.length) {
-          data.multi_value = item.multi_value;
-        } else if (item.default) {
-          data.multi_value = [item.default];
-        }
-      } else {
-        if (item.value && item.value.length) {
-          data.value = item.value;
-        } else {
-          data.value = item.default;
-        }
-      }
-      if (item.type === "file") {
-        data.data = "";
-        if (item.multiple) {
-          if (item.multi_data && item.multi_data.length) {
-            data.multi_data = item.multi_data;
-          } else {
-            data.multi_data = [];
-          }
-        } else {
-          data.data = item.data;
-        }
-      }
-      return data;
-    };
-
-    let data = [];
-    _.each(groups, (group) => {
-      if (ConfigService.isEnabled(groups, group)) {
-        _.each(group.items, (item) => {
-          if (ConfigService.isEnabled(groups, item)) {
-            if (item.type !== "select_many") {
-              data.push(getItemData(item));
-            }
-            if (item.type !== "select_one") {
-              _.each(item.items, (childItem) => {
-                data.push(getItemData(childItem));
-              });
-            }
-          }
-        });
-      }
-    });
-    return data;
-  }
-
   handleGroupsChange = (groupName, itemName, value, data) => {
     const getValues = (val) => {
       if (!val) {
@@ -134,7 +79,7 @@ export default class ConfigRender extends React.Component {
     this.setState({groups: keyBy(groups, "name")});
 
     // TODO: maybe this should only be on submit
-    this.triggerChange(this.getData(groups));
+    this.triggerChange(this.props.getData(groups));
   }
 
   componentDidUpdate(lastProps) {

@@ -8,15 +8,13 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
 	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/util"
-
-	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
 	"k8s.io/helm/pkg/chartutil"
 )
 

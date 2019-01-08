@@ -212,7 +212,7 @@ func validateGithubURL(upstream string) (*url.URL, error) {
 	}
 
 	if !strings.Contains(upstreamURL.Host, "github.com") {
-		return nil, errors.New(fmt.Sprintf("%s is not a Github URL", upstream))
+		return nil, errors.Errorf("%s is not a Github URL", upstream)
 	}
 
 	return upstreamURL, nil

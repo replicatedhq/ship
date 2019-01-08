@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import ConfigItemTitle from "../config_render/ConfigItemTitle";
 
-export default class HelmReleaseNameInput extends React.Component {
+export default class HelmAdvancedInput extends React.Component {
 
   handleOnChange = (e) => {
     const { onChange } = this.props;
@@ -10,19 +10,24 @@ export default class HelmReleaseNameInput extends React.Component {
   }
 
   render() {
-    const { value } = this.props;
+    const {
+      value,
+      title,
+      subTitle,
+      placeholder,
+    } = this.props;
 
     return (
       <div className={`field field-type-text u-marginTop--15`}>
         <ConfigItemTitle
-          title="Helm Name"
+          title={title}
         />
-        <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">This is the name that will be used to template your Helm chart.</p>
+        <p className="u-color--dustyGray u-fontSize--normal u-marginTop--normal u-marginBottom--20">{subTitle}</p>
         <div className="field-input-wrapper u-marginTop--15">
           <input
             type={this.props.inputType}
             {...this.props.props}
-            placeholder={this.props.default}
+            placeholder={placeholder}
             value={value}
             onChange={this.handleOnChange}
             className={`${this.props.className || ""} Input`} />
@@ -32,7 +37,10 @@ export default class HelmReleaseNameInput extends React.Component {
   }
 }
 
-HelmReleaseNameInput.propTypes = {
+HelmAdvancedInput.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
+  subTitle: PropTypes.string.isRequired,
+  placeholder: PropTypes.string,
 };
