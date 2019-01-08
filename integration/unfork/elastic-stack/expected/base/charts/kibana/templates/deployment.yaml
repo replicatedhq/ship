@@ -1,0 +1,48 @@
+---
+# Source: elastic-stack/charts/kibana/templates/deployment.yaml
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+    chart: "kibana-1.1.2"
+    heritage: Tiller
+    release: elastic-stack
+  name: elastic-stack-kibana
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      annotations:
+        checksum/config: f9c4dee387de17d65146bb7640d629b057d6b1251107085ec4f3a80c0c09bd79
+      labels:
+        app: kibana
+        release: "elastic-stack"
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: kibana
+        image: "docker.elastic.co/kibana/kibana-oss:6.5.4"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: "ELASTICSEARCH_URL"
+          value: "http://http.default.svc.cluster.local:9200"
+        ports:
+        - containerPort: 5601
+          name: kibana
+          protocol: TCP
+        resources:
+          {}
+          
+        volumeMounts:
+        - name: kibana
+          mountPath: "/usr/share/kibana/config/kibana.yml"
+          subPath: kibana.yml
+      tolerations:
+        []
+        
+      volumes:
+        - name: kibana
+          configMap:
+            name: elastic-stack-kibana
