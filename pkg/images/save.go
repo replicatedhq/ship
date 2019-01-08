@@ -97,7 +97,7 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 	if err != nil {
 		return errors.Wrapf(err, "pull image %s", saveOpts.PullURL)
 	}
-	copyDockerProgress(progressReader, progressCh)
+	copyDockerProgress(debug, saveOpts.PullURL, progressReader, progressCh)
 	if saveOpts.Filename != "" {
 		return s.createFile(ctx, progressCh, saveOpts)
 	} else if saveOpts.DestinationURL != nil {
@@ -180,7 +180,7 @@ func (s *CLISaver) pushImage(ctx context.Context, progressCh chan interface{}, s
 	if err != nil {
 		return errors.Wrapf(err, "push image %s", destinationParams.DestinationImageName)
 	}
-	return copyDockerProgress(progressReader, progressCh)
+	return copyDockerProgress(debug, destinationParams.DestinationImageName, progressReader, progressCh)
 }
 
 func buildDestinationParams(destinationURL *url.URL) (DestinationParams, error) {

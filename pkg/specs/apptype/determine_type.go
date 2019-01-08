@@ -96,7 +96,7 @@ func (r *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		return r.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
-	return nil, errors.New(fmt.Sprintf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream))
+	return nil, errors.Errorf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream)
 }
 
 func (r *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (app LocalAppCopy, err error) {
