@@ -512,7 +512,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 				},
 				{
 					path:     "test/missingEnv.yaml",
-					contents: `  env: {}`,
+					contents: `  env: []`,
 				},
 				{
 					path: "test/notMissingMultilineEnv.yaml",
@@ -525,7 +525,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 				{
 					path: "test/missingMultilineEnv.yaml",
 					contents: `
-  env: {}
+  env: []
   something:`,
 				},
 			},
@@ -625,7 +625,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 				{
 					path: "test/comment_line_env.yaml",
 					contents: `
-  env: {}
+  env: []
     #item
 
   env:
@@ -700,7 +700,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
 					path: "test/everything.yaml",
 					contents: `
   args: []
-  env: {}
+  env: []
   volumes: []
   value: ""
   value: ""
