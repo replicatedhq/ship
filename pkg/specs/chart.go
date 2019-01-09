@@ -106,8 +106,7 @@ func (r *Resolver) DefaultHelmRelease(chartPath string, upstream string) api.Spe
 							ChartRoot: chartPath,
 						},
 						ValuesFrom: &api.ValuesFrom{
-							Path:        constants.ShipPathInternalTmp,
-							SaveToState: true,
+							Path: constants.ShipPathInternalTmp,
 						},
 						Upstream: upstream,
 					},
@@ -192,10 +191,6 @@ For continuous notification and preparation of application updates via email, we
 	}
 
 	return spec
-}
-
-func (r *Resolver) DefaultRawUnforkRelease(forkedPath string, upstreamPath string) api.Spec {
-	return api.Spec{}
 }
 
 func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {

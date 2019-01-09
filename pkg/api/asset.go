@@ -100,8 +100,10 @@ type LocalAsset struct {
 }
 
 type ValuesFrom struct {
-	Path        string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
-	SaveToState bool   `json:"save_to_state,omitempty" yaml:"save_to_state,omitempty" hcl:"save_to_state,omitempty"`
+	Path string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	// SaveToState is used when a HelmValues step is not part of the lifecycle (e.g. Unfork) in order to save
+	// the merged helm values to state.
+	SaveToState bool `json:"save_to_state,omitempty" yaml:"save_to_state,omitempty" hcl:"save_to_state,omitempty"`
 }
 
 type ValuesFromLifecycle struct{}

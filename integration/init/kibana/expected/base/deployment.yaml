@@ -1,0 +1,38 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+    release: kibana
+  name: kibana
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      annotations:
+        checksum/config: 0d42b0d5d1f2c84f74f7e20e3b643f2dabf4f96963c1b4ced060624e7211f4d4
+      labels:
+        app: kibana
+        release: kibana
+    spec:
+      containers:
+      - env: []
+        image: docker.elastic.co/kibana/kibana-oss:6.5.4
+        imagePullPolicy: IfNotPresent
+        name: kibana
+        ports:
+        - containerPort: 5601
+          name: kibana
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /usr/share/kibana/config/kibana.yml
+          name: kibana
+          subPath: kibana.yml
+      serviceAccountName: default
+      tolerations: []
+      volumes:
+      - configMap:
+          name: kibana
+        name: kibana
