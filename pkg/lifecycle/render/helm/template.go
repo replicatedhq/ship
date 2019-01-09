@@ -60,8 +60,7 @@ func NewTemplater(
 	}
 }
 
-var arrayLineRegex = regexp.MustCompile(`^\s*(args|volumes):\s*$`)
-var envLineRegex = regexp.MustCompile(`^\s*env:\s*$`)
+var arrayLineRegex = regexp.MustCompile(`^\s*(env|args|volumes):\s*$`)
 var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
 var nullValueLineRegex = regexp.MustCompile(`^(\s*value:)\s*null\s*$`)
@@ -533,12 +532,6 @@ func fixLines(lines []string) []string {
 			// line has `key:` and nothing else but whitespace
 			if !checkIsChild(line, nextLine(idx, lines)) {
 				// next line is not a child, so this key has no contents, add an empty array
-				lines[idx] = line + " []"
-			}
-		} else if envLineRegex.MatchString(line) {
-			// line has `env:` and nothing else but whitespace
-			if !checkIsChild(line, nextLine(idx, lines)) {
-				// next line is not a child, so env has no contents, add an empty object
 				lines[idx] = line + " []"
 			}
 		} else if valueLineRegex.MatchString(line) {
