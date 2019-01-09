@@ -36,7 +36,7 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 			http.StatusBadRequest,
 			map[string]string{
 				"error":  "bad_request",
-				"detail": "path and contents cannot be empty",
+				"detail": "Patch and resource contents cannot be empty",
 			},
 		)
 		return
