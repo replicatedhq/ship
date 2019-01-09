@@ -64,17 +64,26 @@ export function saveKustomizeOverlay(payload) {
         },
         body: JSON.stringify(payload)
       });
+      
       if (!response.ok) {
         dispatch(loadingData("saveKustomize", false));
+
+        if (response.status >= 400) {
+          const body = await response.json();
+          if(body.error) {
+            throw new Error(body.detail);
+          }
+        }
+
         return;
       }
+
       await response.json();
       dispatch(getFileContent(payload.path));
       dispatch(loadingData("saveKustomize", false));
     } catch (error) {
       dispatch(loadingData("saveKustomize", false));
-      console.log(error)
-      return;
+      throw new Error(error.message);
     }
   };
 }
@@ -219,8 +228,7 @@ export function applyPatch(payload) {
       const { modified } = await response.json();
       dispatch(receiveModified(modified, payload.patch));
     } catch (error) {
-      console.log(error)
-      return;
+      throw new Error("We weren't able to apply your patch, please verify your patch and try again.");
     }
   };
 }

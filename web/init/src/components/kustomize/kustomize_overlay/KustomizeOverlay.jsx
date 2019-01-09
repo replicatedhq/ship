@@ -7,6 +7,7 @@ import sortBy from "lodash/sortBy";
 import pick from "lodash/pick";
 import keyBy from "lodash/keyBy";
 import find from "lodash/find";
+import trim from "lodash/trim";
 import findIndex from "lodash/findIndex";
 import map from "lodash/map";
 import defaultTo from "lodash/defaultTo";
@@ -34,6 +35,10 @@ export default class KustomizeOverlay extends React.Component {
       fileContents: {},
       fileLoadErr: false,
       fileLoadErrMessage: "",
+      savePatchErr: false,
+      savePatchErrorMessage: "",
+      applyPatchErr: false,
+      applyPatchErrorMessage: "",
       viewDiff: false,
       markers: [],
       patch: "",
@@ -132,7 +137,20 @@ export default class KustomizeOverlay extends React.Component {
       resource: `${fileTreeBasePath}${selectedFile}`,
       patch: contents,
     };
-    await this.props.applyPatch(applyPayload).catch();
+    await this.props.applyPatch(applyPayload)
+      .catch((err) => {
+        this.setState({ 
+          applyPatchErr: true,
+          applyPatchErrorMessage: err.message 
+        });
+
+        setTimeout(() => {
+          this.setState({ 
+            applyPatchErr: false,
+            applyPatchErrorMessage: "" 
+          });
+        }, 3000);
+      });
   }
 
   toggleDiff = async () => {
@@ -253,7 +271,19 @@ export default class KustomizeOverlay extends React.Component {
       .then(() => {
         this.setState({ lastSavedPatch: null });
       })
-      .catch();
+      .catch((err) => {
+        this.setState({
+          savePatchErr: true,
+          savePatchErrorMessage: err.message
+        });
+
+        setTimeout(() => {
+          this.setState({
+            savePatchErr: false,
+            savePatchErrorMessage: ""
+          });
+        }, 3000);
+      });
     await this.props.getCurrentStep();
     if (finalize) {
       this.setState({ savingFinalize: true, addingNewResource: false });
@@ -263,7 +293,7 @@ export default class KustomizeOverlay extends React.Component {
 
   handleCreateResource = async () => {
     const { newResourceName } = this.state;
-    const contents = "---"
+    const contents = "\n"; // Cannot be empty
     this.setState({ patch: contents });
 
     const payload = {
@@ -277,7 +307,19 @@ export default class KustomizeOverlay extends React.Component {
         this.setSelectedFile(`/${newResourceName}`);
         this.setState({ addingNewResource: false, newResourceName: "" })
       })
-      .catch();
+      .catch((err) => {
+        this.setState({
+          savePatchErr: true,
+          savePatchErrorMessage: err.message
+        });
+
+        setTimeout(() => {
+          this.setState({
+            savePatchErr: false,
+            savePatchErrorMessage: ""
+          });
+        }, 3000);
+      });
     await this.props.getCurrentStep();
   }
 
@@ -366,6 +408,10 @@ export default class KustomizeOverlay extends React.Component {
       addingNewResource,
       newResourceName,
       modalAction,
+      applyPatchErr,
+      applyPatchErrorMessage,
+      savePatchErr,
+      savePatchErrorMessage
     } = this.state;
     const fileToView = defaultTo(find(fileContents, ["key", selectedFile]), {});
     const showOverlay = patch.length;
@@ -463,7 +509,7 @@ export default class KustomizeOverlay extends React.Component {
                 <div className={`flex-column flex1 overlays-editor-wrapper ${showOverlay ? "visible" : ""}`}>
                   <div className="u-paddingLeft--20 u-paddingRight--20 u-paddingTop--20">
                     <p className="u-marginBottom--normal u-fontSize--large u-color--tuna u-fontWeight--bold">{showBase ? "Patch" : "Resource"}</p>
-                    <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This YAML will be applied as a patch to the base YAML. Edit the values that you want patched. The current file you're editing will be automatically saved when you open a new file.</p>
+                    <p className="u-fontSize--small u-lineHeight--more u-fontWeight--medium u-color--doveGray">This file will be applied as a patch to the base manifest. Edit the values that you want patched. The current file you're editing will be automatically saved when you open a new file.</p>
                   </div>
                   <div className="flex1 flex-column file-contents-wrapper u-position--relative">
                     <div className="flex1 AceEditor--wrapper">
@@ -474,7 +520,7 @@ export default class KustomizeOverlay extends React.Component {
                         mode="yaml"
                         theme="chrome"
                         className="flex1 flex"
-                        value={patch || ""}
+                        value={trim(patch)}
                         height="100%"
                         width="100%"
                         editorProps={{
@@ -510,14 +556,16 @@ export default class KustomizeOverlay extends React.Component {
                 : null}
 
               <div className="flex-auto flex layout-footer-actions less-padding">
-                <div className="flex1 flex-column flex-verticalCenter">
-                  <p className="u-margin--none u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                <div className="flex-column flex-verticalCenter">
+                  <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
                 </div>
                 <div className="flex1 flex alignItems--center justifyContent--flexEnd">
                   {selectedFile === "" ?
                     <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                     :
                     <div className="flex">
+                      {applyPatchErr && <span className="flex flex1 u-fontSize--small u-fontWeight--medium u-color--chestnut u-marginRight--20 alignItems--center">{ applyPatchErrorMessage }</span>}
+                      {savePatchErr && <span className="flex flex1 u-fontSize--small u-fontWeight--medium u-color--chestnut u-marginRight--20 alignItems--center">{ savePatchErrorMessage }</span>}
                       <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch" : "Save patch"}</button>
                       {patch === "" ?
                         <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
