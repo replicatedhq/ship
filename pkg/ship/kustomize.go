@@ -2,6 +2,7 @@ package ship
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
+	removeExistingState := !s.Viper.GetBool("preserve-state")
 
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
@@ -63,15 +65,26 @@ func (s *Ship) Init(ctx context.Context) error {
 				return warnings.WarnCannotRemoveState
 			}
 
-			if err := s.promptToRemoveState(); err != nil {
-				debug.Log("event", "state.remove.prompt.fail")
-				return err
+			if removeExistingState {
+				if err := s.promptToRemoveState(); err != nil {
+					debug.Log("event", "state.remove.prompt.fail")
+					return err
+				}
+			} else {
+				s.UI.Info(fmt.Sprint("Preserving existing current state"))
 			}
 		}
 	}
 
-	if err := s.maybeWriteStateFromFile(); err != nil {
-		return err
+	if removeExistingState {
+		if err := s.maybeWriteStateFromFile(); err != nil {
+			return err
+		}
+	} else {
+		debug.Log("event", "reset steps completed for existing state")
+		if err := s.StateManager.ResetLifecycle(); err != nil {
+			return errors.Wrap(err, "reset state.json completed lifecycle")
+		}
 	}
 
 	// we already check in the CMD, but no harm in being extra safe here
