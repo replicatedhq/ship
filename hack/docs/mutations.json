@@ -1138,6 +1138,12 @@
     }
   },
   {
+    "path": "properties.lifecycle.properties.v1.items.properties.terraform.properties.when",
+    "merge": {
+      "description": "If 'when' is not empty and evaluates to false, the terraform lifecycle step will be skipped."
+    }
+  },
+  {
     "path": "properties.assets.properties.v1.items.properties.terraform.properties",
     "delete": ["github"]
   },
