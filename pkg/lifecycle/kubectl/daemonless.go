@@ -47,8 +47,14 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 		return errors.Wrap(err, "get builder")
 	}
 
-	builtPath, _ := builder.String(step.Path)
-	builtKubePath, _ := builder.String(step.Kubeconfig)
+	builtPath, err := builder.String(step.Path)
+	if err != nil {
+		return errors.Wrapf(err, "build apply path %s", step.Path)
+	}
+	builtKubePath, err := builder.String(step.Kubeconfig)
+	if err != nil {
+		return errors.Wrapf(err, "build kubeconfig path %s", step.Kubeconfig)
+	}
 
 	debug := level.Debug(log.With(d.Logger, "step.type", "kubectl"))
 
@@ -58,10 +64,11 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 
 	cmd := exec.Command("kubectl")
 	cmd.Dir = release.FindRenderRoot()
-	cmd.Args = append(cmd.Args, "apply", "-f", step.Path)
+	cmd.Args = append(cmd.Args, "apply", "-f", builtPath)
 	if step.Kubeconfig != "" {
 		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)
 	}
+	debug.Log("event", "kubectl.execute", "args", fmt.Sprintf("%+v", cmd.Args))
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -72,6 +79,7 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 	doneCh := make(chan struct{})
 	messageCh := make(chan daemontypes.Message)
 	go d.Status.PushStreamStep(ctx, messageCh)
+	debug.Log("event", "kubectl.streamStep.pushed")
 
 	stderrString := ""
 	stdoutString := ""
@@ -93,8 +101,10 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 						Contents:    ansiToHTML(stdoutString, stderrString),
 						TrustedHTML: true,
 					}
+					debug.Log("event", "kubectl.message.pushed")
 				}
 			case <-doneCh:
+				debug.Log("event", "kubectl.doneCh")
 				stderrString = stderr.String()
 				stdoutString = stdout.String()
 				close(messageCh)
@@ -113,6 +123,7 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 	debug.Log("stderr", stderrString)
 
 	if err != nil {
+		debug.Log("event", "kubectl.run.error", "err", err)
 		stderrString = fmt.Sprintf(`Error: %s
 stderr: %s`, err.Error(), stderrString)
 	}
@@ -125,6 +136,7 @@ stderr: %s`, err.Error(), stderrString)
 		},
 		confirmActions(),
 	)
+	debug.Log("event", "kubectl.outputs.pushed", "next", "confirmed.await")
 
 	return d.awaitMessageConfirmed(ctx, confirmedChan)
 }
