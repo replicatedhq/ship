@@ -14,22 +14,26 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 type DaemonlessKubectl struct {
 	Logger         log.Logger
 	Status         daemontypes.StatusReceiver
+	StateManager   state.Manager
 	BuilderBuilder *templates.BuilderBuilder
 }
 
 func NewDaemonlessKubectl(
 	logger log.Logger,
 	builderBuilder *templates.BuilderBuilder,
+	statemanager state.Manager,
 ) lifecycle.KubectlApply {
 	return &DaemonlessKubectl{
 		Logger:         logger,
 		BuilderBuilder: builderBuilder,
+		StateManager:   statemanager,
 	}
 }
 
@@ -37,12 +41,19 @@ func (d *DaemonlessKubectl) WithStatusReceiver(statusReceiver daemontypes.Status
 	return &DaemonlessKubectl{
 		Logger:         d.Logger,
 		BuilderBuilder: d.BuilderBuilder,
+		StateManager:   d.StateManager,
 		Status:         statusReceiver,
 	}
 }
 
+// TODO I need tests
 func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply, confirmedChan chan bool) error {
-	builder, err := d.BuilderBuilder.BaseBuilder(release.Metadata)
+	currState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	builder, err := d.BuilderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currState.CurrentConfig())
 	if err != nil {
 		return errors.Wrap(err, "get builder")
 	}
