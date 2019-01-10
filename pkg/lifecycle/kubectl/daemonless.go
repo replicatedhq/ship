@@ -48,37 +48,9 @@ func (d *DaemonlessKubectl) WithStatusReceiver(statusReceiver daemontypes.Status
 
 // TODO I need tests
 func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply, confirmedChan chan bool) error {
-	currState, err := d.StateManager.TryLoad()
-	if err != nil {
-		return errors.Wrap(err, "load state")
-	}
-
-	builder, err := d.BuilderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currState.CurrentConfig())
-	if err != nil {
-		return errors.Wrap(err, "get builder")
-	}
-
-	builtPath, err := builder.String(step.Path)
-	if err != nil {
-		return errors.Wrapf(err, "build apply path %s", step.Path)
-	}
-	builtKubePath, err := builder.String(step.Kubeconfig)
-	if err != nil {
-		return errors.Wrapf(err, "build kubeconfig path %s", step.Kubeconfig)
-	}
-
 	debug := level.Debug(log.With(d.Logger, "step.type", "kubectl"))
 
-	if builtPath == "" {
-		return errors.New("A path to apply is required")
-	}
-
-	cmd := exec.Command("kubectl")
-	cmd.Dir = release.FindRenderRoot()
-	cmd.Args = append(cmd.Args, "apply", "-f", builtPath)
-	if step.Kubeconfig != "" {
-		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)
-	}
+	cmd, err := d.prepareCmd(release, step)
 	debug.Log("event", "kubectl.execute", "args", fmt.Sprintf("%+v", cmd.Args))
 
 	var stderr bytes.Buffer
@@ -136,7 +108,7 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 	if err != nil {
 		debug.Log("event", "kubectl.run.error", "err", err)
 		stderrString = fmt.Sprintf(`Error: %s
-stderr: %s`, err.Error(), stderrString)
+	stderr: %s`, err.Error(), stderrString)
 	}
 
 	d.Status.PushMessageStep(
@@ -150,6 +122,39 @@ stderr: %s`, err.Error(), stderrString)
 	debug.Log("event", "kubectl.outputs.pushed", "next", "confirmed.await")
 
 	return d.awaitMessageConfirmed(ctx, confirmedChan)
+}
+
+func (d *DaemonlessKubectl) prepareCmd(release api.Release, step api.KubectlApply) (*exec.Cmd, error) {
+	currState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "load state")
+	}
+
+	builder, err := d.BuilderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currState.CurrentConfig())
+	if err != nil {
+		return nil, errors.Wrap(err, "get builder")
+	}
+
+	builtPath, err := builder.String(step.Path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "build apply path %s", step.Path)
+	}
+	builtKubePath, err := builder.String(step.Kubeconfig)
+	if err != nil {
+		return nil, errors.Wrapf(err, "build kubeconfig path %s", step.Kubeconfig)
+	}
+
+	if builtPath == "" {
+		return nil, errors.New("A path to apply is required")
+	}
+
+	cmd := exec.Command("kubectl")
+	cmd.Dir = release.FindRenderRoot()
+	cmd.Args = append(cmd.Args, "apply", "-f", builtPath)
+	if step.Kubeconfig != "" {
+		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)
+	}
+	return cmd, nil
 }
 
 func (d *DaemonlessKubectl) awaitMessageConfirmed(ctx context.Context, confirmedChan chan bool) error {
