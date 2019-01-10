@@ -71,7 +71,10 @@ func (s *Ship) Init(ctx context.Context) error {
 					return err
 				}
 			} else {
-				s.UI.Info(fmt.Sprint("Preserving existing current state"))
+				s.UI.Info(fmt.Sprint("Preserving current state"))
+				if !s.upstreamMatchesExisting(existingState) {
+					return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
+				}
 			}
 		}
 	}
@@ -144,4 +147,10 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 	return &api.Release{
 		Spec: r.DefaultRawRelease(s.KustomizeRaw),
 	}
+}
+
+func (s *Ship) upstreamMatchesExisting(existing state.State) bool {
+	currentUpstream := s.Viper.GetString("upstream")
+	existingUpstream := existing.Upstream()
+	return currentUpstream == existingUpstream
 }
