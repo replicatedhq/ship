@@ -1,0 +1,43 @@
+assets:
+  v1:
+    - inline:
+        dest: ./notrun-terraform/random.tf
+        contents: |
+          resource "local_file" "foo" {
+            content     = "{{repl ConfigOption "id_length" }}"
+            filename = "/tmp/foo.bar"
+          }
+
+    - inline:
+        dest: ./terraform/random.tf
+        contents: |
+          resource "local_file" "foo" {
+            content     = "{{repl ConfigOption "id_length" }}"
+            filename = "/tmp/foo.bar"
+          }
+
+config:
+  v1:
+    - name: id
+      items:
+        - name: id_length
+          title: a silly example
+          type: text
+          required: true
+          default: 8
+          help_text: "if set to 6 terraform will run"
+
+lifecycle:
+  v1:
+    - message:
+        contents: "hi"
+    - config: {}
+    - render: {}
+    - terraform:
+        path: notrun-terraform/
+        when: '{{repl ConfigOptionEquals "id_length" "6"}}'
+    - terraform:
+        path: terraform/
+        when: '{{repl ConfigOptionEquals "id_length" "8"}}'
+    - message:
+        contents: "bye"

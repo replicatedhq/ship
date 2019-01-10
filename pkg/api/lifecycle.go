@@ -100,6 +100,7 @@ func (r *Render) RenderRoot() string {
 type Terraform struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	When       string `json:"when,omitempty" yaml:"when,omitempty" hcl:"when,omitempty"`
 }
 
 func (t *Terraform) Shared() *StepShared { return &t.StepShared }

@@ -24,6 +24,7 @@ import (
 
 const tfSep = "------------------------------------------------------------------------"
 const tfNoChanges = "No changes. Infrastructure is up-to-date."
+const tfSkipping = "Not running Terraform."
 
 type ForkTerraformer struct {
 	Logger            log.Logger
@@ -82,6 +83,20 @@ func (t *ForkTerraformer) WithStatusReceiver(status daemontypes.StatusReceiver) 
 
 func (t *ForkTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, terraformConfirmedChan chan bool) error {
 	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
+
+	shouldExecute := t.evaluateWhen(step.When, release)
+	if !shouldExecute {
+		debug.Log("event", "terraform.skipping")
+		t.Daemon.PushMessageStep(
+			ctx,
+			daemontypes.Message{
+				Contents: tfSkipping,
+				Level:    "Info",
+			},
+			daemon.MessageActions())
+		return nil
+	}
+
 	dir := path.Join(release.FindRenderRoot(), step.Path)
 	if err := t.FS.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "mkdirall %s", dir)
