@@ -2,6 +2,7 @@ package ship
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
+	removeExistingState := !s.Viper.GetBool("preserve-state")
 
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
@@ -63,15 +65,29 @@ func (s *Ship) Init(ctx context.Context) error {
 				return warnings.WarnCannotRemoveState
 			}
 
-			if err := s.promptToRemoveState(); err != nil {
-				debug.Log("event", "state.remove.prompt.fail")
-				return err
+			if removeExistingState {
+				if err := s.promptToRemoveState(); err != nil {
+					debug.Log("event", "state.remove.prompt.fail")
+					return err
+				}
+			} else {
+				s.UI.Info("Preserving current state")
+				if !s.upstreamMatchesExisting(existingState) {
+					return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
+				}
 			}
 		}
 	}
 
-	if err := s.maybeWriteStateFromFile(); err != nil {
-		return err
+	if removeExistingState {
+		if err := s.maybeWriteStateFromFile(); err != nil {
+			return err
+		}
+	} else {
+		debug.Log("event", "reset steps completed for existing state")
+		if err := s.StateManager.ResetLifecycle(); err != nil {
+			return errors.Wrap(err, "reset state.json completed lifecycle")
+		}
 	}
 
 	// we already check in the CMD, but no harm in being extra safe here
@@ -131,4 +147,10 @@ func (s *Ship) fakeKustomizeRawRelease() *api.Release {
 	return &api.Release{
 		Spec: r.DefaultRawRelease(s.KustomizeRaw),
 	}
+}
+
+func (s *Ship) upstreamMatchesExisting(existing state.State) bool {
+	currentUpstream := s.Viper.GetString("upstream")
+	existingUpstream := existing.Upstream()
+	return currentUpstream == existingUpstream
 }

@@ -57,6 +57,7 @@ Upstream can be one of:
 
 	cmd.Flags().Bool("rm-asset-dest", false, "Always remove asset destinations if already present")
 	cmd.Flags().Int("retries", 3, "Number of times to retry retrieving upstream")
+	cmd.Flags().Bool("preserve-state", false, "Skips prompt to remove existing state. If an existing state file is present, ship update --headed lifecycle will be used.")
 
 	// optional developer flags for "ship init replicated.app"
 	cmd.Flags().String("set-channel-name", "", developerFlagUsage)

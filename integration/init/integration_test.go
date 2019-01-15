@@ -102,6 +102,11 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 						testMetadata.Args = append(testMetadata.Args, fmt.Sprintf("--helm-values-file=%s", absolutePath))
 					}
 
+					preserveState := argsContains(testMetadata.Args, "--preserve-state")
+					if preserveState {
+						moveInputStateJson(testPath, testOutputPath)
+					}
+
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
@@ -120,11 +125,15 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 
+					watchTestMetadataArgs := argsFilter(testMetadata.Args, func(arg string) bool {
+						return arg != "--preserve-state"
+					})
+
 					// run 'ship watch' and expect no error to occur
 					watchCmd := cli.RootCmd()
 					watchBuf := new(bytes.Buffer)
 					watchCmd.SetOutput(watchBuf)
-					watchCmd.SetArgs(append([]string{"watch", "--exit"}, testMetadata.Args...))
+					watchCmd.SetArgs(append([]string{"watch", "--exit"}, watchTestMetadataArgs...))
 					err = watchCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 				}, 60)
@@ -141,4 +150,40 @@ func readMetadata(testPath string) TestMetadata {
 	Expect(err).NotTo(HaveOccurred())
 
 	return testMetadata
+}
+
+func moveInputStateJson(testPath, testOutputPath string) {
+	stateInputAbsolutePath, err := filepath.Abs(path.Join(testPath, "input", "state.json"))
+	Expect(err).NotTo(HaveOccurred())
+
+	stateInput, err := ioutil.ReadFile(stateInputAbsolutePath)
+	Expect(err).NotTo(HaveOccurred())
+
+	outputAbsolutePath, err := filepath.Abs(path.Join(testOutputPath, ".ship", "state.json"))
+	Expect(err).NotTo(HaveOccurred())
+
+	err = os.Mkdir(filepath.Dir(outputAbsolutePath), 0777)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ioutil.WriteFile(outputAbsolutePath, stateInput, 0777)
+	Expect(err).NotTo(HaveOccurred())
+}
+
+func argsContains(args []string, containArg string) bool {
+	for _, arg := range args {
+		if arg == containArg {
+			return true
+		}
+	}
+	return false
+}
+
+func argsFilter(args []string, argPredicate func(arg string) bool) []string {
+	filteredArgs := []string{}
+	for _, arg := range args {
+		if argPredicate(arg) {
+			filteredArgs = append(filteredArgs, arg)
+		}
+	}
+	return filteredArgs
 }
