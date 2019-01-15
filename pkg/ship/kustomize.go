@@ -71,7 +71,7 @@ func (s *Ship) Init(ctx context.Context) error {
 					return err
 				}
 			} else {
-				s.UI.Info(fmt.Sprint("Preserving current state"))
+				s.UI.Info("Preserving current state")
 				if !s.upstreamMatchesExisting(existingState) {
 					return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
 				}
