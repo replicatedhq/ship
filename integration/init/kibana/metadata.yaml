@@ -1,0 +1,3 @@
+upstream: "github.com/replicatedhq/test-charts/tree/316b56dd3c1209a470dccaa8016c4cad76de0299/kibana"
+args: ["--prefer-git"]
+skip_cleanup: false

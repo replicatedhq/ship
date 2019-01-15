@@ -80,7 +80,14 @@ func (t *DaemonlessTerraformer) WithStatusReceiver(
 }
 
 func (t *DaemonlessTerraformer) Execute(ctx context.Context, release api.Release, step api.Terraform, confirmedChan chan bool) error {
-	debug := level.Debug(log.With(t.Logger, "struct", "ForkTerraformer", "method", "execute"))
+	debug := level.Debug(log.With(t.Logger, "struct", "DaemonlessTerraformer", "method", "execute"))
+
+	shouldExecute := t.evaluateWhen(step.When, release)
+	if !shouldExecute {
+		_ = debug.Log("event", "terraform.skipping")
+		return nil
+	}
+
 	renderRoot := release.FindRenderRoot()
 	dir := path.Join(renderRoot, step.Path)
 
