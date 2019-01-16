@@ -211,7 +211,7 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 			return
 		}
 
-		if !isKustomize && selector != nil {
+		if selector != nil {
 			_ = s.AppResolver.RegisterInstall(ctx, *selector, release)
 		}
 
