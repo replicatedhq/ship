@@ -178,10 +178,10 @@ func (s *Ship) Execute(ctx context.Context) error {
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	return s.execute(ctx, release, selector, false)
+	return s.execute(ctx, release, selector)
 }
 
-func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector, isKustomize bool) error {
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector) error {
 	debug := level.Debug(log.With(s.Logger, "method", "execute"))
 	warn := level.Debug(log.With(s.Logger, "method", "execute"))
 	runResultCh := make(chan error)

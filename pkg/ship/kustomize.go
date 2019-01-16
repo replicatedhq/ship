@@ -45,7 +45,7 @@ func (s *Ship) Init(ctx context.Context) error {
 
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
-		return s.execute(ctx, release, nil, true)
+		return s.execute(ctx, release, nil)
 	}
 
 	if s.Viper.GetString("helm-values-file") != "" {
@@ -107,7 +107,7 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-	return s.execute(ctx, release, nil, true)
+	return s.execute(ctx, release, nil)
 }
 
 func (s *Ship) promptToRemoveState() error {

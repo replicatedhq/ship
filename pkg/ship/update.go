@@ -69,5 +69,5 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	return s.execute(ctx, release, nil, true)
+	return s.execute(ctx, release, nil)
 }
