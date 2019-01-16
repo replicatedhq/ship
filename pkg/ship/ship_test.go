@@ -20,7 +20,6 @@ func TestExecute(t *testing.T) {
 		release        *api.Release
 		selector       *replicatedapp.Selector
 		uploadAssetsTo string
-		isKustomize    bool
 		expectError    error
 	}{
 		{
@@ -56,7 +55,7 @@ func TestExecute(t *testing.T) {
 			d.EXPECT().AwaitShutdown().Return(nil)
 			uploader.EXPECT().UploadAssets(test.uploadAssetsTo)
 
-			err := s.execute(ctx, test.release, test.selector, test.isKustomize)
+			err := s.execute(ctx, test.release, test.selector)
 
 			if test.expectError == nil {
 				req.NoError(err)
