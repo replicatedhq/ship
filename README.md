@@ -162,7 +162,7 @@ For those not interested in operating and maintaining a fleet of Ship instances,
 
 # Community
 
-For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum.
+For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#ship channel in Kubernetes Slack](https://kubernetes.slack.com/channels/ship).
 
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
 
