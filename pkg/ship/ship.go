@@ -8,20 +8,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/replicatedhq/ship/pkg/helpers/flags"
-	"github.com/replicatedhq/ship/pkg/specs/apptype"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/helpers/flags"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/specs"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -35,11 +35,13 @@ type Ship struct {
 
 	APIPort  int
 	Headless bool
+	Navcycle bool
 
 	CustomerID     string
 	ReleaseSemver  string
 	InstallationID string
 	PlanOnly       bool
+	UploadAssetsTo string
 
 	Daemon           daemontypes.Daemon
 	Resolver         *specs.Resolver
@@ -50,9 +52,11 @@ type Ship struct {
 	State            state.Manager
 	IDPatcher        *specs.IDPatcher
 	FS               afero.Afero
+	Uploader         util.AssetUploader
 
 	KustomizeRaw string
 	Runner       *lifecycle.Runner
+	StateManager state.Manager
 }
 
 // NewShip gets an instance using viper to pull config
@@ -68,14 +72,17 @@ func NewShip(
 	patcher *specs.IDPatcher,
 	fs afero.Afero,
 	inspector apptype.Inspector,
+	uploader util.AssetUploader,
 ) (*Ship, error) {
 
 	return &Ship{
 		APIPort:        v.GetInt("api-port"),
 		Headless:       v.GetBool("headless"),
+		Navcycle:       v.GetBool("navcycle"),
 		CustomerID:     v.GetString("customer-id"),
 		ReleaseSemver:  v.GetString("release-semver"),
 		InstallationID: v.GetString("installation-id"),
+		UploadAssetsTo: v.GetString("upload-assets-to"),
 		Runbook:        flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 
 		KustomizeRaw: v.GetString("raw"),
@@ -91,6 +98,8 @@ func NewShip(
 		State:            stateManager,
 		IDPatcher:        patcher,
 		FS:               fs,
+		StateManager:     stateManager,
+		Uploader:         uploader,
 	}, nil
 }
 
@@ -152,6 +161,10 @@ func (s *Ship) Execute(ctx context.Context) error {
 		return errors.New("missing parameter installation-id, Please provide your license key or customer ID")
 	}
 
+	if err := s.maybeWriteStateFromFile(); err != nil {
+		return err
+	}
+
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
 	selector := &replicatedapp.Selector{
@@ -165,19 +178,21 @@ func (s *Ship) Execute(ctx context.Context) error {
 	}
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	return s.execute(ctx, release, selector, false)
+	return s.execute(ctx, release, selector)
 }
 
-func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector, isKustomize bool) error {
+func (s *Ship) execute(ctx context.Context, release *api.Release, selector *replicatedapp.Selector) error {
+	debug := level.Debug(log.With(s.Logger, "method", "execute"))
+	warn := level.Debug(log.With(s.Logger, "method", "execute"))
 	runResultCh := make(chan error)
 	go func() {
 		defer close(runResultCh)
 		var err error
 		// *wince* dex do this better
-		if viper.GetBool("headless") {
+		if s.Headless {
 			err = s.Runner.Run(ctx, release)
 			s.Daemon.AllStepsDone(ctx)
-		} else if viper.GetBool("navcycle") {
+		} else if s.Navcycle {
 			s.Daemon.EnsureStarted(ctx, release)
 			err = s.Daemon.AwaitShutdown()
 		} else {
@@ -191,8 +206,24 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 			level.Info(s.Logger).Log("event", "shutdown", "reason", "complete with no errors")
 		}
 
-		if err == nil && !isKustomize && selector != nil {
+		if err != nil {
+			runResultCh <- err
+			return
+		}
+
+		if selector != nil {
 			_ = s.AppResolver.RegisterInstall(ctx, *selector, release)
+		}
+
+		if s.UploadAssetsTo != "" {
+			debug.Log("event", "tmpdir.remove") // this feels like a weird place to do this. Open to other ways of excluding the tmp dir from the results
+			err = os.RemoveAll(constants.ShipPathInternalTmp)
+			if err != nil {
+				warn.Log("event", "tmpdir.remove.fail", "path", constants.ShipPathInternalTmp, "err", err)
+				// ignore, just do the upload anyway
+			}
+			debug.Log("event", "assets.upload")
+			err = s.Uploader.UploadAssets(s.UploadAssetsTo)
 		}
 		runResultCh <- err
 	}()
@@ -210,4 +241,26 @@ func (s *Ship) execute(ctx context.Context, release *api.Release, selector *repl
 	case result := <-runResultCh:
 		return result
 	}
+}
+
+func (s *Ship) maybeWriteStateFromFile() error {
+	debug := level.Debug(log.With(s.Logger, "method", "maybeWriteStateFromFile"))
+
+	// This is for integration tests to write the passed state.json to the correct path
+	if s.Viper.GetString("state-from") != "file" {
+		return nil
+	}
+	stateFilePath := s.Viper.GetString("state-file")
+	if stateFilePath == "" {
+		return nil
+	}
+	debug.Log("phase", "move", "state-file", stateFilePath)
+	stateFile, err := s.FS.ReadFile(stateFilePath)
+	if err != nil {
+		return errors.Wrap(err, "read state-file")
+	}
+	if err := s.FS.WriteFile(constants.StatePath, stateFile, 0644); err != nil {
+		return errors.Wrap(err, "write passed state file to constants.StatePath")
+	}
+	return nil
 }

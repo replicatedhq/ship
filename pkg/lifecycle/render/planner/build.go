@@ -3,16 +3,15 @@ package planner
 import (
 	"fmt"
 
-	"github.com/replicatedhq/libyaml"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/templates"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	"github.com/replicatedhq/ship/pkg/templates"
 )
 
 type buildProgress struct {
@@ -70,6 +69,16 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			p.logAssetResolve(debug, evaluatedWhen, "helm")
 			if evaluatedWhen {
 				plan = append(plan, p.helmStep(rootFs, *asset.Helm, meta, templateContext, configGroups))
+			}
+		} else if asset.Local != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Local.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+
+			p.logAssetResolve(debug, evaluatedWhen, "local")
+			if evaluatedWhen {
+				plan = append(plan, p.localStep(*asset.Local, meta, templateContext, configGroups))
 			}
 		} else if asset.DockerLayer != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.DockerLayer.AssetShared.When)
@@ -129,11 +138,20 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			if evaluatedWhen {
 				plan = append(plan, p.googleGKEStep(rootFs, *asset.GoogleGKE, meta, templateContext, configGroups))
 			}
+		} else if asset.AzureAKS != nil {
+			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.AzureAKS.AssetShared.When)
+			if err != nil {
+				return nil, err
+			}
+			p.logAssetResolve(debug, evaluatedWhen, "azure kubernetes cluster")
+			if evaluatedWhen {
+				plan = append(plan, p.azureAKSStep(rootFs, *asset.AzureAKS, meta, templateContext, configGroups))
+			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
 			return nil, errors.New(
 				"Unknown asset: type is not one of " +
-					"[inline docker helm dockerlayer github terraform amazon_eks google_gke]",
+					"[inline docker helm dockerlayer github terraform amazon_eks google_gke azure_aks]",
 			)
 		}
 	}
@@ -204,6 +222,19 @@ func (p *CLIPlanner) helmStep(
 	}
 }
 
+func (p *CLIPlanner) localStep(
+	asset api.LocalAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.Local.Execute(asset, meta, templateContext, configGroups),
+	}
+}
+
 func (p *CLIPlanner) dockerLayerStep(
 	rootFs root.Fs,
 	asset api.DockerLayerAsset,
@@ -264,6 +295,20 @@ func (p *CLIPlanner) googleGKEStep(
 		Dest:        asset.Dest,
 		Description: asset.Description,
 		Execute:     p.GoogleGKE.Execute(rootFs, asset, meta, templateContext, configGroups),
+	}
+}
+
+func (p *CLIPlanner) azureAKSStep(
+	rootFs root.Fs,
+	asset api.AKSAsset,
+	meta api.ReleaseMetadata,
+	templateContext map[string]interface{},
+	configGroups []libyaml.ConfigGroup,
+) Step {
+	return Step{
+		Dest:        asset.Dest,
+		Description: asset.Description,
+		Execute:     p.AzureAKS.Execute(rootFs, asset, meta, templateContext, configGroups),
 	}
 }
 

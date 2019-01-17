@@ -164,12 +164,14 @@ func TestHelmValue(t *testing.T) {
 			req.NoError(err)
 
 			t0State, err := manager.TryLoad()
+			req.NoError(err)
 			req.Equal(test.userInputValues, t0State.CurrentHelmValues())
 
 			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnUpdate)
 			req.NoError(err)
 
 			t1State, err := manager.TryLoad()
+			req.NoError(err)
 			req.Equal(test.wantValuesAfterUpdate, t1State.CurrentHelmValues())
 		})
 	}
@@ -398,6 +400,113 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 			} else {
 				req.Error(err)
 			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_SerializeShipMetadata(t *testing.T) {
+	tests := []struct {
+		name     string
+		Metadata api.ShipAppMetadata
+		wantErr  bool
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name: "basic test",
+			Metadata: api.ShipAppMetadata{
+				Version: "test version",
+				Icon:    "test icon",
+				Name:    "test name",
+			},
+			before: VersionedState{
+				V1: &V1{},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Metadata: &Metadata{
+						ApplicationType: "mock application type",
+						ReleaseNotes:    "",
+						Version:         "test version",
+						Icon:            "test icon",
+						Name:            "test name",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.SerializeShipMetadata(tt.Metadata, "mock application type")
+			if !tt.wantErr {
+				req.NoError(err, "MManager.SerializeShipMetadata() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_ResetLifecycle(t *testing.T) {
+	tests := []struct {
+		name     string
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name: "basic test",
+			before: VersionedState{
+				V1: &V1{
+					Lifecycle: &Lifeycle{
+						StepsCompleted: map[string]interface{}{
+							"step1": true,
+							"step2": true,
+							"step3": true,
+						},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Lifecycle: nil,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.ResetLifecycle()
+			req.NoError(err)
 
 			actualState, err := m.TryLoad()
 			req.NoError(err)

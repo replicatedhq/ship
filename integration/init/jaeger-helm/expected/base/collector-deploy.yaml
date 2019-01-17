@@ -1,0 +1,86 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-deployment
+    release: jaeger
+  name: jaeger-collector
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: collector
+        jaeger-infra: collector-pod
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage.type
+              name: jaeger
+        - name: CASSANDRA_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.keyspace
+              name: jaeger
+        - name: COLLECTOR_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.port
+              name: jaeger
+        - name: COLLECTOR_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.http-port
+              name: jaeger
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.zipkin.http-port
+              name: jaeger
+        image: jaegertracing/jaeger-collector:1.4.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            port: healthcheck
+          initialDelaySeconds: 10
+        name: jaeger-collector
+        ports:
+        - containerPort: 14267
+          name: tchannel
+          protocol: TCP
+        - containerPort: 14268
+          name: http
+          protocol: TCP
+        - containerPort: 14269
+          name: healthcheck
+          protocol: TCP
+        - containerPort: 9411
+          name: zipkin
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            port: healthcheck
+          initialDelaySeconds: 10
+        resources: {}
+      dnsPolicy: ClusterFirst
+      nodeSelector: {}
+      restartPolicy: Always

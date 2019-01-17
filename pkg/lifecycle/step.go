@@ -21,6 +21,7 @@ type StepExecutor struct {
 	HelmValues   HelmValues
 	KubectlApply KubectlApply
 	Kustomizer   Kustomizer
+	Unforker     Unforker
 }
 
 func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *api.Step) error {
@@ -42,10 +43,20 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.complete", "type", "terraform", "err", err)
 		return errors.Wrap(err, "execute terraform step")
 	} else if step.Kustomize != nil {
+		if err := s.Kustomizer.PreExecute(ctx, *step); err != nil {
+			return errors.Wrap(err, "preExecute kustomize step")
+		}
 		debug.Log("event", "step.resolve", "type", "kustomize")
 		err := s.Kustomizer.Execute(ctx, release, *step.Kustomize)
 		debug.Log("event", "step.complete", "type", "kustomize", "err", err)
 		return errors.Wrap(err, "execute kustomize step")
+	} else if step.Unfork != nil {
+		if err := s.Unforker.PreExecute(ctx, *step); err != nil {
+			return errors.Wrap(err, "preExecute unforker step")
+		}
+		debug.Log("event", "step.resolve", "type", "unfork")
+		err := s.Unforker.Execute(ctx, release, *step.Unfork)
+		debug.Log("event", "step.complete", "type", "unfork", "err", err)
 	} else if step.HelmIntro != nil && release.Metadata.ShipAppMetadata.Readme != "" {
 		debug.Log("event", "step.helmIntro", "type", "helmIntro")
 		err := s.HelmIntro.Execute(ctx, release, step.HelmIntro)
@@ -56,7 +67,7 @@ func (s *StepExecutor) Execute(ctx context.Context, release *api.Release, step *
 		debug.Log("event", "step.complete", "type", "helmValues", "err", err)
 	} else if step.KubectlApply != nil {
 		debug.Log("event", "step.resolve", "type", "kubectl")
-		err := s.KubectlApply.Execute(ctx, *release, *step.KubectlApply)
+		err := s.KubectlApply.Execute(ctx, *release, *step.KubectlApply, make(chan bool))
 		debug.Log("event", "step.complete", "type", "kubectl", "err", err)
 	}
 

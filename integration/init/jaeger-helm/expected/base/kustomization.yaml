@@ -1,0 +1,13 @@
+kind: ""
+apiversion: ""
+resources:
+- agent-ds.yaml
+- agent-svc.yaml
+- cassandra-schema-job.yaml
+- charts/cassandra/templates/service.yaml
+- charts/cassandra/templates/statefulset.yaml
+- collector-deploy.yaml
+- collector-svc.yaml
+- common-cm.yaml
+- query-deploy.yaml
+- query-svc.yaml

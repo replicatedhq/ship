@@ -1,1 +1,19 @@
-{"v1":{"config":{"option":"abc123","t2_option":"abc123_abc123","t3_option":"abc123_abc123 + abc123"}}}
+{
+  "v1": {
+    "config": {
+      "option": "abc123",
+      "t2_option": "abc123_abc123",
+      "t3_option": "abc123_abc123 + abc123"
+    },
+    "contentSHA": "f256226c1517134c10dff4ba08dc3a6c55b28320f7ba0829b62c96ad84fe7106",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "t6-uzytbbkSoCiLtEfNO62LDIRLFec-2",
+      "releaseNotes": "",
+      "version": "0.0.1-test2"
+    },
+    "releaseName": "integration-tests",
+    "upstream": "__upstream__"
+  }
+}

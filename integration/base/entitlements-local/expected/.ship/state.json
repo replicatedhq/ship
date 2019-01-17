@@ -1,0 +1,15 @@
+{
+  "v1": {
+    "config": {},
+    "contentSHA": "015372e9e78f905b889873e1311f1ba41fb93d5058e209119fd66a937c9ee624",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "RULNveQLrLj4GDum1yQhvKAcABh0GcLY",
+      "releaseNotes": "",
+      "version": "0.0.4"
+    },
+    "releaseName": "integration-test-basic-and-docker",
+    "upstream": "__upstream__"
+  }
+}

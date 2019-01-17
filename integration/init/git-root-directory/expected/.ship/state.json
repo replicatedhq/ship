@@ -1,7 +1,15 @@
 {
   "v1": {
     "config": {},
-    "contentSHA": "63b91ba3902d63a3dd112e4a8477e53a10cc6edbcd8a248af4be8a067eb8d072",
-    "upstream": "https://github.com/replicatedhq/test-charts/tree/ad1e78d13c33fae7a7ce22ed19920945ceea23e9/"
+    "releaseName": "values-update",
+    "helmValuesDefaults": "replicaCount: 1\nimage:\n  repository: nginx\n  tag: stable\n\n",
+    "upstream": "https://github.com/replicatedhq/test-chart-root-dir/tree/507feecae588c958ebe82bcf701b8be63f34ac9b/",
+    "metadata": {
+      "applicationType": "helm",
+      "name": "values-update",
+      "releaseNotes": "test chart",
+      "version": "0.1.0"
+    },
+    "contentSHA": "829b9f14db8792d698776b46a39b0425e7e16776854226283422b9bfb170d702"
   }
 }

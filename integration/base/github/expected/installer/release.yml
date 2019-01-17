@@ -1,0 +1,10 @@
+assets:
+  v1:
+  - github:
+      repo: replicatedhq/test-charts
+      ref: master
+      path: /release.yml
+      dest: ./
+lifecycle:
+  v1:
+  - render: {}

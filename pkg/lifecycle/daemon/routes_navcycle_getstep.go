@@ -1,8 +1,8 @@
 package daemon
 
 import (
+	"context"
 	"fmt"
-
 	"path"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +25,16 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 		if stepShared.ID == requestedStep {
 			if ok := d.maybeAbortDueToMissingRequirement(stepShared.Requires, c, requestedStep); !ok {
 				return
+			}
+
+			if preExecuteFunc, exists := d.PreExecuteFuncMap[step.Shared().ID]; exists {
+				if err := preExecuteFunc(context.Background(), step); err != nil {
+					level.Error(d.Logger).Log("event", "preExecute.fail", "err", err)
+					return
+				}
+				// TODO(robert): need to store the progress for multiple occurrences of
+				// a step with a pre execution func
+				delete(d.PreExecuteFuncMap, step.ShortName())
 			}
 
 			d.hydrateAndSend(daemontypes.NewStep(step), c)
@@ -56,6 +66,8 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 	if step.HelmValues != nil {
 		userValues := currentState.CurrentHelmValues()
 		defaultValues := currentState.CurrentHelmValuesDefaults()
+		releaseName := currentState.CurrentReleaseName()
+		namespace := currentState.CurrentNamespace()
 
 		valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
 		if err != nil {
@@ -63,13 +75,26 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		}
 		vendorValues := string(valuesFileContents)
 
-		mergedValues, err := helm.MergeHelmValues(defaultValues, userValues, vendorValues)
+		mergedValues, err := helm.MergeHelmValues(defaultValues, userValues, vendorValues, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "merge values")
 		}
 
 		step.HelmValues.Values = mergedValues
 		step.HelmValues.DefaultValues = vendorValues
+		step.HelmValues.ReleaseName = releaseName
+		step.HelmValues.Namespace = namespace
+	}
+	if step.Message != nil {
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		if err != nil {
+			return nil, errors.Wrap(err, "create message template builder")
+		}
+		rendered, err := builder.String(step.Source.Message.Contents)
+		if err != nil {
+			return nil, errors.Wrap(err, "render message contents")
+		}
+		step.Message.Contents = rendered
 	}
 
 	result := &daemontypes.StepResponse{
@@ -91,8 +116,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action {
 	progress, hasProgress := d.StepProgress.Load(step.Source.Shared().ID)
 
-	/// JAAAANK
-	shouldSkipActions := hasProgress && progress.Detail != `{"status":"success"}`
+	shouldSkipActions := hasProgress && progress.Status() != "success"
 
 	if shouldSkipActions {
 		return nil

@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/replicatedhq/ship/pkg/api"
 	state "github.com/replicatedhq/ship/pkg/state"
+	util "github.com/replicatedhq/ship/pkg/util"
 )
 
 // MockManager is a mock of Manager interface
@@ -35,8 +36,37 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
+// AddCA mocks base method
+func (m *MockManager) AddCA(arg0 string, arg1 util.CAType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCA", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCA indicates an expected call of AddCA
+func (mr *MockManagerMockRecorder) AddCA(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCA", reflect.TypeOf((*MockManager)(nil).AddCA), arg0, arg1)
+}
+
+// AddCert mocks base method
+func (m *MockManager) AddCert(arg0 string, arg1 util.CertType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCert", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCert indicates an expected call of AddCert
+func (mr *MockManagerMockRecorder) AddCert(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCert", reflect.TypeOf((*MockManager)(nil).AddCert), arg0, arg1)
+}
+
 // RemoveStateFile mocks base method
 func (m *MockManager) RemoveStateFile() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveStateFile")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -44,11 +74,27 @@ func (m *MockManager) RemoveStateFile() error {
 
 // RemoveStateFile indicates an expected call of RemoveStateFile
 func (mr *MockManagerMockRecorder) RemoveStateFile() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveStateFile", reflect.TypeOf((*MockManager)(nil).RemoveStateFile))
+}
+
+// ResetLifecycle mocks base method
+func (m *MockManager) ResetLifecycle() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetLifecycle")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetLifecycle indicates an expected call of ResetLifecycle
+func (mr *MockManagerMockRecorder) ResetLifecycle() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetLifecycle", reflect.TypeOf((*MockManager)(nil).ResetLifecycle))
 }
 
 // Save mocks base method
 func (m *MockManager) Save(arg0 state.VersionedState) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -56,11 +102,13 @@ func (m *MockManager) Save(arg0 state.VersionedState) error {
 
 // Save indicates an expected call of Save
 func (mr *MockManagerMockRecorder) Save(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockManager)(nil).Save), arg0)
 }
 
 // SaveKustomize mocks base method
 func (m *MockManager) SaveKustomize(arg0 *state.Kustomize) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveKustomize", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -68,11 +116,27 @@ func (m *MockManager) SaveKustomize(arg0 *state.Kustomize) error {
 
 // SaveKustomize indicates an expected call of SaveKustomize
 func (mr *MockManagerMockRecorder) SaveKustomize(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveKustomize", reflect.TypeOf((*MockManager)(nil).SaveKustomize), arg0)
+}
+
+// SerializeAppMetadata mocks base method
+func (m *MockManager) SerializeAppMetadata(arg0 api.ReleaseMetadata) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeAppMetadata", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeAppMetadata indicates an expected call of SerializeAppMetadata
+func (mr *MockManagerMockRecorder) SerializeAppMetadata(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeAppMetadata", reflect.TypeOf((*MockManager)(nil).SerializeAppMetadata), arg0)
 }
 
 // SerializeConfig mocks base method
 func (m *MockManager) SerializeConfig(arg0 []api.Asset, arg1 api.ReleaseMetadata, arg2 map[string]interface{}) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SerializeConfig", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -80,11 +144,13 @@ func (m *MockManager) SerializeConfig(arg0 []api.Asset, arg1 api.ReleaseMetadata
 
 // SerializeConfig indicates an expected call of SerializeConfig
 func (mr *MockManagerMockRecorder) SerializeConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeConfig", reflect.TypeOf((*MockManager)(nil).SerializeConfig), arg0, arg1, arg2)
 }
 
 // SerializeContentSHA mocks base method
 func (m *MockManager) SerializeContentSHA(arg0 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SerializeContentSHA", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -92,11 +158,13 @@ func (m *MockManager) SerializeContentSHA(arg0 string) error {
 
 // SerializeContentSHA indicates an expected call of SerializeContentSHA
 func (mr *MockManagerMockRecorder) SerializeContentSHA(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeContentSHA", reflect.TypeOf((*MockManager)(nil).SerializeContentSHA), arg0)
 }
 
 // SerializeHelmValues mocks base method
 func (m *MockManager) SerializeHelmValues(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SerializeHelmValues", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -104,11 +172,69 @@ func (m *MockManager) SerializeHelmValues(arg0, arg1 string) error {
 
 // SerializeHelmValues indicates an expected call of SerializeHelmValues
 func (mr *MockManagerMockRecorder) SerializeHelmValues(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeHelmValues", reflect.TypeOf((*MockManager)(nil).SerializeHelmValues), arg0, arg1)
+}
+
+// SerializeListsMetadata mocks base method
+func (m *MockManager) SerializeListsMetadata(arg0 util.List) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeListsMetadata", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeListsMetadata indicates an expected call of SerializeListsMetadata
+func (mr *MockManagerMockRecorder) SerializeListsMetadata(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeListsMetadata", reflect.TypeOf((*MockManager)(nil).SerializeListsMetadata), arg0)
+}
+
+// SerializeNamespace mocks base method
+func (m *MockManager) SerializeNamespace(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeNamespace", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeNamespace indicates an expected call of SerializeNamespace
+func (mr *MockManagerMockRecorder) SerializeNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeNamespace", reflect.TypeOf((*MockManager)(nil).SerializeNamespace), arg0)
+}
+
+// SerializeReleaseName mocks base method
+func (m *MockManager) SerializeReleaseName(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeReleaseName", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeReleaseName indicates an expected call of SerializeReleaseName
+func (mr *MockManagerMockRecorder) SerializeReleaseName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeReleaseName", reflect.TypeOf((*MockManager)(nil).SerializeReleaseName), arg0)
+}
+
+// SerializeShipMetadata mocks base method
+func (m *MockManager) SerializeShipMetadata(arg0 api.ShipAppMetadata, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SerializeShipMetadata", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SerializeShipMetadata indicates an expected call of SerializeShipMetadata
+func (mr *MockManagerMockRecorder) SerializeShipMetadata(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeShipMetadata", reflect.TypeOf((*MockManager)(nil).SerializeShipMetadata), arg0, arg1)
 }
 
 // SerializeUpstream mocks base method
 func (m *MockManager) SerializeUpstream(arg0 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SerializeUpstream", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -116,11 +242,13 @@ func (m *MockManager) SerializeUpstream(arg0 string) error {
 
 // SerializeUpstream indicates an expected call of SerializeUpstream
 func (mr *MockManagerMockRecorder) SerializeUpstream(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeUpstream", reflect.TypeOf((*MockManager)(nil).SerializeUpstream), arg0)
 }
 
 // TryLoad mocks base method
 func (m *MockManager) TryLoad() (state.State, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TryLoad")
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
@@ -129,5 +257,6 @@ func (m *MockManager) TryLoad() (state.State, error) {
 
 // TryLoad indicates an expected call of TryLoad
 func (mr *MockManagerMockRecorder) TryLoad() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryLoad", reflect.TypeOf((*MockManager)(nil).TryLoad))
 }

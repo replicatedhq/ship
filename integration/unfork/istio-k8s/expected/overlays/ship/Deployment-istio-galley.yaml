@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: galley
+    chart: galley-1.0.3
+    heritage: Tiller
+    istio: galley
+    release: istio
+  name: istio-galley
+  namespace: default
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: validator
+      containers:
+      - name: validator
+        readinessProbe:
+          initialDelaySeconds: FORKED_INITIAL_DELAY_SECONDS

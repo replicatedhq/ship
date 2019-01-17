@@ -1,18 +1,17 @@
 package filetree
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"path"
 	"testing"
 
 	"github.com/golang/mock/gomock"
-
 	"github.com/replicatedhq/ship/pkg/state"
-
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/tmpfs"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type TestCase struct {
@@ -20,6 +19,7 @@ type TestCase struct {
 	Mkdir     []string      `yaml:"mkdir"`
 	Touch     []string      `yaml:"touch"`
 	Patches   yaml.MapSlice `yaml:"patches"`
+	Resources yaml.MapSlice `yaml:"resources"`
 	Read      string        `yaml:"read"`
 	Expect    *Node         `yaml:"expect"`
 	ExpectErr string        `yaml:"expectErr"`
@@ -71,12 +71,18 @@ func TestAferoLoader(t *testing.T) {
 				testPatches[patch.Key.(string)] = patch.Value.(string)
 			}
 
+			testResources := make(map[string]string)
+			for _, resource := range test.Resources {
+				testResources[resource.Key.(string)] = resource.Value.(string)
+			}
+
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{
 				V1: &state.V1{
 					Kustomize: &state.Kustomize{
 						Overlays: map[string]state.Overlay{
-							"ship": state.Overlay{
-								Patches: testPatches,
+							"ship": {
+								Patches:   testPatches,
+								Resources: testResources,
 							},
 						},
 					},
@@ -90,8 +96,11 @@ func TestAferoLoader(t *testing.T) {
 				req.Regexp(test.ExpectErr, err.Error())
 				return
 			}
+			eq := EqualTrees(*tree, *test.Expect)
 
-			req.True(EqualTrees(*tree, *test.Expect))
+			expectTree, err := json.Marshal(test.Expect)
+			actualTree, err := json.Marshal(tree)
+			req.True(eq, "%s\n%s", string(expectTree), string(actualTree))
 		})
 	}
 }

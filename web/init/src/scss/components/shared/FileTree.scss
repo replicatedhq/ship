@@ -1,0 +1,157 @@
+.dirtree-wrapper {
+  background-color: #124B71;
+  padding-bottom: 30px;
+}
+
+.dirtree {
+  padding: 16px 20px;
+}
+
+.FileTree-wrapper li .u-deleteOverlayIcon {
+  position: absolute;
+  right: 0;
+  z-index: 4;
+}
+
+.FileTree-wrapper.has-border {
+  position: relative;
+
+  &::before {
+    content: "";
+    display: block;
+    width: calc(100% - 40px);
+    height: 1px;
+    background-color: rgba(#ffffff, 0.4);
+    left: 20px;
+    top: 0;
+    position: absolute;
+  }
+}
+
+.file-contents-wrapper {
+  margin: 20px;
+  background-color: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #C4C8CA;
+}
+
+.ace_editor {
+  border-radius: 4px;
+}
+
+.FileTree-wrapper input[type=checkbox] {
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  margin: 0;
+  width: 100%;
+  cursor: pointer;
+  left: 0;
+
+  &:hover + label {
+    color: #ffffff;
+  }
+}
+.FileTree-wrapper ul {
+  padding-top: 4px;
+}
+.FileTree-wrapper label,
+.FileTree-wrapper li {
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+  transition: color .2s;
+  font-size: 14px;
+  position: relative;
+  line-height: 14px;
+  z-index: 2;
+  padding: 8px 0 6px;
+
+  &:hover {
+    color: #ffffff;
+    cursor: pointer;
+  }
+}
+
+.FileTree-wrapper li.is-file.is-excluded {
+  text-decoration: line-through;
+}
+
+.FileTree-wrapper li.is-file.is-base {
+  span.u-deleteOverlayIcon {
+    opacity: 0;
+    pointer-events: none;
+  }
+  &:hover {
+    span.u-deleteOverlayIcon {
+      pointer-events: all;
+      opacity: 1;
+    }
+  }
+}
+
+.FileTree-wrapper input[type=checkbox]:checked + label,
+.FileTree-wrapper li.is-selected {
+  font-weight: 700;
+  color: #ffffff;
+
+  &.is-file:after {
+    position: absolute;
+    content: "";
+    display: block;
+    right: -20px;
+    width: 240px;
+    height: 100%;
+    top: 1px;
+    z-index: -1;
+    background-color: #6F92A9;
+  }
+}
+
+.FileTree-wrapper li.edited input[type=checkbox]:checked + label
+.FileTree-wrapper li.edited label,
+.FileTree-wrapper li.edited,
+.FileTree-wrapper li.selected.edited {
+  color: #EBB55C;
+}
+
+.FileTree-wrapper label {
+  &::before {
+    margin-right: 8px;
+    content: "";
+    left: -1px;
+    top: 0;
+    position: relative;
+    display: inline-block;
+    pointer-events: none;
+    background-image: url("../assets/images/main_spritesheet.svg");
+    background-repeat: no-repeat;
+    background-size: initial;
+    background-position: 0 -16px;
+    width: 7px;
+    height: 11px;
+    transition: transform .2s ease;
+  }
+}
+.FileTree-wrapper input[type=checkbox]:checked + label::before {
+  transform: rotate(90deg);
+}
+
+.FileTree-wrapper ul {
+  display: none;
+}
+
+.FileTree-wrapper input[type=checkbox]:checked + label + ul,
+.FileTree-wrapper input[type=checkbox]:checked + label:nth-of-type(n) + ul {
+  /* use label:nth-of-type(n) to fix a bug on safari (<= 8.0.8) with multiple adjacent-sibling selectors*/
+  display: block;
+}
+
+
+@media screen and (min-width: 80em) {
+.FileTree-wrapper input[type=checkbox]:checked + label,
+.FileTree-wrapper li.is-selected {
+  &.is-file:after {
+    width: 320px;
+  }
+}
+}

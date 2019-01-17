@@ -103,17 +103,18 @@ type GithubContent struct {
 
 // ShipRelease is the release response form GQL
 type ShipRelease struct {
-	ID             string          `json:"id"`
-	ChannelID      string          `json:"channelId"`
-	ChannelName    string          `json:"channelName"`
-	ChannelIcon    string          `json:"channelIcon"`
-	Semver         string          `json:"semver"`
-	ReleaseNotes   string          `json:"releaseNotes"`
-	Spec           string          `json:"spec"`
-	Images         []Image         `json:"images"`
-	GithubContents []GithubContent `json:"githubContents"`
-	Created        string          `json:"created"` // TODO: this time is not in RFC 3339 format
-	RegistrySecret string          `json:"registrySecret"`
+	ID             string           `json:"id"`
+	ChannelID      string           `json:"channelId"`
+	ChannelName    string           `json:"channelName"`
+	ChannelIcon    string           `json:"channelIcon"`
+	Semver         string           `json:"semver"`
+	ReleaseNotes   string           `json:"releaseNotes"`
+	Spec           string           `json:"spec"`
+	Images         []Image          `json:"images"`
+	GithubContents []GithubContent  `json:"githubContents"`
+	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string           `json:"registrySecret"`
+	Entitlements   api.Entitlements `json:"entitlements"`
 }
 
 // GQLRegisterInstallResponse is the top-level response object from the graphql server
@@ -144,6 +145,7 @@ func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 		RegistrySecret: r.RegistrySecret,
 		Images:         r.apiImages(),
 		GithubContents: r.githubContents(),
+		Entitlements:   r.Entitlements,
 	}
 }
 
@@ -174,7 +176,7 @@ func (r *ShipRelease) githubContents() []api.GithubContent {
 }
 
 // NewGraphqlClient builds a new client using a viper instance
-func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
+func NewGraphqlClient(v *viper.Viper, client *http.Client) (*GraphQLClient, error) {
 	addr := v.GetString("customer-endpoint")
 	server, err := url.ParseRequestURI(addr)
 	if err != nil {
@@ -182,7 +184,7 @@ func NewGraphqlClient(v *viper.Viper) (*GraphQLClient, error) {
 	}
 	return &GraphQLClient{
 		GQLServer: server,
-		Client:    http.DefaultClient,
+		Client:    client,
 	}, nil
 }
 
@@ -271,6 +273,9 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 		gqlServer = ci.upstream
 	}
 	graphQLRequest, err := http.NewRequest(http.MethodPost, gqlServer, bodyReader)
+	if err != nil {
+		return errors.Wrap(err, "create new request")
+	}
 
 	graphQLRequest.Header = map[string][]string{
 		"Authorization": {"Basic " + authString},

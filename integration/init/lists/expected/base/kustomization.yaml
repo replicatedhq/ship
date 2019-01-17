@@ -1,0 +1,15 @@
+kind: ""
+apiversion: ""
+resources:
+- ClusterRole-nginx-metrics.yaml
+- ClusterRole-nginx.yaml
+- ClusterRoleBinding-nginx-metrics.yaml
+- ClusterRoleBinding-nginx.yaml
+- Deployment-nginx.yaml
+- Service-nginx-service.yaml
+- ServiceAccount-nginx-metrics.yaml
+- ServiceAccount-nginx.yaml
+- main-deployment.yaml
+- main-service.yaml
+- subdir/metrics-deployment.yaml
+- subdir/metrics-service.yaml

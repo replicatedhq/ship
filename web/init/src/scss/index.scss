@@ -1,0 +1,31 @@
+@import "./utilities/reset.scss"; // Scoped to "ship-init"
+@import "./utilities/base.scss"; // Scoped to "ship-init"
+@import "./utilities/modals.scss";
+
+#ship-init-component {
+  display: flex;
+  flex: 1;
+
+  @import "./utilities/ship-init-base.scss";
+  @import "./utilities/typography.scss";
+  @import "./utilities/buttons.scss";
+  @import "./utilities/colors.scss";
+  @import "./utilities/utilities.scss";
+  @import "./utilities/flexbox.scss";
+  @import "./utilities/forms.scss";
+  @import "./utilities/icons.scss";
+  @import "./utilities/tooltip.scss";
+  @import "./utilities/prism.css";
+  @import "./utilities/terminal.css";
+  @import "./components/shared/FileTree.scss";
+  @import "./components/shared/DetermineStep.scss";
+  @import "./components/kustomize/HelmChartInfo.scss";
+  @import "./components/kustomize/HelmValuesEditor.scss";
+  @import "./components/kustomize/KustomizeOverlay.scss";
+  @import "./components/shared/Linter.scss";
+  @import "./components/shared/NavBar.scss";
+  @import "./components/shared/Popover.scss";
+  @import "./components/shared/Sidebar.scss";
+  @import "./components/shared/StepNumbers.scss";
+  @import "./components/shared/Toast.scss";
+}

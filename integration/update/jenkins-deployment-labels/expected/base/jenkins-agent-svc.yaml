@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jenkins
+    component: jenkins-jenkins-master
+  name: jenkins-agent
+spec:
+  ports:
+  - name: slavelistener
+    port: 50000
+    targetPort: 50000
+  selector:
+    component: jenkins-jenkins-master
+  type: ClusterIP

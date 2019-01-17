@@ -3,6 +3,7 @@ package helm
 import (
 	"testing"
 
+	"github.com/emosbaugh/yaml"
 	"github.com/stretchr/testify/require"
 )
 
@@ -10,16 +11,23 @@ func TestGetAllKeys(t *testing.T) {
 	t.Run("get all keys", func(t *testing.T) {
 		req := require.New(t)
 
-		req.Equal([]string{}, getAllKeys(map[string]interface{}{}))
+		req.Equal([]interface{}(nil), getAllKeys(yaml.MapSlice{}))
 
-		m1 := map[string]interface{}{"a": 5}
-		m2 := map[string]interface{}{"b": true}
-		m3 := map[string]interface{}{"a": "value", "b": false, "c": nil}
-		allKeys := getAllKeys(m1, m2, m3)
-		req.Contains(allKeys, "a")
-		req.Contains(allKeys, "b")
-		req.Contains(allKeys, "c")
-		req.Len(allKeys, 3)
+		m1 := yaml.MapSlice{
+			{Key: "a", Value: 5},
+		}
+		m2 := yaml.MapSlice{
+			{Key: "b", Value: true},
+		}
+		m3 := yaml.MapSlice{
+			{Key: "a", Value: "value"},
+			{Key: "b", Value: false},
+			{Key: "c", Value: nil},
+		}
+		req.Equal(
+			[]interface{}{"a", "b", "c"},
+			getAllKeys(m1, m2, m3),
+		)
 	})
 }
 
@@ -38,6 +46,7 @@ func TestMergeHelmValues(t *testing.T) {
 			vendor:   "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
 			expected: "#comment line\nkey1: 1 # this is a comment\nkey2: a\n",
 		},
+
 		{
 			name: "merge, vendor and user values",
 			base: `key1: 1
@@ -48,7 +57,6 @@ deep_key:
     level2:
       myvalue: 3
 key3: a`,
-
 			user: `key1: 1
 key2:
   - item1
@@ -58,7 +66,6 @@ deep_key:
     level2:
       myvalue: modified-by-user-5
 key3: a`,
-
 			vendor: `key1: 1
 key2:
   - item1
@@ -68,17 +75,93 @@ deep_key:
     level2:
       myvalue: 5
 key3: modified-by-vendor`,
-
-			expected: `deep_key:
-  level1:
-    level2:
-      myvalue: modified-by-user-5
-    newkey: added-by-vendor
-key1: 1
+			expected: `key1: 1
 key2:
 - item1
 - item2_added_by_user
+deep_key:
+  level1:
+    newkey: added-by-vendor
+    level2:
+      myvalue: modified-by-user-5
 key3: modified-by-vendor
+`,
+		},
+
+		{
+			name: "comments",
+			base: "",
+			user: `# user comment
+key3: 4
+# another user comment`,
+			vendor:   "# comment prefix\nkey1: 1\n  # indented comment\n\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2 # inline comment\n  # nested comment line 3\nkey3: 3\n# comment suffix\n",
+			expected: "# comment prefix\nkey1: 1\n  # indented comment\n\n# empty line\nnested_key:\n  # nested comment line 1\n  # nested comment line 2\n  key2: 2\n          # inline comment\n  # nested comment line 3\nkey3: 4\n# comment suffix\n",
+		},
+		{
+			name: "mysql",
+			base: "",
+			user: "mysqlPassword: my-super-secret-password",
+			vendor: `## mysql image version
+## ref: https://hub.docker.com/r/library/mysql/tags/
+##
+image: "mysql"
+imageTag: "5.7.14"
+
+## Specify password for root user
+##
+## Default: random 10 character string
+# mysqlRootPassword: testing
+
+## Create a database user
+##
+# mysqlUser:
+## Default: random 10 character string
+# mysqlPassword:
+
+## Allow unauthenticated access, uncomment to enable
+##
+# mysqlAllowEmptyPassword: true
+
+## Create a database
+##
+# mysqlDatabase:
+
+## Specify an imagePullPolicy (Required)
+## It's recommended to change this to 'Always' if the image tag is 'latest'
+## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
+##
+imagePullPolicy: IfNotPresent`,
+			expected: `## mysql image version
+## ref: https://hub.docker.com/r/library/mysql/tags/
+##
+image: mysql
+imageTag: 5.7.14
+
+## Specify password for root user
+##
+## Default: random 10 character string
+# mysqlRootPassword: testing
+
+## Create a database user
+##
+# mysqlUser:
+## Default: random 10 character string
+# mysqlPassword:
+
+## Allow unauthenticated access, uncomment to enable
+##
+# mysqlAllowEmptyPassword: true
+
+## Create a database
+##
+# mysqlDatabase:
+
+## Specify an imagePullPolicy (Required)
+## It's recommended to change this to 'Always' if the image tag is 'latest'
+## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
+##
+imagePullPolicy: IfNotPresent
+mysqlPassword: my-super-secret-password
 `,
 		},
 	}
@@ -86,7 +169,7 @@ key3: modified-by-vendor
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
-			merged, err := MergeHelmValues(test.base, test.user, test.vendor)
+			merged, err := MergeHelmValues(test.base, test.user, test.vendor, true)
 			req.NoError(err)
 			req.Equal(test.expected, merged)
 		})

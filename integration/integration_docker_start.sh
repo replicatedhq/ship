@@ -1,8 +1,12 @@
 #!/bin/sh
 set -e
 
-# Suppress logs from Docker Registry
-$GOPATH/bin/registry serve config.yml > /dev/null 2>&1 &
+PORT=4569 http-echo-server > /dev/null 2>&1 &
+
+# Docker Registry
+$GOPATH/bin/registry serve docker-registry.yaml > /dev/null 2>&1 &
+
+
 sleep 2
 cd base/
 ./base.test
@@ -15,3 +19,6 @@ cd ../init_app
 
 cd ../init
 ./init.test
+
+cd ../unfork
+./unfork.test

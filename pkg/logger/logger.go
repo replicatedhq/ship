@@ -4,13 +4,12 @@ import (
 	"fmt"
 	golog "log"
 	"os"
-
 	"path"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-stack/stack"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -31,7 +30,7 @@ func (c *compositeLogger) Log(keyvals ...interface{}) error {
 // New builds a logger from env using viper
 func New(v *viper.Viper, fs afero.Afero) log.Logger {
 
-	fullPathCaller := pathCaller(3)
+	fullPathCaller := pathCaller(6)
 	var stdoutLogger log.Logger
 	stdoutLogger = withFormat(viper.GetString("log-format"))
 	stdoutLogger = log.With(stdoutLogger, "ts", log.DefaultTimestampUTC)

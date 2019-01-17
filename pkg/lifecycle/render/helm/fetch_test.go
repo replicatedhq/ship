@@ -1,11 +1,9 @@
 package helm
 
 import (
-	"testing"
-
 	"context"
-
 	"strings"
+	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
@@ -70,7 +68,7 @@ func TestFetch(t *testing.T) {
 						},
 					},
 					&matchers.Is{
-						Describe: "is github asset and has dest overriden",
+						Describe: "is github asset and has dest overridden",
 						Test: func(asset interface{}) bool {
 							githubAsset, ok := asset.(api.GitHubAsset)
 							if !ok {
@@ -113,7 +111,7 @@ func TestFetch(t *testing.T) {
 						},
 					},
 					&matchers.Is{
-						Describe: "is github asset and has dest overriden",
+						Describe: "is github asset and has dest overridden",
 						Test: func(asset interface{}) bool {
 							githubAsset, ok := asset.(api.GitHubAsset)
 							if !ok {

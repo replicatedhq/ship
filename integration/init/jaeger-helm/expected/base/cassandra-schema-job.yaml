@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: jaeger
+    component: cassandra-schema
+    jaeger-infra: cassandra-schema-job
+    release: jaeger
+  name: jaeger-cassandra-schema
+spec:
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      name: jaeger-cassandra-schema
+    spec:
+      containers:
+      - env:
+        - name: CQLSH_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: MODE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.schema.mode
+              name: jaeger
+        - name: DATACENTER
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.datacenter.name
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        image: jaegertracing/jaeger-cassandra-schema:1.4.1
+        imagePullPolicy: IfNotPresent
+        name: jaeger-cassandra-schema
+        resources: {}
+      restartPolicy: OnFailure

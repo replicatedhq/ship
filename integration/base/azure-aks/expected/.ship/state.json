@@ -1,0 +1,28 @@
+{
+  "v1": {
+    "config": {
+      "azure_location": "US East",
+      "azure_resource_group_name": "Default",
+      "azure_service_principal_id": "ecee78e4-203e-4d8c-9018-0fabd50f6141",
+      "azure_service_principal_secret": "OTViZDRmMC00NzEzLTRhZjUtOGJiMy03MDEzYzg2NTBhMzkK",
+      "azure_subscription_id": "e9570f00-dbe5-4d1d-aa67-0eb9463fd9ad",
+      "azure_tenant_id": "affca702-704f-4a80-a90d-64e1381fb5f0"
+    },
+    "contentSHA": "fe72c32ca04fb40f17ff1fe1e7a4bfe4d764fe1d4c30dc3fa6f05056019bba5c",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "placeholder",
+      "installationID": "placeholder",
+      "releaseNotes": "",
+      "version": "placeholder"
+    },
+    "releaseName": "ship",
+    "lifecycle": {
+      "stepsCompleted": {
+        "config": true,
+        "render": true
+      }
+    },
+    "upstream": "__upstream__"
+  }
+}

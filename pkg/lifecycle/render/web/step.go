@@ -2,12 +2,9 @@ package web
 
 import (
 	"context"
-	"net/http"
-
-	"path/filepath"
-
 	"io"
-
+	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-kit/kit/log"

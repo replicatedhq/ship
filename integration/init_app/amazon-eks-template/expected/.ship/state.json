@@ -1,5 +1,15 @@
 {
   "v1": {
-    "config": {}
+    "config": {},
+    "upstream": "__upstream__",
+    "contentSHA": "f1eaaa149478c1f7d4a4d42f603933b3b78d8a3df50cabf8ae209cbe990590de",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
+      "releaseNotes": "integration tests",
+      "version": "1.0.0-amazon-eks-template"
+    },
+    "releaseName": "integration-replicated-app-amazon-eks-template"
   }
 }

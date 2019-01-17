@@ -1,0 +1,8 @@
+kind: ""
+apiversion: ""
+bases:
+- ../../base
+patchesStrategicMerge:
+- Deployment-istio-galley.yaml
+- Service-istio-ingressgateway.yaml
+- Service-istio-policy.yaml

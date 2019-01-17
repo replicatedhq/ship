@@ -1,0 +1,28 @@
+{
+  "v1": {
+    "config": {},
+    "helmValues": "## Google Cloud SQL Proxy image\n## ref: https://cloud.google.com/sql/docs/mysql/sql-proxy\n## ref: https://cloud.google.com/sql/docs/postgres/sql-proxy\nimage: b.gcr.io/cloudsql-docker/gce-proxy\nimageTag: \"1.11\"\n\n## Specify a imagePullPolicy\n## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'\n## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images\n##\nimagePullPolicy: IfNotPresent\n\n## Replicas Set count\nreplicasCount: 1\n\n## Set the GCP service account key JSON file.\n## Service account has access be set to Cloud SQL instances\n## the key must be encoded with base64\n## e.g. `cat service-account.json | base64`\n##\nserviceAccountKey:\n  # Set to false to generate and manage secrets outside the Helm chart\n  create: true\n  key: |\n    {\n    \"type\": \"service_account\",\n    \"project_id\": \"XXX\",\n    \"private_key_id\": \"XXX\",\n    \"private_key\": \"XXX\",\n    \"client_email\": \"XXX\",\n    \"client_id\": \"XXX\",\n    \"auth_uri\": \"XXX\",\n    \"token_uri\": \"XXX\",\n    \"auth_provider_x509_cert_url\": \"XXX\",\n    \"client_x509_cert_url\": \"XXX\"\n    }\n\n## SQL connection settings\n##\ncloudsql:\n  ## PostgreSQL/MySQL instances:\n  ## update with your GCP project, the region of your Cloud SQL instance\n  ## and the name of your Cloud SQL instance\n  ## PostgreSQL port 5432 or MySQL port 3306, or other port you set for your SQL instance.\n  ## Use different ports for different instances.\n  instances:\n  - instance: \"instance\"\n    project: \"project\"\n    region: \"region\"\n    port: 5432\n\n## Configure resource requests and limits\n## ref: http://kubernetes.io/docs/user-guide/compute-resources/\n##\nresources:\n  requests:\n    cpu: 100m\n    memory: 100Mi\n  limits:\n    memory: 150Mi\n    cpu: 150m\n\n## Node selector\nnodeSelector: {}\n",
+    "releaseName": "gcloud-sqlproxy",
+    "helmValuesDefaults": "## Google Cloud SQL Proxy image\n## ref: https://cloud.google.com/sql/docs/mysql/sql-proxy\n## ref: https://cloud.google.com/sql/docs/postgres/sql-proxy\nimage: b.gcr.io/cloudsql-docker/gce-proxy\nimageTag: \"1.11\"\n\n## Specify a imagePullPolicy\n## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'\n## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images\n##\nimagePullPolicy: IfNotPresent\n\n## Replicas Set count\nreplicasCount: 1\n\n## Set the GCP service account key JSON file.\n## Service account has access be set to Cloud SQL instances\n## the key must be encoded with base64\n## e.g. `cat service-account.json | base64`\n##\nserviceAccountKey:\n  # Set to false to generate and manage secrets outside the Helm chart\n  create: true\n  key: |\n    {\n    \"type\": \"service_account\",\n    \"project_id\": \"XXX\",\n    \"private_key_id\": \"XXX\",\n    \"private_key\": \"XXX\",\n    \"client_email\": \"XXX\",\n    \"client_id\": \"XXX\",\n    \"auth_uri\": \"XXX\",\n    \"token_uri\": \"XXX\",\n    \"auth_provider_x509_cert_url\": \"XXX\",\n    \"client_x509_cert_url\": \"XXX\"\n    }\n\n## SQL connection settings\n##\ncloudsql:\n  ## PostgreSQL/MySQL instances:\n  ## update with your GCP project, the region of your Cloud SQL instance\n  ## and the name of your Cloud SQL instance\n  ## PostgreSQL port 5432 or MySQL port 3306, or other port you set for your SQL instance.\n  ## Use different ports for different instances.\n  instances:\n  - instance: \"instance\"\n    project: \"project\"\n    region: \"region\"\n    port: 5432\n\n## Configure resource requests and limits\n## ref: http://kubernetes.io/docs/user-guide/compute-resources/\n##\nresources:\n  requests:\n    cpu: 100m\n    memory: 100Mi\n  limits:\n    memory: 150Mi\n    cpu: 150m\n\n## Node selector\nnodeSelector: {}\n",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "excludedBases": [
+            "/pdb.yaml"
+          ],
+          "patches": {
+            "/secrets.yaml": "apiVersion: v1\ndata:\n  credentials.json: ewoidHlwZSI6ICJzZXJ2aWNlX2FjY291bnQiLAoicHJvamVjdF9pZCI6ICJYWFgiLAoicHJpdmF0ZV9rZXlfaWQiOiAiWFhYIiwKInByaXZhdGVfa2V5IjogIlhYWCIsCiJjbGllbnRfZW1haWwiOiAiWFhYIiwKImNsaWVudF9pZCI6ICJYWFgiLAoiYXV0aF91cmkiOiAiWFhYIiwKInRva2VuX3VyaSI6ICJYWFgiLAoiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogIlhYWCIsCiJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJYWFgiCn0K\nkind: Secret\nmetadata:\n  labels:\n    app: gcloud-sqlproxy-gcloud-sqlproxy\n    chart: gcloud-sqlproxy-0.6.3\n    heritage: Tiller\n    release: gcloud-sqlproxy\n  name: gcloud-sqlproxy-gcloud-sqlproxy\n"
+          }
+        }
+      }
+    },
+    "upstream": "https://github.com/rimusz/charts/tree/44e2acc78cd7b621ca306661770828f32e9a2820/stable/gcloud-sqlproxy",
+    "metadata": {
+      "applicationType": "helm",
+      "name": "gcloud-sqlproxy",
+      "releaseNotes": "update gcloud-sqlproxy to new version, comment out resources",
+      "version": "0.6.3"
+    },
+    "contentSHA": "ae21957591965f5f7eca11b4d7a40afda15b059cbce77718cd9ce13aac079039"
+  }
+}

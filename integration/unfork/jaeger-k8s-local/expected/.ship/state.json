@@ -1,0 +1,24 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "patches": {
+            "/Deployment-jaeger-collector.yaml": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  labels:\n    app: jaeger\n    jaeger-infra: collector-deployment\n  name: jaeger-collector\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: jaeger-collector\n      containers:\n      - $setElementOrder/ports:\n        - containerPort: 14267\n        - containerPort: 14268\n        - containerPort: 9411\n        name: jaeger-collector\n        ports:\n        - containerPort: 14268\n          protocol: TCP\n        - $patch: delete\n          containerPort: FORKED_PORT\n",
+            "/Deployment-jaeger-query.yaml": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  labels:\n    app: jaeger\n    jaeger-infra: query-deployment\n  name: jaeger-query\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: jaeger-query\n      containers:\n      - $setElementOrder/env:\n        - name: SPAN_STORAGE_TYPE\n        env:\n        - name: SPAN_STORAGE_TYPE\n          valueFrom:\n            configMapKeyRef:\n              key: span-storage-type\n              name: jaeger-configuration\n        - $patch: delete\n          name: FORKED_ENV\n        name: jaeger-query\n",
+            "/Service-zipkin.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app: jaeger\n    jaeger-infra: zipkin-service\n  name: zipkin\nspec:\n  type: ClusterIP\n"
+          }
+        }
+      }
+    },
+    "upstream": "__upstream__",
+    "metadata": {
+      "applicationType": "",
+      "releaseNotes": "",
+      "version": ""
+    },
+    "contentSHA": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

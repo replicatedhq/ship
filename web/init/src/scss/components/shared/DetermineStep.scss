@@ -1,0 +1,373 @@
+.StepMessage-wrapper {
+  margin: 30px auto;
+  width: 100%;
+  max-width: 640px;
+  font-size: 16px;
+  color: #717171;
+  line-height: 26px;
+  font-weight: 400;
+
+  .markdown-wrapper {
+    & > div {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+
+      & > span {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+
+        .term-container {
+          display: flex;
+          flex: 1;
+          overflow: auto;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
+  b, strong {
+    font-weight: 600;
+  }
+
+  p {
+    margin-top: 20px;
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  code,
+  pre {
+    margin-top: 6px;
+    padding: 5px 4px;
+    font-size: 90%;
+    color: #ffffff;
+    font-family: "Monaco", "Helvetica Neue", "Helvetica", sans-serif;
+    background-color: #323232;
+    border-radius: 4px;
+    line-height: 1.7;
+    overflow-x: scroll;
+  }
+}
+
+.HelmIntro--wrapper {
+  max-width: 1000px;
+  min-height: 620px;
+  margin: 0 auto;
+  & > div:last-of-type {
+    padding-top: 30px;
+  }
+}
+.HelmIntro--diagram {
+  margin: 45px 0;
+  .detailed-step:first-of-type {
+    margin-bottom: 30px;
+  }
+  .icon.helm-chart {
+    background-position: 0 -105px;
+    width: 95px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .icon.custom-values {
+    background-position: 0 -226px;
+    width: 95px;
+    height: 117px;
+    margin-right: 30px;
+  }
+  .icon.base {
+    background-position: 0 -347px;
+    width: 90px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .icon.patches {
+    background-position: -176px -105px;
+    width: 90px;
+    height: 116px;
+    margin-right: 30px;
+  }
+  .border-wth-arrow,
+  .border-wth-es {
+    margin: 0 30px;
+    .line {
+      width: 2px;
+      background: #DFDFDF; 
+      border-radius: 5px;
+    }
+    .icon.arrow {
+      background-position: -45px -90px;
+      height: 6px;
+      width: 14px;
+      margin: 7px 0;
+    }
+    p {
+      margin: 7px 0 14px;
+      line-height: 0;
+    }
+  }
+  .kustomize-steps {
+    background: #F8F8F8;
+    border-radius: 3px;
+    padding: 0 30px;
+    .plus {
+      margin: 0 20px 0 15px;
+    }
+    .icon.base-small {
+      background-position: -95px -347px;
+      width: 68px;
+      height: 88px;
+    }
+    .icon.patches-small {
+      background-position: -272px -105px;
+      width: 68px;
+      height: 88px;
+    }
+  }
+  .deployment-step {
+    background: #F8F8F8;
+    border-radius: 3px;
+    padding: 0 30px;
+    .icon.deployable-app {
+      background-position: -176px -226px;
+      width: 78px;
+      height: 89px;
+    }
+    p {
+      white-space: nowrap;
+    }
+  }
+  .values-step {
+    background: #FDFFFE;
+    border-radius: 3px;
+    padding: 20px 30px;
+    border: solid 1px #6FC98D;
+    & > div:nth-of-type(2) {
+      margin-bottom: 15px;
+    }
+    p {
+      white-space: nowrap;
+    }
+    .checkmark {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      background-position: -66px -75px;
+      width: 28px;
+      height: 28px;
+    }
+    .icon.helm-chart-small {
+      background-position: -95px -105px;
+      width: 69px;
+      height: 89px;
+    }
+    .icon.custom-values-small {
+      background-position: -98px -226px;
+      width: 72px;
+      height: 88px;
+    }
+    .icon.manifest-small {
+      background-position: -264px -226px;
+      width: 69px;
+      height: 89px
+    }
+  }
+}
+
+.Error--wrapper {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.StepDone-wrapper {
+  margin: 0 auto;
+  line-height: 26px;
+  width: 100%;
+  max-width: 450px;
+}
+
+.progressBar-wrapper {
+  width: 500px;
+  margin: 0 auto;
+}
+
+.StepBuildingAssets-wrapper {
+  max-width: 980px;
+  width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+.markdown-wrapper {
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+
+  &.warn {
+    color: #DB9016;
+    border-color: #F1D6AB;
+    background-color: #FFFAF2;
+  }
+
+  &.error {
+    color: #BC4752;
+    border-color: #DAB0B4;
+    background-color: #FFF6F5;
+  }
+  
+  a,
+  a:visited {
+    color: #337AB7;
+  }
+  
+  a:hover,
+  a:focus,
+  a:active {
+    color: #193B5B;
+  }
+
+  p {
+    line-height: 1.4;
+    margin: 20px 0;
+  }
+  
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 10px 0;
+    font-weight: inherit;
+    line-height: 1.5;
+    color: #323232;
+    font-weight: bold;
+  }
+  
+  h1 {
+    margin-top: 0;
+    font-size: 32px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  h3 {
+    font-size: 20px;
+  }
+  
+  h4 {
+    font-size: 18px;
+  }
+  
+  h5 {
+    font-size: 16px;
+  }
+  
+  h6 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 500;
+  }
+  
+  small {
+    font-size: 10px;
+  }
+  
+  img,
+  canvas,
+  iframe,
+  video,
+  svg,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  pre {
+    padding: 5px 10px;
+    font-size: 90%;
+    color: #ffffff;
+    font-family: "Monaco", "Helvetica Neue", "Helvetica", sans-serif;
+    background-color: #323232;
+    border-radius: 4px;
+    line-height: 1.25;
+    overflow-x: scroll;
+    margin: 10px 0;
+  }
+  
+  h1,
+  h2,
+  h3 {
+    border-bottom: 1px solid #DFDFDF;
+    margin-bottom: 1.15rem;
+    padding-bottom: .5rem;
+  }
+  
+  blockquote {
+    border-left: 8px solid #DFDFDF;
+    padding: 1rem;
+    margin: 20px 0;
+  }
+
+  li p.first { display: inline-block; }
+  
+  ul, ol { 
+    padding-left: 30px; 
+    list-style: disc; 
+    margin: 20px 0;
+    li {
+      margin: 5px 0; 
+    }
+  }
+  
+  ul :first-child, ol :first-child { margin-top: 0; }
+  
+  ul :last-child, ol :last-child { margin-bottom: 0; }
+  
+  dl { padding: 0; }
+  dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    padding: 0;
+    margin: 15px 0 5px;
+  }
+  dl dt:first-child { padding: 0; }
+  dl dt > :first-child { margin-top: 0; }
+  dl dt > :last-child { margin-bottom: 0; }
+  dl dd {
+    margin: 0 0 15px;
+    padding: 0 15px;
+  }
+  dl dd > :first-child { margin-top: 0; }
+  dl dd > :last-child { margin-bottom: 0; }
+  
+  table { padding: 0; margin: 10px 0; }
+  table tr {
+    border-top: 1px solid #C4C8CA;
+    background-color: white;
+    margin: 0;
+    padding: 0;
+  }
+  table tr:nth-child(2n) { background-color: #f8f8f8; }
+  table tr th {
+    font-weight: bold;
+    border: 1px solid #C4C8CA;
+    text-align: left;
+    margin: 0;
+    padding: 6px 13px;
+  }
+  table tr td {
+    border: 1px solid #C4C8CA;
+    text-align: left;
+    margin: 0;
+    padding: 6px 13px;
+  }
+  table tr th :first-child, table tr td :first-child { margin-top: 0; }
+  table tr th :last-child, table tr td :last-child { margin-bottom: 0; }
+
+}

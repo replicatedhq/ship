@@ -1,0 +1,7 @@
+kind: ""
+apiversion: ""
+resources:
+- deployment.yaml
+- factorio-svc.yaml
+- saves-pvc.yaml
+- secrets.yaml

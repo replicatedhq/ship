@@ -1,1 +1,18 @@
-{"v1":{"config":{"methodType":"GET","resourceURL":"https://gist.githubusercontent.com/kevinherro/14227298facda4815f00e28f2e2e2097/raw/2a16512278a49d6cb417feb859005850c8f753de/integration-test"}}}
+{
+  "v1": {
+    "config": {
+      "methodType": "GET",
+      "resourceURL": "https://raw.githubusercontent.com/replicatedhq/test-charts/5bf016aac1786cb74c678c3419bb8623f0388f8d/web-asset/web-asset"
+    },
+    "contentSHA": "e2caa313a59af409fa4e096faa605ade4b5d506447ba3d4b90f25bea9d2ddffb",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "6-TGyWWOCG-6hmsa4R1zz9jOL9CWPJy7",
+      "releaseNotes": "",
+      "version": "0.0.7"
+    },
+    "releaseName": "integration-test-web",
+    "upstream": "__upstream__"
+  }
+}

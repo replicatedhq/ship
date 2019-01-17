@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -16,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/inline"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
@@ -69,9 +69,9 @@ func TestRenderer(t *testing.T) {
 			mockInline := inline.NewMockRenderer(mc)
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			renderer := &LocalRenderer{
-				Logger:         &logger.TestLogger{T: t},
+				Logger:         testLogger,
 				BuilderBuilder: bb,
 				Inline:         mockInline,
 			}
@@ -130,7 +130,7 @@ func TestRenderer(t *testing.T) {
 }
 
 func getBuilder() templates.Builder {
-	builderBuilder := templates.NewBuilderBuilder(log.NewNopLogger(), viper.New())
+	builderBuilder := templates.NewBuilderBuilder(log.NewNopLogger(), viper.New(), &state.MockManager{})
 
 	builder := builderBuilder.NewBuilder(
 		&templates.ShipContext{},
@@ -238,14 +238,16 @@ func TestBuildAsset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
 			got, err := buildAsset(tt.args.asset, tt.args.builder)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("buildAsset() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if !tt.wantErr {
+				req.NoErrorf(err, "buildAsset() error = %v", err)
+			} else {
+				req.Error(err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("buildAsset() = %v, want %v", got, tt.want)
-			}
+
+			req.Equal(tt.want, got)
 		})
 	}
 }

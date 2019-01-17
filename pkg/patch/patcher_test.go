@@ -6,12 +6,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/spf13/afero"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/spf13/afero"
 )
 
 func TestShipPatcher(t *testing.T) {
@@ -53,14 +52,15 @@ var _ = Describe("ShipPatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				expectPatch, err := ioutil.ReadFile(path.Join(createTestCasesFolder, createTestDir.Name(), "patch.yaml"))
+				Expect(err).NotTo(HaveOccurred())
 				Expect(string(patch)).To(Equal(string(expectPatch)))
 			}
 		})
 	})
 	Describe("MergePatches", func() {
 		mergePatchPathMap := map[string][]string{
-			"basic": []string{"spec", "template", "spec", "containers", "0", "name"},
-			"list":  []string{"spec", "template", "spec", "containers", "0", "env", "2", "value"},
+			"basic": {"spec", "template", "spec", "containers", "0", "name"},
+			"list":  {"spec", "template", "spec", "containers", "0", "env", "2", "value"},
 		}
 		It("Creates a single patch with the effect of both given patches", func() {
 			mergeTestDirs, err := ioutil.ReadDir(path.Join(mergeTestCasesFolder))
@@ -79,7 +79,7 @@ var _ = Describe("ShipPatcher", func() {
 				patch, err := shipPatcher.MergePatches(
 					original,
 					mergePatchPathMap[mergeTestDir.Name()],
-					api.Kustomize{BasePath: "base"},
+					api.Kustomize{Base: "base"},
 					"base/deployment.yaml",
 				)
 				Expect(err).NotTo(HaveOccurred())
@@ -103,7 +103,7 @@ var _ = Describe("ShipPatcher", func() {
 				expectModified, err := ioutil.ReadFile(path.Join("modified.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
-				modified, err := shipPatcher.ApplyPatch(patch, api.Kustomize{BasePath: "base"}, "base/deployment.yaml")
+				modified, err := shipPatcher.ApplyPatch(patch, api.Kustomize{Base: "base"}, "base/deployment.yaml")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(modified).To(Equal(expectModified))
@@ -113,10 +113,10 @@ var _ = Describe("ShipPatcher", func() {
 	})
 	Describe("ModifyField", func() {
 		modifyFieldPathMap := map[string][]string{
-			"basic":  []string{"spec", "template", "spec", "containers", "0", "name"},
-			"list":   []string{"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
-			"nested": []string{"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
-			"nil":    []string{"spec", "template", "spec", "containers", "0", "volumeMounts", "1", "mountPath"},
+			"basic":  {"spec", "template", "spec", "containers", "0", "name"},
+			"list":   {"spec", "template", "spec", "containers", "0", "ports", "1", "name"},
+			"nested": {"spec", "template", "spec", "containers", "0", "env", "0", "valueFrom", "configMapKeyRef", "key"},
+			"nil":    {"spec", "template", "spec", "containers", "0", "volumeMounts", "1", "mountPath"},
 		}
 		It("Modifies a single field in yaml with PATCH_TOKEN", func() {
 			modifyTestDirs, err := ioutil.ReadDir(path.Join(modifyTestCasesFolder))

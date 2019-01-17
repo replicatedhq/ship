@@ -1,0 +1,11 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    chart: jenkins-0.20.1
+    component: jenkins-jenkins-master
+    heritage: Tiller
+    release: jenkins
+    custom: label
+    key: value
+  name: jenkins

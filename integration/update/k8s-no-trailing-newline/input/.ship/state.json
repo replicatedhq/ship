@@ -1,0 +1,26 @@
+{
+  "v1": {
+    "config": null,
+    "releaseName": "ship",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "patches": {
+            "/redis-master-service.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app: redis\n    role: master\n    tier: backend\n  name: redis-master\nspec:\n  selector:\n    zquotenum: \"456\"\n",
+            "/redis-slave-service.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app: redis\n    role: slave\n    tier: backend\n  name: redis-slave\nspec:\n  selector:\n    zquotenum: \"987\"\n"
+          }
+        }
+      }
+    },
+    "upstream": "https://github.com/replicatedhq/test-charts/tree/960955cdcf61891c3b5ff27c25dcde0184926add/plain-k8s-no-trailing-newline",
+    "contentSHA": "e03f03a48d619be6a9ff2c56c19808b0cfa2cb84615346b1c867eeca20ff92d0",
+    "lifecycle": {
+      "stepsCompleted": {
+        "kustomize": true,
+        "kustomize-intro": true,
+        "outro": true,
+        "render": true
+      }
+    }
+  }
+}

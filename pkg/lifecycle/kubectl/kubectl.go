@@ -13,7 +13,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
@@ -38,7 +37,16 @@ func NewKubectl(
 	}
 }
 
-func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply) error {
+// WithStatusReceiver is a no-op for the ForkKubectl implementation using Daemon
+func (k *ForkKubectl) WithStatusReceiver(status daemontypes.StatusReceiver) lifecycle.KubectlApply {
+	return &ForkKubectl{
+		Logger:         k.Logger,
+		Daemon:         k.Daemon,
+		BuilderBuilder: k.BuilderBuilder,
+	}
+}
+
+func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api.KubectlApply, confirmedChan chan bool) error {
 	builder, err := k.BuilderBuilder.BaseBuilder(release.Metadata)
 	if err != nil {
 		return errors.Wrap(err, "get builder")
@@ -54,7 +62,7 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 	}
 
 	cmd := exec.Command("kubectl")
-	cmd.Dir = constants.InstallerPrefixPath
+	cmd.Dir = release.FindRenderRoot()
 	cmd.Args = append(cmd.Args, "apply", "-f", step.Path)
 	if step.Kubeconfig != "" {
 		cmd.Args = append(cmd.Args, "--kubeconfig", builtKubePath)

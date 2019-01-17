@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
@@ -47,11 +48,13 @@ func NewV2Router(
 	kustomizeIntro lifecycle.KustomizeIntro,
 	kustomizer lifecycle.Kustomizer,
 	terraformer lifecycle.Terraformer,
+	kubectlApply lifecycle.KubectlApply,
 	configRenderer *resolve.APIConfigRenderer,
 	planners planner.Planner,
 	patcher patch.Patcher,
 	renderer lifecycle.Renderer,
 	treeLoader filetree.Loader,
+	builderBuilder *templates.BuilderBuilder,
 	fs afero.Afero,
 ) *NavcycleRoutes {
 	return &NavcycleRoutes{
@@ -60,6 +63,7 @@ func NewV2Router(
 		Planner:            planners,
 		Shutdown:           make(chan interface{}),
 		TerraformConfirmed: make(chan bool, 1),
+		KubectlConfirmed:   make(chan bool, 1),
 
 		Messenger:      messenger,
 		HelmIntro:      helmIntro,
@@ -67,9 +71,11 @@ func NewV2Router(
 		KustomizeIntro: kustomizeIntro,
 		Kustomizer:     kustomizer,
 		Terraformer:    terraformer,
+		KubectlApply:   kubectlApply,
 		ConfigRenderer: configRenderer,
 		Patcher:        patcher,
 		Renderer:       renderer,
+		BuilderBuilder: builderBuilder,
 		StepExecutor: func(d *NavcycleRoutes, step api.Step) error {
 			return d.execute(step)
 		},

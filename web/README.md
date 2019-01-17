@@ -1,16 +1,19 @@
-# replicated-onprem-ui
-Replicated UI redux
+Ship Web
+========
+# Development
+To develop on the component and application simultaneously, you will need to run two commands in separate terminals.
+Here is an example from the `web` directory:
+1. `cd app; yarn start`
+2. `cd init; yarn start`
 
-### Vendoring UI into ship
+# Organization
+The `web` directory of the Ship project contains 2 folders:
+## `init`
+The `init/` folder contains the Ship application as a React component. This allows for embedding the UI in other React applications and being able to point to any Ship binary API using the properties exposed on the component.
 
-Right now this is a little janky, you need to run here:
+See its README [here](init/README.md)
 
-```
-make build_ship embed_ship
-```
+## `app`
+The `app/` folder contains the main Ship web application embedded in the Go binary. This folder also contains the E2E tests specifically related to the Ship binary.
 
-and then in the ship repo you need to rebuild:
-
-```
-make build
-```
+See its README [here](app/README.md)

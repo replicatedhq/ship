@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/viper"
 )
 
@@ -29,14 +30,16 @@ type Builder struct {
 }
 
 type BuilderBuilder struct {
-	Logger log.Logger
-	Viper  *viper.Viper
+	Logger  log.Logger
+	Viper   *viper.Viper
+	Manager state.Manager
 }
 
-func NewBuilderBuilder(logger log.Logger, v *viper.Viper) *BuilderBuilder {
+func NewBuilderBuilder(logger log.Logger, v *viper.Viper, m state.Manager) *BuilderBuilder {
 	return &BuilderBuilder{
-		Logger: logger,
-		Viper:  v,
+		Logger:  logger,
+		Viper:   v,
+		Manager: m,
 	}
 }
 func (bb *BuilderBuilder) BaseBuilder(
@@ -59,11 +62,13 @@ func (bb *BuilderBuilder) FullBuilder(
 		return nil, errors.Wrap(err, "create config context for templating")
 	}
 	installationCtx := &InstallationContext{
-		Meta:  meta,
-		Viper: bb.Viper,
+		Logger: bb.Logger,
+		Viper:  bb.Viper,
+		Meta:   meta,
 	}
 	shipCtx := ShipContext{
-		Logger: bb.Logger,
+		Logger:  bb.Logger,
+		Manager: bb.Manager,
 	}
 	builder := bb.NewBuilder(bb.NewStaticContext(), configCtx, installationCtx, shipCtx)
 

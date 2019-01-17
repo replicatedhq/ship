@@ -1,8 +1,7 @@
 package ship
 
 import (
-	"github.com/replicatedhq/ship/pkg/patch"
-
+	"net/http"
 	"time"
 
 	dockercli "github.com/docker/docker/client"
@@ -25,6 +24,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/message"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/azureaks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config/resolve"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
@@ -33,18 +33,23 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/local"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	terraform2 "github.com/replicatedhq/ship/pkg/lifecycle/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/terraform/tfplan"
+	"github.com/replicatedhq/ship/pkg/lifecycle/unfork"
 	"github.com/replicatedhq/ship/pkg/logger"
+	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/specs"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/ui"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
 )
@@ -53,6 +58,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 	providers := []interface{}{
 
+		func() *http.Client { return http.DefaultClient },
 		provide(v),
 		clock,
 		logger.New,
@@ -61,9 +67,11 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		daemon.WebUIFactoryFactory,
 		filetree.NewLoader,
 		templates.NewBuilderBuilder,
-		patch.NewShipPatcher,
 		specs.NewIDPatcher,
 		apptype.NewInspector,
+		apptype.NewLocalAppCopy,
+		util.NewAssetUploader,
+		patch.NewShipPatcher,
 
 		daemon.NewV1Router,
 		resolve.NewRenderer,
@@ -95,6 +103,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		web.NewStep,
 
 		github.NewRenderer,
+		githubclient.NewGithubClient,
 
 		terraform.NewRenderer,
 
@@ -102,7 +111,9 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		googlegke.NewRenderer,
 
-		kubectl.NewKubectl,
+		azureaks.NewRenderer,
+
+		local.NewRenderer,
 
 		NewShip,
 	}
@@ -156,8 +167,10 @@ func headlessProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		unfork.NewDaemonUnforker,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
+		kubectl.NewKubectl,
 		func(messenger message.CLIMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -173,8 +186,10 @@ func headedProviders() []interface{} {
 		render.NewFactory,
 		helmValues.NewHelmValues,
 		kustomize.NewDaemonKustomizer,
+		unfork.NewDaemonUnforker,
 		terraform2.NewTerraformer,
 		tfplan.NewPlanner,
+		kubectl.NewKubectl,
 		func(messenger message.DaemonMessenger) lifecycle.Messenger { return &messenger },
 		func(d daemontypes.Daemon) daemontypes.StatusReceiver { return d },
 	}
@@ -191,10 +206,12 @@ func navcycleProviders() []interface{} {
 		helmValues.NewDaemonlessHelmValues,
 		kustomizeintro.NewKustomizeIntro,
 		kustomize.NewDaemonlessKustomizer,
+		unfork.NewDaemonlessUnforker,
 		func(messenger message.DaemonlessMessenger) lifecycle.Messenger { return &messenger },
 		func(intro helmIntro.DaemonlessHelmIntro) lifecycle.HelmIntro { return &intro },
 		terraform2.NewDaemonlessTerraformer,
 		tfplan.NewDaemonlessPlanner,
+		kubectl.NewDaemonlessKubectl,
 		// fake, we override it, this is janky, use a factory dex
 		func() daemontypes.StatusReceiver { return &statusonly.StatusReceiver{} },
 		daemon.NewV2Router,

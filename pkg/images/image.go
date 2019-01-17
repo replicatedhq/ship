@@ -6,10 +6,9 @@ import (
 	"strings"
 
 	"github.com/docker/distribution/reference"
-	"github.com/pkg/errors"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 )
 
@@ -47,7 +46,13 @@ func (r *URLResolver) ResolvePullURL(asset api.DockerAsset, meta api.ReleaseMeta
 			return "", errors.Wrapf(err, "parse image url %s", asset.Image)
 		}
 
-		url := fmt.Sprintf("%s/%s/%s.%s:%s", replicatedRegistry(), image.AppSlug, image.ImageKey, imageName, imageTag)
+		// for third-party registries hosted on console.replicated.com
+		slug := image.AppSlug
+		if slug == "" {
+			slug = "ship"
+		}
+
+		url := fmt.Sprintf("%s/%s/%s.%s:%s", replicatedRegistry(), slug, image.ImageKey, imageName, imageTag)
 		return url, nil
 	}
 

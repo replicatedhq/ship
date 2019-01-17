@@ -4,17 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/spf13/afero"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
-	"github.com/spf13/viper"
+	"github.com/spf13/afero"
 	"go.uber.org/dig"
 )
 
@@ -34,7 +31,6 @@ func (d *DaemonlessHelmIntro) Execute(context.Context, *api.Release, *api.HelmIn
 }
 
 func NewHelmIntro(
-	v *viper.Viper,
 	fs afero.Afero,
 	logger log.Logger,
 	daemon daemontypes.Daemon,
@@ -50,8 +46,13 @@ func (h *HelmIntro) Execute(ctx context.Context, release *api.Release, step *api
 	debug := level.Debug(log.With(h.Logger, "step.type", "helmIntro"))
 
 	daemonExitedChan := h.Daemon.EnsureStarted(ctx, release)
-
-	h.Daemon.PushHelmIntroStep(ctx, daemontypes.HelmIntro{}, daemon.HelmIntroActions())
+	h.Daemon.PushHelmIntroStep(
+		ctx,
+		daemontypes.HelmIntro{
+			IsUpdate: step.IsUpdate,
+		},
+		daemon.HelmIntroActions(),
+	)
 	debug.Log("event", "step.pushed")
 
 	return h.awaitContinue(ctx, daemonExitedChan)

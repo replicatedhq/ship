@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/afero"
 )
 
@@ -38,12 +40,17 @@ type NavcycleRoutes struct {
 	Renderer       lifecycle.Renderer
 	Terraformer    lifecycle.Terraformer
 	Planner        planner.Planner
+	BuilderBuilder *templates.BuilderBuilder
 	Patcher        patch.Patcher
 	ConfigRenderer *resolve.APIConfigRenderer
+	KubectlApply   lifecycle.KubectlApply
 
 	ConfigSaved        chan interface{}
 	TerraformConfirmed chan bool
 	CurrentConfig      map[string]interface{}
+	PreExecuteFuncMap  map[string]preExecuteFunc
+
+	KubectlConfirmed chan bool
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
@@ -63,7 +70,10 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	kustom.POST("save", d.kustomizeSaveOverlay)
 	kustom.POST("finalize", d.kustomizeFinalize)
 	kustom.POST("patch", d.createOrMergePatch)
+	kustom.POST("include", d.includeBase)
 	kustom.DELETE("patch", d.deletePatch)
+	kustom.DELETE("resource", d.deleteResource)
+	kustom.DELETE("base", d.deleteBase)
 	kustom.POST("apply", d.applyPatch)
 
 	conf := v1.Group("/config")
@@ -74,6 +84,25 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 	terr := v1.Group("/terraform")
 	terr.POST("apply", d.terraformApply)
 	terr.POST("skip", d.terraformApply)
+
+	kube := v1.Group("/kubectl")
+	kube.POST("confirm", d.kubectlConfirm)
+
+	d.registerPreExecuteFuncs()
+}
+
+type preExecuteFunc func(context.Context, api.Step) error
+
+func (d *NavcycleRoutes) registerPreExecuteFuncs() {
+	preExecuteFuncMap := make(map[string]preExecuteFunc)
+
+	for _, step := range d.Release.Spec.Lifecycle.V1 {
+		if step.Kustomize != nil {
+			preExecuteFuncMap[step.Shared().ID] = d.Kustomizer.PreExecute
+		}
+	}
+
+	d.PreExecuteFuncMap = preExecuteFuncMap
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {

@@ -9,12 +9,15 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/golang/mock/gomock"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	state2 "github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -217,9 +220,10 @@ func TestV2GetStep(t *testing.T) {
 				progressmap.Store(key, val)
 			}
 			v2 := &NavcycleRoutes{
-				Logger:       testLogger,
-				StateManager: fakeState,
-				StepProgress: progressmap,
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New(), fakeState),
+				Logger:         testLogger,
+				StateManager:   fakeState,
+				StepProgress:   progressmap,
 			}
 
 			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
@@ -260,9 +264,10 @@ func TestV2GetStep(t *testing.T) {
 
 func TestHydrateActions(t *testing.T) {
 	tests := []struct {
-		name string
-		step daemontypes.Step
-		want []daemontypes.Action
+		name     string
+		progress map[string]daemontypes.Progress
+		step     daemontypes.Step
+		want     []daemontypes.Action
 	}{
 		{
 			name: "message",
@@ -331,6 +336,51 @@ func TestHydrateActions(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "completed step",
+			step: daemontypes.NewStep(api.Step{
+				KustomizeIntro: &api.KustomizeIntro{
+					StepShared: api.StepShared{
+						ID: "hola",
+					},
+				},
+			}),
+			progress: map[string]daemontypes.Progress{
+				"hola": daemontypes.JSONProgress("v2router", map[string]interface{}{
+					"status":  "success",
+					"message": "Step completed successfully.",
+				}),
+			},
+			want: []daemontypes.Action{
+				{
+					ButtonType:  "primary",
+					Text:        "Next",
+					LoadingText: "Next",
+					OnClick: daemontypes.ActionRequest{
+						URI:    "/navcycle/step/hola",
+						Method: "POST",
+						Body:   "",
+					},
+				},
+			},
+		},
+		{
+			name: "in progress step",
+			step: daemontypes.NewStep(api.Step{
+				KustomizeIntro: &api.KustomizeIntro{
+					StepShared: api.StepShared{
+						ID: "adios",
+					},
+				},
+			}),
+			progress: map[string]daemontypes.Progress{
+				"adios": daemontypes.JSONProgress("v2router", map[string]interface{}{
+					"status":  "working",
+					"message": "working",
+				}),
+			},
+			want: nil,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -338,6 +388,9 @@ func TestHydrateActions(t *testing.T) {
 
 			testLogger := &logger.TestLogger{T: t}
 			progressmap := &daemontypes.ProgressMap{}
+			for key, val := range test.progress {
+				progressmap.Store(key, val)
+			}
 
 			v2 := &NavcycleRoutes{
 				Logger:       testLogger,
@@ -352,35 +405,55 @@ func TestHydrateActions(t *testing.T) {
 
 func TestHydrateStep(t *testing.T) {
 	tests := []struct {
-		name  string
-		step  daemontypes.Step
-		state state2.State
-		fs    map[string]string
-		want  *daemontypes.StepResponse
+		name    string
+		step    daemontypes.Step
+		state   state2.State
+		fs      map[string]string
+		release *api.Release
+		want    *daemontypes.StepResponse
 	}{
 		{
 			name: "message",
 			step: daemontypes.NewStep(api.Step{
 				Message: &api.Message{
-					Contents: "hey there",
+					Contents: "hey there {{repl Installation \"customer_id\"}} {{repl ConfigOption \"spam\"}}",
 					StepShared: api.StepShared{
 						ID: "foo",
 					},
 				},
 			}),
+			release: &api.Release{
+				Metadata: api.ReleaseMetadata{
+					CustomerID: "12345",
+				},
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:  "spam",
+										Value: "eggs",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			state: state2.V0{},
 			want: &daemontypes.StepResponse{
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
 						Message: &api.Message{
-							Contents: "hey there",
+							Contents: "hey there {{repl Installation \"customer_id\"}} {{repl ConfigOption \"spam\"}}",
 							StepShared: api.StepShared{
 								ID: "foo",
 							},
 						},
 					},
 					Message: &daemontypes.Message{
-						Contents:    "hey there",
+						Contents:    "hey there 12345 eggs",
 						TrustedHTML: true,
 					},
 				},
@@ -416,10 +489,16 @@ func TestHydrateStep(t *testing.T) {
 			}
 
 			v2 := &NavcycleRoutes{
+				BuilderBuilder: templates.NewBuilderBuilder(
+					testLogger,
+					viper.New(),
+					mockState,
+				),
 				Logger:       testLogger,
 				StepProgress: progressmap,
 				Fs:           mockFs,
 				StateManager: mockState,
+				Release:      test.release,
 			}
 
 			response, err := v2.hydrateStep(test.step)

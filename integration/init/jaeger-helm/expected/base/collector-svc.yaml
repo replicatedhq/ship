@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-service
+    release: jaeger
+  name: jaeger-collector
+spec:
+  ports:
+  - name: jaeger-collector-tchannel
+    port: 14267
+    protocol: TCP
+    targetPort: tchannel
+  - name: jaeger-collector-http
+    port: 14268
+    protocol: TCP
+    targetPort: http
+  - name: jaeger-collector-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: zipkin
+  selector:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-pod
+    release: jaeger
+  type: ClusterIP

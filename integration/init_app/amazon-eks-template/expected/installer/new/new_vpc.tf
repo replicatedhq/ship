@@ -81,13 +81,13 @@ provider "aws" {
 }
 
 variable "eks-cluster-name" {
-  default = "new-vpc-cluster"
+  default = "cluster-name-template"
   type    = "string"
 }
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.4.0"
+  version = "1.7.0"
 
   cluster_name = "${var.eks-cluster-name}"
 

@@ -2,10 +2,11 @@ package images
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/docker/docker/pkg/jsonmessage"
-
+	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
 )
 
@@ -15,10 +16,11 @@ import (
 type Progress struct {
 	ID             string      `json:"id"` // this will be layer ID
 	Status         string      `json:"status"`
+	Image          string      `json:"image"`
 	ProgressDetail interface{} `json:"progressDetail"`
 }
 
-func copyDockerProgress(reader io.ReadCloser, ch chan interface{}) error {
+func copyDockerProgress(debug log.Logger, image string, reader io.ReadCloser, ch chan interface{}) error {
 	dec := json.NewDecoder(reader)
 	for {
 		var jm jsonmessage.JSONMessage
@@ -30,9 +32,12 @@ func copyDockerProgress(reader io.ReadCloser, ch chan interface{}) error {
 			return jm.Error
 		}
 
+		debug.Log("event", "docker.JSONMessage.receive", "JSONMessage", fmt.Sprintf("%+v", jm))
+
 		ch <- Progress{
 			ID:             jm.ID,
 			Status:         jm.Status,
+			Image:          image,
 			ProgressDetail: jm.Progress,
 		}
 	}

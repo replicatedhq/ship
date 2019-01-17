@@ -1,0 +1,15 @@
+{
+  "v1": {
+    "config": {},
+    "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+    "contentSHA": "6faeec976f37e880c5e70cf578412a57fbfda3b35bf8e6f73221fe5fe88f1058",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-",
+      "releaseNotes": "integration tests",
+      "version": "1.0.2"
+    },
+    "releaseName": "integration-replicated-app-basic"
+  }
+}

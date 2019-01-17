@@ -1,0 +1,479 @@
+apiVersion: v1
+data:
+  cassandra.contact-points: jaeger-cassandra:9042
+  cassandra.datacenter.name: dc1
+  cassandra.keyspace: jaeger_v1_dc1
+  cassandra.port: "9042"
+  cassandra.schema.mode: prod
+  cassandra.servers: jaeger-cassandra
+  collector.host-port: jaeger-collector:14267
+  collector.http-port: "14268"
+  collector.port: "14267"
+  collector.zipkin.http-port: "9411"
+  es.nodes-wan-only: "false"
+  es.password: changeme
+  es.server-urls: http://elasticsearch:9200
+  es.username: elastic
+  hotrod.agent-host-port: jaeger-agent-agent:6831
+  query.health-check-http-port: "16687"
+  query.port: "16686"
+  span-storage.type: cassandra
+kind: ConfigMap
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: common-configmap
+    release: jaeger
+  name: jaeger
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: agent
+    jaeger-infra: agent-service
+    release: jaeger
+  name: jaeger-agent
+spec:
+  ports:
+  - name: agent-zipkin-thrift
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: agent-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: agent-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: agent-sampling
+    port: 5778
+    protocol: TCP
+    targetPort: 5778
+  selector:
+    app: jaeger
+    component: agent
+    jaeger-infra: agent-instance
+    release: jaeger
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cassandra
+    release: jaeger
+  name: jaeger-cassandra
+spec:
+  clusterIP: None
+  ports:
+  - name: intra
+    port: 7000
+    targetPort: 7000
+  - name: tls
+    port: 7001
+    targetPort: 7001
+  - name: jmx
+    port: 7199
+    targetPort: 7199
+  - name: cql
+    port: 9042
+    targetPort: 9042
+  - name: thrift
+    port: 9160
+    targetPort: 9160
+  selector:
+    app: cassandra
+    release: jaeger
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-service
+    release: jaeger
+  name: jaeger-collector
+spec:
+  ports:
+  - name: jaeger-collector-tchannel
+    port: 14267
+    protocol: TCP
+    targetPort: tchannel
+  - name: jaeger-collector-http
+    port: 14268
+    protocol: TCP
+    targetPort: http
+  - name: jaeger-collector-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: zipkin
+  selector:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-pod
+    release: jaeger
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: query
+    jaeger-infra: query-service
+    release: jaeger
+  name: jaeger-query
+spec:
+  ports:
+  - name: jaeger-query
+    port: 80
+    protocol: TCP
+    targetPort: 16686
+  selector:
+    app: jaeger
+    component: query
+    jaeger-infra: query-pod
+    release: jaeger
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: cassandra
+    release: jaeger
+  name: jaeger-cassandra
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cassandra
+      release: jaeger
+  serviceName: jaeger-cassandra
+  template:
+    metadata:
+      labels:
+        app: cassandra
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_SEEDS
+          value: jaeger-cassandra-0.jaeger-cassandra.default.svc.cluster.local
+        - name: MAX_HEAP_SIZE
+          value: 2048M
+        - name: HEAP_NEWSIZE
+          value: 512M
+        - name: CASSANDRA_ENDPOINT_SNITCH
+          value: GossipingPropertyFileSnitch
+        - name: CASSANDRA_CLUSTER_NAME
+          value: jaeger
+        - name: CASSANDRA_DC
+          value: dc1
+        - name: CASSANDRA_RACK
+          value: rack1
+        - name: CASSANDRA_START_RPC
+          value: "false"
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: cassandra:3.11
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - exec nodetool decommission
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nodetool status
+          failureThreshold: 3
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: jaeger-cassandra
+        ports:
+        - containerPort: 7000
+          name: intra
+        - containerPort: 7001
+          name: tls
+        - containerPort: 7199
+          name: jmx
+        - containerPort: 9042
+          name: cql
+        - containerPort: 9160
+          name: thrift
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nodetool status | grep -E "^UN\s+${POD_IP}"
+          failureThreshold: 3
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/cassandra
+          name: data
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: data
+  updateStrategy:
+    type: OnDelete
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: jaeger
+    component: cassandra-schema
+    jaeger-infra: cassandra-schema-job
+    release: jaeger
+  name: jaeger-cassandra-schema
+spec:
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      name: jaeger-cassandra-schema
+    spec:
+      containers:
+      - env:
+        - name: CQLSH_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: MODE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.schema.mode
+              name: jaeger
+        - name: DATACENTER
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.datacenter.name
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        image: jaegertracing/jaeger-cassandra-schema:1.4.1
+        imagePullPolicy: IfNotPresent
+        name: jaeger-cassandra-schema
+        resources: {}
+      restartPolicy: OnFailure
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: jaeger
+    component: agent
+    jaeger-infra: agent-daemonset
+    release: jaeger
+  name: jaeger-agent
+spec:
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: agent
+        jaeger-infra: agent-instance
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: COLLECTOR_HOST_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.host-port
+              name: jaeger
+        image: jaegertracing/jaeger-agent:1.4.1
+        imagePullPolicy: IfNotPresent
+        name: jaeger-agent
+        ports:
+        - containerPort: 5775
+          protocol: UDP
+        - containerPort: 6831
+          protocol: UDP
+        - containerPort: 6832
+          protocol: UDP
+        - containerPort: 5778
+          protocol: TCP
+        resources: {}
+      dnsPolicy: ClusterFirst
+      nodeSelector: {}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    component: collector
+    jaeger-infra: collector-deployment
+    release: jaeger
+  name: jaeger-collector
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: collector
+        jaeger-infra: collector-pod
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage.type
+              name: jaeger
+        - name: CASSANDRA_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.keyspace
+              name: jaeger
+        - name: COLLECTOR_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.port
+              name: jaeger
+        - name: COLLECTOR_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.http-port
+              name: jaeger
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: collector.zipkin.http-port
+              name: jaeger
+        image: jaegertracing/jaeger-collector:1.4.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            port: healthcheck
+          initialDelaySeconds: 10
+        name: jaeger-collector
+        ports:
+        - containerPort: 14267
+          name: tchannel
+          protocol: TCP
+        - containerPort: 14268
+          name: http
+          protocol: TCP
+        - containerPort: 14269
+          name: healthcheck
+          protocol: TCP
+        - containerPort: 9411
+          name: zipkin
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            port: healthcheck
+          initialDelaySeconds: 10
+        resources: {}
+      dnsPolicy: ClusterFirst
+      nodeSelector: {}
+      restartPolicy: Always
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    component: query
+    jaeger-infra: query-deployment
+    release: jaeger
+  name: jaeger-query
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: query
+        jaeger-infra: query-pod
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: SPAN_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: span-storage.type
+              name: jaeger
+        - name: CASSANDRA_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.servers
+              name: jaeger
+        - name: CASSANDRA_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.port
+              name: jaeger
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: cassandra.keyspace
+              name: jaeger
+        - name: QUERY_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: query.port
+              name: jaeger
+        - name: QUERY_HEALTH_CHECK_HTTP_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: query.health-check-http-port
+              name: jaeger
+        image: jaegertracing/jaeger-query:1.4.1
+        imagePullPolicy: IfNotPresent
+        name: jaeger-query
+        ports:
+        - containerPort: 16686
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 16687
+        resources: {}
+      dnsPolicy: ClusterFirst
+      nodeSelector: {}
+      restartPolicy: Always

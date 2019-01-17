@@ -11,7 +11,7 @@ This is totally copy-pasted from [the support bundle docs generation](https://gi
  1. Make changes to the `api.Spec` type
  1. Run this in dev container
     ```
-    make deps build pipeline
+    make deps build pipeline-strict
     ```
  1. Copy generated `schema.json` file into the [replicatedhq/replicated-linter](https://github.com/replicatedhq/replicated-lint/tree/master/projects/replicated-ship) project.
  1. In `replicated-lint` project run

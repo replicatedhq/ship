@@ -1,0 +1,112 @@
+@import "../../variables/variables.scss";
+
+.NavBarWrapper {
+  min-height: 66px;
+  width: 100%;
+  padding: 0;
+  background-color: $navbar-background;
+  box-shadow: 0 1px 0 #DFDFDF;
+  z-index: 400;
+  margin-bottom: 0;
+  top: 0;
+
+  .container {
+    max-width: none;
+  }
+}
+
+/* Nav Logo */
+
+.HeaderLogo-wrapper {
+  margin-right: 12px;
+  min-height: 66px;
+}
+.HeaderName-wrapper {
+  min-height: 66px;
+}
+.HeaderLogo a {
+  display: flex;
+  flex-direction: row;
+}
+.HeaderLogo .logo {
+  width: auto;
+  height: 34px;
+}
+
+/* Nav Items */
+
+.NavItem {
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  max-height: 65px;
+}
+.NavItem .HeaderContent-wrapper {
+  a {
+    padding: 25px 20px 24px;
+    display: inline-block;
+    height: 100%;
+  }
+}
+.right-items .NavItem:last-child {
+  margin-right: 0;
+  padding-right: 0;
+}
+.NavItem a {
+  font-size: 16px;
+  color: rgba($navbar-label-color, 0.8);
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 16px;
+  transition: color .15s;
+  user-select: none;
+}
+.NavItem:hover {
+  a {
+    color: $navbar-label-color;
+    text-decoration: none;
+  }
+}
+.NavItem.is-active a:hover,
+.NavItem.is-active a {
+  color: $highlight-color;
+}
+
+.NavItem .Popover-wrapper {
+  padding-top: 0;
+
+  &::after {
+    top: -4px;
+    left: 93px;
+  }
+  &.popover-bottom-right::after {
+    top: -4px;
+    right: 32px;
+    left: auto;
+  }
+  .Popover-content {
+    border-radius: 0 0 4px 4px;
+  }
+}
+.account-dropdown {
+  .HeaderContent-wrapper a {
+    padding: 18px 20px;
+  }
+}
+
+.NavItem .Popover-wrapper .PopoverItem .badge {
+  position: absolute;
+  right: 20px;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+/* ≥ 960px */
+@media screen and (min-width: 60em) {
+
+}
+
+/* ≥ 1024px */
+@media screen and (min-width: 64em) {
+
+}

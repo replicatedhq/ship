@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: gateways
+    release: istio
+  name: istio-ingressgateway-default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istio-ingressgateway-default
+subjects:
+- kind: ServiceAccount
+  name: istio-ingressgateway-service-account
+  namespace: default

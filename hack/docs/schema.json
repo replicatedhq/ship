@@ -13,7 +13,7 @@
             "properties": {
               "amazon_eks": {
                 "description": "An `amazon_eks` asset generates a terraform file that will create an Amazon EKS Cluster.",
-                "extended_description": "It also populates a template function `AmazonEKS` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectl_apply](/api/ship-lifecycle/lifecycle/kubectl_apply/) lifecycle step.",
+                "extended_description": "It also populates a template function `AmazonEKS` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectlApply](/api/ship-lifecycle/kubectlapply/) lifecycle step.",
                 "examples": [
                   {
                     "cluster_name": "existing-vpc-cluster",
@@ -32,12 +32,12 @@
                     "autoscaling_groups": [
                       {
                         "name": "group1",
-                        "group_size": 2,
+                        "group_size": "2",
                         "machine_type": "m5.large"
                       },
                       {
                         "name": "group2",
-                        "group_size": 1,
+                        "group_size": "1",
                         "machine_type": "t2.large"
                       }
                     ]
@@ -63,7 +63,7 @@
                     "autoscaling_groups": [
                       {
                         "name": "firstgroup",
-                        "group_size": 3,
+                        "group_size": "3",
                         "machine_type": "m5.large"
                       }
                     ]
@@ -79,7 +79,7 @@
                       "properties": {
                         "group_size": {
                           "description": "The number of instances to be included in the group",
-                          "type": "integer"
+                          "type": "string"
                         },
                         "machine_type": {
                           "description": "The AWS instance type to use within the group",
@@ -205,6 +205,104 @@
                   }
                 ]
               },
+              "azure_aks": {
+                "description": "An `azure_aks` asset generates a terraform file that will create an Azure AKS Cluster.",
+                "extended_description": "It also populates a template function `AzureAKS` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectlApply](/api/ship-lifecycle/kubectlapply/) lifecycle step.",
+                "examples": [
+                  {
+                    "tenant_id": "5c87f096-eafc-41e1-82f3-1d2282887dff",
+                    "subscription_id": "75cfa510-7123-4812-89bb-fc0286968bf5",
+                    "service_principal_id": "651ed514-6d89-4e51-adaf-c3d3f6dac5a3",
+                    "service_principal_secret": "hvS/lhixCYsPxXgFt04Ilj14NLU4o8LOAIDSAktrwbo=",
+                    "resource_group_name": "DefaultResourceGroup-EUS",
+                    "location": "East US",
+                    "kubernetes_version": "v1.11.2",
+                    "cluster_name": "AKS cluster",
+                    "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDdEcdAqClaNZdHAGHhiSBobJo5ZUL3sDfrZbBQinLvx3HN/9UaXp5mimlzhUkUQwX4jPqJ78w52idmXItd55HVboSQ8uKaRicgLLaNhSqrNpb+W3k2RToRPsjuaCi6a8XET0kcma6NaIbae9n0+nKzTtadX/hkrPEMS56BYpnHjQ== user@example.com",
+                    "node_count": "3",
+                    "node_type": "Standard_D1_v2",
+                    "disk_gb": "50"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "cluster_name": {
+                    "description": "The name of the cluster.",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "A description for the cluster.",
+                    "type": "string"
+                  },
+                  "dest": {
+                    "description": "The path within `installer/` to place the generated file. Defaults to `azure_aks.tf`",
+                    "type": "string"
+                  },
+                  "disk_gb": {
+                    "description": "The size of the disk the the operating system will be installed on for each node in the cluster",
+                    "type": "string"
+                  },
+                  "kubernetes_version": {
+                    "description": "The cluster version to create",
+                    "type": "string"
+                  },
+                  "location": {
+                    "description": "The location of the resource group specified in resource_group_name",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Ignored",
+                    "type": "integer"
+                  },
+                  "node_count": {
+                    "description": "The number of nodes to create in the cluster",
+                    "type": "string"
+                  },
+                  "node_type": {
+                    "description": "The size of VM to create for each node in the cluster",
+                    "type": "string"
+                  },
+                  "public_key": {
+                    "description": "Enables SSH access to the nodes in the cluster with the corresponding private key",
+                    "type": "string"
+                  },
+                  "resource_group_name": {
+                    "description": "The name of a resource group within the subscription specified in subscription_id",
+                    "type": "string"
+                  },
+                  "service_principal_id": {
+                    "description": "The Application ID of a registered application.",
+                    "type": "string"
+                  },
+                  "service_principal_secret": {
+                    "description": "A key associated with a registered application.",
+                    "type": "string"
+                  },
+                  "subscription_id": {
+                    "description": "An Azure subscription ID",
+                    "type": "string"
+                  },
+                  "tenant_id": {
+                    "description": "The tenant ID, also known as Directory ID, from Azure Active Directory",
+                    "type": "string"
+                  },
+                  "when": {
+                    "description": "This asset will be included when 'when' is omitted or true",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cluster_name",
+                  "location",
+                  "node_count",
+                  "node_type",
+                  "resource_group_name",
+                  "service_principal_id",
+                  "service_principal_secret",
+                  "subscription_id",
+                  "tenant_id"
+                ]
+              },
               "docker": {
                 "description": "A `docker` asset will pull an image from a public docker registry, registry.replicated.com, or a configured third party registry and produce a tar archive of the container image.",
                 "examples": [
@@ -308,7 +406,17 @@
                     "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
                     "path": "k8s-yamls/",
                     "dest": "./k8s/",
-                    "source": "private"
+                    "proxy": true,
+                    "strip_path": ""
+                  },
+                  {
+                    "repo": "github.com/replicatedhq/ship",
+                    "ref": "master",
+                    "path": "hack/docs/",
+                    "dest": "./docs{{repl Add 1 1}}/",
+                    "proxy": false,
+                    "mode": 644,
+                    "strip_path": "{{repl ParseBool \"true\"}}"
                   }
                 ],
                 "type": "object",
@@ -320,9 +428,17 @@
                     "description": "Destination directory",
                     "type": "string"
                   },
+                  "mode": {
+                    "description": "If present, overrides the file mode of all files included by this asset.",
+                    "type": "integer"
+                  },
                   "path": {
                     "description": "Path in repo from which to pull file or directory",
                     "type": "string"
+                  },
+                  "proxy": {
+                    "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos.",
+                    "type": "boolean"
                   },
                   "ref": {
                     "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
@@ -333,7 +449,11 @@
                     "type": "string"
                   },
                   "source": {
-                    "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                    "description": "Deprecated",
+                    "type": "string"
+                  },
+                  "strip_path": {
+                    "description": "If true, the github directory will not be included in the filepath of the generated files. For instance, when outputting all files within 'source/' in the repository to the 'dest/' directory, the file 'source/a/file.txt' would be placed at 'dest/source/a/file.txt' when this is false and 'dest/a/file.txt' when this is true.",
                     "type": "string"
                   },
                   "when": {
@@ -344,13 +464,12 @@
                 "required": [
                   "repo",
                   "path",
-                  "dest",
-                  "source"
+                  "dest"
                 ]
               },
               "google_gke": {
-                "description": "An `google_gke` asset generates a terraform file that will create a Google GKE Cluster.",
-                "extended_description": "It also populates a template function `GoogleGKE` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectl_apply](/api/ship-lifecycle/lifecycle/kubectl_apply/) lifecycle step.",
+                "description": "A `google_gke` asset generates a terraform file that will create a Google GKE Cluster.",
+                "extended_description": "It also populates a template function `GoogleGKE` that takes the name of the cluster and returns the path to the generated kubeconfig for the cluster. This template function is only valid after the asset has been generated as part of the `render` lifecycle step, but can be used by later assets within that step. The file itself is created when the generated terraform is applied, whether by the `terraform` lifecycle step or otherwise. This is intended to be used within the [kubectlApply](/api/ship-lifecycle/kubectlapply/) lifecycle step.",
                 "examples": [
                   {
                     "credentials": "<BASE64 ENCODED STRING>",
@@ -430,7 +549,7 @@
                       "repo": "github.com/replicatedhq/superbigtool-k8s",
                       "ref": "8fcaebe55af67fe6789fa678faaa76fa867fbc",
                       "path": "k8s-yamls/",
-                      "source": "private"
+                      "proxy": true
                     },
                     "dest": "charts/rendered/"
                   },
@@ -469,6 +588,10 @@
                         "description": "Path in repo from which to pull file or directory",
                         "type": "string"
                       },
+                      "proxy": {
+                        "description": "Boolean true or false, determines whether a repository is fetched via the Replicated API. Should be used for private repos.",
+                        "type": "boolean"
+                      },
                       "ref": {
                         "description": "Reference to a github commit to pull, usually a SHA or a tag -- usage of branches is supported but discouraged as content could change within a single Ship release",
                         "type": "string"
@@ -478,7 +601,7 @@
                         "type": "string"
                       },
                       "source": {
-                        "description": "One of `public` or `private`, if `private`, access to the repo can be validated on release creation",
+                        "description": "Deprecated",
                         "type": "string"
                       },
                       "when": {
@@ -548,12 +671,9 @@
                     }
                   },
                   "values_from": {
+                    "description": "values_from",
                     "type": "object",
-                    "properties": {
-                      "lifecycle": {
-                        "type": "object"
-                      }
-                    }
+                    "properties": {}
                   },
                   "when": {
                     "description": "This asset will be included when 'when' is omitted or true",
@@ -718,61 +838,44 @@
             "type": "object",
             "properties": {
               "description": {
+                "description": "The `description` of a config item should tell end users what data needs to be collected and how it will be used.",
+                "examples": [
+                  "Configure application authentication below."
+                ],
                 "type": "string"
               },
-              "filters": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
               "items": {
+                "description": "The `items` property is a grouping of similar config items.",
+                "examples": [
+                  {
+                    "name": "http_enabled",
+                    "title": "HTTP Enabled",
+                    "help_text": "When enabled we will listen to http",
+                    "type": "bool",
+                    "default": "0"
+                  }
+                ],
                 "type": "array"
               },
               "name": {
+                "description": "The `name` is used to reference an item in a template function.",
+                "examples": [
+                  "authentication"
+                ],
                 "type": "string"
               },
-              "test_proc": {
-                "type": "object",
-                "properties": {
-                  "arg_fields": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "args": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "command": {
-                    "type": "string"
-                  },
-                  "display_name": {
-                    "type": "string"
-                  },
-                  "run_on_save": {
-                    "type": "string"
-                  },
-                  "timeout": {
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "display_name",
-                  "command",
-                  "timeout",
-                  "arg_fields",
-                  "args",
-                  "run_on_save"
-                ]
-              },
               "title": {
+                "description": "The `title` is the header of an item displayed to the end user.`",
+                "examples": [
+                  "Authentication"
+                ],
                 "type": "string"
               },
               "when": {
+                "description": "The `when` property is used to control whether an item will be shown to the end user.",
+                "examples": [
+                  "'{{repl or (ConfigOptionEquals \"select_one\" \"external\") (ConfigOptionEquals \"select_one\" \"embedded\")}}'"
+                ],
                 "type": "string"
               }
             },
@@ -822,8 +925,8 @@
                 },
                 "required": []
               },
-              "kubectl_apply": {
-                "description": "A `kubectl_apply` step will run `kubectl apply` with the provided file path and kubeconfig.",
+              "kubectlApply": {
+                "description": "A `kubectlApply` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [
                   {
                     "path": "config.yml"
@@ -874,13 +977,14 @@
                 "description": "Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
                 "examples": [
                   {
-                    "base_path": "./k8s/base",
-                    "dest": "./k8s/overlays/production"
+                    "base": "./k8s/base",
+                    "overlay": "./overlays/production",
+                    "dest": "./rendered.yaml"
                   }
                 ],
                 "type": "object",
                 "properties": {
-                  "base_path": {
+                  "base": {
                     "type": "string"
                   },
                   "description": {
@@ -898,6 +1002,9 @@
                       "type": "string"
                     }
                   },
+                  "overlay": {
+                    "type": "string"
+                  },
                   "requires": {
                     "type": "array",
                     "items": {
@@ -905,7 +1012,36 @@
                     }
                   }
                 },
-                "required": []
+                "required": [
+                  "base"
+                ]
+              },
+              "kustomizeIntro": {
+                "description": "This step presents an introduction page about kustomize, usually used before a `kustomize` step. Kustomize adds an interactive step for last-mile customization of kubernetes YAML manifests. The user will be able to examine all output manifests, and store any desired changes/tweaks separate from the base yaml. For more info on Kustomize, see [kustomize.io](https://kustomize.io).",
+                "examples": [
+                  {}
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "message": {
                 "description": "A `message` step will print a message to the console or UI.",
@@ -1013,6 +1149,10 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "when": {
+                    "description": "If 'when' is not empty and evaluates to false, the terraform lifecycle step will be skipped.",
+                    "type": "string"
                   }
                 },
                 "required": []

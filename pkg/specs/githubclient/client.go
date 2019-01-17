@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -15,21 +17,38 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
+	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 	"github.com/spf13/afero"
+	"golang.org/x/oauth2"
 )
 
+type GitHubFetcher interface {
+	ResolveReleaseNotes(ctx context.Context, upstream string) (string, error)
+	ResolveLatestRelease(ctx context.Context, upstream string) (string, error)
+}
+
+var _ GitHubFetcher = &GithubClient{}
+
 type GithubClient struct {
-	logger log.Logger
-	client *github.Client
-	fs     afero.Afero
+	Logger log.Logger
+	Client *github.Client
+	Fs     afero.Afero
 }
 
 func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
-	client := github.NewClient(nil)
+	var httpClient *http.Client
+	if accessToken := os.Getenv("GITHUB_TOKEN"); accessToken != "" {
+		level.Debug(logger).Log("msg", "using github access token from environment")
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: accessToken},
+		)
+		httpClient = oauth2.NewClient(context.Background(), ts)
+	}
+	client := github.NewClient(httpClient)
 	return &GithubClient{
-		client: client,
-		fs:     fs,
-		logger: logger,
+		Client: client,
+		Fs:     fs,
+		Logger: logger,
 	}
 }
 
@@ -37,36 +56,38 @@ func (g *GithubClient) GetFiles(
 	ctx context.Context,
 	upstream string,
 	destinationPath string,
-) error {
-	debug := level.Debug(log.With(g.logger, "method", "getRepoContents"))
+) (string, error) {
+	debug := level.Debug(log.With(g.Logger, "method", "getRepoContents"))
 
-	if !strings.HasPrefix(upstream, "http") {
-
-		upstream = fmt.Sprintf("http://%s", upstream)
-	}
-
-	debug.Log("event", "parseURL")
-	upstreamURL, err := url.Parse(upstream)
+	debug.Log("event", "validateGithubURL")
+	validatedUpstreamURL, err := validateGithubURL(upstream)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	if !strings.Contains(upstreamURL.Host, "github.com") {
-		return errors.New(fmt.Sprintf("%s is not a Github URL", upstream))
-	}
-
-	owner, repo, branch, repoPath, err := decodeGitHubURL(upstreamURL.Path)
+	debug.Log("event", "decodeGithubURL")
+	owner, repo, branch, repoPath, err := decodeGitHubURL(validatedUpstreamURL.Path)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	debug.Log("event", "removeAll", "destinationPath", destinationPath)
-	err = g.fs.RemoveAll(destinationPath)
+	err = g.Fs.RemoveAll(destinationPath)
 	if err != nil {
-		return errors.Wrap(err, "remove chart clone destination")
+		return "", errors.Wrap(err, "remove chart clone destination")
 	}
 
-	return g.downloadAndExtractFiles(ctx, owner, repo, branch, repoPath, destinationPath)
+	downloadBasePath := ""
+	if filepath.Ext(repoPath) != "" {
+		downloadBasePath = repoPath
+		repoPath = ""
+	}
+	err = g.downloadAndExtractFiles(ctx, owner, repo, branch, downloadBasePath, destinationPath)
+	if err != nil {
+		return "", errors2.FetchFilesError{Message: err.Error()}
+	}
+
+	return filepath.Join(destinationPath, repoPath), nil
 }
 
 func (g *GithubClient) downloadAndExtractFiles(
@@ -77,14 +98,14 @@ func (g *GithubClient) downloadAndExtractFiles(
 	basePath string,
 	filePath string,
 ) error {
-	debug := level.Debug(log.With(g.logger, "method", "downloadAndExtractFiles"))
+	debug := level.Debug(log.With(g.Logger, "method", "downloadAndExtractFiles"))
 
 	debug.Log("event", "getContents", "path", basePath)
 
 	archiveOpts := &github.RepositoryContentGetOptions{
 		Ref: branch,
 	}
-	archiveLink, _, err := g.client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
+	archiveLink, _, err := g.Client.Repositories.GetArchiveLink(ctx, owner, repo, github.Tarball, archiveOpts)
 	if err != nil {
 		return errors.Wrapf(err, "get archive link for owner - %s repo - %s", owner, repo)
 	}
@@ -121,32 +142,34 @@ func (g *GithubClient) downloadAndExtractFiles(
 		}
 
 		switch header.Typeflag {
-		case tar.TypeDir:
-			dirName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !strings.HasPrefix(dirName, basePath) {
-				continue
-			}
-			basePathFound = true
-
-			dirName = strings.TrimPrefix(dirName, basePath)
-			if err := g.fs.MkdirAll(filepath.Join(filePath, dirName), 0755); err != nil {
-				return errors.Wrapf(err, "extract tar gz, mkdir")
-			}
 		case tar.TypeReg:
-			fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
-			if !strings.HasPrefix(fileName, basePath) {
-				continue
-			}
-			basePathFound = true
+			// need this in a func because defer in a loop was leaking handles
+			err := func() error {
+				fileName := strings.Join(strings.Split(header.Name, "/")[1:], "/")
+				if !strings.HasPrefix(fileName, basePath) {
+					return nil
+				}
+				basePathFound = true
 
-			fileName = strings.TrimPrefix(fileName, basePath)
-			outFile, err := g.fs.Create(filepath.Join(filePath, fileName))
+				if fileName != basePath {
+					fileName = strings.TrimPrefix(fileName, basePath)
+				}
+				dirPath, _ := path.Split(fileName)
+				if err := g.Fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
+					return errors.Wrapf(err, "extract tar gz, mkdir")
+				}
+				outFile, err := g.Fs.Create(filepath.Join(filePath, fileName))
+				if err != nil {
+					return errors.Wrapf(err, "extract tar gz, create")
+				}
+				defer outFile.Close()
+				if _, err := io.Copy(outFile, tarReader); err != nil {
+					return errors.Wrapf(err, "extract tar gz, copy")
+				}
+				return nil
+			}()
 			if err != nil {
-				return errors.Wrapf(err, "extract tar gz, create")
-			}
-			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
-				return errors.Wrapf(err, "extract tar gz, copy")
+				return err
 			}
 		}
 	}
@@ -166,7 +189,7 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	branch = ""
 	path = ""
 	if len(splitPath) > 3 {
-		if splitPath[3] == "tree" {
+		if splitPath[3] == "tree" || splitPath[3] == "blob" {
 			branch = splitPath[4]
 			path = strings.Join(splitPath[5:], "/")
 		} else {
@@ -175,4 +198,77 @@ func decodeGitHubURL(chartPath string) (owner string, repo string, branch string
 	}
 
 	return owner, repo, branch, path, nil
+}
+
+func validateGithubURL(upstream string) (*url.URL, error) {
+	if !strings.HasPrefix(upstream, "http") {
+
+		upstream = fmt.Sprintf("http://%s", upstream)
+	}
+
+	upstreamURL, err := url.Parse(upstream)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.Contains(upstreamURL.Host, "github.com") {
+		return nil, errors.Errorf("%s is not a Github URL", upstream)
+	}
+
+	return upstreamURL, nil
+}
+
+func (g *GithubClient) ResolveReleaseNotes(ctx context.Context, upstream string) (string, error) {
+	debug := level.Debug(log.With(g.Logger, "method", "ResolveReleaseNotes"))
+
+	debug.Log("event", "validateGithubURL")
+	validatedUpstreamURL, err := validateGithubURL(upstream)
+	if err != nil {
+		return "", errors.Wrap(err, "not a valid github url")
+	}
+
+	debug.Log("event", "decodeGithubURL")
+	owner, repo, branch, repoPath, err := decodeGitHubURL(validatedUpstreamURL.Path)
+	if err != nil {
+		return "", err
+	}
+
+	commitList, _, err := g.Client.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{
+		SHA:  branch,
+		Path: repoPath,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if len(commitList) > 0 {
+		latestRepoCommit := commitList[0]
+		if latestRepoCommit != nil {
+			commit := latestRepoCommit.GetCommit()
+			if commit != nil {
+				return commit.GetMessage(), nil
+			}
+		}
+	}
+
+	return "", errors.New("No commit available")
+}
+
+func (g *GithubClient) ResolveLatestRelease(ctx context.Context, upstream string) (string, error) {
+	validatedUpstreamURL, err := validateGithubURL(upstream)
+	if err != nil {
+		return "", errors.Wrap(err, "not a valid github url")
+	}
+
+	owner, repo, _, _, err := decodeGitHubURL(validatedUpstreamURL.Path)
+	if err != nil {
+		return "", err
+	}
+
+	latest, _, err := g.Client.Repositories.GetLatestRelease(ctx, owner, repo)
+	if err != nil {
+		return "", errors.Wrap(err, "get latest release")
+	}
+
+	return latest.GetTagName(), nil
 }

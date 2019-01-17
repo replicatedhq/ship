@@ -1,0 +1,26 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "istio",
+    "kustomize": {
+      "overlays": {
+        "ship": {
+          "patches": {
+            "/Deployment-istio-galley.yaml": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  labels:\n    app: galley\n    chart: galley-1.0.3\n    heritage: Tiller\n    istio: galley\n    release: istio\n  name: istio-galley\n  namespace: default\nspec:\n  template:\n    spec:\n      $setElementOrder/containers:\n      - name: validator\n      containers:\n      - name: validator\n        readinessProbe:\n          initialDelaySeconds: FORKED_INITIAL_DELAY_SECONDS\n",
+            "/Service-istio-ingressgateway.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  annotations: null\n  labels:\n    app: istio-ingressgateway\n    chart: gateways-1.0.3\n    heritage: Tiller\n    istio: ingressgateway\n    release: istio\n  name: istio-ingressgateway\n  namespace: default\nspec:\n  type: FORKED_SERVICE_TYPE\n",
+            "/Service-istio-policy.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    chart: mixer-1.0.3\n    istio: mixer\n    release: istio\n  name: istio-policy\n  namespace: default\nspec:\n  $setElementOrder/ports:\n  - port: 9091\n  - port: 15004\n  - port: FORKED_HTTP_MONITORING\n  ports:\n  - name: http-monitoring\n    port: FORKED_HTTP_MONITORING\n  - $patch: delete\n    port: 9093\n"
+          }
+        }
+      }
+    },
+    "upstream": "https://github.com/istio/istio/tree/_latest_/install/kubernetes/helm/istio",
+    "metadata": {
+      "applicationType": "helm",
+      "icon": "https://istio.io/favicons/android-192x192.png",
+      "name": "istio",
+      "releaseNotes": "Support setting FAIL_OPEN for istio-policy service (#9493)",
+      "version": "1.0.3"
+    },
+    "contentSHA": "516b33ede006f0fe649e3779592a1e4f15c9273470e86af0cd6fd05ade6a73d2"
+  }
+}

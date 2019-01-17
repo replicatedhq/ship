@@ -2,7 +2,6 @@ package dockerlayer
 
 import (
 	"context"
-
 	"path"
 
 	"github.com/go-kit/kit/log"

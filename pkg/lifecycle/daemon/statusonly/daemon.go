@@ -2,7 +2,6 @@ package statusonly
 
 import (
 	"context"
-
 	"fmt"
 
 	"github.com/go-kit/kit/log"
@@ -34,10 +33,7 @@ func (d *StatusReceiver) ClearProgress() {
 
 func (d *StatusReceiver) PushStreamStep(ctx context.Context, messages <-chan daemontypes.Message) {
 	debug := level.Debug(log.With(d.Logger, "method", "pushStreamStep"))
-	select {
-	case <-ctx.Done():
-		debug.Log("event", "ctx.Done", "err", ctx.Err())
-	case msg := <-messages:
+	for msg := range messages {
 		debug.Log("event", "message.receive", "contents", fmt.Sprintf("%.32s", msg.Contents))
 		d.OnProgress(daemontypes.JSONProgress(d.Name, map[string]interface{}{
 			"status":  "working",

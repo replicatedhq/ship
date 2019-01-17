@@ -4,10 +4,10 @@ ENV GOPATH=/go
 
 RUN apk update && apk add ca-certificates curl git
 
-ENV TERRAFORM_VERSION=0.11.7
+ENV TERRAFORM_VERSION=0.11.10
 ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 ENV TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
-ENV TERRAFORM_SHA256SUM=6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418
+ENV TERRAFORM_SHA256SUM=43543a0e56e31b0952ea3623521917e060f2718ab06fe2b2d506cfaa14d54527
 
 RUN curl -fsSLO "$TERRAFORM_URL" \
 	&& echo "${TERRAFORM_SHA256SUM}  ${TERRAFORM_ZIP}" | sha256sum -c - \
@@ -32,18 +32,20 @@ RUN cd /go/src/github.com/replicatedhq/ship && \
     go test -c ./integration/base && \
     go test -c ./integration/update && \
     go test -c ./integration/init_app && \
-    go test -c ./integration/init
+    go test -c ./integration/init && \
+    go test -c ./integration/unfork
 
 # package things up
-FROM alpine
+FROM node:8-alpine
 ENV GOPATH=/go
 WORKDIR /test
+
+RUN npm install -g http-echo-server
 
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
-COPY --from=build-step $GOPATH/src/github.com/docker/distribution/cmd/registry/config-example.yml config.yml
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+RUN apk update && apk add ca-certificates git openssh && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /var/lib/registry
 
@@ -54,7 +56,8 @@ COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init_app.test /test/init_app/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/init.test /test/init/
-ENTRYPOINT ./integration_docker_start.sh
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/unfork.test /test/unfork
+CMD ./integration_docker_start.sh
 
 
 

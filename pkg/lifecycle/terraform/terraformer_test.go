@@ -11,12 +11,15 @@ import (
 	"testing"
 	"time"
 
+	log2 "github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	mocktf "github.com/replicatedhq/ship/pkg/test-mocks/tfplan"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,11 +48,11 @@ func TestTerraformer(t *testing.T) {
 				ExpectArgv: []string{"init", "-input=false"},
 			},
 			plan: subproc{
-				ExpectArgv: []string{"plan", "-input=false", "-out=plan"},
+				ExpectArgv: []string{"plan", "-input=false", "-out=plan.tfplan"},
 				Stdout:     fmt.Sprintf("state%sCreating 1 cluster%show to apply", tfSep, tfSep),
 			},
 			apply: subproc{
-				ExpectArgv: []string{"apply", "-input=false", "-auto-approve=true", "plan"},
+				ExpectArgv: []string{"apply", "-input=false", "-auto-approve=true", "plan.tfplan"},
 				Stdout:     "Applied",
 			},
 			expectConfirmPlan: true,
@@ -88,6 +91,7 @@ func TestTerraformer(t *testing.T) {
 			mc := gomock.NewController(t)
 			mockDaemon := daemon.NewMockDaemon(mc)
 			mockPlanner := mocktf.NewMockPlanConfirmer(mc)
+			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			tf := &ForkTerraformer{
 				Logger:        &logger.TestLogger{T: t},
 				Daemon:        mockDaemon,
@@ -117,6 +121,14 @@ func TestTerraformer(t *testing.T) {
 						"TERRAFORM_APPLY="+string(apply),
 					)
 					return cmd
+				},
+				FS: mockFS,
+				// skip this for now, will be tested separately
+				StateSaver: func(debug log2.Logger, fs afero.Afero, statemanager state.Manager, dir string) error {
+					return nil
+				},
+				StateRestorer: func(debug log2.Logger, fs afero.Afero, statemanager state.Manager, dir string) error {
+					return nil
 				},
 			}
 
@@ -223,6 +235,7 @@ func TestForkTerraformerApply(t *testing.T) {
 	req := require.New(t)
 	mc := gomock.NewController(t)
 	mockDaemon := daemon.NewMockDaemon(mc)
+	mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 	ft := ForkTerraformer{
 		Daemon: mockDaemon,
 		Logger: &logger.TestLogger{T: t},
@@ -233,10 +246,11 @@ func TestForkTerraformerApply(t *testing.T) {
 			)
 			return cmd
 		},
+		FS: mockFS,
 	}
 
 	msgs := make(chan daemontypes.Message, 10)
-	output, err := ft.apply(msgs)
+	output, err := ft.apply("fakedir", msgs)
 	req.NoError(err)
 	req.Equal(output, `<div class="term-container">stdout1stderr1stdout2</div>`)
 

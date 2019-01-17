@@ -1,2 +1,4 @@
+kind: ""
+apiversion: ""
 resources:
 - deployment.yaml

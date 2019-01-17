@@ -30,6 +30,10 @@ ignored = [
   unused-packages = true
 
 [[constraint]]
+  name = "github.com/emosbaugh/yaml"
+  branch = "improve-comment-parsing"
+
+[[constraint]]
   name = "github.com/go-kit/kit"
   version = "0.6.0"
 
@@ -43,11 +47,11 @@ ignored = [
 
 [[constraint]]
   name = "github.com/spf13/cobra"
-  version = "0.0.1"
+  version = "0.0.3"
 
 [[constraint]]
   name = "github.com/spf13/viper"
-  version = "1.0.0"
+  version = "1.2.1"
 
 [[constraint]]
   name = "github.com/mholt/archiver"
@@ -75,36 +79,52 @@ ignored = [
   version = "1.0.0"
 
 [[constraint]]
-  name = "k8s.io/helm"
-  version = "2.9.1"
+  name = "github.com/golang/mock"
+  version = "v1.2.0"
 
 # Overrides for Kustomize & Helm
+[[constraint]]
+  name = "k8s.io/helm"
+  version = "2.11.0"
+
+[[constraint]]
+  name = "sigs.k8s.io/kustomize"
+  #1.0.8 but includes a GVK sorting patch
+  revision = "747fc669ce76213f980d6542951962142b8d0b1d"
+  source = "https://github.com/laverya/kustomize.git"
+
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "1.10.6"
+  version = "1.11.5"
 
 [[override]]
   name = "k8s.io/code-generator"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.5"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.5"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.5"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision to include dependencies for Kustomize
-  # See here: https://github.com/kubernetes/apimachinery/commit/bca10bed01016dcaebb845433499fbb2a6343139
-  revision = "bca10bed01016dcaebb845433499fbb2a6343139"
+  version = "kubernetes-1.11.5"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.10.6"
+  version = "kubernetes-1.11.5"
 
 [[override]]
   name = "github.com/russross/blackfriday"
   version = "1.5.1"
+
+[[constraint]]
+  name = "github.com/cloudflare/cfssl"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"

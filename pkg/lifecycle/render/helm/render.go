@@ -3,12 +3,11 @@ package helm
 import (
 	"context"
 
-	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
-
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 )
 
 // Renderer is something that can render a helm asset as part of a planner.Plan
@@ -49,7 +48,6 @@ func (r *LocalRenderer) Execute(
 	configGroups []libyaml.ConfigGroup,
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-
 		chartLocation, err := r.Fetcher.FetchChart(
 			ctx,
 			asset,
@@ -66,6 +64,7 @@ func (r *LocalRenderer) Execute(
 		if err != nil {
 			return errors.Wrap(err, "execute templating")
 		}
+
 		return nil
 	}
 

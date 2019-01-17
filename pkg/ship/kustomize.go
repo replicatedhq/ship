@@ -2,8 +2,9 @@ package ship
 
 import (
 	"context"
+	"fmt"
 	"os"
-
+	"path/filepath"
 	"strings"
 
 	"github.com/go-kit/kit/log"
@@ -40,28 +41,73 @@ func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
+	removeExistingState := !s.Viper.GetBool("preserve-state")
 
 	if s.Viper.GetString("raw") != "" {
-
 		release := s.fakeKustomizeRawRelease()
-		return s.execute(ctx, release, nil, true)
+		return s.execute(ctx, release, nil)
 	}
 
-	// does a state file exist on disk?
-	if s.stateFileExists(ctx) {
-		if err := s.promptToRemoveState(); err != nil {
-			debug.Log("event", "state.remove.prompt.fail")
-			return err
+	if s.Viper.GetString("helm-values-file") != "" {
+		_, err := filepath.Abs(s.Viper.GetString("helm-values-file"))
+		if err != nil {
+			return warnings.WarnFileNotFound(s.Viper.GetString("helm-values-file"))
 		}
 	}
 
-	release, err := s.Resolver.ResolveRelease(ctx, s.Viper.GetString("target"))
+	existingState, _ := s.State.TryLoad()
+	if existingState != nil {
+		if !existingState.IsEmpty() {
+			debug.Log("event", "existing.state")
+
+			if s.Viper.GetString("state-from") != "file" {
+				debug.Log("event", "existing.state", "state-from", "not file")
+				return warnings.WarnCannotRemoveState
+			}
+
+			if removeExistingState {
+				if err := s.promptToRemoveState(); err != nil {
+					debug.Log("event", "state.remove.prompt.fail")
+					return err
+				}
+			} else {
+				s.UI.Info("Preserving current state")
+				if !s.upstreamMatchesExisting(existingState) {
+					return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
+				}
+			}
+		}
+	}
+
+	if removeExistingState {
+		if err := s.maybeWriteStateFromFile(); err != nil {
+			return err
+		}
+	} else {
+		debug.Log("event", "reset steps completed for existing state")
+		if err := s.StateManager.ResetLifecycle(); err != nil {
+			return errors.Wrap(err, "reset state.json completed lifecycle")
+		}
+	}
+
+	// we already check in the CMD, but no harm in being extra safe here
+	target := s.Viper.GetString("upstream")
+	if target == "" {
+		return errors.New("No upstream provided")
+	}
+
+	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, target, existingState)
+	if err != nil {
+		return errors.Wrap(err, "create versioned release")
+	}
+
+	release, err := s.Resolver.ResolveRelease(ctx, maybeVersionedUpstream)
 	if err != nil {
 		return errors.Wrap(err, "resolve release")
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-	return s.execute(ctx, release, nil, true)
+	return s.execute(ctx, release, nil)
 }
 
 func (s *Ship) promptToRemoveState() error {
@@ -97,7 +143,14 @@ Continuing will delete this state, would you like to continue? There is no undo.
 }
 
 func (s *Ship) fakeKustomizeRawRelease() *api.Release {
+	r := specs.Resolver{Viper: s.Viper}
 	return &api.Release{
-		Spec: specs.DefaultRawRelease(s.KustomizeRaw),
+		Spec: r.DefaultRawRelease(s.KustomizeRaw),
 	}
+}
+
+func (s *Ship) upstreamMatchesExisting(existing state.State) bool {
+	currentUpstream := s.Viper.GetString("upstream")
+	existingUpstream := existing.Upstream()
+	return currentUpstream == existingUpstream
 }

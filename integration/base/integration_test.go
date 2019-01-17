@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -19,13 +20,14 @@ import (
 )
 
 type TestMetadata struct {
-	CustomerID     string `yaml:"customer_id"`
-	InstallationID string `yaml:"installation_id"`
-	ReleaseVersion string `yaml:"release_version"`
-	SetChannelName string `yaml:"set_channel_name"`
-	Flavor         string `yaml:"flavor"`
-	DisableOnline  bool   `yaml:"disable_online"`
-
+	CustomerID          string `yaml:"customer_id"`
+	InstallationID      string `yaml:"installation_id"`
+	ReleaseVersion      string `yaml:"release_version"`
+	SetChannelName      string `yaml:"set_channel_name"`
+	SetGitHubContents   string `yaml:"set_github_contents"`
+	DisableOnline       bool   `yaml:"disable_online"`
+	NoStateFile         bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
+	SetEntitlementsJSON string `yaml:"set_entitlements_json"`
 	//debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 }
@@ -73,7 +75,7 @@ var _ = Describe("ship app", func() {
 				}, 20)
 
 				AfterEach(func() {
-					if !testMetadata.SkipCleanup {
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
@@ -85,21 +87,36 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs([]string{
-						"app",
-						"--headless",
-						fmt.Sprintf("--runbook=%s", path.Join(testInputPath, ".ship/release.yml")),
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
+					upstream := fmt.Sprintf(
+						"%s?customer_id=%s&installation_id=%s&release_semver=%s",
+						path.Join(testInputPath, ".ship/ship.yml"),
+						testMetadata.CustomerID, testMetadata.InstallationID, testMetadata.ReleaseVersion,
+					)
+					args := []string{
+						"init",
+						upstream,
 						fmt.Sprintf("--set-channel-name=%s", testMetadata.SetChannelName),
-						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
+						fmt.Sprintf("--set-github-contents=%s", testMetadata.SetGitHubContents),
+						"--headless",
 						"--log-level=off",
-						"--terraform-yes",
-					})
+						"--terraform-apply-yes",
+					}
+					if !testMetadata.NoStateFile {
+						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+					}
+
+					if testMetadata.SetEntitlementsJSON != "" {
+						args = append(args, fmt.Sprintf("--set-entitlements-json=%s", testMetadata.SetEntitlementsJSON))
+					}
+
+					cmd.SetArgs(args)
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
 					//compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{
+						"__upstream__": strings.Replace(upstream, "&", "\\u0026", -1),
+					}, []string{}, []map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
@@ -111,22 +128,28 @@ var _ = Describe("ship app", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs(append([]string{
-						"app",
+					upstream := fmt.Sprintf(
+						"staging.replicated.app/integration?customer_id=%s&installation_id=%s&release_semver=%s",
+						testMetadata.CustomerID, testMetadata.InstallationID, testMetadata.ReleaseVersion,
+					)
+					args := []string{
+						"init",
+						upstream,
 						"--headless",
-						fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")),
-						"--customer-endpoint=https://pg.staging.replicated.com/graphql",
 						"--log-level=off",
-						fmt.Sprintf("--customer-id=%s", testMetadata.CustomerID),
-						fmt.Sprintf("--installation-id=%s", testMetadata.InstallationID),
-						fmt.Sprintf("--release-semver=%s", testMetadata.ReleaseVersion),
-						"--terraform-yes",
-					}))
+						"--terraform-apply-yes",
+					}
+					if !testMetadata.NoStateFile {
+						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+					}
+					cmd.SetArgs(args)
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
 					//compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{
+						"__upstream__": strings.Replace(upstream, "&", "\\u0026", -1),
+					}, []string{}, []map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

@@ -7,14 +7,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/templates"
-
-	"github.com/replicatedhq/libyaml"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/libyaml"
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/spf13/viper"
 )
 
@@ -73,11 +71,10 @@ func (r *APIConfigRenderer) shouldOverrideValueWithDefault(item *libyaml.ConfigI
 	// non-empty defaults
 	if firstPass {
 		return item.Hidden && item.Value == "" && item.Default != ""
-	} else {
-		// vendor can't override a default with "" in interactive mode
-		_, ok := savedState[item.Name]
-		return !ok && item.Value == "" && item.Default != ""
 	}
+	// vendor can't override a default with "" in interactive mode
+	_, ok := savedState[item.Name]
+	return !ok && item.Value == "" && item.Default != ""
 }
 
 func isRequired(item *libyaml.ConfigItem) bool {

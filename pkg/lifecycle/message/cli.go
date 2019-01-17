@@ -2,7 +2,6 @@ package message
 
 import (
 	"context"
-
 	"fmt"
 
 	"github.com/go-kit/kit/log"

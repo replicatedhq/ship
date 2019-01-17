@@ -1,4 +1,4 @@
-.PHONY: build deps prebuild build gen-schema merge-mutations validate done markdown-assets pipeline-strict pipeline copy-to-help-center copy-replicated-lint lint ship
+.PHONY: build deps prebuild build gen-schema merge-mutations validate done markdown-assets pipeline-strict pipeline copy-to-help-center copy-replicated-lint ship
 
 SCHEMA_JSON := ./schema.json
 MUTATIONS := ./mutations.json
@@ -42,29 +42,26 @@ markdown-assets:
 
 
 pipeline-strict: deps prebuild build gen-schema merge-mutations validate markdown-assets
-pipeline: deps prebuild build gen-schema merge-mutations markdown-assets
+pipeline: deps prebuild build gen-schema merge-mutations 
+
+# require validation to generate docs, pipeline only does schema
+pipeline-docs: pipeline-strict
 
 copy-to-help-center:
-	: To Copy to Help center, run the following command:
+	: To copy to the Ship documentation site, run the following command:
 	:
 	:    make pipeline
-	:    cp assets/* [path/to/ship-www]/content/api/ship-assets/
-	:    cp lifecycle/* [path/to/ship-www]/content/api/ship-lifecycle/
-	:    cp config/* [path/to/ship-www]/content/api/ship-config/
+	:    cp assets/* [path/to/ship-www]/content/reference/assets/
+	:    cp lifecycle/* [path/to/ship-www]/content/reference/lifecycle/
+	:    cp config/* [path/to/ship-www]/content/reference/config/
 
 copy-to-help-center-gopath:
-	cp assets/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-assets/
-	cp lifecycle/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-lifecycle/
-	cp config/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/api/ship-config/
+	cp assets/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/assets/
+	cp lifecycle/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/lifecycle/
+	cp config/* $$GOPATH/src/github.com/replicatedhq/ship-www/content/reference/config/
 
 copy-replicated-lint:
 	: To Copy to replicated lint, run the following command:
 	:
 	:    make pipeline
 	:    cp schema.json  [path/to/replicated-lint]/projects/replicated-ship/
-
-lint:
-	`yarn bin`/replicated-lint validate -f ../../e2e-retraced/ship-retraced.yml --excludeDefaults --schema $(SCHEMA_JSON)
-
-ship:
-	../../bin/ship --runbook ../../e2e-retraced/ship-retraced.yml --log-level debug

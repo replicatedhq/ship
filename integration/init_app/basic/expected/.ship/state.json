@@ -1,1 +1,15 @@
-{"v1":{"config":{}}}
+{
+  "v1": {
+    "config": {},
+    "upstream": "__upstream__",
+    "contentSHA": "6faeec976f37e880c5e70cf578412a57fbfda3b35bf8e6f73221fe5fe88f1058",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
+      "releaseNotes": "integration tests",
+      "version": "1.0.2"
+    },
+    "releaseName": "integration-replicated-app-basic"
+  }
+}

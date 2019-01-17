@@ -22,8 +22,9 @@ type TestMetadata struct {
 	Args []string `yaml:"args"`
 	Skip bool     `yaml:"skip"`
 
-	//debugging
-	SkipCleanup bool `yaml:"skip_cleanup"`
+	// debugging
+	SkipCleanup  bool     `yaml:"skip_cleanup"`
+	IgnoredFiles []string `yaml:"ignoredFiles"`
 }
 
 func TestShipUpdate(t *testing.T) {
@@ -86,7 +87,7 @@ var _ = Describe("ship update", func() {
 				}, 20)
 
 				AfterEach(func() {
-					if !testMetadata.SkipCleanup {
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
@@ -112,10 +113,10 @@ var _ = Describe("ship update", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
-					//compare the files in the temporary directory with those in the "expected" directory
-					// TODO: text based comparison of state files is brittle becuase helm values are being merged.
+					// compare the files in the temporary directory with those in the "expected" directory
+					// TODO: text based comparison of state files is brittle because helm values are being merged.
 					// they should really be compared using the versioned state object
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{}, testMetadata.IgnoredFiles, []map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

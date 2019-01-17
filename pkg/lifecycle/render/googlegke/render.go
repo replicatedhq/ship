@@ -8,6 +8,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/go-kit/kit/log"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -109,40 +110,33 @@ func (r *LocalRenderer) Execute(
 
 func buildAsset(asset api.GKEAsset, builder *templates.Builder) (api.GKEAsset, error) {
 	var err error
+	var multiErr *multierror.Error
+
 	asset.Credentials, err = builder.String(asset.Credentials)
-	if err != nil {
-		return asset, errors.Wrap(err, "build credentials")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build credentials"))
 	asset.Project, err = builder.String(asset.Project)
-	if err != nil {
-		return asset, errors.Wrap(err, "build project")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build project"))
+
 	asset.Region, err = builder.String(asset.Region)
-	if err != nil {
-		return asset, errors.Wrap(err, "build region")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build region"))
+
 	asset.ClusterName, err = builder.String(asset.ClusterName)
-	if err != nil {
-		return asset, errors.Wrap(err, "build cluster_name")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build cluster_name"))
+
 	asset.Zone, err = builder.String(asset.Zone)
-	if err != nil {
-		return asset, errors.Wrap(err, "build zone")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build zone"))
+
 	asset.InitialNodeCount, err = builder.String(asset.InitialNodeCount)
-	if err != nil {
-		return asset, errors.Wrap(err, "build initial_node_count")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build initial_node_count"))
+
 	asset.MachineType, err = builder.String(asset.MachineType)
-	if err != nil {
-		return asset, errors.Wrap(err, "build machine_type")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build machine_type"))
+
 	asset.AdditionalZones, err = builder.String(asset.AdditionalZones)
-	if err != nil {
-		return asset, errors.Wrap(err, "build additional_zones")
-	}
+	multiErr = multierror.Append(multiErr, errors.Wrap(err, "build additional_zones"))
+
 	// NOTE: items not configurable by the end user include MinMasterVersion
-	return asset, nil
+	return asset, multiErr.ErrorOrNil()
 }
 
 func renderTerraformContents(asset api.GKEAsset) (string, error) {
@@ -161,8 +155,15 @@ func renderTerraformContents(asset api.GKEAsset) (string, error) {
 }
 
 func executeTemplate(t *template.Template, asset api.GKEAsset) (string, error) {
+	var data = struct {
+		api.GKEAsset
+		KubeConfigTmpl string
+	}{
+		asset,
+		kubeConfigTmpl,
+	}
 	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, asset); err != nil {
+	if err := t.Execute(&tpl, data); err != nil {
 		return "", err
 	}
 

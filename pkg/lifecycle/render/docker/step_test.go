@@ -1,23 +1,21 @@
 package docker
 
 import (
-	"errors"
-	"testing"
-
-	"github.com/replicatedhq/libyaml"
-
 	"context"
-
+	"errors"
 	"fmt"
+	"testing"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	mockimages "github.com/replicatedhq/ship/pkg/test-mocks/images"
 	mocksaver "github.com/replicatedhq/ship/pkg/test-mocks/images/saver"
+	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -32,19 +30,19 @@ func TestDockerStep(t *testing.T) {
 		Expect                  error
 	}{
 		{
-			name: "registry succeeds",
+			name:                    "registry succeeds",
 			RegistrySecretSaveError: nil,
 			InstallationIDSaveError: nil,
 			Expect:                  nil,
 		},
 		{
-			name: "registry fails, install id succeeds",
+			name:                    "registry fails, install id succeeds",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: nil,
 			Expect:                  nil,
 		},
 		{
-			name: "registry fails, install id fails",
+			name:                    "registry fails, install id fails",
 			RegistrySecretSaveError: errors.New("noooope"),
 			InstallationIDSaveError: errors.New("nope nope nope"),
 			Expect:                  errors.New("docker save image, both auth methods failed: nope nope nope"),
@@ -57,7 +55,7 @@ func TestDockerStep(t *testing.T) {
 			saver := mocksaver.NewMockImageSaver(mc)
 			urlResolver := mockimages.NewMockPullURLResolver(mc)
 			testLogger := &logger.TestLogger{T: t}
-			bb := templates.NewBuilderBuilder(testLogger, v)
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
 			ctx := context.Background()
 
 			step := &DefaultStep{

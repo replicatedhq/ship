@@ -3,9 +3,8 @@ package helmValues
 import (
 	"context"
 	"path"
-	"time"
-
 	"path/filepath"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -64,8 +63,18 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 
 	h.Daemon.SetProgress(daemontypes.StringProgress("helmValues", "generating installable application manifests"))
 
+	currentHelmValues := currentState.CurrentHelmValues()
+	if step.Path != "" {
+		requestedValues, err := h.Fs.ReadFile(step.Path)
+		if err != nil {
+			return errors.Wrap(err, "read values")
+		}
+
+		currentHelmValues = string(requestedValues)
+	}
+
 	h.Daemon.PushHelmValuesStep(ctx, daemontypes.HelmValues{
-		Values:        currentState.CurrentHelmValues(),
+		Values:        currentHelmValues,
 		DefaultValues: currentState.CurrentHelmValuesDefaults(),
 	}, daemon.HelmValuesActions())
 	debug.Log("event", "step.pushed")

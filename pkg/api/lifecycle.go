@@ -1,6 +1,10 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/replicatedhq/ship/pkg/constants"
+)
 
 // A Lifecycle  is the top-level lifecycle object
 type Lifecycle struct {
@@ -14,10 +18,11 @@ type Step struct {
 	Render         *Render         `json:"render,omitempty" yaml:"render,omitempty" hcl:"render,omitempty"`
 	Terraform      *Terraform      `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	Kustomize      *Kustomize      `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
+	Unfork         *Unfork         `json:"unfork,omitempty" yaml:"unfork,omitempty" hcl:"unfork,omitempty"`
 	KustomizeIntro *KustomizeIntro `json:"kustomizeIntro,omitempty" yaml:"kustomizeIntro,omitempty" hcl:"kustomizeIntro,omitempty"`
 	HelmIntro      *HelmIntro      `json:"helmIntro,omitempty" yaml:"helmIntro,omitempty" hcl:"helmIntro,omitempty"`
 	HelmValues     *HelmValues     `json:"helmValues,omitempty" yaml:"helmValues,omitempty" hcl:"helmValues,omitempty"`
-	KubectlApply   *KubectlApply   `json:"kubectl_apply,omitempty" yaml:"kubectl_apply,omitempty" hcl:"kubectl_apply,omitempty"`
+	KubectlApply   *KubectlApply   `json:"kubectlApply,omitempty" yaml:"kubectlApply,omitempty" hcl:"kubectlApply,omitempty"`
 }
 
 func (s *Step) String() string {
@@ -44,10 +49,14 @@ func (s Step) GetStep() StepDetails {
 		return s.KustomizeIntro
 	} else if s.Kustomize != nil {
 		return s.Kustomize
+	} else if s.Unfork != nil {
+		return s.Unfork
 	} else if s.HelmIntro != nil {
 		return s.HelmIntro
 	} else if s.HelmValues != nil {
 		return s.HelmValues
+	} else if s.KubectlApply != nil {
+		return s.KubectlApply
 	}
 	return nil
 }
@@ -80,22 +89,57 @@ type Render struct {
 func (r *Render) Shared() *StepShared { return &r.StepShared }
 
 func (r *Render) ShortName() string { return "render" }
+func (r *Render) RenderRoot() string {
+	if r.Root == "" {
+		return constants.InstallerPrefixPath
+	}
+	return r.Root
+}
 
 // Terraform is a lifeycle step to execute `apply` for a runbook's terraform asset
 type Terraform struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	When       string `json:"when,omitempty" yaml:"when,omitempty" hcl:"when,omitempty"`
 }
 
 func (t *Terraform) Shared() *StepShared { return &t.StepShared }
 func (t *Terraform) ShortName() string   { return "terraform" }
 
+// Unfork is a lifecycle step to generate patches and overlays for
+// two generates assets that consist of raw K8S YAML
+type Unfork struct {
+	StepShared   `json:",inline" yaml:",inline" hcl:",inline"`
+	UpstreamBase string `json:"upstreamBase" yaml:"upstreamBase" hcl:"upstreamBase"`
+	ForkedBase   string `json:"forkedBase" yaml:"forkedBase" hcl:"forkedBase"`
+	Dest         string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	Overlay      string `json:"overlay,omitempty" yaml:"overlay,omitempty" hcl:"overlay,omitempty"`
+}
+
+func (k *Unfork) OverlayPath() string {
+	if k.Overlay == "" {
+		return "overlays/ship"
+	}
+	return k.Overlay
+}
+
+func (u *Unfork) Shared() *StepShared { return &u.StepShared }
+func (k *Unfork) ShortName() string   { return "unfork" }
+
 // Kustomize is a lifeycle step to generate overlays for generated assets.
 // It does not take a kustomization.yml, rather it will generate one in the .ship/ folder
 type Kustomize struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	BasePath   string `json:"base_path,omitempty" yaml:"base_path,omitempty" hcl:"base_path,omitempty"`
+	Base       string `json:"base,omitempty" yaml:"base,omitempty" hcl:"base,omitempty"`
 	Dest       string `json:"dest,omitempty" yaml:"dest,omitempty" hcl:"dest,omitempty"`
+	Overlay    string `json:"overlay,omitempty" yaml:"overlay,omitempty" hcl:"overlay,omitempty"`
+}
+
+func (k *Kustomize) OverlayPath() string {
+	if k.Overlay == "" {
+		return "overlays/ship"
+	}
+	return k.Overlay
 }
 
 func (k *Kustomize) Shared() *StepShared { return &k.StepShared }
@@ -111,6 +155,7 @@ func (k *KustomizeIntro) ShortName() string   { return "kustomize-intro" }
 
 // HelmIntro is a lifecycle step to render persisted README.md in the .ship folder
 type HelmIntro struct {
+	IsUpdate   bool
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
 }
 
@@ -121,6 +166,7 @@ func (h *HelmIntro) ShortName() string   { return "helm-intro" }
 // and save user input changes to values.yaml
 type HelmValues struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path       string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
 
 func (h *HelmValues) Shared() *StepShared { return &h.StepShared }

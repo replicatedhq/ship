@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"bytes"
 	"encoding/json"
 	"os"
 	"path"
@@ -12,25 +11,27 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
-	k8stypes "github.com/kubernetes-sigs/kustomize/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
+	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
 const PATCH_TOKEN = "TO_BE_MODIFIED"
+
+const TempYamlPath = "temp.yaml"
 
 type Patcher interface {
 	CreateTwoWayMergePatch(original, modified []byte) ([]byte, error)
 	MergePatches(original []byte, path []string, step api.Kustomize, resource string) ([]byte, error)
 	ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error)
 	ModifyField(original []byte, path []string) ([]byte, error)
+	RunKustomize(kustomizationPath string) ([]byte, error)
 }
 
 type ShipPatcher struct {
@@ -43,18 +44,6 @@ func NewShipPatcher(logger log.Logger, fs afero.Afero) Patcher {
 		Logger: logger,
 		FS:     fs,
 	}
-}
-
-func (p *ShipPatcher) newKubernetesResource(in []byte) (*resource.Resource, error) {
-	var out unstructured.Unstructured
-
-	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(in), 1024)
-	err := decoder.Decode(&out)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode json")
-	}
-
-	return resource.NewResourceFromUnstruct(out), nil
 }
 
 func (p *ShipPatcher) writeHeaderToPatch(originalJSON, patchJSON []byte) ([]byte, error) {
@@ -114,7 +103,7 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte,
 	}
 
 	debug.Log("event", "createKubeResource.original")
-	r, err := p.newKubernetesResource(originalJSON)
+	r, err := util.NewKubernetesResource(originalJSON)
 	if err != nil {
 		return nil, errors.Wrap(err, "create kube resource with original json")
 	}
@@ -188,7 +177,7 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	debug.Log("event", "writeFile.tempPatch")
-	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "temp.yaml"), patch, 0755); err != nil {
+	if err := p.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, TempYamlPath), patch, 0755); err != nil {
 		return nil, errors.Wrap(err, "write temp patch overlay")
 	}
 
@@ -199,8 +188,8 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	kustomizationYaml := k8stypes.Kustomization{
-		Bases:   []string{relativePathToBases},
-		Patches: []string{"temp.yaml"},
+		Bases:                 []string{relativePathToBases},
+		PatchesStrategicMerge: []kustomizepatch.PatchStrategicMerge{TempYamlPath},
 	}
 
 	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)
@@ -230,16 +219,16 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 
 	tempBaseKustomization := k8stypes.Kustomization{}
 	if err := p.FS.Walk(
-		step.BasePath,
+		step.Base,
 		func(targetPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
 
-			relativePath, err := filepath.Rel(step.BasePath, targetPath)
+			relativePath, err := filepath.Rel(step.Base, targetPath)
 			if err != nil {
-				debug.Log("event", "relativepath.fail", "base", step.BasePath, "target", targetPath)
+				debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
 
@@ -263,7 +252,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 	}
 
 	// write base kustomization
-	name := path.Join(step.BasePath, "kustomization.yaml")
+	name := path.Join(step.Base, "kustomization.yaml")
 	err = p.FS.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)
@@ -274,7 +263,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 func (p *ShipPatcher) deleteTempKustomization(step api.Kustomize) error {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "deleteTempKustomization"))
 
-	baseKustomizationPath := path.Join(step.BasePath, "kustomization.yaml")
+	baseKustomizationPath := path.Join(step.Base, "kustomization.yaml")
 
 	debug.Log("event", "remove.tempKustomizationYaml")
 	err := p.FS.Remove(baseKustomizationPath)

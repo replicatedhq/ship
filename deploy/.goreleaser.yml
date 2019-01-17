@@ -3,6 +3,15 @@ release:
   github:
     owner: replicatedhq
     name: ship
+brew:
+  github:
+    owner: replicatedhq
+    name: homebrew-ship
+  folder: Formula
+  homepage: https://ship.replicated.com/
+  description: Deploy 3rd party applications through modern pipelines
+  test: |
+    system "#{bin}/ship", "version"
 builds:
 - goos:
   - linux
@@ -42,5 +51,9 @@ dockers:
       - "{{ .Major }}"
       - "{{ .Major }}.{{ .Minor }}"
       - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+      - "slim"
+      - "{{ .Major }}-slim"
+      - "{{ .Major }}.{{ .Minor }}-slim"
+      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}-slim"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}

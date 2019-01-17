@@ -2,12 +2,7 @@ package cli
 
 import (
 	"context"
-	"strings"
 
-	_ "github.com/kubernetes-sigs/kustomize/pkg/app"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/fs"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/loader"
-	_ "github.com/kubernetes-sigs/kustomize/pkg/resmap"
 	"github.com/replicatedhq/ship/pkg/ship"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,10 +11,17 @@ import (
 func Update() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "Pull an updated helm chart",
-		Long:  `Pull an updated helm chart to be integrated into current application configuration`,
+		Short: "Fetch the latest upstream for a Ship application",
+		Long:  `Given an existing Ship state.json, fetch the latest upstream and merge`,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.Flags())
+			viper.BindPFlags(cmd.PersistentFlags())
+		},
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// update should run in headless mode by default
+			viper.Set("isUpdate", true)
+
 			if !viper.GetBool("headed") {
 				viper.Set("headless", true)
 			}
@@ -35,8 +37,5 @@ func Update() *cobra.Command {
 
 	cmd.Flags().BoolP("headed", "", false, "run ship update in headed mode")
 
-	viper.BindPFlags(cmd.Flags())
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd
 }

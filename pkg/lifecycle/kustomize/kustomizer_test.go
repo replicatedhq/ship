@@ -15,11 +15,11 @@ import (
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/patch"
 )
 
 func Test_kustomizer_writePatches(t *testing.T) {
 	destDir := path.Join("overlays", "ship")
-	var nilSlice []string
 
 	type args struct {
 		shipOverlay state.Overlay
@@ -29,7 +29,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 		name        string
 		args        args
 		expectFiles map[string]string
-		want        []string
+		want        []patch.PatchStrategicMerge
 		wantErr     bool
 	}{
 		{
@@ -41,7 +41,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				destDir: destDir,
 			},
 			expectFiles: map[string]string{},
-			want:        nilSlice,
+			want:        nil,
 		},
 		{
 			name: "Patches in state",
@@ -58,7 +58,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				"a.yaml":        "---",
 				"folder/b.yaml": "---",
 			},
-			want: []string{"a.yaml", "folder/b.yaml"},
+			want: []patch.PatchStrategicMerge{"a.yaml", "folder/b.yaml"},
 		},
 	}
 	for _, tt := range tests {
@@ -69,7 +69,16 @@ func Test_kustomizer_writePatches(t *testing.T) {
 			mockDaemon := daemon2.NewMockDaemon(mc)
 			mockState := state2.NewMockManager(mc)
 
-			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			// need a real FS because afero.Rename on a memMapFs doesn't copy directories recursively
+			fs := afero.Afero{Fs: afero.NewOsFs()}
+			tmpdir, err := fs.TempDir("./", tt.name)
+			req.NoError(err)
+			defer fs.RemoveAll(tmpdir)
+
+			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
+			// its chrooted to a temp dir, but this needs to exist
+			err = mockFs.MkdirAll(".ship/tmp/", 0755)
+			req.NoError(err)
 			l := &daemonkustomizer{
 				Kustomizer: Kustomizer{
 					Logger: testLogger,
@@ -79,7 +88,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				Daemon: mockDaemon,
 			}
 
-			got, err := l.writePatches(tt.args.shipOverlay, tt.args.destDir)
+			got, err := l.writePatches(mockFs, tt.args.shipOverlay, tt.args.destDir)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writePatches() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -102,32 +111,33 @@ func Test_kustomizer_writePatches(t *testing.T) {
 
 func Test_kustomizer_writeOverlay(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.KustomizeBasePath,
-		Dest:     path.Join("overlays", "ship"),
+		Base:    constants.KustomizeBasePath,
+		Overlay: path.Join("overlays", "ship"),
 	}
 
-	type args struct {
-		patches []string
-	}
 	tests := []struct {
-		name       string
-		patches    []string
-		expectFile string
-		wantErr    bool
+		name               string
+		relativePatchPaths []patch.PatchStrategicMerge
+		expectFile         string
+		wantErr            bool
 	}{
 		{
-			name:    "No patches",
-			patches: []string{},
-			expectFile: `bases:
+			name:               "No patches",
+			relativePatchPaths: []patch.PatchStrategicMerge{},
+			expectFile: `kind: ""
+apiversion: ""
+bases:
 - ../../base
 `,
 		},
 		{
-			name:    "Patches provided",
-			patches: []string{"a.yaml", "b.yaml", "c.yaml"},
-			expectFile: `bases:
+			name:               "Patches provided",
+			relativePatchPaths: []patch.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
+			expectFile: `kind: ""
+apiversion: ""
+bases:
 - ../../base
-patches:
+patchesStrategicMerge:
 - a.yaml
 - b.yaml
 - c.yaml
@@ -151,11 +161,11 @@ patches:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockStep, tt.patches); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockStep, tt.relativePatchPaths, nil); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			overlayPathDest := path.Join(mockStep.Dest, "kustomization.yaml")
+			overlayPathDest := path.Join(mockStep.OverlayPath(), "kustomization.yaml")
 			fileBytes, err := l.FS.ReadFile(overlayPathDest)
 			if err != nil {
 				t.Errorf("expected file at %v, received error instead: %v", overlayPathDest, err)
@@ -167,18 +177,19 @@ patches:
 
 func Test_kustomizer_writeBase(t *testing.T) {
 	mockStep := api.Kustomize{
-		BasePath: constants.KustomizeBasePath,
-		Dest:     path.Join("overlays", "ship"),
+		Base:    constants.KustomizeBasePath,
+		Overlay: path.Join("overlays", "ship"),
 	}
 
 	type fields struct {
 		GetFS func() (afero.Afero, error)
 	}
 	tests := []struct {
-		name       string
-		fields     fields
-		expectFile string
-		wantErr    bool
+		name          string
+		fields        fields
+		expectFile    string
+		wantErr       bool
+		excludedBases []string
 	}{
 		{
 			name: "No base files",
@@ -217,7 +228,9 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					return fs, nil
 				},
 			},
-			expectFile: `resources:
+			expectFile: `kind: ""
+apiversion: ""
+resources:
 - a.yaml
 - b.yaml
 - c.yaml
@@ -254,11 +267,52 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					return fs, nil
 				},
 			},
-			expectFile: `resources:
+			expectFile: `kind: ""
+apiversion: ""
+resources:
 - charts/kube-stats-metrics/templates/deployment.yaml
 - clusterrole.yaml
 - deployment.yaml
 `,
+		},
+		{
+			name: "Base files with nested and excluded chart",
+			fields: fields{
+				GetFS: func() (afero.Afero, error) {
+					fs := afero.Afero{Fs: afero.NewMemMapFs()}
+					nestedChartPath := path.Join(
+						constants.KustomizeBasePath,
+						"charts/kube-stats-metrics/templates",
+					)
+					if err := fs.MkdirAll(nestedChartPath, 0777); err != nil {
+						return afero.Afero{}, err
+					}
+
+					files := []string{
+						"deployment.yaml",
+						"clusterrole.yaml",
+						"charts/kube-stats-metrics/templates/deployment.yaml",
+					}
+					for _, file := range files {
+						if err := fs.WriteFile(
+							path.Join(constants.KustomizeBasePath, file),
+							[]byte{},
+							0777,
+						); err != nil {
+							return afero.Afero{}, err
+						}
+					}
+
+					return fs, nil
+				},
+			},
+			expectFile: `kind: ""
+apiversion: ""
+resources:
+- charts/kube-stats-metrics/templates/deployment.yaml
+- deployment.yaml
+`,
+			excludedBases: []string{"/clusterrole.yaml"},
 		},
 	}
 	for _, tt := range tests {
@@ -268,6 +322,18 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			testLogger := &logger.TestLogger{T: t}
 			mockDaemon := daemon2.NewMockDaemon(mc)
 			mockState := state2.NewMockManager(mc)
+
+			mockState.EXPECT().TryLoad().Return(state.VersionedState{
+				V1: &state.V1{
+					Kustomize: &state.Kustomize{
+						Overlays: map[string]state.Overlay{
+							"ship": state.Overlay{
+								ExcludedBases: tt.excludedBases,
+							},
+						},
+					},
+				},
+			}, nil).AnyTimes()
 
 			fs, err := tt.fields.GetFS()
 			req.NoError(err)
@@ -284,7 +350,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
-				basePathDest := path.Join(mockStep.BasePath, "kustomization.yaml")
+				basePathDest := path.Join(mockStep.Base, "kustomization.yaml")
 				fileBytes, err := l.FS.ReadFile(basePathDest)
 				if err != nil {
 					t.Errorf("expected file at %v, received error instead: %v", basePathDest, err)
@@ -305,10 +371,14 @@ func TestKustomizer(t *testing.T) {
 			name:      "no files",
 			kustomize: nil,
 			expectFiles: map[string]string{
-				"overlays/ship/kustomization.yaml": `bases:
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
 - ../../base
 `,
-				"base/kustomization.yaml": `resources:
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
 - deployment.yaml
 `,
 			},
@@ -336,12 +406,67 @@ metadata:
 spec:
   replicas: 100`,
 
-				"overlays/ship/kustomization.yaml": `bases:
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
 - ../../base
-patches:
+patchesStrategicMerge:
 - deployment.yaml
 `,
-				"base/kustomization.yaml": `resources:
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
+- deployment.yaml
+`,
+			},
+		},
+		{
+			name: "adding a resource",
+			kustomize: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": {
+						Resources: map[string]string{
+							"/limitrange.yaml": `---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container`,
+						},
+						KustomizationYAML: "",
+					},
+				},
+			},
+			expectFiles: map[string]string{
+				"overlays/ship/limitrange.yaml": `---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container`,
+
+				"overlays/ship/kustomization.yaml": `kind: ""
+apiversion: ""
+bases:
+- ../../base
+resources:
+- limitrange.yaml
+`,
+				"base/kustomization.yaml": `kind: ""
+apiversion: ""
+resources:
 - deployment.yaml
 `,
 			},
@@ -379,7 +504,7 @@ patches:
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
 			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
 				Kustomize: test.kustomize,
-			}}, nil)
+			}}, nil).Times(2)
 
 			k := &daemonkustomizer{
 				Kustomizer: Kustomizer{
@@ -394,8 +519,8 @@ patches:
 				ctx,
 				&release,
 				api.Kustomize{
-					BasePath: constants.KustomizeBasePath,
-					Dest:     "overlays/ship",
+					Base:    constants.KustomizeBasePath,
+					Overlay: "overlays/ship",
 				},
 			)
 
@@ -406,6 +531,45 @@ patches:
 			}
 
 			req.NoError(err)
+		})
+	}
+}
+
+func TestKustomizer_shouldAddFile(t *testing.T) {
+	k := daemonkustomizer{}
+
+	tests := []struct {
+		name          string
+		targetPath    string
+		want          bool
+		excludedPaths []string
+	}{
+		{name: "empty", targetPath: "", want: false, excludedPaths: []string{}},
+		{name: "no extension", targetPath: "file", want: false, excludedPaths: []string{}},
+		{name: "wrong extension", targetPath: "file.txt", want: false, excludedPaths: []string{}},
+		{name: "yaml file", targetPath: "file.yaml", want: true, excludedPaths: []string{}},
+		{name: "yml file", targetPath: "file.yml", want: true, excludedPaths: []string{}},
+		{name: "kustomization yaml", targetPath: "kustomization.yaml", want: false, excludedPaths: []string{}},
+		{name: "Chart yaml", targetPath: "Chart.yaml", want: false, excludedPaths: []string{}},
+		{name: "values yaml", targetPath: "values.yaml", want: false, excludedPaths: []string{}},
+		{name: "no extension in dir", targetPath: "dir/file", want: false, excludedPaths: []string{}},
+		{name: "wrong extension in dir", targetPath: "dir/file.txt", want: false, excludedPaths: []string{}},
+		{name: "yaml in dir", targetPath: "dir/file.yaml", want: true, excludedPaths: []string{}},
+		{name: "yml in dir", targetPath: "dir/file.yml", want: true, excludedPaths: []string{}},
+		{name: "kustomization yaml in dir", targetPath: "dir/kustomization.yaml", want: false, excludedPaths: []string{}},
+		{name: "Chart yaml in dir", targetPath: "dir/Chart.yaml", want: false, excludedPaths: []string{}},
+		{name: "values yaml in dir", targetPath: "dir/values.yaml", want: false, excludedPaths: []string{}},
+		{name: "path in excluded", targetPath: "deployment.yaml", want: false, excludedPaths: []string{"/deployment.yaml"}},
+		{name: "path not in excluded", targetPath: "service.yaml", want: true, excludedPaths: []string{"/deployment.yaml"}},
+		{name: "similar path in excluded", targetPath: "dir/service.yaml", want: true, excludedPaths: []string{"/service.yaml"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			got := k.shouldAddFileToBase(tt.excludedPaths, tt.targetPath)
+
+			req.Equal(tt.want, got, "expected %t for path %s, got %t", tt.want, tt.targetPath, got)
 		})
 	}
 }

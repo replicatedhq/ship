@@ -9,6 +9,8 @@ const (
 	ShipPathInternal = ".ship"
 	// KustomizeBasePath is the path to which assets to be kustomized are written
 	KustomizeBasePath = "base"
+	// GithubAssetSavePath is the path that github assets are initially fetched to
+	GithubAssetSavePath = "tmp-github-asset"
 )
 
 var (
@@ -28,4 +30,10 @@ var (
 	TempApplyOverlayPath = path.Join("overlays", "tmp-apply")
 	// HelmChartPath is the path used to store Helm chart contents
 	HelmChartPath = path.Join(ShipPathInternalTmp, "chart")
+	// HelmChartForkedPath is the path used to store Helm chart contents of the fork
+	HelmChartForkedPath = path.Join(ShipPathInternalTmp, "chart-forked")
+	// UnforkForkedBasePath is the path that unfork will save the forked in when unforking
+	UnforkForkedBasePath = path.Join(ShipPathInternalTmp, "fork", "base")
+	// HelmLocalDependencyPath is the local temp path that local dependencies are initially saved to
+	HelmLocalDependencyPath = path.Join(ShipPathInternalTmp, "dependencies")
 )

@@ -1,0 +1,2 @@
+upstream: "input/ship.yaml"
+make_absolute: true

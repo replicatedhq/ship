@@ -1,1 +1,17 @@
-{"v1":{"config":{"option":"abc123"}}}
+{
+  "v1": {
+    "config": {
+      "option": "abc123"
+    },
+    "upstream": "__upstream__",
+    "contentSHA": "9fb30c009a2bb7202d3b0dfe7683823f799e238fd6132316de1cdbc54062dc6f",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
+      "releaseNotes": "integration tests",
+      "version": "1.0.1-SNAPSHOT"
+    },
+    "releaseName": "integration-replicated-app-github-template-func"
+  }
+}

@@ -9,17 +9,18 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
 const (
 	CustomResourceDefinition = "CustomResourceDefinition"
-	OverlaysFolder           = "overlays"
+	PatchesFolder            = "overlays"
+	ResourcesFolder          = "resources"
 )
 
 // A Loader returns a struct representation
@@ -44,13 +45,15 @@ func NewLoader(
 }
 
 type aferoLoader struct {
-	Logger       log.Logger
-	FS           afero.Afero
-	StateManager state.Manager
-	patches      map[string]string
+	Logger        log.Logger
+	FS            afero.Afero
+	StateManager  state.Manager
+	excludedBases map[string]string
+	patches       map[string]string
+	resources     map[string]string
 }
 
-func (a *aferoLoader) loadShipPatches() error {
+func (a *aferoLoader) loadShipOverlay() error {
 	currentState, err := a.StateManager.TryLoad()
 	if err != nil {
 		return errors.Wrap(err, "failed to load state")
@@ -62,12 +65,18 @@ func (a *aferoLoader) loadShipPatches() error {
 	}
 
 	shipOverlay := kustomize.Ship()
+	baseMap := make(map[string]string)
+	for _, base := range shipOverlay.ExcludedBases {
+		baseMap[base] = base
+	}
+	a.excludedBases = baseMap
 	a.patches = shipOverlay.Patches
+	a.resources = shipOverlay.Resources
 	return nil
 }
 
 func (a *aferoLoader) LoadTree(root string) (*Node, error) {
-	if err := a.loadShipPatches(); err != nil {
+	if err := a.loadShipOverlay(); err != nil {
 		return nil, errors.Wrapf(err, "load overlays")
 	}
 
@@ -83,25 +92,40 @@ func (a *aferoLoader) LoadTree(root string) (*Node, error) {
 		Name:     "/",
 		Children: []Node{},
 	}
-	overlayRootNode := Node{
+	patchesRootNode := Node{
 		Path:     "/",
-		Name:     OverlaysFolder,
+		Name:     PatchesFolder,
+		Children: []Node{},
+	}
+	resourceRootNode := Node{
+		Path:     "/",
+		Name:     ResourcesFolder,
 		Children: []Node{},
 	}
 
-	populatedKustomization := a.loadOverlayTree(overlayRootNode)
-	populated, err := a.loadTree(fs, rootNode, files)
-	children := []Node{populated}
+	populatedBase, err := a.loadTree(fs, rootNode, files)
+	if err != nil {
+		return nil, errors.Wrap(err, "load tree")
+	}
 
-	if len(populatedKustomization.Children) != 0 {
-		children = append(children, populatedKustomization)
+	populatedPatches := a.loadOverlayTree(patchesRootNode, a.patches)
+	populatedResources := a.loadOverlayTree(resourceRootNode, a.resources)
+
+	children := []Node{populatedBase}
+
+	if len(populatedPatches.Children) != 0 {
+		children = append(children, populatedPatches)
+	}
+
+	if len(populatedResources.Children) != 0 {
+		children = append(children, populatedResources)
 	}
 
 	return &Node{
 		Path:     "/",
 		Name:     "/",
 		Children: children,
-	}, errors.Wrap(err, "load tree")
+	}, nil
 }
 
 // todo move this to a new struct or something
@@ -137,11 +161,13 @@ func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo
 			return current, errors.Wrapf(err, "read file %s", file.Name())
 		}
 
+		_, exists := a.excludedBases[filePath]
 		return a.loadTree(fs, current.withChild(Node{
 			Name:        file.Name(),
 			Path:        filePath,
 			HasOverlay:  hasOverlay,
 			IsSupported: isSupported(fileB),
+			IsExcluded:  exists,
 		}), rest)
 	}
 
@@ -199,9 +225,9 @@ func (n Node) withChild(child Node) Node {
 	}
 }
 
-func (a *aferoLoader) loadOverlayTree(kustomizationNode Node) Node {
+func (a *aferoLoader) loadOverlayTree(kustomizationNode Node, files map[string]string) Node {
 	filledTree := &kustomizationNode
-	for patchPath := range a.patches {
+	for patchPath := range files {
 		splitPatchPath := strings.Split(patchPath, "/")[1:]
 		filledTree = a.createOverlayNode(filledTree, splitPatchPath)
 	}

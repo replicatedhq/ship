@@ -1,1 +1,15 @@
-{"v1":{"config":{"bool_option":"0"}}}
+{
+  "v1": {
+    "config": {
+      "bool_option": "0"
+    },
+    "contentSHA": "e935ace16aacb22dc0fc5eccb3e7cc44c25ae8ffeca805c434317449d595800a",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "releaseNotes": "",
+      "version": ""
+    },
+    "releaseName": "ship",
+    "upstream": "__upstream__"
+  }
+}

@@ -7,20 +7,21 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/amazoneks"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/azureaks"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/dockerlayer"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/github"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/googlegke"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/inline"
+	"github.com/replicatedhq/ship/pkg/lifecycle/render/local"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/terraform"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/web"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 // A Plan is a list of PlanSteps to execute
@@ -73,6 +74,7 @@ func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 			Web:         planner.Web,
 			AmazonEKS:   planner.AmazonEKS,
 			GoogleGKE:   planner.GoogleGKE,
+			AzureAKS:    planner.AzureAKS,
 		}
 
 	})
@@ -105,6 +107,7 @@ type CLIPlanner struct {
 
 	Inline      inline.Renderer
 	Helm        helm.Renderer
+	Local       local.Renderer
 	Docker      docker.Renderer
 	DockerLayer *dockerlayer.Unpacker
 	Web         web.Renderer
@@ -112,6 +115,7 @@ type CLIPlanner struct {
 	Terraform   terraform.Renderer
 	AmazonEKS   amazoneks.Renderer
 	GoogleGKE   googlegke.Renderer
+	AzureAKS    azureaks.Renderer
 }
 
 // Use a factory so we can create instances and override the StatusReceiver on those instances.
@@ -124,12 +128,14 @@ func NewFactory(
 	inlineRenderer inline.Renderer,
 	dockerRenderer docker.Renderer,
 	helmRenderer helm.Renderer,
+	localRenderer local.Renderer,
 	dockerlayers *dockerlayer.Unpacker,
 	gh github.Renderer,
 	tf terraform.Renderer,
 	webRenderer web.Renderer,
 	amazonEKS amazoneks.Renderer,
 	googleGKE googlegke.Renderer,
+	azureAKS azureaks.Renderer,
 	status daemontypes.StatusReceiver,
 ) Planner {
 	return Factory(func() *CLIPlanner {
@@ -142,6 +148,7 @@ func NewFactory(
 
 			Inline:      inlineRenderer,
 			Helm:        helmRenderer,
+			Local:       localRenderer,
 			Docker:      dockerRenderer,
 			DockerLayer: dockerlayers,
 			GitHub:      gh,
@@ -149,6 +156,7 @@ func NewFactory(
 			Web:         webRenderer,
 			AmazonEKS:   amazonEKS,
 			GoogleGKE:   googleGKE,
+			AzureAKS:    azureAKS,
 			Status:      status,
 		}
 	})

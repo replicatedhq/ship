@@ -1,0 +1,90 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "__upstream__",
+    "metadata": {
+      "applicationType": "",
+      "releaseNotes": "",
+      "version": "",
+      "lists": [
+        {
+          "apiVersion": "v1",
+          "path": "installer/base/cassandra.yml",
+          "items": [
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "cassandra",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "StatefulSet",
+              "metadata": {
+                "name": "cassandra",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Job",
+              "metadata": {
+                "name": "jaeger-cassandra-schema-job",
+                "namespace": ""
+              }
+            }
+          ]
+        },
+        {
+          "apiVersion": "v1",
+          "path": "installer/base/jaeger-production-template.yml",
+          "items": [
+            {
+              "kind": "Deployment",
+              "metadata": {
+                "name": "jaeger-collector",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "jaeger-collector",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "zipkin",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Deployment",
+              "metadata": {
+                "name": "jaeger-query",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "jaeger-query",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "DaemonSet",
+              "metadata": {
+                "name": "jaeger-agent",
+                "namespace": ""
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "contentSHA": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

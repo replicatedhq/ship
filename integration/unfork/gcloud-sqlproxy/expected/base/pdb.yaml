@@ -1,0 +1,17 @@
+---
+# Source: gcloud-sqlproxy/templates/pdb.yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    app: gcloud-sqlproxy-gcloud-sqlproxy
+    chart: gcloud-sqlproxy-0.6.3
+    heritage: Tiller
+    release: gcloud-sqlproxy
+  name: gcloud-sqlproxy-gcloud-sqlproxy
+spec:
+  selector:
+    matchLabels:
+      app: gcloud-sqlproxy-gcloud-sqlproxy
+  maxUnavailable: 1
+  

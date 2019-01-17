@@ -1,0 +1,76 @@
+apiVersion: v1
+data:
+  config: "policy: enabled\ntemplate: |-\n  initContainers:\n  - name: istio-init\n
+    \   image: \"gcr.io/istio-release/proxy_init:release-1.0-latest-daily\"\n    args:\n
+    \   - \"-p\"\n    - [[ .MeshConfig.ProxyListenPort ]]\n    - \"-u\"\n    - 1337\n
+    \   - \"-m\"\n    - [[ annotation .ObjectMeta `sidecar.istio.io/interceptionMode`
+    .ProxyConfig.InterceptionMode ]]\n    - \"-i\"\n    - \"[[ annotation .ObjectMeta
+    `traffic.sidecar.istio.io/includeOutboundIPRanges`  \"*\"  ]]\"\n    - \"-x\"\n
+    \   - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundIPRanges`
+    \ \"\"  ]]\"\n    - \"-b\"\n    - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts`
+    (includeInboundPorts .Spec.Containers) ]]\"\n    - \"-d\"\n    - \"[[ excludeInboundPort
+    (annotation .ObjectMeta `status.sidecar.istio.io/port`  0 ) (annotation .ObjectMeta
+    `traffic.sidecar.istio.io/excludeInboundPorts`  \"\" ) ]]\"\n    imagePullPolicy:
+    IfNotPresent\n    securityContext:\n      capabilities:\n        add:\n        -
+    NET_ADMIN\n      privileged: true\n    restartPolicy: Always\n  containers:\n
+    \ - name: istio-proxy\n    image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`
+    \ \"gcr.io/istio-release/proxyv2:release-1.0-latest-daily\"  ]]\n\n    ports:\n
+    \   - containerPort: 15090\n      protocol: TCP\n      name: http-envoy-prom\n\n
+    \   args:\n    - proxy\n    - sidecar\n    - --configPath\n    - [[ .ProxyConfig.ConfigPath
+    ]]\n    - --binaryPath\n    - [[ .ProxyConfig.BinaryPath ]]\n    - --serviceCluster\n
+    \   [[ if ne \"\" (index .ObjectMeta.Labels \"app\") -]]\n    - [[ index .ObjectMeta.Labels
+    \"app\" ]]\n    [[ else -]]\n    - \"istio-proxy\"\n    [[ end -]]\n    - --drainDuration\n
+    \   - [[ formatDuration .ProxyConfig.DrainDuration ]]\n    - --parentShutdownDuration\n
+    \   - [[ formatDuration .ProxyConfig.ParentShutdownDuration ]]\n    - --discoveryAddress\n
+    \   - [[ .ProxyConfig.DiscoveryAddress ]]\n    - --discoveryRefreshDelay\n    -
+    [[ formatDuration .ProxyConfig.DiscoveryRefreshDelay ]]\n    - --zipkinAddress\n
+    \   - [[ .ProxyConfig.ZipkinAddress ]]\n    - --connectTimeout\n    - [[ formatDuration
+    .ProxyConfig.ConnectTimeout ]]\n    - --proxyAdminPort\n    - [[ .ProxyConfig.ProxyAdminPort
+    ]]\n    [[ if gt .ProxyConfig.Concurrency 0 -]]\n    - --concurrency\n    - [[
+    .ProxyConfig.Concurrency ]]\n    [[ end -]]\n    - --controlPlaneAuthPolicy\n
+    \   - [[ annotation .ObjectMeta `sidecar.istio.io/controlPlaneAuthPolicy` .ProxyConfig.ControlPlaneAuthPolicy
+    ]]\n  [[- if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`  0 ) \"0\")
+    ]]\n    - --statusPort\n    - [[ annotation .ObjectMeta `status.sidecar.istio.io/port`
+    \ 0  ]]\n    - --applicationPorts\n    - \"[[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/applicationPorts`
+    (applicationPorts .Spec.Containers) ]]\"\n  [[- end ]]\n    env:\n    - name:
+    POD_NAME\n      valueFrom:\n        fieldRef:\n          fieldPath: metadata.name\n
+    \   - name: POD_NAMESPACE\n      valueFrom:\n        fieldRef:\n          fieldPath:
+    metadata.namespace\n    - name: INSTANCE_IP\n      valueFrom:\n        fieldRef:\n
+    \         fieldPath: status.podIP\n    - name: ISTIO_META_POD_NAME\n      valueFrom:\n
+    \       fieldRef:\n          fieldPath: metadata.name\n    - name: ISTIO_META_INTERCEPTION_MODE\n
+    \     value: [[ or (index .ObjectMeta.Annotations \"sidecar.istio.io/interceptionMode\")
+    .ProxyConfig.InterceptionMode.String ]]\n    [[ if .ObjectMeta.Annotations ]]\n
+    \   - name: ISTIO_METAJSON_ANNOTATIONS\n      value: |\n             [[ toJson
+    .ObjectMeta.Annotations ]]\n    [[ end ]]\n    [[ range $k,$v := .ObjectMeta.Labels
+    ]]\n    - name: ISTIO_META_[[ $k ]]\n      value: \"[[ $v ]]\"\n    [[ end ]]\n
+    \   imagePullPolicy: IfNotPresent\n    [[ if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`
+    \ 0 ) \"0\") ]]\n    readinessProbe:\n      httpGet:\n        path: /healthz/ready\n
+    \       port: [[ annotation .ObjectMeta `status.sidecar.istio.io/port`  0  ]]\n
+    \     initialDelaySeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/initialDelaySeconds`
+    \ 1  ]]\n      periodSeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/periodSeconds`
+    \ 2  ]]\n      failureThreshold: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/failureThreshold`
+    \ 30  ]]\n    [[ end -]]securityContext:\n      \n      readOnlyRootFilesystem:
+    true\n      [[ if eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode`
+    .ProxyConfig.InterceptionMode) \"TPROXY\" -]]\n      capabilities:\n        add:\n
+    \       - NET_ADMIN\n      runAsGroup: 1337\n      [[ else -]]\n      runAsUser:
+    1337\n      [[ end -]]\n    restartPolicy: Always\n    resources:\n      [[ if
+    (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) -]]\n      requests:\n
+    \       cpu: \"[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU` ]]\"\n
+    \       memory: \"[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory`
+    ]]\"\n    [[ else -]]\n      requests:\n        cpu: 10m\n      \n    [[ end -]]\n
+    \   volumeMounts:\n    - mountPath: /etc/istio/proxy\n      name: istio-envoy\n
+    \   - mountPath: /etc/certs/\n      name: istio-certs\n      readOnly: true\n
+    \ volumes:\n  - emptyDir:\n      medium: Memory\n    name: istio-envoy\n  - name:
+    istio-certs\n    secret:\n      optional: true\n      [[ if eq .Spec.ServiceAccountName
+    \"\" -]]\n      secretName: istio.default\n      [[ else -]]\n      secretName:
+    [[ printf \"istio.%s\" .Spec.ServiceAccountName ]]\n      [[ end -]]"
+kind: ConfigMap
+metadata:
+  labels:
+    app: istio
+    chart: istio-1.0.3
+    heritage: Tiller
+    istio: sidecar-injector
+    release: istio
+  name: istio-sidecar-injector
+  namespace: default

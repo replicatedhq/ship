@@ -1,0 +1,12 @@
+kind: ""
+apiversion: ""
+resources:
+- ClusterRole-cockroachdb.yaml
+- ClusterRoleBinding-cockroachdb.yaml
+- PodDisruptionBudget-cockroachdb-budget.yaml
+- Role-cockroachdb.yaml
+- RoleBinding-cockroachdb.yaml
+- Service-cockroachdb-public.yaml
+- Service-cockroachdb.yaml
+- ServiceAccount-cockroachdb.yaml
+- StatefulSet-cockroachdb.yaml

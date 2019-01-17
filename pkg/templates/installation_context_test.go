@@ -3,9 +3,8 @@ package templates
 import (
 	"testing"
 
-	"github.com/replicatedhq/ship/pkg/constants"
-
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -28,8 +27,9 @@ func TestInstallationContext(t *testing.T) {
 
 			v := viper.New()
 			ctx := &InstallationContext{
-				Meta:  test.Meta,
-				Viper: v,
+				Meta:   test.Meta,
+				Viper:  v,
+				Logger: &logger.TestLogger{T: t},
 			}
 			v.Set("customer-id", "abc")
 			v.Set("installation-id", "xyz")
@@ -98,16 +98,54 @@ func testCases() []TestInstallation {
 			Expected: "It's " + constants.StatePath,
 		},
 		{
-			Name:     "customer_id",
-			Meta:     api.ReleaseMetadata{},
+			Name: "customer_id",
+			Meta: api.ReleaseMetadata{
+				CustomerID: "abc",
+			},
 			Tpl:      `It's {{repl Installation "customer_id" }}`,
 			Expected: `It's abc`,
 		},
 		{
-			Name:     "installation_id",
-			Meta:     api.ReleaseMetadata{},
+			Name: "installation_id",
+			Meta: api.ReleaseMetadata{
+				InstallationID: "xyz",
+			},
 			Tpl:      `It's {{repl Installation "installation_id" }}`,
 			Expected: `It's xyz`,
+		},
+		{
+			Name: "entitlement value",
+			Meta: api.ReleaseMetadata{
+				Entitlements: api.Entitlements{
+					Values: []api.EntitlementValue{
+						{
+							Key:   "num_seats",
+							Value: "3",
+						},
+					},
+				}},
+			Tpl:      `You get {{repl EntitlementValue "num_seats" }} seats`,
+			Expected: `You get 3 seats`,
+		},
+		{
+			Name:     "no entitlements",
+			Meta:     api.ReleaseMetadata{},
+			Tpl:      `You get {{repl EntitlementValue "num_repos" }} repos`,
+			Expected: `You get  repos`,
+		},
+		{
+			Name: "entitlement value not found",
+			Meta: api.ReleaseMetadata{
+				Entitlements: api.Entitlements{
+					Values: []api.EntitlementValue{
+						{
+							Key:   "num_seats",
+							Value: "3",
+						},
+					},
+				}},
+			Tpl:      `You get {{repl EntitlementValue "num_repos" }} repos`,
+			Expected: `You get  repos`,
 		},
 	}
 	return tests

@@ -1,1 +1,15 @@
-{"v1":{"config":{}}}
+{
+  "v1": {
+    "config": {},
+    "contentSHA": "0f476537db7bf02980df88c12f4b43c87094314635477263a2a5468f3c74a2dc",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "installationID": "Jn0nK8OlT3k9AYqpnq6SGqzo_srKjzjQ",
+      "releaseNotes": "",
+      "version": "0.0.1-b"
+    },
+    "releaseName": "integration-test-aws-eks",
+    "upstream": "__upstream__"
+  }
+}

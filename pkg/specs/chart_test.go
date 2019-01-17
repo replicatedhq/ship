@@ -2,20 +2,17 @@ package specs
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-kit/kit/log"
-
-	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/state"
-
-	"path/filepath"
-
 	"github.com/mitchellh/cli"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"

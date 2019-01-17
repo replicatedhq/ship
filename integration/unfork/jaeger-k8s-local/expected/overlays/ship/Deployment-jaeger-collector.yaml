@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  name: jaeger-collector
+spec:
+  template:
+    spec:
+      $setElementOrder/containers:
+      - name: jaeger-collector
+      containers:
+      - $setElementOrder/ports:
+        - containerPort: 14267
+        - containerPort: 14268
+        - containerPort: 9411
+        name: jaeger-collector
+        ports:
+        - containerPort: 14268
+          protocol: TCP
+        - $patch: delete
+          containerPort: FORKED_PORT

@@ -14,11 +14,87 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"gopkg.in/yaml.v2"
+	"github.com/replicatedhq/ship/pkg/util"
+	yaml "gopkg.in/yaml.v2"
 )
 
-func DefaultHelmRelease(chartPath string) api.Spec {
-	return api.Spec{
+func (r *Resolver) DefaultHelmUnforkRelease(upstreamAsset api.Asset, forkedAsset api.Asset) api.Spec {
+	spec := api.Spec{
+		Assets: api.Assets{
+			V1: []api.Asset{
+				upstreamAsset,
+				forkedAsset,
+			},
+		},
+		Lifecycle: api.Lifecycle{
+			V1: []api.Step{
+				{
+					Render: &api.Render{
+						StepShared: api.StepShared{
+							ID:       "render",
+							Requires: []string{"values"},
+						},
+						Root: ".",
+					},
+				},
+				{
+					Unfork: &api.Unfork{
+						UpstreamBase: constants.KustomizeBasePath,
+						ForkedBase:   constants.UnforkForkedBasePath,
+						Overlay:      path.Join("overlays", "ship"),
+						StepShared: api.StepShared{
+							ID:       "kustomize",
+							Requires: []string{"render"},
+						},
+						Dest: "rendered.yaml",
+					},
+				},
+			},
+		},
+	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID: "outro",
+					// Requires: []string{"kustomize"},
+				},
+				Contents: `
+## Deploy
+
+The application is ready to be deployed. To deploy it now, you can run:
+
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
+`},
+		})
+	}
+
+	return spec
+}
+
+func (r *Resolver) DefaultHelmRelease(chartPath string, upstream string) api.Spec {
+	valuesPath := ""
+
+	if r.Viper.GetString("helm-values-file") != "" {
+		valuesFile, err := filepath.Abs(r.Viper.GetString("helm-values-file"))
+		if err != nil {
+			level.Error(r.Logger).Log("event", "file not found", "file", r.Viper.GetString("helm-values-file"))
+		}
+
+		valuesPath = valuesFile
+	}
+
+	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{
 				{
@@ -30,8 +106,9 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 							ChartRoot: chartPath,
 						},
 						ValuesFrom: &api.ValuesFrom{
-							Lifecycle: &api.ValuesFromLifecycle{},
+							Path: constants.ShipPathInternalTmp,
 						},
+						Upstream: upstream,
 					},
 				},
 			},
@@ -40,6 +117,7 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 			V1: []api.Step{
 				{
 					HelmIntro: &api.HelmIntro{
+						IsUpdate: r.Viper.GetBool("IsUpdate"),
 						StepShared: api.StepShared{
 							ID: "intro",
 						},
@@ -52,6 +130,7 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 							Requires:    []string{"intro"},
 							Invalidates: []string{"render"},
 						},
+						Path: valuesPath,
 					},
 				},
 				{
@@ -72,35 +151,50 @@ func DefaultHelmRelease(chartPath string) api.Spec {
 				},
 				{
 					Kustomize: &api.Kustomize{
-						BasePath: constants.KustomizeBasePath,
-						Dest:     path.Join("overlays", "ship"),
+						Base:    constants.KustomizeBasePath,
+						Overlay: path.Join("overlays", "ship"),
 						StepShared: api.StepShared{
 							ID:       "kustomize",
 							Requires: []string{"render"},
 						},
+						Dest: "rendered.yaml",
 					},
-				},
-				{
-					Message: &api.Message{
-						StepShared: api.StepShared{
-							ID:       "outro",
-							Requires: []string{"kustomize"},
-						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kustomize build overlays/ship | kubectl apply -f -
-
-to deploy the overlaid assets to your cluster.
-`},
 				},
 			},
 		},
 	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID:       "outro",
+					Requires: []string{"kustomize"},
+				},
+				Contents: `
+## Deploy
+
+The application is ready to be deployed. To deploy it now, you can run:
+
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
+`},
+		})
+	}
+
+	return spec
 }
 
-func DefaultRawRelease(basePath string) api.Spec {
-	return api.Spec{
+func (r *Resolver) DefaultRawRelease(basePath string) api.Spec {
+	spec := api.Spec{
 		Assets: api.Assets{
 			V1: []api.Asset{},
 		},
@@ -110,6 +204,14 @@ func DefaultRawRelease(basePath string) api.Spec {
 		Lifecycle: api.Lifecycle{
 			V1: []api.Step{
 				{
+					Render: &api.Render{
+						StepShared: api.StepShared{
+							ID: "render",
+						},
+						Root: ".",
+					},
+				},
+				{
 					KustomizeIntro: &api.KustomizeIntro{
 						StepShared: api.StepShared{
 							ID: "kustomize-intro",
@@ -118,38 +220,66 @@ func DefaultRawRelease(basePath string) api.Spec {
 				},
 				{
 					Kustomize: &api.Kustomize{
-						BasePath: basePath,
-						Dest:     path.Join("overlays", "ship"),
+						Base:    basePath,
+						Overlay: path.Join("overlays", "ship"),
 						StepShared: api.StepShared{
 							ID:          "kustomize",
 							Invalidates: []string{"diff"},
 						},
+						Dest: "rendered.yaml",
 					},
-				},
-				{
-					Message: &api.Message{
-						StepShared: api.StepShared{
-							ID: "outro",
-						},
-						Contents: `
-Assets are ready to deploy. You can run
-
-    kustomize build overlays/ship | kubectl apply -f -
-
-to deploy the overlaid assets to your cluster.
-						`},
 				},
 			},
 		},
 	}
+	if !r.NoOutro {
+		spec.Lifecycle.V1 = append(spec.Lifecycle.V1, api.Step{
+			Message: &api.Message{
+				StepShared: api.StepShared{
+					ID:       "outro",
+					Requires: []string{"kustomize"},
+				},
+				Contents: `
+## Deploy
+
+The application is ready to be deployed. To deploy it now, you can run:
+
+	kubectl apply -f rendered.yaml
+
+## Updates
+
+Ship can now watch for any changes made to the application, and can download them, apply your patches, and create an updated version of the rendered.yaml. To watch for updates:
+
+  	ship watch && ship update
+
+Running this command in the current directory will automate the process of downloading and preparing updates.
+
+For continuous notification and preparation of application updates via email, webhook or automated pull request, create a free account at https://ship.replicated.com.
+`},
+		})
+	}
+	return spec
 }
 
-func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string) (*api.ShipAppMetadata, error) {
+func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string, applicationType string) (*api.ShipAppMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveHelmMetadata"))
 
 	baseMetadata, err := r.ResolveBaseMetadata(upstream, localPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve base metadata")
+	}
+
+	if util.IsGithubURL(upstream) {
+		releaseNotes, err := r.GitHubFetcher.ResolveReleaseNotes(ctx, upstream)
+		if err != nil {
+			debug.Log("event", "releaseNotes.resolve.fail", "upstream", upstream, "err", err)
+		}
+		baseMetadata.ReleaseNotes = releaseNotes
+	}
+
+	err = r.StateManager.SerializeContentSHA(baseMetadata.ContentSHA)
+	if err != nil {
+		return nil, errors.Wrap(err, "write content sha")
 	}
 
 	localChartPath := filepath.Join(localPath, "Chart.yaml")
@@ -173,6 +303,10 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, err
 	}
 
+	if err := r.StateManager.SerializeShipMetadata(*baseMetadata, applicationType); err != nil {
+		return nil, errors.Wrap(err, "write metadata to state")
+	}
+
 	return baseMetadata, nil
 }
 
@@ -181,22 +315,12 @@ func (r *Resolver) ResolveBaseMetadata(upstream string, localPath string) (*api.
 	debug := level.Debug(log.With(r.Logger, "method", "resolveBaseMetaData"))
 	var md api.ShipAppMetadata
 	md.URL = upstream
-	debug.Log("event", "upstream.Serialize", "for", localPath, "upstream", upstream)
-	err := r.StateManager.SerializeUpstream(upstream)
-	if err != nil {
-		return nil, errors.Wrapf(err, "write upstream")
-	}
 	debug.Log("phase", "calculate-sha", "for", localPath)
 	contentSHA, err := r.shaSummer(r, localPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "calculate chart sha")
 	}
 	md.ContentSHA = contentSHA
-
-	err = r.StateManager.SerializeContentSHA(contentSHA)
-	if err != nil {
-		return nil, errors.Wrap(err, "write content sha")
-	}
 
 	localReadmePath := filepath.Join(localPath, "README.md")
 	debug.Log("phase", "read-readme", "from", localReadmePath)
@@ -257,7 +381,7 @@ func (r *Resolver) maybeGetShipYAML(ctx context.Context, localPath string) (*api
 	return nil, nil
 }
 
-type shaSummer func(*Resolver, string) (string, error)
+type shaSummer func(r *Resolver, localPath string) (string, error)
 
 func (r *Resolver) calculateContentSHA(root string) (string, error) {
 	var contents []byte

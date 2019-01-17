@@ -1,0 +1,83 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "github.com/replicatedhq/test-charts/multiple-list-yamls",
+    "metadata": {
+      "applicationType": "",
+      "releaseNotes": "",
+      "version": "",
+      "lists": [
+        {
+          "apiVersion": "v1",
+          "path": "base/nginx-list.yaml",
+          "items": [
+            {
+              "kind": "Service",
+              "metadata": {
+                "name": "nginx-service",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "Deployment",
+              "metadata": {
+                "name": "nginx",
+                "namespace": ""
+              }
+            }
+          ]
+        },
+        {
+          "apiVersion": "v1",
+          "path": "base/serviceaccount-list.yaml",
+          "items": [
+            {
+              "kind": "ServiceAccount",
+              "metadata": {
+                "name": "nginx",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "ClusterRole",
+              "metadata": {
+                "name": "nginx",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "ClusterRoleBinding",
+              "metadata": {
+                "name": "nginx",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "ServiceAccount",
+              "metadata": {
+                "name": "nginx-metrics",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "ClusterRole",
+              "metadata": {
+                "name": "nginx-metrics",
+                "namespace": ""
+              }
+            },
+            {
+              "kind": "ClusterRoleBinding",
+              "metadata": {
+                "name": "nginx-metrics",
+                "namespace": ""
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "contentSHA": "90e553554387caac6cf2995382f4da795c7dbf379c808ea66fc630ed7ba5f867"
+  }
+}

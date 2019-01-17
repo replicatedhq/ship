@@ -77,10 +77,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		errChan <- server.ListenAndServe()
 	}()
 
-	openUrl := fmt.Sprintf("http://localhost:%d", apiPort)
+	openURL := fmt.Sprintf("http://localhost:%d", apiPort)
 	if !d.Viper.GetBool("no-open") {
 		go func() {
-			err := d.OpenWebConsole(d.UI, openUrl)
+			autoOpen := d.Viper.GetBool("headed")
+			err := d.OpenWebConsole(d.UI, openURL, autoOpen)
 			if err != nil {
 				debug.Log("event", "console.open.fail.ignore", "err", err)
 			}
@@ -88,7 +89,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	} else {
 		d.UI.Info(fmt.Sprintf(
 			"\nPlease visit the following URL in your browser to continue the installation\n\n        %s\n\n ",
-			openUrl,
+			openURL,
 		))
 	}
 
@@ -116,16 +117,16 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 func (d *ShipDaemon) configureRoutes(g *gin.Engine, release *api.Release) {
 
 	root := g.Group("/")
-	g.Use(static.Serve("/", d.WebUIFactory("dist")))
+	g.Use(static.Serve("/", d.WebUIFactory("build")))
 	g.NoRoute(func(c *gin.Context) {
 		debug := level.Debug(log.With(d.Logger, "handler", "NoRoute"))
 		debug.Log("event", "not found")
 		if c.Request.URL != nil {
 			path := c.Request.URL.Path
-			static.Serve(path, d.WebUIFactory("dist"))(c)
+			static.Serve(path, d.WebUIFactory("build"))(c)
 
 		}
-		static.Serve("/", d.WebUIFactory("dist"))(c)
+		static.Serve("/", d.WebUIFactory("build"))(c)
 	})
 
 	root.GET("/healthz", d.Healthz)

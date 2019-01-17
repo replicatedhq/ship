@@ -1,0 +1,6 @@
+upstream: "https://github.com/helm/charts/tree/ffb84f85a861e765caade879491a75a6dd3091a5/stable/factorio"
+args:
+  - --upload-assets-to=http://localhost:4569/some-bucket/some-key
+skip_cleanup: false
+
+

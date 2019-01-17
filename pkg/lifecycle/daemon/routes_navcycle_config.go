@@ -129,6 +129,7 @@ func (d *NavcycleRoutes) putAppConfig(release *api.Release) gin.HandlerFunc {
 		if err := d.StateManager.SerializeConfig(nil, api.ReleaseMetadata{}, templateContext); err != nil {
 			level.Error(d.Logger).Log("msg", "serialize state failed", "err", err)
 			c.AbortWithStatus(500)
+			return
 		}
 
 		d.CurrentConfig = templateContext

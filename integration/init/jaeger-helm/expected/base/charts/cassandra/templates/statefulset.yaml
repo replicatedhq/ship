@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: cassandra
+    release: jaeger
+  name: jaeger-cassandra
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cassandra
+      release: jaeger
+  serviceName: jaeger-cassandra
+  template:
+    metadata:
+      labels:
+        app: cassandra
+        release: jaeger
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_SEEDS
+          value: jaeger-cassandra-0.jaeger-cassandra.default.svc.cluster.local
+        - name: MAX_HEAP_SIZE
+          value: 2048M
+        - name: HEAP_NEWSIZE
+          value: 512M
+        - name: CASSANDRA_ENDPOINT_SNITCH
+          value: GossipingPropertyFileSnitch
+        - name: CASSANDRA_CLUSTER_NAME
+          value: jaeger
+        - name: CASSANDRA_DC
+          value: dc1
+        - name: CASSANDRA_RACK
+          value: rack1
+        - name: CASSANDRA_START_RPC
+          value: "false"
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: cassandra:3.11
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - exec nodetool decommission
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nodetool status
+          failureThreshold: 3
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: jaeger-cassandra
+        ports:
+        - containerPort: 7000
+          name: intra
+        - containerPort: 7001
+          name: tls
+        - containerPort: 7199
+          name: jmx
+        - containerPort: 9042
+          name: cql
+        - containerPort: 9160
+          name: thrift
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nodetool status | grep -E "^UN\s+${POD_IP}"
+          failureThreshold: 3
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/cassandra
+          name: data
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: data
+  updateStrategy:
+    type: OnDelete

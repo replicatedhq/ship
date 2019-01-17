@@ -1,0 +1,17 @@
+assets:
+  v1: []
+
+config:
+  v1:
+    - title: Breakfast
+      items:
+        - name: "spam_companion"
+          title: Spam Companion
+          help_text: An item that goes well with spam.
+          value: "eggs"
+lifecycle:
+  v1:
+    - config: {}
+    - message:
+        contents: |
+          Spam goes pretty well with {{repl ConfigOption "spam_companion"}}

@@ -2,11 +2,9 @@ package devtoolreleaser
 
 import (
 	"context"
-
+	"fmt"
 	"io/ioutil"
 	"net/url"
-
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/mitchellh/cli"

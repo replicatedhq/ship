@@ -31,9 +31,11 @@ type Asset struct {
 	GitHub      *GitHubAsset      `json:"github,omitempty" yaml:"github,omitempty" hcl:"github,omitempty"`
 	Web         *WebAsset         `json:"web,omitempty" yaml:"web,omitempty" hcl:"web,omitempty"`
 	Helm        *HelmAsset        `json:"helm,omitempty" yaml:"helm,omitempty" hcl:"helm,omitempty"`
+	Local       *LocalAsset       `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 	Terraform   *TerraformAsset   `json:"terraform,omitempty" yaml:"terraform,omitempty" hcl:"terraform,omitempty"`
 	AmazonEKS   *EKSAsset         `json:"amazon_eks,omitempty" yaml:"amazon_eks,omitempty" hcl:"amazon_eks,omitempty"`
 	GoogleGKE   *GKEAsset         `json:"google_gke,omitempty" yaml:"google_gke,omitempty" hcl:"google_gke,omitempty"`
+	AzureAKS    *AKSAsset         `json:"azure_aks,omitempty" yaml:"azure_aks,omitempty" hcl:"azure_aks,omitempty"`
 }
 
 // InlineAsset is an asset whose contents are specified directly in the Spec
@@ -62,6 +64,8 @@ type GitHubAsset struct {
 	Ref         string `json:"ref" yaml:"ref" hcl:"ref"`
 	Path        string `json:"path" yaml:"path" hcl:"path"`
 	Source      string `json:"source" yaml:"source" hcl:"source"`
+	Proxy       bool   `json:"proxy" yaml:"proxy" hcl:"proxy"`
+	StripPath   string `json:"strip_path" yaml:"strip_path" hcl:"strip_path"`
 }
 
 // WebAsset is an asset whose contents are specified by the HTML at the corresponding URL
@@ -86,10 +90,20 @@ type HelmAsset struct {
 	// Local is an escape hatch, most impls will use github or some sort of ChartMuseum thing
 	Local      *LocalHelmOpts `json:"local,omitempty" yaml:"local,omitempty" hcl:"local,omitempty"`
 	ValuesFrom *ValuesFrom    `json:"values_from,omitempty" yaml:"values_from,omitempty" hcl:"values_from,omitempty"`
+	Upstream   string         `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
+}
+
+// LocalAsset is an asset whose contents are on the local fs
+type LocalAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Path        string `json:"path" yaml:"path" hcl:"path"`
 }
 
 type ValuesFrom struct {
-	Lifecycle *ValuesFromLifecycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty" hcl:"lifecycle,omitempty"`
+	Path string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	// SaveToState is used when a HelmValues step is not part of the lifecycle (e.g. Unfork) in order to save
+	// the merged helm values to state.
+	SaveToState bool `json:"save_to_state,omitempty" yaml:"save_to_state,omitempty" hcl:"save_to_state,omitempty"`
 }
 
 type ValuesFromLifecycle struct{}
@@ -146,4 +160,26 @@ type GCPProvider struct {
 	Credentials string `json:"credentials,omitempty" yaml:"credentials,omitempty" hcl:"credentials,omitempty"`
 	Project     string `json:"project,omitempty" yaml:"project,omitempty" hcl:"project,omitempty"`
 	Region      string `json:"region,omitempty" yaml:"region,omitempty" hcl:"region,omitempty"`
+}
+
+// AKSAsset
+type AKSAsset struct {
+	AssetShared `json:",inline" yaml:",inline" hcl:",inline"`
+	Azure       `json:",inline" yaml:",inline" hcl:",inline"`
+
+	ClusterName       string `json:"cluster_name" yaml:"cluster_name" hcl:"cluster_name"`
+	KubernetesVersion string `json:"kubernetes_version" yaml:"kubernetes_version" hcl:"kubernetes_version"`
+	PublicKey         string `json:"public_key" yaml:"public_key" hcl:"public_key"`
+	NodeCount         string `json:"node_count" yaml:"node_count" hcl:"node_count"`
+	NodeType          string `json:"node_type" yaml:"node_type" hcl:"node_type"`
+	DiskGB            string `json:"disk_gb" yaml:"disk_gb" hcl:"disk_gb"`
+}
+
+type Azure struct {
+	TenantID               string `json:"tenant_id" yaml:"tenant_id" hcl:"tenant_id"`
+	SubscriptionID         string `json:"subscription_id" yaml:"subscription_id" hcl:"subscription_id"`
+	ServicePrincipalID     string `json:"service_principal_id" yaml:"service_principal_id" hcl:"service_principal_id"`
+	ServicePrincipalSecret string `json:"service_principal_secret" yaml:"service_principal_secret" hcl:"service_principal_secret"`
+	ResourceGroupName      string `json:"resource_group_name" yaml:"resource_group_name" hcl:"resource_group_name"`
+	Location               string `json:"location" yaml:"location" hcl:"location"`
 }

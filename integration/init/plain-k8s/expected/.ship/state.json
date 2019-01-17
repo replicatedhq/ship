@@ -1,6 +1,7 @@
 {
   "v1": {
     "config": {},
+    "releaseName": "ship",
     "upstream": "github.com/replicatedhq/test-charts/plain-k8s",
     "contentSHA": "7d52a28c5b78539223c3548c2ee677b8b9d624f178e3aac1a15c0097f4e7cb62"
   }

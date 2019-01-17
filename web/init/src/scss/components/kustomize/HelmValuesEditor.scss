@@ -1,0 +1,38 @@
+.AceEditor--wrapper.helm-values {
+    margin-bottom: 30px;
+    overflow: auto;
+    border: 1px solid #C4C8CA;
+    border-radius: 4px;
+    
+    .error-highlight {
+      background:#FBEDEB;
+      position: absolute;
+    }
+  
+    .disabled-ace-editor {
+      opacity: .5;
+    }
+  
+    .ace_search {
+      left: 0;
+      right: auto;
+    }
+
+  }
+
+  .advanced-settings-wrapper {
+    .section-border {
+      border-bottom: 1px solid #DFDFDF;
+      &.closed {
+        margin-bottom: 35px;
+      }
+      & p {
+        top: -13px;
+        position: absolute;
+        border: solid 1px #DFDFDF;
+        border-radius: 50px;
+        padding: 5px;
+        background: #fff;
+      }
+    }
+  }

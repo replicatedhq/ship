@@ -1,3 +1,5 @@
+kind: ""
+apiversion: ""
 resources:
 - frontend-deployment.yaml
 - frontend-service.yaml

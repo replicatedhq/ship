@@ -1,5 +1,15 @@
 package api
 
+import (
+	"fmt"
+	"regexp"
+	"strings"
+
+	"github.com/replicatedhq/ship/pkg/constants"
+)
+
+var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+
 // Spec is the top level Ship document that defines an application
 type Spec struct {
 	Assets    Assets    `json:"assets" yaml:"assets" hcl:"asset"`
@@ -22,6 +32,19 @@ type GithubContent struct {
 	Files []GithubFile `json:"files" yaml:"files" hcl:"files" meta:"files"`
 }
 
+// Not using json.Marshal because I want to omit the file data, and don't feel like
+// writing a custom marshaller
+func (g GithubContent) String() string {
+
+	fileStr := "["
+	for _, file := range g.Files {
+		fileStr += fmt.Sprintf("%s, ", file.String())
+	}
+	fileStr += "]"
+
+	return fmt.Sprintf("GithubContent{ repo:%s path:%s ref:%s files:%s }", g.Repo, g.Path, g.Ref, fileStr)
+}
+
 // GithubFile
 type GithubFile struct {
 	Name string `json:"name" yaml:"name" hcl:"name" meta:"name"`
@@ -31,20 +54,28 @@ type GithubFile struct {
 	Data string `json:"data" yaml:"data" hcl:"data" meta:"data"`
 }
 
+func (file GithubFile) String() string {
+	return fmt.Sprintf("GitHubFile{ name:%s path:%s sha:%s size:%d dataLen:%d }",
+		file.Name, file.Path, file.Sha, file.Size, len(file.Data))
+
+}
+
 type ShipAppMetadata struct {
-	Description string `json:"description" yaml:"description" hcl:"description" meta:"description"`
-	Version     string `json:"version" yaml:"version" hcl:"version" meta:"version"`
-	Icon        string `json:"icon" yaml:"icon" hcl:"icon" meta:"icon"`
-	Name        string `json:"name" yaml:"name" hcl:"name" meta:"name"`
-	Readme      string `json:"readme" yaml:"readme" hcl:"readme" meta:"readme"`
-	URL         string `json:"url" yaml:"url" hcl:"url" meta:"url"`
-	ContentSHA  string `json:"contentSHA" yaml:"contentSHA" hcl:"contentSHA" meta:"contentSHA"`
+	Description  string `json:"description" yaml:"description" hcl:"description" meta:"description"`
+	Version      string `json:"version" yaml:"version" hcl:"version" meta:"version"`
+	Icon         string `json:"icon" yaml:"icon" hcl:"icon" meta:"icon"`
+	Name         string `json:"name" yaml:"name" hcl:"name" meta:"name"`
+	Readme       string `json:"readme" yaml:"readme" hcl:"readme" meta:"readme"`
+	URL          string `json:"url" yaml:"url" hcl:"url" meta:"url"`
+	ContentSHA   string `json:"contentSHA" yaml:"contentSHA" hcl:"contentSHA" meta:"contentSHA"`
+	ReleaseNotes string `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes" meta:"release-notes"`
 }
 
 // ReleaseMetadata
 type ReleaseMetadata struct {
 	ReleaseID       string          `json:"releaseId" yaml:"releaseId" hcl:"releaseId" meta:"release-id"`
 	CustomerID      string          `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
+	InstallationID  string          `json:"installation" yaml:"installation" hcl:"installation" meta:"installation-id"`
 	ChannelID       string          `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
 	ChannelName     string          `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
 	ChannelIcon     string          `json:"channelIcon" yaml:"channelIcon" hcl:"channelIcon" meta:"channel-icon"`
@@ -55,23 +86,48 @@ type ReleaseMetadata struct {
 	Images          []Image         `json:"images" yaml:"images" hcl:"images" meta:"images"`
 	GithubContents  []GithubContent `json:"githubContents" yaml:"githubContents" hcl:"githubContents" meta:"githubContents"`
 	ShipAppMetadata ShipAppMetadata `json:"shipAppMetadata" yaml:"shipAppMetadata" hcl:"shipAppMetadata" meta:"shipAppMetadata"`
+	Entitlements    Entitlements    `json:"entitlements" yaml:"entitlements" hcl:"entitlements" meta:"entitlements"`
 }
 
-func (r *ReleaseMetadata) ReleaseName() string {
+func (r ReleaseMetadata) ReleaseName() string {
+	var releaseName string
+
 	if r.ChannelName != "" {
-		return r.ChannelName
+		releaseName = r.ChannelName
 	}
 
 	if r.ShipAppMetadata.Name != "" {
-		return r.ShipAppMetadata.Name
+		releaseName = r.ShipAppMetadata.Name
 	}
 
-	return "ship"
+	if len(releaseName) == 0 {
+		return "ship"
+	}
 
+	releaseName = strings.ToLower(releaseName)
+	return releaseNameRegex.ReplaceAllLiteralString(releaseName, "-")
 }
 
 // Release
 type Release struct {
 	Metadata ReleaseMetadata
 	Spec     Spec
+}
+
+func (r *Release) FindRenderStep() *Render {
+	for _, step := range r.Spec.Lifecycle.V1 {
+		if step.Render != nil {
+			return step.Render
+		}
+	}
+	return nil
+}
+
+func (r *Release) FindRenderRoot() string {
+	render := r.FindRenderStep()
+	if render == nil {
+		return constants.InstallerPrefixPath
+	}
+
+	return render.RenderRoot()
 }

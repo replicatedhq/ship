@@ -146,7 +146,7 @@ ${yaml.safeDump({[subgroup]: {v1: [{[specType]: example}]}})}${"```"}
 function writeHeader(specTypes: any, specType, subgroup: string) {
   return `---
 categories:
-- ship-api-${subgroup}
+- ${subgroup}
 date: 2018-01-17T23:51:55Z
 description: ${specTypes[specType].description || ""}
 index: docs
@@ -155,7 +155,7 @@ weight: "100"
 gradient: "purpleToPink"
 ---
 
-[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle) 
+[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
 
 ## ${specType}
 
@@ -169,12 +169,11 @@ ${specTypes[specType].extended_description || ""}
 export const handler = (argv) => {
   const schema = JSON.parse(fs.readFileSync(argv.infile).toString());
 
+  fs.writeFileSync(`assets/_index.md`, ASSETS_INDEX_DOC);
+  fs.writeFileSync(`lifecycle/_index.md`, LIFECYCLE_INDEX_DOC);
+  fs.writeFileSync(`config/_index.md`, CONFIG_INDEX_DOC);
 
-  fs.writeFileSync(`assets/assets.md`, ASSETS_INDEX_DOC);
-  fs.writeFileSync(`lifecycle/lifecycle.md`, LIFECYCLE_INDEX_DOC);
-  fs.writeFileSync(`config/config.md`, CONFIG_INDEX_DOC);
-
-  for (let subgroup of ["assets", "lifecycle"]) {
+  for (let subgroup of ["assets", "lifecycle", "config"]) {
     const specTypes = _.get(schema, `properties[${subgroup}].properties.v1.items.properties`);
     if (!specTypes) {
       continue;

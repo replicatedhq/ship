@@ -9,25 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kubernetes-sigs/kustomize/pkg/resource"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/state"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
-func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
-	type Request struct {
-		Path     string `json:"path"`
-		Contents string `json:"contents"`
-	}
+type SaveOverlayRequest struct {
+	Path       string `json:"path"`
+	Contents   string `json:"contents"`
+	IsResource bool   `json:"isResource"`
+}
 
-	var request Request
+func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
+
+	var request SaveOverlayRequest
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 			http.StatusBadRequest,
 			map[string]string{
 				"error":  "bad_request",
-				"detail": "path and contents cannot be empty",
+				"detail": "Patch and resource contents cannot be empty",
 			},
 		)
 		return
@@ -47,12 +47,25 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 		return
 	}
 
-	debug.Log("event", "request.bind")
-	currentState, err := d.StateManager.TryLoad()
-	if err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
+	if err := d.kustomizeDoSaveOverlay(request); err != nil {
+		level.Error(d.Logger).Log("event", "saveOverlay.fail", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
+	}
+
+	level.Debug(d.Logger).Log("event", "stepProgress.storeStatus")
+	d.StepProgress.Delete(step.Shared().ID)
+
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) kustomizeDoSaveOverlay(request SaveOverlayRequest) error {
+	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
+
+	debug.Log("event", "state.load")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
 	}
 
 	debug.Log("event", "current.load")
@@ -62,35 +75,32 @@ func (d *NavcycleRoutes) kustomizeSaveOverlay(c *gin.Context) {
 	}
 
 	if kustomize.Overlays == nil {
-		kustomize.Overlays = make(map[string]state.Overlay)
+		kustomize.Overlays = map[string]state.Overlay{}
 	}
 
-	if _, ok := kustomize.Overlays["ship"]; !ok {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
+	overlay := kustomize.Ship()
+
+	if request.IsResource {
+		if overlay.Resources == nil {
+			overlay.Resources = map[string]string{}
 		}
-	}
-
-	if kustomize.Overlays["ship"].Patches == nil {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
+		overlay.Resources[request.Path] = request.Contents
+	} else {
+		if overlay.Patches == nil {
+			overlay.Patches = map[string]string{}
 		}
+		overlay.Patches[request.Path] = request.Contents
 	}
 
-	kustomize.Overlays["ship"].Patches[request.Path] = request.Contents
+	kustomize.Overlays["ship"] = overlay
 
 	debug.Log("event", "newstate.save")
 	err = d.StateManager.SaveKustomize(kustomize)
 	if err != nil {
-		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
-		return
+		return errors.Wrap(err, "save new state")
 	}
 
-	debug.Log("event", "stepProgress.storeStatus")
-	d.StepProgress.Delete(step.Shared().ID)
-
-	c.JSON(200, map[string]string{"status": "success"})
+	return nil
 }
 
 // TODO(Robert): duped logic in filetree
@@ -126,25 +136,18 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	var request Request
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request failed", "err", err)
-		c.AbortWithError(500, err)
 		return
 	}
 
 	type Response struct {
 		Base        string `json:"base"`
 		IsSupported bool   `json:"isSupported"`
+		IsResource  bool   `json:"isResource"`
 		Overlay     string `json:"overlay"`
 	}
 
 	step, ok := d.getKustomizeStepOrAbort(c) // todo this should fetch by step ID
 	if !ok {
-		return
-	}
-
-	base, err := d.TreeLoader.LoadFile(step.Kustomize.BasePath, request.Path)
-	if err != nil {
-		level.Warn(d.Logger).Log("event", "load file failed", "err", err)
-		c.AbortWithError(500, err)
 		return
 	}
 
@@ -155,9 +158,22 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 		return
 	}
 
+	overlay, isResource := savedState.CurrentKustomizeOverlay(request.Path)
+
+	var base []byte
+	if !isResource {
+		base, err = d.TreeLoader.LoadFile(step.Kustomize.Base, request.Path)
+		if err != nil {
+			level.Warn(d.Logger).Log("event", "load file failed", "err", err)
+			c.AbortWithError(500, err)
+			return
+		}
+	}
+
 	c.JSON(200, Response{
 		Base:        string(base),
-		Overlay:     savedState.CurrentKustomizeOverlay(request.Path),
+		Overlay:     overlay,
+		IsResource:  isResource,
 		IsSupported: isSupported(base),
 	})
 }
@@ -189,7 +205,7 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "getKustomizationStep")
@@ -203,6 +219,7 @@ func (d *NavcycleRoutes) applyPatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to merge patch with base", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	c.JSON(200, map[string]interface{}{
@@ -223,7 +240,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
-		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	var stringPath []string
@@ -236,6 +253,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		default:
 			level.Error(d.Logger).Log("event", "invalid path provided")
 			c.AbortWithError(500, errors.New("internal_server_error"))
+			return
 		}
 	}
 
@@ -245,10 +263,11 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	debug.Log("event", "load.originalFile")
-	original, err := d.TreeLoader.LoadFile(step.Kustomize.BasePath, request.Original)
+	original, err := d.TreeLoader.LoadFile(step.Kustomize.Base, request.Original)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to read original file", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "patcher.modifyField")
@@ -256,6 +275,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "modify field", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	debug.Log("event", "patcher.CreatePatch")
@@ -263,6 +283,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	if err != nil {
 		level.Error(d.Logger).Log("event", "create two way merge patch", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))
+		return
 	}
 
 	if len(request.Current) > 0 {
@@ -270,6 +291,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 		if err != nil {
 			level.Error(d.Logger).Log("event", "merge current and new patch", "err", err)
 			c.AbortWithError(500, errors.New("internal_server_error"))
+			return
 		}
 		c.JSON(200, map[string]interface{}{
 			"patch": string(out),
@@ -281,56 +303,174 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 }
 
-func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deletePatch"))
+func (d *NavcycleRoutes) deleteBase(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteBase"))
 	pathQueryParam := c.Query("path")
 	if pathQueryParam == "" {
 		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
 	}
 
-	debug.Log("event")
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {
-		level.Error(d.Logger).Log("event", "try load state failed", "err", err)
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
 		return
 	}
 
 	kustomize := currentState.CurrentKustomize()
 	if kustomize == nil {
-		level.Error(d.Logger).Log("event", "empty kustomize")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
+		kustomize = &state.Kustomize{}
 	}
 
 	shipOverlay := kustomize.Ship()
-	if len(shipOverlay.Patches) == 0 {
-		level.Error(d.Logger).Log("event", "empty ship overlay")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
-	}
-
-	_, ok := shipOverlay.Patches[pathQueryParam]
-	if !ok {
-		level.Error(d.Logger).Log("event", "patch does not exist")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
-		return
-	}
-
-	debug.Log("event", "deletePatch", "path", pathQueryParam)
-	delete(shipOverlay.Patches, pathQueryParam)
-
-	if shipOverlay.Patches == nil {
-		kustomize.Overlays["ship"] = state.Overlay{
-			Patches: make(map[string]string),
+	for _, base := range shipOverlay.ExcludedBases {
+		if base == pathQueryParam {
+			debug.Log("event", "base", pathQueryParam, "exists in excluded")
+			c.AbortWithError(http.StatusInternalServerError, errors.New("internal_server_error"))
+			return
 		}
 	}
+	shipOverlay.ExcludedBases = append(shipOverlay.ExcludedBases, pathQueryParam)
+
+	if _, exists := shipOverlay.Patches[pathQueryParam]; exists {
+		delete(shipOverlay.Patches, pathQueryParam)
+	}
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = map[string]state.Overlay{}
+	}
+	kustomize.Overlays["ship"] = shipOverlay
 
 	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
-		level.Error(d.Logger).Log("event", "patch does not exist")
-		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		c.AbortWithError(500, errors.Wrap(err, "delete base"))
 		return
 	}
 
 	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) includeBase(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "includeBase"))
+	type includeRequest struct {
+		Path string `json:"path"`
+	}
+	var request includeRequest
+	debug.Log("event", "unmarshal request")
+	if err := c.BindJSON(&request); err != nil {
+		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
+		return
+	}
+
+	debug.Log("event", "load state")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
+		return
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		kustomize = &state.Kustomize{}
+	}
+
+	shipOverlay := kustomize.Ship()
+	newExcludedBases := make([]string, 0)
+	for _, base := range shipOverlay.ExcludedBases {
+		if base != request.Path {
+			newExcludedBases = append(newExcludedBases, base)
+		}
+	}
+	shipOverlay.ExcludedBases = newExcludedBases
+
+	if kustomize.Overlays == nil {
+		kustomize.Overlays = map[string]state.Overlay{}
+	}
+	kustomize.Overlays["ship"] = shipOverlay
+
+	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
+		c.AbortWithError(500, errors.Wrap(err, "delete base"))
+		return
+	}
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) deleteResource(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	debug.Log("event", "resource.delete", "path", pathQueryParam)
+	err := d.deleteFile(pathQueryParam, func(overlay state.Overlay) map[string]string {
+		return overlay.Resources
+	})
+
+	if err != nil {
+		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
+		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+		return
+	}
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteResource"))
+	pathQueryParam := c.Query("path")
+	if pathQueryParam == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("bad delete request"))
+		return
+	}
+
+	debug.Log("event", "resource.delete", "path", pathQueryParam)
+	err := d.deleteFile(pathQueryParam, func(overlay state.Overlay) map[string]string {
+		return overlay.Patches
+	})
+
+	if err != nil {
+		level.Error(d.Logger).Log("event", "resource.delete.fail", "path", pathQueryParam, "err", err)
+		c.AbortWithError(500, errors.Wrap(err, "delete resource"))
+		return
+	}
+
+	c.JSON(200, map[string]string{"status": "success"})
+}
+
+func (d *NavcycleRoutes) deleteFile(pathQueryParam string, getFiles func(overlay state.Overlay) map[string]string) error {
+	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteFile"))
+	debug.Log("event", "state.load")
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	kustomize := currentState.CurrentKustomize()
+	if kustomize == nil {
+		return errors.New("current kustomize empty")
+	}
+
+	shipOverlay := kustomize.Ship()
+	files := getFiles(shipOverlay)
+
+	if len(files) == 0 {
+		return errors.New("no files to delete")
+	}
+
+	_, ok := files[pathQueryParam]
+	if !ok {
+		return errors.New("not found: file not in map")
+	}
+
+	debug.Log("event", "deletePatch", "path", pathQueryParam)
+	delete(files, pathQueryParam)
+
+	if shipOverlay.Patches == nil && shipOverlay.Resources == nil {
+		kustomize.Overlays["ship"] = state.NewOverlay()
+	}
+
+	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
+		return errors.Wrap(err, "save updated kustomize")
+	}
+	return nil
 }

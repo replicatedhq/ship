@@ -1,0 +1,9 @@
+kind: ""
+apiversion: ""
+bases:
+- ../../base
+resources:
+- statefulset-primary.yaml
+- statefulset-replica.yaml
+patchesStrategicMerge:
+- secret.yaml
