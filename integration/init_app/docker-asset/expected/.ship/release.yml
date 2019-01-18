@@ -1,0 +1,16 @@
+---
+assets:
+  v1:
+    - docker:
+        image: busybox:latest
+        source: public
+        dest: docker/busybox-public.tar
+    - docker:
+        image: registry.staging.replicated.com/alpha/alpine:latest
+        source: replicated-qa
+        dest: docker/alpine-private.tar
+config:
+  v1: []
+lifecycle:
+  v1:
+    - render: {}

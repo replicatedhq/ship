@@ -1,0 +1,15 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "integration-test-docker",
+    "upstream": "__upstream__",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
+      "releaseNotes": "",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    "contentSHA": "169167c477f09bf2dd67ac81d78bfbe104c500cf677772c80b990d2d26c7eb33"
+  }
+}

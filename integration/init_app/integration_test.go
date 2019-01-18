@@ -21,7 +21,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type TestMetadata struct {
@@ -68,6 +68,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 				BeforeEach(func(done chan<- interface{}) {
 					os.Setenv("NO_OS_EXIT", "1")
+					os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
@@ -84,6 +85,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}, 20)
 
 				AfterEach(func() {
+					os.Unsetenv("REPLICATED_REGISTRY")
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
