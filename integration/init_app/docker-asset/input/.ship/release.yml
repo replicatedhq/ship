@@ -2,13 +2,13 @@
 assets:
   v1:
     - docker:
-        image: busybox:latest
+        image: replicated/helloscratch:1.0.0
         source: public
-        dest: docker/busybox-public.tar
+        dest: docker/replicated-helloscratch-public.tar
     - docker:
-        image: registry.staging.replicated.com/alpha/alpine:latest
+        image: registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0
         source: replicated-qa
-        dest: docker/alpine-private.tar
+        dest: docker/replicated-helloscratch-private.tar
 config:
   v1: []
 lifecycle:
