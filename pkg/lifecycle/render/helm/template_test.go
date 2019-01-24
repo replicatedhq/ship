@@ -714,6 +714,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
   volumes:
   value:
   value: null
+  initContainers:
 `,
 				},
 			},
@@ -726,6 +727,7 @@ func Test_validateGeneratedFiles(t *testing.T) {
   volumes: []
   value: ""
   value: ""
+  initContainers: []
 `,
 				},
 			},
