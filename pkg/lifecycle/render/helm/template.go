@@ -60,7 +60,7 @@ func NewTemplater(
 	}
 }
 
-var arrayLineRegex = regexp.MustCompile(`^\s*(env|args|volumes):\s*$`)
+var arrayLineRegex = regexp.MustCompile(`^\s*(env|args|volumes|initContainers):\s*$`)
 var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
 var nullValueLineRegex = regexp.MustCompile(`^(\s*value:)\s*null\s*$`)
