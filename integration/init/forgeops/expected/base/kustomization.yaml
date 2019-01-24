@@ -1,0 +1,7 @@
+kind: ""
+apiversion: ""
+resources:
+- configmap.yaml
+- ds.yaml
+- secrets.yaml
+- service.yaml

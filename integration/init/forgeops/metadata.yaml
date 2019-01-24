@@ -1,0 +1,3 @@
+upstream: "https://github.com/ForgeRock/forgeops/tree/b8a579493e58e5336dffc8ec394e37da9f074a45/helm/ds"
+args: ["--prefer-git"]
+skip_cleanup: false
