@@ -1,19 +1,16 @@
 package filetree
 
 import (
-	"bytes"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/kustomize/k8sdeps/kunstruct"
 	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
@@ -166,7 +163,7 @@ func (a *aferoLoader) loadTree(fs afero.Afero, current Node, files []os.FileInfo
 			Name:        file.Name(),
 			Path:        filePath,
 			HasOverlay:  hasOverlay,
-			IsSupported: isSupported(fileB),
+			IsSupported: IsSupported(fileB),
 			IsExcluded:  exists,
 		}), rest)
 	}
@@ -194,20 +191,18 @@ func isSymlink(file os.FileInfo) bool {
 	return file.Mode()&os.ModeSymlink != 0
 }
 
-func isSupported(file []byte) bool {
-	var out unstructured.Unstructured
+func IsSupported(file []byte) bool {
+	resourceFactory := resource.NewFactory(kunstruct.NewKunstructuredFactoryImpl())
 
-	fileJSON, err := yaml.YAMLToJSON(file)
+	resources, err := resourceFactory.SliceFromBytes(file)
 	if err != nil {
 		return false
 	}
-
-	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(fileJSON), 1024)
-	if err := decoder.Decode(&out); err != nil {
+	if len(resources) != 1 {
 		return false
 	}
+	r := resources[0]
 
-	r := resource.NewResourceFromUnstruct(out)
 	if r.GetKind() == CustomResourceDefinition {
 		return false
 	}

@@ -108,7 +108,7 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte,
 		return nil, errors.Wrap(err, "create kube resource with original json")
 	}
 
-	versionedObj, err := scheme.Scheme.New(r.Id().Gvk())
+	versionedObj, err := scheme.Scheme.New(util.ToGroupVersionKind(r.Id().Gvk()))
 	if err != nil {
 		return nil, errors.Wrap(err, "read group, version kind from kube resource")
 	}
@@ -189,7 +189,7 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 
 	kustomizationYaml := k8stypes.Kustomization{
 		Bases:                 []string{relativePathToBases},
-		PatchesStrategicMerge: []kustomizepatch.PatchStrategicMerge{TempYamlPath},
+		PatchesStrategicMerge: []kustomizepatch.StrategicMerge{TempYamlPath},
 	}
 
 	kustomizationYamlBytes, err := yaml.Marshal(kustomizationYaml)

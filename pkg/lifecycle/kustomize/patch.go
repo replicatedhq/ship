@@ -74,7 +74,16 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 		return errors.Wrap(err, "relative path to bases")
 	}
 
-	json6902Patches := []kustomizepatch.PatchJson6902{}
+	var excludedBases []string
+	state, err := l.State.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+	if state != nil && state.CurrentKustomize() != nil {
+		excludedBases = state.CurrentKustomize().Ship().ExcludedBases
+	}
+
+	json6902Patches := []kustomizepatch.Json6902{}
 	if err := l.FS.Walk(
 		step.Base,
 		func(targetPath string, info os.FileInfo, err error) error {
@@ -107,7 +116,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 				return nil
 			}
 
-			if _, err := scheme.Scheme.New(resource.Id().Gvk()); err != nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(resource.Id().Gvk())); err != nil {
 				// Ignore all non-k8s resources
 				return nil
 			}
@@ -117,17 +126,23 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 				return errors.Wrap(err, "unmarshal k8s metadata only")
 			}
 
+			for _, excluded := range excludedBases {
+				if info.Name() == excluded {
+					// don't add this to defaultPatches
+					debug.Log("skipping default patches", info.Name())
+					return nil
+				}
+			}
+
 			for _, defaultPatch := range defaultPatches {
 				splitDefaultPath := strings.Split(defaultPatch.Path, "/")
 				patchLabel := splitDefaultPath[len(splitDefaultPath)-1]
 
 				if l.hasMetadataLabel(patchLabel, fileMetadataOnly) {
-					json6902Patches = append(json6902Patches, kustomizepatch.PatchJson6902{
+					json6902Patches = append(json6902Patches, kustomizepatch.Json6902{
 						Target: &kustomizepatch.Target{
-							Group:     resource.GroupVersionKind().Group,
-							Version:   resource.GroupVersionKind().Version,
-							Kind:      resource.GroupVersionKind().Kind,
-							Namespace: resource.GetNamespace(),
+							Gvk:       resource.GetGvk(),
+							Namespace: resource.Id().Namespace(),
 							Name:      resource.GetName(),
 						},
 						Path: defaultPatch.writePath,

@@ -349,15 +349,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:899234af23e5793c34e06fd397f86ba33af5307b959b6a7afd19b63db065a9d7"
+  digest = "1:9f6d41e901cde897bad4569877c96c9cacee67c9c6ede2794c515371c954cb6a"
   name = "github.com/emicklei/go-restful"
   packages = [
     ".",
     "log",
   ]
   pruneopts = "UT"
-  revision = "3eb9738c1697594ea6e71a7156a9bb32ed216cf0"
-  version = "v2.8.0"
+  revision = "e37671aced663c8d3a395bd301857e26dcf4340c"
+  version = "v2.8.1"
 
 [[projects]]
   branch = "improve-comment-parsing"
@@ -537,14 +537,6 @@
   pruneopts = "UT"
   revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
   version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   branch = "master"
@@ -882,14 +874,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
-
-[[projects]]
-  digest = "1:1968f2f943a320bdbb0b90880ecec6b32cfa91b3b0ec8c216281822a20b3ba93"
-  name = "github.com/krishicks/yaml-patch"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "83cc9ac50becbbfafb86a89167f3bc5372e8e530"
-  version = "v0.0.10"
 
 [[projects]]
   digest = "1:38c6c0068711ac95a80ba4d5d8cf86b5b066cc6d74ddd1e007d4d3eb45751894"
@@ -1984,27 +1968,41 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:0b765e5515d191f0a74f7ebbb5e5c9cf66a3623b5b72cb6316aaa56092e6a0fc"
+  branch = "skip-empty-object-validation"
+  digest = "1:13523d10bd0275ee3e15b9110553f75bfea09473032f1bda5a0a426bf7f4ba13"
   name = "sigs.k8s.io/kustomize"
   packages = [
-    "pkg/app",
-    "pkg/configmapandsecret",
+    "k8sdeps",
+    "k8sdeps/configmapandsecret",
+    "k8sdeps/kunstruct",
+    "k8sdeps/transformer",
+    "k8sdeps/transformer/hash",
+    "k8sdeps/transformer/patch",
+    "k8sdeps/validator",
     "pkg/constants",
-    "pkg/crds",
     "pkg/expansion",
+    "pkg/factory",
     "pkg/fs",
-    "pkg/hash",
+    "pkg/git",
+    "pkg/gvk",
+    "pkg/ifc",
+    "pkg/ifc/transformer",
+    "pkg/image",
     "pkg/internal/error",
     "pkg/loader",
     "pkg/patch",
     "pkg/patch/transformer",
+    "pkg/resid",
     "pkg/resmap",
     "pkg/resource",
+    "pkg/target",
     "pkg/transformers",
+    "pkg/transformers/config",
+    "pkg/transformers/config/defaultconfig",
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "747fc669ce76213f980d6542951962142b8d0b1d"
+  revision = "5f8d94112d3ca3d42f82fe168f7bfe46c88c8896"
   source = "https://github.com/laverya/kustomize.git"
 
 [[projects]]
@@ -2080,7 +2078,7 @@
     "google.golang.org/grpc/status",
     "gopkg.in/yaml.v2",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
-    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+    "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/util/strategicpatch",
     "k8s.io/apimachinery/pkg/util/yaml",
     "k8s.io/client-go/kubernetes",
@@ -2103,11 +2101,14 @@
     "k8s.io/helm/pkg/strvals",
     "k8s.io/helm/pkg/tiller",
     "k8s.io/helm/pkg/timeconv",
-    "sigs.k8s.io/kustomize/pkg/app",
+    "sigs.k8s.io/kustomize/k8sdeps",
+    "sigs.k8s.io/kustomize/k8sdeps/kunstruct",
     "sigs.k8s.io/kustomize/pkg/fs",
+    "sigs.k8s.io/kustomize/pkg/gvk",
     "sigs.k8s.io/kustomize/pkg/loader",
     "sigs.k8s.io/kustomize/pkg/patch",
     "sigs.k8s.io/kustomize/pkg/resource",
+    "sigs.k8s.io/kustomize/pkg/target",
     "sigs.k8s.io/kustomize/pkg/types",
   ]
   solver-name = "gps-cdcl"

@@ -4,12 +4,16 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ghodss/yaml"
-	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
+
+	"github.com/ghodss/yaml"
+	"github.com/go-kit/kit/log"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/gvk"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
@@ -46,23 +50,19 @@ metadata:
 			},
 			expectKustomization: k8stypes.Kustomization{
 				Bases: []string{"../../strawberry"},
-				PatchesJson6902: []kustomizepatch.PatchJson6902{
+				PatchesJson6902: []kustomizepatch.Json6902{
 					{
 						Path: "chart-patch.json",
 						Target: &kustomizepatch.Target{
-							Group:   "apps",
-							Kind:    "Deployment",
-							Name:    "strawberry",
-							Version: "v1beta2",
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "strawberry",
 						},
 					},
 					{
 						Path: "heritage-patch.json",
 						Target: &kustomizepatch.Target{
-							Group:   "apps",
-							Kind:    "Deployment",
-							Name:    "strawberry",
-							Version: "v1beta2",
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "strawberry",
 						},
 					},
 				},
@@ -88,14 +88,12 @@ metadata:
 			},
 			expectKustomization: k8stypes.Kustomization{
 				Bases: []string{"../../pomegranate"},
-				PatchesJson6902: []kustomizepatch.PatchJson6902{
+				PatchesJson6902: []kustomizepatch.Json6902{
 					{
 						Path: "heritage-patch.json",
 						Target: &kustomizepatch.Target{
-							Group:   "apps",
-							Kind:    "Deployment",
-							Name:    "pomegranate",
-							Version: "v1beta2",
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "pomegranate",
 						},
 					},
 				},
@@ -121,14 +119,12 @@ metadata:
 			},
 			expectKustomization: k8stypes.Kustomization{
 				Bases: []string{"../../apple"},
-				PatchesJson6902: []kustomizepatch.PatchJson6902{
+				PatchesJson6902: []kustomizepatch.Json6902{
 					{
 						Path: "chart-patch.json",
 						Target: &kustomizepatch.Target{
-							Group:   "apps",
-							Kind:    "Deployment",
-							Name:    "apple",
-							Version: "v1beta2",
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "apple",
 						},
 					},
 				},
@@ -176,11 +172,17 @@ metadata:
 				req.NoError(err)
 			}
 
+			stateManager := state.NewManager(log.NewNopLogger(), mockFs, viper.New())
+
+			err := stateManager.Save(state.VersionedState{V1: &state.V1{Kustomize: &state.Kustomize{}}})
+			req.NoError(err)
+
 			l := &Kustomizer{
 				Logger: log.NewNopLogger(),
 				FS:     mockFs,
+				State:  stateManager,
 			}
-			err := l.generateTillerPatches(tt.step)
+			err = l.generateTillerPatches(tt.step)
 			req.NoError(err)
 
 			kustomizationB, err := mockFs.ReadFile(path.Join(constants.TempApplyOverlayPath, "kustomization.yaml"))

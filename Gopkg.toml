@@ -89,9 +89,9 @@ ignored = [
 
 [[constraint]]
   name = "sigs.k8s.io/kustomize"
-  #1.0.8 but includes a GVK sorting patch
-  revision = "747fc669ce76213f980d6542951962142b8d0b1d"
+  #branch = "master"
   source = "https://github.com/laverya/kustomize.git"
+  branch = "skip-empty-object-validation"
 
 [[override]]
   name = "k8s.io/kubernetes"

@@ -167,13 +167,13 @@ func (l *Unforker) shouldAddFileToBase(excludedBases []string, targetPath string
 		!strings.HasSuffix(targetPath, "values.yaml")
 }
 
-func (l *Unforker) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []kustomizepatch.PatchStrategicMerge, err error) {
+func (l *Unforker) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []kustomizepatch.StrategicMerge, err error) {
 	patches, err := l.writeFileMap(fs, shipOverlay.Patches, destDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write file map to %s", destDir)
 	}
 	for _, p := range patches {
-		relativePatchPaths = append(relativePatchPaths, kustomizepatch.PatchStrategicMerge(p))
+		relativePatchPaths = append(relativePatchPaths, kustomizepatch.StrategicMerge(p))
 	}
 	return
 }
@@ -233,7 +233,7 @@ func (l *Unforker) writeFile(fs afero.Afero, name string, contents string) error
 	return nil
 }
 
-func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizepatch.PatchStrategicMerge, relativeResourcePaths []string) error {
+func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizepatch.StrategicMerge, relativeResourcePaths []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := types.Kustomization{
 		Bases: []string{
@@ -296,7 +296,7 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 				return errors.Wrapf(err, "create new k8s resource %s", targetPath)
 			}
 
-			if _, err := scheme.Scheme.New(forkedResource.Id().Gvk()); err != nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(forkedResource.Id().Gvk())); err != nil {
 				// Ignore all non-k8s resources
 				return nil
 			}
@@ -393,7 +393,7 @@ func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstr
 
 		upstreamResource, err := util.NewKubernetesResource(upstreamB)
 		if err == nil {
-			if _, err := scheme.Scheme.New(upstreamResource.Id().Gvk()); err == nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(upstreamResource.Id().Gvk())); err == nil {
 				upstreamMinimal := util.MinimalK8sYaml{}
 				if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
 					return errors.Wrapf(err, "unmarshal file %s", upstreamPath)

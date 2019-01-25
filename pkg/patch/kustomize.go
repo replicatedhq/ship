@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"sigs.k8s.io/kustomize/pkg/app"
+	"sigs.k8s.io/kustomize/k8sdeps"
 	"sigs.k8s.io/kustomize/pkg/fs"
 	"sigs.k8s.io/kustomize/pkg/loader"
+	"sigs.k8s.io/kustomize/pkg/target"
 )
 
 func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
@@ -23,33 +24,32 @@ func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
 }
 
 func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizationPath string) error {
-	l := loader.NewFileLoader(fSys)
-
 	absPath, err := filepath.Abs(kustomizationPath)
 	if err != nil {
 		return err
 	}
 
-	rootLoader, err := l.New(absPath)
+	ldr, err := loader.NewLoader(absPath, fSys)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "make loader")
 	}
 
-	application, err := app.NewApplication(rootLoader, fSys)
+	k8sFactory := k8sdeps.NewFactory()
+
+	kt, err := target.NewKustTarget(ldr, fSys, k8sFactory.ResmapF, k8sFactory.TransformerF)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "make customized kustomize target")
 	}
 
-	allResources, err := application.MakeCustomizedResMap()
-
+	allResources, err := kt.MakeCustomizedResMap()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "make customized res map")
 	}
 
 	// Output the objects.
 	res, err := allResources.EncodeAsYaml()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "encode as yaml")
 	}
 	_, err = out.Write(res)
 	return err

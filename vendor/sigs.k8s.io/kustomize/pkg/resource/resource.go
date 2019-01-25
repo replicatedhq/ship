@@ -18,80 +18,68 @@ limitations under the License.
 package resource
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"strings"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/kustomize/pkg/ifc"
+	"sigs.k8s.io/kustomize/pkg/resid"
 )
 
-// Resource is an "Unstructured" (json/map form) Kubernetes API resource object
+// Resource is map representation of a Kubernetes API resource object
 // paired with a GenerationBehavior.
 type Resource struct {
-	unstructured.Unstructured
-	b GenerationBehavior
+	ifc.Kunstructured
+	b ifc.GenerationBehavior
 }
 
-// NewResourceWithBehavior returns a new instance of Resource.
-func NewResourceWithBehavior(obj runtime.Object, b GenerationBehavior) (*Resource, error) {
-	// Convert obj to a byte stream, then convert that to JSON (Unstructured).
-	marshaled, err := json.Marshal(obj)
+// String returns resource as JSON.
+func (r *Resource) String() string {
+	bs, err := r.MarshalJSON()
 	if err != nil {
-		return nil, err
+		return "<" + err.Error() + ">"
 	}
-	var u unstructured.Unstructured
-	err = u.UnmarshalJSON(marshaled)
-	return &Resource{Unstructured: u, b: b}, err
-}
-
-// NewResourceFromMap returns a new instance of Resource.
-func NewResourceFromMap(m map[string]interface{}) *Resource {
-	return NewResourceFromUnstruct(unstructured.Unstructured{Object: m})
-}
-
-// NewResourceFromUnstruct returns a new instance of Resource.
-func NewResourceFromUnstruct(u unstructured.Unstructured) *Resource {
-	return &Resource{Unstructured: u, b: BehaviorUnspecified}
+	return r.b.String() + ":" + strings.TrimSpace(string(bs))
 }
 
 // Behavior returns the behavior for the resource.
-func (r *Resource) Behavior() GenerationBehavior {
+func (r *Resource) Behavior() ifc.GenerationBehavior {
 	return r.b
 }
 
 // SetBehavior changes the resource to the new behavior
-func (r *Resource) SetBehavior(b GenerationBehavior) *Resource {
+func (r *Resource) SetBehavior(b ifc.GenerationBehavior) *Resource {
 	r.b = b
 	return r
 }
 
 // IsGenerated checks if the resource is generated from a generator
 func (r *Resource) IsGenerated() bool {
-	return r.b != BehaviorUnspecified
+	return r.b != ifc.BehaviorUnspecified
 }
 
 // Id returns the ResId for the resource.
-func (r *Resource) Id() ResId {
-	return NewResId(r.GroupVersionKind(), r.GetName())
+func (r *Resource) Id() resid.ResId {
+	namespace, _ := r.GetFieldValue("metadata.namespace")
+	return resid.NewResIdWithPrefixNamespace(r.GetGvk(), r.GetName(), "", namespace)
 }
 
 // Merge performs merge with other resource.
 func (r *Resource) Merge(other *Resource) {
 	r.Replace(other)
-	mergeConfigmap(r.Object, other.Object, r.Object)
+	mergeConfigmap(r.Map(), other.Map(), r.Map())
 }
 
 // Replace performs replace with other resource.
 func (r *Resource) Replace(other *Resource) {
 	r.SetLabels(mergeStringMaps(other.GetLabels(), r.GetLabels()))
-	r.SetAnnotations(mergeStringMaps(other.GetAnnotations(), r.GetAnnotations()))
+	r.SetAnnotations(
+		mergeStringMaps(other.GetAnnotations(), r.GetAnnotations()))
 	r.SetName(other.GetName())
 }
 
 // TODO: Add BinaryData once we sync to new k8s.io/api
-func mergeConfigmap(mergedTo map[string]interface{}, maps ...map[string]interface{}) {
+func mergeConfigmap(
+	mergedTo map[string]interface{},
+	maps ...map[string]interface{}) {
 	mergedMap := map[string]interface{}{}
 	for _, m := range maps {
 		datamap, ok := m["data"].(map[string]interface{})
@@ -112,31 +100,4 @@ func mergeStringMaps(maps ...map[string]string) map[string]string {
 		}
 	}
 	return result
-}
-
-// GetFieldValue returns value at the given fieldpath.
-func (r *Resource) GetFieldValue(fieldPath string) (string, error) {
-	return getFieldValue(r.UnstructuredContent(), strings.Split(fieldPath, "."))
-}
-
-func getFieldValue(m map[string]interface{}, pathToField []string) (string, error) {
-	if len(pathToField) == 0 {
-		return "", fmt.Errorf("field not found")
-	}
-	if len(pathToField) == 1 {
-		if v, found := m[pathToField[0]]; found {
-			if s, ok := v.(string); ok {
-				return s, nil
-			}
-			return "", fmt.Errorf("value at fieldpath is not of string type")
-		}
-		return "", fmt.Errorf("field at given fieldpath does not exist")
-	}
-	v := m[pathToField[0]]
-	switch typedV := v.(type) {
-	case map[string]interface{}:
-		return getFieldValue(typedV, pathToField[1:])
-	default:
-		return "", fmt.Errorf("%#v is not expected to be a primitive type", typedV)
-	}
 }

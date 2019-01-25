@@ -17,58 +17,32 @@ limitations under the License.
 package transformers
 
 import (
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/kustomize/pkg/gvk"
 	"sigs.k8s.io/kustomize/pkg/resmap"
+	"sigs.k8s.io/kustomize/pkg/transformers/config"
 )
 
 type namespaceTransformer struct {
-	namespace       string
-	pathConfigs     []PathConfig
-	skipPathConfigs []PathConfig
-}
-
-var namespacePathConfigs = []PathConfig{
-	{
-		Path:               []string{"metadata", "namespace"},
-		CreateIfNotPresent: true,
-	},
-}
-
-var skipNamespacePathConfigs = []PathConfig{
-	{
-		GroupVersionKind: &schema.GroupVersionKind{
-			Kind: "Namespace",
-		},
-	},
-	{
-		GroupVersionKind: &schema.GroupVersionKind{
-			Kind: "ClusterRoleBinding",
-		},
-	},
-	{
-		GroupVersionKind: &schema.GroupVersionKind{
-			Kind: "ClusterRole",
-		},
-	},
-	{
-		GroupVersionKind: &schema.GroupVersionKind{
-			Kind: "CustomResourceDefinition",
-		},
-	},
+	namespace        string
+	fieldSpecsToUse  []config.FieldSpec
+	fieldSpecsToSkip []config.FieldSpec
 }
 
 var _ Transformer = &namespaceTransformer{}
 
 // NewNamespaceTransformer construct a namespaceTransformer.
-func NewNamespaceTransformer(ns string) Transformer {
+func NewNamespaceTransformer(ns string, cf []config.FieldSpec) Transformer {
 	if len(ns) == 0 {
 		return NewNoOpTransformer()
 	}
-
+	var skip []config.FieldSpec
+	for _, g := range gvk.ClusterLevelGvks() {
+		skip = append(skip, config.FieldSpec{Gvk: g})
+	}
 	return &namespaceTransformer{
-		namespace:       ns,
-		pathConfigs:     namespacePathConfigs,
-		skipPathConfigs: skipNamespacePathConfigs,
+		namespace:        ns,
+		fieldSpecsToUse:  cf,
+		fieldSpecsToSkip: skip,
 	}
 }
 
@@ -78,8 +52,8 @@ func (o *namespaceTransformer) Transform(m resmap.ResMap) error {
 
 	for id := range m {
 		found := false
-		for _, path := range o.skipPathConfigs {
-			if selectByGVK(id.Gvk(), path.GroupVersionKind) {
+		for _, path := range o.fieldSpecsToSkip {
+			if id.Gvk().IsSelected(&path.Gvk) {
 				found = true
 				break
 			}
@@ -91,13 +65,13 @@ func (o *namespaceTransformer) Transform(m resmap.ResMap) error {
 	}
 
 	for id := range mf {
-		objMap := mf[id].UnstructuredContent()
-		for _, path := range o.pathConfigs {
-			if !selectByGVK(id.Gvk(), path.GroupVersionKind) {
+		objMap := mf[id].Map()
+		for _, path := range o.fieldSpecsToUse {
+			if !id.Gvk().IsSelected(&path.Gvk) {
 				continue
 			}
 
-			err := mutateField(objMap, path.Path, path.CreateIfNotPresent, func(_ interface{}) (interface{}, error) {
+			err := mutateField(objMap, path.PathSlice(), path.CreateIfNotPresent, func(_ interface{}) (interface{}, error) {
 				return o.namespace, nil
 			})
 			if err != nil {
@@ -114,9 +88,8 @@ func (o *namespaceTransformer) Transform(m resmap.ResMap) error {
 
 func (o *namespaceTransformer) updateClusterRoleBinding(m resmap.ResMap) {
 	saMap := map[string]bool{}
-	saGVK := schema.GroupVersionKind{Version: "v1", Kind: "ServiceAccount"}
 	for id := range m {
-		if id.Gvk().String() == saGVK.String() {
+		if id.Gvk().Equals(gvk.Gvk{Version: "v1", Kind: "ServiceAccount"}) {
 			saMap[id.Name()] = true
 		}
 	}
@@ -125,7 +98,7 @@ func (o *namespaceTransformer) updateClusterRoleBinding(m resmap.ResMap) {
 		if id.Gvk().Kind != "ClusterRoleBinding" && id.Gvk().Kind != "RoleBinding" {
 			continue
 		}
-		objMap := m[id].UnstructuredContent()
+		objMap := m[id].Map()
 		subjects := objMap["subjects"].([]interface{})
 		for i := range subjects {
 			subject := subjects[i].(map[string]interface{})
