@@ -5,7 +5,16 @@ package templates
 */
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"reflect"
@@ -17,6 +26,7 @@ import (
 	units "github.com/docker/go-units"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	certUtil "k8s.io/client-go/util/cert"
 )
 
 func (bb *BuilderBuilder) NewStaticContext() *StaticCtx {
@@ -63,6 +73,7 @@ func (ctx StaticCtx) FuncMap() template.FuncMap {
 		"ParseInt":     ctx.parseInt,
 		"ParseUint":    ctx.parseUint,
 		"HumanSize":    ctx.humanSize,
+		"KubeSeal":     ctx.kubeSeal,
 	}
 }
 
@@ -259,4 +270,65 @@ func (ctx StaticCtx) isInt(val reflect.Value) bool {
 func (ctx StaticCtx) isUint(val reflect.Value) bool {
 	kind := val.Kind()
 	return kind == reflect.Uint || kind == reflect.Uint8 || kind == reflect.Uint16 || kind == reflect.Uint32 || kind == reflect.Uint64
+}
+
+// kubeSeal will use the same encryption techniques as the kubeseal application found at
+// https://github.com/bitnami-labs/sealed-secrets
+// This function simply returns the encrpyted value that can be written into a kind: SealedSecret
+// resource, but it does not create the entire resource. That's left to the application developer.
+func (ctx StaticCtx) kubeSeal(certData string, namespace string, name string, value string) (string, error) {
+	certs, err := certUtil.ParseCertsPEM([]byte(certData))
+	if err != nil {
+		level.Error(ctx.Logger).Log("msg", "failed to parse cert", "err", err)
+		return "", err
+	}
+
+	if len(certs) == 0 {
+		err := errors.New("unable to find cert in supplied cert data")
+		level.Error(ctx.Logger).Log("msg", "failed to parse cert", "err", err)
+		return "", err
+	}
+
+	pubKey, ok := certs[0].PublicKey.(*rsa.PublicKey)
+	if !ok {
+		err := fmt.Errorf("cert was not a public key, was %T", certs[0].PublicKey)
+		level.Error(ctx.Logger).Log("msg", "failed to get public key", "err", err)
+		return "", err
+	}
+
+	rnd := rand.Reader
+	sessionKey := make([]byte, 32)
+
+	if _, err := io.ReadFull(rnd, sessionKey); err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(sessionKey)
+	if err != nil {
+		return "", err
+	}
+
+	aed, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO consider options for clusterwide and namespacewide sealed secrets
+	// But this currently only supports creation of a single type of a sealed secret
+	label := []byte(fmt.Sprintf("%s/%s", namespace, name))
+	rsaCiphertext, err := rsa.EncryptOAEP(sha256.New(), rnd, pubKey, sessionKey, label)
+	if err != nil {
+		return "", err
+	}
+
+	cipherText := make([]byte, 2)
+	binary.BigEndian.PutUint16(cipherText, uint16(len(rsaCiphertext)))
+	cipherText = append(cipherText, rsaCiphertext...)
+
+	zeroNonce := make([]byte, aed.NonceSize())
+
+	cipherText = aed.Seal(cipherText, zeroNonce, []byte(value), nil)
+
+	encodedCipherText := base64.StdEncoding.EncodeToString(cipherText)
+	return encodedCipherText, nil
 }
