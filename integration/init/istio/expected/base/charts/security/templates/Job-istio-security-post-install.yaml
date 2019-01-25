@@ -6,8 +6,6 @@ metadata:
     helm.sh/hook-delete-policy: hook-succeeded
   labels:
     app: security
-    chart: security
-    heritage: Tiller
     release: istio
   name: istio-security-post-install
   namespace: default

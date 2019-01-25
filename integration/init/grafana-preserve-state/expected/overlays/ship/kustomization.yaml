@@ -1,8 +1,8 @@
 kind: ""
 apiversion: ""
-bases:
-- ../../base
 patchesStrategicMerge:
 - podsecuritypolicy.yaml
 - secret.yaml
 - service.yaml
+bases:
+- ../../base

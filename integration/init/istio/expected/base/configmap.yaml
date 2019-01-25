@@ -38,8 +38,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: istio
-    chart: istio-1.1.0
-    heritage: Tiller
     release: istio
   name: istio
   namespace: default

@@ -114,6 +114,121 @@ spec:
     role: slave
   type: ClusterIP
 ---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: redis
+    chart: redis-5.0.0
+    heritage: Tiller
+    release: redis
+  name: redis-slave
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      release: redis
+      role: slave
+  template:
+    metadata:
+      annotations:
+        checksum/configmap: 23853843a059c57c5633a34ba022f8145d1401d7b00dc5945ead28cf322e18df
+        checksum/health: a70f637bcac29808c7ba9227b633914ef262bc8a0358bd4e7aeab02ba1ac8ea2
+        checksum/secret: FORKED_CHECKSUM
+      labels:
+        app: redis
+        chart: redis-5.0.0
+        release: redis
+        role: slave
+    spec:
+      containers:
+      - args:
+        - --port
+        - $(REDIS_PORT)
+        - --slaveof
+        - $(REDIS_MASTER_HOST)
+        - $(REDIS_MASTER_PORT_NUMBER)
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --masterauth
+        - $(REDIS_MASTER_PASSWORD)
+        - --include
+        - /opt/bitnami/redis/etc/redis.conf
+        - --include
+        - /opt/bitnami/redis/etc/replica.conf
+        command:
+        - /run.sh
+        env:
+        - name: REDIS_REPLICATION_MODE
+          value: slave
+        - name: REDIS_MASTER_HOST
+          value: redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_MASTER_PORT_NUMBER
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: redis
+        - name: REDIS_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: redis
+        image: docker.io/bitnami/redis:4.0.11
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_local_and_master.sh
+          failureThreshold: HI_IM_FORKED
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - /health/ping_local_and_master.sh
+          failureThreshold: 5
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: null
+        volumeMounts:
+        - mountPath: /health
+          name: health
+        - mountPath: /data
+          name: redis-data
+        - mountPath: /opt/bitnami/redis/etc
+          name: config
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      serviceAccountName: default
+      volumes:
+      - configMap:
+          defaultMode: 493
+          name: redis-health
+        name: health
+      - configMap:
+          name: redis
+        name: config
+      - emptyDir: {}
+        name: redis-data
+---
 apiVersion: apps/v1beta2
 kind: StatefulSet
 metadata:
@@ -244,118 +359,3 @@ spec:
       resources:
         requests:
           storage: 8Gi
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: redis
-    chart: redis-5.0.0
-    heritage: Tiller
-    release: redis
-  name: redis-slave
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-      release: redis
-      role: slave
-  template:
-    metadata:
-      annotations:
-        checksum/configmap: 23853843a059c57c5633a34ba022f8145d1401d7b00dc5945ead28cf322e18df
-        checksum/health: a70f637bcac29808c7ba9227b633914ef262bc8a0358bd4e7aeab02ba1ac8ea2
-        checksum/secret: FORKED_CHECKSUM
-      labels:
-        app: redis
-        chart: redis-5.0.0
-        release: redis
-        role: slave
-    spec:
-      containers:
-      - args:
-        - --port
-        - $(REDIS_PORT)
-        - --slaveof
-        - $(REDIS_MASTER_HOST)
-        - $(REDIS_MASTER_PORT_NUMBER)
-        - --requirepass
-        - $(REDIS_PASSWORD)
-        - --masterauth
-        - $(REDIS_MASTER_PASSWORD)
-        - --include
-        - /opt/bitnami/redis/etc/redis.conf
-        - --include
-        - /opt/bitnami/redis/etc/replica.conf
-        command:
-        - /run.sh
-        env:
-        - name: REDIS_REPLICATION_MODE
-          value: slave
-        - name: REDIS_MASTER_HOST
-          value: redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_MASTER_PORT_NUMBER
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: redis
-        - name: REDIS_MASTER_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: redis
-        image: docker.io/bitnami/redis:4.0.11
-        imagePullPolicy: Always
-        livenessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - /health/ping_local_and_master.sh
-          failureThreshold: HI_IM_FORKED
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: redis
-        ports:
-        - containerPort: 6379
-          name: redis
-        readinessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - /health/ping_local_and_master.sh
-          failureThreshold: 5
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources: null
-        volumeMounts:
-        - mountPath: /health
-          name: health
-        - mountPath: /data
-          name: redis-data
-        - mountPath: /opt/bitnami/redis/etc
-          name: config
-      securityContext:
-        fsGroup: 1001
-        runAsUser: 1001
-      serviceAccountName: default
-      volumes:
-      - configMap:
-          defaultMode: 493
-          name: redis-health
-        name: health
-      - configMap:
-          name: redis
-        name: config
-      - emptyDir: {}
-        name: redis-data

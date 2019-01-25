@@ -50,8 +50,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: istio-security
-    chart: security-1.0.3
-    heritage: Tiller
     istio: security
     release: istio
   name: istio-security-custom-resources

@@ -5,8 +5,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: istio-statsd-prom-bridge
-    chart: mixer-1.0.3
-    heritage: Tiller
     istio: mixer
     release: istio
   name: istio-statsd-prom-bridge

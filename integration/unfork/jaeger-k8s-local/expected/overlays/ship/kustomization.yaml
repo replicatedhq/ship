@@ -1,8 +1,8 @@
 kind: ""
 apiversion: ""
-bases:
-- ../../base
 patchesStrategicMerge:
 - Deployment-jaeger-collector.yaml
 - Deployment-jaeger-query.yaml
 - Service-zipkin.yaml
+bases:
+- ../../base

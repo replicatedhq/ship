@@ -4,8 +4,6 @@ metadata:
   annotations: null
   labels:
     app: istio-egressgateway
-    chart: gateways-1.0.3
-    heritage: Tiller
     istio: egressgateway
     release: istio
   name: istio-egressgateway

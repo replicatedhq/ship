@@ -5,8 +5,6 @@ metadata:
     prometheus.io/scrape: "true"
   labels:
     app: prometheus
-    chart: prometheus
-    heritage: Tiller
     release: istio
   name: prometheus
   namespace: default

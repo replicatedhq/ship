@@ -85,21 +85,6 @@ metadata:
   name: grafana
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app: grafana
-    release: grafana
-  name: grafana
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 111Gi
-  storageClassName: default
----
-apiVersion: v1
 data:
   admin-password: c3Ryb25ncGFzc3dvcmQ=
   admin-user: YWRtaW4=
@@ -249,3 +234,18 @@ spec:
   - secret
   - downwardAPI
   - persistentVolumeClaim
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: grafana
+    release: grafana
+  name: grafana
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 111Gi
+  storageClassName: default

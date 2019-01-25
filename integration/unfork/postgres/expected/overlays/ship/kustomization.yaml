@@ -1,9 +1,9 @@
 kind: ""
 apiversion: ""
-bases:
-- ../../base
+patchesStrategicMerge:
+- secret.yaml
 resources:
 - statefulset-primary.yaml
 - statefulset-replica.yaml
-patchesStrategicMerge:
-- secret.yaml
+bases:
+- ../../base

@@ -68,8 +68,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: istio
-    chart: istio-1.0.3
-    heritage: Tiller
     istio: sidecar-injector
     release: istio
   name: istio-sidecar-injector
