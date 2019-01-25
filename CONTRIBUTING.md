@@ -12,6 +12,11 @@ Pull Requests
 
 All pull requests must be made from forks enabled on CircleCI, so that unit and acceptance tests can be executed prior to code being merged.
 
+
+### Getting CircleCI to run your tests
+
+You'll need to enable your fork in CircleCI (under `Add Projects`). You'll also need to [enable build processing](https://circleci.com/docs/2.0/build-processing/).
+
 Build & Run the Project
 ------------------------
 
