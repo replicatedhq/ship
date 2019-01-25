@@ -36,7 +36,6 @@ func makeTestShipCtx(t *testing.T) ShipContext {
 
 // tests that generated CAs can be referenced again + that more than one CA can be generated
 func TestShipContext_makeCa_repeat(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		caName       string
@@ -123,7 +122,6 @@ func TestShipContext_makeCa_repeat(t *testing.T) {
 // generates two certs, covering different sets of hosts, with the same CA
 // certs must cover the specified domains, be of the desired type, and be signed by the CA
 func TestShipContext_makeCert_repeat(t *testing.T) {
-
 	tests := []struct {
 		name           string
 		firstCertName  string
