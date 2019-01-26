@@ -15,9 +15,6 @@ import (
 )
 
 func (d *NavcycleRoutes) getStep(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "handler", "getStep"))
-	debug.Log()
-
 	requestedStep := c.Param("step")
 
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
@@ -48,19 +45,29 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "hydrateStep"))
 
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "tryLoad.fail", "err", err)
+		return nil, errors.Wrap(err, "load state")
+	}
+
 	if step.Kustomize != nil {
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		if err != nil {
+			return nil, errors.Wrap(err, "create kustomize template builder")
+		}
+		renderedBasePath, err := builder.String(step.Kustomize.BasePath)
+		if err != nil {
+			return nil, errors.Wrap(err, "render kusstomize basepath contents")
+		}
+		step.Kustomize.BasePath = renderedBasePath
+
 		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
 			return nil, errors.Wrap(err, "load kustomize tree")
 		}
 		step.Kustomize.Tree = *tree
-	}
-
-	currentState, err := d.StateManager.TryLoad()
-	if err != nil {
-		level.Error(d.Logger).Log("event", "tryLoad,fail", "err", err)
-		return nil, errors.Wrap(err, "load state")
 	}
 
 	if step.HelmValues != nil {
@@ -85,6 +92,7 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		step.HelmValues.ReleaseName = releaseName
 		step.HelmValues.Namespace = namespace
 	}
+
 	if step.Message != nil {
 		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
 		if err != nil {
