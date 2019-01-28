@@ -28,7 +28,7 @@ func (bb *BuilderBuilder) NewShipContext() (*ShipContext, error) {
 	return shipCtx, nil
 }
 
-// FuncMap represents the available functions in the ConfigCtx.
+// FuncMap represents the available functions in the ShipCtx.
 func (ctx ShipContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
 		"AmazonEKS": ctx.amazonEKS,

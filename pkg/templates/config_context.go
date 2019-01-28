@@ -10,11 +10,7 @@ import (
 	"github.com/replicatedhq/libyaml"
 )
 
-func (bb *BuilderBuilder) NewConfigContext(
-	configGroups []libyaml.ConfigGroup,
-	templateContext map[string]interface{},
-) (*ConfigCtx, error) {
-
+func (bb *BuilderBuilder) NewConfigContext(configGroups []libyaml.ConfigGroup, templateContext map[string]interface{}) (*ConfigCtx, error) {
 	builder := bb.NewBuilder(
 		bb.NewStaticContext(),
 	)

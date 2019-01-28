@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
@@ -503,6 +504,137 @@ func TestHydrateStep(t *testing.T) {
 
 			response, err := v2.hydrateStep(test.step)
 			req.NoError(err, "hydrate step")
+			req.Equal(test.want, response)
+		})
+	}
+}
+
+func TestHydrateTemplatedKustomizeStep(t *testing.T) {
+	tests := []struct {
+		name    string
+		step    daemontypes.Step
+		state   state2.State
+		fs      map[string]string
+		release *api.Release
+		want    *daemontypes.StepResponse
+	}{
+		{
+			name: "kustomize",
+			step: daemontypes.NewStep(api.Step{
+				Kustomize: &api.Kustomize{
+					Base:    "{{repl ToUpper \"abcdef\"}}",
+					Dest:    "more.yaml",
+					Overlay: "overlay/mine",
+					StepShared: api.StepShared{
+						ID: "bar",
+					},
+				},
+			}),
+			release: &api.Release{
+				Metadata: api.ReleaseMetadata{
+					CustomerID: "12345",
+				},
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:  "spam",
+										Value: "eggs",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			state: state2.V0{},
+			want: &daemontypes.StepResponse{
+				CurrentStep: daemontypes.Step{
+					Source: api.Step{
+						Kustomize: &api.Kustomize{
+							Base:    "{{repl ToUpper \"abcdef\"}}",
+							Dest:    "more.yaml",
+							Overlay: "overlay/mine",
+							StepShared: api.StepShared{
+								ID: "bar",
+							},
+						},
+					},
+					Kustomize: &daemontypes.Kustomize{
+						BasePath: "ABCDEF",
+						Tree: filetree.Node{
+							Children: []filetree.Node{
+								filetree.Node{
+									Children:    []filetree.Node{},
+									Name:        "/",
+									Path:        "/",
+									HasOverlay:  false,
+									IsSupported: false,
+									IsExcluded:  false,
+								},
+							},
+							Name:        "/",
+							Path:        "/",
+							HasOverlay:  false,
+							IsSupported: false,
+							IsExcluded:  false,
+						},
+					},
+				},
+				Phase: "kustomize",
+				Actions: []daemontypes.Action{
+					{
+						ButtonType:  "primary",
+						Text:        "Finalize Overlays",
+						LoadingText: "Finalizing Overlays",
+						OnClick: daemontypes.ActionRequest{
+							URI:    "/navcycle/step/bar",
+							Method: "POST",
+							Body:   "",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+
+			mc := gomock.NewController(t)
+			testLogger := &logger.TestLogger{T: t}
+			progressmap := &daemontypes.ProgressMap{}
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			mockState := state.NewMockManager(mc)
+			if test.state != nil {
+				mockState.EXPECT().TryLoad().Return(test.state, nil)
+				mockState.EXPECT().TryLoad().Return(test.state, nil)
+			}
+
+			treeLoader := filetree.NewLoader(mockFs, testLogger, mockState)
+
+			v2 := &NavcycleRoutes{
+				BuilderBuilder: templates.NewBuilderBuilder(
+					testLogger,
+					viper.New(),
+					mockState,
+				),
+				Logger:       testLogger,
+				StepProgress: progressmap,
+				Fs:           mockFs,
+				StateManager: mockState,
+				Release:      test.release,
+				TreeLoader:   treeLoader,
+			}
+
+			err := mockFs.MkdirAll("ABCDEF", 0755)
+			req.NoError(err, "mkdir")
+
+			response, err := v2.hydrateStep(test.step)
+			req.NoError(err, "hydrate templated kustomize step")
 			req.Equal(test.want, response)
 		})
 	}
