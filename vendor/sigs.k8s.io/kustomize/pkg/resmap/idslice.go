@@ -19,47 +19,19 @@ package resmap
 import (
 	"sort"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/kustomize/pkg/resource"
+	"sigs.k8s.io/kustomize/pkg/resid"
 )
 
 // IdSlice implements the sort interface.
-type IdSlice []resource.ResId
+type IdSlice []resid.ResId
 
 var _ sort.Interface = IdSlice{}
 
 func (a IdSlice) Len() int      { return len(a) }
 func (a IdSlice) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a IdSlice) Less(i, j int) bool {
-	if a[i].Gvk().String() != a[j].Gvk().String() {
-		return gvkLess(a[i].Gvk(), a[j].Gvk())
+	if !a[i].Gvk().Equals(a[j].Gvk()) {
+		return a[i].Gvk().IsLessThan(a[j].Gvk())
 	}
 	return a[i].String() < a[j].String()
-}
-
-var order = []string{"Namespace", "CustomResourceDefinition", "ServiceAccount",
-	"Role", "ClusterRole", "RoleBinding", "ClusterRoleBinding"}
-var typeOrders = func() map[string]int {
-	m := map[string]int{}
-	for i, n := range order {
-		m[n] = i
-	}
-	return m
-}()
-
-func gvkLess(i, j schema.GroupVersionKind) bool {
-	indexi, foundi := typeOrders[i.Kind]
-	indexj, foundj := typeOrders[j.Kind]
-	if foundi && foundj {
-		if indexi != indexj {
-			return indexi < indexj
-		}
-	}
-	if foundi && !foundj {
-		return true
-	}
-	if !foundi && foundj {
-		return false
-	}
-	return i.String() < j.String()
 }

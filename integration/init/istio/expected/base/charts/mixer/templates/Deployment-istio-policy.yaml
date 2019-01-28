@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: mixer
-    chart: mixer
-    heritage: Tiller
     istio: mixer
     release: istio
   name: istio-policy

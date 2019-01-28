@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: galley
-    chart: galley
-    heritage: Tiller
     istio: galley
     release: istio
   name: istio-galley

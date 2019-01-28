@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: sidecarInjectorWebhook
-    chart: sidecarInjectorWebhook-1.0.3
-    heritage: Tiller
     istio: sidecar-injector
     release: istio
   name: istio-sidecar-injector

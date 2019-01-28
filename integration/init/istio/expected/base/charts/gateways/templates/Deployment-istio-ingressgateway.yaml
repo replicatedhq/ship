@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: istio-ingressgateway
-    chart: gateways
-    heritage: Tiller
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway

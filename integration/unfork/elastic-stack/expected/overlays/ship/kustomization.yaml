@@ -1,13 +1,5 @@
 kind: ""
 apiversion: ""
-bases:
-- ../../base
-resources:
-- client-pdb.yaml
-- data-pdb.yaml
-- master-pdb.yaml
-- master-svc.yaml
-- service-account.yaml
 patchesStrategicMerge:
 - client-deployment.yaml
 - client-svc.yaml
@@ -16,3 +8,11 @@ patchesStrategicMerge:
 - deployment.yaml
 - master-statefulset.yaml
 - service.yaml
+resources:
+- client-pdb.yaml
+- data-pdb.yaml
+- master-pdb.yaml
+- master-svc.yaml
+- service-account.yaml
+bases:
+- ../../base

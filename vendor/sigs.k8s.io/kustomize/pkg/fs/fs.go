@@ -26,8 +26,11 @@ import (
 type FileSystem interface {
 	Create(name string) (File, error)
 	Mkdir(name string) error
+	MkdirAll(name string) error
+	RemoveAll(name string) error
 	Open(name string) (File, error)
 	IsDir(name string) bool
+	CleanedAbs(path string) (ConfirmedDir, string, error)
 	Exists(name string) bool
 	Glob(pattern string) ([]string, error)
 	ReadFile(name string) ([]byte, error)

@@ -315,8 +315,6 @@ kind: ConfigMap
 metadata:
   labels:
     app: prometheus
-    chart: prometheus-1.0.3
-    heritage: Tiller
     release: istio
   name: prometheus
   namespace: default

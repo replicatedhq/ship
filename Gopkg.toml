@@ -85,37 +85,45 @@ ignored = [
 # Overrides for Kustomize & Helm
 [[constraint]]
   name = "k8s.io/helm"
-  version = "2.11.0"
+  version = "2.12.3"
 
 [[constraint]]
   name = "sigs.k8s.io/kustomize"
-  #1.0.8 but includes a GVK sorting patch
-  revision = "747fc669ce76213f980d6542951962142b8d0b1d"
+  #branch = "master"
   source = "https://github.com/laverya/kustomize.git"
+  branch = "skip-empty-object-validation"
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "1.11.5"
+  version = "1.13.1"
 
 [[override]]
   name = "k8s.io/code-generator"
-  version = "kubernetes-1.11.5"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.11.5"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.11.5"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.11.5"
+  version = "kubernetes-1.13.1"
+
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  version = "kubernetes-1.13.1"
+
+[[override]]
+  name = "k8s.io/cli-runtime"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.11.5"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "github.com/russross/blackfriday"

@@ -18,132 +18,202 @@ limitations under the License.
 package types
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"regexp"
 
+	"sigs.k8s.io/kustomize/pkg/image"
 	"sigs.k8s.io/kustomize/pkg/patch"
 )
 
+const (
+	KustomizationVersion = "v1beta1"
+	KustomizationKind    = "Kustomization"
+)
+
+// TypeMeta copies apimachinery/pkg/apis/meta/v1.TypeMeta
+type TypeMeta struct {
+	// Kind copies apimachinery/pkg/apis/meta/v1.Typemeta.Kind
+	Kind string `json:"kind,omitempty" protobuf:"bytes,1,opt,name=kind"`
+
+	// APIVersion copies apimachinery/pkg/apis/meta/v1.Typemeta.APIVersion
+	APIVersion string `json:"apiVersion,omitempty" protobuf:"bytes,2,opt,name=apiVersion"`
+}
+
 // Kustomization holds the information needed to generate customized k8s api resources.
 type Kustomization struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	TypeMeta `json:",inline" yaml:",inline"`
+
+	//
+	// Operators - what kustomize can do.
+	//
 
 	// NamePrefix will prefix the names of all resources mentioned in the kustomization
 	// file including generated configmaps and secrets.
 	NamePrefix string `json:"namePrefix,omitempty" yaml:"namePrefix,omitempty"`
 
+	// NameSuffix will suffix the names of all resources mentioned in the kustomization
+	// file including generated configmaps and secrets.
+	NameSuffix string `json:"nameSuffix,omitempty" yaml:"nameSuffix,omitempty"`
+
 	// Namespace to add to all objects.
 	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 
-	// Labels to add to all objects and selectors.
-	// These labels would also be used to form the selector for apply --prune
-	// Named differently than “labels” to avoid confusion with metadata for
-	// this object
+	// CommonLabels to add to all objects and selectors.
 	CommonLabels map[string]string `json:"commonLabels,omitempty" yaml:"commonLabels,omitempty"`
 
-	// Annotations to add to all objects.
+	// CommonAnnotations to add to all objects.
 	CommonAnnotations map[string]string `json:"commonAnnotations,omitempty" yaml:"commonAnnotations,omitempty"`
 
-	// Each entry should be either a path to a directory containing kustomization.yaml
-	// Or a repo URL pointing to a remote directory containing kustomization.yaml
-	// The repo URL should follow hashicorp/go-getter URL format
-	// https://github.com/hashicorp/go-getter#url-format
-	Bases []string `json:"bases,omitempty" yaml:"bases,omitempty"`
-
-	// Resources specifies the relative paths for resource files within the package.
-	// URLs and globs are not supported
-	Resources []string `json:"resources,omitempty" yaml:"resources,omitempty"`
-
-	// Crds specifies relative paths to custom resource definition files.
-	Crds []string `json:"crds,omitempty" yaml:"crds,omitempty"`
-
-	// An Patch entry is very similar to an Resource entry.
-	// It specifies the relative paths for patch files within the package.
-	// URLs and globs are not supported.
-	// The patch files should be Stategic Merge Patch, the default patching behavior for kubectl.
+	// PatchesStrategicMerge specifies the relative path to a file
+	// containing a strategic merge patch.  Format documented at
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
-	Patches               []string                    `json:"patches,omitempty" yaml:"patches,omitempty"`
-	PatchesStrategicMerge []patch.PatchStrategicMerge `json:"patchesStrategicMerge,omitempty" yaml:"patchesStrategicMerge,omitempty"`
+	// URLs and globs are not supported.
+	PatchesStrategicMerge []patch.StrategicMerge `json:"patchesStrategicMerge,omitempty" yaml:"patchesStrategicMerge,omitempty"`
 
 	// JSONPatches is a list of JSONPatch for applying JSON patch.
-	// The JSON patch is documented at https://tools.ietf.org/html/rfc6902
-	// and http://jsonpatch.com/.
-	PatchesJson6902 []patch.PatchJson6902 `json:"patchesJson6902,omitempty" yaml:"patchesJson6902,omitempty"`
+	// Format documented at https://tools.ietf.org/html/rfc6902
+	// and http://jsonpatch.com
+	PatchesJson6902 []patch.Json6902 `json:"patchesJson6902,omitempty" yaml:"patchesJson6902,omitempty"`
 
-	// List of configmaps to generate from configuration sources.
-	// Base/overlay concept doesn't apply to this field.
-	// If a configmap want to have a base and an overlay, it should go to Bases
-	// and Overlays fields.
-	ConfigMapGenerator []ConfigMapArgs `json:"configMapGenerator,omitempty" yaml:"configMapGenerator,omitempty"`
+	// Images is a list of (image name, new name, new tag or digest)
+	// for changing image names, tags or digests. This can also be achieved with a
+	// patch, but this operator is simpler to specify.
+	Images []image.Image `json:"images,omitempty" yaml:"images,omitempty"`
 
-	// List of secrets to generate from secret commands.
-	// Base/overlay concept doesn't apply to this field.
-	// If a secret want to have a base and an overlay, it should go to Bases and
-	// Overlays fields.
-	SecretGenerator []SecretArgs `json:"secretGenerator,omitempty" yaml:"secretGenerator,omitempty"`
-
-	// Variables which will be substituted at runtime
+	// Vars allow things modified by kustomize to be injected into a
+	// container specification. A var is a name (e.g. FOO) associated
+	// with a field in a specific resource instance.  The field must
+	// contain a value of type string, and defaults to the name field
+	// of the instance.  Any appearance of "$(FOO)" in the container
+	// spec will be replaced at kustomize build time, after the final
+	// value of the specified field has been determined.
 	Vars []Var `json:"vars,omitempty" yaml:"vars,omitempty"`
 
-	// If set to true, all images need to have tags
-	RequireTag bool `json:"requireTag,omitempty" yaml:"requireTag,omitempty"`
+	//
+	// Operands - what kustomize operates on.
+	//
 
-	// ImageTags is a list of ImageTag for changing image tags
-	ImageTags []ImageTag `json:"imageTags,omitempty" yaml:"imageTags,omitempty"`
+	// Resources specifies relative paths to files holding YAML representations
+	// of kubernetes API objects. URLs and globs not supported.
+	Resources []string `json:"resources,omitempty" yaml:"resources,omitempty"`
+
+	// Crds specifies relative paths to Custom Resource Definition files.
+	// This allows custom resources to be recognized as operands, making
+	// it possible to add them to the Resources list.
+	// CRDs themselves are not modified.
+	Crds []string `json:"crds,omitempty" yaml:"crds,omitempty"`
+
+	// Bases are relative paths or github repository URLs specifying a
+	// directory containing a kustomization.yaml file.
+	// URL format: https://github.com/hashicorp/go-getter#url-format
+	Bases []string `json:"bases,omitempty" yaml:"bases,omitempty"`
+
+	//
+	// Generators (operators that create operands)
+	//
+
+	// ConfigMapGenerator is a list of configmaps to generate from
+	// local data (one configMap per list item).
+	// The resulting resource is a normal operand, subject to
+	// name prefixing, patching, etc.  By default, the name of
+	// the map will have a suffix hash generated from its contents.
+	ConfigMapGenerator []ConfigMapArgs `json:"configMapGenerator,omitempty" yaml:"configMapGenerator,omitempty"`
+
+	// SecretGenerator is a list of secrets to generate from
+	// local data (one secret per list item).
+	// The resulting resource is a normal operand, subject to
+	// name prefixing, patching, etc.  By default, the name of
+	// the map will have a suffix hash generated from its contents.
+	SecretGenerator []SecretArgs `json:"secretGenerator,omitempty" yaml:"secretGenerator,omitempty"`
+
+	// GeneratorOptions modify behavior of all ConfigMap and Secret generators.
+	GeneratorOptions *GeneratorOptions `json:"generatorOptions,omitempty" yaml:"generatorOptions,omitempty"`
+
+	// Configurations is a list of transformer configuration files
+	Configurations []string `json:"configurations,omitempty" yaml:"configurations,omitempty"`
+}
+
+// DealWithMissingFields fills the missing fields
+func (k *Kustomization) DealWithMissingFields() []string {
+	var msgs []string
+	if k.APIVersion == "" {
+		k.APIVersion = KustomizationVersion
+		msgs = append(msgs, "Fixed the missing field by adding apiVersion: "+KustomizationVersion)
+	}
+	if k.Kind == "" {
+		k.Kind = KustomizationKind
+		msgs = append(msgs, "Fixed the missing field by adding kind: "+KustomizationKind)
+	}
+	return msgs
+}
+
+func (k *Kustomization) EnforceFields() ([]string, []string) {
+	var msgs, errs []string
+	if k.APIVersion == "" {
+		msgs = append(msgs, "apiVersion is not defined. This will not be allowed in the next release.\nPlease run `kustomize edit fix`")
+	} else if k.APIVersion != KustomizationVersion {
+		errs = append(errs, "apiVersion should be "+KustomizationVersion)
+	}
+	if k.Kind == "" {
+		msgs = append(msgs, "kind is not defined. This will not be allowed in the next release.\nPlease run `kustomize edit fix`")
+	} else if k.Kind != KustomizationKind {
+		errs = append(errs, "kind should be "+KustomizationKind)
+	}
+	return msgs, errs
+}
+
+// DealWithDeprecatedFields should be called immediately after
+// loading from storage.
+func DealWithDeprecatedFields(data []byte) []byte {
+	deprecateFieldsMap := map[string]string{
+		"patches:":   "patchesStrategicMerge:",
+		"imageTags:": "images:",
+	}
+	for oldname, newname := range deprecateFieldsMap {
+		pattern := regexp.MustCompile(oldname)
+		data = pattern.ReplaceAll(data, []byte(newname))
+	}
+	return data
+}
+
+// GeneratorArgs contains arguments common to generators.
+type GeneratorArgs struct {
+	// Namespace for the configmap, optional
+	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+
+	// Name - actually the partial name - of the generated resource.
+	// The full name ends up being something like
+	// NamePrefix + this.Name + hash(content of generated resource).
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+
+	// Behavior of generated resource, must be one of:
+	//   'create': create a new one
+	//   'replace': replace the existing one
+	//   'merge': merge with the existing one
+	Behavior string `json:"behavior,omitempty" yaml:"behavior,omitempty"`
+
+	// DataSources for the generator.
+	DataSources `json:",inline,omitempty" yaml:",inline,omitempty"`
 }
 
 // ConfigMapArgs contains the metadata of how to generate a configmap.
 type ConfigMapArgs struct {
-	// Name of the configmap.
-	// The full name should be Kustomization.NamePrefix + Configmap.Name +
-	// hash(content of configmap).
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
-
-	// behavior of configmap, must be one of create, merge and replace
-	// 'create': create a new one;
-	// 'replace': replace the existing one;
-	// 'merge': merge the existing one.
-	Behavior string `json:"behavior,omitempty" yaml:"behavior,omitempty"`
-
-	// DataSources for configmap.
-	DataSources `json:",inline,omitempty" yaml:",inline,omitempty"`
+	// GeneratorArgs for the configmap.
+	GeneratorArgs `json:",inline,omitempty" yaml:",inline,omitempty"`
 }
 
 // SecretArgs contains the metadata of how to generate a secret.
 type SecretArgs struct {
-	// Name of the secret.
-	// The full name should be Kustomization.NamePrefix + SecretGenerator.Name +
-	// hash(content of secret).
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
-
-	// behavior of secretGenerator, must be one of create, merge and replace
-	// 'create': create a new one;
-	// 'replace': replace the existing one;
-	// 'merge': merge the existing one.
-	Behavior string `json:"behavior,omitempty" yaml:"behavior,omitempty"`
+	// GeneratorArgs for the secret.
+	GeneratorArgs `json:",inline,omitempty" yaml:",inline,omitempty"`
 
 	// Type of the secret.
 	//
 	// This is the same field as the secret type field in v1/Secret:
 	// It can be "Opaque" (default), or "kubernetes.io/tls".
 	//
-	// If type is "kubernetes.io/tls", then "Commands" must have exactly two
+	// If type is "kubernetes.io/tls", then "literals" or "files" must have exactly two
 	// keys: "tls.key" and "tls.crt"
 	Type string `json:"type,omitempty" yaml:"type,omitempty"`
-
-	// CommandSources for secret.
-	CommandSources `json:",inline,omitempty" yaml:",inline,omitempty"`
-
-	// TimeoutSeconds specifies the timeout for commands.
-	TimeoutSeconds *int64 `json:"timeoutSeconds,omitempty" yaml:"timeoutSeconds,omitempty"`
-}
-
-// CommandSources contains some generic sources for secrets.
-type CommandSources struct {
-	// Map of keys to commands to generate the values
-	Commands map[string]string `json:"commands,omitempty" yaml:"commands,omitempty"`
-	// EnvCommand to output lines of key=val pairs to create a secret.
-	// i.e. a Docker .env file or a .ini file.
-	EnvCommand string `json:"envCommand,omitempty" yaml:"envCommand,omitempty"`
 }
 
 // DataSources contains some generic sources for configmaps.
@@ -169,15 +239,16 @@ type DataSources struct {
 	EnvSource string `json:"env,omitempty" yaml:"env,omitempty"`
 }
 
-// ImageTag contains an image and a new tag, which will replace the original tag.
-type ImageTag struct {
-	// Name is a tag-less image name.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+// GeneratorOptions modify behavior of all ConfigMap and Secret generators.
+type GeneratorOptions struct {
+	// Labels to add to all generated resources.
+	Labels map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 
-	// NewTag is the value to use in replacing the original tag.
-	NewTag string `json:"newTag,omitempty" yaml:"newTag,omitempty"`
+	// Annotations to add to all generated resources.
+	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 
-	// Digest is the value used to replace the original image tag.
-	// If digest is present NewTag value is ignored.
-	Digest string `json:"digest,omitempty" yaml:"digest,omitempty"`
+	// DisableNameSuffixHash if true disables the default behavior of adding a
+	// suffix to the names of generated resources that is a hash of the
+	// resource contents.
+	DisableNameSuffixHash bool `json:"disableNameSuffixHash,omitempty" yaml:"disableNameSuffixHash,omitempty"`
 }

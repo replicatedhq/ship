@@ -1,6 +1,6 @@
 kind: ""
 apiversion: ""
-bases:
-- ../../base
 patchesStrategicMerge:
 - secrets.yaml
+bases:
+- ../../base

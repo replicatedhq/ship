@@ -4,8 +4,6 @@ metadata:
   annotations: null
   labels:
     app: istio-ingressgateway
-    chart: gateways
-    heritage: Tiller
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway

@@ -101,13 +101,13 @@ func (l *Kustomizer) writePatches(
 	fs afero.Afero,
 	shipOverlay state.Overlay,
 	destDir string,
-) (relativePatchPaths []patch.PatchStrategicMerge, err error) {
+) (relativePatchPaths []patch.StrategicMerge, err error) {
 	patches, err := l.writeFileMap(fs, shipOverlay.Patches, destDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write file map to %s", destDir)
 	}
 	for _, p := range patches {
-		relativePatchPaths = append(relativePatchPaths, patch.PatchStrategicMerge(p))
+		relativePatchPaths = append(relativePatchPaths, patch.StrategicMerge(p))
 	}
 	return
 }
@@ -169,7 +169,7 @@ func (l *Kustomizer) writeFile(fs afero.Afero, name string, contents string) err
 
 func (l *Kustomizer) writeOverlay(
 	step api.Kustomize,
-	relativePatchPaths []patch.PatchStrategicMerge,
+	relativePatchPaths []patch.StrategicMerge,
 	relativeResourcePaths []string,
 ) error {
 	// just always make a new kustomization.yaml for now

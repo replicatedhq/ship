@@ -1,20 +1,16 @@
 package daemon
 
 import (
-	"bytes"
 	"net/http"
 	"strconv"
 
-	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/state"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
-	"sigs.k8s.io/kustomize/pkg/resource"
 )
 
 type SaveOverlayRequest struct {
@@ -103,28 +99,6 @@ func (d *NavcycleRoutes) kustomizeDoSaveOverlay(request SaveOverlayRequest) erro
 	return nil
 }
 
-// TODO(Robert): duped logic in filetree
-func isSupported(file []byte) bool {
-	var out unstructured.Unstructured
-
-	fileJSON, err := yaml.YAMLToJSON(file)
-	if err != nil {
-		return false
-	}
-
-	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(fileJSON), 1024)
-	if err := decoder.Decode(&out); err != nil {
-		return false
-	}
-
-	r := resource.NewResourceFromUnstruct(out)
-	if r.GetKind() == "CustomResourceDefinition" {
-		return false
-	}
-
-	return true
-}
-
 func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "method", "kustomizeGetFile"))
 	debug.Log()
@@ -174,7 +148,7 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 		Base:        string(base),
 		Overlay:     overlay,
 		IsResource:  isResource,
-		IsSupported: isSupported(base),
+		IsSupported: filetree.IsSupported(base),
 	})
 }
 

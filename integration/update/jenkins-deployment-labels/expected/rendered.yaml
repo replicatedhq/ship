@@ -146,20 +146,6 @@ metadata:
   name: jenkins
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app: jenkins
-    release: jenkins
-  name: jenkins
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 8Gi
----
-apiVersion: v1
 data:
   jenkins-admin-password: c2VjcmV0
   jenkins-admin-user: YWRtaW4=
@@ -331,3 +317,17 @@ spec:
       - name: jenkins-home
         persistentVolumeClaim:
           claimName: jenkins
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: jenkins
+    release: jenkins
+  name: jenkins
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi

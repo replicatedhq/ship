@@ -29,7 +29,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 		name        string
 		args        args
 		expectFiles map[string]string
-		want        []patch.PatchStrategicMerge
+		want        []patch.StrategicMerge
 		wantErr     bool
 	}{
 		{
@@ -58,7 +58,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				"a.yaml":        "---",
 				"folder/b.yaml": "---",
 			},
-			want: []patch.PatchStrategicMerge{"a.yaml", "folder/b.yaml"},
+			want: []patch.StrategicMerge{"a.yaml", "folder/b.yaml"},
 		},
 	}
 	for _, tt := range tests {
@@ -117,13 +117,13 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		relativePatchPaths []patch.PatchStrategicMerge
+		relativePatchPaths []patch.StrategicMerge
 		expectFile         string
 		wantErr            bool
 	}{
 		{
 			name:               "No patches",
-			relativePatchPaths: []patch.PatchStrategicMerge{},
+			relativePatchPaths: []patch.StrategicMerge{},
 			expectFile: `kind: ""
 apiversion: ""
 bases:
@@ -132,15 +132,15 @@ bases:
 		},
 		{
 			name:               "Patches provided",
-			relativePatchPaths: []patch.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
+			relativePatchPaths: []patch.StrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
 			expectFile: `kind: ""
 apiversion: ""
-bases:
-- ../../base
 patchesStrategicMerge:
 - a.yaml
 - b.yaml
 - c.yaml
+bases:
+- ../../base
 `,
 		},
 	}
@@ -408,10 +408,10 @@ spec:
 
 				"overlays/ship/kustomization.yaml": `kind: ""
 apiversion: ""
-bases:
-- ../../base
 patchesStrategicMerge:
 - deployment.yaml
+bases:
+- ../../base
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""
@@ -459,10 +459,10 @@ spec:
 
 				"overlays/ship/kustomization.yaml": `kind: ""
 apiversion: ""
-bases:
-- ../../base
 resources:
 - limitrange.yaml
+bases:
+- ../../base
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""

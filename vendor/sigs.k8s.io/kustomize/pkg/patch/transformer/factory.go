@@ -18,28 +18,28 @@ package transformer
 
 import (
 	"fmt"
+	"sigs.k8s.io/kustomize/pkg/ifc"
+	"sigs.k8s.io/kustomize/pkg/resid"
 
 	"github.com/evanphx/json-patch"
-	"github.com/krishicks/yaml-patch"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/kustomize/pkg/loader"
+	"github.com/ghodss/yaml"
+	"sigs.k8s.io/kustomize/pkg/gvk"
 	"sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/resource"
 	"sigs.k8s.io/kustomize/pkg/transformers"
 )
 
-// PatchJson6902Factory makes PatchJson6902 transformers
+// PatchJson6902Factory makes Json6902 transformers
 type PatchJson6902Factory struct {
-	loader loader.Loader
+	loader ifc.Loader
 }
 
 // NewPatchJson6902Factory returns a new PatchJson6902Factory.
-func NewPatchJson6902Factory(l loader.Loader) PatchJson6902Factory {
+func NewPatchJson6902Factory(l ifc.Loader) PatchJson6902Factory {
 	return PatchJson6902Factory{loader: l}
 }
 
 // MakePatchJson6902Transformer returns a transformer for applying Json6902 patch
-func (f PatchJson6902Factory) MakePatchJson6902Transformer(patches []patch.PatchJson6902) (transformers.Transformer, error) {
+func (f PatchJson6902Factory) MakePatchJson6902Transformer(patches []patch.Json6902) (transformers.Transformer, error) {
 	var ts []transformers.Transformer
 	for _, p := range patches {
 		t, err := f.makeOnePatchJson6902Transformer(p)
@@ -53,7 +53,7 @@ func (f PatchJson6902Factory) MakePatchJson6902Transformer(patches []patch.Patch
 	return transformers.NewMultiTransformerWithConflictCheck(ts), nil
 }
 
-func (f PatchJson6902Factory) makeOnePatchJson6902Transformer(p patch.PatchJson6902) (transformers.Transformer, error) {
+func (f PatchJson6902Factory) makeOnePatchJson6902Transformer(p patch.Json6902) (transformers.Transformer, error) {
 	if p.Target == nil {
 		return nil, fmt.Errorf("must specify the target field in patchesJson6902")
 	}
@@ -61,8 +61,8 @@ func (f PatchJson6902Factory) makeOnePatchJson6902Transformer(p patch.PatchJson6
 		return nil, fmt.Errorf("must specify the path for a json patch file")
 	}
 
-	targetId := resource.NewResIdWithPrefixNamespace(
-		schema.GroupVersionKind{
+	targetId := resid.NewResIdWithPrefixNamespace(
+		gvk.Gvk{
 			Group:   p.Target.Group,
 			Version: p.Target.Version,
 			Kind:    p.Target.Kind,
@@ -76,18 +76,20 @@ func (f PatchJson6902Factory) makeOnePatchJson6902Transformer(p patch.PatchJson6
 	if err != nil {
 		return nil, err
 	}
-	if isJsonFormat(rawOp) {
-		decodedPatch, err := jsonpatch.DecodePatch(rawOp)
+
+	if !isJsonFormat(rawOp) {
+		// if it isn't JSON, try to parse it as YAML
+		rawOp, err = yaml.YAMLToJSON(rawOp)
 		if err != nil {
 			return nil, err
 		}
-		return newPatchJson6902JSONTransformer(targetId, decodedPatch)
 	}
-	decodedPatch, err := yamlpatch.DecodePatch(rawOp)
+
+	decodedPatch, err := jsonpatch.DecodePatch(rawOp)
 	if err != nil {
 		return nil, err
 	}
-	return newPatchJson6902YAMLTransformer(targetId, decodedPatch)
+	return newPatchJson6902JSONTransformer(targetId, decodedPatch)
 }
 
 func isJsonFormat(data []byte) bool {

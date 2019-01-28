@@ -5,8 +5,6 @@ metadata:
     checksum/config-volume: f8da08b6b8c170dde721efd680270b2901e750d4aa186ebb6c22bef5b78a43f9
   labels:
     app: istio-pilot
-    chart: pilot-1.0.3
-    heritage: Tiller
     istio: pilot
     release: istio
   name: istio-pilot

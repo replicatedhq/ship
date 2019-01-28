@@ -2,7 +2,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    chart: mixer-1.0.3
     istio: mixer
     release: istio
   name: istio-telemetry

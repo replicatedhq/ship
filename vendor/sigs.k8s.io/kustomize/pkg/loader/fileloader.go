@@ -18,92 +18,250 @@ package loader
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"path/filepath"
+	"strings"
 
 	"sigs.k8s.io/kustomize/pkg/fs"
+	"sigs.k8s.io/kustomize/pkg/git"
+	"sigs.k8s.io/kustomize/pkg/ifc"
 )
 
-const currentDir = "."
-
-// fileLoader loads files from a file system.
+// fileLoader is a kustomization's interface to files.
+//
+// The directory in which a kustomization file sits
+// is referred to below as the kustomization's root.
+//
+// An instance of fileLoader has an immutable root,
+// and offers a `New` method returning a new loader
+// with a new root.
+//
+// A kustomization file refers to two kinds of files:
+//
+// * supplemental data paths
+//
+//   `Load` is used to visit these paths.
+//
+//   They must terminate in or below the root.
+//
+//   They hold things like resources, patches,
+//   data for ConfigMaps, etc.
+//
+// * bases; other kustomizations
+//
+//   `New` is used to load bases.
+//
+//   A base can be either a remote git repo URL, or
+//   a directory specified relative to the current
+//   root. In the former case, the repo is locally
+//   cloned, and the new loader is rooted on a path
+//   in that clone.
+//
+//   As loaders create new loaders, a root history
+//   is established, and used to disallow:
+//
+//   - A base that is a repository that, in turn,
+//     specifies a base repository seen previously
+//     in the loading stack (a cycle).
+//
+//   - An overlay depending on a base positioned at
+//     or above it.  I.e. '../foo' is OK, but '.',
+//     '..', '../..', etc. are disallowed.  Allowing
+//     such a base has no advantages and encourages
+//     cycles, particularly if some future change
+//     were to introduce globbing to file
+//     specifications in the kustomization file.
+//
+// These restrictions assure that kustomizations
+// are self-contained and relocatable, and impose
+// some safety when relying on remote kustomizations,
+// e.g. a ConfigMap generator specified to read
+// from /etc/passwd will fail.
+//
 type fileLoader struct {
-	root string
+	// Loader that spawned this loader.
+	// Used to avoid cycles.
+	referrer *fileLoader
+	// An absolute, cleaned path to a directory.
+	// The Load function reads from this directory,
+	// or directories below it.
+	root fs.ConfirmedDir
+	// If this is non-nil, the files were
+	// obtained from the given repository.
+	repoSpec *git.RepoSpec
+	// File system utilities.
 	fSys fs.FileSystem
+	// Used to clone repositories.
+	cloner git.Cloner
+	// Used to clean up, as needed.
+	cleaner func() error
 }
 
-// NewFileLoader returns a new fileLoader.
-func NewFileLoader(fSys fs.FileSystem) *fileLoader {
-	return newFileLoaderAtRoot("", fSys)
+// NewFileLoaderAtCwd returns a loader that loads from ".".
+func NewFileLoaderAtCwd(fSys fs.FileSystem) *fileLoader {
+	return newLoaderOrDie(fSys, ".")
 }
 
-// newFileLoaderAtRoot returns a new fileLoader with given root.
-func newFileLoaderAtRoot(root string, fs fs.FileSystem) *fileLoader {
-	return &fileLoader{root: root, fSys: fs}
+// NewFileLoaderAtRoot returns a loader that loads from "/".
+func NewFileLoaderAtRoot(fSys fs.FileSystem) *fileLoader {
+	return newLoaderOrDie(fSys, string(filepath.Separator))
 }
 
-// Root returns the root location for this Loader.
+// Root returns the absolute path that is prepended to any
+// relative paths used in Load.
 func (l *fileLoader) Root() string {
-	return l.root
+	return l.root.String()
 }
 
-// Returns a new Loader rooted at newRoot. "newRoot" MUST be
-// a directory (not a file). The directory can have a trailing
-// slash or not.
-// Example: "/home/seans/project" or "/home/seans/project/"
-// NOT "/home/seans/project/file.yaml".
-func (l *fileLoader) New(newRoot string) (Loader, error) {
-	return NewLoader(newRoot, l.root, l.fSys)
-}
-
-// IsAbsPath return true if the location calculated with the root
-// and location params a full file path.
-func (l *fileLoader) IsAbsPath(root string, location string) bool {
-	fullFilePath, err := l.fullLocation(root, location)
+func newLoaderOrDie(fSys fs.FileSystem, path string) *fileLoader {
+	l, err := newLoaderAtConfirmedDir(
+		path, fSys, nil, git.ClonerUsingGitExec)
 	if err != nil {
-		return false
+		log.Fatalf("unable to make loader at '%s'; %v", path, err)
 	}
-	return filepath.IsAbs(fullFilePath)
+	return l
 }
 
-// fullLocation returns some notion of a full path.
-// If location is a full file path, then ignore root. If location is relative, then
-// join the root path with the location path. Either root or location can be empty,
-// but not both. Special case for ".": Expands to current working directory.
-// Example: "/home/seans/project", "subdir/bar" -> "/home/seans/project/subdir/bar".
-func (l *fileLoader) fullLocation(root string, location string) (string, error) {
-	// First, validate the parameters
-	if len(root) == 0 && len(location) == 0 {
-		return "", fmt.Errorf("unable to calculate full location: root and location empty")
+// newLoaderAtConfirmedDir returns a new fileLoader with given root.
+func newLoaderAtConfirmedDir(
+	possibleRoot string, fSys fs.FileSystem,
+	referrer *fileLoader, cloner git.Cloner) (*fileLoader, error) {
+	if possibleRoot == "" {
+		return nil, fmt.Errorf(
+			"loader root cannot be empty")
 	}
-	// Special case current directory, expanding to full file path.
-	if location == currentDir {
-		currentDir, err := os.Getwd()
-		if err != nil {
-			return "", err
+	root, f, err := fSys.CleanedAbs(possibleRoot)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"absolute path error in '%s' : %v", possibleRoot, err)
+	}
+	if f != "" {
+		return nil, fmt.Errorf(
+			"got file '%s', but '%s' must be a directory to be a root",
+			f, possibleRoot)
+	}
+	if referrer != nil {
+		if err := referrer.errIfArgEqualOrHigher(root); err != nil {
+			return nil, err
 		}
-		location = currentDir
 	}
-	// Assume the location is a full file path. If not, then join root with location.
-	fullLocation := location
-	if !filepath.IsAbs(location) {
-		fullLocation = filepath.Join(root, location)
-	}
-	return fullLocation, nil
+	return &fileLoader{
+		root:     root,
+		referrer: referrer,
+		fSys:     fSys,
+		cloner:   cloner,
+		cleaner:  func() error { return nil },
+	}, nil
 }
 
-// Load returns the bytes from reading a file at fullFilePath.
-// Implements the Loader interface.
-func (l *fileLoader) Load(location string) ([]byte, error) {
-	fullLocation, err := l.fullLocation(l.root, location)
+// New returns a new Loader, rooted relative to current loader,
+// or rooted in a temp directory holding a git repo clone.
+func (l *fileLoader) New(path string) (ifc.Loader, error) {
+	if path == "" {
+		return nil, fmt.Errorf("new root cannot be empty")
+	}
+	if git.IsRepoUrl(path) {
+		// Avoid cycles.
+		if err := l.errIfPreviouslySeenUri(path); err != nil {
+			return nil, err
+		}
+		return newLoaderAtGitClone(path, l.fSys, l.referrer, l.cloner)
+	}
+	if filepath.IsAbs(path) {
+		return nil, fmt.Errorf("new root '%s' cannot be absolute", path)
+	}
+	return newLoaderAtConfirmedDir(
+		l.root.Join(path), l.fSys, l, l.cloner)
+}
+
+// newLoaderAtGitClone returns a new Loader pinned to a temporary
+// directory holding a cloned git repo.
+func newLoaderAtGitClone(
+	uri string, fSys fs.FileSystem,
+	referrer *fileLoader, cloner git.Cloner) (ifc.Loader, error) {
+	repoSpec, err := cloner(uri)
 	if err != nil {
-		fmt.Printf("Trouble in fulllocation: %v\n", err)
 		return nil, err
 	}
-	return l.fSys.ReadFile(fullLocation)
+	root, f, err := fSys.CleanedAbs(repoSpec.AbsPath())
+	if err != nil {
+		return nil, err
+	}
+	if f != "" {
+		return nil, fmt.Errorf(
+			"'%s' refers to file '%s'; expecting directory",
+			repoSpec.AbsPath(), f)
+	}
+	return &fileLoader{
+		root:     root,
+		referrer: referrer,
+		repoSpec: repoSpec,
+		fSys:     fSys,
+		cloner:   cloner,
+		cleaner:  repoSpec.Cleaner(fSys),
+	}, nil
 }
 
-// Cleanup does nothing
+// errIfArgEqualOrHigher tests whether the argument,
+// is equal to or above the root of any ancestor.
+func (l *fileLoader) errIfArgEqualOrHigher(
+	candidateRoot fs.ConfirmedDir) error {
+	if l.root.HasPrefix(candidateRoot) {
+		return fmt.Errorf(
+			"cycle detected: candidate root '%s' contains visited root '%s'",
+			candidateRoot, l.root)
+	}
+	if l.referrer == nil {
+		return nil
+	}
+	return l.referrer.errIfArgEqualOrHigher(candidateRoot)
+}
+
+// TODO(monopole): Distinguish branches?
+// I.e. Allow a distinction between git URI with
+// path foo and tag bar and a git URI with the same
+// path but a different tag?
+// TODO(monopole): Use parsed data instead of looking at Raw().
+func (l *fileLoader) errIfPreviouslySeenUri(uri string) error {
+	if strings.HasPrefix(l.repoSpec.Raw(), uri) {
+		return fmt.Errorf(
+			"cycle detected: URI '%s' referenced by previous URI '%s'",
+			uri, l.repoSpec.Raw())
+	}
+	if l.referrer == nil {
+		return nil
+	}
+	return l.referrer.errIfPreviouslySeenUri(uri)
+}
+
+// Load returns content of file at the given relative path,
+// else an error.  The path must refer to a file in or
+// below the current root.
+func (l *fileLoader) Load(path string) ([]byte, error) {
+	if filepath.IsAbs(path) {
+		return nil, l.loadOutOfBounds(path)
+	}
+	d, f, err := l.fSys.CleanedAbs(l.root.Join(path))
+	if err != nil {
+		return nil, err
+	}
+	if f == "" {
+		return nil, fmt.Errorf(
+			"'%s' must be a file (got d='%s')", path, d)
+	}
+	if !d.HasPrefix(l.root) {
+		return nil, l.loadOutOfBounds(path)
+	}
+	return l.fSys.ReadFile(d.Join(f))
+}
+
+func (l *fileLoader) loadOutOfBounds(path string) error {
+	return fmt.Errorf(
+		"security; file '%s' is not in or below '%s'",
+		path, l.root)
+}
+
+// Cleanup runs the cleaner.
 func (l *fileLoader) Cleanup() error {
-	return nil
+	return l.cleaner()
 }

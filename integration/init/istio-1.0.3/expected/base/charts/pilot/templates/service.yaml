@@ -3,8 +3,6 @@ kind: Service
 metadata:
   labels:
     app: istio-pilot
-    chart: pilot-1.0.3
-    heritage: Tiller
     release: istio
   name: istio-pilot
   namespace: default

@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: security
-    chart: security-1.0.3
-    heritage: Tiller
     istio: citadel
     release: istio
   name: istio-citadel
