@@ -1,0 +1,4 @@
+upstream: "input/ship.yaml"
+make_absolute: true
+args: []
+skip_cleanup: false

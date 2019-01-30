@@ -1,0 +1,14 @@
+kind: ""
+apiversion: ""
+resources:
+- common/ClusterRole-nginx-ingress-clusterrole.yaml
+- common/ClusterRoleBinding-nginx-ingress-clusterrole-nisa-binding.yaml
+- common/ConfigMap-nginx-configuration-ingress-nginx.yaml
+- common/ConfigMap-tcp-services-ingress-nginx.yaml
+- common/ConfigMap-udp-services-ingress-nginx.yaml
+- common/Deployment-nginx-ingress-controller-ingress-nginx.yaml
+- common/Namespace-ingress-nginx.yaml
+- common/Role-nginx-ingress-role-ingress-nginx.yaml
+- common/RoleBinding-nginx-ingress-role-nisa-binding-ingress-nginx.yaml
+- common/ServiceAccount-nginx-ingress-serviceaccount-ingress-nginx.yaml
+- service-l4.yaml
