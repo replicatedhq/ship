@@ -1968,8 +1968,8 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  branch = "skip-empty-object-validation"
-  digest = "1:13523d10bd0275ee3e15b9110553f75bfea09473032f1bda5a0a426bf7f4ba13"
+  branch = "master"
+  digest = "1:272dfc2d2e99dbc82bbe76b89a3395f213b4bfdb11e87b57b64d0c5f991fb1c3"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "k8sdeps",
@@ -2002,8 +2002,7 @@
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "5f8d94112d3ca3d42f82fe168f7bfe46c88c8896"
-  source = "https://github.com/laverya/kustomize.git"
+  revision = "b6d41018087e36a1ee266dfc6c9a20f881aaeaab"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
@@ -2084,6 +2083,7 @@
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/scheme",
     "k8s.io/client-go/rest",
+    "k8s.io/client-go/util/cert",
     "k8s.io/helm/cmd/helm/installer",
     "k8s.io/helm/pkg/chartutil",
     "k8s.io/helm/pkg/downloader",

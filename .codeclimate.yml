@@ -1,4 +1,6 @@
 ---
+version: "2"
+
 plugins:
   govet:
    enabled: true
@@ -12,10 +14,12 @@ plugins:
       GoLint/Comments/DocComments:
         enabled: false
 
+exclude_paterns:
+  - "**/vendor/"
+  - "**/*_test.go"
+  - "**/node_modules"
 
-ratings:
-  paths:
-    - "cmd/**.go"
-    - "pkg/**.go"
-exclude_paths:
-  - vendor
+checks:
+  return-statements:
+    enabled: false
+
