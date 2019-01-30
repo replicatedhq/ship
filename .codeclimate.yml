@@ -15,7 +15,9 @@ plugins:
         enabled: false
 
 exclude_paterns:
-  - "vendor/"
+  - "**/vendor/"
+  - "**/*_test.go"
+  - "**/node_modules"
 
 checks:
   return-statements:
