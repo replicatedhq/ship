@@ -89,9 +89,7 @@ ignored = [
 
 [[constraint]]
   name = "sigs.k8s.io/kustomize"
-  #branch = "master"
-  source = "https://github.com/laverya/kustomize.git"
-  branch = "skip-empty-object-validation"
+  branch = "master"
 
 [[override]]
   name = "k8s.io/kubernetes"
