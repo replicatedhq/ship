@@ -195,7 +195,7 @@ func (l *Kustomizer) writeOverlay(
 	return nil
 }
 
-func (l *Kustomizer) writeBase(step api.Kustomize) error {
+func (l *Kustomizer) writeBase(base string) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
 	currentState, err := l.State.TryLoad()
@@ -211,15 +211,15 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(
-		step.Base,
+		base,
 		func(targetPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				debug.Log("event", "walk.fail", "path", targetPath)
 				return errors.Wrap(err, "failed to walk path")
 			}
-			relativePath, err := filepath.Rel(step.Base, targetPath)
+			relativePath, err := filepath.Rel(base, targetPath)
 			if err != nil {
-				debug.Log("event", "relativepath.fail", "base", step.Base, "target", targetPath)
+				debug.Log("event", "relativepath.fail", "base", base, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
 			if l.shouldAddFileToBase(shipOverlay.ExcludedBases, relativePath) {
@@ -241,7 +241,7 @@ func (l *Kustomizer) writeBase(step api.Kustomize) error {
 	}
 
 	// write base kustomization
-	name := path.Join(step.Base, "kustomization.yaml")
+	name := path.Join(base, "kustomization.yaml")
 	err = l.FS.WriteFile(name, []byte(marshalled), 0666)
 	if err != nil {
 		return errors.Wrapf(err, "write file %s", name)

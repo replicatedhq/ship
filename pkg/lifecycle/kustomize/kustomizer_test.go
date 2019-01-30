@@ -347,7 +347,7 @@ resources:
 				Daemon: mockDaemon,
 			}
 
-			if err := l.writeBase(mockStep); (err != nil) != tt.wantErr {
+			if err := l.writeBase(mockStep.Base); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeBase() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				basePathDest := path.Join(mockStep.Base, "kustomization.yaml")
