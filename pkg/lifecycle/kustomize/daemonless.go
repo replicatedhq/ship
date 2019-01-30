@@ -39,7 +39,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "execute"))
 
 	debug.Log("event", "write.base.kustomization.yaml")
-	err := l.writeBase(step)
+	err := l.writeBase(step.Base)
 	if err != nil {
 		return errors.Wrap(err, "write base kustomization")
 	}

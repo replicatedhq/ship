@@ -675,9 +675,9 @@ spec:
 		},
 	}
 
-	req := require.New(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			err := addTestFiles(mockFs, tt.original)
 			req.NoError(err)
@@ -687,13 +687,176 @@ spec:
 				FS:     mockFs,
 			}
 
-			err = l.replaceOriginal(tt.step, tt.built)
+			err = l.replaceOriginal(tt.step.Base, tt.built)
 			req.NoError(err)
 
 			actual, err := readTestFiles(tt.step, mockFs)
 			req.NoError(err)
 
 			req.ElementsMatch(tt.expect, actual)
+		})
+	}
+}
+
+func TestKustomizer_containsBase(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		original []testFile
+		want     string
+		wantErr  bool
+	}{
+		{
+			name: "dir does not exist",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "other yaml in dir",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			want:    "",
+			wantErr: false,
+		},
+		{
+			name: "irrelevant kustomization yaml in dir",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "abc/kustomization.yaml",
+					contents: `
+kind: ""
+apiversion: ""
+resources:
+- dragonfruit.yaml
+`,
+				},
+			},
+			want:    "",
+			wantErr: false,
+		},
+		{
+			name: "relevant kustomization yaml in dir",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "abc/kustomization.yaml",
+					contents: `
+kind: ""
+apiversion: ""
+resources:
+- dragonfruit.yaml
+bases:
+- ../base
+`,
+				},
+			},
+			want:    "base",
+			wantErr: false,
+		},
+		{
+			name: "unparseable kustomization yaml in dir",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "abc/kustomization.yaml",
+					contents: `
+thisisnotvalidyaml
+`,
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "multiple base kustomization yaml in dir",
+			path: "abc",
+			original: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "abc/kustomization.yaml",
+					contents: `
+kind: ""
+apiversion: ""
+resources:
+- dragonfruit.yaml
+bases:
+- ../base
+- ../otherbase
+`,
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			err := addTestFiles(mockFs, tt.original)
+			req.NoError(err)
+
+			l := &Kustomizer{
+				Logger: log.NewNopLogger(),
+				FS:     mockFs,
+			}
+			got, err := l.containsBase(context.Background(), tt.path)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Kustomizer.containsBase() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Kustomizer.containsBase() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
