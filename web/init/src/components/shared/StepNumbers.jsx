@@ -104,9 +104,10 @@ class StepNumbers extends React.Component {
   }
 
   render() {
+    const { inNav } = this.props;
     const { currentStep, progressLength } = this.state;
     return (
-      <div className="flex-column flex-auto">
+      <div className={`flex-column justifyContent--center ${inNav ? "navbar-steps flex1" : "flex-auto"}`}>
         {!isEmpty(this.state.steps) ? <div className="steps-numbers-wrapper">
           <div className="numbers-wrapper flex flex1 justifyContent--spaceBetween">
             {this.renderSteps()}

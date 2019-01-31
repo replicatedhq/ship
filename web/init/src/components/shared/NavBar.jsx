@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import assign from "object-assign";
 import { Link, withRouter } from "react-router-dom";
+import StepNumbers from "./StepNumbers";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 // This is hardcoded for now as we're bundling it from `@replicatedhq/ship-init`
@@ -125,7 +126,7 @@ export class NavBar extends React.Component {
   }
 
   render() {
-    const { className, routes } = this.props;
+    const { className, routes, basePath } = this.props;
     const { navDetails, imageLoaded } = this.state;
     const isPathActive = this.isActive(
       typeof window === "object"
@@ -202,6 +203,11 @@ export class NavBar extends React.Component {
                   </div>
                 }
               </div>
+              {this.props.hideSteps ? null :
+                <div className="flex flex1">
+                  <StepNumbers basePath={basePath} steps={routes} inNav={true} />
+                </div>
+              }
               {this.props.hideLinks ? null :
                 <div className="flex flex1 justifyContent--flexEnd right-items">
                   <div className="flex flex-auto alignItems--center">

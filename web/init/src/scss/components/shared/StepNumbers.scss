@@ -31,6 +31,19 @@
   }
 }
 
+.navbar-steps .steps-numbers-wrapper {
+  border-bottom: none;
+  background-color: transparent;
+
+  .progress-base {
+    background-color: #dfdfdf;
+  }
+
+  .numbers-wrapper {
+    margin: 0;
+  }
+}
+
 .step-number {
   color: #C4C8CA;
   font-weight: 500;
