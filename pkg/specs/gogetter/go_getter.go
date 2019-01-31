@@ -45,18 +45,22 @@ func (g *GoGetter) GetFiles(ctx context.Context, upstream, savePath string) (str
 		return "", errors2.FetchFilesError{Message: err.Error()}
 	}
 
-	// if there is a `.git` directory, remove it - it's dynamic and will break the content hash used by `ship update`
-	gitPresent, err := g.FS.Exists(path.Join(savePath, ".git"))
-	if err != nil {
-		return "", errors.Wrap(err, "check for .git directory")
-	}
-	if gitPresent {
-		err := g.FS.RemoveAll(path.Join(savePath, ".git"))
+	// check if the upstream is a local file - if it is, we shouldn't remove the .git directory
+	fileDetector := getter.FileDetector{}
+	if _, foundFile, err := fileDetector.Detect(upstream, savePath); !foundFile || err != nil {
+		// if there is a `.git` directory, remove it - it's dynamic and will break the content hash used by `ship update`
+		gitPresent, err := g.FS.Exists(path.Join(savePath, ".git"))
 		if err != nil {
-			return "", errors.Wrap(err, "remove .git directory")
+			return "", errors.Wrap(err, "check for .git directory")
 		}
+		if gitPresent {
+			err := g.FS.RemoveAll(path.Join(savePath, ".git"))
+			if err != nil {
+				return "", errors.Wrap(err, "remove .git directory")
+			}
+		}
+		debug.Log("event", "gitPresent.check", "gitPresent", gitPresent)
 	}
-	debug.Log("event", "gitPresent.check", "gitPresent", gitPresent)
 
 	return filepath.Join(savePath, g.Subdir), nil
 }
