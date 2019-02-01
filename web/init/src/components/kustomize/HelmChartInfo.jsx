@@ -2,7 +2,7 @@ import React from "react";
 import Markdown from "react-remarkable";
 import RenderActions from "../shared/RenderActions";
 
-const HelmChartInfo = ({ shipAppMetadata, isUpdate, actions, handleAction, isLoading}) => {
+const HelmChartInfo = ({ shipAppMetadata, isUpdate, actions, handleAction, isLoading, firstRoute, goBack }) => {
   return (
     <div className="flex-column u-paddingTop--30 flex1 u-position--relative">
       <div className="flex-column flex-1-auto u-overflow--auto container">
@@ -64,8 +64,15 @@ const HelmChartInfo = ({ shipAppMetadata, isUpdate, actions, handleAction, isLoa
           </div>
         </div>
       </div>
-      <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
-        <RenderActions actions={actions} handleAction={handleAction} isLoading={isLoading} />
+      <div className="actions-wrapper container u-width--full flex flex-auto">
+        {firstRoute ? null :
+          <div className="flex-auto u-marginRight--normal">
+            <button className="btn secondary" onClick={() => goBack()}>Back</button>
+          </div>
+        }
+        <div className="flex1 flex justifyContent--flexEnd">
+          <RenderActions actions={actions} handleAction={handleAction} isLoading={isLoading} />
+        </div>
       </div>
     </div>
   )

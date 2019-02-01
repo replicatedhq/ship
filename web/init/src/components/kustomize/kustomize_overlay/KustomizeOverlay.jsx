@@ -396,7 +396,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   render() {
-    const { dataLoading, modified } = this.props;
+    const { dataLoading, modified, firstRoute, goBack } = this.props;
     const {
       fileTree,
       selectedFile,
@@ -556,8 +556,15 @@ export default class KustomizeOverlay extends React.Component {
                 : null}
 
               <div className="flex-auto flex layout-footer-actions less-padding">
-                <div className="flex-column flex-verticalCenter">
-                  <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                <div className="flex flex1">
+                  {firstRoute ? null :
+                    <div className="flex-auto u-marginRight--normal">
+                      <button className="btn secondary" onClick={() => goBack()}>Back</button>
+                    </div>
+                  }
+                  <div className="flex-column flex-verticalCenter">
+                    <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                  </div>
                 </div>
                 <div className="flex1 flex alignItems--center justifyContent--flexEnd">
                   {selectedFile === "" ?

@@ -191,6 +191,8 @@ export default class ConfigOnly extends React.Component {
       settingsFields,
       settingsFieldsList,
       routeId,
+      goBack,
+      firstRoute
     } = this.props;
     const { toastDetails } = this.state;
 
@@ -214,9 +216,21 @@ export default class ConfigOnly extends React.Component {
                   />
                 }
               </div>
-              <div className="flex-auto flex justifyContent--flexEnd layout-footer-actions">
-                <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn secondary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
-                <button type="button" onClick={(e) => this.handleConfigSave(e, true)} className="btn primary">Save and continue to next step</button>
+              <div className="flex-auto flex layout-footer-actions">
+                <div className="flex flex1">
+                  {firstRoute ? null :
+                    <div className="flex-auto u-marginRight--normal">
+                      <button className="btn secondary" onClick={() => goBack()}>Back</button>
+                    </div>
+                  }
+                  <div className="flex-column flex-verticalCenter">
+                    <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                  </div>
+                </div>
+                <div className="flex flex1 justifyContent--flexEnd">
+                  <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn secondary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
+                  <button type="button" onClick={(e) => this.handleConfigSave(e, true)} className="btn primary">Save and continue to next step</button>
+                </div>
               </div>
             </div>
           </div>

@@ -3,9 +3,9 @@ import RenderActions from "../../shared/RenderActions";
 
 export default class KustomizeEmpty extends React.Component {
   render() {
-    const { actions, handleAction} = this.props;
+    const { actions, handleAction , goBack, firstRoute } = this.props;
     return (
-      <div className="KustomizeEmpty--wrapper u-paddingTop--30 flex1 flex-column justifyContent--spaceBetween EmptyState--wrapper">
+      <div className="KustomizeEmpty--wrapper u-paddingTop--30 flex1 flex-column justifyContent--spaceBetween">
         <div className="flex-column flex-1-auto u-overflow--auto container">
           <div className="HelmIntro--wrapper flex-column">
             <p className="u-fontSize--jumbo2 u-color--tuna u-fontWeight--bold u-lineHeight--normal">Kustomize your YAML</p>
@@ -57,8 +57,15 @@ export default class KustomizeEmpty extends React.Component {
             </div>
           </div>
         </div>
-        <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
-          <RenderActions actions={actions} handleAction={handleAction} />
+        <div className="actions-wrapper container u-width--full flex flex-auto">
+          {firstRoute ? null :
+            <div className="flex-auto u-marginRight--normal">
+              <button className="btn secondary" onClick={() => goBack()}>Back</button>
+            </div>
+          }
+          <div className="flex1 flex justifyContent--flexEnd">
+            <RenderActions actions={actions} handleAction={handleAction} />
+          </div>
         </div>
       </div>
     );

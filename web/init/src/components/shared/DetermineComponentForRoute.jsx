@@ -136,8 +136,11 @@ export class DetermineComponentForRoute extends React.Component {
       initializeStep,
       phase,
       currentRoute,
+      routes
     } = this.props;
     const routeId = currentRoute.id;
+    const firstRouteIdx = indexOf(routes, find(routes, ["id", currentRoute.id]));
+    const firstRoute = firstRouteIdx === 0;
 
     if (!phase || !phase.length) return null;
     switch (phase) {
@@ -155,6 +158,8 @@ export class DetermineComponentForRoute extends React.Component {
           message={currentStep.message}
           level={currentStep.level}
           handleAction={this.handleAction}
+          firstRoute={firstRoute}
+          goBack={this.props.history.goBack}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
@@ -164,6 +169,8 @@ export class DetermineComponentForRoute extends React.Component {
           actions={actions}
           handleAction={this.handleAction}
           routeId={routeId}
+          firstRoute={firstRoute}
+          goBack={this.props.history.goBack}
         />
       );
     case "stream":
@@ -173,6 +180,8 @@ export class DetermineComponentForRoute extends React.Component {
           message={currentStep.message}
           level={currentStep.level}
           handleAction={this.handleAction}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
           isLoading={this.props.dataLoading.submitActionLoading || !currentStep.message.contents}
         />
       );
@@ -218,6 +227,8 @@ export class DetermineComponentForRoute extends React.Component {
           isUpdate={currentStep.helmIntro.isUpdate}
           shipAppMetadata={this.props.shipAppMetadata}
           handleAction={this.handleAction}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
       );
@@ -229,6 +240,8 @@ export class DetermineComponentForRoute extends React.Component {
           shipAppMetadata={this.props.shipAppMetadata}
           actions={actions}
           handleAction={this.handleAction}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
           isLoading={this.props.dataLoading.submitActionLoading}
         />
     );
@@ -238,6 +251,8 @@ export class DetermineComponentForRoute extends React.Component {
           actions={actions}
           handleAction={this.handleAction}
           skipKustomize={this.skipKustomize}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
         />
       );
     case "kustomize":
@@ -254,6 +269,8 @@ export class DetermineComponentForRoute extends React.Component {
           currentStep={currentStep}
           skipKustomize={this.skipKustomize}
           dataLoading={this.props.dataLoading}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
         />
       );
     default:
