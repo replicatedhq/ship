@@ -168,14 +168,14 @@ export class NavBar extends React.Component {
       </div>
     );
 
-    const headerName = (
+    const headerName = navDetails && navDetails.icon ? null : (
       <div className="flex-column flex-auto HeaderName-wrapper">
         {navDetails.name && navDetails.name.length ?
           <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--30">{upperFirst(navDetails.name)}</p>
           </div>
           : <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">Replicated Ship</p>
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--30">Replicated Ship</p>
           </div>
         }
       </div>
@@ -184,9 +184,9 @@ export class NavBar extends React.Component {
     return (
       <div className={`NavBarWrapper flex flex-auto ${className || ""}`}>
         <div className="container flex flex1">
-          <div className="flex1 justifyContent--flexStart alignItems--center">
+          <div className="flex1 flex justifyContent--center alignItems--center">
             <div className="flex1 flex">
-              <div className="flex flex-auto">
+              <div className="flex flex-auto mteadata-wrapper">
                 {
                   imageLoaded ?
                     (
