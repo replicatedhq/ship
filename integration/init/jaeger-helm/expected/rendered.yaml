@@ -387,6 +387,7 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/cassandra
           name: data
+      hostNetwork: false
       terminationGracePeriodSeconds: 30
       volumes:
       - emptyDir: {}
