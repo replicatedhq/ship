@@ -1,0 +1,22 @@
+---
+# Source: concourse/templates/web-rolebinding.yaml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: concourse-web-main
+  namespace: concourse-main
+  labels:
+    app: concourse-web
+    chart: concourse-3.7.2
+    heritage: Tiller
+    release: concourse
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: concourse-web
+subjects:
+- kind: ServiceAccount
+  name: concourse-web
+  namespace: default

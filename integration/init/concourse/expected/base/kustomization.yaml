@@ -1,0 +1,21 @@
+kind: ""
+apiversion: ""
+resources:
+- charts/postgresql/templates/configmap.yaml
+- charts/postgresql/templates/deployment.yaml
+- charts/postgresql/templates/pvc.yaml
+- charts/postgresql/templates/secrets.yaml
+- charts/postgresql/templates/svc.yaml
+- namespace.yaml
+- secrets.yaml
+- web-deployment.yaml
+- web-role.yaml
+- web-rolebinding.yaml
+- web-serviceaccount.yaml
+- web-svc.yaml
+- worker-policy.yaml
+- worker-role.yaml
+- worker-rolebinding.yaml
+- worker-serviceaccount.yaml
+- worker-statefulset.yaml
+- worker-svc.yaml
