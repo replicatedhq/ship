@@ -1,0 +1,76 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+spec:
+  selector:
+    matchLabels:
+      app: postgresql
+      release: concourse
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        release: concourse
+    spec:
+      containers:
+      - args: null
+        env:
+        - name: POSTGRES_USER
+          value: concourse
+        - name: PGUSER
+          value: concourse
+        - name: POSTGRES_DB
+          value: concourse
+        - name: POSTGRES_INITDB_ARGS
+          value: ""
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: concourse-postgresql
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: postgres:9.6.2
+        imagePullPolicy: ""
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          failureThreshold: 6
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+        name: concourse-postgresql
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data/pgdata
+          name: data
+          subPath: postgresql-db
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: concourse-postgresql

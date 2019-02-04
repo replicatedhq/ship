@@ -1,0 +1,109 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app: concourse-web
+        release: concourse
+    spec:
+      affinity: null
+      containers:
+      - args:
+        - web
+        env:
+        - name: CONCOURSE_BIND_PORT
+          value: "8080"
+        - name: CONCOURSE_ADD_LOCAL_USER
+          valueFrom:
+            secretKeyRef:
+              key: local-users
+              name: concourse-concourse
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: CONCOURSE_PEER_URL
+          value: http://$(POD_IP):$(CONCOURSE_BIND_PORT)
+        - name: CONCOURSE_POSTGRES_HOST
+          value: concourse-postgresql
+        - name: CONCOURSE_POSTGRES_USER
+          value: concourse
+        - name: CONCOURSE_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: concourse-postgresql
+        - name: CONCOURSE_POSTGRES_DATABASE
+          value: concourse
+        - name: CONCOURSE_KUBERNETES_IN_CLUSTER
+          value: "true"
+        - name: CONCOURSE_KUBERNETES_NAMESPACE_PREFIX
+          value: concourse-
+        - name: CONCOURSE_SESSION_SIGNING_KEY
+          value: /concourse-keys/session_signing_key
+        - name: CONCOURSE_MAIN_TEAM_LOCAL_USER
+          value: test
+        - name: CONCOURSE_TSA_BIND_PORT
+          value: "2222"
+        - name: CONCOURSE_TSA_HOST_KEY
+          value: /concourse-keys/host_key
+        - name: CONCOURSE_TSA_AUTHORIZED_KEYS
+          value: /concourse-keys/worker_key.pub
+        image: concourse/concourse:4.2.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/v1/info
+            port: atc
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 3
+        name: concourse-web
+        ports:
+        - containerPort: 8080
+          name: atc
+        - containerPort: 2222
+          name: tsa
+        readinessProbe:
+          httpGet:
+            path: /api/v1/info
+            port: atc
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /concourse-keys
+          name: concourse-keys
+          readOnly: true
+        - mountPath: /concourse-auth
+          name: auth-keys
+          readOnly: true
+      serviceAccountName: concourse-web
+      tolerations: []
+      volumes:
+      - name: concourse-keys
+        secret:
+          defaultMode: 256
+          items:
+          - key: host-key
+            path: host_key
+          - key: session-signing-key
+            path: session_signing_key
+          - key: worker-key-pub
+            path: worker_key.pub
+          secretName: concourse-concourse
+      - name: auth-keys
+        secret:
+          defaultMode: 256
+          items: null
+          secretName: concourse-concourse

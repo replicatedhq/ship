@@ -1969,7 +1969,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:272dfc2d2e99dbc82bbe76b89a3395f213b4bfdb11e87b57b64d0c5f991fb1c3"
+  digest = "1:f9d7c25ed8cb12d706eb422340c11a8b1e51d902b6b45139c9e35fb63869518d"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "k8sdeps",
@@ -2002,7 +2002,7 @@
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "b6d41018087e36a1ee266dfc6c9a20f881aaeaab"
+  revision = "6444981796b34a6cd2f74e851cf886c761d0933b"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"

@@ -1,0 +1,525 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    app: concourse-concourse
+    chart: concourse-3.7.2
+    heritage: Tiller
+    release: concourse
+  name: concourse-main
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+rules:
+- apiGroups:
+  - extensions
+  resourceNames:
+  - privileged
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  labels:
+    app: concourse-web
+    chart: concourse-3.7.2
+    heritage: Tiller
+    release: concourse
+  name: concourse-web-main
+  namespace: concourse-main
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: concourse-web
+subjects:
+- kind: ServiceAccount
+  name: concourse-web
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: concourse-worker
+subjects:
+- kind: ServiceAccount
+  name: concourse-worker
+---
+apiVersion: v1
+data: null
+kind: ConfigMap
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+---
+apiVersion: v1
+data:
+  host-key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBMkFVUFh4dWlEQy9xckJXaklkVDVmdk5jTWxNRVlwUjNYNFNMUUlnTEMxVUxEc0NPCmZsZUtaK1dpNFJ6d2JrVUtpS21KbTVHZXlOVlZDRGRmdmREMVNkMSs1ZmFxbXAyL09RQnpMUzdvOE5ZL2J0TXcKOGg5bHg0S1ZKYUpKMUVNMUVpeUdZNDFOeDU5MUtQMTRwQmZyMC9OZE9JckR1Mkp2RjZlN0NIRWJyemtONTdrYgpCVlFrYUlNYVMwMVJ3LzVPZTY4R0ZhbGxpMmlpOEw4ZE5XVlZ6cXVCaDVQd1ZXaW12VGd3djNUWUcyVEg4TDFWClY3bisvelJScGtqTWwyK1BVb3VHcUQrQnArNHdGK2hwNEFXNXYyNENxanRMSkVNdjRJRUp2MkZSZnJPYXVCSVoKWGpBUzFTU2c5VmFUT1MzaXd4YVlydjh1RzFYZk1GSElDdmtFUFFJREFRQUJBb0lCQUc4N1c4anJYNnZLMkptMwpvb0ovT2VGbXltaVhXc0N3RmkrMi9rVkNSLzJUMHRmTHl4Ty9XK05YMldEMUY5Q1ArSGFhWmVNWFBwM0hTN3VwClY4RlQ0Wm9oVllCd1hUUzBXWXl1Y0tBcGNZVGhyVlFScHpobGRuRWZDbEdRbVZlVks3U3AvS0V5VjRTYzFTVkEKTDJpL2NJMTQyTjJPaG03c3BxdVZrTGN1RnNWSU56WjBmWEN2MjVkVHFia0VnalRKek5kQnp5Rlh2YzR6ME10OQpnVzE0TTdteitZS1lPZnNDeElFbTQzOGZDOWIxNkM5NnlJRkJkTisvamFQOHBtYjJSb0lFMkQwRjhiajVLMWhSCll5R0ZLTU9VNGU2Y1lxNTlpV2Z1Ykt1dTJXTkpFQmsvNWFPN3g3WHUyUzBrOHdJWWx3eEZ1dTRMZlIyS3ZpenUKK21GVmYza0NnWUVBOWUwKzQwdEpHcE9QTThoQUIzRHdYalljOGxDdXlZZjN6MzBUM1JxVk5DVVZTV25sYWovcwozRU5pNitOZzN1K1pzOGNSMkNGb3UrakFDbFR5V0x1U25JOXlBQ0QwZXlXOW40YnpZTVViZ2RDNnZuZUxqcHp4CndXUjlYdjVSbVpWbHk3eFd1cWNnRWVFZjhSTmNZSTNvWGJ5MGxhRjNFT2J2dUF4LzRFVElrRmNDZ1lFQTRONDIKdzFVRVdHb3BXQklJWFlIa0VQSFF1RjBTeFIyQ1p5aDlFeFRlU3hGcGh5aWJrY0hSakRXK3Q5MVpMblNtNWsxTgpUT2RZdWMwQXBCVjNVK1RleGVGdkRJOTRML096ZTZIdDVNYXRSUXo4a1J3TUZHSkwzVHJwYmdUbVdkZkcwNUFkCm9pU2NKendZMTZvSlhuS3VzeGlrN1YrZ0NDTk5FMC8yVXVNblk0c0NnWUFFZjgycHZPUGVmNXFjR09ySytBNzkKdWtHM1VUQ1JjVkpnVW1wOW5oSGl2VmJ4VytXZGx3UFBWOUJFZm9sMEtyQUdNUHNybUJqaGJ6V3NPcmVnVmZZdAp0UlloMkhpQWxFVXUyUG8wNkFaRHpyekw1VVlCV3UrMVdSQk9INXNBazFJa2N4S25JWTJkcGgrK2Vsc3pUUVZXClNiQ0lHRWNrWVFVN3VjYlJKSkVDeXdLQmdCYjR2SEZ4OHZLeFRhM3drYWd6eDcrdlpGb2hML1N4RWd4Rng1azIKYllzUHFVOGtaOWdaQzdZZUczQ2ZEU2hBeEhnTWQ1UWVvaUxBL1lyRm9wNFFhRzJnblA2VWZYdXdrcXBUbllEYwpod0RoMWI5aE5SNno5L29PdGFBR29oMlZmSHRLWXF5WXZ0Y0hQYVp5ZVdpTG9Lc3RIbFFkaTdTcEhvdVZoSjF0CkZTNEhBb0dBR3krNTYrenZkUk9qSnk5QTJNbi80QnZXcnN1NFJTUUlMQko2SGI0VHBGNDZwMmZuMHJ3cXloT2oKT2Njcyt4a2RFc0k5dzVwaFh6SUVlT3EyTHF2V0hEUHh0ZExweE9ycm14NEFmdEFXZE04UzErT3FUcHpIaWhLMQp5MVpPcldmdk9OK1hqV0ZGQUVlai9DcFFaa05Va1R6alR0U0MwZG5mQXZlWmxhc1FIZEk9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0t
+  host-key-pub: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEWUJROWZHNklNTCtxc0ZhTWgxUGwrODF3eVV3UmlsSGRmaEl0QWlBc0xWUXNPd0k1K1Y0cG41YUxoSFBCdVJRcUlxWW1ia1o3STFWVUlOMSs5MFBWSjNYN2w5cXFhbmI4NUFITXRMdWp3MWo5dTB6RHlIMlhIZ3BVbG9rblVRelVTTElaampVM0huM1VvL1hpa0YrdlQ4MTA0aXNPN1ltOFhwN3NJY1J1dk9RM251UnNGVkNSb2d4cExUVkhEL2s1N3J3WVZxV1dMYUtMd3Z4MDFaVlhPcTRHSGsvQlZhS2E5T0RDL2ROZ2JaTWZ3dlZWWHVmNy9ORkdtU015WGI0OVNpNGFvUDRHbjdqQVg2R25nQmJtL2JnS3FPMHNrUXkvZ2dRbS9ZVkYrczVxNEVobGVNQkxWSktEMVZwTTVMZUxERnBpdS95NGJWZDh3VWNnSytRUTkgQ29uY291cnNl
+  local-users: dGVzdDp0ZXN0
+  session-signing-key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBd0xxbC9yVUlhSStQWDdUbDNGV2NUZWU0c1FmOC9kYWFrQUxYeDk1NXRQd2tocWxZCmU0VDJWODRwL3lsRnZOV3BNNHZmY01ZS2ZNWTBKTEtnQWdCdkpoQ3l0U2tEQmhUQm9XbU42eUUwQUIxMVA5RW4KbElaUkJXTllxYUMyY1NnZTJaRDhxT1Nud2ZGaG5RQVc4KzdwRStFbEpBVmg3ZHRkRjNBNDc4SDUwbElpZ3E4SQp6TVdwMkVHSnBGQzcvVXUzNm9JTC8wM01OR0NtckgxanZ0VHVKaUFNUVVaWXlMMVJlQmt2dkhPenc5aTRIWFB5ClNNVnRjbGxtNE5CczJhVlB0d2hyMmt3U2tMdDh0MWJQZFJuNk9JeUVBdzVXa3R6QUthaVpua1R2ajZnM3h6ZHAKektjcmRsQnI5YXpubE52b1NpbkJVZnZ0d3lGbXZGTjFISGJBOXdJREFRQUJBb0lCQUU3Ry9EclVmSTlndnRYNwo5MGpNcFlzaWdGZThVQ2pobzJQaUJabG8wbzZyMGJKSlhpVisvOEo4UHFaUmxIUFBVYzRFQ2x6cVZqY1NQUllTCi9WeFVHUnFTRUxvRC9YeHExNHJHdm4reG5yTzlWc096Rmw2YldGcS9kT3BCQ3RITitHNHQyVmlmdmdLRVM4WUUKMTF6MTlzZHRhK1VCWGpuL1JGbmtRU0dmUkNJM1FxVGFZdmp4ZXZ0MHVXbHlQbXFrRlBRUXc4YnZISVh6b0IrQgpyemVpTWErK25NdmJYNXBBSDlYQTBCdmh5dUgzZkhpZFRVd2lWQnBrTWNwTFd0alAwQTBKVHNlY0RkYmluRERxCnVuMkVJbzh6TVdSd0tRTi9KblV4c2k4QVVFaWdCVENVcWVEZ1JFWHRXNjJ1dkZrU3BjVk1Yd21WaXR5TFlJVnkKcW5WTFVDRUNnWUVBNkl3WGtQMXFuU2ZjTmVvVkkveXBEdXoxL2tkcWNqU1BoTFllK2pkaUxMb0ZrTVc5QWxEbQpsendOYVdsVEZEOXlnbytOakpDbzYzL0E4SENtNTVzYWp3czVoWjZyMjB2ZFpjS0ZNazloMHFGNW9WQTdsa1EyCmd2RzJXYXpudVU3S2txaGZQK3BYaGlMZ1pLb0prc3QvK2c3cjZ1SHByZWR3RFk2aHhlQks0dnNDZ1lFQTFDcUgKOHl3QzVxVW8vMzZrUWcvVFUyYWROL1lFSGRKQUFiVTIzRVZyR1FTVm1uWFcwOEgyTkxGazB0c3hyd29ObmJncApQSWsySjdCaW1iSnZiTkQxN2licjRHQWtsRFRzUjhhSmtEbCswSmdOQ0FLOU4wN3FWdDFzN0ZYemhnOTVqVUw5CkVRVzU1ejYwR0FKcGVjcU53QTRKc2E4UDg1Mk4wMzU1T2JwOTJUVUNnWUJrT0J2ZjdKY0o2NmZIeEg0ZjZEK2oKb3hQUTVrNUZzY2s0VkpTOUdTbENSVmtvcjA5cHRCdnNpWUR1TU9vUkM5YjUxWXdYVEREQWJXcGxOT2Q1WVNydApBdFZqZEtKei9Cb0tSTzdLWTlPd3hzNTRhdStETHhxZkREU2VLUm9ram9SVytDRTBsblhwNVJYM3pDQWNGMytyCjhNcFRpOUQ5bFlTQkV6czg0QkRtQ1FLQmdRQ01jSDYvSzNIY0pKVm4wZmQrdHlVR2Z0VXc5c3N3eGp5U0pOYmsKcFpySDI2My9xV01EbHMrWGY1a2lyZTlNVTFaQ0FXWmlhTjBORm9lZC8yd2NWcEdFREFWMDU0OHUvMzByNGJLcgpZak9jZGhtaUpOWUZKMXFkRjBNRGliMkNEdnBCMUliWlhyWDQ2UnVqRE8ydXJiSjQzNUh4S05WaFIvaGFkOHhjCnR5S1l4UUtCZ0NWRGhOME1obmxVUUpWWmZYNDJBUG1GNGdRZzByM3NmTC9OR1hqRWpNSUtLRmU1YTg4ZVpWSHIKTDh4MStkcDBxN2N6QzhhL2wxRFV1aXdES2w4T0VweExzR0NxL0ovd0FmclNNUGlmdTZFVWxiVXdsSk9QZGdoYQorcC9LRkFlbEhYSjJ3Lzh5YWNrQWNhcmgzNVZQN2l4aHV2eHN3SE5kZ3Zmc0JURmNqbjMwCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0t
+  worker-key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBdVBlaFVtQlhBUUNvQTdUTEFRQ1loZit2emNaVnlqK1ZHWG5NaExIbldMazdkUmpvCkNVOEdnTmFtZFM1aDdHM3l3eE92S0EzWWpPTHI4WHlPTUxTNGMrZThON3RJemxNV2RpWGhlMGxjQkg5WjFhaTUKK0JvZjMvQmxEVUJrc2lLZGMxQStRY2ZYNnREd01rT081cmUxSDR2T0szSC9DeXBlNTh3Q0IwM0hZTmdiMDVFRApmVzFCajJxdnoyOVZ0bXlqd0VNdURzMTAwaU1xd0NmUFV4OW94WG1tWDhzVUJSbXcvWTFSeC84cGRLSWpLdzNtCmtXSUhIQk9TQ1BpbU8xcUM0N0FhOHYvVUg5aEVSQ3lreXVGSGlCaUtsbkl2WldtOWJZdmhzUlR6NGd0NUt6UlkKNk9JMG9WZUhsTE9IRFNLNDhEYThWV2lqMTVsT3FPMk54Nldzc1FJREFRQUJBb0lCQURFVDIyVU5GT2k2TU5wUwo1UzVONXlwZXpsbk9EME5MblpjVjN6TXlOUTB3a05zZ0Vha3VvNjRaeGk3L2NKSVlGanEyaFZvZVdsLy9jZFV3ClZGWU9EWWNMYk1CbzNBZUt1a0g5Q1JmNlBnVWZlVW1jckVOdFF4bmJJaVRpK2hUZDVHTU5Yb2Q3ckFtdENKNTkKbUhRVk9HUzNacXZXWW5LbSttbU1rdGszUlBpbnluWC9BNHkzV0hQYWN1QVM1OEhNMDlDazQzV2NITXhiR3BzTAovZ1pwSUN5RllaMkR2aU0rQUh5V0djbXc3TEpycEMwUUhvNitCQUZNczR4bFVlY05nVklGVXBmT29BY2ZzZHRHCks5ajRBYnVaNDdpRmlzYmF5KzFweWcvN081ZVJUZEdWUVJ0YzdQQk1PamVhNWpHc2ZtbERtZG4xWlM1MHlrdW4KQU5mb1E1VUNnWUVBOUFrNzNQUnk5bkxsUmt0NE9CQ0YvNGZ3VGhVQ01lZHNuV2FWalFCTUpZaW00RkIyaXZGNQpjS2RXdDN5L1JaSTg1S0tZdTBFWGhMRW9TSUVBZnowNTdSOHQzUWRWSzR0Wng2QjQ3VUZqQmpDWWVWTXR3SERRCnByeFFpT1BISUhDcGxCTkZ1R3pBNVZYTDlnUUxSRCtlazB1T3kyR0pKMFd1MXh5ZW91SStTVzhDZ1lFQXdna08KVE90T29ncW1jQUFMaldnZWVRaVpldGZsU0tiSmxwUU5obUNQQU1tMFNGSThlRjRTcFJYTHpkNDFWQzJtTEl3VApMM3RqYzcvOG9jWG9FbEZNNEwwZm85THgvU0hGSDRKRW41RlQwUFhQbXZzRjJKUmhzWEpGTEpTaWh4Ri85MVhzCjJhQmNRSUxQRnpMY3JJNk9GVWFrTndHVFUvQ0l4cGt6UnZRckc5OENnWUVBek5WblV1bzRDTmFkemFnUkszWHIKRTNZbDVWUksrRnBZMTdGQWZBNncyNXhjL2RGci91bjYxZTBQbzRuby9sdG1FejdMVmZtbjVPL1NjVEVlbXE1bwpqYmpyQlNoZmUrSkdwSUgwbnFpUWxxUjVodlNqWlhFTUliZlZIV0diUllaclFHZ0EwSEV3WkE3azJRWEI4ekkzClIwbFhmU3pNTTVPUTB1d3AxMnh4ZmE4Q2dZQkhJTHExUjZ6VGljUHBXcHJoZzBGb2JOYVdTWDRyVzdpYUVqdkMKL3JKdFA0TnUzM1o3U1VEY2MxajZabkoySVNYQlByZnB0L21FL09QSENaMUEyYnlzeGFkTGpwQldrb0tJUW1DVgpmZGlUeVFnSmIrdDhzU2YrdkR6UFVzMGhaakRhb2d6bzJmZjNUZnhNTE1Eb0lIbkZJdGdmc2R3bjhReXlnSVpqCmhDNHBVUUtCZ1FEcXN4bmtJNnlYRkU1Z3Noblc3SDh6cUtObHpLZC9kWkVMNmUrbFJ6NFIzVVkvS2NFa1JBZnEKWWkzY3dvOWZFM1Uza1NtcGw1TVF3VWpXbS9CWjdKeXVlb1kvNG5kd2FGUGdjMzRJS3NnSjB3YXU5cFppUUFCMQpEeHBPU0YrQlI3MUp4M3N4dklkQ09ETlR0bTY0NWo1eXJaVm5KQXVNUG9mbzVYRm11bkRvSkE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQ==
+  worker-key-pub: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDNDk2RlNZRmNCQUtnRHRNc0JBSmlGLzYvTnhsWEtQNVVaZWN5RXNlZFl1VHQxR09nSlR3YUExcVoxTG1Ic2JmTERFNjhvRGRpTTR1dnhmSTR3dExoejU3dzN1MGpPVXhaMkplRjdTVndFZjFuVnFMbjRHaC9mOEdVTlFHU3lJcDF6VUQ1Qng5ZnEwUEF5UTQ3bXQ3VWZpODRyY2Y4TEtsN256QUlIVGNkZzJCdlRrUU45YlVHUGFxL1BiMVcyYktQQVF5NE96WFRTSXlyQUo4OVRIMmpGZWFaZnl4UUZHYkQ5alZISC95bDBvaU1yRGVhUllnY2NFNUlJK0tZN1dvTGpzQnJ5LzlRZjJFUkVMS1RLNFVlSUdJcVdjaTlsYWIxdGkrR3hGUFBpQzNrck5Gam80alNoVjRlVXM0Y05Jcmp3TnJ4VmFLUFhtVTZvN1kzSHBheXggQ29uY291cnNl
+kind: Secret
+metadata:
+  labels:
+    app: concourse-concourse
+    release: concourse
+  name: concourse-concourse
+type: Opaque
+---
+apiVersion: v1
+data:
+  postgres-password: Y29uY291cnNl
+kind: Secret
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+spec:
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: postgresql
+  selector:
+    app: postgresql
+    release: concourse
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: null
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+spec:
+  ports:
+  - name: atc
+    port: 8080
+    targetPort: atc
+  - name: tsa
+    port: 2222
+    targetPort: tsa
+  selector:
+    app: concourse-web
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+spec:
+  clusterIP: None
+  ports: []
+  selector:
+    app: concourse-worker
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+spec:
+  selector:
+    matchLabels:
+      app: postgresql
+      release: concourse
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        release: concourse
+    spec:
+      containers:
+      - args: null
+        env:
+        - name: POSTGRES_USER
+          value: concourse
+        - name: PGUSER
+          value: concourse
+        - name: POSTGRES_DB
+          value: concourse
+        - name: POSTGRES_INITDB_ARGS
+          value: ""
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: concourse-postgresql
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: postgres:9.6.2
+        imagePullPolicy: ""
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          failureThreshold: 6
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+        name: concourse-postgresql
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data/pgdata
+          name: data
+          subPath: postgresql-db
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: concourse-postgresql
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        app: concourse-web
+        release: concourse
+    spec:
+      affinity: null
+      containers:
+      - args:
+        - web
+        env:
+        - name: CONCOURSE_BIND_PORT
+          value: "8080"
+        - name: CONCOURSE_ADD_LOCAL_USER
+          valueFrom:
+            secretKeyRef:
+              key: local-users
+              name: concourse-concourse
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: CONCOURSE_PEER_URL
+          value: http://$(POD_IP):$(CONCOURSE_BIND_PORT)
+        - name: CONCOURSE_POSTGRES_HOST
+          value: concourse-postgresql
+        - name: CONCOURSE_POSTGRES_USER
+          value: concourse
+        - name: CONCOURSE_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: concourse-postgresql
+        - name: CONCOURSE_POSTGRES_DATABASE
+          value: concourse
+        - name: CONCOURSE_KUBERNETES_IN_CLUSTER
+          value: "true"
+        - name: CONCOURSE_KUBERNETES_NAMESPACE_PREFIX
+          value: concourse-
+        - name: CONCOURSE_SESSION_SIGNING_KEY
+          value: /concourse-keys/session_signing_key
+        - name: CONCOURSE_MAIN_TEAM_LOCAL_USER
+          value: test
+        - name: CONCOURSE_TSA_BIND_PORT
+          value: "2222"
+        - name: CONCOURSE_TSA_HOST_KEY
+          value: /concourse-keys/host_key
+        - name: CONCOURSE_TSA_AUTHORIZED_KEYS
+          value: /concourse-keys/worker_key.pub
+        image: concourse/concourse:4.2.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/v1/info
+            port: atc
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 3
+        name: concourse-web
+        ports:
+        - containerPort: 8080
+          name: atc
+        - containerPort: 2222
+          name: tsa
+        readinessProbe:
+          httpGet:
+            path: /api/v1/info
+            port: atc
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /concourse-keys
+          name: concourse-keys
+          readOnly: true
+        - mountPath: /concourse-auth
+          name: auth-keys
+          readOnly: true
+      serviceAccountName: concourse-web
+      tolerations: []
+      volumes:
+      - name: concourse-keys
+        secret:
+          defaultMode: 256
+          items:
+          - key: host-key
+            path: host_key
+          - key: session-signing-key
+            path: session_signing_key
+          - key: worker-key-pub
+            path: worker_key.pub
+          secretName: concourse-concourse
+      - name: auth-keys
+        secret:
+          defaultMode: 256
+          items: null
+          secretName: concourse-concourse
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  serviceName: concourse-worker
+  template:
+    metadata:
+      annotations: null
+      labels:
+        app: concourse-worker
+        release: concourse
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: concourse-worker
+                  release: concourse
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - args:
+        - -c
+        - |-
+          cp /dev/null /tmp/.liveness_probe
+          rm -rf ${CONCOURSE_WORK_DIR:-/concourse-work-dir}/*
+          while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
+            touch /tmp/.pre_start_cleanup
+            sleep 5
+          done
+          rm -f /tmp/.pre_start_cleanup
+          concourse worker --name=${HOSTNAME} | tee -a /tmp/.liveness_probe
+        command:
+        - /bin/sh
+        env:
+        - name: CONCOURSE_WORK_DIR
+          value: /concourse-work-dir
+        - name: CONCOURSE_TSA_HOST
+          value: concourse-web:2222
+        - name: CONCOURSE_TSA_PUBLIC_KEY
+          value: /concourse-keys/host_key.pub
+        - name: CONCOURSE_TSA_WORKER_PRIVATE_KEY
+          value: /concourse-keys/worker_key
+        - name: CONCOURSE_GARDEN_BIND_PORT
+          value: "7777"
+        - name: CONCOURSE_BAGGAGECLAIM_DRIVER
+          value: naive
+        - name: LIVENESS_PROBE_FATAL_ERRORS
+          value: |-
+            guardian.api.garden-server.create.failed
+            baggageclaim.api.volume-server.create-volume-async.failed-to-create
+        image: concourse/concourse:4.2.2
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - |-
+                while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
+                  sleep 5
+                done
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |-
+              FATAL_ERRORS=$( echo "${LIVENESS_PROBE_FATAL_ERRORS}" | grep -q '\S' && \
+                  grep -F "${LIVENESS_PROBE_FATAL_ERRORS}" /tmp/.liveness_probe )
+              cp /dev/null /tmp/.liveness_probe
+              if [ ! -z "${FATAL_ERRORS}" ]; then
+                >&2 echo "Fatal error detected: ${FATAL_ERRORS}"
+                exit 1
+              fi
+              if [ -f /tmp/.pre_start_cleanup ]; then
+                >&2 echo "Still trying to clean up before starting concourse. 'fly prune-worker -w ${HOSTNAME}' might need to be called to force cleanup."
+                exit 1
+              fi
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        name: concourse-worker
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /concourse-keys
+          name: concourse-keys
+          readOnly: true
+        - mountPath: /concourse-work-dir
+          name: concourse-work-dir
+      serviceAccountName: concourse-worker
+      terminationGracePeriodSeconds: 60
+      tolerations: []
+      volumes:
+      - name: concourse-keys
+        secret:
+          defaultMode: 256
+          items:
+          - key: host-key-pub
+            path: host_key.pub
+          - key: worker-key
+            path: worker_key
+          - key: worker-key-pub
+            path: worker_key.pub
+          secretName: concourse-concourse
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: concourse-work-dir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    app: concourse-worker
+    release: concourse
+  name: concourse-worker
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: concourse-worker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: postgresql
+    release: concourse
+  name: concourse-postgresql
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi

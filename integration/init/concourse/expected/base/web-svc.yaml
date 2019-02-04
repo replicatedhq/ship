@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: null
+  labels:
+    app: concourse-web
+    release: concourse
+  name: concourse-web
+spec:
+  ports:
+  - name: atc
+    port: 8080
+    targetPort: atc
+  - name: tsa
+    port: 2222
+    targetPort: tsa
+  selector:
+    app: concourse-web
+  type: ClusterIP
