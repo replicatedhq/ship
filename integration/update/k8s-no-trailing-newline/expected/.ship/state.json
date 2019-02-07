@@ -13,6 +13,6 @@
       }
     },
     "upstream": "https://github.com/replicatedhq/test-charts/tree/960955cdcf61891c3b5ff27c25dcde0184926add/plain-k8s-no-trailing-newline",
-    "contentSHA": "e03f03a48d619be6a9ff2c56c19808b0cfa2cb84615346b1c867eeca20ff92d0"
+    "contentSHA": "1e35b69d101d049068451671a9ef5407db239ecc0520913e93c219b29fb6810a"
   }
 }

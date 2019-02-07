@@ -12,6 +12,6 @@
       "releaseNotes": "[stable/grafana] Add variable to optionally set priorityClassName (#9427)\n\n* Add variable to optionally set priorityClassName\n\nSigned-off-by: Chris O'Brien \u003cchrisob91@gmail.com\u003e\n\n* Bump minor version instead of patch version\n\nSigned-off-by: Chris O'Brien \u003cchrisob91@gmail.com\u003e",
       "version": "1.19.0"
     },
-    "contentSHA": "57d1bff21dcfaba3e91bbea9de1e8d1017293b89ae9a8eaedf852b5113fd2d89"
+    "contentSHA": "091919437262ee08b6d7afa80dc43e55c59acf7c2995118bfaaa9dfbc7facf7f"
   }
 }
