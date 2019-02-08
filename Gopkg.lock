@@ -1968,12 +1968,13 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:d847ac7b0cada7c6ac997c51005321ddff9ed1161ab4f87cc728d19a9d977bc3"
+  digest = "1:8a16a47f24297f163b8943a7905f59d88bd0bb6e73c90924d8c53c89d07076bd"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "k8sdeps",
     "k8sdeps/configmapandsecret",
     "k8sdeps/kunstruct",
+    "k8sdeps/kv",
     "k8sdeps/transformer",
     "k8sdeps/transformer/hash",
     "k8sdeps/transformer/patch",
@@ -2001,8 +2002,8 @@
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "0184d5b69700607a1b9280f303152e2959bc19e7"
-  version = "v2.0.0"
+  revision = "ce7e5ee2c30cc5856fea01fe423cf167f2a2d0c3"
+  version = "v2.0.1"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
