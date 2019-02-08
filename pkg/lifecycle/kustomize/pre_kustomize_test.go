@@ -445,7 +445,7 @@ func TestKustomizer_replaceOriginal(t *testing.T) {
 	tests := []struct {
 		name     string
 		step     api.Kustomize
-		built    []postKustomizeFile
+		built    []util.PostKustomizeFile
 		original []testFile
 		expect   []testFile
 		wantErr  bool
@@ -455,15 +455,15 @@ func TestKustomizer_replaceOriginal(t *testing.T) {
 			step: api.Kustomize{
 				Base: "",
 			},
-			built: []postKustomizeFile{
+			built: []util.PostKustomizeFile{
 				{
-					minimal: util.MinimalK8sYaml{
+					Minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
 						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
-					full: map[string]interface{}{
+					Full: map[string]interface{}{
 						"kind": "Fruit",
 						"metadata": map[string]interface{}{
 							"name": "strawberry",
@@ -502,15 +502,15 @@ spec:
 			step: api.Kustomize{
 				Base: "",
 			},
-			built: []postKustomizeFile{
+			built: []util.PostKustomizeFile{
 				{
-					minimal: util.MinimalK8sYaml{
+					Minimal: util.MinimalK8sYaml{
 						Kind: "CustomResourceDefinition",
 						Metadata: util.MinimalK8sMetadata{
 							Name: "strawberry",
 						},
 					},
-					full: map[string]interface{}{
+					Full: map[string]interface{}{
 						"kind": "CustomResourceDefinition",
 						"metadata": map[string]interface{}{
 							"name": "strawberry",
@@ -549,15 +549,15 @@ spec:
 			step: api.Kustomize{
 				Base: "",
 			},
-			built: []postKustomizeFile{
+			built: []util.PostKustomizeFile{
 				{
-					minimal: util.MinimalK8sYaml{
+					Minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
 						Metadata: util.MinimalK8sMetadata{
 							Name: "banana",
 						},
 					},
-					full: map[string]interface{}{
+					Full: map[string]interface{}{
 						"kind": "Fruit",
 						"metadata": map[string]interface{}{
 							"name": "banana",
@@ -596,15 +596,15 @@ spec:
 			step: api.Kustomize{
 				Base: "",
 			},
-			built: []postKustomizeFile{
+			built: []util.PostKustomizeFile{
 				{
-					minimal: util.MinimalK8sYaml{
+					Minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
 						Metadata: util.MinimalK8sMetadata{
 							Name: "dragonfruit",
 						},
 					},
-					full: map[string]interface{}{
+					Full: map[string]interface{}{
 						"kind": "Fruit",
 						"metadata": map[string]interface{}{
 							"name": "dragonfruit",
@@ -615,13 +615,13 @@ spec:
 					},
 				},
 				{
-					minimal: util.MinimalK8sYaml{
+					Minimal: util.MinimalK8sYaml{
 						Kind: "Fruit",
 						Metadata: util.MinimalK8sMetadata{
 							Name: "pomegranate",
 						},
 					},
-					full: map[string]interface{}{
+					Full: map[string]interface{}{
 						"kind": "Fruit",
 						"metadata": map[string]interface{}{
 							"name": "pomegranate",

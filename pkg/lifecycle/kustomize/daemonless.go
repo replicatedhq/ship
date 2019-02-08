@@ -118,7 +118,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 	return nil
 }
 
-func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]postKustomizeFile, error) {
+func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]util.PostKustomizeFile, error) {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "kustomizeBuild"))
 
 	builtYAML, err := l.Patcher.RunKustomize(kustomizePath)
@@ -127,7 +127,7 @@ func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]postKustomizeFile, 
 	}
 
 	files := strings.Split(string(builtYAML), "\n---\n")
-	postKustomizeFiles := make([]postKustomizeFile, 0)
+	postKustomizeFiles := make([]util.PostKustomizeFile, 0)
 	for idx, file := range files {
 		var fullYaml interface{}
 
@@ -142,10 +142,10 @@ func (l *Kustomizer) kustomizeBuild(kustomizePath string) ([]postKustomizeFile, 
 			return postKustomizeFiles, errors.Wrap(err, "unmarshal part of rendered to minimal")
 		}
 
-		postKustomizeFiles = append(postKustomizeFiles, postKustomizeFile{
-			order:   idx,
-			minimal: minimal,
-			full:    fullYaml,
+		postKustomizeFiles = append(postKustomizeFiles, util.PostKustomizeFile{
+			Order:   idx,
+			Minimal: minimal,
+			Full:    fullYaml,
 		})
 	}
 

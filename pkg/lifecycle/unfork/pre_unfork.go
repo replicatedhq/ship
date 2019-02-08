@@ -138,10 +138,10 @@ func (l *Unforker) initialKustomizeRun(ctx context.Context, step api.Unfork) err
 	return nil
 }
 
-func (l *Unforker) replaceOriginal(step api.Unfork, built []postKustomizeFile) error {
-	builtMap := make(map[util.MinimalK8sYaml]postKustomizeFile)
+func (l *Unforker) replaceOriginal(step api.Unfork, built []util.PostKustomizeFile) error {
+	builtMap := make(map[util.MinimalK8sYaml]util.PostKustomizeFile)
 	for _, builtFile := range built {
-		builtMap[builtFile.minimal] = builtFile
+		builtMap[builtFile.Minimal] = builtFile
 	}
 
 	if err := l.FS.Walk(step.UpstreamBase, func(targetPath string, info os.FileInfo, err error) error {
@@ -184,7 +184,7 @@ func (l *Unforker) replaceOriginal(step api.Unfork, built []postKustomizeFile) e
 			return errors.Wrap(err, "remove original file")
 		}
 
-		initKustomizedB, err := yaml.Marshal(initKustomized.full)
+		initKustomizedB, err := yaml.Marshal(initKustomized.Full)
 		if err != nil {
 			return errors.Wrap(err, "marshal init kustomized")
 		}
