@@ -16,12 +16,6 @@ import (
 	ktypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
-type ListK8sYaml struct {
-	APIVersion string        `json:"apiVersion" yaml:"apiVersion"`
-	Kind       string        `json:"kind" yaml:"kind" hcl:"kind"`
-	Items      []interface{} `json:"items" yaml:"items"`
-}
-
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
 	// Check if the 'base' already includes a kustomization.yaml
 	// if it does, and that refers to another base, we should apply those patches to the upstream base, and then use that in the future
@@ -126,7 +120,7 @@ func (l *Kustomizer) maybeSplitListYaml(ctx context.Context, path string) error 
 			return errors.Wrapf(err, "read %s", filePath)
 		}
 
-		k8sYaml := ListK8sYaml{}
+		k8sYaml := util.ListK8sYaml{}
 		if err := yaml.Unmarshal(fileB, &k8sYaml); err != nil {
 			return errors.Wrapf(err, "unmarshal %s", filePath)
 		}
@@ -218,10 +212,10 @@ func (l *Kustomizer) runProvidedOverlays(ctx context.Context, originalBase, newB
 	return nil
 }
 
-func (l *Kustomizer) replaceOriginal(base string, built []postKustomizeFile) error {
-	builtMap := make(map[util.MinimalK8sYaml]postKustomizeFile)
+func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile) error {
+	builtMap := make(map[util.MinimalK8sYaml]util.PostKustomizeFile)
 	for _, builtFile := range built {
-		builtMap[builtFile.minimal] = builtFile
+		builtMap[builtFile.Minimal] = builtFile
 	}
 
 	if err := l.FS.Walk(base, func(targetPath string, info os.FileInfo, err error) error {
@@ -264,7 +258,7 @@ func (l *Kustomizer) replaceOriginal(base string, built []postKustomizeFile) err
 			return errors.Wrap(err, "remove original file")
 		}
 
-		initKustomizedB, err := yaml.Marshal(initKustomized.full)
+		initKustomizedB, err := yaml.Marshal(initKustomized.Full)
 		if err != nil {
 			return errors.Wrap(err, "marshal init kustomized")
 		}

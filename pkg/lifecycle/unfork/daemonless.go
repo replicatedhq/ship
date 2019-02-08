@@ -121,8 +121,8 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 	return nil
 }
 
-func (l *Unforker) unforkBuild(kustomizePath string) ([]postKustomizeFile, error) {
-	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.unforker", "method", "kustomizeBuild"))
+func (l *Unforker) unforkBuild(kustomizePath string) ([]util.PostKustomizeFile, error) {
+	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.unforker", "method", "unforkBuild"))
 
 	builtYAML, err := l.Patcher.RunKustomize(kustomizePath)
 	if err != nil {
@@ -130,7 +130,7 @@ func (l *Unforker) unforkBuild(kustomizePath string) ([]postKustomizeFile, error
 	}
 
 	files := strings.Split(string(builtYAML), "\n---\n")
-	postKustomizeFiles := make([]postKustomizeFile, 0)
+	postKustomizeFiles := make([]util.PostKustomizeFile, 0)
 	for idx, file := range files {
 		var fullYaml interface{}
 
@@ -145,10 +145,10 @@ func (l *Unforker) unforkBuild(kustomizePath string) ([]postKustomizeFile, error
 			return postKustomizeFiles, errors.Wrap(err, "unmarshal part of rendered to minimal")
 		}
 
-		postKustomizeFiles = append(postKustomizeFiles, postKustomizeFile{
-			order:   idx,
-			minimal: minimal,
-			full:    fullYaml,
+		postKustomizeFiles = append(postKustomizeFiles, util.PostKustomizeFile{
+			Order:   idx,
+			Minimal: minimal,
+			Full:    fullYaml,
 		})
 	}
 
