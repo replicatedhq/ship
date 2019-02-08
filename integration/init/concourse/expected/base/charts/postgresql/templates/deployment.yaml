@@ -17,7 +17,7 @@ spec:
         release: concourse
     spec:
       containers:
-      - args: null
+      - args: []
         env:
         - name: POSTGRES_USER
           value: concourse
