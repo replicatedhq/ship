@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/helm"
@@ -24,6 +25,12 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				return
 			}
 
+			step, err := d.buildStepContents(step)
+			if err != nil {
+				level.Error(d.Logger).Log("event", "getStep.buildContents.fail", "err", err)
+				return
+			}
+
 			if preExecuteFunc, exists := d.PreExecuteFuncMap[step.Shared().ID]; exists {
 				if err := preExecuteFunc(context.Background(), step); err != nil {
 					level.Error(d.Logger).Log("event", "preExecute.fail", "err", err)
@@ -34,12 +41,46 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 				delete(d.PreExecuteFuncMap, step.ShortName())
 			}
 
-			d.hydrateAndSend(daemontypes.NewStep(step), c)
+			d.hydrateAndSend(step, c)
 			return
 		}
 	}
 
 	d.errNotFound(c)
+}
+
+func (d *NavcycleRoutes) buildStepContents(step api.Step) (api.Step, error) {
+	currentState, err := d.StateManager.TryLoad()
+	if err != nil {
+		level.Error(d.Logger).Log("event", "tryLoad.fail", "err", err)
+		return api.Step{}, errors.Wrap(err, "load state")
+	}
+
+	if step.Kustomize != nil {
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "create kustomize template builder")
+		}
+		renderedBasePath, err := builder.String(step.Kustomize.Base)
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "render kustomize basepath template")
+		}
+		step.Kustomize.Base = renderedBasePath
+	}
+
+	if step.Message != nil {
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "create message template builder")
+		}
+		renderedContents, err := builder.String(step.Message.Contents)
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "render message contents")
+		}
+		step.Message.Contents = renderedContents
+	}
+
+	return step, nil
 }
 
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
@@ -52,16 +93,6 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 	}
 
 	if step.Kustomize != nil {
-		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
-		if err != nil {
-			return nil, errors.Wrap(err, "create kustomize template builder")
-		}
-		renderedBasePath, err := builder.String(step.Kustomize.BasePath)
-		if err != nil {
-			return nil, errors.Wrap(err, "render kusstomize basepath contents")
-		}
-		step.Kustomize.BasePath = renderedBasePath
-
 		tree, err := d.TreeLoader.LoadTree(step.Kustomize.BasePath)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "loadTree.fail", "err", err)
@@ -91,18 +122,6 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		step.HelmValues.DefaultValues = vendorValues
 		step.HelmValues.ReleaseName = releaseName
 		step.HelmValues.Namespace = namespace
-	}
-
-	if step.Message != nil {
-		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
-		if err != nil {
-			return nil, errors.Wrap(err, "create message template builder")
-		}
-		rendered, err := builder.String(step.Source.Message.Contents)
-		if err != nil {
-			return nil, errors.Wrap(err, "render message contents")
-		}
-		step.Message.Contents = rendered
 	}
 
 	result := &daemontypes.StepResponse{

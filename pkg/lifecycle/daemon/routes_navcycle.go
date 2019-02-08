@@ -157,8 +157,14 @@ func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (str
 	return "", nil
 }
 
-func (d *NavcycleRoutes) hydrateAndSend(step daemontypes.Step, c *gin.Context) {
-	result, err := d.hydrateStep(step)
+func (d *NavcycleRoutes) hydrateAndSend(step api.Step, c *gin.Context) {
+	step, err := d.buildStepContents(step)
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+
+	result, err := d.hydrateStep(daemontypes.NewStep(step))
 	if err != nil {
 		c.AbortWithError(500, err)
 		return
