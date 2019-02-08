@@ -10,6 +10,6 @@
       "releaseNotes": "Sets RollingUpdate as the updateStrategy for StatefulSets",
       "version": "6.5.0"
     },
-    "contentSHA": "f67e2f2bdd51dece929d8472b2def81d5b5c2a3bafd1d83d5f171c724bf614fd"
+    "contentSHA": "668b07eccb4975d4eed984e04a46705ade8c2b476c490905a2f6217a4c31b65c"
   }
 }

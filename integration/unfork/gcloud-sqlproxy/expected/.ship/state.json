@@ -23,6 +23,6 @@
       "releaseNotes": "update gcloud-sqlproxy to new version, comment out resources",
       "version": "0.6.3"
     },
-    "contentSHA": "ae21957591965f5f7eca11b4d7a40afda15b059cbce77718cd9ce13aac079039"
+    "contentSHA": "05f23656631e117467eb9de962a2baac4ddc07da99accf25a817637b54284731"
   }
 }

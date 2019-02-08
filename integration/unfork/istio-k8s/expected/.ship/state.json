@@ -21,6 +21,6 @@
       "releaseNotes": "Support setting FAIL_OPEN for istio-policy service (#9493)",
       "version": "1.0.3"
     },
-    "contentSHA": "516b33ede006f0fe649e3779592a1e4f15c9273470e86af0cd6fd05ade6a73d2"
+    "contentSHA": "0b03c5680b514a64ad597dbc6fdb2b43621951ba0707d70412d0ec37a3e4b097"
   }
 }

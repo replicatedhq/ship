@@ -11,6 +11,6 @@
       "releaseNotes": "Adds tolerations labels for Jaeger pods (#6255)",
       "version": "0.7.0"
     },
-    "contentSHA": "a0b9a245ede7d0965c3766329b78e0be1bcc907f61c559c54c592818c6ed3eb1"
+    "contentSHA": "a5d77ded8ae4a5e576b4d9c7187e9eb220bf1f9bf8c61e4ff9051e164f5e97b4"
   }
 }

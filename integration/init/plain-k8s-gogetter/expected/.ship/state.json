@@ -3,6 +3,6 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "github.com/replicatedhq/test-charts?ref=3427d6997bd150c60caa00ba0298fdfe17e3ed04//plain-k8s",
-    "contentSHA": "7d52a28c5b78539223c3548c2ee677b8b9d624f178e3aac1a15c0097f4e7cb62"
+    "contentSHA": "e3546ff9662b0aad902d9cb12278f4851d0dda26d8879e9b6666bd34beaaa3f9"
   }
 }

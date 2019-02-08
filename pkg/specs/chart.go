@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -389,6 +390,19 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 		if err != nil {
 			return errors.Wrapf(err, "fs walk")
 		}
+
+		// check if this file is a child of `.git`
+		// if it is, ignore it for the purposes of content sha calculation
+		if strings.Contains(path, ".git") {
+			return nil
+		}
+
+		// include the filepath in the content to be hashed - this way if a file moves from a.txt to b.txt the hash will change
+		relPath, err := filepath.Rel(root, path)
+		if err != nil {
+			return errors.Wrapf(err, "get relative path to file %s", path)
+		}
+		contents = append(contents, []byte(relPath)...)
 
 		if !info.Mode().IsRegular() {
 			return nil

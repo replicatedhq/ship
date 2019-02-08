@@ -11,6 +11,6 @@
       "releaseNotes": "[stable/concourse] Allow namespace creation independently of rbac (#10786)\n\n* Allow namespace creation independently of rbac\n\nAt the moment, when defining `concourse.web.kubernetes.teams`, the helm\nchart will take care of namespace generation. Although this is very\nuseful in most cases, we believe some people may find it problematic.\n\nOur use case, is to create the namespaces ahead of time and fill them\nwith `Pipeline` type resources defining Concourse pipelines. These are\nthen picked by our `pipeline-operator` and continuously applied to\nConcourse for specific teams.\n\nA hacky way around it, would be to set the\n`concourse.web.kubernetes.teams` value to an empty array, and create the\nrole bindings manually. It feels a little like cheating, and a cleaner\nway to accomplish that would be to have a separate flag responsible for\nnamespace creation in the Concourse helm chart.\n\nSigned-off-by: Rafal Proszowski \u003cparoxp@gmail.com\u003e\n\n* Bump patch\n\nSigned-off-by: Rafal Proszowski \u003cparoxp@gmail.com\u003e",
       "version": "3.7.2"
     },
-    "contentSHA": "c4bfbbd0dd4363819a5bd3b15a0d9f57c2c5761f48c4031792b9b8cc1b45adb5"
+    "contentSHA": "99183db72b179080361aae192a23e926cf0fca14d098c2ce4227d01c843fcec6"
   }
 }

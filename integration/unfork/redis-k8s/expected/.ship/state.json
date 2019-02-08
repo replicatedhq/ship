@@ -21,6 +21,6 @@
       "releaseNotes": "[stable/redis] support redis docker library image (#7745)\n\n* refactor(stable/redis): support redis docker library image\n\nBREAKING CHANGES:\n- `master.args` and `slave.args` are removed. Use `master.command` or\n  `slave.command` instead in order to override the image entrypoint,\n   or `master.extraFlags` to pass additional flags to `redis-server`.\n- `disableCommands` is now interpreted as an array of strings instead\n   of a string of comma separated values.\n- `master.persistence.path` now defaults to `/data`.\n\nSigned-off-by: Jacob LeGrone \u003cgit@jacob.work\u003e\n\n* test(stable/redis): add ci values for base images \u0026 configurations\n\nSigned-off-by: Jacob LeGrone \u003cgit@jacob.work\u003e",
       "version": "5.0.0"
     },
-    "contentSHA": "da92015f05122621bc1e35a7f36d183c697c76f770afca76a8679342c9771179"
+    "contentSHA": "356e55192740ee7dd6118107955e6ae9dd25791f352745b64037dff696a2cf81"
   }
 }

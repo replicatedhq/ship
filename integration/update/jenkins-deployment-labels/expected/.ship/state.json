@@ -24,6 +24,6 @@
       "releaseNotes": "Added ExtraPorts to open in the master pod (#7759)\n\n* Added ExtraPorts to open in the master pod\n\nSigned-off-by: ecejjar \u003cjesus.javier.arauz@ericsson.com\u003e\n\n* [stable/jenkins] Bumped up chart version\n\nSigned-off-by: ecejjar \u003cjesus.javier.arauz@ericsson.com\u003e",
       "version": "0.20.1"
     },
-    "contentSHA": "c25b3cd58e801f1a642961c860c4162da2c171fa8a8cd33d32012c36631535e9"
+    "contentSHA": "f19d8cd21704fb28480ac2f4b590522cf1686ae3b2bc2c6e7eb71da9b169947a"
   }
 }

@@ -30,35 +30,187 @@ func TestSpecsResolver(t *testing.T) {
 	RunSpecs(t, "specsResolver")
 }
 
-var _ = Describe("specs.Resolver", func() {
+// the same content should result in the same hash when hashed twice
+func TestStableContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
 
-	Describe("calculateContentSHA", func() {
-		Context("With multiple files", func() {
-			It("should calculate the same sha, multiple times", func() {
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
-				mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
 
-				r := Resolver{
-					FS: mockFs,
-					StateManager: &state.MManager{
-						Logger: log.NewNopLogger(),
-						FS:     mockFs,
-						V:      viper.New(),
-					},
-				}
+	firstPass, err := r.calculateContentSHA("")
+	req.NoError(err)
 
-				firstPass, err := r.calculateContentSHA("")
-				Expect(err).NotTo(HaveOccurred())
+	secondPass, err := r.calculateContentSHA("")
+	req.NoError(err)
 
-				secondPass, err := r.calculateContentSHA("")
-				Expect(err).NotTo(HaveOccurred())
+	req.Equal(firstPass, secondPass)
+}
 
-				Expect(firstPass).To(Equal(secondPass))
-			})
-		})
-	})
-})
+// different content should not result in the same hash
+func TestChangingContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
+
+	firstPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	err = mockFs.WriteFile("newfile.txt", []byte("I AM A NEW FILE"), 0755)
+	req.NoError(err)
+
+	secondPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	req.NotEqual(firstPass, secondPass)
+}
+
+// content sha should not depend on the contents of a `.git` directory
+func TestStableGitContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile(".git/A_FILE", []byte("A_GIT_FILE"), 0755)
+	req.NoError(err)
+
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
+
+	firstPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	err = mockFs.WriteFile(".git/newfile.txt", []byte("I AM A NEW GIT FILE"), 0755)
+	req.NoError(err)
+
+	secondPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	req.Equal(firstPass, secondPass)
+}
+
+// content sha should not depend on the root path
+func TestRootIndependentContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("path1/Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("path1/templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("path2/Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("path2/templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
+
+	firstPass, err := r.calculateContentSHA("path1")
+	req.NoError(err)
+
+	secondPass, err := r.calculateContentSHA("path2")
+	req.NoError(err)
+
+	req.Equal(firstPass, secondPass)
+}
+
+// content sha should change if a filename changes
+func TestMoveFileContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
+
+	firstPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	err = mockFs.Rename("templates/README.md", "templated/README.md")
+	req.NoError(err)
+
+	secondPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	req.NotEqual(firstPass, secondPass)
+}
+
+// content sha should change if a filename changes
+func TestEditFileContentSha(t *testing.T) {
+	req := require.New(t)
+	mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+	err := mockFs.WriteFile("Chart.yaml", []byte("chart.yaml"), 0755)
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("readme"), 0755)
+	req.NoError(err)
+
+	r := Resolver{
+		FS: mockFs,
+		StateManager: &state.MManager{
+			Logger: log.NewNopLogger(),
+			FS:     mockFs,
+			V:      viper.New(),
+		},
+	}
+
+	firstPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	err = mockFs.Remove("templates/README.md")
+	req.NoError(err)
+	err = mockFs.WriteFile("templates/README.md", []byte("not readme"), 0755)
+	req.NoError(err)
+
+	secondPass, err := r.calculateContentSHA("")
+	req.NoError(err)
+
+	req.NotEqual(firstPass, secondPass)
+}
 
 func TestMaybeGetShipYAML(t *testing.T) {
 	tests := []ApplyUpstreamReleaseSpec{
