@@ -392,6 +392,18 @@ items:
 				},
 			},
 		},
+		{
+			name: "empty list",
+			lists: []util.List{
+				{
+					APIVersion: "v1",
+					Path:       "test/empty.yaml",
+					Items:      []util.MinimalK8sYaml{},
+				},
+			},
+			kustomizedFiles: []kustomizeTestFile{},
+			expectFiles:     []kustomizeTestFile{},
+		},
 	}
 
 	for _, tt := range tests {
