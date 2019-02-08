@@ -407,7 +407,7 @@ func TestHydrateActions(t *testing.T) {
 func TestHydrateStep(t *testing.T) {
 	tests := []struct {
 		name    string
-		step    daemontypes.Step
+		step    api.Step
 		state   state2.State
 		fs      map[string]string
 		release *api.Release
@@ -415,14 +415,14 @@ func TestHydrateStep(t *testing.T) {
 	}{
 		{
 			name: "message",
-			step: daemontypes.NewStep(api.Step{
+			step: api.Step{
 				Message: &api.Message{
 					Contents: "hey there {{repl Installation \"customer_id\"}} {{repl ConfigOption \"spam\"}}",
 					StepShared: api.StepShared{
 						ID: "foo",
 					},
 				},
-			}),
+			},
 			release: &api.Release{
 				Metadata: api.ReleaseMetadata{
 					CustomerID: "12345",
@@ -447,7 +447,7 @@ func TestHydrateStep(t *testing.T) {
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
 						Message: &api.Message{
-							Contents: "hey there {{repl Installation \"customer_id\"}} {{repl ConfigOption \"spam\"}}",
+							Contents: "hey there 12345 eggs",
 							StepShared: api.StepShared{
 								ID: "foo",
 							},
@@ -487,6 +487,7 @@ func TestHydrateStep(t *testing.T) {
 
 			if test.state != nil {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
+				mockState.EXPECT().TryLoad().Return(test.state, nil)
 			}
 
 			v2 := &NavcycleRoutes{
@@ -502,7 +503,10 @@ func TestHydrateStep(t *testing.T) {
 				Release:      test.release,
 			}
 
-			response, err := v2.hydrateStep(test.step)
+			builtStep, err := v2.buildStepContents(test.step)
+			req.NoError(err)
+
+			response, err := v2.hydrateStep(daemontypes.NewStep(builtStep))
 			req.NoError(err, "hydrate step")
 			req.Equal(test.want, response)
 		})
@@ -512,7 +516,7 @@ func TestHydrateStep(t *testing.T) {
 func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 	tests := []struct {
 		name    string
-		step    daemontypes.Step
+		step    api.Step
 		state   state2.State
 		fs      map[string]string
 		release *api.Release
@@ -520,7 +524,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 	}{
 		{
 			name: "kustomize",
-			step: daemontypes.NewStep(api.Step{
+			step: api.Step{
 				Kustomize: &api.Kustomize{
 					Base:    "{{repl ToUpper \"abcdef\"}}",
 					Dest:    "more.yaml",
@@ -529,7 +533,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 						ID: "bar",
 					},
 				},
-			}),
+			},
 			release: &api.Release{
 				Metadata: api.ReleaseMetadata{
 					CustomerID: "12345",
@@ -554,7 +558,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
 						Kustomize: &api.Kustomize{
-							Base:    "{{repl ToUpper \"abcdef\"}}",
+							Base:    "ABCDEF",
 							Dest:    "more.yaml",
 							Overlay: "overlay/mine",
 							StepShared: api.StepShared{
@@ -612,6 +616,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 			if test.state != nil {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
+				mockState.EXPECT().TryLoad().Return(test.state, nil)
 			}
 
 			treeLoader := filetree.NewLoader(mockFs, testLogger, mockState)
@@ -633,7 +638,10 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 			err := mockFs.MkdirAll("ABCDEF", 0755)
 			req.NoError(err, "mkdir")
 
-			response, err := v2.hydrateStep(test.step)
+			builtStep, err := v2.buildStepContents(test.step)
+			req.NoError(err)
+
+			response, err := v2.hydrateStep(daemontypes.NewStep(builtStep))
 			req.NoError(err, "hydrate templated kustomize step")
 			req.Equal(test.want, response)
 		})
