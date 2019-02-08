@@ -50,6 +50,11 @@ func (l *Kustomizer) rebuildListYaml(lists []util.List, kustomizedYamlFiles []po
 			}
 		}
 
+		// don't render empty lists
+		if len(allListItems) == 0 {
+			continue
+		}
+
 		debug.Log("event", "reconstruct list")
 		reconstructedList := ListK8sYaml{
 			APIVersion: list.APIVersion,
