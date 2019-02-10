@@ -67,6 +67,7 @@ func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) Planner
 
 			Inline:      planner.Inline,
 			Helm:        planner.Helm,
+			Local:       planner.Local,
 			Docker:      planner.Docker,
 			DockerLayer: planner.DockerLayer,
 			GitHub:      planner.GitHub,
