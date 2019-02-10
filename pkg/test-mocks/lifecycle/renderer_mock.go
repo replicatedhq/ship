@@ -40,7 +40,6 @@ func (m *MockRenderer) EXPECT() *MockRendererMockRecorder {
 
 // Execute mocks base method
 func (m *MockRenderer) Execute(arg0 context.Context, arg1 *api.Release, arg2 *api.Render) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -48,13 +47,11 @@ func (m *MockRenderer) Execute(arg0 context.Context, arg1 *api.Release, arg2 *ap
 
 // Execute indicates an expected call of Execute
 func (mr *MockRendererMockRecorder) Execute(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRenderer)(nil).Execute), arg0, arg1, arg2)
 }
 
 // WithPlanner mocks base method
 func (m *MockRenderer) WithPlanner(arg0 planner.Planner) lifecycle.Renderer {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithPlanner", arg0)
 	ret0, _ := ret[0].(lifecycle.Renderer)
 	return ret0
@@ -62,13 +59,11 @@ func (m *MockRenderer) WithPlanner(arg0 planner.Planner) lifecycle.Renderer {
 
 // WithPlanner indicates an expected call of WithPlanner
 func (mr *MockRendererMockRecorder) WithPlanner(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithPlanner", reflect.TypeOf((*MockRenderer)(nil).WithPlanner), arg0)
 }
 
 // WithStatusReceiver mocks base method
 func (m *MockRenderer) WithStatusReceiver(arg0 daemontypes.StatusReceiver) lifecycle.Renderer {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithStatusReceiver", arg0)
 	ret0, _ := ret[0].(lifecycle.Renderer)
 	return ret0
@@ -76,6 +71,5 @@ func (m *MockRenderer) WithStatusReceiver(arg0 daemontypes.StatusReceiver) lifec
 
 // WithStatusReceiver indicates an expected call of WithStatusReceiver
 func (mr *MockRendererMockRecorder) WithStatusReceiver(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithStatusReceiver", reflect.TypeOf((*MockRenderer)(nil).WithStatusReceiver), arg0)
 }

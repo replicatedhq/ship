@@ -36,7 +36,6 @@ func (m *MockArchiver) EXPECT() *MockArchiverMockRecorder {
 
 // Make mocks base method
 func (m *MockArchiver) Make(arg0 string, arg1 []string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Make", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -44,13 +43,11 @@ func (m *MockArchiver) Make(arg0 string, arg1 []string) error {
 
 // Make indicates an expected call of Make
 func (mr *MockArchiverMockRecorder) Make(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Make", reflect.TypeOf((*MockArchiver)(nil).Make), arg0, arg1)
 }
 
 // Match mocks base method
 func (m *MockArchiver) Match(arg0 string) bool {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Match", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -58,13 +55,11 @@ func (m *MockArchiver) Match(arg0 string) bool {
 
 // Match indicates an expected call of Match
 func (mr *MockArchiverMockRecorder) Match(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Match", reflect.TypeOf((*MockArchiver)(nil).Match), arg0)
 }
 
 // Open mocks base method
 func (m *MockArchiver) Open(arg0, arg1 string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -72,13 +67,11 @@ func (m *MockArchiver) Open(arg0, arg1 string) error {
 
 // Open indicates an expected call of Open
 func (mr *MockArchiverMockRecorder) Open(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockArchiver)(nil).Open), arg0, arg1)
 }
 
 // Read mocks base method
 func (m *MockArchiver) Read(arg0 io.Reader, arg1 string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Read", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -86,13 +79,11 @@ func (m *MockArchiver) Read(arg0 io.Reader, arg1 string) error {
 
 // Read indicates an expected call of Read
 func (mr *MockArchiverMockRecorder) Read(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockArchiver)(nil).Read), arg0, arg1)
 }
 
 // Write mocks base method
 func (m *MockArchiver) Write(arg0 io.Writer, arg1 []string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Write", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -100,6 +91,5 @@ func (m *MockArchiver) Write(arg0 io.Writer, arg1 []string) error {
 
 // Write indicates an expected call of Write
 func (mr *MockArchiverMockRecorder) Write(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockArchiver)(nil).Write), arg0, arg1)
 }

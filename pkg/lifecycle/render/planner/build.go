@@ -108,7 +108,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 
 			p.logAssetResolve(debug, evaluatedWhen, "github")
 			if evaluatedWhen {
-				plan = append(plan, p.githubStep(rootFs, *asset.GitHub, configGroups, meta, templateContext))
+				plan = append(plan, p.githubStep(rootFs, *asset.GitHub, configGroups, renderRoot, meta, templateContext))
 			}
 		} else if asset.Terraform != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Terraform.AssetShared.When)

@@ -22,6 +22,7 @@ type ChartFetcher interface {
 	FetchChart(
 		ctx context.Context,
 		asset api.HelmAsset,
+		renderRoot string,
 		meta api.ReleaseMetadata,
 		configGroups []libyaml.ConfigGroup,
 		templateContext map[string]interface{},
@@ -39,6 +40,7 @@ type ClientFetcher struct {
 func (f *ClientFetcher) FetchChart(
 	ctx context.Context,
 	asset api.HelmAsset,
+	renderRoot string,
 	meta api.ReleaseMetadata,
 	configGroups []libyaml.ConfigGroup,
 	templateContext map[string]interface{},
@@ -59,6 +61,7 @@ func (f *ClientFetcher) FetchChart(
 			root.NewRootFS(f.FS, "."),
 			*asset.GitHub,
 			configGroups,
+			renderRoot,
 			meta,
 			templateContext,
 		)(ctx)
