@@ -18,5 +18,5 @@ lifecycle:
     - render:
         root: .
     - kustomize:
-        base: installer/base
+        base: base
         dest: rendered.yaml
