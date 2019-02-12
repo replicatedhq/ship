@@ -36,7 +36,7 @@ func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizat
 
 	k8sFactory := k8sdeps.NewFactory()
 
-	kt, err := target.NewKustTarget(ldr, fSys, k8sFactory.ResmapF, k8sFactory.TransformerF)
+	kt, err := target.NewKustTarget(ldr, k8sFactory.ResmapF, k8sFactory.TransformerF)
 	if err != nil {
 		return errors.Wrap(err, "make customized kustomize target")
 	}
