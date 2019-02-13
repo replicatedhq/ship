@@ -30,7 +30,7 @@ assets:
           kind: ""
           apiversion: ""
           bases:
-            - ../base
+            - ../../base
           patches:
             - ./patch-configmap-l4.yaml
 

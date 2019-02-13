@@ -23,8 +23,9 @@ var (
 	ProgressRender = daemontypes.StringProgress("render", "rendering assets and configuration values")
 )
 
-// A renderer takes a resolved spec, collects config values, and renders assets
-type renderer struct {
+// A headlessrenderer takes a resolved spec, collects config values, and renders assets
+// this was the old plain "renderer", but now its only used in headless workflows, so renaming it for clarity
+type headlessrenderer struct {
 	Logger         log.Logger
 	ConfigResolver config.Resolver
 	Planner        pkgplanner.Planner
@@ -36,7 +37,7 @@ type renderer struct {
 }
 
 // Execute renders the assets and config
-func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
+func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
 	defer r.StatusReceiver.ClearProgress()
 
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
@@ -58,16 +59,23 @@ func (r *renderer) Execute(ctx context.Context, release *api.Release, step *api.
 
 	r.StatusReceiver.SetProgress(ProgressRender)
 
+	// this should probably happen even higher up, like to the validation stage where we assign IDs to lifecycle steps, but moving it up here for now
+	if step.Root == "" {
+		step.Root = constants.InstallerPrefixPath
+	}
+
 	debug.Log("event", "render.plan")
 	pln, err := r.Planner.Build(step.Root, release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
 	}
 
-	debug.Log("event", "backup.start")
-	err = r.backupIfPresent(constants.InstallerPrefixPath)
-	if err != nil {
-		return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+	if step.Root != "." && step.Root != "./" {
+		debug.Log("event", "backup.start")
+		err = r.backupIfPresent(step.Root)
+		if err != nil {
+			return errors.Wrapf(err, "backup existing install directory %s", constants.InstallerPrefixPath)
+		}
 	}
 
 	debug.Log("event", "execute.plan")

@@ -410,7 +410,7 @@ func Test_getDestPathNoProxy(t *testing.T) {
 			if tt.renderRoot == "" {
 				tt.renderRoot = constants.InstallerPrefixPath
 			}
-			got, err := getDestPathNoProxy(tt.asset, builder, tt.renderRoot)
+			got, err := (&LocalRenderer{Logger: testLogger}).getDestPathNoProxy(tt.asset, builder, tt.renderRoot)
 			if !tt.wantErr {
 				req.NoError(err)
 			} else {

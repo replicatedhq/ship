@@ -53,7 +53,7 @@ func TestRender(t *testing.T) {
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			mockDaemon := mockdaemon.NewMockDaemon(mc)
 
-			renderer := &renderer{
+			renderer := &headlessrenderer{
 				Logger: log.NewNopLogger(),
 				Now:    time.Now,
 			}
@@ -84,7 +84,7 @@ func TestRender(t *testing.T) {
 					Return(test.ViperConfig, nil)
 
 				p.EXPECT().
-					Build("", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
+					Build("installer", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
 					Return(planner.Plan{}, nil)
 
 				p.EXPECT().
@@ -127,7 +127,7 @@ func TestBacksUpExisting(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
-			r := renderer{
+			r := headlessrenderer{
 				Logger: &logger.TestLogger{T: t},
 				Fs:     mockFS,
 				Now: func() time.Time {

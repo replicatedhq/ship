@@ -202,7 +202,7 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 	}
 
 	debug.Log("event", "getDestPath")
-	dest, err := getDestPathNoProxy(asset, builder, renderRoot)
+	dest, err := r.getDestPathNoProxy(asset, builder, renderRoot)
 	if err != nil {
 		return errors.Wrap(err, "get dest path")
 	}
@@ -261,7 +261,9 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 	return filepath.Join(destDir, githubPath), nil
 }
 
-func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder, renderRoot string) (string, error) {
+func (r *LocalRenderer) getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder, renderRoot string) (string, error) {
+
+	debug := level.Debug(log.With(r.Logger, "method", "getdestPathNoProxy", "asset.type", "github", "dest", asset.Dest, "renderRoot", renderRoot, "proxy", false))
 	assetPath := asset.Path
 	stripPath, err := builder.Bool(asset.StripPath, false)
 	if err != nil {
@@ -281,7 +283,9 @@ func getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder, rende
 		}
 	}
 
-	return filepath.Join(renderRoot, destDir, assetPath), nil
+	destPath := filepath.Join(renderRoot, destDir, assetPath)
+	debug.Log("event", "destPath.resolve", "path", destPath)
+	return destPath, nil
 }
 
 func createUpstreamURL(asset api.GitHubAsset, builder *templates.Builder) (string, error) {

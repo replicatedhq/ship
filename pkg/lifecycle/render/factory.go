@@ -15,11 +15,11 @@ import (
 	"github.com/spf13/afero"
 )
 
-// Factory gets a *renderer and implements lifecycle.Renderer
-type Factory func() *renderer
+// Factory gets a *headlessrenderer and implements lifecycle.Renderer
+type Factory func() *headlessrenderer
 
 // factory implements lifecycle.Renderer
-var _ lifecycle.Renderer = Factory(func() *renderer { return nil })
+var _ lifecycle.Renderer = Factory(func() *headlessrenderer { return nil })
 
 func (f Factory) Execute(ctx context.Context, release *api.Release, step *api.Render) error {
 	r := f()
@@ -27,9 +27,9 @@ func (f Factory) Execute(ctx context.Context, release *api.Release, step *api.Re
 }
 
 func (f Factory) WithPlanner(plannerFactory pkgplanner.Planner) lifecycle.Renderer {
-	return Factory(func() *renderer {
+	return Factory(func() *headlessrenderer {
 		r := f()
-		return &renderer{
+		return &headlessrenderer{
 			Logger:         r.Logger,
 			ConfigResolver: r.ConfigResolver,
 			Planner:        plannerFactory,
@@ -43,9 +43,9 @@ func (f Factory) WithPlanner(plannerFactory pkgplanner.Planner) lifecycle.Render
 }
 
 func (f Factory) WithStatusReceiver(receiver daemontypes.StatusReceiver) lifecycle.Renderer {
-	return Factory(func() *renderer {
+	return Factory(func() *headlessrenderer {
 		r := f()
-		return &renderer{
+		return &headlessrenderer{
 			Logger:         r.Logger,
 			ConfigResolver: r.ConfigResolver,
 			Planner:        r.Planner,
@@ -67,8 +67,8 @@ func NewFactory(
 	resolver config.Resolver,
 	status daemontypes.StatusReceiver,
 ) lifecycle.Renderer {
-	return Factory(func() *renderer {
-		return &renderer{
+	return Factory(func() *headlessrenderer {
+		return &headlessrenderer{
 			Logger:         logger,
 			ConfigResolver: resolver,
 			Planner:        planner,

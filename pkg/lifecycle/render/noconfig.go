@@ -54,6 +54,11 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	templateContext := previousState.CurrentConfig()
 	r.StatusReceiver.SetProgress(ProgressRender)
 
+	// this should probably happen even higher up, like to the validation stage where we assign IDs to lifecycle steps, but moving it up here for now
+	if step.Root == "" {
+		step.Root = constants.InstallerPrefixPath
+	}
+
 	debug.Log("event", "render.plan")
 	pln, err := r.Planner.Build(step.Root, release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
@@ -61,10 +66,6 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	debug.Log("event", "backup.start")
-
-	if step.Root == "" {
-		step.Root = constants.InstallerPrefixPath
-	}
 
 	if step.Root != "." && step.Root != "./" {
 		if r.Viper.GetBool("rm-asset-dest") {
