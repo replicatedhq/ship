@@ -1,4 +1,4 @@
 kind: ""
 apiversion: ""
 bases:
-- ../../installer/base
+- ../../base

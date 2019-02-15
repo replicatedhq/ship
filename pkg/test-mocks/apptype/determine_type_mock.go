@@ -38,7 +38,6 @@ func (m *MockInspector) EXPECT() *MockInspectorMockRecorder {
 
 // DetermineApplicationType mocks base method
 func (m *MockInspector) DetermineApplicationType(arg0 context.Context, arg1 string) (apptype.LocalAppCopy, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DetermineApplicationType", arg0, arg1)
 	ret0, _ := ret[0].(apptype.LocalAppCopy)
 	ret1, _ := ret[1].(error)
@@ -47,7 +46,6 @@ func (m *MockInspector) DetermineApplicationType(arg0 context.Context, arg1 stri
 
 // DetermineApplicationType indicates an expected call of DetermineApplicationType
 func (mr *MockInspectorMockRecorder) DetermineApplicationType(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetermineApplicationType", reflect.TypeOf((*MockInspector)(nil).DetermineApplicationType), arg0, arg1)
 }
 
@@ -76,7 +74,6 @@ func (m *MockLocalAppCopy) EXPECT() *MockLocalAppCopyMockRecorder {
 
 // GetLocalPath mocks base method
 func (m *MockLocalAppCopy) GetLocalPath() string {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLocalPath")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -84,13 +81,11 @@ func (m *MockLocalAppCopy) GetLocalPath() string {
 
 // GetLocalPath indicates an expected call of GetLocalPath
 func (mr *MockLocalAppCopyMockRecorder) GetLocalPath() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalPath", reflect.TypeOf((*MockLocalAppCopy)(nil).GetLocalPath))
 }
 
 // GetType mocks base method
 func (m *MockLocalAppCopy) GetType() string {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetType")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -98,13 +93,11 @@ func (m *MockLocalAppCopy) GetType() string {
 
 // GetType indicates an expected call of GetType
 func (mr *MockLocalAppCopyMockRecorder) GetType() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetType", reflect.TypeOf((*MockLocalAppCopy)(nil).GetType))
 }
 
 // Remove mocks base method
 func (m *MockLocalAppCopy) Remove(arg0 afero.Afero) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -112,6 +105,5 @@ func (m *MockLocalAppCopy) Remove(arg0 afero.Afero) error {
 
 // Remove indicates an expected call of Remove
 func (mr *MockLocalAppCopyMockRecorder) Remove(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockLocalAppCopy)(nil).Remove), arg0)
 }

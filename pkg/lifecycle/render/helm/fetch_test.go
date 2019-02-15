@@ -79,6 +79,7 @@ func TestFetch(t *testing.T) {
 						},
 					},
 					[]libyaml.ConfigGroup{},
+					"",
 					api.ReleaseMetadata{},
 					map[string]interface{}{},
 				).Return(func(ctx context.Context) error { return nil })
@@ -121,6 +122,7 @@ func TestFetch(t *testing.T) {
 						},
 					},
 					[]libyaml.ConfigGroup{},
+					"installer/",
 					api.ReleaseMetadata{},
 					map[string]interface{}{},
 				).Return(func(ctx context.Context) error { return nil })
@@ -149,6 +151,7 @@ func TestFetch(t *testing.T) {
 			dest, err := fetcher.FetchChart(
 				context.Background(),
 				test.asset,
+				test.renderRoot,
 				api.ReleaseMetadata{},
 				[]libyaml.ConfigGroup{},
 				map[string]interface{}{},

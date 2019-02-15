@@ -7,6 +7,7 @@ import (
 
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
@@ -231,10 +232,11 @@ func Test_getDestPath(t *testing.T) {
 
 func Test_getDestPathNoProxy(t *testing.T) {
 	tests := []struct {
-		name    string
-		asset   api.GitHubAsset
-		want    string
-		wantErr bool
+		name       string
+		asset      api.GitHubAsset
+		want       string
+		wantErr    bool
+		renderRoot string
 	}{
 		{
 			name: "basic file",
@@ -246,6 +248,32 @@ func Test_getDestPathNoProxy(t *testing.T) {
 				},
 			},
 			want:    "installer/README.md",
+			wantErr: false,
+		},
+		{
+			name:       "basic file, no installer prefix",
+			renderRoot: "./",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "",
+				AssetShared: api.AssetShared{
+					Dest: "./",
+				},
+			},
+			want:    "README.md",
+			wantErr: false,
+		},
+		{
+			name:       "basic file, customer installer prefix",
+			renderRoot: "my-installer",
+			asset: api.GitHubAsset{
+				Path:      "README.md",
+				StripPath: "",
+				AssetShared: api.AssetShared{
+					Dest: "./",
+				},
+			},
+			want:    "my-installer/README.md",
 			wantErr: false,
 		},
 		{
@@ -379,7 +407,10 @@ func Test_getDestPathNoProxy(t *testing.T) {
 			builder, err := bb.FullBuilder(api.ReleaseMetadata{}, []libyaml.ConfigGroup{}, map[string]interface{}{})
 			req.NoError(err)
 
-			got, err := getDestPathNoProxy(tt.asset, builder)
+			if tt.renderRoot == "" {
+				tt.renderRoot = constants.InstallerPrefixPath
+			}
+			got, err := (&LocalRenderer{Logger: testLogger}).getDestPathNoProxy(tt.asset, builder, tt.renderRoot)
 			if !tt.wantErr {
 				req.NoError(err)
 			} else {

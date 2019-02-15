@@ -3,7 +3,6 @@ package kustomize
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"
 )

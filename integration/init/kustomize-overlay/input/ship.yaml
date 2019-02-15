@@ -1,7 +1,7 @@
 assets:
   v1:
     - github:
-        dest: ../base/common
+        dest: base/common
         repo: kubernetes/ingress-nginx
         path: deploy/mandatory.yaml
         ref: nginx-0.22.0
@@ -9,7 +9,7 @@ assets:
         strip_path: true
 
     - github:
-        dest: ../base
+        dest: base
         repo: kubernetes/ingress-nginx
         path: deploy/provider/aws/service-l4.yaml
         ref: nginx-0.22.0
@@ -17,7 +17,7 @@ assets:
         strip_path: true
 
     - github:
-        dest: ../overlays/cloud
+        dest: overlays/cloud
         repo: kubernetes/ingress-nginx
         path: deploy/provider/aws/patch-configmap-l4.yaml
         ref: nginx-0.22.0

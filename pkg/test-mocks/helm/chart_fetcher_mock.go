@@ -37,16 +37,14 @@ func (m *MockChartFetcher) EXPECT() *MockChartFetcherMockRecorder {
 }
 
 // FetchChart mocks base method
-func (m *MockChartFetcher) FetchChart(arg0 context.Context, arg1 api.HelmAsset, arg2 api.ReleaseMetadata, arg3 []libyaml.ConfigGroup, arg4 map[string]interface{}) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchChart", arg0, arg1, arg2, arg3, arg4)
+func (m *MockChartFetcher) FetchChart(arg0 context.Context, arg1 api.HelmAsset, arg2 string, arg3 api.ReleaseMetadata, arg4 []libyaml.ConfigGroup, arg5 map[string]interface{}) (string, error) {
+	ret := m.ctrl.Call(m, "FetchChart", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchChart indicates an expected call of FetchChart
-func (mr *MockChartFetcherMockRecorder) FetchChart(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchChart", reflect.TypeOf((*MockChartFetcher)(nil).FetchChart), arg0, arg1, arg2, arg3, arg4)
+func (mr *MockChartFetcherMockRecorder) FetchChart(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchChart", reflect.TypeOf((*MockChartFetcher)(nil).FetchChart), arg0, arg1, arg2, arg3, arg4, arg5)
 }

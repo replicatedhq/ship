@@ -13,10 +13,14 @@ assets:
         path: jaeger-production-template.yml
         proxy: false
         strip_path: true
+    - inline:
+        dest: installer/.gitkeep
+        contents:
+          workaround
 lifecycle:
   v1:
     - render:
         root: .
     - kustomize:
-        base: installer/base
+        base: base
         dest: rendered.yaml

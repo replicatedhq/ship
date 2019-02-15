@@ -10,7 +10,7 @@
       "lists": [
         {
           "apiVersion": "v1",
-          "path": "installer/base/cassandra.yml",
+          "path": "base/cassandra.yml",
           "items": [
             {
               "kind": "Service",
@@ -37,7 +37,7 @@
         },
         {
           "apiVersion": "v1",
-          "path": "installer/base/jaeger-production-template.yml",
+          "path": "base/jaeger-production-template.yml",
           "items": [
             {
               "kind": "Deployment",
