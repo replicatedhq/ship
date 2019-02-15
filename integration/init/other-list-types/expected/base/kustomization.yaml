@@ -1,0 +1,6 @@
+kind: ""
+apiversion: ""
+resources:
+- configmapList.yaml
+- roleBindingList.yaml
+- roleList.yaml
