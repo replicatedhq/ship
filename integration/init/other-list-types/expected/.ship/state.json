@@ -1,0 +1,8 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "https://github.com/replicatedhq/test-charts/tree/0e13bc2c19778b67f83f68c5e2886de0cd43d59f/other-list-types",
+    "contentSHA": "78ca09c481a6c8b2d507da0c171defab38aa33dc990b4034b5447d75f74b7fdf"
+  }
+}

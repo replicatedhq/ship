@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMapList
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: winnie
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: notwinnie
