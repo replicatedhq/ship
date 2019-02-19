@@ -1,0 +1,10 @@
+{
+  "v1": {
+    "config": {
+      "option": "abc123"
+    },
+    "releaseName": "ship",
+    "upstream": "https://github.com/replicatedhq/test-charts/tree/fd6c6c83ff38d272311b0ed00d6e579ba8b3579e/template-functions-noproxy",
+    "contentSHA": "a28253e6e1fa4a1768c62f11be8fbc97eec2abe1d8ed77c19faaee4cd0a386d7"
+  }
+}
