@@ -21,6 +21,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -230,6 +231,10 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 
 	if err := r.Fs.RemoveAll(localFetchPath); err != nil {
 		return errors.Wrap(err, "remove tmp github asset")
+	}
+
+	if err := templates.BuildDir(dest, &r.Fs, builder); err != nil {
+		return errors.Wrapf(err, "render templates in github asset %s", dest)
 	}
 
 	return nil
