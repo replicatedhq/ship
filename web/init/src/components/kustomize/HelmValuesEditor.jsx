@@ -261,8 +261,8 @@ export default class HelmValuesEditor extends React.Component {
                       <p className="u-color--vidaLoca u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">Values saved</p>
                     : null}
                   </div>
-                  <button className="btn primary u-marginRight--normal" onClick={() => this.handleSaveValues(false)} disabled={saving || saveFinal}>{saving ? "Saving" : "Save values"}</button>
-                  <button className="btn secondary" onClick={() => this.handleSaveValues(true)} disabled={saving || saveFinal}>{saveFinal ? "Saving values" : "Save & continue"}</button>
+                  <button className="btn primary hv-save u-marginRight--normal" onClick={() => this.handleSaveValues(false)} disabled={saving || saveFinal}>{saving ? "Saving" : "Save values"}</button>
+                  <button className="btn secondary hv-save" onClick={() => this.handleSaveValues(true)} disabled={saving || saveFinal}>{saveFinal ? "Saving values" : "Save & continue"}</button>
                 </div>
               }
             </div>

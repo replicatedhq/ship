@@ -204,6 +204,8 @@ export class DetermineComponentForRoute extends React.Component {
           status={progress || currentStep.status}
           handleAction={this.handleAction}
           gotoRoute={this.gotoRoute}
+          goBack={this.props.history.goBack}
+          firstRoute={firstRoute}
           initializeStep={initializeStep}
         />
       );

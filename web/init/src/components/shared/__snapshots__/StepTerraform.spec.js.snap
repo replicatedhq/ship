@@ -2,10 +2,10 @@
 
 exports[`StepTerraform provided a status of error renders the error message 1`] = `
 <div
-  className="flex1 flex flex-column justifyContent--center"
+  className="flex1 flex-column justifyContent--center"
 >
   <div
-    className="Error--wrapper flex flex-column alignItems--center"
+    className="Error--wrapper flex-column alignItems--center"
   >
     <div
       className="icon progress-detail-error"
@@ -21,29 +21,47 @@ exports[`StepTerraform provided a status of error renders the error message 1`] 
 
 exports[`StepTerraform provided a status of message renders step message 1`] = `
 <div
-  className="flex1 flex flex-column justifyContent--center"
+  className="flex1 flex-column justifyContent--center"
 >
   <div
-    className="StepMessage-wrapper flex flex1 flex-column"
+    className="StepMessage-wrapper flex1 flex-column"
   >
     <div
-      className="markdown-wrapper flex flex1 flex-column u-overflow--auto  "
+      className="markdown-wrapper flex1 flex-column u-overflow--auto  "
     >
-      <div>
-        <span
-          dangerouslySetInnerHTML={
-            Object {
-              "__html": "<p>this is the message contents</p>
+      <div
+        className="mkdwn"
+      >
+        <div>
+          <span
+            dangerouslySetInnerHTML={
+              Object {
+                "__html": "<p>this is the message contents</p>
 ",
+              }
             }
-          }
-        />
+          />
+        </div>
       </div>
     </div>
     <div
-      className="u-marginTop--30 flex justifyContent--flexEnd"
+      className="flex flex-auto actions-wrapper u-paddingRight--20 u-paddingLeft--20"
     >
-      <div />
+      <div
+        className="flex-auto u-marginRight--normal"
+      >
+        <button
+          className="btn secondary"
+          onClick={[Function]}
+        >
+          Back
+        </button>
+      </div>
+      <div
+        className="flex1 flex justifyContent--flexEnd"
+      >
+        <div />
+      </div>
     </div>
   </div>
 </div>
@@ -51,10 +69,10 @@ exports[`StepTerraform provided a status of message renders step message 1`] = `
 
 exports[`StepTerraform provided a status of working renders a loader 1`] = `
 <div
-  className="flex1 flex flex-column justifyContent--center"
+  className="flex1 flex-column justifyContent--center"
 >
   <div
-    className="flex flex1 flex-column u-paddingTop--30 justifyContent--center"
+    className="flex1 flex-column u-paddingTop--30 justifyContent--center"
   >
     <div
       className="flex justifyContent--center"
@@ -95,7 +113,7 @@ exports[`StepTerraform provided a status of working renders a loader 1`] = `
       </div>
     </div>
     <div
-      className="flex flex-column"
+      className="flex-column"
     />
   </div>
 </div>
