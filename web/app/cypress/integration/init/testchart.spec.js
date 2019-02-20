@@ -27,7 +27,7 @@ describe("Ship Init test-charts/modify-chart", () => {
       });
 
       it("allows navigation to the render step", () => {
-        cy.get(".secondary").click();
+        cy.get(".secondary.hv-save").click();
         cy.location("pathname").should("eq", "/render")
       })
     });
@@ -41,7 +41,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
   context("kustomize-intro", () => {
     it("allows navigation to the kustomize step", () => {
-      cy.get(".btn").click();
+      cy.get(".renderActions-wrapper > .btn").click();
       cy.location("pathname").should("eq", "/kustomize");
     });
   });

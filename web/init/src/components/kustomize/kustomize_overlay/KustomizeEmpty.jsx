@@ -63,7 +63,7 @@ export default class KustomizeEmpty extends React.Component {
               <button className="btn secondary" onClick={() => goBack()}>Back</button>
             </div>
           }
-          <div className="flex1 flex justifyContent--flexEnd">
+          <div className="flex1 flex justifyContent--flexEnd renderActions-wrapper">
             <RenderActions actions={actions} handleAction={handleAction} />
           </div>
         </div>
