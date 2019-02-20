@@ -229,7 +229,7 @@ export default class ConfigOnly extends React.Component {
                 </div>
                 <div className="flex flex1 justifyContent--flexEnd">
                   <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={this.handleConfigSave} className="btn secondary u-marginRight--10">{dataLoading.saveAppSettingsLoading ? "Saving" : "Save changes"}</button>
-                  <button type="button" onClick={(e) => this.handleConfigSave(e, true)} className="btn primary">Save and continue to next step</button>
+                  <button type="button" disabled={dataLoading.saveAppSettingsLoading} onClick={(e) => this.handleConfigSave(e, true)} className="btn primary">Save and continue to next step</button>
                 </div>
               </div>
             </div>
