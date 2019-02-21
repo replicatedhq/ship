@@ -158,6 +158,58 @@ notkind: aList
 			target: "dir/nokind.yaml",
 			want:   false,
 		},
+		{
+			name: "multidoc yaml",
+			files: []file{
+				{
+					path: "dir/multidoc.yaml",
+					contents: `
+---
+# Source: concourse/templates/web-rolebinding.yaml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: concourse-web-main
+  namespace: concourse-main
+  labels:
+    app: concourse-web
+    chart: concourse-3.7.2
+    heritage: Tiller
+    release: concourse
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: concourse-web
+subjects:
+- kind: ServiceAccount
+  name: concourse-web
+  namespace: default
+`,
+				},
+			},
+			target: "dir/multidoc.yaml",
+			want:   true,
+		},
+		{
+			name: "multidoc yaml, both unacceptable",
+			files: []file{
+				{
+					path: "dir/multidoc.yaml",
+					contents: `
+---
+# Source: concourse/templates/web-rolebinding.yaml
+
+---
+metadata:
+  name: concourse-web-main
+`,
+				},
+			},
+			target: "dir/multidoc.yaml",
+			want:   false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

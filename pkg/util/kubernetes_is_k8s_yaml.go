@@ -1,6 +1,8 @@
 package util
 
 import (
+	"bytes"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -36,17 +38,34 @@ func IsK8sYaml(fs *afero.Afero, target string) bool {
 		return true
 	}
 
-	originalMinimal := MinimalK8sYaml{}
-	if err := yaml.Unmarshal(fileContents, &originalMinimal); err != nil {
-		// if we cannot unmarshal the file, it is not valid k8s yaml
-		return false
+	var allMinimalYaml []MinimalK8sYaml
+	dec := yaml.NewDecoder(bytes.NewReader(fileContents))
+	for {
+		minimal := MinimalK8sYaml{}
+		err := dec.Decode(&minimal)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			// if we cannot unmarshal the file, it is not valid k8s yaml
+			return false
+		}
+		allMinimalYaml = append(allMinimalYaml, minimal)
 	}
 
-	if originalMinimal.Kind == "" {
-		// if there is not a kind, it is not valid k8s yaml
-		return false
+	foundAcceptableDoc := false
+
+	// if any of the documents is valid k8s yaml, we keep the file
+	for _, minimal := range allMinimalYaml {
+		if minimal.Kind == "" {
+			// if there is not a kind, it is not valid k8s yaml
+			continue
+		}
+
+		// k8s yaml must have a name OR be a list type
+		if minimal.Metadata.Name != "" || strings.HasSuffix(minimal.Kind, "List") {
+			foundAcceptableDoc = true
+		}
 	}
 
-	// k8s yaml must have a name OR be a list type
-	return originalMinimal.Metadata.Name != "" || strings.HasSuffix(originalMinimal.Kind, "List")
+	return foundAcceptableDoc
 }
