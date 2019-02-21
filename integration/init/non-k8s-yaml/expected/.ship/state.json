@@ -1,0 +1,8 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "https://github.com/replicatedhq/test-charts/tree/32a4d5e55d190205a7d73eb6c366df044bd19b54/non-k8s-yaml",
+    "contentSHA": "8efb7923a3a4ab712a2ea986978e074763e7240a701e916be9640ff2b70dd536"
+  }
+}

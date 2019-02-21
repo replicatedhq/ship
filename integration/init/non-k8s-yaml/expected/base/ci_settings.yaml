@@ -1,0 +1,5 @@
+#this is valid yaml (though also nonsense)
+#but not valid kubernetes yaml
+
+build: true
+platform_version: "2.0.1"

@@ -1,0 +1,3 @@
+upstream: "https://github.com/replicatedhq/test-charts/tree/32a4d5e55d190205a7d73eb6c366df044bd19b54/non-k8s-yaml"
+args: ["--prefer-git"]
+skip_cleanup: false
