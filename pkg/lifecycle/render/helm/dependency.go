@@ -28,7 +28,7 @@ func (f *LocalTemplater) addDependencies(
 		if dependency.Repository != "" {
 			if strings.HasPrefix(dependency.Repository, "@") || strings.HasPrefix(dependency.Repository, "alias:") {
 				// The repository is an alias. Assume it has already been added.
-				return depPaths, nil
+				continue
 			}
 			repoURL, err := url.Parse(dependency.Repository)
 			if err != nil {
