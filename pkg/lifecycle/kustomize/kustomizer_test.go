@@ -18,6 +18,12 @@ import (
 	"sigs.k8s.io/kustomize/pkg/patch"
 )
 
+const minimalValidYaml = `
+kind: Deployment
+metadata:
+  name: myDeployment
+`
+
 func Test_kustomizer_writePatches(t *testing.T) {
 	destDir := path.Join("overlays", "ship")
 
@@ -218,7 +224,7 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					for _, file := range files {
 						if err := fs.WriteFile(
 							path.Join(constants.KustomizeBasePath, file),
-							[]byte{},
+							[]byte(minimalValidYaml),
 							0777,
 						); err != nil {
 							return afero.Afero{}, err
@@ -257,7 +263,7 @@ resources:
 					for _, file := range files {
 						if err := fs.WriteFile(
 							path.Join(constants.KustomizeBasePath, file),
-							[]byte{},
+							[]byte(minimalValidYaml),
 							0777,
 						); err != nil {
 							return afero.Afero{}, err
@@ -296,7 +302,7 @@ resources:
 					for _, file := range files {
 						if err := fs.WriteFile(
 							path.Join(constants.KustomizeBasePath, file),
-							[]byte{},
+							[]byte(minimalValidYaml),
 							0777,
 						); err != nil {
 							return afero.Afero{}, err
@@ -486,7 +492,7 @@ resources:
 
 			err = mockFS.WriteFile(
 				path.Join(constants.KustomizeBasePath, "deployment.yaml"),
-				[]byte{},
+				[]byte(minimalValidYaml),
 				0666,
 			)
 			req.NoError(err)
@@ -531,45 +537,6 @@ resources:
 			}
 
 			req.NoError(err)
-		})
-	}
-}
-
-func TestKustomizer_shouldAddFile(t *testing.T) {
-	k := daemonkustomizer{}
-
-	tests := []struct {
-		name          string
-		targetPath    string
-		want          bool
-		excludedPaths []string
-	}{
-		{name: "empty", targetPath: "", want: false, excludedPaths: []string{}},
-		{name: "no extension", targetPath: "file", want: false, excludedPaths: []string{}},
-		{name: "wrong extension", targetPath: "file.txt", want: false, excludedPaths: []string{}},
-		{name: "yaml file", targetPath: "file.yaml", want: true, excludedPaths: []string{}},
-		{name: "yml file", targetPath: "file.yml", want: true, excludedPaths: []string{}},
-		{name: "kustomization yaml", targetPath: "kustomization.yaml", want: false, excludedPaths: []string{}},
-		{name: "Chart yaml", targetPath: "Chart.yaml", want: false, excludedPaths: []string{}},
-		{name: "values yaml", targetPath: "values.yaml", want: false, excludedPaths: []string{}},
-		{name: "no extension in dir", targetPath: "dir/file", want: false, excludedPaths: []string{}},
-		{name: "wrong extension in dir", targetPath: "dir/file.txt", want: false, excludedPaths: []string{}},
-		{name: "yaml in dir", targetPath: "dir/file.yaml", want: true, excludedPaths: []string{}},
-		{name: "yml in dir", targetPath: "dir/file.yml", want: true, excludedPaths: []string{}},
-		{name: "kustomization yaml in dir", targetPath: "dir/kustomization.yaml", want: false, excludedPaths: []string{}},
-		{name: "Chart yaml in dir", targetPath: "dir/Chart.yaml", want: false, excludedPaths: []string{}},
-		{name: "values yaml in dir", targetPath: "dir/values.yaml", want: false, excludedPaths: []string{}},
-		{name: "path in excluded", targetPath: "deployment.yaml", want: false, excludedPaths: []string{"/deployment.yaml"}},
-		{name: "path not in excluded", targetPath: "service.yaml", want: true, excludedPaths: []string{"/deployment.yaml"}},
-		{name: "similar path in excluded", targetPath: "dir/service.yaml", want: true, excludedPaths: []string{"/service.yaml"}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := require.New(t)
-
-			got := k.shouldAddFileToBase(tt.excludedPaths, tt.targetPath)
-
-			req.Equal(tt.want, got, "expected %t for path %s, got %t", tt.want, tt.targetPath, got)
 		})
 	}
 }

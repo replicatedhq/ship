@@ -223,7 +223,7 @@ func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile
 			return errors.Wrap(err, "failed to walk base path")
 		}
 
-		if !l.shouldAddFileToBase([]string{}, targetPath) {
+		if !l.shouldAddFileToBase(base, []string{}, targetPath) {
 			if strings.HasSuffix(targetPath, "kustomization.yaml") {
 				if err := l.FS.Remove(targetPath); err != nil {
 					return errors.Wrap(err, "remove kustomization yaml")

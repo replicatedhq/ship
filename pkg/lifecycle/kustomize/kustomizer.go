@@ -6,7 +6,6 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -17,6 +16,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/kustomize/pkg/patch"
@@ -222,7 +223,7 @@ func (l *Kustomizer) writeBase(base string) error {
 				debug.Log("event", "relativepath.fail", "base", base, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
-			if l.shouldAddFileToBase(shipOverlay.ExcludedBases, relativePath) {
+			if l.shouldAddFileToBase(base, shipOverlay.ExcludedBases, relativePath) {
 				baseKustomization.Resources = append(baseKustomization.Resources, relativePath)
 			}
 			return nil
@@ -249,19 +250,7 @@ func (l *Kustomizer) writeBase(base string) error {
 	return nil
 }
 
-func (l *Kustomizer) shouldAddFileToBase(excludedBases []string, targetPath string) bool {
-	if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
-		return false
-	}
-
-	for _, base := range excludedBases {
-		basePathWOLeading := strings.TrimPrefix(base, "/")
-		if basePathWOLeading == targetPath {
-			return false
-		}
-	}
-
-	return !strings.HasSuffix(targetPath, "kustomization.yaml") &&
-		!strings.HasSuffix(targetPath, "Chart.yaml") &&
-		!strings.HasSuffix(targetPath, "values.yaml")
+func (l *Kustomizer) shouldAddFileToBase(basePath string, excludedBases []string, targetPath string) bool {
+	baseFs := afero.Afero{Fs: afero.NewBasePathFs(l.FS, basePath)}
+	return util.ShouldAddFileToBase(&baseFs, excludedBases, targetPath)
 }
