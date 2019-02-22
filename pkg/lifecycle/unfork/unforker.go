@@ -123,7 +123,7 @@ func (l *Unforker) writeBase(step api.Unfork) error {
 				debug.Log("event", "relativepath.fail", "base", step.UpstreamBase, "target", targetPath)
 				return errors.Wrap(err, "failed to get relative path")
 			}
-			if l.shouldAddFileToBase(shipOverlay.ExcludedBases, relativePath) {
+			if l.shouldAddFileToBase(step.UpstreamBase, shipOverlay.ExcludedBases, relativePath) {
 				baseKustomization.Resources = append(baseKustomization.Resources, relativePath)
 			}
 			return nil
@@ -150,21 +150,9 @@ func (l *Unforker) writeBase(step api.Unfork) error {
 	return nil
 }
 
-func (l *Unforker) shouldAddFileToBase(excludedBases []string, targetPath string) bool {
-	if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
-		return false
-	}
-
-	for _, base := range excludedBases {
-		basePathWOLeading := strings.TrimPrefix(base, "/")
-		if basePathWOLeading == targetPath {
-			return false
-		}
-	}
-
-	return !strings.HasSuffix(targetPath, "kustomization.yaml") &&
-		!strings.HasSuffix(targetPath, "Chart.yaml") &&
-		!strings.HasSuffix(targetPath, "values.yaml")
+func (l *Unforker) shouldAddFileToBase(basePath string, excludedBases []string, targetPath string) bool {
+	baseFs := afero.Afero{Fs: afero.NewBasePathFs(l.FS, basePath)}
+	return util.ShouldAddFileToBase(&baseFs, excludedBases, targetPath)
 }
 
 func (l *Unforker) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []kustomizepatch.StrategicMerge, err error) {

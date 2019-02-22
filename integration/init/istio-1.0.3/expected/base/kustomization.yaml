@@ -76,7 +76,6 @@ resources:
 - charts/security/templates/clusterrolebinding.yaml
 - charts/security/templates/configmap.yaml
 - charts/security/templates/deployment.yaml
-- charts/security/templates/meshexpansion.yaml
 - charts/security/templates/service.yaml
 - charts/security/templates/serviceaccount.yaml
 - charts/sidecarInjectorWebhook/templates/clusterrole.yaml
