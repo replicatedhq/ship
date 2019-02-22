@@ -4,7 +4,11 @@ import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 import { get, isEmpty } from "lodash";
-
+// This is hardcoded for now as we're bundling it from `@replicatedhq/ship-init`
+// and then re-bundling the svg as a part of the `@replicatedhq/ship-app` bundle
+// for it to be served via the ship binary. As part of the bundling process the name
+// is mutated to a data-uri twice.
+const shipLogo = "static/media/b3d517c0409239a363a3c18ce9a0eda2.b3d517c0.png";
 export class NavBar extends React.Component {
 
   constructor() {
@@ -12,7 +16,7 @@ export class NavBar extends React.Component {
     this.state = {
       navDetails: {
         name: "",
-        icon: ""
+        icon: "",
       },
       imageLoaded: false,
     };
@@ -204,7 +208,7 @@ export class NavBar extends React.Component {
                         {headerName}
                       </Fragment>
                     ) :
-                    headerName
+                    null
                 }
                 {this.props.hideLinks ? null :
                   <div className="flex flex-auto alignItems--center left-items">
