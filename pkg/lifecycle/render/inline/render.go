@@ -12,6 +12,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/viper"
 )
 
@@ -65,29 +67,51 @@ func (r *LocalRenderer) Execute(
 			return errors.Wrap(err, "init builder")
 		}
 
-		built, err := builder.String(asset.Contents)
+		builtAsset, err := templateInline(builder, asset)
 		if err != nil {
 			return errors.Wrap(err, "building contents")
 		}
 
+		err = util.IsLegalPath(builtAsset.Dest)
+		if err != nil {
+			return errors.Wrap(err, "write inline asset")
+		}
+
 		basePath := filepath.Dir(asset.Dest)
-		debug.Log("event", "mkdirall.attempt", "dest", asset.Dest, "basePath", basePath)
+		debug.Log("event", "mkdirall.attempt", "dest", builtAsset.Dest, "basePath", basePath)
 		if err := rootFs.MkdirAll(basePath, 0755); err != nil {
-			debug.Log("event", "mkdirall.fail", "err", err, "dest", asset.Dest, "basePath", basePath)
-			return errors.Wrapf(err, "write directory to %s", asset.Dest)
+			debug.Log("event", "mkdirall.fail", "err", err, "dest", builtAsset.Dest, "basePath", basePath)
+			return errors.Wrapf(err, "write directory to %s", builtAsset.Dest)
 		}
 
 		mode := os.FileMode(0644)
-		if asset.Mode != os.FileMode(0) {
+		if builtAsset.Mode != os.FileMode(0) {
 			debug.Log("event", "applying override permissions")
-			mode = asset.Mode
+			mode = builtAsset.Mode
 		}
 
-		if err := rootFs.WriteFile(asset.Dest, []byte(built), mode); err != nil {
+		if err := rootFs.WriteFile(builtAsset.Dest, []byte(builtAsset.Contents), mode); err != nil {
 			debug.Log("event", "execute.fail", "err", err)
-			return errors.Wrapf(err, "Write inline asset to %s", asset.Dest)
+			return errors.Wrapf(err, "Write inline asset to %s", builtAsset.Dest)
 		}
 		return nil
 
 	}
+}
+
+func templateInline(builder *templates.Builder, asset api.InlineAsset) (api.InlineAsset, error) {
+	builtAsset := asset
+	var err error
+
+	builtAsset.Contents, err = builder.String(asset.Contents)
+	if err != nil {
+		return builtAsset, errors.Wrap(err, "building contents")
+	}
+
+	builtAsset.Dest, err = builder.String(asset.Dest)
+	if err != nil {
+		return builtAsset, errors.Wrap(err, "building dest")
+	}
+
+	return builtAsset, nil
 }

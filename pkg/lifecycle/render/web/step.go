@@ -14,6 +14,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -80,6 +82,11 @@ func (p *DefaultStep) Execute(
 		if err != nil {
 			debug.Log("event", "build.fail", "err", err)
 			return errors.Wrapf(err, "Build web asset")
+		}
+
+		err = util.IsLegalPath(built.Dest)
+		if err != nil {
+			return errors.Wrap(err, "write web asset")
 		}
 
 		basePath := filepath.Dir(asset.Dest)

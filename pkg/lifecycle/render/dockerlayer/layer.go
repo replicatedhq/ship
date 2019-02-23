@@ -12,6 +12,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/docker"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -64,6 +66,11 @@ func (u *Unpacker) Execute(
 		defer rootFs.RemoveAll("tmp")
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
+		}
+
+		err = util.IsLegalPath(basePath)
+		if err != nil {
+			return errors.Wrap(err, "write github asset")
 		}
 
 		debug.Log(

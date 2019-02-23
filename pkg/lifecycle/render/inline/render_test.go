@@ -23,6 +23,7 @@ func TestInlineRender(t *testing.T) {
 		templateContext map[string]interface{}
 		configGroups    []libyaml.ConfigGroup
 		expect          map[string]interface{}
+		expectErr       bool
 	}{
 		{
 			name: "happy path",
@@ -39,6 +40,52 @@ func TestInlineRender(t *testing.T) {
 			meta:            api.ReleaseMetadata{},
 			templateContext: map[string]interface{}{},
 			configGroups:    []libyaml.ConfigGroup{},
+		},
+		{
+			name: "templated dest path",
+			asset: api.InlineAsset{
+				Contents: "hello!",
+				AssetShared: api.AssetShared{
+					Dest: "{{repl if true}}foo.txt{{repl else}}notfoo.txt{{repl end}}",
+				},
+			},
+			expect: map[string]interface{}{
+				"foo.txt": "hello!",
+			},
+
+			meta:            api.ReleaseMetadata{},
+			templateContext: map[string]interface{}{},
+			configGroups:    []libyaml.ConfigGroup{},
+		},
+		{
+			name: "absolute dest path",
+			asset: api.InlineAsset{
+				Contents: "hello!",
+				AssetShared: api.AssetShared{
+					Dest: "/bin/runc",
+				},
+			},
+			expect: map[string]interface{}{},
+
+			meta:            api.ReleaseMetadata{},
+			templateContext: map[string]interface{}{},
+			configGroups:    []libyaml.ConfigGroup{},
+			expectErr:       true,
+		},
+		{
+			name: "parent dir dest path",
+			asset: api.InlineAsset{
+				Contents: "hello!",
+				AssetShared: api.AssetShared{
+					Dest: "../../../bin/runc",
+				},
+			},
+			expect: map[string]interface{}{},
+
+			meta:            api.ReleaseMetadata{},
+			templateContext: map[string]interface{}{},
+			configGroups:    []libyaml.ConfigGroup{},
+			expectErr:       true,
 		},
 	}
 	for _, test := range tests {
@@ -65,7 +112,11 @@ func TestInlineRender(t *testing.T) {
 				test.templateContext,
 				test.configGroups,
 			)(context.Background())
-			req.NoError(err)
+			if !test.expectErr {
+				req.NoError(err)
+			} else {
+				req.Error(err)
+			}
 
 			for filename, expectContents := range test.expect {
 				contents, err := rootFs.ReadFile(filename)
