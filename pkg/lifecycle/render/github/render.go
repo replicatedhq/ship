@@ -251,6 +251,10 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 		return "", errors.Wrapf(err, "get destination directory from %q", asset.Dest)
 	}
 
+	if filepath.IsAbs(destDir) {
+		return "", fmt.Errorf("cannot write to an absolute path: %s", destDir)
+	}
+
 	if stripPath {
 		// remove asset.Path's directory from the beginning of githubPath
 		sourcePathDir := filepath.ToSlash(filepath.Dir(asset.Path)) + "/"
@@ -263,7 +267,18 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 		}
 	}
 
-	return filepath.Join(destDir, githubPath), nil
+	combinedPath := filepath.Join(destDir, githubPath)
+
+	relPath, err := filepath.Rel(".", combinedPath)
+	if err != nil {
+		return "", errors.Wrap(err, "find relative path to dest")
+	}
+
+	if strings.Contains(relPath, "..") {
+		return "", fmt.Errorf("cannot write to a path that is a parent of the working dir: %s", relPath)
+	}
+
+	return combinedPath, nil
 }
 
 func (r *LocalRenderer) getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder, renderRoot string) (string, error) {
