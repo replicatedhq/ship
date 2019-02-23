@@ -1,6 +1,10 @@
 package util
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestIsLegalPath(t *testing.T) {
 	tests := []struct {
@@ -27,6 +31,11 @@ func TestIsLegalPath(t *testing.T) {
 			name:    "embedded relative parent path",
 			path:    "./happy/../../../unhappy/path",
 			wantErr: true,
+		},
+		{
+			name:    "absolute path to tempdir",
+			path:    filepath.Join(os.TempDir(), "mydir"),
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

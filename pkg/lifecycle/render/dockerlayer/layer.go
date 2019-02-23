@@ -70,7 +70,7 @@ func (u *Unpacker) Execute(
 
 		err = util.IsLegalPath(basePath)
 		if err != nil {
-			return errors.Wrap(err, "write github asset")
+			return errors.Wrap(err, "write docker layer")
 		}
 
 		debug.Log(
