@@ -14,6 +14,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/images"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/viper"
 )
 
@@ -96,6 +98,11 @@ func (p *DefaultStep) Execute(
 		}
 		destIsDockerURL := destinationURL.Scheme == "docker"
 		if !destIsDockerURL {
+			err = util.IsLegalPath(dest)
+			if err != nil {
+				return errors.Wrap(err, "find docker image dest")
+			}
+
 			basePath := filepath.Dir(dest)
 			debug.Log("event", "mkdirall.attempt", "dest", dest, "basePath", basePath)
 			if err := rootFs.MkdirAll(basePath, 0755); err != nil {

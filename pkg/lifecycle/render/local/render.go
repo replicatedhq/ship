@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/afero"
 )
 
@@ -46,6 +48,16 @@ func (r *LocalRenderer) Execute(
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		debug := level.Debug(log.With(r.Logger, "step.type", "render", "render.phase", "execute", "asset.type", "local"))
+
+		err := util.IsLegalPath(asset.Dest)
+		if err != nil {
+			return errors.Wrap(err, "local asset dest")
+		}
+
+		err = util.IsLegalPath(asset.Path)
+		if err != nil {
+			return errors.Wrap(err, "local asset path")
+		}
 
 		if err := r.Fs.MkdirAll(filepath.Dir(asset.Dest), 0777); err != nil {
 			return errors.Wrapf(err, "mkdir %s", asset.Dest)

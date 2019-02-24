@@ -200,6 +200,36 @@ func TestWebStep(t *testing.T) {
 			ExpectFiles: map[string]interface{}{},
 			ExpectedErr: errors.New("Get web asset from http://foo.bar: received response with status 500"),
 		},
+		{
+			Name: "illegal dest path",
+			Asset: api.WebAsset{
+				AssetShared: api.AssetShared{
+					Dest: "/bin/runc",
+				},
+				URL: "http://foo.bar",
+			},
+			RegisterResponders: func() {
+				httpmock.RegisterResponder("GET", "http://foo.bar",
+					httpmock.NewStringResponder(200, "hi from foo.bar"))
+			},
+			ExpectFiles: map[string]interface{}{},
+			ExpectedErr: errors.Wrap(errors.New("cannot write to an absolute path: /bin/runc"), "write web asset"),
+		},
+		{
+			Name: "illegal dest path",
+			Asset: api.WebAsset{
+				AssetShared: api.AssetShared{
+					Dest: "../../../bin/runc",
+				},
+				URL: "http://foo.bar",
+			},
+			RegisterResponders: func() {
+				httpmock.RegisterResponder("GET", "http://foo.bar",
+					httpmock.NewStringResponder(200, "hi from foo.bar"))
+			},
+			ExpectFiles: map[string]interface{}{},
+			ExpectedErr: errors.Wrap(errors.New("cannot write to a path that is a parent of the working dir: ../../../bin/runc"), "write web asset"),
+		},
 	}
 
 	for _, test := range tests {

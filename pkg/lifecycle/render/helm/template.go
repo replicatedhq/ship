@@ -324,6 +324,11 @@ func (f *LocalTemplater) cleanUpAndOutputRenderedFiles(
 	tempRenderedChartTemplatesDir := path.Join(tempRenderedChartDir, "templates")
 	tempRenderedSubChartsDir := path.Join(tempRenderedChartDir, subChartsDirName)
 
+	err := util.IsLegalPath(asset.Dest)
+	if err != nil {
+		return errors.Wrap(err, "write helm asset")
+	}
+
 	if f.Viper.GetBool("rm-asset-dest") {
 		debug.Log("event", "baseDir.rm", "path", asset.Dest)
 		if err := f.FS.RemoveAll(asset.Dest); err != nil {
