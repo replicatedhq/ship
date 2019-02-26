@@ -15,6 +15,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
+	"github.com/replicatedhq/ship/pkg/specs/localgetter"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
@@ -84,6 +85,11 @@ func (r *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 	if r.viper.GetBool("prefer-git") == false && util.IsGithubURL(upstream) {
 		githubClient := githubclient.NewGithubClient(r.fs, r.logger)
 		return r.determineTypeFromContents(ctx, upstream, githubClient)
+	}
+
+	if localgetter.IsLocalFile(&r.fs, upstream) {
+		fetcher := localgetter.LocalGetter{Logger: r.logger, FS: r.fs}
+		return r.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
 	upstream, subdir, isSingleFile := gogetter.UntreeGithub(upstream)
