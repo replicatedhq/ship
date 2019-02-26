@@ -99,42 +99,27 @@ export class NavBar extends React.Component {
   )
 
   componentDidUpdate() {
-    const { shipAppMetadata, channelDetails } = this.props;
-    const { navDetails } = this.state;
+    const { shipAppMetadata } = this.props;
+    const { imageLoaded } = this.state;
 
-    let updatedState = {};
-    if (shipAppMetadata.name && shipAppMetadata.name !== navDetails.name) {
-      updatedState = {
-        navDetails: {
-          name: shipAppMetadata.name,
-          icon: shipAppMetadata.icon,
-        },
-      };
-    }
-
-    if (channelDetails.channelName && channelDetails.channelName !== navDetails.name) {
-      updatedState = {
-        navDetails: {
-          name: channelDetails.channelName,
-          icon: channelDetails.icon,
-        }
-      };
-    }
-
-    const navIconUpdated = !isEmpty(get(updatedState, ["navDetails", "icon"], ""))
-    if (navIconUpdated) {
-      this.preloadNavIconImage(updatedState.navDetails.icon)
+    if (!imageLoaded && shipAppMetadata.loaded) {
+      this.preloadNavIconImage(shipAppMetadata.icon)
         .then(() => {
           this.setState({
-            ...updatedState,
+            navDetails: {
+              name: shipAppMetadata.name,
+              icon: shipAppMetadata.icon,
+            },
             imageLoaded: true,
           })
         })
-        .catch(() => this.setState({ ...updatedState, imageLoaded: true }))
-    } else {
-      if (!isEmpty(updatedState)) {
-        this.setState(updatedState);
-      }
+        .catch(() => this.setState({
+          navDetails: {
+            name: shipAppMetadata.name,
+            icon: shipLogo,
+          },
+          imageLoaded: true,
+        }));
     }
   }
 

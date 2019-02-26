@@ -3,13 +3,13 @@ import { loadingData } from "../../ui/main/actions";
 //import { Utilities } from "../../../utilities/utilities";
 
 export const constants = {
-  RECEIVE_HELM_CHART_METADATA: "RECEIVE_HELM_CHART_METADATA",
+  RECEIVE_METADATA: "RECEIVE_METADATA",
   SET_HELM_CHART_ERROR: "SET_HELM_CHART_ERROR"
 };
 
-export function receiveHelmChartMetadata(payload) {
+export function receiveMetadata(payload) {
   return {
-    type: constants.RECEIVE_HELM_CHART_METADATA,
+    type: constants.RECEIVE_METADATA,
     payload
   };
 }
@@ -21,13 +21,13 @@ export function setHelmChartError(error) {
   }
 }
 
-export function getHelmChartMetadata(loaderType = "getHelmChartMetadata") {
+export function getMetadata(loaderType = "getMetadata") {
   return async (dispatch, getState) => {
     const { apiEndpoint } = getState();
     let response;
     dispatch(loadingData(loaderType, true));
     try {
-      const url = `${apiEndpoint}/helm-metadata`;
+      const url = `${apiEndpoint}/metadata`;
       response = await fetch(url, {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ export function getHelmChartMetadata(loaderType = "getHelmChartMetadata") {
       }
       const body = await response.json();
       dispatch(loadingData(loaderType, false));
-      dispatch(receiveHelmChartMetadata(body));
+      dispatch(receiveMetadata(body));
     } catch (error) {
       console.log(error);
       //   if (Utilities.isFailedToFetchErr(error.message)) {
