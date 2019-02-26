@@ -206,6 +206,36 @@ func Test_getDestPath(t *testing.T) {
 			want:    "",
 			wantErr: true,
 		},
+		{
+			name: "file in root",
+			args: args{
+				githubPath: "subdir/README.md",
+				asset: api.GitHubAsset{
+					Path:      "",
+					StripPath: "",
+					AssetShared: api.AssetShared{
+						Dest: "/bin/runc",
+					},
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "file in parent dir",
+			args: args{
+				githubPath: "subdir/README.md",
+				asset: api.GitHubAsset{
+					Path:      "abc/",
+					StripPath: "",
+					AssetShared: api.AssetShared{
+						Dest: "../../../bin/runc",
+					},
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

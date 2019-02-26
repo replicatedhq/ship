@@ -21,6 +21,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
+	"github.com/replicatedhq/ship/pkg/util"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -263,7 +264,14 @@ func getDestPath(githubPath string, asset api.GitHubAsset, builder *templates.Bu
 		}
 	}
 
-	return filepath.Join(destDir, githubPath), nil
+	combinedPath := filepath.Join(destDir, githubPath)
+
+	err = util.IsLegalPath(combinedPath)
+	if err != nil {
+		return "", errors.Wrap(err, "write github asset")
+	}
+
+	return combinedPath, nil
 }
 
 func (r *LocalRenderer) getDestPathNoProxy(asset api.GitHubAsset, builder *templates.Builder, renderRoot string) (string, error) {
