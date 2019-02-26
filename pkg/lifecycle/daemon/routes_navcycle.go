@@ -60,6 +60,7 @@ type NavcycleRoutes struct {
 func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) {
 	d.Release = release
 	v1 := group.Group("/api/v1")
+	v1.GET("/metadata", d.getMetadata(release))
 	v1.GET("/navcycle", d.getNavcycle)
 	v1.GET("/navcycle/step/:step", d.getStep)
 	v1.POST("/navcycle/step/:step", d.completeStep)

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
@@ -63,6 +65,7 @@ type Resolver interface {
 	ResolveAppRelease(
 		ctx context.Context,
 		selector *Selector,
+		app apptype.LocalAppCopy,
 	) (*api.Release, error)
 	FetchRelease(
 		ctx context.Context,
@@ -80,7 +83,7 @@ type Resolver interface {
 
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
 // from a local runbook if so configured
-func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*api.Release, error) {
+func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, app apptype.LocalAppCopy) (*api.Release, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveAppRelease"))
 	release, err := r.FetchRelease(ctx, selector)
 	if err != nil {
@@ -99,6 +102,8 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector) (*
 	if err != nil {
 		return nil, errors.Wrap(err, "persist and deserialize release")
 	}
+
+	result.Metadata.Type = app.GetType()
 
 	return result, nil
 }
