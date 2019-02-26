@@ -71,9 +71,6 @@ func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
 	mesg.POST("confirm", d.postConfirmMessage)
 	mesg.GET("get", d.getCurrentMessage)
 
-	v1.GET("/channel", d.getChannel(release))
-
-	v1.GET("/helm-metadata", d.getHelmMetadata(release))
 	v1.POST("/helm-values", d.saveHelmValues)
 }
 
@@ -85,16 +82,6 @@ func (d *V1Routes) SetProgress(p daemontypes.Progress) {
 func (d *V1Routes) ClearProgress() {
 	defer d.locker(log.With(log.NewNopLogger()))()
 	d.stepProgress = nil
-}
-
-func (d *V1Routes) getHelmMetadata(release *api.Release) gin.HandlerFunc {
-	debug := level.Debug(log.With(d.Logger, "handler", "getHelmMetadata"))
-	debug.Log("event", "response.metadata")
-	return func(c *gin.Context) {
-		c.JSON(200, map[string]interface{}{
-			"metadata": release.Metadata.ShipAppMetadata,
-		})
-	}
 }
 
 type SaveValuesRequest struct {
@@ -186,16 +173,6 @@ func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesReque
 
 	}
 	return true
-}
-
-func (d *V1Routes) getChannel(release *api.Release) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(200, map[string]interface{}{
-			"channelName": release.Metadata.ChannelName,
-			"channelIcon": release.Metadata.ChannelIcon,
-		})
-	}
-
 }
 
 func (d *V1Routes) getLoadingStep(c *gin.Context) {

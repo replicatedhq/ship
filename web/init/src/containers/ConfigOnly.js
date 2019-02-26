@@ -7,7 +7,6 @@ import {
   finalizeApplicationSettings,
   setApplicationState
 } from "../redux/data/applicationSettings/actions";
-import { getChannel } from "../redux/data/channelSettings/actions";
 import { getCurrentStep } from "../redux/data/determineSteps/actions";
 
 const ConfigOnly = connect(
@@ -19,7 +18,6 @@ const ConfigOnly = connect(
     dataLoading: state.ui.main.loading,
   }),
   dispatch => ({
-    getChannel() { return dispatch(getChannel()); },
     getCurrentStep() { return dispatch(getCurrentStep()); },
     getApplicationSettings(payload, shouldLoad) { return dispatch(getApplicationSettings(payload, shouldLoad)); },
     saveApplicationSettings(payload, validate) { return dispatch(saveApplicationSettings(payload, validate)); },

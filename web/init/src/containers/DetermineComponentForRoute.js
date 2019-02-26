@@ -1,7 +1,6 @@
 import { connect } from "react-redux";
 import realDetermineComponentForRoute from "../components/shared/DetermineComponentForRoute";
 
-import { getChannel } from "../redux/data/channelSettings/actions";
 import {
   getContentForStep,
   pollContentForStep,
@@ -23,7 +22,6 @@ const DetermineComponentForRoute = connect(
     apiEndpoint: state.apiEndpoint,
   }),
   dispatch => ({
-    getChannel() { return dispatch(getChannel()); },
     getContentForStep(stepId) { return dispatch(getContentForStep(stepId)); },
     pollContentForStep(stepId, cb) { return dispatch(pollContentForStep(stepId, cb)); },
     getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
