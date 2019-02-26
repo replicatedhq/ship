@@ -9,20 +9,16 @@ const shipAppMetadataState = {
   readme: "",
   values: "",
   error: false,
-  errorMessage: ""
+  errorMessage: "",
+  loaded: false,
 };
 
 export function shipAppMetadata(state = shipAppMetadataState, action) {
   switch (action.type) {
-  case constants.RECEIVE_HELM_CHART_METADATA:
+  case constants.RECEIVE_METADATA:
     return Object.assign({}, state, {
-      name: action.payload.metadata.name,
-      version: action.payload.metadata.version,
-      release: action.payload.metadata.release,
-      icon: action.payload.metadata.icon,
-      description: action.payload.metadata.description,
-      readme: action.payload.metadata.readme,
-      values: action.payload.metadata.values,
+      ...action.payload,
+      loaded: true,
     });
   case constants.SET_HELM_CHART_ERROR:
     return Object.assign({}, state, {

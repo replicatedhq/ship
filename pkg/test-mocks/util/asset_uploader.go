@@ -35,6 +35,7 @@ func (m *MockAssetUploader) EXPECT() *MockAssetUploaderMockRecorder {
 
 // UploadAssets mocks base method
 func (m *MockAssetUploader) UploadAssets(arg0 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UploadAssets", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -42,5 +43,6 @@ func (m *MockAssetUploader) UploadAssets(arg0 string) error {
 
 // UploadAssets indicates an expected call of UploadAssets
 func (mr *MockAssetUploaderMockRecorder) UploadAssets(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadAssets", reflect.TypeOf((*MockAssetUploader)(nil).UploadAssets), arg0)
 }

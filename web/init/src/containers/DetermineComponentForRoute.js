@@ -1,7 +1,6 @@
 import { connect } from "react-redux";
 import realDetermineComponentForRoute from "../components/shared/DetermineComponentForRoute";
 
-import { getChannel } from "../redux/data/channelSettings/actions";
 import {
   getContentForStep,
   pollContentForStep,
@@ -9,7 +8,7 @@ import {
   shutdownApp,
   initializeStep,
 } from "../redux/data/appRoutes/actions";
-import { getHelmChartMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
+import { getMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
 
 const DetermineComponentForRoute = connect(
   state => ({
@@ -23,10 +22,9 @@ const DetermineComponentForRoute = connect(
     apiEndpoint: state.apiEndpoint,
   }),
   dispatch => ({
-    getChannel() { return dispatch(getChannel()); },
     getContentForStep(stepId) { return dispatch(getContentForStep(stepId)); },
     pollContentForStep(stepId, cb) { return dispatch(pollContentForStep(stepId, cb)); },
-    getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
+    getMetadata() { return dispatch(getMetadata()) },
     saveHelmChartValues(payload) { return dispatch(saveHelmChartValues(payload)) },
     finalizeStep(action) { return dispatch(finalizeStep(action)); },
     shutdownApp() { return dispatch(shutdownApp()); },

@@ -5,7 +5,6 @@ import { loadingData } from "../redux/ui/main/actions";
 
 const AppWrapper = connect(
   state => ({
-    channelDetails: state.data.channelSettings.channelSettingsData.channel,
     dataLoading: state.ui.main.loading,
   }),
   dispatch => ({

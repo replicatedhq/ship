@@ -203,7 +203,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 			return nil, errors.Wrapf(err, "parse url %s", upstream)
 		}
 		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
-		return r.AppResolver.ResolveAppRelease(ctx, selector)
+		return r.AppResolver.ResolveAppRelease(ctx, selector, app)
 
 	case "inline.replicated.app":
 		return r.resolveInlineShipYAMLRelease(
@@ -451,6 +451,7 @@ func (r *Resolver) resolveRelease(
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,
+			Type:            app.GetType(),
 		},
 		Spec: *spec,
 	}
@@ -523,6 +524,7 @@ func (r *Resolver) resolveInlineShipYAMLRelease(
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,
+			Type:            app.GetType(),
 		},
 		Spec: *spec,
 	}

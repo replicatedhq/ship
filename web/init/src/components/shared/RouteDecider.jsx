@@ -70,16 +70,9 @@ export default class RouteDecider extends React.Component {
   componentDidUpdate(lastProps) {
     const {
       routes,
-      getHelmChartMetadata,
       basePath
     } = this.props
     if (routes !== lastProps.routes && routes.length) {
-      for (let i = 0; i < routes.length; i++) {
-        if (routes[i].phase.includes("helm")) {
-          getHelmChartMetadata();
-          break;
-        }
-      }
       if (isRootPath(basePath)) {
         const defaultRoute = `${basePath}/${routes[0].id}`;
         this.props.history.push(defaultRoute);
@@ -88,9 +81,15 @@ export default class RouteDecider extends React.Component {
   }
 
   componentDidMount() {
-    if (isEmpty(this.props.routes)) {
-      this.props.getRoutes();
+    const {
+      routes,
+      getRoutes,
+      getMetadata,
+    } = this.props;
+    if (isEmpty(routes)) {
+      getRoutes();
     }
+    getMetadata();
   }
 
   render() {

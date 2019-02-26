@@ -3,7 +3,7 @@ import realKustomizeOverlay from "../components/kustomize/kustomize_overlay/Kust
 
 import { loadingData } from "../redux/ui/main/actions";
 import { getContentForStep } from "../redux/data/appRoutes/actions";
-import { getHelmChartMetadata } from "../redux/data/kustomizeSettings/actions";
+import { getMetadata } from "../redux/data/kustomizeSettings/actions";
 import {
   getFileContent,
   saveKustomizeOverlay,
@@ -28,7 +28,7 @@ const KustomizeOverlay = connect(
   dispatch => ({
     getFileContent(payload) { return dispatch(getFileContent(payload)); },
     getContentForStep(stepId) { return dispatch(getContentForStep(stepId)); },
-    getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
+    getMetadata() { return dispatch(getMetadata()) },
     saveKustomizeOverlay(payload) { return dispatch(saveKustomizeOverlay(payload)); },
     deleteOverlay(path, type) { return dispatch(deleteOverlay(path, type)); },
     includeBase(path) { return dispatch(includeBase(path)); },

@@ -172,7 +172,9 @@ func (s *Ship) Execute(ctx context.Context) error {
 		ReleaseSemver:  s.ReleaseSemver,
 		InstallationID: s.InstallationID,
 	}
-	release, err := s.AppResolver.ResolveAppRelease(ctx, selector)
+
+	localAppCopy := apptype.NewLocalAppCopy("replicated.app", "", "")
+	release, err := s.AppResolver.ResolveAppRelease(ctx, selector, localAppCopy)
 	if err != nil {
 		return errors.Wrap(err, "resolve specs")
 	}

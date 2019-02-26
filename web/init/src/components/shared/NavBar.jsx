@@ -3,8 +3,13 @@ import assign from "object-assign";
 import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
-import { get, isEmpty } from "lodash";
-
+// This is hardcoded for now as we're bundling it from `@replicatedhq/ship-init`
+// and then re-bundling the svg as a part of the `@replicatedhq/ship-app` bundle
+// for it to be served via the ship binary. As part of the bundling process the name
+// is mutated to a data-uri twice.
+// Do not remove the import.
+import "../../assets/images/ship-logo.png";
+const shipLogo = "static/media/b3d517c0409239a363a3c18ce9a0eda2.b3d517c0.png";
 export class NavBar extends React.Component {
 
   constructor() {
@@ -12,7 +17,7 @@ export class NavBar extends React.Component {
     this.state = {
       navDetails: {
         name: "",
-        icon: ""
+        icon: "",
       },
       imageLoaded: false,
     };
@@ -95,42 +100,27 @@ export class NavBar extends React.Component {
   )
 
   componentDidUpdate() {
-    const { shipAppMetadata, channelDetails } = this.props;
-    const { navDetails } = this.state;
+    const { shipAppMetadata } = this.props;
+    const { imageLoaded } = this.state;
 
-    let updatedState = {};
-    if (shipAppMetadata.name && shipAppMetadata.name !== navDetails.name) {
-      updatedState = {
-        navDetails: {
-          name: shipAppMetadata.name,
-          icon: shipAppMetadata.icon,
-        },
-      };
-    }
-
-    if (channelDetails.channelName && channelDetails.channelName !== navDetails.name) {
-      updatedState = {
-        navDetails: {
-          name: channelDetails.channelName,
-          icon: channelDetails.icon,
-        }
-      };
-    }
-
-    const navIconUpdated = !isEmpty(get(updatedState, ["navDetails", "icon"], ""))
-    if (navIconUpdated) {
-      this.preloadNavIconImage(updatedState.navDetails.icon)
+    if (!imageLoaded && shipAppMetadata.loaded) {
+      this.preloadNavIconImage(shipAppMetadata.icon)
         .then(() => {
           this.setState({
-            ...updatedState,
+            navDetails: {
+              name: shipAppMetadata.name,
+              icon: shipAppMetadata.icon,
+            },
             imageLoaded: true,
           })
         })
-        .catch(() => this.setState({ ...updatedState, imageLoaded: true }))
-    } else {
-      if (!isEmpty(updatedState)) {
-        this.setState(updatedState);
-      }
+        .catch(() => this.setState({
+          navDetails: {
+            name: shipAppMetadata.name,
+            icon: shipLogo,
+          },
+          imageLoaded: true,
+        }));
     }
   }
 
@@ -204,7 +194,7 @@ export class NavBar extends React.Component {
                         {headerName}
                       </Fragment>
                     ) :
-                    headerName
+                    null
                 }
                 {this.props.hideLinks ? null :
                   <div className="flex flex-auto alignItems--center left-items">
