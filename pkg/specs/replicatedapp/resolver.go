@@ -5,7 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path/filepath"
+	"strings"
 
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
 
@@ -165,7 +167,24 @@ func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error)
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
 	release, err := client.GetRelease(selector)
 	if err != nil {
-		return nil, err
+		if selector.InstallationID == "" {
+			debug.Log("event", "spec-resolve", "from", selector, "error", err)
+			fmt.Printf("Please enter a license id to continue: ")
+			var input string
+			fmt.Scanln(&input)
+			selector.InstallationID = input
+
+			err = r.updateUpstream(*selector)
+			if err != nil {
+				return nil, errors.Wrapf(err, "persist updated upstream")
+			}
+
+			release, err = client.GetRelease(selector)
+		}
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := r.persistSpec([]byte(release.Spec)); err != nil {
@@ -218,4 +237,24 @@ func (r *resolver) loadFakeEntitlements() (*api.Entitlements, error) {
 		return nil, errors.Wrap(err, "load entitlements json")
 	}
 	return &entitlements, nil
+}
+
+// read the upstream, get the host/path, and replace the query params with the ones from the provided selector
+func (r *resolver) updateUpstream(selector Selector) error {
+	currentState, err := r.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "retrieve state")
+	}
+	currentUpstream := currentState.Upstream()
+
+	parsedUpstream, err := url.Parse(currentUpstream)
+	if err != nil {
+		return errors.Wrap(err, "parse upstream")
+	}
+
+	if !strings.HasSuffix(parsedUpstream.Path, "/") {
+		parsedUpstream.Path += "/"
+	}
+
+	return r.StateManager.SerializeUpstream(parsedUpstream.Path + "?" + selector.String())
 }
