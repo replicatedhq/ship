@@ -36,8 +36,8 @@ func (g *GoGetter) GetFiles(ctx context.Context, upstream, savePath string) (str
 	}
 
 	if g.IsSingleFile {
-		debug.Log("event", "gogetter.GetSingleFile", "upstream", upstream, "savePath", savePath)
-		return g.GetSingleFile(ctx, upstream, savePath)
+		debug.Log("event", "gogetter.getSingleFile", "upstream", upstream, "savePath", savePath)
+		return g.getSingleFile(ctx, upstream, savePath)
 	}
 
 	err = getter.GetAny(savePath, upstream)
@@ -65,7 +65,7 @@ func (g *GoGetter) GetFiles(ctx context.Context, upstream, savePath string) (str
 	return filepath.Join(savePath, g.Subdir), nil
 }
 
-func (g *GoGetter) GetSingleFile(ctx context.Context, upstream, savePath string) (string, error) {
+func (g *GoGetter) getSingleFile(ctx context.Context, upstream, savePath string) (string, error) {
 	tmpDir := filepath.Join(constants.ShipPathInternalTmp, "gogetter-file")
 
 	err := getter.GetAny(tmpDir, upstream)
