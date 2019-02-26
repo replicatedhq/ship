@@ -36,6 +36,7 @@ func (m *MockCommands) EXPECT() *MockCommandsMockRecorder {
 
 // Fetch mocks base method
 func (m *MockCommands) Fetch(arg0, arg1, arg2, arg3, arg4 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Fetch", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -43,11 +44,13 @@ func (m *MockCommands) Fetch(arg0, arg1, arg2, arg3, arg4 string) error {
 
 // Fetch indicates an expected call of Fetch
 func (mr *MockCommandsMockRecorder) Fetch(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockCommands)(nil).Fetch), arg0, arg1, arg2, arg3, arg4)
 }
 
 // Init mocks base method
 func (m *MockCommands) Init() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Init")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -55,11 +58,13 @@ func (m *MockCommands) Init() error {
 
 // Init indicates an expected call of Init
 func (mr *MockCommandsMockRecorder) Init() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockCommands)(nil).Init))
 }
 
 // MaybeDependencyUpdate mocks base method
 func (m *MockCommands) MaybeDependencyUpdate(arg0 string, arg1 chartutil.Requirements) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MaybeDependencyUpdate", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -67,11 +72,13 @@ func (m *MockCommands) MaybeDependencyUpdate(arg0 string, arg1 chartutil.Require
 
 // MaybeDependencyUpdate indicates an expected call of MaybeDependencyUpdate
 func (mr *MockCommandsMockRecorder) MaybeDependencyUpdate(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeDependencyUpdate", reflect.TypeOf((*MockCommands)(nil).MaybeDependencyUpdate), arg0, arg1)
 }
 
 // RepoAdd mocks base method
 func (m *MockCommands) RepoAdd(arg0, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RepoAdd", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -79,11 +86,13 @@ func (m *MockCommands) RepoAdd(arg0, arg1, arg2 string) error {
 
 // RepoAdd indicates an expected call of RepoAdd
 func (mr *MockCommandsMockRecorder) RepoAdd(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RepoAdd", reflect.TypeOf((*MockCommands)(nil).RepoAdd), arg0, arg1, arg2)
 }
 
 // Template mocks base method
 func (m *MockCommands) Template(arg0 string, arg1 []string) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Template", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -91,5 +100,6 @@ func (m *MockCommands) Template(arg0 string, arg1 []string) error {
 
 // Template indicates an expected call of Template
 func (mr *MockCommandsMockRecorder) Template(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Template", reflect.TypeOf((*MockCommands)(nil).Template), arg0, arg1)
 }

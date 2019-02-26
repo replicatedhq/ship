@@ -34,6 +34,7 @@ func TestDaemonChannel(t *testing.T) {
 			name: "test_channel_noicon",
 			release: &api.Release{
 				Metadata: api.ReleaseMetadata{
+					Type:        "replicated.app",
 					ChannelName: "Application",
 					ChannelIcon: "",
 				},
@@ -45,6 +46,7 @@ func TestDaemonChannel(t *testing.T) {
 			name: "test_channel_withicon",
 			release: &api.Release{
 				Metadata: api.ReleaseMetadata{
+					Type:        "replicated.app",
 					ChannelName: "Clubhouse Enterprise",
 					ChannelIcon: "https://frontend-production-cdn.clubhouse.io/v0.5.20180509155736/images/logos/clubhouse_mascot_180x180.png",
 				},
@@ -93,7 +95,7 @@ func TestDaemonChannel(t *testing.T) {
 			// sigh. Give the server a second to start up
 			time.Sleep(500 * time.Millisecond)
 
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/channel", port))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/metadata", port))
 			require.NoError(t, err)
 
 			body, err := ioutil.ReadAll(resp.Body)
@@ -104,8 +106,8 @@ func TestDaemonChannel(t *testing.T) {
 			err = json.Unmarshal(body, &unmarshalled)
 			require.NoError(t, err)
 
-			require.Equal(t, test.expectName, unmarshalled["channelName"])
-			require.Equal(t, test.expectIcon, unmarshalled["channelIcon"])
+			require.Equal(t, test.expectName, unmarshalled["name"])
+			require.Equal(t, test.expectIcon, unmarshalled["icon"])
 		})
 	}
 }

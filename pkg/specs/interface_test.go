@@ -107,6 +107,7 @@ icon: https://kfbr.392/x5.png
 			expectRelease: &api.Release{
 				Spec: viperResolver.DefaultHelmRelease("fake-tmp", "github.com/helm/charts/stable/x5"),
 				Metadata: api.ReleaseMetadata{
+					Type: "helm",
 					ShipAppMetadata: api.ShipAppMetadata{
 						Version:      "0.1.0",
 						URL:          "github.com/helm/charts/stable/x5",
@@ -148,7 +149,7 @@ icon: https://kfbr.392/x5.png
 				mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
 					CustomerID:     "12345",
 					InstallationID: "67890",
-				}).Return(&api.Release{
+				}, localApp).Return(&api.Release{
 					Metadata: api.ReleaseMetadata{
 						ChannelName: "appgraph-coolci",
 					},
@@ -206,6 +207,7 @@ icon: https://kfbr.392/x5.png
 			expectRelease: &api.Release{
 				Spec: viperResolver.DefaultRawRelease("base"),
 				Metadata: api.ReleaseMetadata{
+					Type: "k8s",
 					ShipAppMetadata: api.ShipAppMetadata{
 						URL:          "github.com/replicatedhq/test-charts/plain-k8s",
 						Readme:       "its the readme",
@@ -245,7 +247,7 @@ icon: https://kfbr.392/x5.png
 					CustomerID:     "123",
 					InstallationID: "456",
 					ReleaseSemver:  "789",
-				}).Return(&api.Release{
+				}, localApp).Return(&api.Release{
 					Metadata: api.ReleaseMetadata{
 						ChannelName: "appgraph-coolci",
 					},

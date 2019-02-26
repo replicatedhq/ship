@@ -49,6 +49,7 @@ describe("NavBar", () => {
               shipAppMetadata: {
                 name: "testHelm",
                 icon: "testHelmIcon",
+                loaded: true,
               },
             },
           ),
@@ -58,35 +59,6 @@ describe("NavBar", () => {
         const navDetails = navBar.state.navDetails;
         expect(navDetails.name).toEqual("testHelm");
         expect(navDetails.icon).toEqual("testHelmIcon");
-      });
-  });
-  describe("provided channelDetails", () => {
-    const wrapper = mount(
-      <MemoryRouter initialEntries={["/"]} initialIndex={0}>
-        <NavBar
-          {...mockRouterProps}
-          {...initProps}
-        />
-      </MemoryRouter>
-    );
-      it("sets navDetails via channelDetails", async () => {
-        wrapper.setProps({
-          children: React.cloneElement(
-            wrapper.props().children,
-            {
-              ...mockRouterProps,
-              channelDetails: {
-                channelName: "testChannelDetails",
-                icon: "testChannelDetailsIcon",
-              },
-            },
-          ),
-        });
-        await wrapper.update();
-        const navBar = wrapper.find(NavBar).instance();
-        const navDetails = navBar.state.navDetails;
-        expect(navDetails.name).toEqual("testChannelDetails");
-        expect(navDetails.icon).toEqual("testChannelDetailsIcon");
       });
   });
 });
