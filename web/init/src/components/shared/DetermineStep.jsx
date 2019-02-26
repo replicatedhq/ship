@@ -98,7 +98,7 @@ export default class DetermineStep extends React.Component {
 
   componentDidMount() {
     //this.props.getChannel();
-    this.props.getHelmChartMetadata();
+    this.props.getMetadata();
     this.startPoll();
     this.startMaxTimeout();
     this.pollIfStream();
@@ -155,7 +155,7 @@ export default class DetermineStep extends React.Component {
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
           <div className="flex-1-auto flex-column u-overflow--auto container u-paddingTop--30">
-            {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
+            {(isLoadingStep || dataLoading.getCurrentStepLoading || dataLoading.getMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />
               </div>

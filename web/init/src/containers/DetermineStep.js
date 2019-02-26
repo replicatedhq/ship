@@ -2,7 +2,7 @@ import { connect } from "react-redux";
 import realDetermineStep from "../components/shared/DetermineStep";
 
 import { getCurrentStep, submitAction } from "../redux/data/determineSteps/actions";
-import { getHelmChartMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
+import { getMetadata, saveHelmChartValues } from "../redux/data/kustomizeSettings/actions";
 
 const DetermineStep = connect(
   state => ({
@@ -15,7 +15,7 @@ const DetermineStep = connect(
   }),
   dispatch => ({
     getCurrentStep(loaderType) { return dispatch(getCurrentStep(loaderType)); },
-    getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
+    getMetadata() { return dispatch(getMetadata()) },
     saveHelmChartValues(payload) { return dispatch(saveHelmChartValues(payload)) },
     submitAction(action) { return dispatch(submitAction(action)); }
   }),

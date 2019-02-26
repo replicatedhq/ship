@@ -2,7 +2,7 @@ import { connect } from "react-redux";
 import realHelmChartInfo from "../components/kustomize/HelmChartInfo";
 
 import { submitAction } from "../redux/data/determineSteps/actions";
-import { getHelmChartMetadata } from "../redux/data/kustomizeSettings/actions";
+import { getMetadata } from "../redux/data/kustomizeSettings/actions";
 
 const HelmChartInfo = connect(
   state => ({
@@ -11,7 +11,7 @@ const HelmChartInfo = connect(
     actions: state.data.determineSteps.stepsData.actions,
   }),
   dispatch => ({
-    getHelmChartMetadata() { return dispatch(getHelmChartMetadata()) },
+    getMetadata() { return dispatch(getMetadata()) },
     submitAction(action) { return dispatch(submitAction(action)); }
   }),
 )(realHelmChartInfo);

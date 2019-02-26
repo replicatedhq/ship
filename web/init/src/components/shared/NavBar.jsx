@@ -3,11 +3,12 @@ import assign from "object-assign";
 import { Link, withRouter } from "react-router-dom";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
-import { get, isEmpty } from "lodash";
 // This is hardcoded for now as we're bundling it from `@replicatedhq/ship-init`
 // and then re-bundling the svg as a part of the `@replicatedhq/ship-app` bundle
 // for it to be served via the ship binary. As part of the bundling process the name
 // is mutated to a data-uri twice.
+// Do not remove the import.
+import "../../assets/images/ship-logo.png";
 const shipLogo = "static/media/b3d517c0409239a363a3c18ce9a0eda2.b3d517c0.png";
 export class NavBar extends React.Component {
 

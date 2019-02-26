@@ -272,7 +272,7 @@ export class DetermineComponentForRoute extends React.Component {
       <div className="flex-column flex1">
         <div className="flex-column flex1 u-overflow--hidden u-position--relative">
           <div className="flex-1-auto flex-column u-overflow--auto">
-            {(isLoadingStep || dataLoading.getHelmChartMetadataLoading) && !this.state.maxPollReached ?
+            {(isLoadingStep || dataLoading.getMetadataLoading) && !this.state.maxPollReached ?
               <div className="flex1 flex-column justifyContent--center alignItems--center">
                 <Loader size="60" />
               </div>
