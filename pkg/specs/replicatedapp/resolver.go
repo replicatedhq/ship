@@ -169,7 +169,7 @@ func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error)
 	if err != nil {
 		if selector.InstallationID == "" {
 			debug.Log("event", "spec-resolve", "from", selector, "error", err)
-			fmt.Printf("Please enter a license id to continue: ")
+			fmt.Printf("Please enter your license to continue: ")
 			var input string
 			fmt.Scanln(&input)
 			selector.InstallationID = input
