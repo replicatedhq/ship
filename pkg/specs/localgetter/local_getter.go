@@ -20,13 +20,7 @@ func (g *LocalGetter) GetFiles(ctx context.Context, upstream, savePath string) (
 	debug := level.Debug(g.Logger)
 	debug.Log("event", "localgetter.GetFiles", "upstream", upstream, "savePath", savePath)
 
-	// Remove the directory because go-getter wants to create it
-	err := g.FS.RemoveAll(savePath)
-	if err != nil {
-		return "", errors.Wrap(err, "remove dir")
-	}
-
-	err = g.copyDir(ctx, upstream, savePath)
+	err := g.copyDir(ctx, upstream, savePath)
 	if err != nil {
 		return "", errors.Wrap(err, "copy files")
 	}
