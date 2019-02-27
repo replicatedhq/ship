@@ -34,6 +34,36 @@ func TestUnmarshalSelector(t *testing.T) {
 				Upstream:       "https://pg.staging.replicated.com/graphql",
 			},
 		},
+		{
+			name: "pathed app with customer id",
+			url:  "replicated.app/app_id_here?customer_id=123&installation_id=456&release_id=789&release_semver=7.8.9",
+			want: &Selector{
+				CustomerID:     "123",
+				InstallationID: "456",
+				ReleaseID:      "789",
+				ReleaseSemver:  "7.8.9",
+			},
+		},
+		{
+			name: "pathed app WITHOUT customer id",
+			url:  "replicated.app/app_id_here?installation_id=456&release_id=789&release_semver=7.8.9",
+			want: &Selector{
+				CustomerID:     "app_id_here",
+				InstallationID: "456",
+				ReleaseID:      "789",
+				ReleaseSemver:  "7.8.9",
+			},
+		},
+		{
+			name: "pathed app WITHOUT customer id and including forward slash in id",
+			url:  "replicated.app/app/id/here?installation_id=456&release_id=789&release_semver=7.8.9",
+			want: &Selector{
+				CustomerID:     "app/id/here",
+				InstallationID: "456",
+				ReleaseID:      "789",
+				ReleaseSemver:  "7.8.9",
+			},
+		},
 	}
 
 	for _, test := range tests {

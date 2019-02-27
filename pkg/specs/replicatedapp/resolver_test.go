@@ -8,10 +8,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	state2 "github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -105,6 +107,58 @@ assets:
 
 			req.NoError(err)
 			req.Equal(test.expectRelease, result)
+		})
+	}
+}
+
+func Test_resolver_updateUpstream(t *testing.T) {
+	tests := []struct {
+		name           string
+		initUpstream   string
+		selector       Selector
+		expectUpstream string
+	}{
+		{
+			name:         "replicated.app",
+			initUpstream: "replicated.app",
+			selector: Selector{
+				CustomerID:     "abc",
+				InstallationID: "xyz",
+			},
+			expectUpstream: "replicated.app/?customer_id=abc&installation_id=xyz",
+		},
+		{
+			name:         "staging.replicated.app",
+			initUpstream: "staging.replicated.app",
+			selector: Selector{
+				CustomerID:     "abc",
+				InstallationID: "xyz",
+			},
+			expectUpstream: "staging.replicated.app/?customer_id=abc&installation_id=xyz",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			realState := state2.MManager{FS: fs, Logger: &logger.TestLogger{T: t}, V: viper.New()}
+
+			resolver := &resolver{
+				Logger:       &logger.TestLogger{T: t},
+				StateManager: &realState,
+			}
+
+			req.NoError(realState.SerializeUpstream(tt.initUpstream))
+
+			err := resolver.updateUpstream(tt.selector)
+			req.NoError(err)
+
+			afterState, err := realState.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expectUpstream, afterState.Upstream())
 		})
 	}
 }

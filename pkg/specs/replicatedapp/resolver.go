@@ -5,20 +5,23 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path/filepath"
-
-	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/helpers/flags"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/helpers/flags"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 type shaSummer func([]byte) string
@@ -27,6 +30,7 @@ type resolver struct {
 	Client               *GraphQLClient
 	FS                   afero.Afero
 	StateManager         state.Manager
+	UI                   cli.Ui
 	ShaSummer            shaSummer
 	Runbook              string
 	SetChannelName       string
@@ -43,11 +47,13 @@ func NewAppResolver(
 	fs afero.Afero,
 	graphql *GraphQLClient,
 	stateManager state.Manager,
+	ui cli.Ui,
 ) Resolver {
 	return &resolver{
 		Logger:               logger,
 		Client:               graphql,
 		FS:                   fs,
+		UI:                   ui,
 		Runbook:              flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
@@ -165,7 +171,28 @@ func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error)
 	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
 	release, err := client.GetRelease(selector)
 	if err != nil {
-		return nil, err
+		if selector.InstallationID == "" {
+			debug.Log("event", "spec-resolve", "from", selector, "error", err)
+
+			var input string
+			input, err = r.UI.Ask("Please enter your license to continue: ")
+			if err != nil {
+				return nil, errors.Wrapf(err, "enter license from CLI")
+			}
+
+			selector.InstallationID = input
+
+			err = r.updateUpstream(*selector)
+			if err != nil {
+				return nil, errors.Wrapf(err, "persist updated upstream")
+			}
+
+			release, err = client.GetRelease(selector)
+		}
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := r.persistSpec([]byte(release.Spec)); err != nil {
@@ -218,4 +245,24 @@ func (r *resolver) loadFakeEntitlements() (*api.Entitlements, error) {
 		return nil, errors.Wrap(err, "load entitlements json")
 	}
 	return &entitlements, nil
+}
+
+// read the upstream, get the host/path, and replace the query params with the ones from the provided selector
+func (r *resolver) updateUpstream(selector Selector) error {
+	currentState, err := r.StateManager.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "retrieve state")
+	}
+	currentUpstream := currentState.Upstream()
+
+	parsedUpstream, err := url.Parse(currentUpstream)
+	if err != nil {
+		return errors.Wrap(err, "parse upstream")
+	}
+
+	if !strings.HasSuffix(parsedUpstream.Path, "/") {
+		parsedUpstream.Path += "/"
+	}
+
+	return r.StateManager.SerializeUpstream(parsedUpstream.Path + "?" + selector.String())
 }

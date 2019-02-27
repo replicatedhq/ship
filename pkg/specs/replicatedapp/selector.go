@@ -2,6 +2,7 @@ package replicatedapp
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-querystring/query"
@@ -30,6 +31,8 @@ func (s *Selector) String() string {
 	return v.Encode()
 }
 
+var pathQuery = regexp.MustCompile(`replicated\.app/([\w_\-/]+)`)
+
 // this is less janky
 func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 	for key, values := range url.Query() {
@@ -45,6 +48,13 @@ func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 			s.ReleaseID = values[0]
 		case "release_semver":
 			s.ReleaseSemver = values[0]
+		}
+	}
+
+	if s.CustomerID == "" && pathQuery.MatchString(url.Path) {
+		matches := pathQuery.FindStringSubmatch(url.Path)
+		if len(matches) == 2 {
+			s.CustomerID = matches[1]
 		}
 	}
 
