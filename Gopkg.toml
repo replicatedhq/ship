@@ -89,7 +89,7 @@ ignored = [
 
 [[constraint]]
   name = "sigs.k8s.io/kustomize"
-  branch = "master"
+  version = "2.0.2"
 
 [[override]]
   name = "k8s.io/kubernetes"
