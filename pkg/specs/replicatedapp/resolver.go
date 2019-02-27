@@ -9,18 +9,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/replicatedhq/ship/pkg/specs/apptype"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/helpers/flags"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/helpers/flags"
+	"github.com/replicatedhq/ship/pkg/specs/apptype"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 type shaSummer func([]byte) string
@@ -29,6 +30,7 @@ type resolver struct {
 	Client               *GraphQLClient
 	FS                   afero.Afero
 	StateManager         state.Manager
+	UI                   cli.Ui
 	ShaSummer            shaSummer
 	Runbook              string
 	SetChannelName       string
@@ -45,11 +47,13 @@ func NewAppResolver(
 	fs afero.Afero,
 	graphql *GraphQLClient,
 	stateManager state.Manager,
+	ui cli.Ui,
 ) Resolver {
 	return &resolver{
 		Logger:               logger,
 		Client:               graphql,
 		FS:                   fs,
+		UI:                   ui,
 		Runbook:              flags.GetCurrentOrDeprecatedString(v, "runbook", "studio-file"),
 		SetChannelName:       flags.GetCurrentOrDeprecatedString(v, "set-channel-name", "studio-channel-name"),
 		SetChannelIcon:       flags.GetCurrentOrDeprecatedString(v, "set-channel-icon", "studio-channel-icon"),
@@ -169,9 +173,13 @@ func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error)
 	if err != nil {
 		if selector.InstallationID == "" {
 			debug.Log("event", "spec-resolve", "from", selector, "error", err)
-			fmt.Printf("Please enter your license to continue: ")
+
 			var input string
-			fmt.Scanln(&input)
+			input, err = r.UI.Ask("Please enter your license to continue: ")
+			if err != nil {
+				return nil, errors.Wrapf(err, "enter license from CLI")
+			}
+
 			selector.InstallationID = input
 
 			err = r.updateUpstream(*selector)
