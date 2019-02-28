@@ -77,6 +77,8 @@ type ReleaseMetadata struct {
 	CustomerID      string          `json:"customerId" yaml:"customerId" hcl:"customerId" meta:"customer-id"`
 	InstallationID  string          `json:"installation" yaml:"installation" hcl:"installation" meta:"installation-id"`
 	ChannelID       string          `json:"channelId" yaml:"channelId" hcl:"channelId" meta:"channel-id"`
+	AppSlug         string          `json:"appSlug" yaml:"appSlug" hcl:"appSlug" meta:"app-slug"`
+	LicenseID       string          `json:"licenseId" yaml:"licenseId" hcl:"licenseId" meta:"license-id"`
 	ChannelName     string          `json:"channelName" yaml:"channelName" hcl:"channelName" meta:"channel-name"`
 	ChannelIcon     string          `json:"channelIcon" yaml:"channelIcon" hcl:"channelIcon" meta:"channel-icon"`
 	Semver          string          `json:"semver" yaml:"semver" hcl:"semver" meta:"release-version"`

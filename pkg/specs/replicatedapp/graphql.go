@@ -48,6 +48,39 @@ query($semver: String) {
   }
 }`
 
+const getSlugAppSpecQuery = `
+query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String) {
+  shipSlugRelease (appSlug: $appSlug, licenseID: $licenseID, releaseID: $releaseID, semver: $semver) {
+    id
+    channelId
+    channelName
+    channelIcon
+    semver
+    releaseNotes
+    spec
+    images {
+      url
+      source
+      appSlug
+      imageKey
+    }
+    githubContents {
+      repo
+      path
+      ref
+      files {
+        name
+        path
+        sha
+        size
+        data
+      }
+    }
+    created
+    registrySecret
+  }
+}`
+
 // GraphQLClient is a client for the graphql Payload API
 type GraphQLClient struct {
 	GQLServer *url.URL
@@ -74,9 +107,20 @@ type GQLGetReleaseResponse struct {
 	Errors []GraphQLError     `json:"errors,omitempty"`
 }
 
+// GQLGetSlugReleaseResponse is the top-level response object from the graphql server
+type GQLGetSlugReleaseResponse struct {
+	Data   ShipSlugReleaseWrapper `json:"data,omitempty"`
+	Errors []GraphQLError         `json:"errors,omitempty"`
+}
+
 // ShipReleaseWrapper wraps the release response form GQL
 type ShipReleaseWrapper struct {
 	ShipRelease ShipRelease `json:"shipRelease"`
+}
+
+// ShipSlugReleaseWrapper wraps the release response form GQL
+type ShipSlugReleaseWrapper struct {
+	ShipSlugRelease ShipRelease `json:"shipSlugRelease"`
 }
 
 type Image struct {
@@ -221,6 +265,40 @@ func (c *GraphQLClient) GetRelease(selector *Selector) (*ShipRelease, error) {
 	return &shipResponse.Data.ShipRelease, nil
 }
 
+// GetSlugRelease gets a release from the graphql server by app slug
+func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*ShipRelease, error) {
+	requestObj := GraphQLRequest{
+		Query: getSlugAppSpecQuery,
+		Variables: map[string]string{
+			"appSlug":   selector.AppSlug,
+			"licenseID": selector.LicenseID,
+			"releaseID": selector.ReleaseID,
+			"semver":    selector.ReleaseSemver,
+		},
+	}
+
+	ci := callInfo{
+		request:  requestObj,
+		upstream: selector.Upstream,
+	}
+
+	shipResponse := &GQLGetSlugReleaseResponse{}
+	if err := c.callGQL(ci, shipResponse); err != nil {
+		return nil, err
+	}
+
+	if shipResponse.Errors != nil && len(shipResponse.Errors) > 0 {
+		var multiErr *multierror.Error
+		for _, err := range shipResponse.Errors {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
+
+		}
+		return nil, multiErr.ErrorOrNil()
+	}
+
+	return &shipResponse.Data.ShipSlugRelease, nil
+}
+
 func (c *GraphQLClient) RegisterInstall(customerID, installationID, channelID, releaseID string) error {
 	requestObj := GraphQLRequest{
 		Query: `
@@ -266,7 +344,6 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 	}
 
 	bodyReader := ioutil.NopCloser(bytes.NewReader(body))
-	authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", ci.username, ci.password)))
 
 	gqlServer := c.GQLServer.String()
 	if ci.upstream != "" {
@@ -278,8 +355,12 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 	}
 
 	graphQLRequest.Header = map[string][]string{
-		"Authorization": {"Basic " + authString},
-		"Content-Type":  {"application/json"},
+		"Content-Type": {"application/json"},
+	}
+
+	if ci.username != "" || ci.password != "" {
+		authString := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", ci.username, ci.password)))
+		graphQLRequest.Header["Authorization"] = []string{"Basic " + authString}
 	}
 
 	resp, err := c.Client.Do(graphQLRequest)

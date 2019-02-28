@@ -110,6 +110,8 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 		Version:         metadata.Semver,
 		CustomerID:      metadata.CustomerID,
 		InstallationID:  metadata.InstallationID,
+		LicenseID:       metadata.LicenseID,
+		AppSlug:         metadata.AppSlug,
 	}
 
 	return m.serializeAndWriteState(versionedState)

@@ -145,6 +145,8 @@ func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*ap
 	}
 	result.Metadata.CustomerID = selector.CustomerID
 	result.Metadata.InstallationID = selector.InstallationID
+	result.Metadata.LicenseID = selector.LicenseID
+	result.Metadata.AppSlug = selector.AppSlug
 
 	if err := r.StateManager.SerializeAppMetadata(result.Metadata); err != nil {
 		return nil, errors.Wrap(err, "serialize app metadata")
@@ -167,31 +169,44 @@ func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*ap
 func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
+	var release *ShipRelease
+	var err error
 	client := r.Client
-	debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String())
-	release, err := client.GetRelease(selector)
-	if err != nil {
-		if selector.InstallationID == "" {
-			debug.Log("event", "spec-resolve", "from", selector, "error", err)
-
-			var input string
-			input, err = r.UI.Ask("Please enter your license to continue: ")
-			if err != nil {
-				return nil, errors.Wrapf(err, "enter license from CLI")
-			}
-
-			selector.InstallationID = input
-
-			err = r.updateUpstream(*selector)
-			if err != nil {
-				return nil, errors.Wrapf(err, "persist updated upstream")
-			}
-
-			release, err = client.GetRelease(selector)
-		}
-
+	if selector.CustomerID != "" {
+		debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String(), "method", "customerID")
+		release, err = client.GetRelease(selector)
 		if err != nil {
 			return nil, err
+		}
+	} else {
+		debug.Log("phase", "load-specs", "from", "gql", "addr", client.GQLServer.String(), "method", "appSlug")
+		if selector.AppSlug == "" {
+			return nil, errors.New("either a customer ID or app slug must be provided")
+		}
+		release, err = client.GetSlugRelease(selector)
+		if err != nil {
+			if selector.LicenseID == "" {
+				debug.Log("event", "spec-resolve", "from", selector, "error", err)
+
+				var input string
+				input, err = r.UI.Ask("Please enter your license to continue: ")
+				if err != nil {
+					return nil, errors.Wrapf(err, "enter license from CLI")
+				}
+
+				selector.LicenseID = input
+
+				err = r.updateUpstream(*selector)
+				if err != nil {
+					return nil, errors.Wrapf(err, "persist updated upstream")
+				}
+
+				release, err = client.GetSlugRelease(selector)
+			}
+
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
