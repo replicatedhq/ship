@@ -39,6 +39,7 @@ func TestUnmarshalSelector(t *testing.T) {
 			url:  "replicated.app/app_id_here?customer_id=123&installation_id=456&release_id=789&release_semver=7.8.9",
 			want: &Selector{
 				CustomerID:     "123",
+				AppSlug:        "",
 				InstallationID: "456",
 				ReleaseID:      "789",
 				ReleaseSemver:  "7.8.9",
@@ -48,20 +49,28 @@ func TestUnmarshalSelector(t *testing.T) {
 			name: "pathed app WITHOUT customer id",
 			url:  "replicated.app/app_id_here?installation_id=456&release_id=789&release_semver=7.8.9",
 			want: &Selector{
-				CustomerID:     "app_id_here",
+				AppSlug:        "app_id_here",
 				InstallationID: "456",
 				ReleaseID:      "789",
 				ReleaseSemver:  "7.8.9",
 			},
 		},
 		{
-			name: "pathed app WITHOUT customer id and including forward slash in id",
-			url:  "replicated.app/app/id/here?installation_id=456&release_id=789&release_semver=7.8.9",
+			name: "app slug with license id and release number",
+			url:  "replicated.app/app/id/here?license_id=456&release_id=789",
 			want: &Selector{
-				CustomerID:     "app/id/here",
-				InstallationID: "456",
-				ReleaseID:      "789",
-				ReleaseSemver:  "7.8.9",
+				AppSlug:   "app/id/here",
+				LicenseID: "456",
+				ReleaseID: "789",
+			},
+		},
+		{
+			name: "app slug with license id and release number",
+			url:  "replicated.app/app/id/here/?license_id=456&release_id=789",
+			want: &Selector{
+				AppSlug:   "app/id/here",
+				LicenseID: "456",
+				ReleaseID: "789",
 			},
 		},
 	}

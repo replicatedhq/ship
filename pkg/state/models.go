@@ -98,6 +98,8 @@ type Metadata struct {
 	Version         string      `json:"version" yaml:"version" hcl:"version"`
 	CustomerID      string      `json:"customerID,omitempty" yaml:"customerID,omitempty" hcl:"customerID,omitempty"`
 	InstallationID  string      `json:"installationID,omitempty" yaml:"installationID,omitempty" hcl:"installationID,omitempty"`
+	LicenseID       string      `json:"licenseID,omitempty" yaml:"licenseID,omitempty" hcl:"licenseID,omitempty"`
+	AppSlug         string      `json:"appSlug,omitempty" yaml:"appSlug,omitempty" hcl:"appSlug,omitempty"`
 	Lists           []util.List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
 }
 

@@ -136,6 +136,15 @@ func Test_resolver_updateUpstream(t *testing.T) {
 			},
 			expectUpstream: "staging.replicated.app/?customer_id=abc&installation_id=xyz",
 		},
+		{
+			name:         "slug app",
+			initUpstream: "replicated.app/abc",
+			selector: Selector{
+				AppSlug:   "abc",
+				LicenseID: "xyz",
+			},
+			expectUpstream: "replicated.app/abc/?license_id=xyz",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

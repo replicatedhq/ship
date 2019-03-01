@@ -14,24 +14,30 @@ import (
 // note that `url` struct tags are only for serialize, they don't work for deserialize
 type Selector struct {
 	// required
-	CustomerID     string `url:"customer_id"`
-	InstallationID string `url:"installation_id"`
+	CustomerID     string `url:"customer_id,omitempty"`
+	InstallationID string `url:"installation_id,omitempty"`
+	// OR
+	AppSlug string `url:"AppSlug,omitempty"`
 
 	// optional
 	Upstream      string `url:"upstream,omitempty"`
 	ReleaseID     string `url:"release_id,omitempty"` // NOTE: this is unused
 	ReleaseSemver string `url:"release_semver,omitempty"`
+	LicenseID     string `url:"license_id,omitempty"`
 }
 
 func (s *Selector) String() string {
-	v, err := query.Values(s)
+	sCopy := *s
+	sCopy.AppSlug = ""
+
+	v, err := query.Values(sCopy)
 	if err != nil {
 		return "Selector{(failed to parse)}"
 	}
 	return v.Encode()
 }
 
-var pathQuery = regexp.MustCompile(`replicated\.app/([\w_\-/]+)`)
+var pathQuery = regexp.MustCompile(`replicated\.app/([\w_\-/]+[\w_\-]+)`)
 
 // this is less janky
 func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
@@ -48,13 +54,15 @@ func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 			s.ReleaseID = values[0]
 		case "release_semver":
 			s.ReleaseSemver = values[0]
+		case "license_id":
+			s.LicenseID = values[0]
 		}
 	}
 
-	if s.CustomerID == "" && pathQuery.MatchString(url.Path) {
+	if pathQuery.MatchString(url.Path) && s.CustomerID == "" {
 		matches := pathQuery.FindStringSubmatch(url.Path)
 		if len(matches) == 2 {
-			s.CustomerID = matches[1]
+			s.AppSlug = matches[1]
 		}
 	}
 

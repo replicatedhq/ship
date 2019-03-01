@@ -1,0 +1,15 @@
+{
+  "v1": {
+    "config": {},
+    "upstream": "__upstream__",
+    "contentSHA": "051f545274f45b1fe98e7ffc29052ae775f23b432dd044ab456662acae6664e9",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "appSlug": "__appSlug__",
+      "licenseID": "__licenseID__",
+      "releaseNotes": "",
+      "version": "1.0.2"
+    },
+    "releaseName": "nightly"
+  }
+}
