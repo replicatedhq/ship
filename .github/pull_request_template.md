@@ -15,7 +15,7 @@ Description for the Changelog
 
 
 
-Picture of a Boat (not required but encouraged)
+Picture of a Ship (not required but encouraged)
 ------------
 
 
