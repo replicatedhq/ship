@@ -22,7 +22,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/util"
-
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
