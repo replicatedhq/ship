@@ -25,6 +25,8 @@ import (
 )
 
 type TestMetadata struct {
+	LicenseID      string   `yaml:"license_id"`
+	AppSlug        string   `yaml:"app_slug"`
 	InstallationID string   `yaml:"installation_id"`
 	CustomerID     string   `yaml:"customer_id"`
 	ReleaseVersion string   `yaml:"release_version"`
@@ -98,13 +100,24 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 					upstream := "staging.replicated.app/some-cool-ci-tool"
 
-					// this should probably be url encoded but whatever
-					upstream = fmt.Sprintf(
-						"%s?installation_id=%s&customer_id=%s",
-						upstream,
-						testMetadata.InstallationID,
-						testMetadata.CustomerID,
-					)
+					if testMetadata.InstallationID != "" {
+						// this should probably be url encoded but whatever
+						upstream = fmt.Sprintf(
+							"%s?installation_id=%s&customer_id=%s",
+							upstream,
+							testMetadata.InstallationID,
+							testMetadata.CustomerID,
+						)
+					} else {
+						upstream = fmt.Sprintf(
+							"staging.replicated.app/%s/?license_id=%s",
+							testMetadata.AppSlug,
+							testMetadata.LicenseID)
+					}
+
+					if testMetadata.ReleaseVersion != "" {
+						upstream = fmt.Sprintf("%s&semver=%s", upstream, testMetadata.ReleaseVersion)
+					}
 
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
@@ -123,6 +136,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
 						"__installationID__": testMetadata.InstallationID,
 						"__customerID__":     testMetadata.CustomerID,
+						"__appSlug__":        testMetadata.AppSlug,
+						"__licenseID__":      testMetadata.LicenseID,
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
