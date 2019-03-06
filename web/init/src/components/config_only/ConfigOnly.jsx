@@ -1,14 +1,14 @@
 import React from "react";
 import ErrorBoundary from "../../ErrorBoundary";
 
-import { 
-  each, 
-  isEmpty, 
-  map, 
-  partialRight, 
-  omit, 
-  has, 
-  forEach, 
+import {
+  each,
+  isEmpty,
+  map,
+  partialRight,
+  omit,
+  has,
+  forEach,
   includes
 } from "lodash";
 import { ConfigService } from "../../services/ConfigService";
@@ -34,7 +34,6 @@ export default class ConfigOnly extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getChannel();
     if (!this.props.settingsFieldsList.length) {
       this.props.getApplicationSettings({item_values: null});
     }
