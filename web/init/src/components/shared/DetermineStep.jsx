@@ -97,7 +97,6 @@ export default class DetermineStep extends React.Component {
   }
 
   componentDidMount() {
-    //this.props.getChannel();
     this.props.getMetadata();
     this.startPoll();
     this.startMaxTimeout();
