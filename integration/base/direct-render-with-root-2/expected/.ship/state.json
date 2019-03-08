@@ -1,0 +1,13 @@
+{
+  "v1": {
+    "config": {},
+    "contentSHA": "8ce189bc6b0c8992933394cc4a15b17aa51e6a3bc70e2238785ae84581c86699",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "releaseNotes": "",
+      "version": ""
+    },
+    "releaseName": "ship",
+    "upstream": "/Users/dex/go/src/github.com/replicatedhq/ship/integration/base/direct-render-with-root-2/input/.ship/ship.yml?customer_id=\u0026installation_id=\u0026release_semver="
+  }
+}

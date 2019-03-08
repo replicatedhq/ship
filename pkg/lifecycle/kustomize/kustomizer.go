@@ -17,7 +17,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
-
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/kustomize/pkg/patch"

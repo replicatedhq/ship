@@ -1,0 +1,23 @@
+---
+assets:
+  v1:
+  - inline:
+      dest: ./install.sh
+      contents: |
+        #!/bin/sh
+        echo installing...
+config: {}
+lifecycle:
+  v1:
+  - render:
+      root: do
+  - render:
+      root: undo
+      assets:
+        v1:
+          - inline:
+              dest: ./uninstall.sh
+              contents: |
+                #!/bin/sh
+                echo uninstalling...
+

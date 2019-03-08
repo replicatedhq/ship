@@ -43,6 +43,33 @@ lifecycle:
 			},
 		},
 		{
+			name: "render with override assets",
+			yaml: `
+---
+lifecycle:
+  v1:
+    - render: 
+         root: ./bigapp
+         assets:
+           v1:
+             - inline: { contents: fake }`,
+
+			expect: Step{
+				Render: &Render{
+					Root: "./bigapp",
+					Assets: &Assets{
+						V1: []Asset{
+							{
+								Inline: &InlineAsset{
+									Contents: "fake",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "terraform",
 			yaml: `
 ---
