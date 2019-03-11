@@ -10,7 +10,6 @@ import (
 	"github.com/replicatedhq/libyaml"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"
-
 	"github.com/spf13/afero"
 )
 

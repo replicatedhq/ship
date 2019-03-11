@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -17,11 +16,7 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
-	"github.com/replicatedhq/ship/pkg/e2e"
-	"github.com/replicatedhq/ship/pkg/logger"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type TestMetadata struct {
@@ -157,40 +152,6 @@ var _ = Describe("ship init replicated.app/...", func() {
 		}
 	}
 })
-
-func createRelease(
-	vendorEndpoint string,
-	vendorToken string,
-	testInputPath string,
-	testMetadata TestMetadata,
-	channelName string,
-	customerID string,
-) string {
-	endpointURL, err := url.Parse(vendorEndpoint)
-	Expect(err).NotTo(HaveOccurred())
-	vendorClient := &e2e.GraphQLClient{
-		GQLServer: endpointURL,
-		Token:     vendorToken,
-		Logger: logger.New(
-			viper.GetViper(),
-			afero.Afero{Fs: afero.NewMemMapFs()},
-		),
-	}
-	releaseContents, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/release.yml"))
-	Expect(err).NotTo(HaveOccurred())
-	channel, err := vendorClient.GetOrCreateChannel(channelName)
-	Expect(err).NotTo(HaveOccurred())
-	_, err = vendorClient.PromoteRelease(
-		string(releaseContents),
-		channel.ID,
-		testMetadata.ReleaseVersion,
-		"integration tests",
-	)
-	Expect(err).NotTo(HaveOccurred())
-	installationID, err := vendorClient.EnsureCustomerOnChannel(customerID, channel.ID)
-	Expect(err).NotTo(HaveOccurred())
-	return installationID
-}
 
 func readMetadata(testPath string) TestMetadata {
 	var testMetadata TestMetadata

@@ -8,10 +8,6 @@
              kubectl delete ns retraced
            dest: ./uninstall.sh
            mode: 0777
-  expect:
-    ./uninstall.sh: |
-       #!/bin/sh
-       kubectl delete ns retraced
 
 - name: one config, one inline asset, accept default
   responses:
@@ -33,10 +29,6 @@
              kubectl delete ns {{repl ConfigOption "namespace" }}
            dest: ./scripts/uninstall.sh
            mode: 0777
-  expect:
-    ./scripts/uninstall.sh: |
-       #!/bin/sh
-       kubectl delete ns retraced
 
 - name: one config, one inline asset, empty viper
   responses:
@@ -56,10 +48,6 @@
              kubectl delete ns {{repl ConfigOption "namespace" }}
            dest: ./uninstall.sh
            mode: 0777
-  expect:
-    ./uninstall.sh: |
-       #!/bin/sh
-       kubectl delete ns retraced
 
 - name: ship context access
   spec:
@@ -71,12 +59,3 @@
              cat {{repl context "state_file_path" }}
            dest: ./inspect_state.sh
            mode: 0777
-  expect:
-    ./inspect_state.sh: |
-       #!/bin/sh
-       cat .ship/state.json
-
-# ship context state_file_path
-# password
-# hidden
-# required

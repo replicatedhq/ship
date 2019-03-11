@@ -1088,12 +1088,616 @@
                 ]
               },
               "render": {
-                "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
+                "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application. If an `assets` field is set, those assets will be rendered rather than the top-level `assets` object",
                 "examples": [
-                  {}
+                  {},
+                  {
+                    "root": "./"
+                  },
+                  {
+                    "root": "./",
+                    "assets": {
+                      "v1": [
+                        {
+                          "inline": {
+                            "contents": "some-asset",
+                            "dest": "some-path.txt"
+                          }
+                        }
+                      ]
+                    }
+                  }
                 ],
                 "type": "object",
                 "properties": {
+                  "assets": {
+                    "type": "object",
+                    "properties": {
+                      "v1": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "amazon_eks": {
+                              "type": "object",
+                              "properties": {
+                                "autoscaling_groups": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "group_size": {
+                                        "type": "string"
+                                      },
+                                      "machine_type": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                },
+                                "cluster_name": {
+                                  "type": "string"
+                                },
+                                "created_vpc": {
+                                  "type": "object",
+                                  "properties": {
+                                    "private_subnets": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "public_subnets": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "vpc_cidr": {
+                                      "type": "string"
+                                    },
+                                    "zones": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "existing_vpc": {
+                                  "type": "object",
+                                  "properties": {
+                                    "private_subnets": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "public_subnets": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "vpc_id": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "region": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "azure_aks": {
+                              "type": "object",
+                              "properties": {
+                                "cluster_name": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "disk_gb": {
+                                  "type": "string"
+                                },
+                                "kubernetes_version": {
+                                  "type": "string"
+                                },
+                                "location": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "node_count": {
+                                  "type": "string"
+                                },
+                                "node_type": {
+                                  "type": "string"
+                                },
+                                "public_key": {
+                                  "type": "string"
+                                },
+                                "resource_group_name": {
+                                  "type": "string"
+                                },
+                                "service_principal_id": {
+                                  "type": "string"
+                                },
+                                "service_principal_secret": {
+                                  "type": "string"
+                                },
+                                "subscription_id": {
+                                  "type": "string"
+                                },
+                                "tenant_id": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "tenant_id",
+                                "subscription_id",
+                                "service_principal_id",
+                                "service_principal_secret",
+                                "resource_group_name",
+                                "location",
+                                "cluster_name",
+                                "kubernetes_version",
+                                "public_key",
+                                "node_count",
+                                "node_type",
+                                "disk_gb"
+                              ]
+                            },
+                            "docker": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "image": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "source": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "image",
+                                "source"
+                              ]
+                            },
+                            "dockerlayer": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "image": {
+                                  "type": "string"
+                                },
+                                "layer": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "source": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "image",
+                                "source",
+                                "layer"
+                              ]
+                            },
+                            "github": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "path": {
+                                  "type": "string"
+                                },
+                                "proxy": {
+                                  "type": "boolean"
+                                },
+                                "ref": {
+                                  "type": "string"
+                                },
+                                "repo": {
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "type": "string"
+                                },
+                                "strip_path": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "repo",
+                                "ref",
+                                "path",
+                                "source",
+                                "proxy",
+                                "strip_path"
+                              ]
+                            },
+                            "google_gke": {
+                              "type": "object",
+                              "properties": {
+                                "additional_zones": {
+                                  "type": "string"
+                                },
+                                "cluster_name": {
+                                  "type": "string"
+                                },
+                                "credentials": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "initial_node_count": {
+                                  "type": "string"
+                                },
+                                "machine_type": {
+                                  "type": "string"
+                                },
+                                "min_master_version": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "project": {
+                                  "type": "string"
+                                },
+                                "region": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                },
+                                "zone": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "cluster_name"
+                              ]
+                            },
+                            "helm": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "github": {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "dest": {
+                                      "type": "string"
+                                    },
+                                    "mode": {
+                                      "type": "integer"
+                                    },
+                                    "path": {
+                                      "type": "string"
+                                    },
+                                    "proxy": {
+                                      "type": "boolean"
+                                    },
+                                    "ref": {
+                                      "type": "string"
+                                    },
+                                    "repo": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "strip_path": {
+                                      "type": "string"
+                                    },
+                                    "when": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "repo",
+                                    "ref",
+                                    "path",
+                                    "source",
+                                    "proxy",
+                                    "strip_path"
+                                  ]
+                                },
+                                "helm_fetch": {
+                                  "type": "object",
+                                  "properties": {
+                                    "chart_ref": {
+                                      "type": "string"
+                                    },
+                                    "repo_url": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "chart_ref",
+                                    "repo_url",
+                                    "version"
+                                  ]
+                                },
+                                "helm_opts": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "local": {
+                                  "type": "object",
+                                  "properties": {
+                                    "chart_root": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "chart_root"
+                                  ]
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "upstream": {
+                                  "type": "string"
+                                },
+                                "values": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                },
+                                "values_from": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string"
+                                    },
+                                    "save_to_state": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "values",
+                                "helm_opts"
+                              ]
+                            },
+                            "inline": {
+                              "type": "object",
+                              "properties": {
+                                "contents": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "contents"
+                              ]
+                            },
+                            "local": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "path": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "path"
+                              ]
+                            },
+                            "terraform": {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "github": {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "dest": {
+                                      "type": "string"
+                                    },
+                                    "mode": {
+                                      "type": "integer"
+                                    },
+                                    "path": {
+                                      "type": "string"
+                                    },
+                                    "proxy": {
+                                      "type": "boolean"
+                                    },
+                                    "ref": {
+                                      "type": "string"
+                                    },
+                                    "repo": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "strip_path": {
+                                      "type": "string"
+                                    },
+                                    "when": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "repo",
+                                    "ref",
+                                    "path",
+                                    "source",
+                                    "proxy",
+                                    "strip_path"
+                                  ]
+                                },
+                                "inline": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "github"
+                              ]
+                            },
+                            "web": {
+                              "type": "object",
+                              "properties": {
+                                "body": {
+                                  "type": "string"
+                                },
+                                "bodyFormat": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "dest": {
+                                  "type": "string"
+                                },
+                                "headers": {
+                                  "type": "object",
+                                  "properties": {
+                                    ".*": {
+                                      "type": "array"
+                                    }
+                                  }
+                                },
+                                "method": {
+                                  "type": "string"
+                                },
+                                "mode": {
+                                  "type": "integer"
+                                },
+                                "url": {
+                                  "type": "string"
+                                },
+                                "when": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "body",
+                                "bodyFormat",
+                                "headers",
+                                "method",
+                                "url"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
                   "description": {
                     "type": "string"
                   },

@@ -1107,9 +1107,17 @@
   {
     "path": "properties.lifecycle.properties.v1.items.properties.render",
     "merge": {
-      "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application.",
+      "description": "A `render` step will do the work of collecting configuration values from a user and using them to generate the final assets that can be used to deploy an application. If an `assets` field is set, those assets will be rendered rather than the top-level `assets` object",
       "examples": [
-        {}
+        {},
+        { "root": "./"},
+        {
+          "root": "./",
+          "assets": {
+            "v1": [{
+              "inline": { "contents": "some-asset", "dest": "some-path.txt"}
+            }
+        ]}}
       ]
     },
     "replace": {

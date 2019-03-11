@@ -83,7 +83,8 @@ func (m *Message) ShortName() string   { return "message" }
 // Render is a lifeycle step to collect config and render assets
 type Render struct {
 	StepShared `json:",inline" yaml:",inline" hcl:",inline"`
-	Root       string `json:"root,omitempty" yaml:"root,omitempty" hcl:"root,omitempty"`
+	Root       string  `json:"root,omitempty" yaml:"root,omitempty" hcl:"root,omitempty"`
+	Assets     *Assets `json:"assets,omitempty" yaml:"assets,omitempty" hcl:"assets,omitempty"`
 }
 
 func (r *Render) Shared() *StepShared { return &r.StepShared }

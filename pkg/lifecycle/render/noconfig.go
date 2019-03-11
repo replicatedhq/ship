@@ -59,8 +59,13 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 		step.Root = constants.InstallerPrefixPath
 	}
 
+	assets := release.Spec.Assets.V1
+	if step.Assets != nil && step.Assets.V1 != nil {
+		assets = step.Assets.V1
+	}
+
 	debug.Log("event", "render.plan")
-	pln, err := r.Planner.Build(step.Root, release.Spec.Assets.V1, release.Spec.Config.V1, release.Metadata, templateContext)
+	pln, err := r.Planner.Build(step.Root, assets, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
 	}

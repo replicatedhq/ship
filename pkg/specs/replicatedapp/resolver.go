@@ -13,15 +13,14 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/helpers/flags"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type shaSummer func([]byte) string

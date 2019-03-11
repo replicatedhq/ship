@@ -1,0 +1,13 @@
+{
+  "v1": {
+    "config": {},
+    "contentSHA": "8ce189bc6b0c8992933394cc4a15b17aa51e6a3bc70e2238785ae84581c86699",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "releaseNotes": "",
+      "version": ""
+    },
+    "releaseName": "ship",
+    "upstream": "__upstream__"
+  }
+}
