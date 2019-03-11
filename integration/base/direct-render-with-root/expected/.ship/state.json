@@ -8,6 +8,6 @@
       "version": ""
     },
     "releaseName": "ship",
-    "upstream": "/Users/dex/go/src/github.com/replicatedhq/ship/integration/base/direct-render-with-root/input/.ship/ship.yml?customer_id=\u0026installation_id=\u0026release_semver="
+    "upstream": "__upstream__"
   }
 }
