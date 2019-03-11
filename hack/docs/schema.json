@@ -925,6 +925,40 @@
                 },
                 "required": []
               },
+              "helmValues": {
+                "description": "A `helmValues` step displays an editor for the end user to configure helm values. The rendered values are available at `.ship/tmp/values.yaml`",
+                "examples": [
+                  {},
+                  {
+                    "path": "subcharts/consul/values.yaml"
+                  }
+                ],
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "invalidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "requires": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": []
+              },
               "kubectlApply": {
                 "description": "A `kubectlApply` step will run `kubectl apply` with the provided file path and kubeconfig.",
                 "examples": [

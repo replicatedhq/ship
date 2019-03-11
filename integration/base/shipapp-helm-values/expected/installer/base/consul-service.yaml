@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  labels:
+    component: ship-consul
+    release: ship
+  name: ship-consul
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 8500
+  - name: rpc
+    port: 8400
+  - name: serflan-tcp
+    port: 8301
+    protocol: TCP
+  - name: serflan-udp
+    port: 8301
+    protocol: UDP
+  - name: serfwan-tcp
+    port: 8302
+    protocol: TCP
+  - name: serfwan-udp
+    port: 8302
+    protocol: UDP
+  - name: server
+    port: 8300
+  - name: consuldns-tcp
+    port: 8600
+  - name: consuldns-udp
+    port: 8600
+    protocol: UDP
+  selector:
+    component: ship-consul

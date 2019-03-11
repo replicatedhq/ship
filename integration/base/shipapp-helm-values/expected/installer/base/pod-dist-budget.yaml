@@ -1,0 +1,12 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    component: ship-consul
+    release: ship
+  name: ship-consul-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      component: ship-consul

@@ -1,0 +1,35 @@
+---
+assets:
+  v1: []
+
+config: {}
+
+lifecycle:
+  v1:
+    - render:
+        root: ./
+        assets:
+          v1:
+            - github:
+                dest: ./installer/consul
+                repo: helm/charts
+                path: stable/consul
+                ref: master
+                strip_path: true
+    - helmValues:
+        path: installer/consul/values.yaml
+    - render:
+        root: ./
+        assets:
+          v1:
+            - helm:
+                dest: ./installer/base
+                local:
+                  chart_root: ./installer/consul
+                values_from:
+                  # haaaack, helmValues needs a configurable dest path for us to store the output
+                  path: .ship/tmp
+    - kustomize:
+        base: installer/base
+        dest: installer/rendered.yaml
+

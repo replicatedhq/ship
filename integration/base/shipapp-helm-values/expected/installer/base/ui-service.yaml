@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: ship-consul
+    release: ship
+  name: ship-consul-ui
+spec:
+  ports:
+  - name: http
+    port: 8500
+  selector:
+    component: ship-consul
+  type: NodePort

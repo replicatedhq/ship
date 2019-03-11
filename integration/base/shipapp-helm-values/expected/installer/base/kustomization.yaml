@@ -1,0 +1,10 @@
+kind: ""
+apiversion: ""
+resources:
+- consul-service.yaml
+- consul-statefulset.yaml
+- consul-test.yaml
+- gossip-secret.yaml
+- pod-dist-budget.yaml
+- test-config.yaml
+- ui-service.yaml

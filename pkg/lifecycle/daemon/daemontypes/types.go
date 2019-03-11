@@ -89,6 +89,7 @@ func NewStep(apiStep api.Step) Step {
 	} else if apiStep.HelmValues != nil {
 		step.HelmValues = &HelmValues{
 			Values: "", // todo
+			Path:   apiStep.HelmValues.Path,
 		}
 	} else if apiStep.Kustomize != nil {
 		step.Kustomize = &Kustomize{
@@ -143,6 +144,7 @@ type HelmValues struct {
 	DefaultValues string `json:"defaultValues"`
 	ReleaseName   string `json:"helmName"`
 	Namespace     string `json:"namespace"`
+	Path          string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
 }
 
 type Kustomize struct {
