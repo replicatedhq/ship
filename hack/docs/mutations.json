@@ -1125,6 +1125,21 @@
     }
   },
   {
+    "path": "properties.lifecycle.properties.v1.items.properties.helmValues",
+    "merge": {
+      "description": "A `helmValues` step displays an editor for the end user to configure helm values. The rendered values are available at `.ship/tmp/values.yaml`",
+      "examples": [
+        {},
+        {
+          "path": "subcharts/consul/values.yaml"
+        }
+      ]
+    },
+    "replace": {
+      "required": []
+    }
+  },
+  {
     "path": "properties.lifecycle.properties.v1.items.properties.terraform",
     "merge": {
       "description": "A `terraform` step will deploy terraform resources.",
@@ -1239,7 +1254,6 @@
     "path": "properties.lifecycle.properties.v1.items.properties",
     "delete": [
       "helmIntro",
-      "helmValues",
       "kubectlApply.properties.StepShared",
       "unfork"
     ]

@@ -58,9 +58,11 @@ type V1Routes struct {
 
 	KustomizeSaved chan interface{}
 	UnforkSaved    chan interface{}
+	Release        *api.Release
 }
 
 func (d *V1Routes) Register(g *gin.RouterGroup, release *api.Release) {
+	d.Release = release
 	v1 := g.Group("/api/v1")
 
 	life := v1.Group("/lifecycle")
@@ -95,6 +97,11 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	defer d.locker(debug)()
 	var request SaveValuesRequest
 
+	step, ok := d.getHelmValuesStepOrAbort(c)
+	if !ok {
+		return
+	}
+
 	debug.Log("event", "request.bind")
 	if err := c.BindJSON(&request); err != nil {
 		level.Error(d.Logger).Log("event", "unmarshal request body failed", "err", err)
@@ -102,14 +109,19 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	}
 
 	debug.Log("event", "validate")
-	if ok := d.validateValuesOrAbort(c, request); !ok {
+	if ok := d.validateValuesOrAbort(c, request, *step); !ok {
 		return
 	}
 
-	chartDefaultValues, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
+	valuesPath := step.Path
+	if valuesPath == "" {
+		valuesPath = path.Join(constants.HelmChartPath, "values.yaml")
+	}
+
+	chartDefaultValues, err := d.Fs.ReadFile(valuesPath)
 	if err != nil {
 
-		level.Error(d.Logger).Log("event", "values.readDefault.fail")
+		level.Error(d.Logger).Log("event", "values.readDefault.fail", "err", err)
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "read file values.yaml"))
 		return
 	}
@@ -139,9 +151,25 @@ func (d *V1Routes) saveHelmValues(c *gin.Context) {
 	c.String(http.StatusOK, "")
 }
 
+func (d *V1Routes) getHelmValuesStepOrAbort(c *gin.Context) (*daemontypes.HelmValues, bool) {
+	// we don't support multiple values steps, but we could support multiple helm
+	// values steps if client sent navcycle/step-id in this request
+	for _, step := range d.Release.Spec.Lifecycle.V1 {
+		if step.HelmValues != nil {
+			return daemontypes.NewStep(step).HelmValues, true
+		}
+	}
+
+	level.Warn(d.Logger).Log("event", "helm values step not found in lifecycle")
+	c.JSON(http.StatusBadRequest, map[string]interface{}{
+		"error": "no helm values step in lifecycle",
+	})
+	return nil, false
+}
+
 // validateValuesOrAbort checks the user-inputted helm values and will abort/bad request
 // if invalid. Returns "false" if the request was aborted
-func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesRequest) (ok bool) {
+func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesRequest, step daemontypes.HelmValues) (ok bool) {
 	debug := level.Debug(log.With(d.Logger, "handler", "validateValuesOrAbort"))
 
 	fail := func(errors []string) bool {
@@ -161,8 +189,13 @@ func (d *V1Routes) validateValuesOrAbort(c *gin.Context, request SaveValuesReque
 		return fail([]string{err.Error()})
 	}
 
+	chartPath := constants.HelmChartPath
+	if step.Path != "" {
+		chartPath = path.Dir(step.Path)
+	}
+
 	// check that template functions like "required" are satisfied
-	linter := support.Linter{ChartDir: constants.HelmChartPath}
+	linter := support.Linter{ChartDir: chartPath}
 	rules.Templates(&linter, []byte(request.Values), "", false)
 	if len(linter.Messages) > 0 {
 		var formattedErrors []string

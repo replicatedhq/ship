@@ -107,7 +107,11 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		releaseName := currentState.CurrentReleaseName()
 		namespace := currentState.CurrentNamespace()
 
-		valuesFileContents, err := d.Fs.ReadFile(path.Join(constants.HelmChartPath, "values.yaml"))
+		valuesPath := step.HelmValues.Path
+		if valuesPath == "" {
+			valuesPath = path.Join(constants.HelmChartPath, "values.yaml")
+		}
+		valuesFileContents, err := d.Fs.ReadFile(valuesPath)
 		if err != nil {
 			return nil, errors.Wrap(err, "read file values.yaml")
 		}

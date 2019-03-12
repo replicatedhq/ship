@@ -17,6 +17,9 @@ var skipFiles = []string{
 	"installer/terraform/.terraform/plugins",
 	"installer/terraform/plan.tfplan",
 	"installer/charts/rendered/secrets.yaml",
+	"installer/base/consul-test.yaml",
+	"installer/base/gossip-secret.yaml",
+	"installer/consul-rendered.yaml",
 }
 
 func skipCheck(filePath string, ignoredFiles []string) bool {
