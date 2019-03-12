@@ -162,7 +162,7 @@ func (d *V1Routes) getHelmValuesStepOrAbort(c *gin.Context) (*daemontypes.HelmVa
 
 	level.Warn(d.Logger).Log("event", "helm values step not found in lifecycle")
 	c.JSON(http.StatusBadRequest, map[string]interface{}{
-		"errors": "no helm values step in lifecycle",
+		"error": "no helm values step in lifecycle",
 	})
 	return nil, false
 }
