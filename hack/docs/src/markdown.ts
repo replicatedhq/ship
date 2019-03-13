@@ -146,7 +146,7 @@ ${yaml.safeDump({[subgroup]: {v1: [{[specType]: example}]}})}${"```"}
 function writeHeader(specTypes: any, specType, subgroup: string) {
   return `---
 categories:
-- ${subgroup}
+- ship-${subgroup}
 date: 2018-01-17T23:51:55Z
 description: ${specTypes[specType].description || ""}
 index: docs
@@ -155,7 +155,7 @@ weight: "100"
 gradient: "purpleToPink"
 ---
 
-[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
+[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle)
 
 ## ${specType}
 

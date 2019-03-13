@@ -1,6 +1,6 @@
 export const ASSETS_INDEX_DOC = `---
 categories:
-- assets
+- ship-assets
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application assets
 index: false
@@ -10,7 +10,7 @@ hideFromList: true
 gradient: "purpleToPink"
 ---
 
-[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
+[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle)
 
 ## Ship Assets
 
@@ -19,7 +19,7 @@ Ship Assets are files rendered during the [render](/api/ship-lifecycle/render) l
 
 export const LIFECYCLE_INDEX_DOC = `---
 categories:
-- lifecycle
+- ship-lifecycle
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application lifecycle
 index: false
@@ -29,7 +29,7 @@ hideFromList: true
 gradient: "purpleToPink"
 ---
 
-[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
+[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle)
 
 ## Ship Lifecycle
 
@@ -39,7 +39,7 @@ Ship lifecycle steps define the steps that a Ship application will proceed throu
 
 export const CONFIG_INDEX_DOC = `---
 categories:
-- config
+- ship-config
 date: 2018-01-17T23:51:55Z
 description: Reference Documentation for defining your Ship application configuration options
 index: docs
@@ -49,7 +49,7 @@ hideFromList: true
 gradient: "purpleToPink"
 ---
 
-[Assets](/reference/assets/overview) | [Config](/reference/config/overview) | [Lifecycle](/reference/lifecycle/overview)
+[Assets](/api/ship-assets/assets) | [Config](/api/ship-config/config) | [Lifecycle](/api/ship-lifecycle/lifecycle)
 
 ## Ship Config
 
