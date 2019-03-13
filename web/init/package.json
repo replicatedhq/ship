@@ -15,6 +15,8 @@
     "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
+    "@babel/runtime": "^7.3.4",
+    "autoprefixer": "^9.4.10",
     "brace": "^0.11.1",
     "history": "^4.7.2",
     "isomorphic-fetch": "^2.2.1",
