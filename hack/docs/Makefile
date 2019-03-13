@@ -68,5 +68,5 @@ copy-replicated-lint:
 
 copy-replicated-lint-gopath:
 	cp schema.json $$GOPATH/src/github.com/replicatedhq/replicated-lint/projects/replicated-ship/
-	make -C $$GOPATH/src/github.com/replicatedhq/replicated-lint/ project-import project=replicated-ship
+	make -C $$GOPATH/src/github.com/replicatedhq/replicated-lint/ project-import PROJECT=replicated-ship
 
