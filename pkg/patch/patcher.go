@@ -2,6 +2,7 @@ package patch
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -232,7 +233,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 				return errors.Wrap(err, "failed to get relative path")
 			}
 
-			if targetPath == resource {
+			if filepath.Clean(targetPath) == filepath.Clean(resource) {
 				tempBaseKustomization.Resources = append(tempBaseKustomization.Resources, relativePath)
 			}
 			return nil
@@ -243,7 +244,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 
 	if len(tempBaseKustomization.Resources) == 0 {
 		level.Error(p.Logger).Log("event", "unable to find", "resource", resource)
-		return errors.New("Temp base directory is empty - base resource not found")
+		return fmt.Errorf("temp base directory is empty - base resource %s not found in %s", resource, step.Base)
 	}
 
 	marshalled, err := yaml.Marshal(tempBaseKustomization)
