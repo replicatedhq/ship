@@ -114,6 +114,22 @@ func testCases() []TestInstallation {
 			Expected: `It's xyz`,
 		},
 		{
+			Name: "license_id",
+			Meta: api.ReleaseMetadata{
+				LicenseID: "myLicenseID",
+			},
+			Tpl:      `It's {{repl Installation "license_id" }}`,
+			Expected: `It's myLicenseID`,
+		},
+		{
+			Name: "app_slug",
+			Meta: api.ReleaseMetadata{
+				AppSlug: "my_app_slug",
+			},
+			Tpl:      `It's {{repl Installation "app_slug" }}`,
+			Expected: `It's my_app_slug`,
+		},
+		{
 			Name: "entitlement value",
 			Meta: api.ReleaseMetadata{
 				Entitlements: api.Entitlements{

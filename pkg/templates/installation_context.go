@@ -52,6 +52,10 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 				return ctx.Meta.InstallationID
 			case "release_notes":
 				return ctx.Meta.ReleaseNotes
+			case "app_slug":
+				return ctx.Meta.AppSlug
+			case "license_id":
+				return ctx.Meta.LicenseID
 			}
 			return ""
 		},
