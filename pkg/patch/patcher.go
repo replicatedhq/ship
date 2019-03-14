@@ -244,7 +244,7 @@ func (p *ShipPatcher) writeTempKustomization(step api.Kustomize, resource string
 
 	if len(tempBaseKustomization.Resources) == 0 {
 		level.Error(p.Logger).Log("event", "unable to find", "resource", resource)
-		return fmt.Errorf("temp base directory is empty - base resource not found in %s", step.Base)
+		return fmt.Errorf("temp base directory is empty - base resource %s not found in %s", resource, step.Base)
 	}
 
 	marshalled, err := yaml.Marshal(tempBaseKustomization)

@@ -6,11 +6,15 @@ import (
 	"path"
 	"testing"
 
+	"github.com/ghodss/yaml"
+	"github.com/go-kit/kit/log"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+	k8stypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
 func TestShipPatcher(t *testing.T) {
@@ -140,3 +144,164 @@ var _ = Describe("ShipPatcher", func() {
 		})
 	})
 })
+
+func TestShipPatcher_writeTempKustomization(t *testing.T) {
+	type testFile struct {
+		path     string
+		contents string
+	}
+	tests := []struct {
+		name                string
+		step                api.Kustomize
+		resource            string
+		testFiles           []testFile
+		expectKustomization k8stypes.Kustomization
+		expectErr           bool
+	}{
+		{
+			name:     "no matching resource",
+			step:     api.Kustomize{Base: "base/"},
+			resource: "./base/file.yaml",
+			testFiles: []testFile{
+				{
+					path: "./base/strawberry.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: strawberry
+    heritage: Tiller
+    chart: strawberry-1.0.0
+  name: strawberry`,
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name:     "matching resource",
+			step:     api.Kustomize{Base: "base/"},
+			resource: "./base/strawberry.yaml",
+			testFiles: []testFile{
+				{
+					path: "base/strawberry.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: strawberry
+    heritage: Tiller
+    chart: strawberry-1.0.0
+  name: strawberry`,
+				},
+			},
+			expectErr: false,
+			expectKustomization: k8stypes.Kustomization{
+				Resources: []string{"strawberry.yaml"},
+			},
+		},
+		{
+			name:     "matching resource, unclean path",
+			step:     api.Kustomize{Base: "base/"},
+			resource: "./base/strawberry.yaml",
+			testFiles: []testFile{
+				{
+					path: "./base/strawberry.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: strawberry
+    heritage: Tiller
+    chart: strawberry-1.0.0
+  name: strawberry`,
+				},
+			},
+			expectErr: false,
+			expectKustomization: k8stypes.Kustomization{
+				Resources: []string{"strawberry.yaml"},
+			},
+		},
+		{
+			name:     "matching resource, unclean path in subdir",
+			step:     api.Kustomize{Base: "base/"},
+			resource: "./base/flowers/rose.yml",
+			testFiles: []testFile{
+				{
+					path: "./base/strawberry.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: strawberry
+    heritage: Tiller
+    chart: strawberry-1.0.0
+  name: strawberry`,
+				},
+				{
+					path: "./base/flowers/rose.yml",
+					contents: `apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rose
+  name: rose`,
+				},
+			},
+			expectErr: false,
+			expectKustomization: k8stypes.Kustomization{
+				Resources: []string{"flowers/rose.yml"},
+			},
+		},
+		{
+			name:     "alternate base",
+			step:     api.Kustomize{Base: "another/base/path/"},
+			resource: "another/base/path/raspberry.yaml",
+			testFiles: []testFile{
+				{
+					path: "another/base/path/raspberry.yaml",
+					contents: `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: raspberry
+  name: raspberry`,
+				},
+			},
+			expectErr: false,
+			expectKustomization: k8stypes.Kustomization{
+				Resources: []string{"raspberry.yaml"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			for _, testFile := range tt.testFiles {
+				err := mockFs.WriteFile(testFile.path, []byte(testFile.contents), 0755)
+				req.NoError(err)
+			}
+			p := &ShipPatcher{
+				Logger: log.NewNopLogger(),
+				FS:     mockFs,
+			}
+
+			err := p.writeTempKustomization(tt.step, tt.resource)
+
+			if !tt.expectErr {
+				req.NoError(err)
+
+				kustomizationB, err := mockFs.ReadFile(path.Join(tt.step.Base, "kustomization.yaml"))
+				req.NoError(err)
+
+				kustomizationYaml := k8stypes.Kustomization{}
+				err = yaml.Unmarshal(kustomizationB, &kustomizationYaml)
+				req.NoError(err)
+				req.Equal(tt.expectKustomization, kustomizationYaml)
+			} else {
+				req.Error(err)
+			}
+		})
+	}
+}
