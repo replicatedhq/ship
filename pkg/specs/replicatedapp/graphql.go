@@ -242,7 +242,7 @@ func (c *GraphQLClient) GetRelease(selector *Selector) (*ShipRelease, error) {
 	}
 
 	ci := callInfo{
-		username: selector.CustomerID,
+		username: selector.GetBasicAuthUsername(),
 		password: selector.InstallationID,
 		request:  requestObj,
 		upstream: selector.Upstream,
@@ -278,6 +278,8 @@ func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*ShipRelease, error)
 	}
 
 	ci := callInfo{
+		username: selector.GetBasicAuthUsername(),
+		password: selector.InstallationID,
 		request:  requestObj,
 		upstream: selector.Upstream,
 	}
