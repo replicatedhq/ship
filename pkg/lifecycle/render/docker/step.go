@@ -116,11 +116,15 @@ func (p *DefaultStep) Execute(
 
 		// first try with registry secret
 		// TODO remove this once registry is updated to read installation ID
+		userName := meta.CustomerID
+		if userName == "" {
+			userName = meta.LicenseID
+		}
 		registrySecretSaveOpts := images.SaveOpts{
 			PullURL:   pullURL,
 			SaveURL:   asset.Image,
 			IsPrivate: asset.Source != "public" && asset.Source != "",
-			Username:  meta.CustomerID,
+			Username:  userName,
 			Password:  meta.RegistrySecret,
 		}
 
