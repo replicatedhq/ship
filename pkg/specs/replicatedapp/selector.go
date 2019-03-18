@@ -71,3 +71,10 @@ func (s *Selector) UnmarshalFrom(url *url.URL) *Selector {
 	}
 	return s
 }
+
+func (s *Selector) GetBasicAuthUsername() string {
+	if s.CustomerID != "" {
+		return s.CustomerID
+	}
+	return s.LicenseID
+}
