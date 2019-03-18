@@ -238,7 +238,7 @@ func (r *resolver) RegisterInstall(ctx context.Context, selector Selector, relea
 
 	debug.Log("phase", "register", "with", "gql", "addr", r.Client.GQLServer.String())
 
-	err := r.Client.RegisterInstall(selector.CustomerID, "", release.Metadata.ChannelID, release.Metadata.ReleaseID)
+	err := r.Client.RegisterInstall(selector.GetBasicAuthUsername(), "", release.Metadata.ChannelID, release.Metadata.ReleaseID)
 	if err != nil {
 		return err
 	}
