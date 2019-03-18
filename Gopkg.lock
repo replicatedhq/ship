@@ -1408,6 +1408,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:75515eedc0dc2cb0b40372008b616fa2841d831c63eedd403285ff286c593295"
+  name = "golang.org/x/sync"
+  packages = ["semaphore"]
+  pruneopts = "UT"
+  revision = "e225da77a7e68af35c70ccbf71af2b83e6acac3c"
+
+[[projects]]
+  branch = "master"
   digest = "1:d756534cd4124a2c7f9b349b2a70a63e53d4e32befae47d6a4bd938a64b92e14"
   name = "golang.org/x/sys"
   packages = [
@@ -1558,7 +1566,7 @@
   version = "v2.2.1"
 
 [[projects]]
-  digest = "1:a218faabd81ea62d514604e97d040b9c6d17ea0bbd5cf9a4e542d2d02f79512f"
+  digest = "1:59f8bed7a7fbb14fb4d57cd578e2f65b1779b11573e7aa7fdba942198bbf8c07"
   name = "k8s.io/api"
   packages = [
     "admission/v1beta1",
@@ -1597,19 +1605,19 @@
     "storage/v1beta1",
   ]
   pruneopts = "UT"
-  revision = "05914d821849570fba9eacfb29466f2d8d3cd229"
-  version = "kubernetes-1.13.1"
+  revision = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
   digest = "1:5c8e30a40644c03c864f2a9e3d32b6346ab05c8cafafd1833954c3957abcb160"
   name = "k8s.io/apiextensions-apiserver"
   packages = ["pkg/features"]
   pruneopts = "UT"
-  revision = "0fe22c71c47604641d9aa352c785b7912c200562"
-  version = "kubernetes-1.13.1"
+  revision = "d002e88f6236312f0289d9d1deab106751718ff0"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
-  digest = "1:6489d76eab90e477f61eb30186098b5d2e45acd08cefdfdc4988e30c3752ff30"
+  digest = "1:13263fc157caba1744dc741a9126b18bf1f5484e195332ff2bc0c042c2a5ef83"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/equality",
@@ -1666,8 +1674,8 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "2b1284ed4c93a43499e781493253e2ac5959c4fd"
-  version = "kubernetes-1.13.1"
+  revision = "86fb29eff6288413d76bd8506874fddd9fccdff0"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
   digest = "1:138928c37ee6ec1be14aec46c97dab5f110ffa7e81828b9d27919df371fd8f62"
@@ -1680,8 +1688,8 @@
     "pkg/util/feature",
   ]
   pruneopts = "UT"
-  revision = "3ccfe8365421eb08e334b195786a2973460741d8"
-  version = "kubernetes-1.13.1"
+  revision = "79427f02047f9189a75b8cdaadccaf65a126853e"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
   digest = "1:63793246976569a95e534c731e79cc555dabee6f8efa29a0b28ca33f23b7e28b"
@@ -1692,11 +1700,11 @@
     "pkg/genericclioptions/resource",
   ]
   pruneopts = "UT"
-  revision = "835b10687cb6556f6b113099ef925146a56d5981"
-  version = "kubernetes-1.13.1"
+  revision = "a9e421a7932607ce4623ff45add8274499cca193"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
-  digest = "1:45c0f06fbe87753ad0bc148ef0a8e0419486f229f75ce7690c3d917e6c0cb415"
+  digest = "1:88bd66ca829dcc334378382426eb13441b180737a53c331fe2fdbb9fb2c79b88"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1778,11 +1786,11 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "8d9ed539ba3134352c586810e749e58df4e94e4f"
-  version = "kubernetes-1.13.1"
+  revision = "b40b2a5939e43f7ffe0028ad67586b7ce50bb675"
+  version = "kubernetes-1.13.4"
 
 [[projects]]
-  digest = "1:8a78d40a28ebb3ae0f0ecc66f6d8633d4630bebeb883c01bb5bb107243cfc1b4"
+  digest = "1:8e424594f21a8febc9a887bf51dc3ac3b03a3d77d4449ddea4197b8fe90fbd14"
   name = "k8s.io/helm"
   packages = [
     "cmd/helm/installer",
@@ -1824,8 +1832,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "eecf22f77df5f65c823aacd2dbd30ae6c65f186e"
-  version = "v2.12.3"
+  revision = "79d07943b03aea2b76c12644b4b54733bc5958d6"
+  version = "v2.13.0"
 
 [[projects]]
   digest = "1:e2999bf1bb6eddc2a6aa03fe5e6629120a53088926520ca3b4765f77d7ff7eab"
@@ -1953,8 +1961,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "cff46ab41ff0bb44d8584413b598ad8360ec1def"
-  version = "v1.13.2"
+  revision = "c27b913fddd1a6c480c229191a087698aa92f0b1"
+  version = "v1.13.4"
 
 [[projects]]
   branch = "master"
@@ -1968,7 +1976,7 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:484c9282492c0d8b7b967e309f24f2035ebc348b247d918b91947813b14b2d73"
+  digest = "1:baee1c50267701e19e15b9d80d8934ce4e4f90db0928296270f7a7818014f6d3"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "k8sdeps",
