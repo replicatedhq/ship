@@ -53,12 +53,12 @@ Ship is designed to provide first-time configuration UI and/or be used headless 
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.35.0/ship_0.35.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.37.0/ship_0.37.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, you can either run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.35.0/ship_0.35.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.37.0/ship_0.37.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - ... or you can install with [Homebrew](https://brew.sh/):
