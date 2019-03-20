@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        chart: consul-3.6.0
+        chart: consul-3.5.3
         component: ship-consul
         heritage: Tiller
         release: ship
