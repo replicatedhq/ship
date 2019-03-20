@@ -43,6 +43,17 @@ query($semver: String) {
         data
       }
     }
+    entitlements {
+      values {
+        key
+        value
+      }
+      meta {
+        customerID
+        lastUpdated
+      }
+      signature
+    }
     created
     registrySecret
   }

@@ -14,7 +14,7 @@ lifecycle:
                 dest: ./installer/consul
                 repo: helm/charts
                 path: stable/consul
-                ref: master
+                ref: 03355d8c6645ca21d1dc7b40402c24d063f223e4
                 strip_path: true
     - helmValues:
         path: installer/consul/values.yaml
