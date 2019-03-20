@@ -139,7 +139,7 @@ spec:
             {{- range .Values.ConsulConfig }}
               -config-dir /etc/consul/userconfig/{{ .name }} \
             {{- end}}
-            {{- if .Values.ui.enabled }}
+            {{- if .Values.uiService.enabled }}
               -ui \
             {{- end }}
             {{- if .Values.DisableHostNodeId }}
