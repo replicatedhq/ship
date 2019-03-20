@@ -42,6 +42,7 @@ func MaybeSplitMultidocYaml(ctx context.Context, fs afero.Afero, localPath strin
 
 		outputFiles := []outputYaml{}
 		filesStrings := strings.Split(string(inFileBytes), "\n---\n")
+		crds := []string{}
 
 		// generate replacement yaml files
 		for idx, fileString := range filesStrings {
@@ -51,14 +52,25 @@ func MaybeSplitMultidocYaml(ctx context.Context, fs afero.Afero, localPath strin
 			thisMetadata := MinimalK8sYaml{}
 			_ = yaml.Unmarshal([]byte(fileString), &thisMetadata)
 
-			if thisMetadata.Kind == "" || thisMetadata.Kind == "CustomResourceDefinition" {
-				// ignore invalid k8s yaml and CRDs
+			if thisMetadata.Kind == "" {
+				// ignore invalid k8s yaml
+				continue
+			}
+
+			if thisMetadata.Kind == "CustomResourceDefinition" {
+				// collate CRDs into one file
+				crds = append(crds, fileString)
 				continue
 			}
 
 			fileName := GenerateNameFromMetadata(thisMetadata, idx)
 			thisOutputFile.name = fileName
 			outputFiles = append(outputFiles, thisOutputFile)
+		}
+
+		if len(crds) > 0 {
+			crdsFile := outputYaml{contents: strings.Join(crds, "\n---\n"), name: "CustomResourceDefinitions"}
+			outputFiles = append(outputFiles, crdsFile)
 		}
 
 		if len(outputFiles) < 2 {

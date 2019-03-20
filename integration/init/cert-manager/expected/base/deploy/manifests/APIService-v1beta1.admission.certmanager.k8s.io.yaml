@@ -1,0 +1,19 @@
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  annotations:
+    certmanager.k8s.io/inject-ca-from: cert-manager/cert-manager-webhook-webhook-tls
+  labels:
+    app: webhook
+    chart: webhook-v0.7.0
+    heritage: Tiller
+    release: cert-manager
+  name: v1beta1.admission.certmanager.k8s.io
+spec:
+  group: admission.certmanager.k8s.io
+  groupPriorityMinimum: 1000
+  service:
+    name: cert-manager-webhook
+    namespace: cert-manager
+  version: v1beta1
+  versionPriority: 15
