@@ -1,9 +1,9 @@
-{{- if .Values.ui.enabled }}
+{{- if .Values.uiService.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: "{{ template "consul.fullname" . }}-ui"
-{{- with .Values.ui.annotations }}
+{{- with .Values.uiService.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
 {{- end }}
@@ -18,5 +18,5 @@ spec:
     port: {{ .Values.HttpPort }}
   selector:
     component: "{{ .Release.Name }}-{{ .Values.Component }}"
-  type: "{{ .Values.ui.type }}"
+  type: "{{ .Values.uiService.type }}"
 {{- end }}
