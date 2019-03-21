@@ -519,7 +519,7 @@ export default class KustomizeOverlay extends React.Component {
                         ref={this.setAceEditor}
                         mode="yaml"
                         theme="chrome"
-                        className="flex1 flex"
+                        className="flex1 flex acePatchEditor"
                         value={trim(patch)}
                         height="100%"
                         width="100%"

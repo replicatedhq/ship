@@ -41,21 +41,21 @@ describe("Ship Init test-charts/modify-chart", () => {
 
   context("kustomize-intro", () => {
     it("allows navigation to the kustomize step", () => {
-      cy.get(".renderActions-wrapper > .btn").click();
+      cy.get(".renderActions-wrapper .btn.primary").click();
       cy.location("pathname").should("eq", "/kustomize");
     });
   });
   context("kustomize", () => {
     context("valid line clicked in editor", () => {
       it("generates a stubbed overlay", () => {
-        cy.get(".u-marginLeft--normal > :nth-child(1)").click();
+        cy.get(".add-resource-link").click();
         cy.get(".file-contents-wrapper > #brace-editor > .ace_scroller > .ace_content > .ace_text-layer > :nth-child(13)").as("replicaKey");
         cy.get("@replicaKey").trigger("mousemove", { force: true });
         cy.get("@replicaKey").click({ force: true });
       });
 
       it("allows the stubbed overlay to be edited", () => {
-        cy.get(".ace_text-input").last().type(
+        cy.get(".acePatchEditor").last().type(
           `10`,
           { force: true }
         )
@@ -66,7 +66,7 @@ describe("Ship Init test-charts/modify-chart", () => {
         });
 
         it("allows navigation to the overlay finalization step", () => {
-          cy.get(".secondary").click();
+          cy.get(".btn.secondary").click();
           cy.location("pathname", {timeout: 5000}).should("eq", "/outro");
         })
       })
