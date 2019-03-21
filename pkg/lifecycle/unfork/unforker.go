@@ -268,6 +268,12 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 				return nil
 			}
 
+			if strings.HasSuffix(info.Name(), "CustomResourceDefinitions.yaml") {
+				// custom resource definitions file - multidoc yaml and not something we support editing currently
+				debug.Log("event", "relativepath.skip", "base", step.ForkedBase, "target", targetPath)
+				return nil
+			}
+
 			relativePath, err := filepath.Rel(step.ForkedBase, targetPath)
 			if err != nil {
 				debug.Log("event", "relativepath.fail", "base", step.ForkedBase, "target", targetPath)

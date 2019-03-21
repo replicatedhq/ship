@@ -1,3 +1,4 @@
 args: ["--prefer-git"]
 upstream: https://github.com/istio/istio/tree/1.0.3/install/kubernetes/helm/istio
 fork: https://github.com/replicatedhq/test-charts/blob/dc51b6517eb333d6ac7cc096c9a058dd278b1cee/istio-forked/rendered.yaml
+skip_cleanup: false

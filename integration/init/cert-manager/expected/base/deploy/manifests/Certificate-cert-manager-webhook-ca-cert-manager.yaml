@@ -1,0 +1,17 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  labels:
+    app: webhook
+    chart: webhook-v0.7.0
+    heritage: Tiller
+    release: cert-manager
+  name: cert-manager-webhook-ca
+  namespace: cert-manager
+spec:
+  commonName: ca.webhook.cert-manager
+  duration: 43800h
+  isCA: true
+  issuerRef:
+    name: cert-manager-webhook-selfsign
+  secretName: cert-manager-webhook-ca

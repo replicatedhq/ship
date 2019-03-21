@@ -1,0 +1,8 @@
+{
+  "v1": {
+    "config": {},
+    "releaseName": "ship",
+    "upstream": "https://github.com/jetstack/cert-manager/blob/208009151b40a0f82e2f27df7e639996b1529868/deploy/manifests/cert-manager.yaml",
+    "contentSHA": "17734bef6ffddfd157722aa1bf0bf56e0457bcd2470cab40900a5bb43554de06"
+  }
+}
