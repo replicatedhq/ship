@@ -67,7 +67,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
         it("allows navigation to the overlay finalization step", () => {
           cy.get(".finalize-btn").click();
-          cy.location("pathname", {timeout: 5000}).should("eq", "/outro");
+          cy.location("pathname", {timeout: 5000}).should("eq", "/complete");
         })
       })
     })
