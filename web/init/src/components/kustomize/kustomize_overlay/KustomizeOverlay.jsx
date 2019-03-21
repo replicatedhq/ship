@@ -444,7 +444,7 @@ export default class KustomizeOverlay extends React.Component {
                   <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
                     <input
                       type="text"
-                      className={`Input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
+                      className={`Input add-resource-name-input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
                       name="new-resource"
                       placeholder="filename.yaml"
                       onChange={(e) => { this.setState({ newResourceName: e.target.value }) }}

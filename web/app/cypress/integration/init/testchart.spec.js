@@ -49,13 +49,14 @@ describe("Ship Init test-charts/modify-chart", () => {
     context("valid line clicked in editor", () => {
       it("generates a stubbed overlay", () => {
         cy.get(".add-resource-link").click();
-        cy.get(".file-contents-wrapper > #brace-editor > .ace_scroller > .ace_content > .ace_text-layer > :nth-child(13)").as("replicaKey");
+        cy.get(".add-resource-name-input").type("test.yaml{enter}", { force: true });
+        cy.get(".file-contents-wrapper > #brace-editor > .ace_scroller > .ace_content > .ace_text-layer > :nth-child(1)").as("replicaKey");
         cy.get("@replicaKey").trigger("mousemove", { force: true });
         cy.get("@replicaKey").click({ force: true });
       });
 
       it("allows the stubbed overlay to be edited", () => {
-        cy.get(".acePatchEditor").last().type(
+        cy.get(".ace_text-input").last().type(
           `10`,
           { force: true }
         )
