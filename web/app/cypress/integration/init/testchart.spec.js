@@ -48,8 +48,7 @@ describe("Ship Init test-charts/modify-chart", () => {
   context("kustomize", () => {
     context("valid line clicked in editor", () => {
       it("generates a stubbed overlay", () => {
-        cy.get(".add-resource-link").click();
-        cy.get(".add-resource-name-input").type("test.yaml{enter}", { force: true });
+        cy.get(".FileTree-wrapper > ul > li").first().click();
         cy.get(".file-contents-wrapper > #brace-editor > .ace_scroller > .ace_content > .ace_text-layer > :nth-child(1)").as("replicaKey");
         cy.get("@replicaKey").trigger("mousemove", { force: true });
         cy.get("@replicaKey").click({ force: true });
@@ -67,7 +66,7 @@ describe("Ship Init test-charts/modify-chart", () => {
         });
 
         it("allows navigation to the overlay finalization step", () => {
-          cy.get(".btn.secondary").click();
+          cy.get(".finalize-btn").click();
           cy.location("pathname", {timeout: 5000}).should("eq", "/outro");
         })
       })
