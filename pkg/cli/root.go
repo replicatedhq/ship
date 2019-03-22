@@ -61,7 +61,7 @@ func RootCmd() *cobra.Command {
 	cmd.PersistentFlags().String("state-from", "file", "type of resource to use when loading/saving state (currently supported values: 'file', 'secret'")
 	cmd.PersistentFlags().String("state-file", "", fmt.Sprintf("path to the state file to read from, defaults to %s", constants.StatePath))
 	cmd.PersistentFlags().String("secret-namespace", "default", "namespace containing the state secret")
-	cmd.PersistentFlags().String("secret-name", "", "name of the secret to laod state from")
+	cmd.PersistentFlags().String("secret-name", "", "name of the secret to load state from")
 	cmd.PersistentFlags().String("secret-key", "", "name of the key in the secret containing state")
 
 	cmd.PersistentFlags().String("upload-assets-to", "", "URL to upload assets to via HTTP PUT request. NOTE: this will cause the entire working directory to be uploaded to the specified URL, use with caution.")
