@@ -18,6 +18,9 @@ lifecycle:
                 strip_path: true
     - helmValues:
         path: installer/consul/values.yaml
+        readme:
+          contents: |
+            # Fake readme :)
     - render:
         root: ./
         assets:

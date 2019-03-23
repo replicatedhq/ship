@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 func TestDeserializeLifecycle(t *testing.T) {
@@ -160,6 +160,26 @@ lifecycle:
 						Invalidates: []string{
 							"render",
 						},
+					},
+				},
+			},
+		},
+		{
+			name: "helm-values-readme",
+			yaml: `
+---
+lifecycle:
+  v1:
+    - helmValues:
+        path: ./consul/values.yaml
+        readme:
+          contents: super dope
+`,
+			expect: Step{
+				HelmValues: &HelmValues{
+					Path: "./consul/values.yaml",
+					Readme: &HelmValuesReadmeSource{
+						Contents: "super dope",
 					},
 				},
 			},

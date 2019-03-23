@@ -145,6 +145,8 @@ type HelmValues struct {
 	ReleaseName   string `json:"helmName"`
 	Namespace     string `json:"namespace"`
 	Path          string `json:"path,omitempty" yaml:"path,omitempty" hcl:"path,omitempty"`
+	// If set, Readme will override the default readme from the /metadata endpoint
+	Readme string `json:"readme,omitempty" yaml:"readme,omitempty" hcl:"readme,omitempty"`
 }
 
 type Kustomize struct {
