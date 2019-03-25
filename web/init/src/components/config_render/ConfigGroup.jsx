@@ -119,6 +119,8 @@ export default class ConfigGroup extends React.Component {
   }
 
   isAtLeastOneItemVisible = () => {
+    const { item } = this.props;
+    if (!item) return false;
     return some(this.props.item.items, (item) => {
       if (!isEmpty(item)) {
         return ConfigService.isVisible(this.props.items, item);
