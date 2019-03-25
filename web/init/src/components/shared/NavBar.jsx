@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import assign from "object-assign";
 import { Link, withRouter } from "react-router-dom";
+import StepNumbers from "./StepNumbers";
 import upperFirst from "lodash/upperFirst";
 import NavItem from "./NavItem";
 // This is hardcoded for now as we're bundling it from `@replicatedhq/ship-init`
@@ -125,7 +126,7 @@ export class NavBar extends React.Component {
   }
 
   render() {
-    const { className, routes } = this.props;
+    const { className, routes, basePath } = this.props;
     const { navDetails, imageLoaded } = this.state;
     const isPathActive = this.isActive(
       typeof window === "object"
@@ -167,14 +168,14 @@ export class NavBar extends React.Component {
       </div>
     );
 
-    const headerName = (
+    const headerName = navDetails && navDetails.icon ? null : (
       <div className="flex-column flex-auto HeaderName-wrapper">
         {navDetails.name && navDetails.name.length ?
           <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">{upperFirst(navDetails.name)}</p>
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--30">{upperFirst(navDetails.name)}</p>
           </div>
           : <div className="flex-column flex1 flex-verticalCenter u-position--relative">
-            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--50">Replicated Ship</p>
+            <p className="u-fontSize--larger u-fontWeight--bold u-color--tundora u-lineHeight--default u-marginRight--30">Replicated Ship</p>
           </div>
         }
       </div>
@@ -183,9 +184,9 @@ export class NavBar extends React.Component {
     return (
       <div className={`NavBarWrapper flex flex-auto ${className || ""}`}>
         <div className="container flex flex1">
-          <div className="flex1 justifyContent--flexStart alignItems--center">
+          <div className="flex1 flex justifyContent--center alignItems--center">
             <div className="flex1 flex">
-              <div className="flex flex-auto">
+              <div className="flex flex-auto metadata-wrapper">
                 {
                   imageLoaded ?
                     (
@@ -202,6 +203,11 @@ export class NavBar extends React.Component {
                   </div>
                 }
               </div>
+              {this.props.hideSteps ? null :
+                <div className="flex flex1">
+                  <StepNumbers basePath={basePath} steps={routes} inNav={true} />
+                </div>
+              }
               {this.props.hideLinks ? null :
                 <div className="flex flex1 justifyContent--flexEnd right-items">
                   <div className="flex flex-auto alignItems--center">

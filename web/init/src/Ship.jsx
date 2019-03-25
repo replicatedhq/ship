@@ -16,6 +16,8 @@ export class Ship extends React.Component {
     basePath: PropTypes.string,
     /** Determines whether default header is displayed */
     headerEnabled: PropTypes.bool,
+    /** Determines whether steps are displayed below navbar or in navbar */
+    stepsEnabled: PropTypes.bool,
     /** Parent history needed to sync Ship routing with parent<br>Note: Defaults to instantiate own internal BrowserRouter if omitted. */
     history: PropTypes.object,
     /** Callback function to be invoked at the finalization of the Ship Init flow */
@@ -25,7 +27,8 @@ export class Ship extends React.Component {
   static defaultProps = {
     basePath: "",
     history: createBrowserHistory(),
-    headerEnabled: false
+    headerEnabled: false,
+    stepsEnabled: false
   }
 
   constructor(props) {
@@ -48,7 +51,7 @@ export class Ship extends React.Component {
   }
 
   render() {
-    const { history, headerEnabled, basePath, onCompletion } = this.props;
+    const { history, headerEnabled, stepsEnabled, basePath, onCompletion } = this.props;
     const { store } = this.state;
 
     return (
@@ -57,6 +60,7 @@ export class Ship extends React.Component {
           <AppWrapper>
             <RouteDecider
               headerEnabled={headerEnabled}
+              stepsEnabled={stepsEnabled}
               basePath={basePath}
               history={history}
               onCompletion={onCompletion}

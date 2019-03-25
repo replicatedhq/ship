@@ -123,16 +123,16 @@ export class StepTerraform extends React.Component {
     } = this.parseStatus();
 
     return (
-      <div className="flex1 flex flex-column justifyContent--center">
+      <div className="flex1 flex-column justifyContent--center">
         {status === "working" ?
-          <div className="flex flex1 flex-column u-paddingTop--30 justifyContent--center">
+          <div className="flex1 flex-column u-paddingTop--30 justifyContent--center">
             <div className="flex justifyContent--center">
               <Loader size="60" />
             </div>
             {isJSON ?
-              <div className="flex flex-column">
+              <div className="flex-column">
                 {!progressDetail ? null :
-                  <div className="flex flex1 flex-column">
+                  <div className="flex1 flex-column">
                     <div className="u-marginTop--20">
                       <div className="progressBar-wrapper">
                         <Line percent={percent} strokeWidth="1" strokeColor="#337AB7" />
@@ -141,7 +141,7 @@ export class StepTerraform extends React.Component {
                   </div>
                 }
                 {!message ? null :
-                  <StepMessage message={message} />
+                  <StepMessage goBack={this.props.goBack} firstRoute={this.props.firstRoute} message={message} />
                 }
               </div>
               :
@@ -154,12 +154,14 @@ export class StepTerraform extends React.Component {
             message={message}
             actions={actions}
             handleAction={this.handleAction}
+            goBack={this.props.goBack}
+            firstRoute={this.props.firstRoute}
             setLogsRef={this.setLogsRef}
           />
           : null
         }
         {status === "error" ?
-          <div className="Error--wrapper flex flex-column alignItems--center">
+          <div className="Error--wrapper flex-column alignItems--center">
             <div className="icon progress-detail-error"></div>
             <p className="u-fontSizer--larger u-color--tundora u-lineHeight--normal u-fontWeight--bold u-marginTop--normal u-textAlign--center">{message}</p>
           </div>

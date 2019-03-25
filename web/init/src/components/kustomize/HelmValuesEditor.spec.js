@@ -30,7 +30,7 @@ describe("HelmValuesEditor", () => {
         await wrapper.instance().handleSaveValues(true);
 
         expect(mockSaveValues.mock.calls).toHaveLength(1);
-        const elements = wrapper.find("button");
+        const elements = wrapper.find("button.hv-save");
         expect(elements).toHaveLength(2);
         elements.forEach((element) => {
           expect(element.prop("disabled")).toEqual(false);
@@ -55,9 +55,9 @@ describe("HelmValuesEditor", () => {
         await wrapper.instance().handleSaveValues(false);
 
         expect(mockSaveValues.mock.calls).toHaveLength(1);
-        const elements = wrapper.find("button");
+        const elements = wrapper.find("button.hv-save");
         expect(elements).toHaveLength(2);
-        elements.forEach((element) => {
+        elements.forEach((element, i) => {
           expect(element.prop("disabled")).toEqual(false);
         });
       });
