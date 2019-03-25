@@ -4,12 +4,13 @@ import get from "lodash/get";
 
 export default class Linter extends React.Component {
 
-  constructor() {
-    super();
-    this.state = {
-      showHelp: false,
-      showPreview: true
-    };
+  constructor(props) {
+    super(props);
+
+    // if there's a readme, default to readme tab. Else default to linter results.
+    const showHelp = !this.props.readme;
+    const showPreview = !showHelp;
+    this.state = { showHelp, showPreview };
   }
 
   maybeLineNumber = (error) => {

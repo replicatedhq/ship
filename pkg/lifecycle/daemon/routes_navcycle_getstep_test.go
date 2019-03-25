@@ -473,6 +473,84 @@ func TestHydrateStep(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "helm values readme",
+			step: api.Step{
+				HelmValues: &api.HelmValues{
+					StepShared: api.StepShared{
+						ID: "bar",
+					},
+					Path: "consul/values.yaml",
+					Readme: &api.HelmValuesReadmeSource{
+						Contents: "## the-readme",
+					},
+				},
+			},
+			release: &api.Release{
+				Metadata: api.ReleaseMetadata{
+					CustomerID: "12345",
+				},
+				Spec: api.Spec{},
+			},
+			state: state2.VersionedState{
+				V1: &state2.V1{
+					HelmValues:         "fake: values",
+					ReleaseName:        "fake-releasename",
+					Namespace:          "fake-namespace",
+					HelmValuesDefaults: "fake: defaults",
+				},
+			},
+			fs: map[string]string{
+				"consul/values.yaml": "fake: values-fs",
+			},
+			want: &daemontypes.StepResponse{
+				CurrentStep: daemontypes.Step{
+					Source: api.Step{
+						HelmValues: &api.HelmValues{
+							StepShared: api.StepShared{
+								ID: "bar",
+							},
+							Path: "consul/values.yaml",
+
+							Readme: &api.HelmValuesReadmeSource{
+								Contents: "## the-readme",
+							},
+						},
+					},
+					HelmValues: &daemontypes.HelmValues{
+						Values:        "fake: values\n",
+						DefaultValues: "fake: values-fs",
+						ReleaseName:   "fake-releasename",
+						Namespace:     "fake-namespace",
+						Path:          "consul/values.yaml",
+						Readme:        "## the-readme",
+					},
+				},
+				Phase: "helm-values",
+				Actions: []daemontypes.Action{
+					{
+						ButtonType:  "primary",
+						Text:        "Saving",
+						LoadingText: "Save",
+						OnClick: daemontypes.ActionRequest{
+							URI:    fmt.Sprintf("/helm-values"),
+							Method: "POST",
+							Body:   "",
+						},
+					},
+					{
+						ButtonType:  "popover",
+						Text:        "Save & Continue",
+						LoadingText: "Saving",
+						OnClick: daemontypes.ActionRequest{
+							URI:    fmt.Sprintf("/navcycle/step/%s", "bar"),
+							Method: "POST",
+							Body:   "",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -488,6 +566,11 @@ func TestHydrateStep(t *testing.T) {
 			if test.state != nil {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
+			}
+
+			for fn, file := range test.fs {
+				err := mockFs.WriteFile(fn, []byte(file), 0644)
+				req.NoError(err)
 			}
 
 			v2 := &NavcycleRoutes{

@@ -126,6 +126,11 @@ func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepRe
 		step.HelmValues.DefaultValues = vendorValues
 		step.HelmValues.ReleaseName = releaseName
 		step.HelmValues.Namespace = namespace
+
+		if step.Source.HelmValues.Readme != nil {
+			// someday we can support files, etc
+			step.HelmValues.Readme = step.Source.HelmValues.Readme.Contents
+		}
 	}
 
 	result := &daemontypes.StepResponse{

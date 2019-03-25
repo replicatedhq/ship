@@ -238,7 +238,7 @@ export default class HelmValuesEditor extends React.Component {
                 />
               </div>
               <div className={`flex-auto flex-column console-wrapper u-width--third ${!this.state.showConsole ? "visible" : ""}`}>
-                <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={readme} />
+                <Linter errors={this.state.specErrors} spec={values} previewEnabled={true} readme={this.props.getStep.readme || readme} />
               </div>
             </div>
           </div>
