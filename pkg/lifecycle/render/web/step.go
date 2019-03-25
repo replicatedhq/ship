@@ -77,6 +77,10 @@ func (p *DefaultStep) Execute(
 	return func(ctx context.Context) error {
 		debug.Log("event", "execute")
 
+		if p.Viper.GetBool("no-web") {
+			return errors.New("web assets are disabled when no-web is set")
+		}
+
 		built, err := p.buildAsset(asset, meta, configGroups, templateContext)
 		if err != nil {
 			debug.Log("event", "build.fail", "err", err)
