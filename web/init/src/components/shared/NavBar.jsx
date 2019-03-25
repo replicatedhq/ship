@@ -186,7 +186,7 @@ export class NavBar extends React.Component {
         <div className="container flex flex1">
           <div className="flex1 flex justifyContent--center alignItems--center">
             <div className="flex1 flex">
-              <div className="flex flex-auto mteadata-wrapper">
+              <div className="flex flex-auto metadata-wrapper">
                 {
                   imageLoaded ?
                     (
