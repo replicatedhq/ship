@@ -56,7 +56,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
       it("allows the stubbed overlay to be edited", () => {
         cy.get(".ace_text-input").last().type(
-          `10`,
+          `{end}{backspace}2`,
           { force: true }
         )
       });
