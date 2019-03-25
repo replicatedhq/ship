@@ -24,6 +24,9 @@ const mockKustomizeIntroProps = {
   ],
   finalizeStep: jest.fn(),
   pollContentForStep: mockPollContentForStep,
+  history: {
+    goBack: jest.fn()
+  },
   currentRoute: {
     id: "mockKustomizeIntroId",
   },

@@ -184,7 +184,7 @@ export default class HelmValuesEditor extends React.Component {
       readme,
       name
     } = this.props.shipAppMetadata;
-
+    const { firstRoute, goBack } = this.props;
     return (
       <ErrorBoundary>
         <div className="flex-column flex1 HelmValues--wrapper u-paddingTop--30">
@@ -242,22 +242,27 @@ export default class HelmValuesEditor extends React.Component {
               </div>
             </div>
           </div>
-          <div className="actions-wrapper container u-width--full flex flex-auto justifyContent--flexEnd">
-            <div className="flex-column flex-verticalCenter">
-              {helmLintErrors.length ?
-                <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
-                : null}
-              {savedYaml ?
-                <p className="u-color--vidaLoca u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">Values saved</p>
-                : null}
-            </div>
-            <div className="flex flex-auto alignItems--center">
+          <div className="actions-wrapper container u-width--full flex flex-auto">
+            {firstRoute ? null :
+              <div className="flex-auto u-marginRight--normal">
+                <button className="btn secondary" onClick={() => goBack()}>Back</button>
+              </div>
+            }
+            <div className="flex flex1 alignItems--center justifyContent--flexEnd">
               {initialSpecValue === specValue && initialHelmReleaseName === helmReleaseName && helmNamespace === initialHelmNamespace ?
                 <button className="btn primary" onClick={() => { this.handleSkip() }}>Continue</button>
                 :
                 <div className="flex">
-                  <button className="btn primary u-marginRight--normal" onClick={() => this.handleSaveValues(false)} disabled={saving || saveFinal}>{saving ? "Saving" : "Save values"}</button>
-                  <button className="btn secondary" onClick={() => this.handleSaveValues(true)} disabled={saving || saveFinal}>{saveFinal ? "Saving values" : "Save & continue"}</button>
+                  <div className="flex1 flex-column flex-verticalCenter">
+                    {helmLintErrors.length ?
+                      <p className="u-color--chestnut u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">{helmLintErrors.join("\n")}</p>
+                    : null}
+                    {savedYaml ?
+                      <p className="u-color--vidaLoca u-fontSize--small u-fontWeight--medium u-marginRight--normal u-lineHeight--normal">Values saved</p>
+                    : null}
+                  </div>
+                  <button className="btn primary hv-save u-marginRight--normal" onClick={() => this.handleSaveValues(false)} disabled={saving || saveFinal}>{saving ? "Saving" : "Save values"}</button>
+                  <button className="btn secondary hv-save" onClick={() => this.handleSaveValues(true)} disabled={saving || saveFinal}>{saveFinal ? "Saving values" : "Save & continue"}</button>
                 </div>
               }
             </div>

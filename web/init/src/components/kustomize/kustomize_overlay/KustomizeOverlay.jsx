@@ -396,7 +396,7 @@ export default class KustomizeOverlay extends React.Component {
   }
 
   render() {
-    const { dataLoading, modified } = this.props;
+    const { dataLoading, modified, firstRoute, goBack } = this.props;
     const {
       fileTree,
       selectedFile,
@@ -444,7 +444,7 @@ export default class KustomizeOverlay extends React.Component {
                   <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
                     <input
                       type="text"
-                      className={`Input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
+                      className={`Input add-resource-name-input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
                       name="new-resource"
                       placeholder="filename.yaml"
                       onChange={(e) => { this.setState({ newResourceName: e.target.value }) }}
@@ -519,7 +519,7 @@ export default class KustomizeOverlay extends React.Component {
                         ref={this.setAceEditor}
                         mode="yaml"
                         theme="chrome"
-                        className="flex1 flex"
+                        className="flex1 flex acePatchEditor"
                         value={trim(patch)}
                         height="100%"
                         width="100%"
@@ -556,8 +556,15 @@ export default class KustomizeOverlay extends React.Component {
                 : null}
 
               <div className="flex-auto flex layout-footer-actions less-padding">
-                <div className="flex-column flex-verticalCenter">
-                  <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                <div className="flex flex1">
+                  {firstRoute ? null :
+                    <div className="flex-auto u-marginRight--normal">
+                      <button className="btn secondary" onClick={() => goBack()}>Back</button>
+                    </div>
+                  }
+                  <div className="flex-column flex-verticalCenter">
+                    <p className="u-margin--none u-marginRight--30 u-fontSize--small u-color--dustyGray u-fontWeight--normal">Contributed by <a target="_blank" rel="noopener noreferrer" href="https://replicated.com" className="u-fontWeight--medium u-color--astral u-textDecoration--underlineOnHover">Replicated</a></p>
+                  </div>
                 </div>
                 <div className="flex1 flex alignItems--center justifyContent--flexEnd">
                   {selectedFile === "" ?
@@ -566,11 +573,11 @@ export default class KustomizeOverlay extends React.Component {
                     <div className="flex">
                       {applyPatchErr && <span className="flex flex1 u-fontSize--small u-fontWeight--medium u-color--chestnut u-marginRight--20 alignItems--center">{ applyPatchErrorMessage }</span>}
                       {savePatchErr && <span className="flex flex1 u-fontSize--small u-fontWeight--medium u-color--chestnut u-marginRight--20 alignItems--center">{ savePatchErrorMessage }</span>}
-                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch" : "Save patch"}</button>
+                      <button type="button" disabled={dataLoading.saveKustomizeLoading || patch === "" || savingFinalize} onClick={() => this.handleKustomizeSave(false)} className="btn primary save-btn u-marginRight--normal">{dataLoading.saveKustomizeLoading && !savingFinalize ? "Saving patch" : "Save patch"}</button>
                       {patch === "" ?
                         <button type="button" onClick={this.props.skipKustomize} className="btn primary">Continue</button>
                         :
-                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary">{savingFinalize ? "Finalizing overlay" : "Save & continue"}</button>
+                        <button type="button" disabled={dataLoading.saveKustomizeLoading || savingFinalize} onClick={() => this.handleKustomizeSave(true)} className="btn secondary finalize-btn">{savingFinalize ? "Finalizing overlay" : "Save & continue"}</button>
                       }
                     </div>
                   }

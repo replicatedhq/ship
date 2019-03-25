@@ -50,7 +50,6 @@ export class StepBuildingAssets extends React.Component {
     const { status = {} } = this.props;
     const isJSON = status.type === "json";
     const parsed = isJSON ? JSON.parse(status.detail) : {};
-    console.log(parsed);
 
     const message = parsed.message ? parsed.message : "";
     const isError = parsed && parsed.status === "error";

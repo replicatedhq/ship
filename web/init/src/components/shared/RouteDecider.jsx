@@ -14,7 +14,7 @@ const isRootPath = (basePath) => {
   return window.location.pathname === formattedBasePath
 }
 
-const ShipRoutesWrapper = ({ routes, headerEnabled, basePath, onCompletion }) => (
+const ShipRoutesWrapper = ({ routes, headerEnabled, stepsEnabled, basePath, onCompletion }) => (
   <div className="flex-column flex1">
     <div className="flex-column flex1 u-overflow--hidden u-position--relative">
       {!routes ?
@@ -23,8 +23,8 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, basePath, onCompletion }) =>
         </div>
         :
         <div className="u-minHeight--full u-minWidth--full flex-column flex1">
-          {headerEnabled && <NavBar hideLinks={true} routes={routes} basePath={basePath} />}
-          <StepNumbers basePath={basePath} steps={routes} />
+          {headerEnabled && <NavBar hideLinks={true} hideSteps={stepsEnabled} routes={routes} basePath={basePath} />}
+          {stepsEnabled && <StepNumbers basePath={basePath} steps={routes} />}
           <div className="flex-1-auto flex-column u-overflow--auto">
             <Switch>
               {routes && routes.map((route) => (
@@ -62,6 +62,7 @@ export default class RouteDecider extends React.Component {
     ),
     basePath: PropTypes.string.isRequired,
     headerEnabled: PropTypes.bool.isRequired,
+    stepsEnabled: PropTypes.bool.isRequired,
     history: PropTypes.object.isRequired,
     /** Callback function to be invoked at the finalization of the Ship Init flow */
     onCompletion: PropTypes.func,
@@ -98,12 +99,14 @@ export default class RouteDecider extends React.Component {
       basePath,
       history,
       headerEnabled,
+      stepsEnabled,
       onCompletion,
     } = this.props;
     const routeProps = {
       routes,
       basePath,
       headerEnabled,
+      stepsEnabled,
       onCompletion,
     }
     return (

@@ -33,6 +33,10 @@
   height: 34px;
 }
 
+.mteadata-wrapper {
+  position: relative;
+}
+
 /* Nav Items */
 
 .NavItem {
@@ -108,5 +112,8 @@
 
 /* ≥ 1024px */
 @media screen and (min-width: 64em) {
-
+  .mteadata-wrapper {
+    position: absolute;
+    top: 0;
+  }
 }
