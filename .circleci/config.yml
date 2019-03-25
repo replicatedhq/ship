@@ -492,7 +492,7 @@ jobs:
             fi
       # todo drop a release-api message to bump a version in the DB
 
-  is_upstream_master:
+  is_upstream:
     docker:
       - image: circleci/golang:1.10
     working_directory: /go/src/github.com/replicatedhq/ship
@@ -501,10 +501,6 @@ jobs:
           set -veuo pipefail
           if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
             echo "refusing to build fork \"${CIRCLE_PROJECT_USERNAME}\""
-            exit 1
-          fi
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "refusing to build branch \"${CIRCLE_BRANCH}\""
             exit 1
           fi
 
@@ -543,7 +539,7 @@ workflows:
       - integration_update
       - ui
 
-      - is_upstream_master:
+      - is_upstream:
           filters:
             branches:
               only: /master/
@@ -556,7 +552,7 @@ workflows:
             - e2e_setup
             - e2e_init
             - ui
-            - is_upstream_master
+            - is_upstream
           filters:
             branches:
               only: /master/
@@ -574,7 +570,7 @@ workflows:
             - integration_init_app
             - integration_update
             - ui
-            - is_upstream_master
+            - is_upstream
           filters:
             branches:
               only: /master/
@@ -688,7 +684,7 @@ workflows:
             branches:
               ignore: /.*/
 
-      - is_upstream_master:
+      - is_upstream:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
@@ -709,7 +705,7 @@ workflows:
             - integration_update
             - ui
             - docs
-            - is_upstream_master
+            - is_upstream
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
