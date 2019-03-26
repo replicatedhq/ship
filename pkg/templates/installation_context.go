@@ -16,24 +16,26 @@ type InstallationContext struct {
 	Logger log.Logger
 }
 
+func (ctx *InstallationContext) entitlementValue(name string) string {
+	if ctx.Meta.Entitlements.Values == nil {
+		level.Debug(ctx.Logger).Log("event", "EntitlementValue.empty")
+		return ""
+	}
+
+	for _, value := range ctx.Meta.Entitlements.Values {
+		if value.Key == name {
+			return value.Value
+		}
+	}
+
+	level.Debug(ctx.Logger).Log("event", "EntitlementValue.notFound", "key", name, "values.count", len(ctx.Meta.Entitlements.Values))
+	return ""
+}
+
 func (ctx *InstallationContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"EntitlementValue": func(name string) string {
-			if ctx.Meta.Entitlements.Values == nil {
-				level.Debug(ctx.Logger).Log("event", "EntitlementValue.empty")
-				return ""
-			}
-
-			for _, value := range ctx.Meta.Entitlements.Values {
-				if value.Key == name {
-					return value.Value
-				}
-			}
-
-			level.Debug(ctx.Logger).Log("event", "EntitlementValue.notFound", "key", name, "values.count", len(ctx.Meta.Entitlements.Values))
-			return ""
-		},
-
+		"EntitlementValue":  ctx.entitlementValue,
+		"LicenseFieldValue": ctx.entitlementValue,
 		"Installation": func(name string) string {
 			switch name {
 			case "state_file_path":
@@ -49,13 +51,22 @@ func (ctx *InstallationContext) FuncMap() template.FuncMap {
 			case "release_id":
 				return ctx.Meta.ReleaseID
 			case "installation_id":
-				return ctx.Meta.InstallationID
+				if ctx.Meta.InstallationID != "" {
+					// don't warn here, installation_id warnings should happen higher up, closer to the CLI/UX part of the stack
+					return ctx.Meta.InstallationID
+				}
+				level.Warn(ctx.Logger).Log("warning", "template function installation_id is deprecated, please switch to license_id")
+				return ctx.Meta.LicenseID
 			case "release_notes":
 				return ctx.Meta.ReleaseNotes
 			case "app_slug":
 				return ctx.Meta.AppSlug
 			case "license_id":
-				return ctx.Meta.LicenseID
+				if ctx.Meta.LicenseID != "" {
+					return ctx.Meta.LicenseID
+				}
+				level.Warn(ctx.Logger).Log("warning", "license_id not set, falling back to deprecated installation_id")
+				return ctx.Meta.InstallationID
 			}
 			return ""
 		},
