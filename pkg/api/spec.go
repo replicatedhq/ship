@@ -103,6 +103,10 @@ func (r ReleaseMetadata) ReleaseName() string {
 		releaseName = r.ShipAppMetadata.Name
 	}
 
+	if releaseName == "" && r.AppSlug != "" {
+		releaseName = r.AppSlug
+	}
+
 	if len(releaseName) == 0 {
 		return "ship"
 	}
