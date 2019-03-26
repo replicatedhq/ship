@@ -114,11 +114,27 @@ func testCases() []TestInstallation {
 			Expected: `It's xyz`,
 		},
 		{
+			Name: "installation_id == license_id",
+			Meta: api.ReleaseMetadata{
+				InstallationID: "xyz",
+			},
+			Tpl:      `It's {{repl Installation "license_id" }}`,
+			Expected: `It's xyz`,
+		},
+		{
 			Name: "license_id",
 			Meta: api.ReleaseMetadata{
 				LicenseID: "myLicenseID",
 			},
 			Tpl:      `It's {{repl Installation "license_id" }}`,
+			Expected: `It's myLicenseID`,
+		},
+		{
+			Name: "license_id == installation_id",
+			Meta: api.ReleaseMetadata{
+				LicenseID: "myLicenseID",
+			},
+			Tpl:      `It's {{repl Installation "installation_id" }}`,
 			Expected: `It's myLicenseID`,
 		},
 		{
@@ -141,6 +157,20 @@ func testCases() []TestInstallation {
 					},
 				}},
 			Tpl:      `You get {{repl EntitlementValue "num_seats" }} seats`,
+			Expected: `You get 3 seats`,
+		},
+		{
+			Name: "entitlement value == license field value",
+			Meta: api.ReleaseMetadata{
+				Entitlements: api.Entitlements{
+					Values: []api.EntitlementValue{
+						{
+							Key:   "num_seats",
+							Value: "3",
+						},
+					},
+				}},
+			Tpl:      `You get {{repl LicenseFieldValue "num_seats" }} seats`,
 			Expected: `You get 3 seats`,
 		},
 		{
