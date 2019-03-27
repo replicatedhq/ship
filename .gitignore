@@ -22,3 +22,6 @@ web/.state/
 cmd/ship/.ship
 cmd/ship/base
 cmd/ship/overlays
+
+# local circle builds
+altconfig.yaml
