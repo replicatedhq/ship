@@ -2,9 +2,11 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -144,6 +146,14 @@ func (p *DefaultStep) Execute(
 
 		debug.Log("event", "execute.fail.withRegistrySecret", "err", saveError)
 		debug.Log("event", "execute.try.withInstallationID")
+
+		if strings.Contains(saveError.Error(), "not found") {
+			return errors.Wrap(saveError, "pull with RegistrySecret")
+		}
+
+		if meta.CustomerID == "" {
+			return fmt.Errorf("exhausted all authentication methods for %s", pullURL)
+		}
 
 		// next try with installationID for password
 		installationIDSaveOpts := images.SaveOpts{
