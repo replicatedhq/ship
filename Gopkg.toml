@@ -138,3 +138,7 @@ ignored = [
 [[override]]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
+
+[[override]]
+  name = "github.com/google/certificate-transparency-go"
+  version = "v1.0.21"

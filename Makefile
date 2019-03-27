@@ -282,6 +282,14 @@ bin/ship: $(FULLSRC)
 		./cmd/ship
 	@echo built bin/ship
 
+bin/ship.exe: $(SRC)
+	GOOS=windows go build \
+		${LDFLAGS} \
+		-i \
+		-o bin/ship.exe \
+		./cmd/ship
+	@echo built bin/ship
+
 # tests base "ship" cli
 integration-test:
 	ginkgo -p -stream -r integration

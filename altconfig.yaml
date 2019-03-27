@@ -1,0 +1,1448 @@
+version: 2
+jobs:
+  deploy:
+    docker:
+    - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - setup_remote_docker
+    - attach_workspace:
+        at: /go/src/github.com/replicatedhq
+    - run:
+        command: make build-deps ci-embed-ui
+    - run:
+        command: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
+    - run:
+        command: docker pull alpine:latest
+    - deploy:
+        command: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+             docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+             curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+
+             # build terraform/eks enabled version.  TODO semver, for now just expose latest
+             docker pull replicated/ship:slim # this should be a no-op since we just built it, but just in case
+             docker build -t replicated/ship:full -f deploy/Dockerfile-full deploy
+             docker push replicated/ship:full
+
+          fi
+  build_web_init:
+    docker:
+    - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-web-init-deps-{{ checksum "web/init/yarn.lock" }}
+        - ship-web-init-deps-
+    - restore_cache:
+        keys:
+        - ship-web-init-build-cache
+    - run:
+        name: Install Dependencies
+        working_directory: ~/ship/web/init
+        command: yarn install
+    - run:
+        name: Build
+        working_directory: ~/ship/web/init
+        command: yarn build
+    - save_cache:
+        paths:
+        - ~/.cache/yarn
+        - web/init/node_modules
+        key: ship-web-init-deps-{{ checksum "web/init/yarn.lock" }}
+    - save_cache:
+        paths:
+        - web/init/node_modules/.cache
+        key: ship-web-init-build-cache-{{ epoch }}
+    - persist_to_workspace:
+        root: ~/
+        paths:
+        - ship/web/init/dist
+        - ship/web/init/package.json
+  ui:
+    docker:
+    - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-ui-test-deps-{{ checksum "web/init/yarn.lock" }}
+        - ship-ui-test-deps-
+    - run:
+        name: Install Dependencies
+        working_directory: ~/ship/web/init
+        command: yarn install
+    - run:
+        name: Test
+        working_directory: ~/ship/web/init
+        command: yarn test
+    - save_cache:
+        paths:
+        - ~/.cache/yarn
+        - web/init/node_modules
+        key: ship-ui-test-deps-{{ checksum "web/init/yarn.lock" }}
+  integration_init:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+    - GOPATH: /home/circleci/go
+    - GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+    - GO: /usr/local/go/bin/go
+    - GOCACHE: /tmp/go/cache
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-integration-test-build-cache-init
+    - run:
+        command: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+    - run:
+        command: $GO get github.com/onsi/ginkgo/ginkgo
+    - run:
+        command: $GO get github.com/docker/distribution/cmd/registry
+    - run:
+        command: sudo ./hack/get_run_deps.sh
+    - run:
+        command: sudo mkdir -p /var/lib/registry
+    - run:
+        command: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream integration/init
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-integration-test-build-cache-init-{{ epoch }}
+  is_upstream:
+    docker:
+    - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - run:
+        command: |
+          set -veuo pipefail
+          if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
+            echo "refusing to build fork \"${CIRCLE_PROJECT_USERNAME}\""
+            exit 1
+          fi
+  deploy_integration:
+    docker:
+    - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        command: make build_ship_integration_test
+    - run:
+        command: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN -e SHIP_INTEGRATION_VENDOR_CUSTOMER
+          -e GITHUB_TOKEN --net="host" -it -v /var/run/docker.sock:/var/run/docker.sock
+          replicated/ship-e2e-test:latest
+    - deploy:
+        command: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+            docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+            docker push replicated/ship-e2e-test:latest
+          fi
+  build_web_app:
+    docker:
+    - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+    - checkout
+    - attach_workspace:
+        at: ~/
+    - restore_cache:
+        keys:
+        - ship-web-app-deps-{{ checksum "web/app/yarn.lock" }}
+        - ship-web-app-deps-
+    - restore_cache:
+        keys:
+        - ship-web-app-build-cache
+    - run:
+        name: Install Dependencies
+        working_directory: ~/ship/web/app
+        command: CYPRESS_INSTALL_BINARY=0 yarn install
+    - run:
+        name: Build
+        working_directory: ~/ship/web/app
+        command: yarn build
+    - save_cache:
+        paths:
+        - ~/.cache/yarn
+        - web/app/node_modules
+        key: ship-web-app-deps-{{ checksum "web/app/yarn.lock" }}
+    - save_cache:
+        paths:
+        - web/app/node_modules/.cache
+        key: ship-web-app-build-cache-{{ epoch }}
+    - persist_to_workspace:
+        root: ~/
+        paths:
+        - ship/web/app/build
+  deploy_unstable:
+    docker:
+    - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - setup_remote_docker
+    - attach_workspace:
+        at: /go/src/github.com/replicatedhq
+    - run:
+        command: make build-deps ci-embed-ui
+    - run:
+        command: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
+    - run:
+        command: docker pull alpine:latest
+    - deploy:
+        command: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+            curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
+            docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
+            docker push replicated/ship:alpha
+
+            # build terraform/eks enabled version
+            docker build --build-arg=source_tag=alpha-slim -t replicated/ship:alpha-full -f deploy/Dockerfile-full deploy
+            docker push replicated/ship:alpha-full
+          fi
+  e2e_init:
+    docker:
+    - image: cypress/browsers:chrome67
+    working_directory: ~/ship
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-e2e-setup-cy-3.1.0
+    - attach_workspace:
+        at: ~/
+    - run:
+        name: Run Tests
+        command: make cypress_base
+  integration_update:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+    - GOPATH: /home/circleci/go
+    - GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+    - GO: /usr/local/go/bin/go
+    - GOCACHE: /tmp/go/cache
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-integration-test-build-cache-update
+    - run:
+        command: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+    - run:
+        command: $GO get github.com/onsi/ginkgo/ginkgo
+    - run:
+        command: $GO get github.com/docker/distribution/cmd/registry
+    - run:
+        command: sudo ./hack/get_run_deps.sh
+    - run:
+        command: sudo mkdir -p /var/lib/registry
+    - run:
+        command: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream integration/update
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-integration-test-build-cache-update-{{ epoch }}
+  integration_init_app:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+    - GOPATH: /home/circleci/go
+    - GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+    - GO: /usr/local/go/bin/go
+    - GOCACHE: /tmp/go/cache
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-integration-test-build-cache-init-app
+    - run:
+        command: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+    - run:
+        command: $GO get github.com/onsi/ginkgo/ginkgo
+    - run:
+        command: $GO get github.com/docker/distribution/cmd/registry
+    - run:
+        command: sudo ./hack/get_run_deps.sh
+    - run:
+        command: sudo mkdir -p /var/lib/registry
+    - run:
+        command: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream integration/init_app
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-integration-test-build-cache-init-app-{{ epoch }}
+  deploy_ship_init:
+    docker:
+    - image: circleci/node:8
+    working_directory: ~/ship
+    steps:
+    - run:
+        command: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
+            echo Unable to deploy, the project is currently on a fork.
+            exit 0
+          fi
+    - checkout
+    - attach_workspace:
+        at: ~/
+    - deploy:
+        name: publish
+        working_directory: ~/ship/web/init
+        command: |
+          if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            # Run publish npm module, will pull latest
+            npx publish
+          fi
+  integration_unfork:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+    - GOPATH: /home/circleci/go
+    - GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+    - GO: /usr/local/go/bin/go
+    - GOCACHE: /tmp/go/cache
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-integration-test-build-cache-unfork
+    - run:
+        command: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+    - run:
+        command: $GO get github.com/onsi/ginkgo/ginkgo
+    - run:
+        command: $GO get github.com/docker/distribution/cmd/registry
+    - run:
+        command: sudo ./hack/get_run_deps.sh
+    - run:
+        command: sudo mkdir -p /var/lib/registry
+    - run:
+        command: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream integration/unfork
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-integration-test-build-cache-unfork-{{ epoch }}
+  e2e_setup:
+    docker:
+    - image: cypress/browsers:chrome67
+    working_directory: ~/ship
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-e2e-setup-cy-3.1.0
+    - run:
+        name: Install Cypress 3.1.0
+        working_directory: ~/ship/web/app
+        command: npm install cypress@3.1.0
+    - run:
+        name: Verify Cypress
+        working_directory: ~/ship/web/app
+        command: npx cypress verify
+    - save_cache:
+        paths:
+        - ~/.cache/Cypress
+        - web/app/node_modules/cypress
+        key: ship-e2e-setup-cy-3.1.0
+  build_binary:
+    docker:
+    - image: circleci/golang:1.12
+    environment:
+    - GOCACHE: /tmp/go/cache
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - attach_workspace:
+        at: /go/src/github.com/replicatedhq
+    - restore_cache:
+        keys:
+        - ship-binary-cache
+    - run:
+        command: |
+          mkdir -p $GOCACHE
+          make build-ci
+    - save_cache:
+        paths:
+        - ~/.cache/go-build
+        - /tmp/go/cache
+        key: ship-binary-cache-{{ epoch }}
+    - persist_to_workspace:
+        root: /go/src/github.com/replicatedhq
+        paths:
+        - ship/bin
+  integration_base:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+    - GOPATH: /home/circleci/go
+    - GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+    - GO: /usr/local/go/bin/go
+    - GOCACHE: /tmp/go/cache
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-integration-test-build-cache-base
+    - run:
+        command: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+    - run:
+        command: $GO get github.com/onsi/ginkgo/ginkgo
+    - run:
+        command: $GO get github.com/docker/distribution/cmd/registry
+    - run:
+        command: sudo ./hack/get_run_deps.sh
+    - run:
+        command: sudo mkdir -p /var/lib/registry
+    - run:
+        command: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream integration/base
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-integration-test-build-cache-base-{{ epoch }}
+  docs:
+    docker:
+    - image: replicated/gitops-builder:node8-go11
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - run:
+        command: |
+          cd hack/docs
+          make pipeline-strict
+  test:
+    docker:
+    - image: circleci/golang:1.12
+    environment:
+    - GOCACHE: /tmp/go/cache
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - ship-unit-test-build-cache
+    - run:
+        name: Windows Build
+        command: sudo make build-deps bin/ship.exe
+    - run:
+        name: make test
+        command: |
+          mkdir -p $GOCACHE
+          make build-deps citest
+          if [ -n "$CC_TEST_REPORTER_ID" ]; then
+            make ci-upload-coverage
+          fi
+    - save_cache:
+        paths:
+        - /tmp/go/cache
+        key: ship-unit-test-build-cache-{{ epoch }}
+workflows:
+  version: 2
+  unstable:
+    jobs:
+    - build_web_init
+    - build_web_app:
+        requires:
+        - build_web_init
+    - build_binary:
+        requires:
+        - build_web_init
+        - build_web_app
+    - e2e_setup:
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+    - e2e_init:
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+        - e2e_setup
+    - test
+    - docs
+    - integration_base
+    - integration_init
+    - integration_unfork
+    - integration_init_app
+    - integration_update
+    - ui
+    - is_upstream:
+        filters:
+          branches:
+            only: /master/
+    - deploy_ship_init:
+        filters:
+          branches:
+            only: /master/
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+        - e2e_setup
+        - e2e_init
+        - ui
+        - is_upstream
+    - deploy_unstable:
+        filters:
+          branches:
+            only: /master/
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+        - e2e_setup
+        - e2e_init
+        - test
+        - integration_base
+        - integration_init
+        - integration_unfork
+        - integration_init_app
+        - integration_update
+        - ui
+        - is_upstream
+    - deploy_integration:
+        filters:
+          branches:
+            only: /master/
+        requires:
+        - integration_base
+        - integration_init
+        - integration_unfork
+        - integration_init_app
+        - integration_update
+        - deploy_unstable
+  stable:
+    jobs:
+    - build_web_init:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - build_web_app:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build_web_init
+    - build_binary:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build_web_init
+        - build_web_app
+    - e2e_setup:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+    - e2e_init:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+        - e2e_setup
+    - test:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - docs:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - integration_base:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - integration_init:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - integration_unfork:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - integration_init_app:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - integration_update:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - ui:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - is_upstream:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+    - deploy:
+        filters:
+          tags:
+            only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+          branches:
+            ignore: /.*/
+        requires:
+        - build_web_init
+        - build_web_app
+        - build_binary
+        - e2e_setup
+        - e2e_init
+        - test
+        - integration_base
+        - integration_init
+        - integration_unfork
+        - integration_init_app
+        - integration_update
+        - ui
+        - docs
+        - is_upstream
+experimental:
+  notify:
+    branches:
+      only:
+      - master
+
+# Original config.yml file:
+# version: 2.1
+# 
+# experimental:
+#   notify:
+#     branches:
+#       only:
+#         - master
+# 
+# jobs:
+# 
+#   build_web_init:
+#     docker:
+#       - image: circleci/node:8
+#     working_directory: ~/ship
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-web-init-deps-{{ checksum \"web/init/yarn.lock\" }}
+#             - ship-web-init-deps-
+#       - restore_cache:
+#           keys:
+#             - ship-web-init-build-cache
+#       - run:
+#           name: Install Dependencies
+#           working_directory: ~/ship/web/init
+#           command: yarn install
+#       - run:
+#           name: Build
+#           working_directory: ~/ship/web/init
+#           command: yarn build
+#       - save_cache:
+#           paths:
+#             - ~/.cache/yarn
+#             - web/init/node_modules
+#           key: ship-web-init-deps-{{ checksum \"web/init/yarn.lock\" }}
+#       - save_cache:
+#           paths:
+#             - web/init/node_modules/.cache
+#           key: ship-web-init-build-cache-{{ epoch }}
+#       - persist_to_workspace:
+#           root: ~/
+#           paths:
+#             - ship/web/init/dist
+#             - ship/web/init/package.json
+#   build_web_app:
+#     docker:
+#       - image: circleci/node:8
+#     working_directory: ~/ship
+#     steps:
+#       - checkout
+#       - attach_workspace:
+#           at: ~/
+#       - restore_cache:
+#           keys:
+#             - ship-web-app-deps-{{ checksum \"web/app/yarn.lock\" }}
+#             - ship-web-app-deps-
+#       - restore_cache:
+#           keys:
+#             - ship-web-app-build-cache
+#       - run:
+#           name: Install Dependencies
+#           working_directory: ~/ship/web/app
+#           command: CYPRESS_INSTALL_BINARY=0 yarn install
+#       - run:
+#           name: Build
+#           working_directory: ~/ship/web/app
+#           command: yarn build
+#       - save_cache:
+#           paths:
+#             - ~/.cache/yarn
+#             - web/app/node_modules
+#           key: ship-web-app-deps-{{ checksum \"web/app/yarn.lock\" }}
+#       - save_cache:
+#           paths:
+#             - web/app/node_modules/.cache
+#           key: ship-web-app-build-cache-{{ epoch }}
+#       - persist_to_workspace:
+#           root: ~/
+#           paths:
+#             - ship/web/app/build
+#   build_binary:
+#     docker:
+#       - image: circleci/golang:1.12
+#     environment:
+#       GOCACHE: \"/tmp/go/cache\"
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - checkout
+#       - attach_workspace:
+#           at: /go/src/github.com/replicatedhq
+#       - restore_cache:
+#           keys:
+#             - ship-binary-cache
+#       - run: |
+#           mkdir -p $GOCACHE
+#           make build-ci
+#       - save_cache:
+#           paths:
+#             - ~/.cache/go-build
+#             - /tmp/go/cache
+#           key: ship-binary-cache-{{ epoch }}
+#       - persist_to_workspace:
+#           root: /go/src/github.com/replicatedhq
+#           paths:
+#             - ship/bin
+#   e2e_setup:
+#     docker:
+#       - image: cypress/browsers:chrome67
+#     working_directory: ~/ship
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-e2e-setup-cy-3.1.0
+#       - run:
+#           # When updating Cypress version,
+#           # update cache key below
+#           name: Install Cypress 3.1.0
+#           working_directory: ~/ship/web/app
+#           command: npm install cypress@3.1.0
+#       - run:
+#           name: Verify Cypress
+#           working_directory: ~/ship/web/app
+#           command: npx cypress verify
+#       - save_cache:
+#           paths:
+#             - ~/.cache/Cypress
+#             - web/app/node_modules/cypress
+#           key: ship-e2e-setup-cy-3.1.0
+#   e2e_init:
+#     docker:
+#       - image: cypress/browsers:chrome67
+#     working_directory: ~/ship
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-e2e-setup-cy-3.1.0
+#       - attach_workspace:
+#           at: ~/
+#       - run:
+#           name: Run Tests
+#           command: make cypress_base
+# 
+#   test:
+#     docker:
+#       - image: circleci/golang:1.12
+#     environment:
+#       GOCACHE: \"/tmp/go/cache\"
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-unit-test-build-cache
+#       - run:
+#           name: Windows Build
+#           command: sudo make build-deps bin/ship.exe
+#       - run: 
+#           name: make test
+#           command: |
+#             mkdir -p $GOCACHE
+#             make build-deps citest
+#             if [ -n \"$CC_TEST_REPORTER_ID\" ]; then
+#               make ci-upload-coverage
+#             fi
+#       - save_cache:
+#           paths:
+#             - /tmp/go/cache
+#           key: ship-unit-test-build-cache-{{ epoch }}
+# 
+#   docs:
+#     docker:
+#     - image: replicated/gitops-builder:node8-go11
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#     - checkout
+#     - run: |
+#         cd hack/docs
+#         make pipeline-strict
+# 
+#   integration_base:
+#     machine: true
+#     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+#     environment:
+#       GOPATH: /home/circleci/go
+#       GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+#       GO: /usr/local/go/bin/go
+#       GOCACHE: \"/tmp/go/cache\"
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-integration-test-build-cache-base
+#       - run: |
+#           export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+#           export GOROOT=/usr/local/go
+#           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#           sudo apt update --fix-missing
+#           sudo apt install --no-install-recommends -y gcc
+#           curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+#           sudo apt-get install -y nodejs
+#           sudo npm install -g http-echo-server
+#           wget \"$GO_DOWNLOAD_URL\" -O golang.tar.gz
+#           echo \"${GO_SHA256SUM}  golang.tar.gz\" | sha256sum -c -
+#           tar -zxvf golang.tar.gz -C /tmp
+#           sudo rm -rf ${GOROOT}
+#           sudo mv /tmp/go ${GOROOT}
+#       - run: $GO get github.com/onsi/ginkgo/ginkgo
+#       - run: $GO get github.com/docker/distribution/cmd/registry
+#       - run: sudo ./hack/get_run_deps.sh
+#       - run: sudo mkdir -p /var/lib/registry
+#       - run: |
+#           sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+#           PORT=4569 http-echo-server > /dev/null 2>&1 &
+#           $GOPATH/bin/ginkgo -p -stream integration/base
+#       - save_cache:
+#           paths:
+#             - /tmp/go/cache
+#           key: ship-integration-test-build-cache-base-{{ epoch }}
+# 
+#   integration_init:
+#     machine: true
+#     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+#     environment:
+#       GOPATH: /home/circleci/go
+#       GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+#       GO: /usr/local/go/bin/go
+#       GOCACHE: \"/tmp/go/cache\"
+#     steps:
+#     - checkout
+#     - restore_cache:
+#         keys:
+#         - ship-integration-test-build-cache-init
+#     - run: |
+#         export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+#         export GOROOT=/usr/local/go
+#         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#         sudo apt update --fix-missing
+#         sudo apt install --no-install-recommends -y gcc
+#         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+#         sudo apt-get install -y nodejs
+#         sudo npm install -g http-echo-server
+#         wget \"$GO_DOWNLOAD_URL\" -O golang.tar.gz
+#         echo \"${GO_SHA256SUM}  golang.tar.gz\" | sha256sum -c -
+#         tar -zxvf golang.tar.gz -C /tmp
+#         sudo rm -rf ${GOROOT}
+#         sudo mv /tmp/go ${GOROOT}
+#     - run: $GO get github.com/onsi/ginkgo/ginkgo
+#     - run: $GO get github.com/docker/distribution/cmd/registry
+#     - run: sudo ./hack/get_run_deps.sh
+#     - run: sudo mkdir -p /var/lib/registry
+#     - run: |
+#         sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+#         PORT=4569 http-echo-server > /dev/null 2>&1 &
+#         $GOPATH/bin/ginkgo -p -stream integration/init
+#     - save_cache:
+#         paths:
+#         - /tmp/go/cache
+#         key: ship-integration-test-build-cache-init-{{ epoch }}
+# 
+#   integration_unfork:
+#     machine: true
+#     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+#     environment:
+#       GOPATH: /home/circleci/go
+#       GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+#       GO: /usr/local/go/bin/go
+#       GOCACHE: \"/tmp/go/cache\"
+#     steps:
+#     - checkout
+#     - restore_cache:
+#         keys:
+#         - ship-integration-test-build-cache-unfork
+#     - run: |
+#         export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+#         export GOROOT=/usr/local/go
+#         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#         sudo apt update --fix-missing
+#         sudo apt install --no-install-recommends -y gcc
+#         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+#         sudo apt-get install -y nodejs
+#         sudo npm install -g http-echo-server
+#         wget \"$GO_DOWNLOAD_URL\" -O golang.tar.gz
+#         echo \"${GO_SHA256SUM}  golang.tar.gz\" | sha256sum -c -
+#         tar -zxvf golang.tar.gz -C /tmp
+#         sudo rm -rf ${GOROOT}
+#         sudo mv /tmp/go ${GOROOT}
+#     - run: $GO get github.com/onsi/ginkgo/ginkgo
+#     - run: $GO get github.com/docker/distribution/cmd/registry
+#     - run: sudo ./hack/get_run_deps.sh
+#     - run: sudo mkdir -p /var/lib/registry
+#     - run: |
+#         sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+#         PORT=4569 http-echo-server > /dev/null 2>&1 &
+#         $GOPATH/bin/ginkgo -p -stream integration/unfork
+#     - save_cache:
+#         paths:
+#         - /tmp/go/cache
+#         key: ship-integration-test-build-cache-unfork-{{ epoch }}
+# 
+# 
+# 
+#   integration_init_app:
+#     machine: true
+#     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+#     environment:
+#       GOPATH: /home/circleci/go
+#       GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+#       GO: /usr/local/go/bin/go
+#       GOCACHE: \"/tmp/go/cache\"
+#     steps:
+#     - checkout
+#     - restore_cache:
+#         keys:
+#         - ship-integration-test-build-cache-init-app
+#     - run: |
+#         export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+#         export GOROOT=/usr/local/go
+#         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#         sudo apt update --fix-missing
+#         sudo apt install --no-install-recommends -y gcc
+#         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+#         sudo apt-get install -y nodejs
+#         sudo npm install -g http-echo-server
+#         wget \"$GO_DOWNLOAD_URL\" -O golang.tar.gz
+#         echo \"${GO_SHA256SUM}  golang.tar.gz\" | sha256sum -c -
+#         tar -zxvf golang.tar.gz -C /tmp
+#         sudo rm -rf ${GOROOT}
+#         sudo mv /tmp/go ${GOROOT}
+#     - run: $GO get github.com/onsi/ginkgo/ginkgo
+#     - run: $GO get github.com/docker/distribution/cmd/registry
+#     - run: sudo ./hack/get_run_deps.sh
+#     - run: sudo mkdir -p /var/lib/registry
+#     - run: |
+#         sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+#         PORT=4569 http-echo-server > /dev/null 2>&1 &
+#         $GOPATH/bin/ginkgo -p -stream integration/init_app
+#     - save_cache:
+#         paths:
+#         - /tmp/go/cache
+#         key: ship-integration-test-build-cache-init-app-{{ epoch }}
+# 
+# 
+# 
+#   integration_update:
+#     machine: true
+#     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+#     environment:
+#       GOPATH: /home/circleci/go
+#       GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+#       GO: /usr/local/go/bin/go
+#       GOCACHE: \"/tmp/go/cache\"
+#     steps:
+#     - checkout
+#     - restore_cache:
+#         keys:
+#         - ship-integration-test-build-cache-update
+#     - run: |
+#         export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+#         export GOROOT=/usr/local/go
+#         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#         sudo apt update --fix-missing
+#         sudo apt install --no-install-recommends -y gcc
+#         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+#         sudo apt-get install -y nodejs
+#         sudo npm install -g http-echo-server
+#         wget \"$GO_DOWNLOAD_URL\" -O golang.tar.gz
+#         echo \"${GO_SHA256SUM}  golang.tar.gz\" | sha256sum -c -
+#         tar -zxvf golang.tar.gz -C /tmp
+#         sudo rm -rf ${GOROOT}
+#         sudo mv /tmp/go ${GOROOT}
+#     - run: $GO get github.com/onsi/ginkgo/ginkgo
+#     - run: $GO get github.com/docker/distribution/cmd/registry
+#     - run: sudo ./hack/get_run_deps.sh
+#     - run: sudo mkdir -p /var/lib/registry
+#     - run: |
+#         sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+#         PORT=4569 http-echo-server > /dev/null 2>&1 &
+#         $GOPATH/bin/ginkgo -p -stream integration/update
+#     - save_cache:
+#         paths:
+#         - /tmp/go/cache
+#         key: ship-integration-test-build-cache-update-{{ epoch }}
+# 
+#   ui:
+#     docker:
+#       - image: circleci/node:8
+#     working_directory: ~/ship
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys:
+#             - ship-ui-test-deps-{{ checksum \"web/init/yarn.lock\" }}
+#             - ship-ui-test-deps-
+#       - run:
+#           name: Install Dependencies
+#           working_directory: ~/ship/web/init
+#           command: yarn install
+#       - run:
+#           name: Test
+#           working_directory: ~/ship/web/init
+#           command: yarn test
+#       - save_cache:
+#           paths:
+#             - ~/.cache/yarn
+#             - web/init/node_modules
+#           key: ship-ui-test-deps-{{ checksum \"web/init/yarn.lock\" }}
+# 
+#   deploy_ship_init:
+#     docker:
+#       - image: circleci/node:8
+#     working_directory: ~/ship
+#     steps:
+#       - run: |
+#           if [ \"${CIRCLE_PROJECT_USERNAME}\" != \"replicatedhq\" ]; then
+#             echo Unable to deploy, the project is currently on a fork.
+#             exit 0
+#           fi
+#       - checkout
+#       - attach_workspace:
+#           at: ~/
+#       - deploy:
+#           name: publish
+#           working_directory: ~/ship/web/init
+#           command: |
+#             if [ \"${CIRCLE_PROJECT_USERNAME}\" == \"replicatedhq\" ]; then
+#               echo \"//registry.npmjs.org/:_authToken=$NPM_TOKEN\" >> ~/.npmrc
+#               # Run publish npm module, will pull latest
+#               npx publish
+#             fi
+# 
+#   deploy_unstable:
+#     docker:
+#       - image: circleci/golang:1.12
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - attach_workspace:
+#           at: /go/src/github.com/replicatedhq
+#       - run: make build-deps ci-embed-ui
+#       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
+#       - run: docker pull alpine:latest # make sure it's fresh
+#       - deploy:
+#           command: |
+#             if [ \"${CIRCLE_PROJECT_USERNAME}\" == \"replicatedhq\" ]; then
+#               curl -sL https://git.io/goreleaser | bash -s -- --snapshot --config deploy/.goreleaser.unstable.yml
+#               docker login -u=\"$DOCKERHUB_DOCKER_USER\" -p=\"$DOCKERHUB_DOCKER_PASS\"
+#               docker push replicated/ship:alpha
+# 
+#               # build terraform/eks enabled version
+#               docker build --build-arg=source_tag=alpha-slim -t replicated/ship:alpha-full -f deploy/Dockerfile-full deploy
+#               docker push replicated/ship:alpha-full
+#             fi
+# 
+#   deploy_integration:
+#     docker:
+#       - image: circleci/golang:1.12
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - run: make build_ship_integration_test
+#       - run: docker run -e SHIP_INTEGRATION_VENDOR_TOKEN -e SHIP_INTEGRATION_VENDOR_CUSTOMER -e GITHUB_TOKEN --net=\"host\" -it -v /var/run/docker.sock:/var/run/docker.sock replicated/ship-e2e-test:latest
+#       - deploy:
+#           command: |
+#             if [ \"${CIRCLE_PROJECT_USERNAME}\" == \"replicatedhq\" ]; then
+#               docker login -u=\"$DOCKERHUB_DOCKER_USER\" -p=\"$DOCKERHUB_DOCKER_PASS\"
+#               docker push replicated/ship-e2e-test:latest
+#             fi
+# 
+#   deploy:
+#     docker:
+#       - image: circleci/golang:1.12
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - attach_workspace:
+#           at: /go/src/github.com/replicatedhq
+#       - run: make build-deps ci-embed-ui
+#       - run: git diff pkg/lifecycle/daemon/ui.bindatafs.go | cat
+#       - run: docker pull alpine:latest # make sure it's fresh
+#       - deploy:
+#           command: |
+#             if [ \"${CIRCLE_PROJECT_USERNAME}\" == \"replicatedhq\" ]; then
+#                docker login -u=\"$DOCKERHUB_DOCKER_USER\" -p=\"$DOCKERHUB_DOCKER_PASS\"
+#                curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
+# 
+#                # build terraform/eks enabled version.  TODO semver, for now just expose latest
+#                docker pull replicated/ship:slim # this should be a no-op since we just built it, but just in case
+#                docker build -t replicated/ship:full -f deploy/Dockerfile-full deploy
+#                docker push replicated/ship:full
+# 
+#             fi
+#       # todo drop a release-api message to bump a version in the DB
+# 
+#   is_upstream:
+#     docker:
+#       - image: circleci/golang:1.12
+#     working_directory: /go/src/github.com/replicatedhq/ship
+#     steps:
+#       - run: |
+#           set -veuo pipefail
+#           if [ \"${CIRCLE_PROJECT_USERNAME}\" != \"replicatedhq\" ]; then
+#             echo \"refusing to build fork \\\"${CIRCLE_PROJECT_USERNAME}\\\"\"
+#             exit 1
+#           fi
+# 
+# workflows:
+#   version: 2
+# 
+#   # unstable deploys the `unstable` tag to dockerhub, no releases to github (for now)
+#   unstable:
+#     jobs:
+#       - build_web_init
+#       - build_web_app:
+#           requires:
+#             - build_web_init
+#       - build_binary:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#       - e2e_setup:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#       - e2e_init:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#             - e2e_setup
+# 
+#       - test
+#       - docs
+#       - integration_base
+#       - integration_init
+#       - integration_unfork
+#       - integration_init_app
+#       - integration_update
+#       - ui
+# 
+#       - is_upstream:
+#           filters:
+#             branches:
+#               only: /master/
+# 
+#       - deploy_ship_init:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#             - e2e_setup
+#             - e2e_init
+#             - ui
+#             - is_upstream
+#           filters:
+#             branches:
+#               only: /master/
+#       - deploy_unstable:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#             - e2e_setup
+#             - e2e_init
+#             - test
+#             - integration_base
+#             - integration_init
+#             - integration_unfork
+#             - integration_init_app
+#             - integration_update
+#             - ui
+#             - is_upstream
+#           filters:
+#             branches:
+#               only: /master/
+#       - deploy_integration:
+#           requires:
+#           - integration_base
+#           - integration_init
+#           - integration_unfork
+#           - integration_init_app
+#           - integration_update
+#           - deploy_unstable
+#           filters:
+#             branches:
+#               only: /master/
+# 
+# # Stable deploys the `alpha` and `latest` tags to dockerhub and github
+#   stable:
+#     jobs:
+#       - build_web_init:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - build_web_app:
+#           requires:
+#             - build_web_init
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - build_binary:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - e2e_setup:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - e2e_init:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#             - e2e_setup
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+# 
+#       - test:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+# 
+#       - docs:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - integration_base:
+#           filters:
+#               tags:
+#                 only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#               branches:
+#                 ignore: /.*/
+#       - integration_init:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - integration_unfork:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - integration_init_app:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - integration_update:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - ui:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+# 
+#       - is_upstream:
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
+#       - deploy:
+#           requires:
+#             - build_web_init
+#             - build_web_app
+#             - build_binary
+#             - e2e_setup
+#             - e2e_init
+#             - test
+#             - integration_base
+#             - integration_init
+#             - integration_unfork
+#             - integration_init_app
+#             - integration_update
+#             - ui
+#             - docs
+#             - is_upstream
+#           filters:
+#             tags:
+#               only: /^v[0-9]+(\\.[0-9]+)*(-.*)*/
+#             branches:
+#               ignore: /.*/
