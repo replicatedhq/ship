@@ -32,7 +32,7 @@ The specified version are recommended.
 
 - `yarn` version 1.12
 - `node` version 8.11
-- `go` version 1.10
+- `go` version 1.12
 - `dep` version 0.5 (https://github.com/golang/dep#installation)
 
 ### First time build
