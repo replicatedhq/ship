@@ -154,16 +154,31 @@ jobs:
       - restore_cache:
           keys:
             - ship-unit-test-build-cache
-      - run: |
-          mkdir -p $GOCACHE
-          make build-deps citest
-          if [ -n "$CC_TEST_REPORTER_ID" ]; then
-            make ci-upload-coverage
-          fi
+      - run:
+          name: make test
+          command: |
+            mkdir -p $GOCACHE
+            make build-deps citest
+            if [ -n "$CC_TEST_REPORTER_ID" ]; then
+              make ci-upload-coverage
+            fi
       - save_cache:
           paths:
             - /tmp/go/cache
           key: ship-unit-test-build-cache-{{ epoch }}
+
+  windows_build_test:
+    docker:
+      - image: golang:1.12
+    environment:
+      GOCACHE: "/tmp/go/cache"
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+      - checkout
+      - run:
+          name: Windows Build
+          command: |
+            make bin/ship.exe
 
   docs:
     docker:
@@ -531,6 +546,7 @@ workflows:
             - e2e_setup
 
       - test
+      - windows_build_test
       - docs
       - integration_base
       - integration_init
@@ -564,6 +580,7 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
+            - windows_build_test
             - integration_base
             - integration_init
             - integration_unfork
@@ -641,6 +658,13 @@ workflows:
             branches:
               ignore: /.*/
 
+      - windows_build_test:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+
       - docs:
           filters:
             tags:
@@ -698,6 +722,7 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
+            - windows_build_test
             - integration_base
             - integration_init
             - integration_unfork
