@@ -250,6 +250,13 @@ lint: vet ineffassign .state/lint
 
 test: lint .state/test
 
+.state/race: $(SRC)
+	go test --race ./pkg/...
+	@mkdir -p .state
+	@touch .state/race
+
+race: lint .state/race
+
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance

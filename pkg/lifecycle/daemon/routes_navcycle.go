@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-kit/kit/log"
@@ -54,6 +55,9 @@ type NavcycleRoutes struct {
 
 	// This isn't known at injection time, so we have to set in Register
 	Release *api.Release
+
+	// Prevent data races when registering preexecute functions
+	mut sync.Mutex
 }
 
 // Register registers routes
@@ -95,6 +99,7 @@ func (d *NavcycleRoutes) Register(group *gin.RouterGroup, release *api.Release) 
 type preExecuteFunc func(context.Context, api.Step) error
 
 func (d *NavcycleRoutes) registerPreExecuteFuncs() {
+	d.mut.Lock()
 	preExecuteFuncMap := make(map[string]preExecuteFunc)
 
 	for _, step := range d.Release.Spec.Lifecycle.V1 {
@@ -104,6 +109,7 @@ func (d *NavcycleRoutes) registerPreExecuteFuncs() {
 	}
 
 	d.PreExecuteFuncMap = preExecuteFuncMap
+	d.mut.Unlock()
 }
 
 func (d *NavcycleRoutes) shutdown(c *gin.Context) {

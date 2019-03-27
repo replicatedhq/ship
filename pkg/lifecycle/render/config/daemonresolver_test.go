@@ -7,13 +7,14 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/kustomize"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 )
 
 type daemonResolverTestCase struct {
@@ -147,18 +148,23 @@ func TestDaemonResolver(t *testing.T) {
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())
-			defer daemonCancelFunc()
+			daemonCloseChan := make(chan struct{})
 
-			log.Log("starting daemon")
-			go func() {
+			require.NoError(t, log.Log("starting daemon"))
+			go func(closeChan chan struct{}) {
 				daemon.Serve(daemonCtx, test.release)
-			}()
+				closeChan <- struct{}{}
+			}(daemonCloseChan)
 
 			resolver := &DaemonResolver{log, daemon}
 
 			resolveContext, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-			defer cancel()
 			config, err := resolver.ResolveConfig(resolveContext, test.release, test.inputContext)
+
+			daemonCancelFunc()
+			cancel()
+
+			<-daemonCloseChan
 
 			test.expect(t, config, err)
 

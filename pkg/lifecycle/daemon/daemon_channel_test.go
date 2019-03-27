@@ -57,6 +57,8 @@ func TestDaemonChannel(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
+
 			v := viper.New()
 
 			port := rand.Intn(2000) + 33000
@@ -82,32 +84,36 @@ func TestDaemonChannel(t *testing.T) {
 			}
 
 			daemonCtx, daemonCancelFunc := context.WithCancel(context.Background())
-			defer daemonCancelFunc()
 
 			errChan := make(chan error)
 			log.Log("starting daemon")
-			go func() {
+			go func(errCh chan error) {
 				err := daemon.Serve(daemonCtx, test.release)
 				log.Log("daemon.error", err)
-				errChan <- err
-			}()
+				errCh <- err
+			}(errChan)
 
 			// sigh. Give the server a second to start up
 			time.Sleep(500 * time.Millisecond)
 
 			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/metadata", port))
-			require.NoError(t, err)
+			req.NoError(err)
 
 			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err)
+			req.NoError(err)
 			log.Log("received body", fmt.Sprintf("\"%s\"", body))
+
+			daemonCancelFunc()
 
 			unmarshalled := make(map[string]string)
 			err = json.Unmarshal(body, &unmarshalled)
-			require.NoError(t, err)
+			req.NoError(err)
 
-			require.Equal(t, test.expectName, unmarshalled["name"])
-			require.Equal(t, test.expectIcon, unmarshalled["icon"])
+			req.Equal(test.expectName, unmarshalled["name"])
+			req.Equal(test.expectIcon, unmarshalled["icon"])
+
+			daemonErr := <-errChan
+			req.EqualError(daemonErr, "context canceled")
 		})
 	}
 }
