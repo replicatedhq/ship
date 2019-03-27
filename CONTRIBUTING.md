@@ -12,7 +12,7 @@ Pull Requests
 
 All pull requests must be made from forks enabled on CircleCI, so that unit and acceptance tests can be executed prior to code being merged.
 
-Changelog descriptions should be in the present tense, such as 'Fixes a bug that made everything explode' or 'Adds a magical new feature'.
+Changelog descriptions should be in the present tense, such as 'Fix a bug that made everything explode' or 'Add a magical new feature'.
 
 ### Getting CircleCI to run your tests
 
