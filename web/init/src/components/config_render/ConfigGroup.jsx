@@ -60,6 +60,7 @@ export default class ConfigGroup extends React.Component {
               title={item.title}
               recommended={item.recommended}
               required={item.required}
+              hidden={item.hidden}
               name={item.name}
             />
           </div>
@@ -88,7 +89,7 @@ export default class ConfigGroup extends React.Component {
         );
       case "heading":
         return (
-          <div key={`${i}-${item.name}`} className="u-marginTop--40 u-marginBottom--15">
+          <div key={`${i}-${item.name}`} className={`u-marginTop--40 u-marginBottom--15 ${item.hidden ? "hidden" : ""}`}>
             <h3 className="header-color field-section-header">{item.title}</h3>
           </div>
         );
