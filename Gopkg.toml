@@ -129,7 +129,7 @@ ignored = [
 
 [[constraint]]
   name = "github.com/cloudflare/cfssl"
-  version = "1.0.0"
+  branch = "master"
 
 [[constraint]]
   branch = "master"
@@ -138,7 +138,3 @@ ignored = [
 [[override]]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
-
-[[override]]
-  name = "github.com/google/certificate-transparency-go"
-  version = "v1.0.21"
