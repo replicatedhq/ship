@@ -47,6 +47,10 @@ query($semver: String) {
       values {
         key
         value
+        labels {
+          key
+          value
+        }
       }
       meta {
         customerID
@@ -86,6 +90,27 @@ query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String
         size
         data
       }
+    }
+    entitlements {
+      values {
+        key
+        value
+        labels {
+          key
+          value
+        }
+      }
+      utilizations {
+        key
+        value
+      }
+      meta {
+        lastUpdated
+        customerID
+        installationID
+      }
+      serialized
+      signature
     }
     created
     registrySecret
