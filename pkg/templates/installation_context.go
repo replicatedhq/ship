@@ -33,7 +33,7 @@ func (ctx *InstallationContext) entitlementValue(name string) string {
 	return ""
 }
 
-func (ctx *InstallationContext) releaseMeta() string {
+func (ctx *InstallationContext) shipCustomerRelease() string {
 	data, err := yaml.Marshal(ctx.Meta)
 	if err != nil {
 		level.Error(ctx.Logger).Log("msg", "unable to marshal release meta", "err", err)
@@ -42,21 +42,11 @@ func (ctx *InstallationContext) releaseMeta() string {
 	return string(data)
 }
 
-func (ctx *InstallationContext) entitlementsYAML() string {
-	data, err := yaml.Marshal(ctx.Meta.Entitlements)
-	if err != nil {
-		level.Error(ctx.Logger).Log("msg", "unable to marshal entitlements", "err", err)
-		return ""
-	}
-	return string(data)
-}
-
 func (ctx *InstallationContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"ReleaseMeta":       ctx.releaseMeta,
-		"EntitlementsYAML":  ctx.entitlementsYAML,
-		"EntitlementValue":  ctx.entitlementValue,
-		"LicenseFieldValue": ctx.entitlementValue,
+		"ShipCustomerRelease": ctx.shipCustomerRelease,
+		"EntitlementValue":    ctx.entitlementValue,
+		"LicenseFieldValue":   ctx.entitlementValue,
 		"Installation": func(name string) string {
 			switch name {
 			case "state_file_path":
