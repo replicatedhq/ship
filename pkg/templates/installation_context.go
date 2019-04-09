@@ -8,6 +8,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type InstallationContext struct {
@@ -32,8 +33,28 @@ func (ctx *InstallationContext) entitlementValue(name string) string {
 	return ""
 }
 
+func (ctx *InstallationContext) releaseMeta() string {
+	data, err := yaml.Marshal(ctx.Meta)
+	if err != nil {
+		level.Error(ctx.Logger).Log("msg", "unable to marshal release meta", "err", err)
+		return ""
+	}
+	return string(data)
+}
+
+func (ctx *InstallationContext) entitlementsYAML() string {
+	data, err := yaml.Marshal(ctx.Meta.Entitlements)
+	if err != nil {
+		level.Error(ctx.Logger).Log("msg", "unable to marshal entitlements", "err", err)
+		return ""
+	}
+	return string(data)
+}
+
 func (ctx *InstallationContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
+		"ReleaseMeta":       ctx.releaseMeta,
+		"EntitlementsYAML":  ctx.entitlementsYAML,
 		"EntitlementValue":  ctx.entitlementValue,
 		"LicenseFieldValue": ctx.entitlementValue,
 		"Installation": func(name string) string {
