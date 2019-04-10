@@ -9,6 +9,14 @@
       "icon": "https://raw.githubusercontent.com/elastic/kibana/master/src/ui/public/icons/kibana-color.svg",
       "name": "kibana",
       "releaseNotes": "Add kibana (#27)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.1.2"
     },
     "contentSHA": "4b1971ae0bff2671f371d3c5ffdd0d4c9f2860a943aeed3b79f52dbadaca5f56"

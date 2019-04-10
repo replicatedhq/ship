@@ -10,7 +10,15 @@
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "t6-uzytbbkSoCiLtEfNO62LDIRLFec-2",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "",
+      "sequence": 0,
       "version": "0.0.1-test2"
     },
     "releaseName": "integration-tests",

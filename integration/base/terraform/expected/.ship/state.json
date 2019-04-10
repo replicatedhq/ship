@@ -44,7 +44,15 @@
       "applicationType": "replicated.app",
       "releaseNotes": "",
       "version": "0.0.5",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
+      "sequence": 0,
       "installationID": "lZk73HnLmatQ-s1nk7l3Q3QKA45orDFi"
     },
     "contentSHA": "f6d06c39a698b830ba4ffb02821447199639c8a6d4b74bdc3eb28082ac6a5605",

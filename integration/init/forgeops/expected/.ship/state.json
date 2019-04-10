@@ -8,6 +8,14 @@
       "applicationType": "helm",
       "name": "ds",
       "releaseNotes": "Sets RollingUpdate as the updateStrategy for StatefulSets",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "6.5.0"
     },
     "contentSHA": "668b07eccb4975d4eed984e04a46705ade8c2b476c490905a2f6217a4c31b65c"

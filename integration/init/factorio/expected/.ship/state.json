@@ -9,6 +9,14 @@
       "icon": "https://us1.factorio.com/assets/img/factorio-logo.png",
       "name": "factorio",
       "releaseNotes": "Add appVersion key for factorio (#4718)\n\n* Add appVersion key for factorio\n\nThe key \"appVersion\" is needed for ci testing, it's missing in this yaml. That sometimes will cause testing failure.\n\n* Missing starting space in line 20\n\nMissing starting space in line 20",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.3.1"
     },
     "contentSHA": "126fa6eb8f09171050751c65a386f41aef4fe9ebe00c8b1e66f2c4e60319ec4e"

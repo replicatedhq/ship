@@ -22,6 +22,14 @@
       "icon": "https://wiki.jenkins-ci.org/download/attachments/2916393/logo.png",
       "name": "jenkins",
       "releaseNotes": "Added ExtraPorts to open in the master pod (#7759)\n\n* Added ExtraPorts to open in the master pod\n\nSigned-off-by: ecejjar \u003cjesus.javier.arauz@ericsson.com\u003e\n\n* [stable/jenkins] Bumped up chart version\n\nSigned-off-by: ecejjar \u003cjesus.javier.arauz@ericsson.com\u003e",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.20.1"
     },
     "contentSHA": "c25b3cd58e801f1a642961c860c4162da2c171fa8a8cd33d32012c36631535e9"

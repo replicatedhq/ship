@@ -8,6 +8,14 @@
       "applicationType": "helm",
       "name": "values-update",
       "releaseNotes": "test chart",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.1.0"
     },
     "contentSHA": "a6ef5289edd9de384412ed843529d906b08c0cda29b92b7c63077138bd798538"

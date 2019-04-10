@@ -7,7 +7,15 @@
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "integration tests",
+      "sequence": 0,
       "version": "1.0.2"
     },
     "releaseName": "integration-replicated-app-basic"

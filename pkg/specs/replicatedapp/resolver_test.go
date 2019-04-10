@@ -40,6 +40,7 @@ func TestPersistRelease(t *testing.T) {
 		inputRelease  *ShipRelease
 		inputSelector *Selector
 		shaSummer     shaSummer
+		license       *License
 		expectCalls   func(t *testing.T, stateManager *state.MockManager)
 		expectRelease *api.Release
 	}{
@@ -49,7 +50,7 @@ func TestPersistRelease(t *testing.T) {
 				ID: "12345",
 				Spec: `
 ---
-assets: 
+assets:
   v1: []
 `,
 			},
@@ -60,6 +61,7 @@ assets:
 			shaSummer: func(bytes []byte) string {
 				return "abcdef"
 			},
+			license: &License{},
 			expectCalls: func(t *testing.T, stateManager *state.MockManager) {
 				stateManager.EXPECT().SerializeAppMetadata(&matchers.Is{
 					Test: func(v interface{}) bool {
@@ -101,9 +103,10 @@ assets:
 				Logger:       &logger.TestLogger{T: t},
 				StateManager: stateManager,
 				ShaSummer:    test.shaSummer,
+				Dater:        func() string { return "" },
 			}
 
-			result, err := resolver.persistRelease(test.inputRelease, test.inputSelector)
+			result, err := resolver.persistRelease(test.inputRelease, test.license, test.inputSelector)
 
 			req.NoError(err)
 			req.Equal(test.expectRelease, result)

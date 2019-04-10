@@ -8,6 +8,14 @@
       "appSlug": "__appSlug__",
       "licenseID": "__licenseID__",
       "releaseNotes": "",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.0.1"
     },
     "contentSHA": "4e212691de81e471f76ea6ef8d236bae3874d0bc2f22487d17e3e4e42138a67f"

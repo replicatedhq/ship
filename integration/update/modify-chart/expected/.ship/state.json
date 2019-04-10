@@ -17,6 +17,14 @@
     "metadata": {
       "applicationType": "helm",
       "name": "modify-chart",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "releaseNotes": "Update values.yaml",
       "version": "0.1.0"
     },

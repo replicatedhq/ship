@@ -14,6 +14,14 @@
       "customerID": "placeholder",
       "installationID": "placeholder",
       "releaseNotes": "",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "placeholder"
     },
     "releaseName": "ship",

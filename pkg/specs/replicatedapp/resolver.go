@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -24,6 +25,7 @@ import (
 )
 
 type shaSummer func([]byte) string
+type dater func() string
 type resolver struct {
 	Logger               log.Logger
 	Client               *GraphQLClient
@@ -31,6 +33,7 @@ type resolver struct {
 	StateManager         state.Manager
 	UI                   cli.Ui
 	ShaSummer            shaSummer
+	Dater                dater
 	Runbook              string
 	SetChannelName       string
 	RunbookReleaseSemver string
@@ -63,6 +66,10 @@ func NewAppResolver(
 		ShaSummer: func(bytes []byte) string {
 			return fmt.Sprintf("%x", sha256.Sum256(bytes))
 		},
+		Dater: func() string {
+			// format consistent with what we get from GQL
+			return time.Now().UTC().Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
+		},
 	}
 }
 
@@ -90,9 +97,15 @@ type Resolver interface {
 // from a local runbook if so configured
 func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, app apptype.LocalAppCopy) (*api.Release, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveAppRelease"))
+
 	release, err := r.FetchRelease(ctx, selector)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch release")
+	}
+
+	license, err := r.FetchLicense(ctx, selector)
+	if err != nil {
+		return nil, errors.Wrap(err, "fetch license")
 	}
 
 	releaseName := release.ToReleaseMeta().ReleaseName()
@@ -103,7 +116,7 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, ap
 		return nil, errors.Wrapf(err, "serialize helm release name")
 	}
 
-	result, err := r.persistRelease(release, selector)
+	result, err := r.persistRelease(release, license, selector)
 	if err != nil {
 		return nil, errors.Wrap(err, "persist and deserialize release")
 	}
@@ -111,6 +124,27 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, ap
 	result.Metadata.Type = app.GetType()
 
 	return result, nil
+}
+
+func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*License, error) {
+	debug := level.Debug(log.With(r.Logger, "method", "FetchLicense"))
+	if r.Runbook != "" {
+		debug.Log("event", "license.fetch", "msg", "can't resolve license with runbooks")
+		return &License{}, nil
+	}
+
+	if selector.LicenseID == "" {
+		// TODO: support with customer ID
+		debug.Log("event", "license.fetch", "msg", "can't resolve license without license ID")
+		return &License{}, nil
+	}
+
+	license, err := r.Client.GetLicense(selector)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get license")
+	}
+
+	return license, nil
 }
 
 // FetchRelease gets the release without persisting anything
@@ -136,7 +170,7 @@ func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*ShipR
 	return release, nil
 }
 
-func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*api.Release, error) {
+func (r *resolver) persistRelease(release *ShipRelease, license *License, selector *Selector) (*api.Release, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "persistRelease"))
 
 	result := &api.Release{
@@ -146,6 +180,8 @@ func (r *resolver) persistRelease(release *ShipRelease, selector *Selector) (*ap
 	result.Metadata.InstallationID = selector.InstallationID
 	result.Metadata.LicenseID = selector.LicenseID
 	result.Metadata.AppSlug = selector.AppSlug
+	result.Metadata.License = license.ToLicenseMeta()
+	result.Metadata.Installed = r.Dater()
 
 	if err := r.StateManager.SerializeAppMetadata(result.Metadata); err != nil {
 		return nil, errors.Wrap(err, "serialize app metadata")

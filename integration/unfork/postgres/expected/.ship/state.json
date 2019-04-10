@@ -24,6 +24,14 @@
       "icon": "https://bitnami.com/assets/stacks/postgresql/img/postgresql-stack-110x117.png",
       "name": "postgresql",
       "releaseNotes": "Do not trim white space (#9535)\n\nSigned-off-by: Ben Hagen \u003cc.ben.hagen@gmail.com\u003e",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "2.6.6"
     },
     "contentSHA": "ba3ecd25a387e0ee34b53276af4f621a700ae0d2c466d8aad0b2733ddb734188"

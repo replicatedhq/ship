@@ -9,6 +9,14 @@
       "applicationType": "helm",
       "name": "version",
       "releaseNotes": "Bump versions chart to 0.0.2 (#12)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.0.2"
     },
     "contentSHA": "d406d19ee80d98897abd08d78b1dc16e03437ec3c69480447ad9821a4b046648"

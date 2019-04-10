@@ -6,7 +6,15 @@
     "upstream": "__upstream__",
     "metadata": {
       "applicationType": "replicated.app",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "",
+      "sequence": 0,
       "version": ""
     },
     "contentSHA": "ff137904f9274e6cc56f40a4962c90fd15b513a06e6b7a52e14d0a0cb0560eab"

@@ -9,7 +9,15 @@
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
       "installationID": "6-TGyWWOCG-6hmsa4R1zz9jOL9CWPJy7",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "",
+      "sequence": 0,
       "version": "0.0.7"
     },
     "releaseName": "integration-test-web",

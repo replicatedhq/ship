@@ -112,6 +112,13 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 		InstallationID:  metadata.InstallationID,
 		LicenseID:       metadata.LicenseID,
 		AppSlug:         metadata.AppSlug,
+		License: License{
+			ID:        metadata.License.ID,
+			Assignee:  metadata.License.Assignee,
+			CreatedAt: metadata.License.CreatedAt,
+			ExpiresAt: metadata.License.ExpiresAt,
+			Type:      metadata.License.Type,
+		},
 	}
 
 	return m.serializeAndWriteState(versionedState)

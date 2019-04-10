@@ -5,10 +5,18 @@
     "upstream": "__upstream__",
     "metadata": {
       "applicationType": "replicated.app",
-      "releaseNotes": "",
-      "version": "1.0.1-SNAPSHOT",
       "customerID": "__customerID__",
-      "installationID": "__installationID__"
+      "installationID": "__installationID__",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "releaseNotes": "",
+      "sequence": 0,
+      "version": "1.0.1-SNAPSHOT"
     },
     "contentSHA": "275a18f485ae78a3e0c723da1625fa08d12bb27dc401c49f15231a31d939676e"
   }

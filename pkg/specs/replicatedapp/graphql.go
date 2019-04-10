@@ -8,12 +8,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/spf13/viper"
 )
+
+func parseServerTS(ts string) time.Time {
+	parsed, _ := time.Parse("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)", ts)
+	return parsed
+}
 
 const getAppspecQuery = `
 query($semver: String) {
@@ -67,6 +73,7 @@ const getSlugAppSpecQuery = `
 query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String) {
   shipSlugRelease (appSlug: $appSlug, licenseID: $licenseID, releaseID: $releaseID, semver: $semver) {
     id
+    sequence
     channelId
     channelName
     channelIcon
@@ -117,6 +124,17 @@ query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String
   }
 }`
 
+const getLicenseQuery = `
+query($licenseId: String) {
+  license (licenseId: $licenseId) {
+    id
+    assignee
+    createdAt
+    expiresAt
+    type
+  }
+}`
+
 // GraphQLClient is a client for the graphql Payload API
 type GraphQLClient struct {
 	GQLServer *url.URL
@@ -137,6 +155,12 @@ type GraphQLError struct {
 	Code      string                   `json:"code"`
 }
 
+// GQLLicenseResponse is the top-level response object from the graphql server
+type GQLGetLicenseResponse struct {
+	Data   LicenseWrapper `json:"data,omitempty"`
+	Errors []GraphQLError `json:"errors,omitempty"`
+}
+
 // GQLGetReleaseResponse is the top-level response object from the graphql server
 type GQLGetReleaseResponse struct {
 	Data   ShipReleaseWrapper `json:"data,omitempty"`
@@ -150,6 +174,11 @@ type GQLGetSlugReleaseResponse struct {
 }
 
 // ShipReleaseWrapper wraps the release response form GQL
+type LicenseWrapper struct {
+	License License `json:"license"`
+}
+
+// ShipReleaseWrapper wraps the release response form GQL
 type ShipReleaseWrapper struct {
 	ShipRelease ShipRelease `json:"shipRelease"`
 }
@@ -157,6 +186,14 @@ type ShipReleaseWrapper struct {
 // ShipSlugReleaseWrapper wraps the release response form GQL
 type ShipSlugReleaseWrapper struct {
 	ShipSlugRelease ShipRelease `json:"shipSlugRelease"`
+}
+
+type License struct {
+	ID        string `json:"id"`
+	Assignee  string `json:"assignee"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
+	Type      string `json:"type"`
 }
 
 type Image struct {
@@ -184,6 +221,7 @@ type GithubContent struct {
 // ShipRelease is the release response form GQL
 type ShipRelease struct {
 	ID             string           `json:"id"`
+	Sequence       int64            `json:"sequence"`
 	ChannelID      string           `json:"channelId"`
 	ChannelName    string           `json:"channelName"`
 	ChannelIcon    string           `json:"channelIcon"`
@@ -216,6 +254,7 @@ type callInfo struct {
 func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 	return api.ReleaseMetadata{
 		ReleaseID:      r.ID,
+		Sequence:       r.Sequence,
 		ChannelID:      r.ChannelID,
 		ChannelName:    r.ChannelName,
 		ChannelIcon:    r.ChannelIcon,
@@ -226,6 +265,16 @@ func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 		Images:         r.apiImages(),
 		GithubContents: r.githubContents(),
 		Entitlements:   r.Entitlements,
+	}
+}
+
+func (l *License) ToLicenseMeta() api.License {
+	return api.License{
+		ID:        l.ID,
+		Assignee:  l.Assignee,
+		CreatedAt: parseServerTS(l.CreatedAt),
+		ExpiresAt: parseServerTS(l.ExpiresAt),
+		Type:      l.Type,
 	}
 }
 
@@ -335,6 +384,38 @@ func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*ShipRelease, error)
 	}
 
 	return &shipResponse.Data.ShipSlugRelease, nil
+}
+
+func (c *GraphQLClient) GetLicense(selector *Selector) (*License, error) {
+	requestObj := GraphQLRequest{
+		Query: getLicenseQuery,
+		Variables: map[string]string{
+			"licenseId": selector.LicenseID,
+		},
+	}
+
+	ci := callInfo{
+		username: selector.GetBasicAuthUsername(),
+		password: selector.InstallationID,
+		request:  requestObj,
+		upstream: selector.Upstream,
+	}
+
+	licenseResponse := &GQLGetLicenseResponse{}
+	if err := c.callGQL(ci, licenseResponse); err != nil {
+		return nil, err
+	}
+
+	if len(licenseResponse.Errors) > 0 {
+		var multiErr *multierror.Error
+		for _, err := range licenseResponse.Errors {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
+
+		}
+		return nil, multiErr.ErrorOrNil()
+	}
+
+	return &licenseResponse.Data.License, nil
 }
 
 func (c *GraphQLClient) RegisterInstall(customerID, installationID, channelID, releaseID string) error {

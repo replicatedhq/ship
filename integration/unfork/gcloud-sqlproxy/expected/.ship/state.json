@@ -21,6 +21,14 @@
       "applicationType": "helm",
       "name": "gcloud-sqlproxy",
       "releaseNotes": "update gcloud-sqlproxy to new version, comment out resources",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.6.3"
     },
     "contentSHA": "05f23656631e117467eb9de962a2baac4ddc07da99accf25a817637b54284731"

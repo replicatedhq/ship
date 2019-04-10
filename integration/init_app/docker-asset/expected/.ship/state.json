@@ -7,7 +7,15 @@
       "applicationType": "replicated.app",
       "customerID": "__customerID__",
       "installationID": "__installationID__",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "",
+      "sequence": 0,
       "version": "1.0.0-SNAPSHOT"
     },
     "contentSHA": "a551e7640f88bd4d9e5843ea7602c046a1b89feae744c521bee558f9e44f0a69"

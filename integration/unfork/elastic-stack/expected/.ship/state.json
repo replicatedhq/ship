@@ -44,6 +44,14 @@
       "icon": "https://www.elastic.co/assets/bltb35193323e8f1770/logo-elastic-stack-lt.svg",
       "name": "elastic-stack",
       "releaseNotes": "Add upstream dependencies for elastic-stack (#26)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.1.0"
     },
     "contentSHA": "7e1bdd6404a096f3bd1024580f4449c381fe0df165c323e1590e9375977e2b50"
