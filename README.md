@@ -1,4 +1,4 @@
-Ship
+Replicated Ship
 =======
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/a00869c41469d016a3c8/test_coverage)](https://codeclimate.com/github/replicatedhq/ship/test_coverage)
@@ -8,43 +8,29 @@ Ship
 [![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 [![GitHub stars](https://img.shields.io/github/stars/replicatedhq/ship.svg)](https://github.com/replicatedhq/ship/stargazers)
 
-Replicated Ship is an open source project by [Replicated](https://www.replicated.com) designed to extend Google’s [Kustomize](https://www.kustomize.io) project in a way that can reduce the operational overhead of maintaining 3rd party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
+Replicated Ship is an open source project by [Replicated](https://www.replicated.com) with three primary goals.
 
-The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications.
-With Ship, cluster operators can automatically stay in sync with upstream changes (ie. via automated pull requests or another form of automation) while preserving their local, custom configurations and extensions (add, deletes and edits) without git merge conflicts.
-This is possible because of how the three operating modes of Ship invoke, store, and apply Kustomizations made by the cluster operator.
+1. Onboarding users to [Kustomize](https://www.kustomize.io) & the `kubectl apply -k` command through an easy-to-use UI & migration tools.
+1. Automate the maintenance of 3rd-party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
+1. Enable application developers to package and deliver a canonical version of their application configuration while encouraging last-mile customizations through overlays instead of forking or upstream requests.
 
-Read on for more details on Ship features and operating modes, or skip ahead to [getting started](#getting-started).
+Read on for more details on Ship features and objectives, or skip ahead to [getting started](#getting-started).
 
-# Three operating modes
+## Onboarding to Kustomize
+The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. The easy-to-use UI of Ship (launched via `ship init`) calculates the minimal patch YAML required to build an overlay and previews the diff that will be the result of applying the drafted overlay.
+![gif of calculation](https://github.com/replicatedhq/ship/blob/master/logo/calc-n-diff.gif)
 
-![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow.png)
+Finally, the `unfork` command can [migrate forked manifests](#unforking) and environment versions to Kustomize.
 
-## ship init
-Prepares a new application for deployment. Use for:
-- Specifying the upstream source for an application to be managed -- typically a repo with raw Kubernetes yaml or a Helm chart
-- Creating and managing [Kustomize](https://kustomize.io/) overlays to be applied before deployment
-- Generating initial config (state.json) for the application, and persisting that config to disk for use with the other modes
+The output of the `init` and `unfork` modes will result in the creation of a directory that includes the finalized overlay YAML files, a kustomization.yaml and a Ship state.json.
 
-## ship watch
-Polls an upstream source, blocking until any change has been published.  Use for:
-- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+## Automated maintainence of 3rd-pary applications
+With Ship, cluster operators can automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
-## ship update
-Updates an existing application by merging the latest release with the local state and overlays. Use for:
-- Preparing an update to be deployed to a third party application
-- Automating the update process to start from a continuous integration (CI) service
+## Enable app developers to allow for last-mile configuration
+- Configuration workflow `ship.yaml` files can be included in Kubernetes manifest or [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience. See [Customizing the Configuration Experience](#customizing-the-configuration-experience) for more details or check out the examples in the [github.com/shipapps](https://github.com/shipapps) org.
+- Support for the distribution of proprietary, commercial applications is available through [Replicated Vendor](https://www.replicated.com/vendor).
 
-# Features
-Ship is designed to provide first-time configuration UI and/or be used headless in a CI/CD pipeline to automate deployment of third party applications.
-
-- Web based "admin console" provides initial configuration of [Helm](https://helm.sh/) values and creates [Kustomize](https://kustomize.io/) overlays
-- Headless mode supports automated pipelines
-- Merge [Helm](https://helm.sh/) charts with override values and apply custom overlays with [Kustomize](https://kustomize.io/) to avoid merge conflicts when upstream or local values are changed
-- Watch upstream repos for updates & sync changes to your local version.
-- Render [Helm](https://helm.sh/) charts to pure Kubernetes yaml that can be deployed to clusters without Tiller
-- Enables [GitOps](https://www.weave.works/blog/the-gitops-pipeline) workflows to update third party applications
-- Configuration workflow `ship.yaml` files can be included in [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience
 
 # Getting Started
 
@@ -53,12 +39,12 @@ Ship is designed to provide first-time configuration UI and/or be used headless 
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.38.0/ship_0.38.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.39.0/ship_0.39.0_linux_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, you can either run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.38.0/ship_0.38.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.39.0/ship_0.39.0_darwin_amd64.tar.gz | tar xv && sudo mv ship /usr/local/bin
 ```
 
 - ... or you can install with [Homebrew](https://brew.sh/):
@@ -95,14 +81,14 @@ After completing the guided 'ship init' workflow, you'll see that Ship has gener
 
 ```
 ├── .ship
-│   └── state.json
+│   └── state.json
 ├── base
-│   ├── clusterrole.yaml
-│   ├── ...
-│   └── serviceaccount.yaml
+│   ├── clusterrole.yaml
+│   ├── ...
+│   └── serviceaccount.yaml
 ├── overlays
-│   └── ship
-│       └── kustomization.yaml
+│   └── ship
+│       └── kustomization.yaml
 └── rendered.yaml
 ```
 
@@ -117,6 +103,25 @@ kubectl apply -f rendered.yaml
 ```
 
 If you need to revise any of the configuration details, you can re-invoke `ship init <path-to-chart>` to start fresh, or `ship update --headed` to walk through the configuration steps again, starting with your previously entered values & patches as a baseline.
+
+# Three operating modes
+
+![Replicated Ship Modes](https://github.com/replicatedhq/ship/blob/master/logo/ship-flow.png)
+
+## ship init
+Prepares a new application for deployment. Use for:
+- Specifying the upstream source for an application to be managed -- typically a repo with raw Kubernetes yaml or a Helm chart
+- Creating and managing [Kustomize](https://kustomize.io/) overlays to be applied before deployment
+- Generating initial config (state.json) for the application, and persisting that config to disk for use with the other modes
+
+## ship watch
+Polls an upstream source, blocking until any change has been published.  Use for:
+- Triggering creation of pull requests in a CI pipeline, so that third party updates can be manually reviewed, and then automatically deployed once merged
+
+## ship update
+Updates an existing application by merging the latest release with the local state and overlays. Use for:
+- Preparing an update to be deployed to a third party application
+- Automating the update process to start from a continuous integration (CI) service
 
 ## Unforking
 Another initialization option is to start with a Helm chart or Kubernetes manifest that has been forked from an upstream source, and to "unfork" it.
@@ -167,4 +172,3 @@ For questions about using Ship, there's a [Replicated Community](https://help.re
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
 
 For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md)
-
