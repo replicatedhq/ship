@@ -16,7 +16,7 @@ Replicated Ship is an open source project by [Replicated](https://www.replicated
 
 Read on for more details on Ship features and objectives, or skip ahead to [getting started](#getting-started).
 
-## Automated maintainence of 3rd-party applications
+## Automated maintenance of 3rd-party applications
 With Ship, cluster operators can automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
 ## Onboarding to Kustomize
