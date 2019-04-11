@@ -9,11 +9,11 @@
       "licenseID": "__licenseID__",
       "releaseNotes": "",
       "license": {
-        "assignee": "",
-        "createdAt": "0001-01-01T00:00:00Z",
+        "assignee": "integration tests",
+        "createdAt": "2019-03-19T00:47:33Z",
         "expiresAt": "0001-01-01T00:00:00Z",
-        "id": "",
-        "type": ""
+        "id": "F0z1_kk6T06E7WCadEGsfQSM0J-odA5P",
+        "type": "dev"
       },
       "sequence": 0,
       "version": "0.0.1"
