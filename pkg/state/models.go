@@ -3,6 +3,7 @@ package state
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/replicatedhq/ship/pkg/api"
@@ -90,8 +91,17 @@ type V1 struct {
 	Certs map[string]util.CertType `json:"certs,omitempty" yaml:"certs,omitempty" hcl:"certs,omitempty"`
 }
 
+type License struct {
+	ID        string    `json:"id" yaml:"id" hcl:"id"`
+	Assignee  string    `json:"assignee" yaml:"assignee" hcl:"assignee"`
+	CreatedAt time.Time `json:"createdAt" yaml:"createdAt" hcl:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt" yaml:"expiresAt" hcl:"expiresAt"`
+	Type      string    `json:"type" yaml:"type" hcl:"type"`
+}
+
 type Metadata struct {
 	ApplicationType string      `json:"applicationType" yaml:"applicationType" hcl:"applicationType"`
+	Sequence        int64       `json:"sequence" yaml:"sequence" hcl:"sequence" meta:"sequence"`
 	Icon            string      `json:"icon,omitempty" yaml:"icon,omitempty" hcl:"icon,omitempty"`
 	Name            string      `json:"name,omitempty" yaml:"name,omitempty" hcl:"name,omitempty"`
 	ReleaseNotes    string      `json:"releaseNotes" yaml:"releaseNotes" hcl:"releaseNotes"`
@@ -101,6 +111,7 @@ type Metadata struct {
 	LicenseID       string      `json:"licenseID,omitempty" yaml:"licenseID,omitempty" hcl:"licenseID,omitempty"`
 	AppSlug         string      `json:"appSlug,omitempty" yaml:"appSlug,omitempty" hcl:"appSlug,omitempty"`
 	Lists           []util.List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
+	License         License     `json:"license" yaml:"license" hcl:"license"`
 }
 
 type StepsCompleted map[string]interface{}

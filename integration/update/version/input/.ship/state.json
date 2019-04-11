@@ -9,6 +9,14 @@
       "applicationType": "helm",
       "name": "version",
       "releaseNotes": "Add a new version chart for versioned updates (#11)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.0.1"
     },
     "contentSHA": "4adecfde17359b4fb196e700785a36aefa4a337b64b96f2defdc7e6f55ea24d2"

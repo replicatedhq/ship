@@ -9,6 +9,14 @@
       "icon": "https://istio.io/favicons/android-192x192.png",
       "name": "istio",
       "releaseNotes": "Support setting FAIL_OPEN for istio-policy service (#9493)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.0.3"
     },
     "contentSHA": "0b03c5680b514a64ad597dbc6fdb2b43621951ba0707d70412d0ec37a3e4b097"

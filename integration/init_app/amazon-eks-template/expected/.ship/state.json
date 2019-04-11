@@ -7,7 +7,15 @@
       "applicationType": "replicated.app",
       "customerID": "__customerID__",
       "installationID": "__installationID__",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "integration tests",
+      "sequence": 0,
       "version": "1.0.0-amazon-eks-template"
     },
     "releaseName": "integration-replicated-app-amazon-eks-template"

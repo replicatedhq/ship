@@ -20,7 +20,15 @@
     "metadata": {
       "applicationType": "helm",
       "name": "basic",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
       "releaseNotes": "Update README.md",
+      "sequence": 0,
       "version": "0.1.0"
     },
     "contentSHA": "f27ca7c62a0c920b03fa6ec9c871ab5f56c1bc84a5e9519fe534b8562359a3cb"

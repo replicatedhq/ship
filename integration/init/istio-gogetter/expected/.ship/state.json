@@ -9,6 +9,14 @@
       "icon": "https://istio.io/favicons/android-192x192.png",
       "name": "istio",
       "releaseNotes": "Add support for configuring LightStep as a tracing backend (#9270)\n\n* Add LightStep configuration\r\n\r\n- Validate LightStep ProxyConfig options\r\n- Clean up formatting of envoy_bootstrap\r\n by using a single indentation scheme\r\n- Update bootstrap golden files and add new ones for tracing\r\n- Update bootstrap tests to check new tracing options\r\n\r\n* Add root cacert.pem into proxy containers\r\n\r\n* Update bootstrap config test\r\n\r\n* Update golden files\r\n\r\n* Move tracer configuration up a level (replacing old one)\r\n\r\n* Remove lightstep as default proxy tracer\r\n\r\n* Set default proxy.tracer to zipkin\r\n\r\n* Make fixes to yaml\r\n\r\n- Make istio-remote configmap set the same default zipkin\r\n  address as istio configmap\r\n- Explicitly check that tracer == \"zipkin\" instead of always\r\n  defaulting to it\r\n\r\n* Replace check for global.remoteZipkinAddress with global.proxy.tracer\r\n\r\n* Enable mounting a custom cacert file\r\n\r\n* Remove default cacert.pem\r\n\r\n* Fix issues after rebase",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.1.0"
     },
     "contentSHA": "0a839a8a5ab266c94322bb414aabd0480b84ebb3136ff491394a2b335a716a50"

@@ -11,6 +11,14 @@
       "icon": "https://raw.githubusercontent.com/grafana/grafana/master/public/img/logo_transparent_400x.png",
       "name": "grafana",
       "releaseNotes": "Add a forked grafana chart",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.19.0"
     },
     "contentSHA": "9d4a731cb91452fa6ca4150c458f484cda2ac0479ffa14517c8751daf593ffea",

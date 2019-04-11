@@ -18,6 +18,14 @@
       "applicationType": "helm",
       "name": "values-update",
       "releaseNotes": "add static chart (will not be updated)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.1.0"
     },
     "contentSHA": "b45cccb80cc250e5762918ca6e56e05edaef7bd023906be9411af9345353c016"

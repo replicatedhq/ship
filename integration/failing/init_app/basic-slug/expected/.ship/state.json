@@ -8,6 +8,14 @@
       "appSlug": "__appSlug__",
       "licenseID": "__licenseID__",
       "releaseNotes": "",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.0.2"
     },
     "releaseName": "nightly"

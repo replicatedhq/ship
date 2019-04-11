@@ -21,6 +21,14 @@
       "icon": "https://raw.githubusercontent.com/grafana/grafana/master/public/img/logo_transparent_400x.png",
       "name": "grafana",
       "releaseNotes": "[stable/grafana] Add variable to optionally set priorityClassName (#9427)\n\n* Add variable to optionally set priorityClassName\n\nSigned-off-by: Chris O'Brien \u003cchrisob91@gmail.com\u003e\n\n* Bump minor version instead of patch version\n\nSigned-off-by: Chris O'Brien \u003cchrisob91@gmail.com\u003e",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "1.19.0"
     },
     "contentSHA": "091919437262ee08b6d7afa80dc43e55c59acf7c2995118bfaaa9dfbc7facf7f"

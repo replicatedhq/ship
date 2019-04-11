@@ -9,6 +9,14 @@
       "icon": "https://camo.githubusercontent.com/afa87494e0753b4b1f5719a2f35aa5263859dffb/687474703a2f2f6a61656765722e72656164746865646f63732e696f2f656e2f6c61746573742f696d616765732f6a61656765722d766563746f722e737667",
       "name": "jaeger",
       "releaseNotes": "Adds tolerations labels for Jaeger pods (#6255)",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "sequence": 0,
       "version": "0.7.0"
     },
     "contentSHA": "a5d77ded8ae4a5e576b4d9c7187e9eb220bf1f9bf8c61e4ff9051e164f5e97b4"
