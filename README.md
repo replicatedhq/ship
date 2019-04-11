@@ -10,22 +10,23 @@ Replicated Ship
 
 Replicated Ship is an open source project by [Replicated](https://www.replicated.com) with three primary goals.
 
-1. Onboarding users to [Kustomize](https://www.kustomize.io) & the `kubectl apply -k` command through an easy-to-use UI & migration tools.
 1. Automate the maintenance of 3rd-party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
+1. Onboarding users to [Kustomize](https://www.kustomize.io) & the `kubectl apply -k` command through an easy-to-use UI & migration tools.
 1. Enable application developers to package and deliver a canonical version of their application configuration while encouraging last-mile customizations through overlays instead of forking or upstream requests.
 
 Read on for more details on Ship features and objectives, or skip ahead to [getting started](#getting-started).
+
+## Automated maintainence of 3rd-party applications
+With Ship, cluster operators can automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
 ## Onboarding to Kustomize
 The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. The easy-to-use UI of Ship (launched via `ship init`) calculates the minimal patch YAML required to build an overlay and previews the diff that will be the result of applying the drafted overlay.
 ![gif of calculation](https://github.com/replicatedhq/ship/blob/master/logo/calc-n-diff.gif)
 
-Finally, the `unfork` command can [migrate forked manifests](#unforking) and environment versions to Kustomize.
+Additionally, the `unfork` command can [migrate forked manifests](#unforking) and environment versions to Kustomize.
 
 The output of the `init` and `unfork` modes will result in the creation of a directory that includes the finalized overlay YAML files, a kustomization.yaml and a Ship state.json.
 
-## Automated maintainence of 3rd-pary applications
-With Ship, cluster operators can automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations made by the cluster operator.
 
 ## Enable app developers to allow for last-mile configuration
 - Configuration workflow `ship.yaml` files can be included in Kubernetes manifest or [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience. See [Customizing the Configuration Experience](#customizing-the-configuration-experience) for more details or check out the examples in the [github.com/shipapps](https://github.com/shipapps) org.
