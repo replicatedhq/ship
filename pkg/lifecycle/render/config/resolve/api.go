@@ -233,7 +233,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 				}
 			}
 
-			resolvedItem, err := r.applyConfigItemFieldTemplates(ctx, *builder, configItem)
+			resolvedItem, err := r.applyConfigItemFieldTemplates(ctx, *builder, configItem, updatedValues)
 			if err != nil {
 				return resolvedConfig, errors.Wrapf(err, "resolve item %s", configItem.Name)
 			}
@@ -359,7 +359,7 @@ func (r *APIConfigRenderer) applyConfigGroupFieldTemplates(ctx context.Context, 
 	return configGroup, nil
 }
 
-func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem) (*libyaml.ConfigItem, error) {
+func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem, configValues map[string]interface{}) (*libyaml.ConfigItem, error) {
 	// filters
 	var filters []string
 	for _, filter := range configItem.Filters {
@@ -375,7 +375,6 @@ func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, b
 	if configItem.Type == "" {
 		configItem.Type = "text"
 	}
-
 	// build "default"
 	builtDefault, err := builder.String(configItem.Default)
 	if err != nil {
@@ -391,6 +390,17 @@ func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, b
 		return nil, err
 	}
 	configItem.Value = builtValue
+
+	previousVal, ok := configValues[configItem.Name]
+
+	if ok {
+		// only use this for defaults/values that should exist
+		if configItem.Value != "" {
+			configItem.Value = fmt.Sprintf("%s", previousVal)
+		} else {
+			configItem.Default = fmt.Sprintf("%s", previousVal)
+		}
+	}
 
 	// build "when" (dropping support for the when: a=b style here from replicated v1)
 	builtWhen, err := builder.String(configItem.When)

@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -317,6 +318,71 @@ func TestHeadlessResolver(t *testing.T) {
 				req.Equal(randomDependent, random1)
 			},
 		},
+		{
+			name: "test_deep_random_chain",
+			release: &api.Release{
+				Spec: api.Spec{
+					Lifecycle: api.Lifecycle{
+						V1: []api.Step{
+							{
+								Render: &api.Render{},
+							},
+						},
+					},
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_1",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl RandomString 32}}`,
+									},
+								},
+							},
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_dependent",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl ConfigOption "random_1"}}`,
+									},
+								},
+							},
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_dependent_child",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl ConfigOption "random_dependent"}}+{{repl ConfigOption "random_dependent"}}`,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputContext: map[string]interface{}{},
+			expect: func(t *testing.T, i map[string]interface{}, e error) {
+				req := require.New(t)
+				req.NoError(e)
+
+				random1, exists := i["random_1"]
+				req.True(exists, "'random_1' should exist")
+
+				randomDependent, exists := i["random_dependent"]
+				req.True(exists, "'random_dependent' should exist")
+
+				randomDependentChild, exists := i["random_dependent_child"]
+				req.True(exists, "'random_dependent_child' should exist")
+
+				req.Equal(randomDependentChild, fmt.Sprintf("%s+%s", randomDependent, randomDependent), "constructed child should match")
+				req.Equal(randomDependent, random1, "raw child should match")
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -344,11 +410,12 @@ func TestHeadlessResolver(t *testing.T) {
 
 			resolver := &DaemonResolver{log, &headlessDaemon}
 
-			resolveContext, _ := context.WithTimeout(context.Background(), 1*time.Second)
+			resolveContext, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 
 			config, err := resolver.ResolveConfig(resolveContext, test.release, test.inputContext)
 
 			test.expect(t, config, err)
+			cancel()
 		})
 	}
 }
