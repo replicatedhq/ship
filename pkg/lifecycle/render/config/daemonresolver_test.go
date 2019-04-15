@@ -383,6 +383,87 @@ func TestHeadlessResolver(t *testing.T) {
 				req.Equal(randomDependent, random1, "raw child should match")
 			},
 		},
+		{
+			name: "ensure_randomstrings_differ",
+			release: &api.Release{
+				Spec: api.Spec{
+					Lifecycle: api.Lifecycle{
+						V1: []api.Step{
+							{
+								Render: &api.Render{},
+							},
+						},
+					},
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_1",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl RandomString 32}}`,
+									},
+								},
+							},
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_dependent",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl ConfigOption "random_1"}}`,
+									},
+								},
+							},
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_2",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl RandomString 32}}`,
+									},
+								},
+							},
+							{
+								Items: []*libyaml.ConfigItem{
+									{
+										Name:     "random_dependent_2",
+										Type:     "text",
+										ReadOnly: true,
+										Value:    `{{repl ConfigOption "random_2"}}`,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputContext: map[string]interface{}{},
+			expect: func(t *testing.T, i map[string]interface{}, e error) {
+				req := require.New(t)
+				req.NoError(e)
+
+				random1, exists := i["random_1"]
+				req.True(exists, "'random_1' should exist")
+
+				randomDependent, exists := i["random_dependent"]
+				req.True(exists, "'random_dependent' should exist")
+
+				req.Equal(randomDependent, random1)
+
+				random2, exists := i["random_2"]
+				req.True(exists, "'random_2' should exist")
+
+				randomDependent2, exists := i["random_dependent_2"]
+				req.True(exists, "'random_dependent_2' should exist")
+
+				req.Equal(randomDependent2, random2)
+
+				req.NotEqual(random1, random2)
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
