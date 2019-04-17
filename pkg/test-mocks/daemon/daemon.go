@@ -38,19 +38,16 @@ func (m *MockDaemon) EXPECT() *MockDaemonMockRecorder {
 
 // AllStepsDone mocks base method
 func (m *MockDaemon) AllStepsDone(arg0 context.Context) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AllStepsDone", arg0)
 }
 
 // AllStepsDone indicates an expected call of AllStepsDone
 func (mr *MockDaemonMockRecorder) AllStepsDone(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllStepsDone", reflect.TypeOf((*MockDaemon)(nil).AllStepsDone), arg0)
 }
 
 // AwaitShutdown mocks base method
 func (m *MockDaemon) AwaitShutdown() error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AwaitShutdown")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -58,37 +55,31 @@ func (m *MockDaemon) AwaitShutdown() error {
 
 // AwaitShutdown indicates an expected call of AwaitShutdown
 func (mr *MockDaemonMockRecorder) AwaitShutdown() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AwaitShutdown", reflect.TypeOf((*MockDaemon)(nil).AwaitShutdown))
 }
 
 // CleanPreviousStep mocks base method
 func (m *MockDaemon) CleanPreviousStep() {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CleanPreviousStep")
 }
 
 // CleanPreviousStep indicates an expected call of CleanPreviousStep
 func (mr *MockDaemonMockRecorder) CleanPreviousStep() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanPreviousStep", reflect.TypeOf((*MockDaemon)(nil).CleanPreviousStep))
 }
 
 // ClearProgress mocks base method
 func (m *MockDaemon) ClearProgress() {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ClearProgress")
 }
 
 // ClearProgress indicates an expected call of ClearProgress
 func (mr *MockDaemonMockRecorder) ClearProgress() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearProgress", reflect.TypeOf((*MockDaemon)(nil).ClearProgress))
 }
 
 // ConfigSavedChan mocks base method
 func (m *MockDaemon) ConfigSavedChan() chan interface{} {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConfigSavedChan")
 	ret0, _ := ret[0].(chan interface{})
 	return ret0
@@ -96,13 +87,11 @@ func (m *MockDaemon) ConfigSavedChan() chan interface{} {
 
 // ConfigSavedChan indicates an expected call of ConfigSavedChan
 func (mr *MockDaemonMockRecorder) ConfigSavedChan() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigSavedChan", reflect.TypeOf((*MockDaemon)(nil).ConfigSavedChan))
 }
 
 // EnsureStarted mocks base method
 func (m *MockDaemon) EnsureStarted(arg0 context.Context, arg1 *api.Release) chan error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnsureStarted", arg0, arg1)
 	ret0, _ := ret[0].(chan error)
 	return ret0
@@ -110,13 +99,11 @@ func (m *MockDaemon) EnsureStarted(arg0 context.Context, arg1 *api.Release) chan
 
 // EnsureStarted indicates an expected call of EnsureStarted
 func (mr *MockDaemonMockRecorder) EnsureStarted(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureStarted", reflect.TypeOf((*MockDaemon)(nil).EnsureStarted), arg0, arg1)
 }
 
 // GetCurrentConfig mocks base method
 func (m *MockDaemon) GetCurrentConfig() map[string]interface{} {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentConfig")
 	ret0, _ := ret[0].(map[string]interface{})
 	return ret0
@@ -124,13 +111,11 @@ func (m *MockDaemon) GetCurrentConfig() map[string]interface{} {
 
 // GetCurrentConfig indicates an expected call of GetCurrentConfig
 func (mr *MockDaemonMockRecorder) GetCurrentConfig() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentConfig", reflect.TypeOf((*MockDaemon)(nil).GetCurrentConfig))
 }
 
 // KustomizeSavedChan mocks base method
 func (m *MockDaemon) KustomizeSavedChan() chan interface{} {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KustomizeSavedChan")
 	ret0, _ := ret[0].(chan interface{})
 	return ret0
@@ -138,13 +123,11 @@ func (m *MockDaemon) KustomizeSavedChan() chan interface{} {
 
 // KustomizeSavedChan indicates an expected call of KustomizeSavedChan
 func (mr *MockDaemonMockRecorder) KustomizeSavedChan() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KustomizeSavedChan", reflect.TypeOf((*MockDaemon)(nil).KustomizeSavedChan))
 }
 
 // MessageConfirmedChan mocks base method
 func (m *MockDaemon) MessageConfirmedChan() chan string {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MessageConfirmedChan")
 	ret0, _ := ret[0].(chan string)
 	return ret0
@@ -152,109 +135,91 @@ func (m *MockDaemon) MessageConfirmedChan() chan string {
 
 // MessageConfirmedChan indicates an expected call of MessageConfirmedChan
 func (mr *MockDaemonMockRecorder) MessageConfirmedChan() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).MessageConfirmedChan))
 }
 
 // PushHelmIntroStep mocks base method
 func (m *MockDaemon) PushHelmIntroStep(arg0 context.Context, arg1 daemontypes.HelmIntro, arg2 []daemontypes.Action) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushHelmIntroStep", arg0, arg1, arg2)
 }
 
 // PushHelmIntroStep indicates an expected call of PushHelmIntroStep
 func (mr *MockDaemonMockRecorder) PushHelmIntroStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmIntroStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmIntroStep), arg0, arg1, arg2)
 }
 
 // PushHelmValuesStep mocks base method
 func (m *MockDaemon) PushHelmValuesStep(arg0 context.Context, arg1 daemontypes.HelmValues, arg2 []daemontypes.Action) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushHelmValuesStep", arg0, arg1, arg2)
 }
 
 // PushHelmValuesStep indicates an expected call of PushHelmValuesStep
 func (mr *MockDaemonMockRecorder) PushHelmValuesStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushHelmValuesStep", reflect.TypeOf((*MockDaemon)(nil).PushHelmValuesStep), arg0, arg1, arg2)
 }
 
 // PushKustomizeStep mocks base method
 func (m *MockDaemon) PushKustomizeStep(arg0 context.Context, arg1 daemontypes.Kustomize) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushKustomizeStep", arg0, arg1)
 }
 
 // PushKustomizeStep indicates an expected call of PushKustomizeStep
 func (mr *MockDaemonMockRecorder) PushKustomizeStep(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushKustomizeStep", reflect.TypeOf((*MockDaemon)(nil).PushKustomizeStep), arg0, arg1)
 }
 
 // PushMessageStep mocks base method
 func (m *MockDaemon) PushMessageStep(arg0 context.Context, arg1 daemontypes.Message, arg2 []daemontypes.Action) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushMessageStep", arg0, arg1, arg2)
 }
 
 // PushMessageStep indicates an expected call of PushMessageStep
 func (mr *MockDaemonMockRecorder) PushMessageStep(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushMessageStep", reflect.TypeOf((*MockDaemon)(nil).PushMessageStep), arg0, arg1, arg2)
 }
 
 // PushRenderStep mocks base method
 func (m *MockDaemon) PushRenderStep(arg0 context.Context, arg1 daemontypes.Render) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushRenderStep", arg0, arg1)
 }
 
 // PushRenderStep indicates an expected call of PushRenderStep
 func (mr *MockDaemonMockRecorder) PushRenderStep(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushRenderStep", reflect.TypeOf((*MockDaemon)(nil).PushRenderStep), arg0, arg1)
 }
 
 // PushStreamStep mocks base method
 func (m *MockDaemon) PushStreamStep(arg0 context.Context, arg1 <-chan daemontypes.Message) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PushStreamStep", arg0, arg1)
 }
 
 // PushStreamStep indicates an expected call of PushStreamStep
 func (mr *MockDaemonMockRecorder) PushStreamStep(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushStreamStep", reflect.TypeOf((*MockDaemon)(nil).PushStreamStep), arg0, arg1)
 }
 
 // SetProgress mocks base method
 func (m *MockDaemon) SetProgress(arg0 daemontypes.Progress) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetProgress", arg0)
 }
 
 // SetProgress indicates an expected call of SetProgress
 func (mr *MockDaemonMockRecorder) SetProgress(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetProgress", reflect.TypeOf((*MockDaemon)(nil).SetProgress), arg0)
 }
 
 // SetStepName mocks base method
 func (m *MockDaemon) SetStepName(arg0 context.Context, arg1 string) {
-	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetStepName", arg0, arg1)
 }
 
 // SetStepName indicates an expected call of SetStepName
 func (mr *MockDaemonMockRecorder) SetStepName(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStepName", reflect.TypeOf((*MockDaemon)(nil).SetStepName), arg0, arg1)
 }
 
 // TerraformConfirmedChan mocks base method
 func (m *MockDaemon) TerraformConfirmedChan() chan bool {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TerraformConfirmedChan")
 	ret0, _ := ret[0].(chan bool)
 	return ret0
@@ -262,13 +227,11 @@ func (m *MockDaemon) TerraformConfirmedChan() chan bool {
 
 // TerraformConfirmedChan indicates an expected call of TerraformConfirmedChan
 func (mr *MockDaemonMockRecorder) TerraformConfirmedChan() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerraformConfirmedChan", reflect.TypeOf((*MockDaemon)(nil).TerraformConfirmedChan))
 }
 
 // UnforkSavedChan mocks base method
 func (m *MockDaemon) UnforkSavedChan() chan interface{} {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnforkSavedChan")
 	ret0, _ := ret[0].(chan interface{})
 	return ret0
@@ -276,6 +239,5 @@ func (m *MockDaemon) UnforkSavedChan() chan interface{} {
 
 // UnforkSavedChan indicates an expected call of UnforkSavedChan
 func (mr *MockDaemonMockRecorder) UnforkSavedChan() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnforkSavedChan", reflect.TypeOf((*MockDaemon)(nil).UnforkSavedChan))
 }

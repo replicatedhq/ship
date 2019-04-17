@@ -169,6 +169,11 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	switch app.GetType() {
 
 	case "helm":
+		err = r.persistToState(app.GetLocalPath())
+		if err != nil {
+			return nil, errors.Wrap(err, "persist helm chart to state")
+		}
+
 		defaultRelease := r.DefaultHelmRelease(app.GetLocalPath(), upstream)
 
 		return r.resolveRelease(
@@ -182,6 +187,11 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		)
 
 	case "k8s":
+		err = r.persistToState(app.GetLocalPath())
+		if err != nil {
+			return nil, errors.Wrap(err, "persist k8s to state")
+		}
+
 		defaultRelease := r.DefaultRawRelease(constants.KustomizeBasePath)
 
 		return r.resolveRelease(
@@ -195,6 +205,11 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		)
 
 	case "runbook.replicated.app":
+		err = r.persistToState(filepath.Dir(app.GetLocalPath()))
+		if err != nil {
+			return nil, errors.Wrap(err, "persist runbook.replicated.app to state")
+		}
+
 		r.AppResolver.SetRunbook(app.GetLocalPath())
 		fallthrough
 	case "replicated.app":
@@ -206,6 +221,11 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		return r.AppResolver.ResolveAppRelease(ctx, selector, app)
 
 	case "inline.replicated.app":
+		err = r.persistToState(app.GetLocalPath())
+		if err != nil {
+			return nil, errors.Wrap(err, "persist inline.replicated.app to state")
+		}
+
 		return r.resolveInlineShipYAMLRelease(
 			ctx,
 			upstream,

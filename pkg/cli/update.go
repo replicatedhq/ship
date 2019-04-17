@@ -36,6 +36,7 @@ func Update() *cobra.Command {
 	}
 
 	cmd.Flags().BoolP("headed", "", false, "run ship update in headed mode")
+	cmd.Flags().BoolP("no-fetch", "", false, "use the stored ship upstream contents")
 
 	return cmd
 }

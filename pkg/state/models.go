@@ -20,6 +20,7 @@ type State interface {
 	CurrentReleaseName() string
 	CurrentNamespace() string
 	Upstream() string
+	UpstreamContents() *UpstreamContents
 	Versioned() VersionedState
 	IsEmpty() bool
 	CurrentCAs() map[string]util.CAType
@@ -41,6 +42,7 @@ func (Empty) CurrentReleaseName() string                    { return "" }
 func (Empty) CurrentNamespace() string                      { return "" }
 func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
 func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
+func (Empty) UpstreamContents() *UpstreamContents           { return nil }
 func (Empty) Upstream() string                              { return "" }
 func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
 func (Empty) IsEmpty() bool                                 { return true }
@@ -56,6 +58,7 @@ func (v V0) CurrentReleaseName() string                    { return "" }
 func (v V0) CurrentNamespace() string                      { return "" }
 func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
 func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
+func (v V0) UpstreamContents() *UpstreamContents           { return nil }
 func (v V0) Upstream() string                              { return "" }
 func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
 func (v V0) IsEmpty() bool                                 { return false }
@@ -78,6 +81,7 @@ type V1 struct {
 	Kustomize          *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
 	Metadata           *Metadata              `json:"metadata,omitempty" yaml:"metadata,omitempty" hcl:"metadata,omitempty"`
+	UpstreamContents   *UpstreamContents      `json:"upstreamContents,omitempty" yaml:"upstreamContents,omitempty" hcl:"upstreamContents,omitempty"`
 
 	//deprecated in favor of upstream
 	ChartURL string `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
@@ -112,6 +116,15 @@ type Metadata struct {
 	AppSlug         string      `json:"appSlug,omitempty" yaml:"appSlug,omitempty" hcl:"appSlug,omitempty"`
 	Lists           []util.List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
 	License         License     `json:"license" yaml:"license" hcl:"license"`
+}
+
+type UpstreamContents struct {
+	UpstreamFiles []UpstreamFile
+}
+
+type UpstreamFile struct {
+	FilePath     string
+	FileContents string
 }
 
 type StepsCompleted map[string]interface{}
@@ -286,6 +299,16 @@ func (v VersionedState) CurrentCAs() map[string]util.CAType {
 func (v VersionedState) CurrentCerts() map[string]util.CertType {
 	if v.V1 != nil {
 		return v.V1.Certs
+	}
+	return nil
+}
+
+func (v VersionedState) UpstreamContents() *UpstreamContents {
+	if v.V1 != nil {
+		if v.V1.UpstreamContents != nil {
+			return v.V1.UpstreamContents
+		}
+		return nil
 	}
 	return nil
 }

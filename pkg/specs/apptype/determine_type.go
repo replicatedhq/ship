@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/specs/localgetter"
+	"github.com/replicatedhq/ship/pkg/specs/stateclient"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
@@ -66,7 +67,7 @@ type FileFetcher interface {
 	GetFiles(ctx context.Context, upstream, savePath string) (string, error)
 }
 
-func (r *inspector) DetermineApplicationType(ctx context.Context, upstream string) (app LocalAppCopy, err error) {
+func (i *inspector) DetermineApplicationType(ctx context.Context, upstream string) (app LocalAppCopy, err error) {
 	// hack hack hack
 	isReplicatedApp := strings.HasPrefix(upstream, "replicated.app") ||
 		strings.HasPrefix(upstream, "staging.replicated.app") ||
@@ -80,16 +81,31 @@ func (r *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		return &localAppCopy{AppType: "runbook.replicated.app", LocalPath: parts[0]}, nil
 	}
 
-	r.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
-	// use the integrated github client if the url is a github url and does not contain "//", unless perfer-git is set)
-	if r.viper.GetBool("prefer-git") == false && util.IsGithubURL(upstream) {
-		githubClient := githubclient.NewGithubClient(r.fs, r.logger)
-		return r.determineTypeFromContents(ctx, upstream, githubClient)
+	if i.viper.GetBool("no-fetch") {
+		state, err := i.state.TryLoad()
+		if err != nil {
+			return nil, errors.Wrap(err, "load app state")
+		}
+		upstreamContents := state.UpstreamContents()
+		if upstreamContents == nil {
+			return nil, fmt.Errorf("no upstream contents present")
+		}
+
+		// create a new fetcher class that gets things from the state file
+		stateClient := stateclient.NewStateClient(i.fs, i.logger, upstreamContents)
+		return i.determineTypeFromContents(ctx, upstream, stateClient)
 	}
 
-	if localgetter.IsLocalFile(&r.fs, upstream) {
-		fetcher := localgetter.LocalGetter{Logger: r.logger, FS: r.fs}
-		return r.determineTypeFromContents(ctx, upstream, &fetcher)
+	i.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
+	// use the integrated github client if the url is a github url and does not contain "//", unless perfer-git is set)
+	if i.viper.GetBool("prefer-git") == false && util.IsGithubURL(upstream) {
+		githubClient := githubclient.NewGithubClient(i.fs, i.logger)
+		return i.determineTypeFromContents(ctx, upstream, githubClient)
+	}
+
+	if localgetter.IsLocalFile(&i.fs, upstream) {
+		fetcher := localgetter.LocalGetter{Logger: i.logger, FS: i.fs}
+		return i.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
 	upstream, subdir, isSingleFile := gogetter.UntreeGithub(upstream)
@@ -98,17 +114,17 @@ func (r *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 	}
 	if gogetter.IsGoGettable(upstream) {
 		// get with go-getter
-		fetcher := gogetter.GoGetter{Logger: r.logger, FS: r.fs, Subdir: subdir, IsSingleFile: isSingleFile}
-		return r.determineTypeFromContents(ctx, upstream, &fetcher)
+		fetcher := gogetter.GoGetter{Logger: i.logger, FS: i.fs, Subdir: subdir, IsSingleFile: isSingleFile}
+		return i.determineTypeFromContents(ctx, upstream, &fetcher)
 	}
 
 	return nil, errors.Errorf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream)
 }
 
-func (r *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (app LocalAppCopy, err error) {
-	debug := level.Debug(r.logger)
+func (i *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (app LocalAppCopy, err error) {
+	debug := level.Debug(i.logger)
 
-	repoSavePath, err := r.fs.TempDir(constants.ShipPathInternalTmp, "repo")
+	repoSavePath, err := i.fs.TempDir(constants.ShipPathInternalTmp, "repo")
 	if err != nil {
 		return nil, errors.Wrap(err, "create tmp dir")
 	}
@@ -116,21 +132,21 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	finalPath, err := fetcher.GetFiles(ctx, upstream, repoSavePath)
 	if err != nil {
 		if _, ok := err.(errors2.FetchFilesError); ok {
-			r.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
+			i.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
 
 			var retryError error
-			retries := r.viper.GetInt("retries")
+			retries := i.viper.GetInt("retries")
 			hasSucceeded := false
 			for idx := 1; idx <= retries && !hasSucceeded; idx++ {
 				debug.Log("event", "retry.getFiles", "attempt", idx)
-				r.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
+				i.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
 				time.Sleep(time.Second * 5)
 				finalPath, retryError = fetcher.GetFiles(ctx, upstream, repoSavePath)
 
 				if retryError != nil {
-					r.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
-					level.Error(r.logger).Log("event", "getFiles", "err", retryError)
+					i.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
+					level.Error(i.logger).Log("event", "getFiles", "err", retryError)
 				} else {
 					hasSucceeded = true
 				}
@@ -147,7 +163,7 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	// if there's a ship.yaml, assume its a replicated.app
 	var isReplicatedApp bool
 	for _, filename := range []string{"ship.yaml", "ship.yml"} {
-		isReplicatedApp, err = r.fs.Exists(path.Join(finalPath, filename))
+		isReplicatedApp, err = i.fs.Exists(path.Join(finalPath, filename))
 		if err != nil {
 			return nil, errors.Wrapf(err, "check for %s", filename)
 		}
@@ -157,7 +173,7 @@ func (r *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	}
 
 	// if there's a Chart.yaml, assume its a chart
-	isChart, err := r.fs.Exists(path.Join(finalPath, "Chart.yaml"))
+	isChart, err := i.fs.Exists(path.Join(finalPath, "Chart.yaml"))
 	if err != nil {
 		isChart = false
 	}

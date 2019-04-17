@@ -38,6 +38,7 @@ type Manager interface {
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
 	SerializeListsMetadata(util.List) error
+	SerializeUpstreamContents(contents *UpstreamContents) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
 
@@ -230,6 +231,21 @@ func (m *MManager) SerializeListsMetadata(list util.List) error {
 		versionedState.V1.Metadata = &Metadata{}
 	}
 	versionedState.V1.Metadata.Lists = append(versionedState.V1.Metadata.Lists, list)
+
+	return m.serializeAndWriteState(versionedState)
+}
+
+// SerializeConfig takes the application data and input params and serializes a state file to disk
+func (m *MManager) SerializeUpstreamContents(contents *UpstreamContents) error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeConfig"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+	versionedState := currentState.Versioned()
+	versionedState.V1.UpstreamContents = contents
 
 	return m.serializeAndWriteState(versionedState)
 }

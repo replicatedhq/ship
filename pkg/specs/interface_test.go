@@ -85,6 +85,8 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type helm").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/helm/charts/stable/x5").After(inOrder)
+				upstreamContents := state2.UpstreamContents{UpstreamFiles: []state2.UpstreamFile{{FilePath: "Chart.yaml", FileContents: "Ci0tLQp2ZXJzaW9uOiAwLjEuMApuYW1lOiBpIGtub3cgd2hhdCB0aGUgeDUgaXMKaWNvbjogaHR0cHM6Ly9rZmJyLjM5Mi94NS5wbmcK"}, {FilePath: "README.md", FileContents: "aXRzIHRoZSByZWFkbWU="}}}
+				inOrder = mockState.EXPECT().SerializeUpstreamContents(&upstreamContents).After(inOrder)
 				mockGitHubFetcher.EXPECT().
 					ResolveReleaseNotes(ctx, "github.com/helm/charts/stable/x5").
 					Return("some release notes", nil)
@@ -195,6 +197,8 @@ icon: https://kfbr.392/x5.png
 					}).After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Detected application type k8s").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("github.com/replicatedhq/test-charts/plain-k8s").After(inOrder)
+				upstreamContents := state2.UpstreamContents{UpstreamFiles: []state2.UpstreamFile{{FilePath: "README.md", FileContents: "aXRzIHRoZSByZWFkbWU="}}}
+				inOrder = mockState.EXPECT().SerializeUpstreamContents(&upstreamContents).After(inOrder)
 				inOrder = mockGitHubFetcher.EXPECT().
 					ResolveReleaseNotes(ctx, "github.com/replicatedhq/test-charts/plain-k8s").
 					Return("plain-k8s example", nil).After(inOrder)
@@ -230,11 +234,17 @@ icon: https://kfbr.392/x5.png
 				mockAppResolver *replicatedapp.MockResolver,
 				mockGitHubFetcher *githubclient.MockGitHubFetcher,
 			) {
+				req := require.New(t)
 				inOrder := mockUi.EXPECT().Info("Reading /path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789 ...")
 				inOrder = mockUi.EXPECT().Info("Determining application type ...").After(inOrder)
 				inOrder = inspector.EXPECT().
 					DetermineApplicationType(ctx, "/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789").
 					DoAndReturn(func(context.Context, string) (*apptype.MockLocalAppCopy, error) {
+						err := mockFs.MkdirAll("/path/to", 0755)
+						req.NoError(err)
+						err = mockFs.WriteFile(path.Join("/path/to", "ship.yaml"), []byte("this is a test file"), 0644)
+						req.NoError(err)
+
 						localApp.EXPECT().GetType().Return("runbook.replicated.app").AnyTimes()
 						localApp.EXPECT().GetLocalPath().Return("/path/to/ship.yaml").AnyTimes()
 						return localApp, nil
@@ -242,6 +252,8 @@ icon: https://kfbr.392/x5.png
 
 				inOrder = mockUi.EXPECT().Info("Detected application type runbook.replicated.app").After(inOrder)
 				inOrder = mockState.EXPECT().SerializeUpstream("/path/to/ship.yaml?customer_id=123&installation_id=456&release_semver=789").After(inOrder)
+				upstreamContents := state2.UpstreamContents{UpstreamFiles: []state2.UpstreamFile{{FilePath: "ship.yaml", FileContents: "dGhpcyBpcyBhIHRlc3QgZmlsZQ=="}}}
+				inOrder = mockState.EXPECT().SerializeUpstreamContents(&upstreamContents).After(inOrder)
 				inOrder = mockAppResolver.EXPECT().SetRunbook("/path/to/ship.yaml").After(inOrder)
 				mockAppResolver.EXPECT().ResolveAppRelease(ctx, &replicatedapp2.Selector{
 					CustomerID:     "123",
