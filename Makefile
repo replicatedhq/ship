@@ -13,6 +13,9 @@ DOCKER_REPO ?= replicated
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
 VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
+HELMV = v2.13.0
+KUSTOMIZEV = v2.0.2
+TERRAFORMV = v0.11.13
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -36,6 +39,9 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.version=${VERSION} \
 	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+	-X ${VERSION_PACKAGE}.helm=${HELMV} \
+	-X ${VERSION_PACKAGE}.kustomize=${KUSTOMIZEV} \
+	-X ${VERSION_PACKAGE}.terraform=${TERRAFORMV} \
 "
 endef
 

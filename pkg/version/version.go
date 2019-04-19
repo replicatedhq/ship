@@ -8,10 +8,17 @@ var (
 
 // Build holds details about this build of the Ship binary
 type Build struct {
-	Version      string    `json:"version,omitempty"`
-	GitSHA       string    `json:"git,omitempty"`
-	BuildTime    time.Time `json:"buildTime,omitempty"`
-	TimeFallback string    `json:"buildTimeFallback,omitempty"`
+	Version      string            `json:"version,omitempty"`
+	GitSHA       string            `json:"git,omitempty"`
+	BuildTime    time.Time         `json:"buildTime,omitempty"`
+	TimeFallback string            `json:"buildTimeFallback,omitempty"`
+	Dependencies BuildDependencies `json:"dependencies,omitempty"`
+}
+
+type BuildDependencies struct {
+	Helm      string `json:"helm,omitempty"`
+	Kustomize string `json:"kustomize,omitempty"`
+	Terraform string `json:"terraform,omitempty"`
 }
 
 // Init sets up the version info from build args
@@ -25,6 +32,13 @@ func Init() {
 	if err != nil {
 		build.TimeFallback = buildTime
 	}
+
+	deps := BuildDependencies{
+		Helm:      helm,
+		Kustomize: kustomize,
+		Terraform: terraform,
+	}
+	build.Dependencies = deps
 }
 
 // GetBuild gets the build

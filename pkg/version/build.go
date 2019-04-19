@@ -4,4 +4,5 @@ package version
 
 var (
 	version, gitSHA, buildTime string
+	helm, kustomize, terraform string
 )
