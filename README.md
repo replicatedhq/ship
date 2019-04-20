@@ -53,7 +53,7 @@ curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.40.0/ship_0.
 brew install ship
 ```
 
-- To download the latest Windows build, grab the tar.gz from the [releases page](https://github.com/replicatedhq/ship/releases)
+- To download the latest Windows build, grab the tar.gz from the [releases page](https://github.com/replicatedhq/ship/releases).
 
 Alternately, you can run Ship in Docker, in which case you can pull the latest ship image with:
 ```shell
