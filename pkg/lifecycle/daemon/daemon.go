@@ -65,8 +65,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 
 	g := gin.New()
 
-	ginLogger := level.Debug(log.With(d.Logger, "gin", "serve"))
-	logWriter := loggerWriter(ginLogger)
+	logWriter := loggerWriter(d.Logger)
 	g.Use(gin.LoggerWithWriter(logWriter))
 
 	g.Use(cors.New(config))
@@ -173,9 +172,9 @@ func loggerWriter(ginLog log.Logger) *io.PipeWriter {
 	go func(bufReader *bufio.Reader, ginLog log.Logger) {
 		for {
 			line, err := bufReader.ReadString('\n')
-			ginLog.Log(line)
+			level.Info(ginLog).Log("event", "gin.log", line, "line")
 			if err != nil {
-				ginLog.Log(err.Error())
+				level.Error(ginLog).Log("event", "gin.log", err, "err")
 				return
 			}
 		}
