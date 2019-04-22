@@ -1,8 +1,10 @@
 package daemon
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -62,6 +64,11 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 	config.AllowAllOrigins = true
 
 	g := gin.New()
+
+	ginLogger := level.Debug(log.With(d.Logger, "gin", "serve"))
+	logWriter := loggerWriter(ginLogger)
+	g.Use(gin.LoggerWithWriter(logWriter))
+
 	g.Use(cors.New(config))
 
 	debug.Log("event", "routes.configure")
@@ -157,4 +164,22 @@ func (d *ShipDaemon) Metricz(c *gin.Context) {
 		P95 float64 `json:"p95"`
 	}
 	c.IndentedJSON(200, map[string]Metric{})
+}
+
+func loggerWriter(ginLog log.Logger) *io.PipeWriter {
+	reader, writer := io.Pipe()
+	bufReader := bufio.NewReader(reader)
+
+	go func(bufReader *bufio.Reader, ginLog log.Logger) {
+		for {
+			line, err := bufReader.ReadString('\n')
+			ginLog.Log(line)
+			if err != nil {
+				ginLog.Log(err.Error())
+				return
+			}
+		}
+	}(bufReader, ginLog)
+
+	return writer
 }
