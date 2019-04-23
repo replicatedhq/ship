@@ -71,13 +71,13 @@ export default class FileInput extends React.Component {
                 type="file"
                 name={this.props.name}
                 className="inputfile"
-                id={`${this.props.name} "selector"`}
+                id={`${this.props.name} selector`}
                 onChange={this.handleOnChange}
                 readOnly={this.props.readOnly}
                 multiple={true}
                 disabled={this.props.disabled}
               />
-              <label htmlFor={`${this.props.name} "selector"`} className="u-position--relative">
+              <label htmlFor={`${this.props.name} selector`} className="u-position--relative">
                 <span className={`icon clickable ${this.state.fileAdded ? "u-smallCheckGreen" : "u-ovalIcon"} u-marginRight--normal u-top--3`}></span>
                 {this.state.fileAdded ? `${this.props.title} file selected` : `Browse files for ${this.props.title}`}
               </label>
