@@ -74,3 +74,26 @@
     color: #44BB66;
   }
 }
+
+input[type="file"] {
+  display: none;
+}
+
+.custom-file-upload {
+  border: 1px dashed #C4C7CA;
+  display: inline-block;
+  padding: 15px 17px;
+  cursor: pointer;
+  width: 249px;
+  border-radius: 4px;
+}
+
+.file-uploaded {
+  border: 1px solid #9B9B9B;
+  display: inline-block;
+  padding: 15px 17px;
+  cursor: pointer;
+  width: 249px;
+  border-radius: 4px;
+  color: #323232;
+}

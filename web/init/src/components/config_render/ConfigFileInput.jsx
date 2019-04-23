@@ -24,14 +24,15 @@ export default class ConfigFileInput extends React.Component {
         return this.props.multi_value.join(", ");
       }
     } else if (this.props.value) {
-      return this.props.value;
+      return this.props.value.slice(0,5) + "....";
     }
     return this.props.default;
   }
 
+
   render() {
     return (
-      <div className={`field field-type-file ${this.props.hidden ? "hidden" : ""}`}>
+      <div className={`field field-type-file u-marginTop--15 ${this.props.hidden ? "hidden" : ""}`}>
         {this.props.title !== "" ?
           <ConfigItemTitle
             title={this.props.title}
@@ -46,12 +47,13 @@ export default class ConfigFileInput extends React.Component {
               <FileInput
                 ref={(file) => this.file = file}
                 name={this.props.name}
+                title={this.props.title}
                 readOnly={this.props.readonly}
                 disabled={this.props.readonly}
                 multiple={this.props.multiple}
-                onChange={this.handleOnChange} />
+                onChange={this.handleOnChange}
+                getFilenamesText={this.getFilenamesText()}/>
             </span>
-            <small>{this.getFilenamesText()}</small>
           </div>
         </div>
       </div>
