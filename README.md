@@ -40,12 +40,12 @@ The output of the `init` and `unfork` modes will result in the creation of a dir
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.40.0/ship_0.40.0_linux_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.41.0/ship_0.41.0_linux_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, you can either run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.40.0/ship_0.40.0_darwin_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.41.0/ship_0.41.0_darwin_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
 ```
 
 - ... or you can install with [Homebrew](https://brew.sh/):
@@ -53,10 +53,13 @@ curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.40.0/ship_0.
 brew install ship
 ```
 
+- To download the latest Windows build, grab the tar.gz from the [releases page](https://github.com/replicatedhq/ship/releases).
+
 Alternately, you can run Ship in Docker, in which case you can pull the latest ship image with:
 ```shell
 docker pull replicated/ship
 ```
+
 
 ## Initializing
 After Ship is installed, create a directory for the application you'll be managing with Ship, and launch Ship from there, specifying an upstream Helm chart or Kubernetes yaml:
