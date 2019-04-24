@@ -3,6 +3,14 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/replicatedhq/test-charts/tree/ebebc9e692db3caeadb308ddeec37e9565acba1e/just-ship-yaml",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "ship.yml",
+          "fileContents": "YXNzZXRzOgogIHYxOgogICAgLSBpbmxpbmU6CiAgICAgICAgIGRlc3Q6IGphc3Blcl92YWx1ZXMueWFtbAogICAgICAgICBjb250ZW50czogfAogICAgICAgICAgIHR3b19wbHVzX3R3bzoge3tyZXBsIEFkZCAyIDN9fQogICAgICAgICAgIHNlcnZpY2VfdHlwZToge3tyZXBsIENvbmZpZ09wdGlvbiAic2VydmljZV90eXBlIn19Cgpjb25maWc6CiAgdjE6CiAgICAtIG5hbWU6IGs4cwogICAgICBpdGVtczogCiAgICAgICAgLSBuYW1lOiBzZXJ2aWNlX3R5cGUKICAgICAgICAgIHR5cGU6IHRleHQKICAgICAgICAgIHRpdGxlOiAiU2VydmljZSBUeXBlIChMb2FkQmFsYW5jZXIsIE5vZGVQb3J0LCBldGMpIgoKbGlmZWN5Y2xlOgogIHYxOgogICAgLSBjb25maWc6IHt9CiAgICAtIHJlbmRlcjoge30K"
+        }
+      ]
+    },
     "contentSHA": "1e907005309deaa56fa83ab5e7fb8504be6127f98d986285943109f3a3f2279d"
   }
 }

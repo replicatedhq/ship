@@ -3,6 +3,14 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "github.com/replicatedhq/test-charts/blob/3427d6997bd150c60caa00ba0298fdfe17e3ed04/plain-k8s/frontend-deployment.yaml",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "plain-k8s/frontend-deployment.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogYXBwcy92MSAjICBmb3IgazhzIHZlcnNpb25zIGJlZm9yZSAxLjkuMCB1c2UgYXBwcy92MWJldGEyICBhbmQgYmVmb3JlIDEuOC4wIHVzZSBleHRlbnNpb25zL3YxYmV0YTEKa2luZDogRGVwbG95bWVudAptZXRhZGF0YToKICBuYW1lOiBmcm9udGVuZApzcGVjOgogIHNlbGVjdG9yOgogICAgbWF0Y2hMYWJlbHM6CiAgICAgIGFwcDogZ3Vlc3Rib29rCiAgICAgIHRpZXI6IGZyb250ZW5kCiAgcmVwbGljYXM6IDMKICB0ZW1wbGF0ZToKICAgIG1ldGFkYXRhOgogICAgICBsYWJlbHM6CiAgICAgICAgYXBwOiBndWVzdGJvb2sKICAgICAgICB0aWVyOiBmcm9udGVuZAogICAgc3BlYzoKICAgICAgY29udGFpbmVyczoKICAgICAgLSBuYW1lOiBwaHAtcmVkaXMKICAgICAgICBpbWFnZTogZ2NyLmlvL2dvb2dsZS1zYW1wbGVzL2diLWZyb250ZW5kOnY0CiAgICAgICAgcmVzb3VyY2VzOgogICAgICAgICAgcmVxdWVzdHM6CiAgICAgICAgICAgIGNwdTogMTAwbQogICAgICAgICAgICBtZW1vcnk6IDEwME1pCiAgICAgICAgZW52OgogICAgICAgIC0gbmFtZTogR0VUX0hPU1RTX0ZST00KICAgICAgICAgIHZhbHVlOiBkbnMKICAgICAgICAgICMgSWYgeW91ciBjbHVzdGVyIGNvbmZpZyBkb2VzIG5vdCBpbmNsdWRlIGEgZG5zIHNlcnZpY2UsIHRoZW4gdG8KICAgICAgICAgICMgaW5zdGVhZCBhY2Nlc3MgZW52aXJvbm1lbnQgdmFyaWFibGVzIHRvIGZpbmQgc2VydmljZSBob3N0CiAgICAgICAgICAjIGluZm8sIGNvbW1lbnQgb3V0IHRoZSAndmFsdWU6IGRucycgbGluZSBhYm92ZSwgYW5kIHVuY29tbWVudCB0aGUKICAgICAgICAgICMgbGluZSBiZWxvdzoKICAgICAgICAgICMgdmFsdWU6IGVudgogICAgICAgIHBvcnRzOgogICAgICAgIC0gY29udGFpbmVyUG9ydDogODAK"
+        }
+      ]
+    },
     "contentSHA": "f866aa7703a8748f38628dea58628bc4c108bb08266ba1f396a5b9af9e28a91a"
   }
 }

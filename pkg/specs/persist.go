@@ -12,7 +12,8 @@ import (
 )
 
 func (r *Resolver) persistToState(root string) error {
-	contents := state.UpstreamContents{}
+	contentsActual := state.UpstreamContents{}
+	contents := &contentsActual
 
 	err := r.FS.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -54,7 +55,11 @@ func (r *Resolver) persistToState(root string) error {
 		return errors.Wrapf(err, "fetch contents")
 	}
 
-	err = r.StateManager.SerializeUpstreamContents(&contents)
+	if len(contents.UpstreamFiles) == 0 {
+		contents = nil
+	}
+
+	err = r.StateManager.SerializeUpstreamContents(contents)
 	if err != nil {
 		return errors.Wrapf(err, "persist contents")
 	}

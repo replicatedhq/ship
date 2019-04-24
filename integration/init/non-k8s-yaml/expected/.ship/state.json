@@ -3,6 +3,26 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/replicatedhq/test-charts/tree/32a4d5e55d190205a7d73eb6c366df044bd19b54/non-k8s-yaml",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": ".dotfile.yml",
+          "fileContents": "I3RoaXMgZG90ZmlsZSBpcyB2YWxpZCB5YW1sICh0aG91Z2ggYWxzbyBub25zZW5zZSkKI2J1dCBub3QgdmFsaWQga3ViZXJuZXRlcyB5YW1sCgppZ25vcmU6ICJzb21ldGhpbmci"
+        },
+        {
+          "filePath": "ci_settings.yaml",
+          "fileContents": "I3RoaXMgaXMgdmFsaWQgeWFtbCAodGhvdWdoIGFsc28gbm9uc2Vuc2UpCiNidXQgbm90IHZhbGlkIGt1YmVybmV0ZXMgeWFtbAoKYnVpbGQ6IHRydWUKcGxhdGZvcm1fdmVyc2lvbjogIjIuMC4xIg=="
+        },
+        {
+          "filePath": "frontend-deployment.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogYXBwcy92MQpraW5kOiBEZXBsb3ltZW50Cm1ldGFkYXRhOgogIG5hbWU6IGZyb250ZW5kCnNwZWM6CiAgc2VsZWN0b3I6CiAgICBtYXRjaExhYmVsczoKICAgICAgYXBwOiBndWVzdGJvb2sKICAgICAgdGllcjogZnJvbnRlbmQKICByZXBsaWNhczogMwogIHRlbXBsYXRlOgogICAgbWV0YWRhdGE6CiAgICAgIGxhYmVsczoKICAgICAgICBhcHA6IGd1ZXN0Ym9vawogICAgICAgIHRpZXI6IGZyb250ZW5kCiAgICBzcGVjOgogICAgICBjb250YWluZXJzOgogICAgICAtIG5hbWU6IHBocC1yZWRpcwogICAgICAgIGltYWdlOiBnY3IuaW8vZ29vZ2xlLXNhbXBsZXMvZ2ItZnJvbnRlbmQ6djQKICAgICAgICByZXNvdXJjZXM6CiAgICAgICAgICByZXF1ZXN0czoKICAgICAgICAgICAgY3B1OiAxMDBtCiAgICAgICAgICAgIG1lbW9yeTogMTAwTWkKICAgICAgICBlbnY6CiAgICAgICAgLSBuYW1lOiBHRVRfSE9TVFNfRlJPTQogICAgICAgICAgdmFsdWU6IGRucwogICAgICAgIHBvcnRzOgogICAgICAgIC0gY29udGFpbmVyUG9ydDogODAK"
+        },
+        {
+          "filePath": "frontend-service.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogdjEKa2luZDogU2VydmljZQptZXRhZGF0YToKICBuYW1lOiBmcm9udGVuZAogIGxhYmVsczoKICAgIGFwcDogZ3Vlc3Rib29rCiAgICB0aWVyOiBmcm9udGVuZApzcGVjOgogIHR5cGU6IE5vZGVQb3J0CiAgcG9ydHM6CiAgLSBwb3J0OiA4MAogIHNlbGVjdG9yOgogICAgYXBwOiBndWVzdGJvb2sKICAgIHRpZXI6IGZyb250ZW5kCg=="
+        }
+      ]
+    },
     "contentSHA": "8efb7923a3a4ab712a2ea986978e074763e7240a701e916be9640ff2b70dd536"
   }
 }

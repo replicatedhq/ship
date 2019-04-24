@@ -3,6 +3,22 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/replicatedhq/test-charts/tree/0e13bc2c19778b67f83f68c5e2886de0cd43d59f/other-list-types",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "configmapList.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogdjEKa2luZDogQ29uZmlnTWFwTGlzdAppdGVtczoKLSBhcGlWZXJzaW9uOiB2MQogIGtpbmQ6IENvbmZpZ01hcAogIG1ldGFkYXRhOgogICAgbmFtZTogd2lubmllCi0gYXBpVmVyc2lvbjogdjEKICBraW5kOiBDb25maWdNYXAKICBtZXRhZGF0YToKICAgIG5hbWU6IG5vdHdpbm5pZQo="
+        },
+        {
+          "filePath": "roleBindingList.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogcmJhYy5hdXRob3JpemF0aW9uLms4cy5pby92MQpraW5kOiBSb2xlQmluZGluZ0xpc3QKaXRlbXM6Ci0gYXBpVmVyc2lvbjogcmJhYy5hdXRob3JpemF0aW9uLms4cy5pby92MQogIGtpbmQ6IFJvbGVCaW5kaW5nCiAgbWV0YWRhdGE6CiAgICBuYW1lOiByb2xlYmluZGluZy1wcm9tZXRoZXVzCiAgICBsYWJlbHM6CiAgICAgIGFwcDogZGVmYXVsdC1wcm9tZXRoZXVzCiAgICBuYW1lc3BhY2U6IGRlZmF1bHQKICByb2xlUmVmOgogICAgYXBpR3JvdXA6IHJiYWMuYXV0aG9yaXphdGlvbi5rOHMuaW8KICAgIGtpbmQ6IFJvbGUKICAgIG5hbWU6IHJvbGUtcHJvbWV0aGV1cwogIHN1YmplY3RzOgogIC0ga2luZDogU2VydmljZUFjY291bnQKICAgIG5hbWU6IHJvbGUtcHJvbWV0aGV1cwogICAgbmFtZXNwYWNlOiBkZWZhdWx0Cg=="
+        },
+        {
+          "filePath": "roleList.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogcmJhYy5hdXRob3JpemF0aW9uLms4cy5pby92MQpraW5kOiBSb2xlTGlzdAppdGVtczoKLSBhcGlWZXJzaW9uOiByYmFjLmF1dGhvcml6YXRpb24uazhzLmlvL3YxCiAga2luZDogUm9sZQogIG1ldGFkYXRhOgogICAgbmFtZTogcm9sZS1wcm9tZXRoZXVzCiAgICBsYWJlbHM6CiAgICAgIGFwcDogZGVmYXVsdC1wcm9tZXRoZXVzCiAgICBuYW1lc3BhY2U6IGRlZmF1bHQKICBydWxlczoKICAtIGFwaUdyb3VwczoKICAgIC0gIiIKICAgIHJlc291cmNlczoKICAgIC0gbm9kZXMKICAgIC0gc2VydmljZXMKICAgIC0gZW5kcG9pbnRzCiAgICAtIHBvZHMKICAgIHZlcmJzOgogICAgLSBnZXQKICAgIC0gbGlzdAogICAgLSB3YXRjaA=="
+        }
+      ]
+    },
     "contentSHA": "78ca09c481a6c8b2d507da0c171defab38aa33dc990b4034b5447d75f74b7fdf"
   }
 }

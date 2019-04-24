@@ -3,6 +3,14 @@
     "config": null,
     "releaseName": "ship",
     "upstream": "__upstream__",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "ship.yaml",
+          "fileContents": "bGlmZWN5Y2xlOgogIHYxOgogICAgLSBtZXNzYWdlOgogICAgICAgY29udGVudHM6ICJ0ZXN0IG1lc3NhZ2UiCg=="
+        }
+      ]
+    },
     "contentSHA": "59f50e9db68d84583c7661c55d0fe7a638623ee700853717644489938320aff4"
   }
 }

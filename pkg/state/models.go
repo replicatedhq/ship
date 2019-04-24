@@ -119,12 +119,12 @@ type Metadata struct {
 }
 
 type UpstreamContents struct {
-	UpstreamFiles []UpstreamFile
+	UpstreamFiles []UpstreamFile `json:"upstreamFiles,omitempty" yaml:"upstreamFiles,omitempty" hcl:"upstreamFiles,omitempty"`
 }
 
 type UpstreamFile struct {
-	FilePath     string
-	FileContents string
+	FilePath     string `json:"filePath,omitempty" yaml:"filePath,omitempty" hcl:"filePath,omitempty"`
+	FileContents string `json:"fileContents,omitempty" yaml:"fileContents,omitempty" hcl:"fileContents,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}

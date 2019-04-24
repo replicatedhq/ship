@@ -3,6 +3,14 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "__upstream__",
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "ship.yaml",
+          "fileContents": "YXNzZXRzOgogIHYxOgogIC0gZ2l0aHViOgogICAgICByZXBvOiByZXBsaWNhdGVkaHEvdGVzdC1jaGFydHMKICAgICAgcmVmOiA4MjkzYzZjZWE3N2MyOTc0OGIwYWM4ZDhiNjdjNTYxZjE4ODZjZjc4CiAgICAgIHBhdGg6IC9iYXNpYwogICAgICBkZXN0OiAuLwogIC0gZ2l0aHViOgogICAgICByZXBvOiByZXBsaWNhdGVkaHEvdGVzdC1jaGFydHMKICAgICAgcmVmOiAzNDI3ZDY5OTdiZDE1MGM2MGNhYTAwYmEwMjk4ZmRmZTE3ZTNlZDA0CiAgICAgIHBhdGg6IC9wbGFpbi1rOHMKICAgICAgc3RyaXBfcGF0aDogdHJ1ZQogICAgICBkZXN0OiAuL215LW93bi1mb2xkZXIKICAtIGdpdGh1YjoKICAgICAgcmVwbzogcmVwbGljYXRlZGhxL3Rlc3QtY2hhcnRzCiAgICAgIHJlZjogY2JjMDZiNmY1NjY3NDRjZjUxOTBjZjc3NDg5NTcwMGE2YzJmZjFjYQogICAgICBwYXRoOiAvdmFsdWVzLXN0YXRpYy9SRUFETUUubWQKICAgICAgZGVzdDogLi8KICAtIGdpdGh1YjoKICAgICAgcmVwbzogcmVwbGljYXRlZGhxL3Rlc3QtY2hhcnRzCiAgICAgIHJlZjogdGVzdC10YWcKICAgICAgcGF0aDogLy5naXRpZ25vcmUKICAgICAgZGVzdDogLi8KbGlmZWN5Y2xlOgogIHYxOgogIC0gcmVuZGVyOiB7fQo="
+        }
+      ]
+    },
     "contentSHA": "59f50e9db68d84583c7661c55d0fe7a638623ee700853717644489938320aff4"
   }
 }

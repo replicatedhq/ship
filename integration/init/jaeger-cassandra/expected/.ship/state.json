@@ -5,15 +5,8 @@
     "upstream": "__upstream__",
     "metadata": {
       "applicationType": "",
-      "releaseNotes": "",
-      "license": {
-        "assignee": "",
-        "createdAt": "0001-01-01T00:00:00Z",
-        "expiresAt": "0001-01-01T00:00:00Z",
-        "id": "",
-        "type": ""
-      },
       "sequence": 0,
+      "releaseNotes": "",
       "version": "",
       "lists": [
         {
@@ -90,6 +83,21 @@
               }
             }
           ]
+        }
+      ],
+      "license": {
+        "id": "",
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "type": ""
+      }
+    },
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": "ship.yaml",
+          "fileContents": "YXNzZXRzOgogIHYxOgogICAgLSBnaXRodWI6CiAgICAgICAgcmVwbzogamFlZ2VydHJhY2luZy9qYWVnZXIta3ViZXJuZXRlcwogICAgICAgIHJlZjogZTQ5ZWU1MGUzNTBiODJkMmU2NzAzYWZiYWJmOGI5NmU5NDMyMDFlNQogICAgICAgIHBhdGg6IC9wcm9kdWN0aW9uL2Nhc3NhbmRyYS55bWwKICAgICAgICBkZXN0OiAuL2Jhc2UKICAgICAgICBzdHJpcF9wYXRoOiB0cnVlCiAgICAtIGdpdGh1YjoKICAgICAgICBkZXN0OiAuL2Jhc2UKICAgICAgICByZWY6IDZhOTYwMjQ3NzI4ZDBiYmQ3MTcxMGFiYzYxMzQwN2YzMDUzNjZhMmUKICAgICAgICByZXBvOiBqYWVnZXJ0cmFjaW5nL2phZWdlci1rdWJlcm5ldGVzCiAgICAgICAgcGF0aDogamFlZ2VyLXByb2R1Y3Rpb24tdGVtcGxhdGUueW1sCiAgICAgICAgcHJveHk6IGZhbHNlCiAgICAgICAgc3RyaXBfcGF0aDogdHJ1ZQogICAgLSBpbmxpbmU6CiAgICAgICAgZGVzdDogaW5zdGFsbGVyLy5naXRrZWVwCiAgICAgICAgY29udGVudHM6CiAgICAgICAgICB3b3JrYXJvdW5kCmxpZmVjeWNsZToKICB2MToKICAgIC0gcmVuZGVyOgogICAgICAgIHJvb3Q6IC4KICAgIC0ga3VzdG9taXplOgogICAgICAgIGJhc2U6IGJhc2UKICAgICAgICBkZXN0OiByZW5kZXJlZC55YW1sCg=="
         }
       ]
     },
