@@ -48,6 +48,7 @@ export default class ConfigFileInput extends React.Component {
                 ref={(file) => this.file = file}
                 name={this.props.name}
                 title={this.props.title}
+                value={this.props.value}
                 readOnly={this.props.readonly}
                 disabled={this.props.readonly}
                 multiple={this.props.multiple}
