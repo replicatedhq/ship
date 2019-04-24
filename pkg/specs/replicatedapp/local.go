@@ -14,9 +14,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
-func (r *resolver) resolveRunbookRelease(selector *Selector) (*ShipRelease, error) {
+func (r *resolver) resolveRunbookRelease(selector *Selector) (*state.ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveRunbookRelease"))
 	debug.Log("phase", "load-specs", "from", "runbook", "file", r.Runbook)
 
@@ -48,7 +49,7 @@ func (r *resolver) resolveRunbookRelease(selector *Selector) (*ShipRelease, erro
 		semver = selector.ReleaseSemver
 	}
 
-	return &ShipRelease{
+	return &state.ShipRelease{
 		Spec:           string(specYAML),
 		ChannelName:    r.SetChannelName,
 		ChannelIcon:    r.SetChannelIcon,
@@ -58,9 +59,9 @@ func (r *resolver) resolveRunbookRelease(selector *Selector) (*ShipRelease, erro
 	}, nil
 }
 
-func (r *resolver) loadLocalGitHubContents() ([]GithubContent, error) {
+func (r *resolver) loadLocalGitHubContents() ([]state.GithubContent, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "loadLocalGitHubContents"))
-	var fakeGithubContents []GithubContent
+	var fakeGithubContents []state.GithubContent
 	for _, content := range r.SetGitHubContents {
 		debug.Log("event", "githubcontents.set", "received", content)
 		split := strings.Split(content, ":")
@@ -78,7 +79,7 @@ func (r *resolver) loadLocalGitHubContents() ([]GithubContent, error) {
 			return nil, errors.Wrapf(err, "set github files")
 		}
 
-		fakeGithubContents = append(fakeGithubContents, GithubContent{
+		fakeGithubContents = append(fakeGithubContents, state.GithubContent{
 			Repo:  repo,
 			Path:  repoPath,
 			Ref:   ref,
@@ -89,9 +90,9 @@ func (r *resolver) loadLocalGitHubContents() ([]GithubContent, error) {
 	return fakeGithubContents, nil
 }
 
-func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]GithubFile, error) {
+func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]state.GithubFile, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "loadLocalGitHubFiles"))
-	var files []GithubFile
+	var files []state.GithubFile
 	err := r.FS.Walk(localpath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.Wrapf(err, "walk %+v from %s", info, path)
@@ -117,7 +118,7 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]Gi
 		encoder.Write(contents)
 		encoder.Close()
 		sha := fmt.Sprintf("%x", sha256.Sum256(contents))
-		files = append(files, GithubFile{
+		files = append(files, state.GithubFile{
 			Name: info.Name(),
 			Path: walkRepoPath,
 			Sha:  sha,

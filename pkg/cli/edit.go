@@ -8,23 +8,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Update() *cobra.Command {
+func Edit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Fetch the latest upstream for a Ship application",
-		Long:  `Given an existing Ship state.json, fetch the latest upstream and merge`,
+		Use:   "edit",
+		Short: "Edit settings for the current version of a Ship application",
+		Long:  `Given an existing Ship state.json, use the stored upstream state to edit settings without updating the version`,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			viper.BindPFlags(cmd.Flags())
 			viper.BindPFlags(cmd.PersistentFlags())
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// update should run in headless mode by default
-			viper.Set("isUpdate", true)
-
-			if !viper.GetBool("headed") {
-				viper.Set("headless", true)
-			}
+			viper.Set("isEdit", true)
 
 			s, err := ship.Get(viper.GetViper())
 			if err != nil {
@@ -34,8 +29,6 @@ func Update() *cobra.Command {
 			return s.UpdateAndMaybeExit(context.Background())
 		},
 	}
-
-	cmd.Flags().BoolP("headed", "", false, "run ship update in headed mode")
 
 	return cmd
 }

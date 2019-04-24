@@ -31,12 +31,15 @@ func (r *Resolver) persistToState(root string) error {
 			return errors.Wrapf(err, "get relative path to file %s", path)
 		}
 
-		if !info.Mode().IsRegular() {
+		if info.Mode().IsDir() {
 			return nil
 		}
 
 		fileContents, err := r.FS.ReadFile(path)
 		if err != nil {
+			if !info.Mode().IsRegular() {
+				return nil
+			}
 			return errors.Wrapf(err, "read file")
 		}
 

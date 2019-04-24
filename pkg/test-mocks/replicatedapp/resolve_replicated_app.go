@@ -12,6 +12,7 @@ import (
 	api "github.com/replicatedhq/ship/pkg/api"
 	apptype "github.com/replicatedhq/ship/pkg/specs/apptype"
 	replicatedapp "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
+	state "github.com/replicatedhq/ship/pkg/state"
 )
 
 // MockResolver is a mock of Resolver interface
@@ -38,9 +39,9 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 }
 
 // FetchRelease mocks base method
-func (m *MockResolver) FetchRelease(arg0 context.Context, arg1 *replicatedapp.Selector) (*replicatedapp.ShipRelease, error) {
+func (m *MockResolver) FetchRelease(arg0 context.Context, arg1 *replicatedapp.Selector) (*state.ShipRelease, error) {
 	ret := m.ctrl.Call(m, "FetchRelease", arg0, arg1)
-	ret0, _ := ret[0].(*replicatedapp.ShipRelease)
+	ret0, _ := ret[0].(*state.ShipRelease)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

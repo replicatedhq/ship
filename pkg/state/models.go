@@ -120,6 +120,7 @@ type Metadata struct {
 
 type UpstreamContents struct {
 	UpstreamFiles []UpstreamFile `json:"upstreamFiles,omitempty" yaml:"upstreamFiles,omitempty" hcl:"upstreamFiles,omitempty"`
+	AppRelease    *ShipRelease   `json:"appRelease,omitempty" yaml:"appRelease,omitempty" hcl:"appRelease,omitempty"`
 }
 
 type UpstreamFile struct {
@@ -311,4 +312,87 @@ func (v VersionedState) UpstreamContents() *UpstreamContents {
 		return nil
 	}
 	return nil
+}
+
+type Image struct {
+	URL      string `json:"url"`
+	Source   string `json:"source"`
+	AppSlug  string `json:"appSlug"`
+	ImageKey string `json:"imageKey"`
+}
+
+type GithubFile struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Sha  string `json:"sha"`
+	Size int64  `json:"size"`
+	Data string `json:"data"`
+}
+
+type GithubContent struct {
+	Repo  string       `json:"repo"`
+	Path  string       `json:"path"`
+	Ref   string       `json:"ref"`
+	Files []GithubFile `json:"files"`
+}
+
+// ShipRelease is the release response from GQL
+type ShipRelease struct {
+	ID             string           `json:"id"`
+	Sequence       int64            `json:"sequence"`
+	ChannelID      string           `json:"channelId"`
+	ChannelName    string           `json:"channelName"`
+	ChannelIcon    string           `json:"channelIcon"`
+	Semver         string           `json:"semver"`
+	ReleaseNotes   string           `json:"releaseNotes"`
+	Spec           string           `json:"spec"`
+	Images         []Image          `json:"images"`
+	GithubContents []GithubContent  `json:"githubContents"`
+	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string           `json:"registrySecret,omitempty"`
+	Entitlements   api.Entitlements `json:"entitlements,omitempty"`
+}
+
+// ToReleaseMeta linter
+func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
+	return api.ReleaseMetadata{
+		ReleaseID:      r.ID,
+		Sequence:       r.Sequence,
+		ChannelID:      r.ChannelID,
+		ChannelName:    r.ChannelName,
+		ChannelIcon:    r.ChannelIcon,
+		Semver:         r.Semver,
+		ReleaseNotes:   r.ReleaseNotes,
+		Created:        r.Created,
+		RegistrySecret: r.RegistrySecret,
+		Images:         r.apiImages(),
+		GithubContents: r.githubContents(),
+		Entitlements:   r.Entitlements,
+	}
+}
+
+func (r *ShipRelease) apiImages() []api.Image {
+	result := []api.Image{}
+	for _, image := range r.Images {
+		result = append(result, api.Image(image))
+	}
+	return result
+}
+
+func (r *ShipRelease) githubContents() []api.GithubContent {
+	result := []api.GithubContent{}
+	for _, content := range r.GithubContents {
+		files := []api.GithubFile{}
+		for _, file := range content.Files {
+			files = append(files, api.GithubFile(file))
+		}
+		apiCont := api.GithubContent{
+			Repo:  content.Repo,
+			Path:  content.Path,
+			Ref:   content.Ref,
+			Files: files,
+		}
+		result = append(result, apiCont)
+	}
+	return result
 }

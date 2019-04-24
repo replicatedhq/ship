@@ -354,7 +354,7 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 					CustomerID:     "foo",
 					InstallationID: "bar",
 					AppSlug:        "",
-				}).Return(&replicatedapp2.ShipRelease{Spec: "its fake"}, nil)
+				}).Return(&state2.ShipRelease{Spec: "its fake"}, nil)
 			},
 			expectSHA: "a9274e43955abe372d508864d19aa8be39872a39f44c8c5e2e04a4ef98c4aa04", // sha256.Sum256([]byte("its fake"))
 		},

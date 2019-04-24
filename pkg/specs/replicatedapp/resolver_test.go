@@ -37,16 +37,16 @@ func TestPersistSpec(t *testing.T) {
 func TestPersistRelease(t *testing.T) {
 	tests := []struct {
 		name          string
-		inputRelease  *ShipRelease
+		inputRelease  *state2.ShipRelease
 		inputSelector *Selector
 		shaSummer     shaSummer
-		license       *License
+		license       *license
 		expectCalls   func(t *testing.T, stateManager *state.MockManager)
 		expectRelease *api.Release
 	}{
 		{
 			name: "happy path",
-			inputRelease: &ShipRelease{
+			inputRelease: &state2.ShipRelease{
 				ID: "12345",
 				Spec: `
 ---
@@ -61,7 +61,7 @@ assets:
 			shaSummer: func(bytes []byte) string {
 				return "abcdef"
 			},
-			license: &License{},
+			license: &license{},
 			expectCalls: func(t *testing.T, stateManager *state.MockManager) {
 				stateManager.EXPECT().SerializeAppMetadata(&matchers.Is{
 					Test: func(v interface{}) bool {

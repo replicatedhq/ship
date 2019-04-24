@@ -3,6 +3,7 @@ package replicatedapp
 import (
 	"testing"
 
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 		name           string
 		githubContent  []string
 		fs             map[string]string
-		expectContents []GithubContent
+		expectContents []state.GithubContent
 	}{
 		{
 			name:           "none to set",
@@ -26,12 +27,12 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 				"/foo/bar.txt": "some-contents",
 			},
 			githubContent: []string{"replicatedhq/test-stuff:/bar.txt:master:/foo"},
-			expectContents: []GithubContent{
+			expectContents: []state.GithubContent{
 				{
 					Repo: "replicatedhq/test-stuff",
 					Path: "/bar.txt",
 					Ref:  "master",
-					Files: []GithubFile{
+					Files: []state.GithubFile{
 						{
 							Path: "/bar.txt",
 							Name: "bar.txt",
@@ -55,12 +56,12 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 				"replicatedhq/test-stuff:/:master:/foo",
 				"replicatedhq/other-tests:/eggs.txt:release:/spam",
 			},
-			expectContents: []GithubContent{
+			expectContents: []state.GithubContent{
 				{
 					Repo: "replicatedhq/test-stuff",
 					Path: "/",
 					Ref:  "master",
-					Files: []GithubFile{
+					Files: []state.GithubFile{
 						{
 							Path: "/bar/baz.txt",
 							Name: "baz.txt",
@@ -88,7 +89,7 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 					Repo: "replicatedhq/other-tests",
 					Path: "/eggs.txt",
 					Ref:  "release",
-					Files: []GithubFile{
+					Files: []state.GithubFile{
 						{
 							Path: "/eggs.txt",
 							Name: "eggs.txt",

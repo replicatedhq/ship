@@ -81,7 +81,7 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		return &localAppCopy{AppType: "runbook.replicated.app", LocalPath: parts[0]}, nil
 	}
 
-	if i.viper.GetBool("no-fetch") {
+	if i.viper.GetBool("isEdit") {
 		state, err := i.state.TryLoad()
 		if err != nil {
 			return nil, errors.Wrap(err, "load app state")
