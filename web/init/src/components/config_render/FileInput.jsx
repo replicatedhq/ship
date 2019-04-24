@@ -65,7 +65,7 @@ export default class FileInput extends React.Component {
         <div className={`${this.props.readonly ? "readonly" : ""} ${this.props.disabled ? "disabled" : ""}`}>
           <p className="sub-header-color field-section-sub-header u-marginTop--small u-marginBottom--small u-marginTop--15">{label}</p>
           <div className="flex flex-row">
-            <div className={`${this.state.fileAdded ? "file-uploaded" : "custom-file-upload"}`}>
+            <div className={`${this.state.fileAdded || this.props.value ? "file-uploaded" : "custom-file-upload"}`}>
               <input
                 ref={(file) => this.file = file}
                 type="file"
@@ -74,15 +74,15 @@ export default class FileInput extends React.Component {
                 id={`${this.props.name} selector`}
                 onChange={this.handleOnChange}
                 readOnly={this.props.readOnly}
-                multiple={true}
+                multiple={this.props.multiple}
                 disabled={this.props.disabled}
               />
               <label htmlFor={`${this.props.name} selector`} className="u-position--relative">
-                <span className={`icon clickable ${this.state.fileAdded ? "u-smallCheckGreen" : "u-ovalIcon"} u-marginRight--normal u-top--3`}></span>
-                {this.state.fileAdded ? `${this.props.title} file selected` : `Browse files for ${this.props.title}`}
+                <span className={`icon clickable ${this.state.fileAdded || this.props.value ? "u-smallCheckGreen" : "u-ovalIcon"} u-marginRight--normal u-top--3`}></span>
+                {this.state.fileAdded || this.props.value ? `${this.props.title} file selected` : `Browse files for ${this.props.title}`}
               </label>
             </div>
-            {this.state.fileAdded ?
+            {this.state.fileAdded || this.props.value ?
               <div className="u-color--tuna u-marginLeft--normal"> File uploaded:
               <p className="Form-label-subtext"> {this.props.multiple ? this.state.fileNames.join(",") : this.state.fileName} </p>
                 <p className="Form-label-subtext"> {this.props.getFilenamesText} </p>
