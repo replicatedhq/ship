@@ -113,10 +113,14 @@ var _ = Describe("ship app", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					ignoreUpstreamContents := map[string][]string{
+						".ship/state.json": {"v1.upstreamContents"},
+					}
+
 					//compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{
 						"__upstream__": strings.Replace(upstream, "&", "\\u0026", -1),
-					}, []string{}, []map[string][]string{})
+					}, []string{}, ignoreUpstreamContents)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
@@ -146,10 +150,14 @@ var _ = Describe("ship app", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					ignoreUpstreamContents := map[string][]string{
+						".ship/state.json": {"v1.upstreamContents"},
+					}
+
 					//compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, map[string]string{
 						"__upstream__": strings.Replace(upstream, "&", "\\u0026", -1),
-					}, []string{}, []map[string][]string{})
+					}, []string{}, ignoreUpstreamContents)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

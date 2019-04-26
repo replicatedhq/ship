@@ -121,7 +121,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, []map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 

@@ -135,8 +135,12 @@ var _ = Describe("ship init replicated.app/...", func() {
 						"__licenseID__":      testMetadata.LicenseID,
 					}
 
+					ignoreEntitlementSig := map[string][]string{
+						".ship/state.json": {"v1.upstreamContents.appRelease.entitlements"},
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, []map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreEntitlementSig)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 

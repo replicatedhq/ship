@@ -20,12 +20,12 @@ import (
 )
 
 type TestMetadata struct {
-	Upstream     string                `yaml:"upstream"`
-	Fork         string                `yaml:"fork"`
-	Args         []string              `yaml:"args"`
-	MakeAbsolute bool                  `yaml:"make_absolute"`
-	IgnoredKeys  []map[string][]string `yaml:"ignoredKeys"`
-	IgnoredFiles []string              `yaml:"ignoredFiles"`
+	Upstream     string              `yaml:"upstream"`
+	Fork         string              `yaml:"fork"`
+	Args         []string            `yaml:"args"`
+	MakeAbsolute bool                `yaml:"make_absolute"`
+	IgnoredKeys  map[string][]string `yaml:"ignoredKeys"`
+	IgnoredFiles []string            `yaml:"ignoredFiles"`
 }
 
 func TestUnfork(t *testing.T) {

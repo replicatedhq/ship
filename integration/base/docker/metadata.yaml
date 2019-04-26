@@ -2,3 +2,4 @@ customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 installation_id: "RULNveQLrLj4GDum1yQhvKAcABh0GcLY"
 release_version: "0.0.9"
 set_channel_name: "integration-test-basic-and-docker"
+skip_cleanup: false

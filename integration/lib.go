@@ -38,7 +38,7 @@ func skipCheck(filePath string, ignoredFiles []string) bool {
 }
 
 // CompareDir returns false if the two directories have different contents
-func CompareDir(expected, actual string, replacements map[string]string, ignoredFiles []string, ignoredKeys []map[string][]string) (bool, error) {
+func CompareDir(expected, actual string, replacements map[string]string, ignoredFiles []string, ignoredKeys map[string][]string) (bool, error) {
 	if skipCheck(actual, ignoredFiles) {
 		return true, nil
 	}
@@ -91,24 +91,16 @@ func CompareDir(expected, actual string, replacements map[string]string, ignored
 			// another hack for ease of testing -- pretty print json before comparing so diffs
 			// are easier to read
 			if strings.HasSuffix(actualFilePath, ".json") {
-				expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, nil)
-				actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, nil)
-
 				cwd, err := os.Getwd()
 				Expect(err).NotTo(HaveOccurred())
 
-				for _, paths := range ignoredKeys {
-					for path := range paths {
-						relativeActualFilePath, err := filepath.Rel(cwd, actualFilePath)
-						Expect(err).NotTo(HaveOccurred())
+				relativeActualFilePath, err := filepath.Rel(cwd, actualFilePath)
+				Expect(err).NotTo(HaveOccurred())
 
-						if path == relativeActualFilePath {
-							expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, paths[path])
-							actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, paths[path])
-						}
-					}
-				}
+				fileIgnorePaths := ignoredKeys[relativeActualFilePath]
 
+				expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, fileIgnorePaths)
+				actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, fileIgnorePaths)
 			}
 
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
@@ -142,8 +134,54 @@ func prettyAndCleanJSON(data []byte, keysToIgnore []string) []byte {
 	err := json.Unmarshal(data, &obj)
 	Expect(err).NotTo(HaveOccurred())
 
+	if _, ok := obj.(map[string]interface{}); ok && keysToIgnore != nil {
+		for _, key := range keysToIgnore {
+			obj = replaceInJSON(obj.(map[string]interface{}), key)
+		}
+	}
+
 	data, err = json.MarshalIndent(obj, "", "  ")
 	Expect(err).NotTo(HaveOccurred())
 
 	return data
+}
+
+func replaceInJSON(obj map[string]interface{}, path string) map[string]interface{} {
+	// split path on '.'
+
+	if path == "" {
+		return obj
+	}
+
+	fullpath := strings.Split(path, ".")
+
+	// if the object to delete is at this level, delete it from the map and return
+	if len(fullpath) == 1 {
+		delete(obj, fullpath[0])
+		return obj
+	}
+
+	// the object to delete is at a deeper level - check if the specified key exists, if it does not then return
+	// else recursively call replaceInJSON
+
+	if _, exists := obj[fullpath[0]]; !exists {
+		// the object to delete does not exist
+		return obj
+	}
+
+	subObj, ok := obj[fullpath[0]].(map[string]interface{})
+	if !ok {
+		fmt.Printf("looking for %q and this is not a map[string]interface{}: %+v\n", path, obj[fullpath[0]])
+		delete(obj, fullpath[0])
+		return obj
+	}
+
+	replacedObj := replaceInJSON(subObj, strings.Join(fullpath[1:], "."))
+	obj[fullpath[0]] = replacedObj
+
+	if len(replacedObj) == 0 {
+		delete(obj, fullpath[0])
+	}
+
+	return obj
 }
