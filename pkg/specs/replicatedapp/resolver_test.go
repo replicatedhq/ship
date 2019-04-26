@@ -35,6 +35,15 @@ func TestPersistSpec(t *testing.T) {
 }
 
 func TestPersistRelease(t *testing.T) {
+	happyPathSpec := state2.ShipRelease{
+		ID: "12345",
+		Spec: `
+---
+assets:
+  v1: []
+`,
+	}
+
 	tests := []struct {
 		name          string
 		inputRelease  *state2.ShipRelease
@@ -45,15 +54,8 @@ func TestPersistRelease(t *testing.T) {
 		expectRelease *api.Release
 	}{
 		{
-			name: "happy path",
-			inputRelease: &state2.ShipRelease{
-				ID: "12345",
-				Spec: `
----
-assets:
-  v1: []
-`,
-			},
+			name:         "happy path",
+			inputRelease: &happyPathSpec,
 			inputSelector: &Selector{
 				CustomerID:     "kfbr",
 				InstallationID: "392",
@@ -73,6 +75,8 @@ assets:
 					},
 				})
 				stateManager.EXPECT().SerializeContentSHA("abcdef")
+				contents := state2.UpstreamContents{AppRelease: &happyPathSpec}
+				stateManager.EXPECT().SerializeUpstreamContents(&contents)
 			},
 			expectRelease: &api.Release{
 				Spec: api.Spec{

@@ -1,4 +1,4 @@
-package stateclient
+package stategetter
 
 import (
 	"context"
@@ -12,21 +12,21 @@ import (
 	"github.com/spf13/afero"
 )
 
-type StateClient struct {
+type StateGetter struct {
 	Logger   log.Logger
 	Contents *state.UpstreamContents
 	Fs       afero.Afero
 }
 
-func NewStateClient(fs afero.Afero, logger log.Logger, contents *state.UpstreamContents) *StateClient {
-	return &StateClient{
+func NewStateGetter(fs afero.Afero, logger log.Logger, contents *state.UpstreamContents) *StateGetter {
+	return &StateGetter{
 		Contents: contents,
 		Fs:       fs,
 		Logger:   logger,
 	}
 }
 
-func (g *StateClient) GetFiles(
+func (g *StateGetter) GetFiles(
 	ctx context.Context,
 	upstream string,
 	destinationPath string,

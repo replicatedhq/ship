@@ -40,6 +40,7 @@ type resolver struct {
 	SetChannelIcon       string
 	SetGitHubContents    []string
 	SetEntitlementsJSON  string
+	IsEdit               bool
 }
 
 // NewAppResolver builds a resolver from a Viper instance
@@ -62,6 +63,7 @@ func NewAppResolver(
 		SetGitHubContents:    v.GetStringSlice("set-github-contents"),
 		SetEntitlementsJSON:  v.GetString("set-entitlements-json"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
+		IsEdit:               v.GetBool("isEdit"),
 		StateManager:         stateManager,
 		ShaSummer: func(bytes []byte) string {
 			return fmt.Sprintf("%x", sha256.Sum256(bytes))

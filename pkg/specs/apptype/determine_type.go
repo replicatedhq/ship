@@ -16,7 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/specs/githubclient"
 	"github.com/replicatedhq/ship/pkg/specs/gogetter"
 	"github.com/replicatedhq/ship/pkg/specs/localgetter"
-	"github.com/replicatedhq/ship/pkg/specs/stateclient"
+	"github.com/replicatedhq/ship/pkg/specs/stategetter"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
@@ -92,7 +92,7 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		}
 
 		// create a new fetcher class that gets things from the state file
-		stateClient := stateclient.NewStateClient(i.fs, i.logger, upstreamContents)
+		stateClient := stategetter.NewStateGetter(i.fs, i.logger, upstreamContents)
 		return i.determineTypeFromContents(ctx, upstream, stateClient)
 	}
 
