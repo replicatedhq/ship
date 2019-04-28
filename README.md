@@ -16,7 +16,7 @@ Replicated Ship is a Kubernetes app deployment and automation tool that can:
 
 Read on for more details on Ship features and objectives, or skip ahead to [getting started](#getting-started).
 
-## Track and automate maintenance of 3rd-party applications
+## Track and automate the maintenance of 3rd-party applications
 Ship enables cluster operators to automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations, a type of Kubernetes specific patch, produced by a cluster operator..
 
 ## Customizing Helm Charts, Kube YAML and Knative with Kustomize
