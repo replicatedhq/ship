@@ -8,19 +8,19 @@ Replicated Ship
 [![Go Report Card](https://goreportcard.com/badge/github.com/replicatedhq/ship)](https://goreportcard.com/report/github.com/replicatedhq/ship)
 [![GitHub stars](https://img.shields.io/github/stars/replicatedhq/ship.svg)](https://github.com/replicatedhq/ship/stargazers)
 
-Replicated Ship is an open source project by [Replicated](https://www.replicated.com) with three primary goals.
+Replicated Ship is a Kubernetes app deployment and automation tool that can:
 
-1. Automate the maintenance of 3rd-party applications (open source or proprietary) deployed to a [Kubernetes](https://kubernetes.io) cluster.
-1. Onboarding users to [Kustomize](https://www.kustomize.io) & the `kubectl apply -k` command through an easy-to-use UI & migration tools.
+1. Track and automate the maintenance of 3rd-party applications whether packaged as Helm Charts, Kubernetes YAML manifests, or Knative apps.
+1. Quickly develop app [kustomizations](https://www.kustomize.io) using Ship's easy-to-use import & migration tools.
 1. Enable application developers to package and deliver a canonical version of their application configuration while encouraging last-mile customizations through overlays instead of forking or upstream requests.
 
 Read on for more details on Ship features and objectives, or skip ahead to [getting started](#getting-started).
 
-## Automated maintenance of 3rd-party applications
-With Ship, cluster operators can automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations made by the cluster operator.
+## Track and automate the maintenance of 3rd-party applications
+Ship enables cluster operators to automatically stay in sync with upstream changes while preserving their custom configurations and extensions (adds, deletes and edits) without git merge conflicts. This is possible because of how the [three operating modes](#three-operating-modes) of Ship invoke, store and apply Kustomizations, a type of Kubernetes specific patch, produced by a cluster operator.
 
-## Onboarding to Kustomize
-The initial release of Replicated Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. The easy-to-use UI of Ship (launched via `ship init`) calculates the minimal patch YAML required to build an overlay and previews the diff that will be the result of applying the drafted overlay.
+## Customizing Helm Charts, Kube YAML and Knative with Kustomize
+Ship exposes the power of Kustomize as an advanced custom configuration management tool for [Helm charts](https://www.github.com/helm/charts), Kubernetes manifests and [Knative](https://github.com/knative/) applications. The easy-to-use UI of Ship (launched via `ship init`) calculates the minimal patch YAML required to build an overlay and previews the diff that will be the result of applying the drafted overlay.
 ![gif of calculation](https://github.com/replicatedhq/ship/blob/master/logo/calc-n-diff.gif)
 
 Additionally, the `unfork` command can [migrate forked manifests](#unforking) and environment versions to Kustomize.
@@ -29,8 +29,7 @@ The output of the `init` and `unfork` modes will result in the creation of a dir
 
 
 ## Enable app developers to allow for last-mile configuration
-- Configuration workflow `ship.yaml` files can be included in Kubernetes manifest or [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience. See [Customizing the Configuration Experience](#customizing-the-configuration-experience) for more details or check out the examples in the [github.com/shipapps](https://github.com/shipapps) org.
-- Support for the distribution of proprietary, commercial applications is available through [Replicated Vendor](https://www.replicated.com/vendor).
+Configuration workflow `ship.yaml` files can be included in Kubernetes manifest or [Helm](https://helm.sh/) chart repos, to customize the initial `ship init` experience. See [Customizing the Configuration Experience](#customizing-the-configuration-experience) for more details or check out the examples in the [github.com/shipapps](https://github.com/shipapps) org.
 
 
 # Getting Started
@@ -167,7 +166,7 @@ Maintainers of OTS (Off the Shelf) software can customize the `ship init` experi
 
 # Ship Cloud
 
-For those not interested in operating and maintaining a fleet of Ship instances, [Ship Cloud](https://www.replicated.com/ship) is available as a hosted solution.   With Ship Cloud, teams can collaborate and manage multiple OTS Kubernetes application settings in one place, with Ship watching and updating on any upstream or local configuration changes, and creating Pull Requests and other integrations into CI/CD systems.
+For those not interested in operating and maintaining a fleet of Ship instances, [Ship Cloud](https://www.replicated.com/ship) is available as a hosted solution for free.   With Ship Cloud, teams can collaborate and manage multiple OTS Kubernetes application settings in one place, with Ship watching and updating on any upstream or local configuration changes, and creating Pull Requests and other integrations into CI/CD systems.
 
 # Community
 
