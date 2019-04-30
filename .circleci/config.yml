@@ -264,11 +264,52 @@ jobs:
     - run: |
         sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
         PORT=4569 http-echo-server > /dev/null 2>&1 &
-        $GOPATH/bin/ginkgo -p -stream integration/init
+        $GOPATH/bin/ginkgo -p -stream --focus='shipinit' integration/init
     - save_cache:
         paths:
         - /tmp/go/cache
         key: ship-integration-test-build-cache-init-{{ epoch }}
+
+
+  integration_init_edit:
+    machine: true
+    working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
+    environment:
+      GOPATH: /home/circleci/go
+      GO_SHA256SUM: 2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec
+      GO: /usr/local/go/bin/go
+      GOCACHE: "/tmp/go/cache"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - ship-integration-test-build-cache-init
+      - run: |
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GOROOT=/usr/local/go
+          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+          sudo apt update --fix-missing
+          sudo apt install --no-install-recommends -y gcc
+          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo npm install -g http-echo-server
+          wget "$GO_DOWNLOAD_URL" -O golang.tar.gz
+          echo "${GO_SHA256SUM}  golang.tar.gz" | sha256sum -c -
+          tar -zxvf golang.tar.gz -C /tmp
+          sudo rm -rf ${GOROOT}
+          sudo mv /tmp/go ${GOROOT}
+      - run: $GO get github.com/onsi/ginkgo/ginkgo
+      - run: $GO get github.com/docker/distribution/cmd/registry
+      - run: sudo ./hack/get_run_deps.sh
+      - run: sudo mkdir -p /var/lib/registry
+      - run: |
+          sudo $GOPATH/bin/registry serve integration/docker-registry.yaml > /dev/null 2>&1 &
+          PORT=4569 http-echo-server > /dev/null 2>&1 &
+          $GOPATH/bin/ginkgo -p -stream --focus='shipedit' integration/init
+      - save_cache:
+          paths:
+            - /tmp/go/cache
+          key: ship-integration-test-build-cache-init-{{ epoch }}
 
   integration_unfork:
     machine: true
@@ -550,6 +591,7 @@ workflows:
       - docs
       - integration_base
       - integration_init
+      - integration_init_edit
       - integration_unfork
       - integration_init_app
       - integration_update
@@ -583,6 +625,7 @@ workflows:
             - windows_build_test
             - integration_base
             - integration_init
+            - integration_init_edit
             - integration_unfork
             - integration_init_app
             - integration_update
@@ -595,6 +638,7 @@ workflows:
           requires:
           - integration_base
           - integration_init
+          - integration_init_edit
           - integration_unfork
           - integration_init_app
           - integration_update
@@ -683,6 +727,12 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
             branches:
               ignore: /.*/
+      - integration_init_edit:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
       - integration_unfork:
           filters:
             tags:
@@ -725,6 +775,7 @@ workflows:
             - windows_build_test
             - integration_base
             - integration_init
+            - integration_init_edit
             - integration_unfork
             - integration_init_app
             - integration_update
