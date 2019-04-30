@@ -91,6 +91,10 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 			return nil, fmt.Errorf("no upstream contents present")
 		}
 
+		if upstreamContents.AppRelease != nil {
+			return &localAppCopy{AppType: "replicated.app"}, nil
+		}
+
 		// create a new fetcher class that gets things from the state file
 		stateClient := stategetter.NewStateGetter(i.fs, i.logger, upstreamContents)
 		return i.determineTypeFromContents(ctx, upstream, stateClient)

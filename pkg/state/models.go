@@ -25,6 +25,7 @@ type State interface {
 	IsEmpty() bool
 	CurrentCAs() map[string]util.CAType
 	CurrentCerts() map[string]util.CertType
+	ReleaseMetadata() *api.ReleaseMetadata
 }
 
 var _ State = VersionedState{}
@@ -42,6 +43,7 @@ func (Empty) CurrentReleaseName() string                    { return "" }
 func (Empty) CurrentNamespace() string                      { return "" }
 func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
 func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
+func (Empty) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
 func (Empty) UpstreamContents() *UpstreamContents           { return nil }
 func (Empty) Upstream() string                              { return "" }
 func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
@@ -58,6 +60,7 @@ func (v V0) CurrentReleaseName() string                    { return "" }
 func (v V0) CurrentNamespace() string                      { return "" }
 func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
 func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
+func (v V0) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
 func (v V0) UpstreamContents() *UpstreamContents           { return nil }
 func (v V0) Upstream() string                              { return "" }
 func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
@@ -395,4 +398,20 @@ func (r *ShipRelease) githubContents() []api.GithubContent {
 		result = append(result, apiCont)
 	}
 	return result
+}
+
+func (v VersionedState) ReleaseMetadata() *api.ReleaseMetadata {
+	if v.V1 != nil {
+		if v.V1.UpstreamContents != nil {
+			baseMeta := v.V1.UpstreamContents.AppRelease.ToReleaseMeta()
+			if v.V1.Metadata != nil {
+				baseMeta.CustomerID = v.V1.Metadata.CustomerID
+				baseMeta.InstallationID = v.V1.Metadata.InstallationID
+				baseMeta.LicenseID = v.V1.Metadata.LicenseID
+			}
+			return &baseMeta
+		}
+		return nil
+	}
+	return nil
 }

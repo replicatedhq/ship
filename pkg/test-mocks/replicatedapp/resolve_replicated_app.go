@@ -76,6 +76,19 @@ func (mr *MockResolverMockRecorder) ResolveAppRelease(arg0, arg1, arg2 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveAppRelease", reflect.TypeOf((*MockResolver)(nil).ResolveAppRelease), arg0, arg1, arg2)
 }
 
+// ResolveEditRelease mocks base method
+func (m *MockResolver) ResolveEditRelease(arg0 context.Context) (*api.Release, error) {
+	ret := m.ctrl.Call(m, "ResolveEditRelease", arg0)
+	ret0, _ := ret[0].(*api.Release)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveEditRelease indicates an expected call of ResolveEditRelease
+func (mr *MockResolverMockRecorder) ResolveEditRelease(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveEditRelease", reflect.TypeOf((*MockResolver)(nil).ResolveEditRelease), arg0)
+}
+
 // SetRunbook mocks base method
 func (m *MockResolver) SetRunbook(arg0 string) {
 	m.ctrl.Call(m, "SetRunbook", arg0)

@@ -1,4 +1,4 @@
 upstream: "github.com/replicatedhq/test-charts/multiple-list-yamls"
 args: ["--prefer-git"]
 skip_cleanup: false
-skip_edit: true
+skip_edit: false

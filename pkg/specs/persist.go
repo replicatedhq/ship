@@ -12,6 +12,10 @@ import (
 )
 
 func (r *Resolver) persistToState(root string) error {
+	if r.Viper.GetBool("isEdit") {
+		return nil
+	}
+
 	contentsActual := state.UpstreamContents{}
 	contents := &contentsActual
 

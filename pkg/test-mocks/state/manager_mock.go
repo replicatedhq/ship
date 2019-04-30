@@ -60,6 +60,18 @@ func (mr *MockManagerMockRecorder) AddCert(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCert", reflect.TypeOf((*MockManager)(nil).AddCert), arg0, arg1)
 }
 
+// ClearListsMetadata mocks base method
+func (m *MockManager) ClearListsMetadata() error {
+	ret := m.ctrl.Call(m, "ClearListsMetadata")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearListsMetadata indicates an expected call of ClearListsMetadata
+func (mr *MockManagerMockRecorder) ClearListsMetadata() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearListsMetadata", reflect.TypeOf((*MockManager)(nil).ClearListsMetadata))
+}
+
 // RemoveStateFile mocks base method
 func (m *MockManager) RemoveStateFile() error {
 	ret := m.ctrl.Call(m, "RemoveStateFile")

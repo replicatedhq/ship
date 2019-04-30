@@ -38,6 +38,7 @@ type Manager interface {
 	SerializeShipMetadata(api.ShipAppMetadata, string) error
 	SerializeAppMetadata(api.ReleaseMetadata) error
 	SerializeListsMetadata(util.List) error
+	ClearListsMetadata() error
 	SerializeUpstreamContents(contents *UpstreamContents) error
 	Save(v VersionedState) error
 	ResetLifecycle() error
@@ -231,6 +232,24 @@ func (m *MManager) SerializeListsMetadata(list util.List) error {
 		versionedState.V1.Metadata = &Metadata{}
 	}
 	versionedState.V1.Metadata.Lists = append(versionedState.V1.Metadata.Lists, list)
+
+	return m.serializeAndWriteState(versionedState)
+}
+
+func (m *MManager) ClearListsMetadata() error {
+	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
+
+	debug.Log("event", "tryLoadState")
+	currentState, err := m.TryLoad()
+	if err != nil {
+		return errors.Wrap(err, "try load state")
+	}
+
+	versionedState := currentState.Versioned()
+	if versionedState.V1.Metadata == nil {
+		return nil
+	}
+	versionedState.V1.Metadata.Lists = []util.List{}
 
 	return m.serializeAndWriteState(versionedState)
 }

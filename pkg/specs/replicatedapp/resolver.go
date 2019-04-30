@@ -93,6 +93,9 @@ type Resolver interface {
 	SetRunbook(
 		runbook string,
 	)
+	ResolveEditRelease(
+		ctx context.Context,
+	) (*api.Release, error)
 }
 
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
@@ -128,6 +131,27 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, ap
 	return result, nil
 }
 
+func (r *resolver) ResolveEditRelease(ctx context.Context) (*api.Release, error) {
+	stateData, err := r.StateManager.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "load state to resolve release")
+	}
+
+	result := &api.Release{
+		Metadata: *stateData.ReleaseMetadata(),
+	}
+
+	if err = yaml.Unmarshal([]byte(stateData.UpstreamContents().AppRelease.Spec), &result.Spec); err != nil {
+		return nil, errors.Wrapf(err, "decode spec from persisted release")
+	}
+
+	if err = r.persistSpec([]byte(stateData.UpstreamContents().AppRelease.Spec)); err != nil {
+		return nil, errors.Wrapf(err, "write persisted spec to disk")
+	}
+
+	return result, nil
+}
+
 func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*license, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "FetchLicense"))
 	if r.Runbook != "" {
@@ -151,7 +175,6 @@ func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*licen
 
 // FetchRelease gets the release without persisting anything
 func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*state.ShipRelease, error) {
-	var specYAML []byte
 	var err error
 	var release *state.ShipRelease
 
@@ -163,12 +186,12 @@ func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*state
 		}
 	} else {
 		release, err = r.resolveCloudRelease(selector)
-		debug.Log("event", "spec.resolve", "spec", specYAML, "err", err)
+		debug.Log("event", "spec.resolve", "err", err)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector)
 		}
 	}
-	debug.Log("event", "spec.resolve.success", "spec", specYAML, "err", err)
+	debug.Log("event", "spec.resolve.success", "err", err)
 	return release, nil
 }
 
