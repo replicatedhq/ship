@@ -270,6 +270,28 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, errors.Wrap(err, "resolve base metadata")
 	}
 
+	if r.Viper.GetBool("isEdit") {
+		debug.Log("event", "releaseNotes.resolve.cancel")
+		state, err := r.StateManager.TryLoad()
+		if err != nil {
+			return nil, errors.Wrap(err, "load state to fetch metadata")
+		}
+
+		if state.Versioned().V1 == nil || state.Versioned().V1.Metadata == nil {
+			return baseMetadata, nil
+		}
+
+		stateMetadata := state.Versioned().V1.Metadata
+		apiMetadata := api.ShipAppMetadata{
+			ReleaseNotes: stateMetadata.ReleaseNotes,
+			Version:      stateMetadata.Version,
+			Icon:         stateMetadata.Icon,
+			Name:         stateMetadata.Name,
+		}
+
+		return &apiMetadata, nil
+	}
+
 	if util.IsGithubURL(upstream) {
 		releaseNotes, err := r.GitHubFetcher.ResolveReleaseNotes(ctx, upstream)
 		if err != nil {

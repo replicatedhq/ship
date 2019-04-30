@@ -468,6 +468,10 @@ func (r *Resolver) resolveRelease(
 		spec = defaultSpec
 	}
 
+	if metadata == nil {
+		metadata = &api.ShipAppMetadata{}
+	}
+
 	release := &api.Release{
 		Metadata: api.ReleaseMetadata{
 			ShipAppMetadata: *metadata,
