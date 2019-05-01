@@ -315,7 +315,7 @@ func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*state.ShipRelease, 
 	return &shipResponse.Data.ShipSlugRelease, nil
 }
 
-func (c *GraphQLClient) GetLicense(selector *Selector) (*license, error) {
+func (c *GraphQLClient) getLicense(selector *Selector) (*license, error) {
 	requestObj := GraphQLRequest{
 		Query: getLicenseQuery,
 		Variables: map[string]string{

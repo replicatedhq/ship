@@ -138,7 +138,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					ignoreEntitlementSig := map[string][]string{
-						".ship/state.json": {"v1.upstreamContents.appRelease.entitlements"},
+						".ship/state.json": {
+							"v1.upstreamContents.appRelease.entitlements",
+							"v1.upstreamContents.appRelease.registrySecret",
+						},
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
@@ -198,9 +201,21 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// copy the expected ship state to the output
 					// and run any replacements needed
 
+					replacements := map[string]string{
+						// "__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
+						"__installationID__": testMetadata.InstallationID,
+						"__customerID__":     testMetadata.CustomerID,
+						"__appSlug__":        testMetadata.AppSlug,
+						"__licenseID__":      testMetadata.LicenseID,
+					}
+
 					readPath := filepath.Join(testPath, "expected", ".ship", "state.json")
 					stateFile, err := ioutil.ReadFile(readPath)
 					Expect(err).NotTo(HaveOccurred())
+
+					for k, v := range replacements {
+						stateFile = []byte(strings.Replace(string(stateFile), k, v, -1))
+					}
 
 					writePath := filepath.Join(testOutputPath, ".ship", "state.json")
 					err = os.MkdirAll(filepath.Dir(writePath), os.ModePerm)
@@ -219,11 +234,11 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err = cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
-					// we don't need to replace anything, since the values used will already be nonsensical
-					replacements := map[string]string{}
-
 					ignoreEntitlementSig := map[string][]string{
-						".ship/state.json": {"v1.upstreamContents.appRelease.entitlements"},
+						".ship/state.json": {
+							"v1.upstreamContents.appRelease.entitlements",
+							"v1.upstreamContents.appRelease.registrySecret",
+						},
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory

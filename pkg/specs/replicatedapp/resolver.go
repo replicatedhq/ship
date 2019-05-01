@@ -165,7 +165,7 @@ func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*licen
 		return &license{}, nil
 	}
 
-	license, err := r.Client.GetLicense(selector)
+	license, err := r.Client.getLicense(selector)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get license")
 	}
@@ -226,7 +226,6 @@ func (r *resolver) persistRelease(release *state.ShipRelease, license *license, 
 
 	if r.Runbook == "" {
 		releaseCopy := *release
-		releaseCopy.RegistrySecret = ""
 
 		upstreamContents := state.UpstreamContents{
 			AppRelease: &releaseCopy,

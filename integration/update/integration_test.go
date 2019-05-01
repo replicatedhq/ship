@@ -114,7 +114,10 @@ var _ = Describe("ship update", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					ignoreEntitlementSig := map[string][]string{
-						".ship/state.json": {"v1.upstreamContents.appRelease.entitlements"},
+						".ship/state.json": {
+							"v1.upstreamContents.appRelease.entitlements",
+							"v1.upstreamContents.appRelease.registrySecret",
+						},
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory

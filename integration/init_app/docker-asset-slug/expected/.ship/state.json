@@ -28,6 +28,7 @@
         "channelIcon": "",
         "semver": "0.0.1",
         "releaseNotes": "",
+        "registrySecret": "THIS IS NOT A SECRET",
         "spec": "---\nassets:\n  v1:\n    - docker:\n        image: replicated/helloscratch:1.0.0\n        source: public\n        dest: docker/replicated-helloscratch-public.tar\n    - docker:\n        image: registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0\n        source: replicated-qa\n        dest: docker/replicated-helloscratch-private.tar\nconfig:\n  v1: []\nlifecycle:\n  v1:\n    - render: {}",
         "images": [
           {
