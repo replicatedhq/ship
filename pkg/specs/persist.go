@@ -12,7 +12,7 @@ import (
 )
 
 func (r *Resolver) persistToState(root string) error {
-	if r.Viper.GetBool("isEdit") {
+	if r.isEdit {
 		return nil
 	}
 

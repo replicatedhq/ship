@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
@@ -31,18 +30,10 @@ func (g *StateGetter) GetFiles(
 	upstream string,
 	destinationPath string,
 ) (string, error) {
-	debug := level.Debug(log.With(g.Logger, "method", "getStatefileContents"))
-
-	debug.Log("event", "removeAll", "destinationPath", destinationPath)
-	err := g.Fs.RemoveAll(destinationPath)
-	if err != nil {
-		return "", errors.Wrap(err, "remove state destination")
-	}
-
 	stateUnpackPath := filepath.Join(destinationPath, "state")
 
 	for _, upstreamFile := range g.Contents.UpstreamFiles {
-		err = g.Fs.MkdirAll(filepath.Join(stateUnpackPath, filepath.Dir(upstreamFile.FilePath)), 0755)
+		err := g.Fs.MkdirAll(filepath.Join(stateUnpackPath, filepath.Dir(upstreamFile.FilePath)), 0755)
 		if err != nil {
 			return "", errors.Wrapf(err, "create dir for file %s", upstreamFile.FilePath)
 		}

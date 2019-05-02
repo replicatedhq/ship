@@ -52,6 +52,7 @@ func NewInspector(
 		viper:  v,
 		state:  stateManager,
 		ui:     ui,
+		isEdit: v.GetBool("isEdit"),
 	}
 }
 
@@ -61,6 +62,7 @@ type inspector struct {
 	viper  *viper.Viper
 	state  state.Manager
 	ui     cli.Ui
+	isEdit bool
 }
 
 type FileFetcher interface {
@@ -81,23 +83,8 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 		return &localAppCopy{AppType: "runbook.replicated.app", LocalPath: parts[0]}, nil
 	}
 
-	if i.viper.GetBool("isEdit") {
-		state, err := i.state.TryLoad()
-		if err != nil {
-			return nil, errors.Wrap(err, "load app state")
-		}
-		upstreamContents := state.UpstreamContents()
-		if upstreamContents == nil {
-			return nil, fmt.Errorf("no upstream contents present")
-		}
-
-		if upstreamContents.AppRelease != nil {
-			return &localAppCopy{AppType: "replicated.app"}, nil
-		}
-
-		// create a new fetcher class that gets things from the state file
-		stateClient := stategetter.NewStateGetter(i.fs, i.logger, upstreamContents)
-		return i.determineTypeFromContents(ctx, upstream, stateClient)
+	if i.isEdit {
+		return i.fetchEditFiles(ctx)
 	}
 
 	i.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
@@ -123,6 +110,25 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 	}
 
 	return nil, errors.Errorf("upstream %s is not a replicated app, a github repo, or compatible with go-getter", upstream)
+}
+
+func (i *inspector) fetchEditFiles(ctx context.Context) (app LocalAppCopy, err error) {
+	state, err := i.state.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "load app state")
+	}
+	upstreamContents := state.UpstreamContents()
+	if upstreamContents == nil {
+		return nil, fmt.Errorf("no upstream contents present")
+	}
+
+	if upstreamContents.AppRelease != nil {
+		return &localAppCopy{AppType: "replicated.app"}, nil
+	}
+
+	// create a new fetcher class that gets things from the state file
+	stateClient := stategetter.NewStateGetter(i.fs, i.logger, upstreamContents)
+	return i.determineTypeFromContents(ctx, "ship statefile", stateClient)
 }
 
 func (i *inspector) determineTypeFromContents(ctx context.Context, upstream string, fetcher FileFetcher) (app LocalAppCopy, err error) {

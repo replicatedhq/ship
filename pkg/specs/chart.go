@@ -270,7 +270,7 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 		return nil, errors.Wrap(err, "resolve base metadata")
 	}
 
-	if r.Viper.GetBool("isEdit") {
+	if r.isEdit {
 		debug.Log("event", "releaseNotes.resolve.cancel")
 		state, err := r.StateManager.TryLoad()
 		if err != nil {

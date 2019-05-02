@@ -161,7 +161,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 
 	debug.Log("event", "upstream.Serialize", "for", app.GetLocalPath(), "upstream", versionedUpstream)
 
-	if !r.Viper.GetBool("isEdit") {
+	if !r.isEdit {
 		err = r.StateManager.SerializeUpstream(versionedUpstream)
 		if err != nil {
 			return nil, errors.Wrapf(err, "write upstream")
@@ -213,7 +213,7 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		r.AppResolver.SetRunbook(app.GetLocalPath())
 		fallthrough
 	case "replicated.app":
-		if r.Viper.GetBool("isEdit") {
+		if r.isEdit {
 			return r.AppResolver.ResolveEditRelease(ctx)
 		}
 

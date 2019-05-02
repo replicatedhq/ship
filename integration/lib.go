@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/pmezard/go-difflib/difflib"
 )
 
@@ -99,8 +100,11 @@ func CompareDir(expected, actual string, replacements map[string]string, ignored
 
 				fileIgnorePaths := ignoredKeys[relativeActualFilePath]
 
-				expectedContentsBytes = prettyAndCleanJSON(expectedContentsBytes, fileIgnorePaths)
-				actualContentsBytes = prettyAndCleanJSON(actualContentsBytes, fileIgnorePaths)
+				expectedContentsBytes, err = prettyAndCleanJSON(expectedContentsBytes, fileIgnorePaths)
+				Expect(err).NotTo(HaveOccurred())
+
+				actualContentsBytes, err = prettyAndCleanJSON(actualContentsBytes, fileIgnorePaths)
+				Expect(err).NotTo(HaveOccurred())
 			}
 
 			// kind of a hack -- remove any trailing newlines (because text editors are hard to use)
@@ -129,10 +133,12 @@ func CompareDir(expected, actual string, replacements map[string]string, ignored
 	return true, nil
 }
 
-func prettyAndCleanJSON(data []byte, keysToIgnore []string) []byte {
+func prettyAndCleanJSON(data []byte, keysToIgnore []string) ([]byte, error) {
 	var obj interface{}
 	err := json.Unmarshal(data, &obj)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal")
+	}
 
 	if _, ok := obj.(map[string]interface{}); ok && keysToIgnore != nil {
 		for _, key := range keysToIgnore {
@@ -141,9 +147,10 @@ func prettyAndCleanJSON(data []byte, keysToIgnore []string) []byte {
 	}
 
 	data, err = json.MarshalIndent(obj, "", "  ")
-	Expect(err).NotTo(HaveOccurred())
-
-	return data
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal")
+	}
+	return data, nil
 }
 
 func replaceInJSON(obj map[string]interface{}, path string) map[string]interface{} {

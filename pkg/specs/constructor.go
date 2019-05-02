@@ -26,6 +26,7 @@ type Resolver struct {
 
 	Viper   *viper.Viper
 	NoOutro bool
+	isEdit  bool
 }
 
 // NewResolver builds a resolver from a Viper instance
@@ -55,5 +56,6 @@ func NewResolver(
 		AppResolver:   appresolver,
 		GitHubFetcher: github,
 		NoOutro:       v.GetBool("no-outro"),
+		isEdit:        v.GetBool("isEdit"),
 	}
 }
