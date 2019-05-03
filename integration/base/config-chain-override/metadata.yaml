@@ -2,3 +2,4 @@ customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 installation_id: "t6-uzytbbkSoCiLtEfNO62LDIRLFec-2"
 release_version: "0.0.1-test2"
 set_channel_name: "integration-tests"
+skip_cleanup: false

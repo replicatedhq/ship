@@ -14,3 +14,5 @@ set_entitlements_json: |
       }
     ]
   }
+
+skip_cleanup: false

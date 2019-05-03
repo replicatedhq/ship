@@ -2,3 +2,4 @@ customer_id: ""
 installation_id: ""
 release_version: ""
 disable_online: true
+skip_cleanup: false

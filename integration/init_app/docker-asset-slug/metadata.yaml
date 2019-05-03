@@ -2,3 +2,4 @@ app_slug: "ship-private-image"
 license_id: "F0z1_kk6T06E7WCadEGsfQSM0J-odA5P"
 release_version: "0.0.1"
 skip_cleanup: false
+skip_edit: false

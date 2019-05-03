@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -31,6 +32,7 @@ type TestMetadata struct {
 
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
+	SkipEdit    bool `yaml:"skip_edit"`
 }
 
 func TestInitReplicatedApp(t *testing.T) {
@@ -58,7 +60,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 	for _, file := range files {
 		if file.IsDir() {
-			When(fmt.Sprintf("the spec in %q is run", file.Name()), func() {
+			When(fmt.Sprintf("the spec in %q is run with shipinit", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
 				var testOutputPath string
 				var testMetadata TestMetadata
@@ -135,8 +137,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 						"__licenseID__":      testMetadata.LicenseID,
 					}
 
+					ignoreEntitlementSig := map[string][]string{
+						".ship/state.json": {
+							"v1.upstreamContents.appRelease.entitlements",
+							"v1.upstreamContents.appRelease.registrySecret",
+						},
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, []map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreEntitlementSig)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 
@@ -147,6 +156,95 @@ var _ = Describe("ship init replicated.app/...", func() {
 					watchCmd.SetArgs(append([]string{"watch", "--exit"}, testMetadata.Args...))
 					err = watchCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
+				}, 60)
+			})
+		}
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			When(fmt.Sprintf("the spec in %q is run with shipedit", file.Name()), func() {
+				testPath := path.Join(integrationDir, file.Name())
+				var testOutputPath string
+				var testMetadata TestMetadata
+
+				BeforeEach(func(done chan<- interface{}) {
+					os.Setenv("NO_OS_EXIT", "1")
+					os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
+					// create a temporary directory within this directory to compare files with
+					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
+					Expect(err).NotTo(HaveOccurred())
+					os.Chdir(testOutputPath)
+
+					// read the test metadata
+					testMetadata = readMetadata(testPath)
+
+					close(done)
+				}, 20)
+
+				AfterEach(func() {
+					os.Unsetenv("REPLICATED_REGISTRY")
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
+						// remove the temporary directory
+						err := os.RemoveAll(testOutputPath)
+						Expect(err).NotTo(HaveOccurred())
+					}
+					os.Chdir(integrationDir)
+				}, 20)
+
+				It("Should output files matching those expected when running with ship edit", func() {
+					if testMetadata.SkipEdit {
+						Skip("this test case is set to skip edit tests")
+						return
+					}
+
+					// copy the expected ship state to the output
+					// and run any replacements needed
+
+					replacements := map[string]string{
+						// "__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
+						"__installationID__": testMetadata.InstallationID,
+						"__customerID__":     testMetadata.CustomerID,
+						"__appSlug__":        testMetadata.AppSlug,
+						"__licenseID__":      testMetadata.LicenseID,
+					}
+
+					readPath := filepath.Join(testPath, "expected", ".ship", "state.json")
+					stateFile, err := ioutil.ReadFile(readPath)
+					Expect(err).NotTo(HaveOccurred())
+
+					for k, v := range replacements {
+						stateFile = []byte(strings.Replace(string(stateFile), k, v, -1))
+					}
+
+					writePath := filepath.Join(testOutputPath, ".ship", "state.json")
+					err = os.MkdirAll(filepath.Dir(writePath), os.ModePerm)
+					Expect(err).NotTo(HaveOccurred())
+					err = ioutil.WriteFile(writePath, stateFile, os.ModePerm)
+					Expect(err).NotTo(HaveOccurred())
+
+					cmd := cli.RootCmd()
+					buf := new(bytes.Buffer)
+					cmd.SetOutput(buf)
+					cmd.SetArgs([]string{
+						"edit",
+						"--headless",
+						"--log-level=off",
+					})
+					err = cmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
+
+					ignoreEntitlementSig := map[string][]string{
+						".ship/state.json": {
+							"v1.upstreamContents.appRelease.entitlements",
+							"v1.upstreamContents.appRelease.registrySecret",
+						},
+					}
+
+					// compare the files in the temporary directory with those in the "expected" directory
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreEntitlementSig)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(result).To(BeTrue())
 				}, 60)
 			})
 		}

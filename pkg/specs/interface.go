@@ -161,9 +161,24 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 
 	debug.Log("event", "upstream.Serialize", "for", app.GetLocalPath(), "upstream", versionedUpstream)
 
-	err = r.StateManager.SerializeUpstream(versionedUpstream)
-	if err != nil {
-		return nil, errors.Wrapf(err, "write upstream")
+	if !r.isEdit {
+		err = r.StateManager.SerializeUpstream(versionedUpstream)
+		if err != nil {
+			return nil, errors.Wrapf(err, "write upstream")
+		}
+	}
+
+	if app.GetType() != "replicated.app" {
+		debug.Log("event", "persist app state")
+		persistPath := app.GetLocalPath()
+		if app.GetType() == "runbook.replicated.app" {
+			persistPath = filepath.Dir(app.GetLocalPath())
+		}
+
+		err = r.persistToState(persistPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "persist %s to state from path %s", app.GetType(), persistPath)
+		}
 	}
 
 	switch app.GetType() {
@@ -198,6 +213,10 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 		r.AppResolver.SetRunbook(app.GetLocalPath())
 		fallthrough
 	case "replicated.app":
+		if r.isEdit {
+			return r.AppResolver.ResolveEditRelease(ctx)
+		}
+
 		parsed, err := url.Parse(upstream)
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse url %s", upstream)
@@ -446,6 +465,10 @@ func (r *Resolver) resolveRelease(
 		debug.Log("event", "no ship.yaml for release")
 		r.ui.Info("ship.yaml not found in upstream, generating default lifecycle for application ...")
 		spec = defaultSpec
+	}
+
+	if metadata == nil {
+		metadata = &api.ShipAppMetadata{}
 	}
 
 	release := &api.Release{

@@ -13,13 +13,10 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/state"
+
 	"github.com/spf13/viper"
 )
-
-func parseServerTS(ts string) time.Time {
-	parsed, _ := time.Parse("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)", ts)
-	return parsed
-}
 
 const getAppspecQuery = `
 query($semver: String) {
@@ -175,64 +172,17 @@ type GQLGetSlugReleaseResponse struct {
 
 // ShipReleaseWrapper wraps the release response form GQL
 type LicenseWrapper struct {
-	License License `json:"license"`
+	License license `json:"license"`
 }
 
 // ShipReleaseWrapper wraps the release response form GQL
 type ShipReleaseWrapper struct {
-	ShipRelease ShipRelease `json:"shipRelease"`
+	ShipRelease state.ShipRelease `json:"shipRelease"`
 }
 
 // ShipSlugReleaseWrapper wraps the release response form GQL
 type ShipSlugReleaseWrapper struct {
-	ShipSlugRelease ShipRelease `json:"shipSlugRelease"`
-}
-
-type License struct {
-	ID        string `json:"id"`
-	Assignee  string `json:"assignee"`
-	CreatedAt string `json:"createdAt"`
-	ExpiresAt string `json:"expiresAt"`
-	Type      string `json:"type"`
-}
-
-type Image struct {
-	URL      string `json:"url"`
-	Source   string `json:"source"`
-	AppSlug  string `json:"appSlug"`
-	ImageKey string `json:"imageKey"`
-}
-
-type GithubFile struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
-	Sha  string `json:"sha"`
-	Size int64  `json:"size"`
-	Data string `json:"data"`
-}
-
-type GithubContent struct {
-	Repo  string       `json:"repo"`
-	Path  string       `json:"path"`
-	Ref   string       `json:"ref"`
-	Files []GithubFile `json:"files"`
-}
-
-// ShipRelease is the release response form GQL
-type ShipRelease struct {
-	ID             string           `json:"id"`
-	Sequence       int64            `json:"sequence"`
-	ChannelID      string           `json:"channelId"`
-	ChannelName    string           `json:"channelName"`
-	ChannelIcon    string           `json:"channelIcon"`
-	Semver         string           `json:"semver"`
-	ReleaseNotes   string           `json:"releaseNotes"`
-	Spec           string           `json:"spec"`
-	Images         []Image          `json:"images"`
-	GithubContents []GithubContent  `json:"githubContents"`
-	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
-	RegistrySecret string           `json:"registrySecret"`
-	Entitlements   api.Entitlements `json:"entitlements"`
+	ShipSlugRelease state.ShipRelease `json:"shipSlugRelease"`
 }
 
 // GQLRegisterInstallResponse is the top-level response object from the graphql server
@@ -243,32 +193,20 @@ type GQLRegisterInstallResponse struct {
 	Errors []GraphQLError `json:"errors,omitempty"`
 }
 
-type callInfo struct {
-	username string
-	password string
-	request  GraphQLRequest
-	upstream string
+func parseServerTS(ts string) time.Time {
+	parsed, _ := time.Parse("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)", ts)
+	return parsed
 }
 
-// ToReleaseMeta linter
-func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
-	return api.ReleaseMetadata{
-		ReleaseID:      r.ID,
-		Sequence:       r.Sequence,
-		ChannelID:      r.ChannelID,
-		ChannelName:    r.ChannelName,
-		ChannelIcon:    r.ChannelIcon,
-		Semver:         r.Semver,
-		ReleaseNotes:   r.ReleaseNotes,
-		Created:        r.Created,
-		RegistrySecret: r.RegistrySecret,
-		Images:         r.apiImages(),
-		GithubContents: r.githubContents(),
-		Entitlements:   r.Entitlements,
-	}
+type license struct {
+	ID        string `json:"id"`
+	Assignee  string `json:"assignee"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
+	Type      string `json:"type"`
 }
 
-func (l *License) ToLicenseMeta() api.License {
+func (l *license) ToLicenseMeta() api.License {
 	return api.License{
 		ID:        l.ID,
 		Assignee:  l.Assignee,
@@ -278,30 +216,21 @@ func (l *License) ToLicenseMeta() api.License {
 	}
 }
 
-func (r *ShipRelease) apiImages() []api.Image {
-	result := []api.Image{}
-	for _, image := range r.Images {
-		result = append(result, api.Image(image))
+func (l *license) ToStateLicense() *state.License {
+	return &state.License{
+		ID:        l.ID,
+		Assignee:  l.Assignee,
+		CreatedAt: parseServerTS(l.CreatedAt),
+		ExpiresAt: parseServerTS(l.ExpiresAt),
+		Type:      l.Type,
 	}
-	return result
 }
 
-func (r *ShipRelease) githubContents() []api.GithubContent {
-	result := []api.GithubContent{}
-	for _, content := range r.GithubContents {
-		files := []api.GithubFile{}
-		for _, file := range content.Files {
-			files = append(files, api.GithubFile(file))
-		}
-		apiCont := api.GithubContent{
-			Repo:  content.Repo,
-			Path:  content.Path,
-			Ref:   content.Ref,
-			Files: files,
-		}
-		result = append(result, apiCont)
-	}
-	return result
+type callInfo struct {
+	username string
+	password string
+	request  GraphQLRequest
+	upstream string
 }
 
 // NewGraphqlClient builds a new client using a viper instance
@@ -318,7 +247,7 @@ func NewGraphqlClient(v *viper.Viper, client *http.Client) (*GraphQLClient, erro
 }
 
 // GetRelease gets a payload from the graphql server
-func (c *GraphQLClient) GetRelease(selector *Selector) (*ShipRelease, error) {
+func (c *GraphQLClient) GetRelease(selector *Selector) (*state.ShipRelease, error) {
 	requestObj := GraphQLRequest{
 		Query: getAppspecQuery,
 		Variables: map[string]string{
@@ -351,7 +280,7 @@ func (c *GraphQLClient) GetRelease(selector *Selector) (*ShipRelease, error) {
 }
 
 // GetSlugRelease gets a release from the graphql server by app slug
-func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*ShipRelease, error) {
+func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*state.ShipRelease, error) {
 	requestObj := GraphQLRequest{
 		Query: getSlugAppSpecQuery,
 		Variables: map[string]string{
@@ -386,7 +315,7 @@ func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*ShipRelease, error)
 	return &shipResponse.Data.ShipSlugRelease, nil
 }
 
-func (c *GraphQLClient) GetLicense(selector *Selector) (*License, error) {
+func (c *GraphQLClient) getLicense(selector *Selector) (*license, error) {
 	requestObj := GraphQLRequest{
 		Query: getLicenseQuery,
 		Variables: map[string]string{

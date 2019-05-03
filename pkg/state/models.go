@@ -20,10 +20,12 @@ type State interface {
 	CurrentReleaseName() string
 	CurrentNamespace() string
 	Upstream() string
+	UpstreamContents() *UpstreamContents
 	Versioned() VersionedState
 	IsEmpty() bool
 	CurrentCAs() map[string]util.CAType
 	CurrentCerts() map[string]util.CertType
+	ReleaseMetadata() *api.ReleaseMetadata
 }
 
 var _ State = VersionedState{}
@@ -41,6 +43,8 @@ func (Empty) CurrentReleaseName() string                    { return "" }
 func (Empty) CurrentNamespace() string                      { return "" }
 func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
 func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
+func (Empty) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
+func (Empty) UpstreamContents() *UpstreamContents           { return nil }
 func (Empty) Upstream() string                              { return "" }
 func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
 func (Empty) IsEmpty() bool                                 { return true }
@@ -56,6 +60,8 @@ func (v V0) CurrentReleaseName() string                    { return "" }
 func (v V0) CurrentNamespace() string                      { return "" }
 func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
 func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
+func (v V0) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
+func (v V0) UpstreamContents() *UpstreamContents           { return nil }
 func (v V0) Upstream() string                              { return "" }
 func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
 func (v V0) IsEmpty() bool                                 { return false }
@@ -78,6 +84,7 @@ type V1 struct {
 	Kustomize          *Kustomize             `json:"kustomize,omitempty" yaml:"kustomize,omitempty" hcl:"kustomize,omitempty"`
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
 	Metadata           *Metadata              `json:"metadata,omitempty" yaml:"metadata,omitempty" hcl:"metadata,omitempty"`
+	UpstreamContents   *UpstreamContents      `json:"upstreamContents,omitempty" yaml:"upstreamContents,omitempty" hcl:"upstreamContents,omitempty"`
 
 	//deprecated in favor of upstream
 	ChartURL string `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
@@ -112,6 +119,16 @@ type Metadata struct {
 	AppSlug         string      `json:"appSlug,omitempty" yaml:"appSlug,omitempty" hcl:"appSlug,omitempty"`
 	Lists           []util.List `json:"lists,omitempty" yaml:"lists,omitempty" hcl:"lists,omitempty"`
 	License         License     `json:"license" yaml:"license" hcl:"license"`
+}
+
+type UpstreamContents struct {
+	UpstreamFiles []UpstreamFile `json:"upstreamFiles,omitempty" yaml:"upstreamFiles,omitempty" hcl:"upstreamFiles,omitempty"`
+	AppRelease    *ShipRelease   `json:"appRelease,omitempty" yaml:"appRelease,omitempty" hcl:"appRelease,omitempty"`
+}
+
+type UpstreamFile struct {
+	FilePath     string `json:"filePath,omitempty" yaml:"filePath,omitempty" hcl:"filePath,omitempty"`
+	FileContents string `json:"fileContents,omitempty" yaml:"fileContents,omitempty" hcl:"fileContents,omitempty"`
 }
 
 type StepsCompleted map[string]interface{}
@@ -286,6 +303,115 @@ func (v VersionedState) CurrentCAs() map[string]util.CAType {
 func (v VersionedState) CurrentCerts() map[string]util.CertType {
 	if v.V1 != nil {
 		return v.V1.Certs
+	}
+	return nil
+}
+
+func (v VersionedState) UpstreamContents() *UpstreamContents {
+	if v.V1 != nil {
+		if v.V1.UpstreamContents != nil {
+			return v.V1.UpstreamContents
+		}
+		return nil
+	}
+	return nil
+}
+
+type Image struct {
+	URL      string `json:"url"`
+	Source   string `json:"source"`
+	AppSlug  string `json:"appSlug"`
+	ImageKey string `json:"imageKey"`
+}
+
+type GithubFile struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Sha  string `json:"sha"`
+	Size int64  `json:"size"`
+	Data string `json:"data"`
+}
+
+type GithubContent struct {
+	Repo  string       `json:"repo"`
+	Path  string       `json:"path"`
+	Ref   string       `json:"ref"`
+	Files []GithubFile `json:"files"`
+}
+
+// ShipRelease is the release response from GQL
+type ShipRelease struct {
+	ID             string           `json:"id"`
+	Sequence       int64            `json:"sequence"`
+	ChannelID      string           `json:"channelId"`
+	ChannelName    string           `json:"channelName"`
+	ChannelIcon    string           `json:"channelIcon"`
+	Semver         string           `json:"semver"`
+	ReleaseNotes   string           `json:"releaseNotes"`
+	Spec           string           `json:"spec"`
+	Images         []Image          `json:"images"`
+	GithubContents []GithubContent  `json:"githubContents"`
+	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret string           `json:"registrySecret,omitempty"`
+	Entitlements   api.Entitlements `json:"entitlements,omitempty"`
+}
+
+// ToReleaseMeta linter
+func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
+	return api.ReleaseMetadata{
+		ReleaseID:      r.ID,
+		Sequence:       r.Sequence,
+		ChannelID:      r.ChannelID,
+		ChannelName:    r.ChannelName,
+		ChannelIcon:    r.ChannelIcon,
+		Semver:         r.Semver,
+		ReleaseNotes:   r.ReleaseNotes,
+		Created:        r.Created,
+		RegistrySecret: r.RegistrySecret,
+		Images:         r.apiImages(),
+		GithubContents: r.githubContents(),
+		Entitlements:   r.Entitlements,
+	}
+}
+
+func (r *ShipRelease) apiImages() []api.Image {
+	result := []api.Image{}
+	for _, image := range r.Images {
+		result = append(result, api.Image(image))
+	}
+	return result
+}
+
+func (r *ShipRelease) githubContents() []api.GithubContent {
+	result := []api.GithubContent{}
+	for _, content := range r.GithubContents {
+		files := []api.GithubFile{}
+		for _, file := range content.Files {
+			files = append(files, api.GithubFile(file))
+		}
+		apiCont := api.GithubContent{
+			Repo:  content.Repo,
+			Path:  content.Path,
+			Ref:   content.Ref,
+			Files: files,
+		}
+		result = append(result, apiCont)
+	}
+	return result
+}
+
+func (v VersionedState) ReleaseMetadata() *api.ReleaseMetadata {
+	if v.V1 != nil {
+		if v.V1.UpstreamContents != nil {
+			baseMeta := v.V1.UpstreamContents.AppRelease.ToReleaseMeta()
+			if v.V1.Metadata != nil {
+				baseMeta.CustomerID = v.V1.Metadata.CustomerID
+				baseMeta.InstallationID = v.V1.Metadata.InstallationID
+				baseMeta.LicenseID = v.V1.Metadata.LicenseID
+			}
+			return &baseMeta
+		}
+		return nil
 	}
 	return nil
 }

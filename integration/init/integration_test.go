@@ -23,6 +23,7 @@ type TestMetadata struct {
 	Upstream     string   `yaml:"upstream"`
 	Args         []string `yaml:"args"`
 	MakeAbsolute bool     `yaml:"make_absolute"`
+	SkipEdit     bool     `yaml:"skip_edit"`
 	// debugging
 	SkipCleanup bool   `yaml:"skip_cleanup"`
 	ValuesFile  string `yaml:"valuesFile"`
@@ -53,7 +54,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 
 	for _, file := range files {
 		if file.IsDir() {
-			When(fmt.Sprintf("the spec in %q is run", file.Name()), func() {
+			When(fmt.Sprintf("the spec in %q is run with shipinit", file.Name()), func() {
 				testPath := path.Join(integrationDir, file.Name())
 				var testOutputPath string
 				var testMetadata TestMetadata
@@ -79,7 +80,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					os.Chdir(integrationDir)
 				}, 20)
 
-				It("Should output the expected files", func() {
+				It("Should output the expected files from 'ship init'", func() {
 					replacements := map[string]string{}
 					absoluteUpstream := testMetadata.Upstream
 
@@ -121,7 +122,7 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, []map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, map[string][]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 
@@ -136,6 +137,77 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					watchCmd.SetArgs(append([]string{"watch", "--exit"}, watchTestMetadataArgs...))
 					err = watchCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
+				}, 60)
+			})
+		}
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			When(fmt.Sprintf("the spec in %q is run with shipedit", file.Name()), func() {
+				testPath := path.Join(integrationDir, file.Name())
+				var testOutputPath string
+				var testMetadata TestMetadata
+
+				BeforeEach(func() {
+					os.Setenv("NO_OS_EXIT", "1")
+					// create a temporary directory within this directory to compare files with
+					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
+					Expect(err).NotTo(HaveOccurred())
+					os.Chdir(testOutputPath)
+
+					// read the test metadata
+					testMetadata = readMetadata(testPath)
+
+				}, 20)
+
+				AfterEach(func() {
+					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
+						// remove the temporary directory
+						err := os.RemoveAll(testOutputPath)
+						Expect(err).NotTo(HaveOccurred())
+					}
+					os.Chdir(integrationDir)
+				}, 20)
+
+				// these tests mostly pass, but they break the existing 'ship init' tests - there's some crossover somewhere
+				It("Should output the expected files from 'ship edit'", func() {
+					if testMetadata.SkipEdit {
+						Skip("this test case is set to skip edit tests")
+						return
+					}
+
+					// copy the expected ship state to the output
+					// and run any replacements needed
+
+					readPath := filepath.Join(testPath, "expected", ".ship", "state.json")
+					stateFile, err := ioutil.ReadFile(readPath)
+					Expect(err).NotTo(HaveOccurred())
+
+					writePath := filepath.Join(testOutputPath, ".ship", "state.json")
+					err = os.MkdirAll(filepath.Dir(writePath), os.ModePerm)
+					Expect(err).NotTo(HaveOccurred())
+					err = ioutil.WriteFile(writePath, stateFile, os.ModePerm)
+					Expect(err).NotTo(HaveOccurred())
+
+					replacements := map[string]string{}
+
+					editCmd := cli.RootCmd()
+					editBuf := new(bytes.Buffer)
+					editCmd.SetOutput(editBuf)
+					editCmd.SetArgs([]string{
+						"edit",
+						"--headless",
+						"--log-level=off",
+					})
+
+					err = editCmd.Execute()
+					Expect(err).NotTo(HaveOccurred())
+
+					// compare the files in the temporary directory with those in the "expected" directory
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, map[string][]string{})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(result).To(BeTrue())
 				}, 60)
 			})
 		}

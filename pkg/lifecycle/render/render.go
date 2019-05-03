@@ -43,6 +43,11 @@ func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, st
 	debug := level.Debug(log.With(r.Logger, "step.type", "render"))
 	debug.Log("event", "step.execute")
 
+	err := r.StateManager.ClearListsMetadata()
+	if err != nil {
+		return errors.Wrap(err, "clear list metadata")
+	}
+
 	debug.Log("event", "try.load")
 	previousState, err := r.StateManager.TryLoad()
 	if err != nil {

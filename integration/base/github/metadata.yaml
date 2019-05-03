@@ -3,3 +3,4 @@ installation_id: "RULNveQLrLj4GDum1yQhvKAcABh0GcLY"
 release_version: "0.0.4"
 set_github_contents: "replicatedhq/test-charts:/release.yml:master:.ship"
 disable_online: true
+skip_cleanup: false

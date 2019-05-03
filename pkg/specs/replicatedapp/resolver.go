@@ -40,6 +40,7 @@ type resolver struct {
 	SetChannelIcon       string
 	SetGitHubContents    []string
 	SetEntitlementsJSON  string
+	IsEdit               bool
 }
 
 // NewAppResolver builds a resolver from a Viper instance
@@ -62,6 +63,7 @@ func NewAppResolver(
 		SetGitHubContents:    v.GetStringSlice("set-github-contents"),
 		SetEntitlementsJSON:  v.GetString("set-entitlements-json"),
 		RunbookReleaseSemver: v.GetString("release-semver"),
+		IsEdit:               v.GetBool("isEdit"),
 		StateManager:         stateManager,
 		ShaSummer: func(bytes []byte) string {
 			return fmt.Sprintf("%x", sha256.Sum256(bytes))
@@ -82,7 +84,7 @@ type Resolver interface {
 	FetchRelease(
 		ctx context.Context,
 		selector *Selector,
-	) (*ShipRelease, error)
+	) (*state.ShipRelease, error)
 	RegisterInstall(
 		ctx context.Context,
 		selector Selector,
@@ -91,6 +93,9 @@ type Resolver interface {
 	SetRunbook(
 		runbook string,
 	)
+	ResolveEditRelease(
+		ctx context.Context,
+	) (*api.Release, error)
 }
 
 // ResolveAppRelease uses the passed config options to get specs from pg.replicated.com or
@@ -126,20 +131,41 @@ func (r *resolver) ResolveAppRelease(ctx context.Context, selector *Selector, ap
 	return result, nil
 }
 
-func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*License, error) {
+func (r *resolver) ResolveEditRelease(ctx context.Context) (*api.Release, error) {
+	stateData, err := r.StateManager.TryLoad()
+	if err != nil {
+		return nil, errors.Wrap(err, "load state to resolve release")
+	}
+
+	result := &api.Release{
+		Metadata: *stateData.ReleaseMetadata(),
+	}
+
+	if err = yaml.Unmarshal([]byte(stateData.UpstreamContents().AppRelease.Spec), &result.Spec); err != nil {
+		return nil, errors.Wrapf(err, "decode spec from persisted release")
+	}
+
+	if err = r.persistSpec([]byte(stateData.UpstreamContents().AppRelease.Spec)); err != nil {
+		return nil, errors.Wrapf(err, "write persisted spec to disk")
+	}
+
+	return result, nil
+}
+
+func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*license, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "FetchLicense"))
 	if r.Runbook != "" {
 		debug.Log("event", "license.fetch", "msg", "can't resolve license with runbooks")
-		return &License{}, nil
+		return &license{}, nil
 	}
 
 	if selector.LicenseID == "" {
 		// TODO: support with customer ID
 		debug.Log("event", "license.fetch", "msg", "can't resolve license without license ID")
-		return &License{}, nil
+		return &license{}, nil
 	}
 
-	license, err := r.Client.GetLicense(selector)
+	license, err := r.Client.getLicense(selector)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get license")
 	}
@@ -148,10 +174,9 @@ func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*Licen
 }
 
 // FetchRelease gets the release without persisting anything
-func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*ShipRelease, error) {
-	var specYAML []byte
+func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*state.ShipRelease, error) {
 	var err error
-	var release *ShipRelease
+	var release *state.ShipRelease
 
 	debug := level.Debug(log.With(r.Logger, "method", "FetchRelease"))
 	if r.Runbook != "" {
@@ -161,16 +186,16 @@ func (r *resolver) FetchRelease(ctx context.Context, selector *Selector) (*ShipR
 		}
 	} else {
 		release, err = r.resolveCloudRelease(selector)
-		debug.Log("event", "spec.resolve", "spec", specYAML, "err", err)
+		debug.Log("event", "spec.resolve", "err", err)
 		if err != nil {
 			return nil, errors.Wrapf(err, "resolve gql spec for %s", selector)
 		}
 	}
-	debug.Log("event", "spec.resolve.success", "spec", specYAML, "err", err)
+	debug.Log("event", "spec.resolve.success", "err", err)
 	return release, nil
 }
 
-func (r *resolver) persistRelease(release *ShipRelease, license *License, selector *Selector) (*api.Release, error) {
+func (r *resolver) persistRelease(release *state.ShipRelease, license *license, selector *Selector) (*api.Release, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "persistRelease"))
 
 	result := &api.Release{
@@ -198,13 +223,26 @@ func (r *resolver) persistRelease(release *ShipRelease, license *License, select
 	debug.Log("phase", "load-specs", "status", "complete",
 		"resolved-spec", fmt.Sprintf("%+v", result.Spec),
 	)
+
+	if r.Runbook == "" {
+		releaseCopy := *release
+
+		upstreamContents := state.UpstreamContents{
+			AppRelease: &releaseCopy,
+		}
+		err := r.StateManager.SerializeUpstreamContents(&upstreamContents)
+		if err != nil {
+			return nil, errors.Wrap(err, "persist upstream contents")
+		}
+	}
+
 	return result, nil
 }
 
-func (r *resolver) resolveCloudRelease(selector *Selector) (*ShipRelease, error) {
+func (r *resolver) resolveCloudRelease(selector *Selector) (*state.ShipRelease, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "resolveCloudSpec"))
 
-	var release *ShipRelease
+	var release *state.ShipRelease
 	var err error
 	client := r.Client
 	if selector.CustomerID != "" {

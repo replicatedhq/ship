@@ -18,6 +18,22 @@
       "sequence": 0,
       "version": "1.0.0-amazon-eks-template"
     },
-    "releaseName": "integration-replicated-app-amazon-eks-template"
+    "releaseName": "integration-replicated-app-amazon-eks-template",
+    "upstreamContents": {
+      "appRelease": {
+        "id": "NyhODuspYvV9pTHlmMt20KAxbMAE8swq",
+        "sequence": 0,
+        "channelId": "iEKGvV-NI-i6uFS89JAbdJCzAXP1b7wr",
+        "channelName": "integration replicated.app amazon-eks-template",
+        "channelIcon": "",
+        "semver": "1.0.0-amazon-eks-template",
+        "releaseNotes": "integration tests",
+        "spec": "assets:\n  v1:\n    - amazon_eks:\n        dest: new/new_vpc.tf\n        cluster_name: '{{repl ConfigOption \"name_source\" }}'\n        region: \"us-west-2\"\n        created_vpc:\n          vpc_cidr: '{{repl ConfigOption \"cidr_source\" }}'\n          zones:\n            - '{{repl ConfigOption \"zone_source\" }}'\n            - us-west-2b\n          public_subnets:\n            - \"10.0.1.0/24\"\n            - \"10.0.2.0/24\"\n          private_subnets:\n            - \"10.0.129.0/24\"\n            - \"10.0.130.0/24\"\n        autoscaling_groups:\n          - name: alpha\n            group_size: \"3\"\n            machine_type: '{{repl ConfigOption \"machine_source\" }}'\n          - name: bravo\n            group_size: \"1\"\n            machine_type: m5.4xlarge\n    - inline:\n        dest: install.sh\n        contents: |\n                  #!/bin/bash\n                  echo \"run:\"\n                  echo \"terraform apply -f new/new_vpc.tf\"\n                  echo \"kubectl apply -f kube.yaml --kubeconfig {{repl AmazonEKS (ConfigOption \"name_source\") }}\"\n        mode: 0777\n    - inline:\n        dest: kube.yaml\n        contents: |\n                  this is not a valid kubernetes yaml\n        mode: 0777\n\nconfig:\n  v1:\n  - name: template_sources\n    title: Template Function Sources\n    description: testing testing 123\n    items:\n    - name: name_source\n      title: Name Source\n      default: cluster-name-template\n      type: text\n    - name: cidr_source\n      title: CIDR Source\n      default: \"10.0.0.0/16\"\n      type: text\n    - name: zone_source\n      title: Zone Source\n      default: \"us-west-2a\"\n      type: text\n    - name: machine_source\n      title: Machine Source\n      default: m5.2xlarge\n      type: text\n\nlifecycle:\n  v1:\n    - message:\n       contents: \"hi\"\n    - render: {}\n    - message:\n       contents: \"bye\"\n",
+        "images": [],
+        "githubContents": [],
+        "created": "Fri Nov 02 2018 17:07:38 GMT+0000 (UTC)",
+        "entitlements": {}
+      }
+    }
   }
 }

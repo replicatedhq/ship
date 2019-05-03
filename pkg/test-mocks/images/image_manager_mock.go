@@ -38,7 +38,6 @@ func (m *MockImageManager) EXPECT() *MockImageManagerMockRecorder {
 
 // ImagePull mocks base method
 func (m *MockImageManager) ImagePull(arg0 context.Context, arg1 string, arg2 types.ImagePullOptions) (io.ReadCloser, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImagePull", arg0, arg1, arg2)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
@@ -47,13 +46,11 @@ func (m *MockImageManager) ImagePull(arg0 context.Context, arg1 string, arg2 typ
 
 // ImagePull indicates an expected call of ImagePull
 func (mr *MockImageManagerMockRecorder) ImagePull(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImagePull", reflect.TypeOf((*MockImageManager)(nil).ImagePull), arg0, arg1, arg2)
 }
 
 // ImagePush mocks base method
 func (m *MockImageManager) ImagePush(arg0 context.Context, arg1 string, arg2 types.ImagePushOptions) (io.ReadCloser, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImagePush", arg0, arg1, arg2)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
@@ -62,13 +59,11 @@ func (m *MockImageManager) ImagePush(arg0 context.Context, arg1 string, arg2 typ
 
 // ImagePush indicates an expected call of ImagePush
 func (mr *MockImageManagerMockRecorder) ImagePush(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImagePush", reflect.TypeOf((*MockImageManager)(nil).ImagePush), arg0, arg1, arg2)
 }
 
 // ImageSave mocks base method
 func (m *MockImageManager) ImageSave(arg0 context.Context, arg1 []string) (io.ReadCloser, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImageSave", arg0, arg1)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
@@ -77,13 +72,11 @@ func (m *MockImageManager) ImageSave(arg0 context.Context, arg1 []string) (io.Re
 
 // ImageSave indicates an expected call of ImageSave
 func (mr *MockImageManagerMockRecorder) ImageSave(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImageSave", reflect.TypeOf((*MockImageManager)(nil).ImageSave), arg0, arg1)
 }
 
 // ImageTag mocks base method
 func (m *MockImageManager) ImageTag(arg0 context.Context, arg1, arg2 string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImageTag", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -91,6 +84,5 @@ func (m *MockImageManager) ImageTag(arg0 context.Context, arg1, arg2 string) err
 
 // ImageTag indicates an expected call of ImageTag
 func (mr *MockImageManagerMockRecorder) ImageTag(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImageTag", reflect.TypeOf((*MockImageManager)(nil).ImageTag), arg0, arg1, arg2)
 }

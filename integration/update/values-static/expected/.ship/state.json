@@ -28,6 +28,30 @@
       "sequence": 0,
       "version": "0.1.0"
     },
+    "upstreamContents": {
+      "upstreamFiles": [
+        {
+          "filePath": ".helmignore",
+          "fileContents": "IyBQYXR0ZXJucyB0byBpZ25vcmUgd2hlbiBidWlsZGluZyBwYWNrYWdlcy4KIyBUaGlzIHN1cHBvcnRzIHNoZWxsIGdsb2IgbWF0Y2hpbmcsIHJlbGF0aXZlIHBhdGggbWF0Y2hpbmcsIGFuZAojIG5lZ2F0aW9uIChwcmVmaXhlZCB3aXRoICEpLiBPbmx5IG9uZSBwYXR0ZXJuIHBlciBsaW5lLgouRFNfU3RvcmUKIyBDb21tb24gVkNTIGRpcnMKLmdpdC8KLmdpdGlnbm9yZQouYnpyLwouYnpyaWdub3JlCi5oZy8KLmhnaWdub3JlCi5zdm4vCiMgQ29tbW9uIGJhY2t1cCBmaWxlcwoqLnN3cAoqLmJhawoqLnRtcAoqfgojIFZhcmlvdXMgSURFcwoucHJvamVjdAouaWRlYS8KKi50bXByb2oK"
+        },
+        {
+          "filePath": "Chart.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogdjEKYXBwVmVyc2lvbjogIjEuMCIKZGVzY3JpcHRpb246IEEKbmFtZTogdmFsdWVzLXVwZGF0ZQp2ZXJzaW9uOiAwLjEuMAo="
+        },
+        {
+          "filePath": "README.md",
+          "fileContents": "UmVhZG1l"
+        },
+        {
+          "filePath": "templates/deployment.yaml",
+          "fileContents": "YXBpVmVyc2lvbjogYXBwcy92MWJldGEyCmtpbmQ6IERlcGxveW1lbnQKbWV0YWRhdGE6CiAgbmFtZTogZGVwbG95bWVudAogIGxhYmVsczoKICAgIGFwcDogbXktYXBwCiAgICBjaGFydDoge3sgLkNoYXJ0Lk5hbWUgfX0KICAgIHJlbGVhc2U6IHt7IC5SZWxlYXNlLk5hbWUgfX0KICAgIGhlcml0YWdlOiB7eyAuUmVsZWFzZS5TZXJ2aWNlIH19CnNwZWM6CiAgcmVwbGljYXM6IHt7IC5WYWx1ZXMucmVwbGljYUNvdW50IH19CiAgc2VsZWN0b3I6CiAgICBtYXRjaExhYmVsczoKICAgICAgYXBwOiBteS1hcHAKICAgICAgcmVsZWFzZToge3sgLlJlbGVhc2UuTmFtZSB9fQogIHRlbXBsYXRlOgogICAgbWV0YWRhdGE6CiAgICAgIGxhYmVsczoKICAgICAgICBhcHA6IG15LWFwcAogICAgICAgIHJlbGVhc2U6IHt7IC5SZWxlYXNlLk5hbWUgfX0KICAgIHNwZWM6CiAgICAgIGNvbnRhaW5lcnM6CiAgICAgICAgLSBuYW1lOiB7eyAuQ2hhcnQuTmFtZSB9fQogICAgICAgICAgaW1hZ2U6ICJ7eyAuVmFsdWVzLmltYWdlLnJlcG9zaXRvcnkgfX06e3sgLlZhbHVlcy5pbWFnZS50YWcgfX0iCiAgICAgICAgICBpbWFnZVB1bGxQb2xpY3k6IEFsd2F5cwogICAgICAgICAgcG9ydHM6CiAgICAgICAgICAgIC0gbmFtZTogaHR0cAogICAgICAgICAgICAgIGNvbnRhaW5lclBvcnQ6IDgwCiAgICAgICAgICAgICAgcHJvdG9jb2w6IFRDUAogICAgICAgICAgbGl2ZW5lc3NQcm9iZToKICAgICAgICAgICAgaHR0cEdldDoKICAgICAgICAgICAgICBwYXRoOiAvCiAgICAgICAgICAgICAgcG9ydDogaHR0cAogICAgICAgICAgcmVhZGluZXNzUHJvYmU6CiAgICAgICAgICAgIGh0dHBHZXQ6CiAgICAgICAgICAgICAgcGF0aDogLwogICAgICAgICAgICAgIHBvcnQ6IGh0dHAK"
+        },
+        {
+          "filePath": "values.yaml",
+          "fileContents": "cmVwbGljYUNvdW50OiAxCmltYWdlOgogIHJlcG9zaXRvcnk6IG5naW54CiAgdGFnOiBzdGFibGUKCg=="
+        }
+      ]
+    },
     "contentSHA": "b45cccb80cc250e5762918ca6e56e05edaef7bd023906be9411af9345353c016"
   }
 }

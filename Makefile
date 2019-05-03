@@ -219,6 +219,7 @@ deps:
 .state/fmt: $(SRC)
 	goimports -w pkg
 	goimports -w cmd
+	goimports -w integration
 	@mkdir -p .state
 	@touch .state/fmt
 
@@ -228,6 +229,7 @@ fmt: .state/build-deps .state/fmt
 .state/vet: $(SRC)
 	go vet ./pkg/...
 	go vet ./cmd/...
+	go vet ./integration/...
 	@mkdir -p .state
 	@touch .state/vet
 
@@ -236,6 +238,7 @@ vet: .state/vet
 .state/ineffassign: .state/build-deps $(SRC)
 	ineffassign ./pkg
 	ineffassign ./cmd
+	ineffassign ./integration
 	@mkdir -p .state
 	@touch .state/ineffassign
 
@@ -250,7 +253,7 @@ ineffassign: .state/ineffassign
 lint: vet ineffassign .state/lint
 
 .state/test: $(SRC)
-	go test ./pkg/... | grep -v '?'
+	go test ./pkg/... ./integration | grep -v '?'
 	@mkdir -p .state
 	@touch .state/test
 
@@ -266,7 +269,7 @@ race: lint .state/race
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
-	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/...
+	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/... ./integration
 
 citest: .state/vet .state/ineffassign .state/lint .state/coverage.out
 
