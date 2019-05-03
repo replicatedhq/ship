@@ -1,3 +1,4 @@
 web/node_modules
 Dockerfile
 web/cypress/Dockerfile
+integration/Dockerfile
