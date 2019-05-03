@@ -1,8 +1,8 @@
 # build the test
-FROM golang:1.10-alpine as build-step
+FROM golang:1.12-alpine as build-step
 ENV GOPATH=/go
 
-RUN apk update && apk add ca-certificates curl git
+RUN apk update && apk add ca-certificates curl git build-base
 
 ENV TERRAFORM_VERSION=0.11.13
 ENV TERRAFORM_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
@@ -26,14 +26,15 @@ RUN curl -fsSLO "${KUBECTL_URL}" \
 	&& ln -s "/usr/local/bin/kubectl-${KUBECTL_VERSION}" /usr/local/bin/kubectl
 
 RUN go get github.com/docker/distribution/cmd/registry
+RUN go get github.com/onsi/ginkgo/ginkgo
 
 ADD . /go/src/github.com/replicatedhq/ship
 RUN cd /go/src/github.com/replicatedhq/ship && \
-    go test -c ./integration/base && \
-    go test -c ./integration/update && \
-    go test -c ./integration/init_app && \
-    go test -c ./integration/init && \
-    go test -c ./integration/unfork
+    ginkgo build ./integration/base && \
+    ginkgo build ./integration/update && \
+    ginkgo build ./integration/init_app && \
+    ginkgo build ./integration/init && \
+    ginkgo build ./integration/unfork
 
 # package things up
 FROM node:8-alpine
@@ -45,6 +46,7 @@ RUN npm install -g http-echo-server
 COPY --from=build-step /usr/local/bin/terraform /usr/local/bin/terraform
 COPY --from=build-step /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=build-step $GOPATH/bin/registry $GOPATH/bin/registry
+COPY --from=build-step $GOPATH/bin/ginkgo $GOPATH/bin/ginkgo
 RUN apk update && apk add ca-certificates git openssh && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /var/lib/registry
@@ -52,11 +54,11 @@ RUN mkdir -p /var/lib/registry
 
 ADD ./integration /test
 RUN cd /test && rm *.go
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/base.test /test/base/
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/update.test /test/update/
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/init_app.test /test/init_app/
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/init.test /test/init/
-COPY --from=build-step /go/src/github.com/replicatedhq/ship/unfork.test /test/unfork
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/base/base.test /test/base/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/update/update.test /test/update/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/init_app/init_app.test /test/init_app/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/init/init.test /test/init/
+COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/unfork/unfork.test /test/unfork
 CMD ./integration_docker_start.sh
 
 
