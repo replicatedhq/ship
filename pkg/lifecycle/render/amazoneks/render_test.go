@@ -170,7 +170,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = ""
 }
 
@@ -181,7 +181,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
@@ -227,7 +227,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = "test-region"
 }
 
@@ -238,7 +238,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
@@ -298,7 +298,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = "double-test-region"
 }
 
@@ -309,7 +309,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
@@ -389,7 +389,7 @@ variable "vpc_azs" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "1.37.0"
+  version = "1.60.0"
   name    = "eks-vpc"
   cidr    = "${var.vpc_cidr}"
   azs     = "${var.vpc_azs}"
@@ -456,7 +456,7 @@ variable "vpc_azs" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "1.37.0"
+  version = "1.60.0"
   name    = "eks-vpc"
   cidr    = "${var.vpc_cidr}"
   azs     = "${var.vpc_azs}"
@@ -605,7 +605,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = ""
 }
 
@@ -616,7 +616,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
@@ -679,7 +679,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = "us-east-1"
 }
 
@@ -690,7 +690,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
@@ -762,7 +762,7 @@ variable "vpc_azs" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "1.37.0"
+  version = "1.60.0"
   name    = "eks-vpc"
   cidr    = "${var.vpc_cidr}"
   azs     = "${var.vpc_azs}"
@@ -811,7 +811,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = "us-east-1"
 }
 
@@ -822,7 +822,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
