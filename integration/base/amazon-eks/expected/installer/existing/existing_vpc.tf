@@ -30,7 +30,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 1.27"
+  version = "~> 2.7.0"
   region  = "us-east-1"
 }
 
@@ -41,7 +41,7 @@ variable "eks-cluster-name" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.7.0"
+  version = "3.0.0"
 
   cluster_name = "${var.eks-cluster-name}"
 
