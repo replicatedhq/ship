@@ -1,6 +1,8 @@
 package state
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -8,6 +10,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
+	"github.com/replicatedhq/ship/pkg/util"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -514,4 +518,144 @@ func TestMManager_ResetLifecycle(t *testing.T) {
 			req.Equal(tt.expected, actualState)
 		})
 	}
+}
+
+func TestMManager_ParallelUpdates(t *testing.T) {
+	tests := []struct {
+		name      string
+		runners   []func(*MManager, *require.Assertions, *sync.WaitGroup)
+		validator func(VersionedState, *require.Assertions)
+	}{
+		{
+			name: "lists",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// add the integers 1-20 to the list
+					for i := 1; i <= 20; i++ {
+						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				req.Len(state.V1.Metadata.Lists, 20)
+			},
+		},
+		{
+			name: "lists and upstream",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				// lists
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// add the integers 1-20 to the list
+					for i := 1; i <= 20; i++ {
+						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// first upstream mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append the integers 1-200 to the upstream
+					for i := 1; i <= 200; i++ {
+						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+							state.V1.Upstream += fmt.Sprintf(" a:%d ", i)
+							return state, nil
+						})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// second upstream mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append the integers 1-200 to the upstream
+					for i := 1; i <= 200; i++ {
+						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+							state.V1.Upstream += fmt.Sprintf(" b:%d ", i)
+							return state, nil
+						})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// third upstream mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append the integers 1-200 to the upstream
+					for i := 1; i <= 200; i++ {
+						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+							state.V1.Upstream += fmt.Sprintf(" c:%d ", i)
+							return state, nil
+						})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// fourth upstream mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append the integers 1-200 to the upstream
+					for i := 1; i <= 200; i++ {
+						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+							state.V1.Upstream += fmt.Sprintf(" d:%d ", i)
+							return state, nil
+						})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// fifth upstream mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append the integers 1-200 to the upstream
+					for i := 1; i <= 200; i++ {
+						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+							state.V1.Upstream += fmt.Sprintf(" e:%d ", i)
+							return state, nil
+						})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				req.Len(state.V1.Metadata.Lists, 20)
+
+				totalUpstream := state.Upstream()
+				for _, str := range []string{"a", "b", "c", "d", "e"} {
+					for i := 1; i <= 200; i++ {
+						req.Contains(totalUpstream, fmt.Sprintf(" %s:%d ", str, i))
+					}
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			req := require.New(t)
+			m := &MManager{
+				Logger: log.NewNopLogger(),
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			initialState := VersionedState{V1: &V1{Lifecycle: nil}}
+
+			group := sync.WaitGroup{}
+
+			err := m.serializeAndWriteState(initialState)
+			req.NoError(err)
+
+			group.Add(len(tt.runners))
+			for _, runner := range tt.runners {
+				go runner(m, req, &group)
+			}
+
+			group.Wait()
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			tt.validator(actualState.Versioned(), req)
+		})
+	}
+
 }
