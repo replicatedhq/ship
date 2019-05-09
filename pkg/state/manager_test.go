@@ -623,7 +623,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" a:%d ", i)
 							return state, nil
 						})
@@ -635,7 +635,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" b:%d ", i)
 							return state, nil
 						})
@@ -647,7 +647,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" c:%d ", i)
 							return state, nil
 						})
@@ -659,7 +659,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" d:%d ", i)
 							return state, nil
 						})
@@ -671,7 +671,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" e:%d ", i)
 							return state, nil
 						})

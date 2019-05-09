@@ -32,8 +32,7 @@ type Manager interface {
 		templateContext map[string]interface{},
 	) error
 	TryLoad() (State, error)
-	StateUpdate(updater Update) error
-	StateUpdateReturn(updater Update) (State, error)
+	StateUpdate(updater Update) (State, error)
 	RemoveStateFile() error
 	SaveKustomize(kustomize *Kustomize) error
 	SerializeUpstream(URL string) error
@@ -65,10 +64,11 @@ func (m *MManager) Save(v VersionedState) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state = v
 		return state, nil
 	})
+	return err
 }
 
 func NewManager(
@@ -85,14 +85,8 @@ func NewManager(
 
 type Update func(VersionedState) (VersionedState, error)
 
-// applies the provided updater to the current state. Returns error
-func (m *MManager) StateUpdate(updater Update) error {
-	_, err := m.StateUpdateReturn(updater)
-	return err
-}
-
 // applies the provided updater to the current state. Returns the new state and err
-func (m *MManager) StateUpdateReturn(updater Update) (State, error) {
+func (m *MManager) StateUpdate(updater Update) (State, error) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -114,7 +108,7 @@ func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata, applicati
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.Metadata = &Metadata{
 			ApplicationType: applicationType,
 			ReleaseNotes:    metadata.ReleaseNotes,
@@ -124,6 +118,7 @@ func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata, applicati
 		}
 		return state, nil
 	})
+	return err
 }
 
 // SerializeAppMetadata is used by `ship app` to serialize replicated app metadata to state file
@@ -131,7 +126,7 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeAppMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		if state.V1.Metadata == nil {
 			state.V1.Metadata = &Metadata{}
 		}
@@ -151,6 +146,7 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 		}
 		return state, nil
 	})
+	return err
 }
 
 // SerializeUpstream is used by `ship init` to serialize a state file with ChartURL to disk
@@ -158,10 +154,11 @@ func (m *MManager) SerializeUpstream(upstream string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeUpstream"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.Upstream = upstream
 		return state, nil
 	})
+	return err
 }
 
 // SerializeContentSHA writes the contentSHA to the state file
@@ -169,10 +166,11 @@ func (m *MManager) SerializeContentSHA(contentSHA string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeContentSHA"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.ContentSHA = contentSHA
 		return state, nil
 	})
+	return err
 }
 
 // SerializeHelmValues takes user input helm values and serializes a state file to disk
@@ -180,11 +178,12 @@ func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.HelmValues = values
 		state.V1.HelmValuesDefaults = defaults
 		return state, nil
 	})
+	return err
 }
 
 // SerializeReleaseName serializes to disk the name to use for helm template
@@ -192,10 +191,11 @@ func (m *MManager) SerializeReleaseName(name string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeReleaseName"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.ReleaseName = name
 		return state, nil
 	})
+	return err
 }
 
 // SerializeNamespace serializes to disk the namespace to use for helm template
@@ -203,10 +203,11 @@ func (m *MManager) SerializeNamespace(namespace string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeNamespace"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.Namespace = namespace
 		return state, nil
 	})
+	return err
 }
 
 // SerializeConfig takes the application data and input params and serializes a state file to disk
@@ -214,30 +215,32 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	debug := level.Debug(log.With(m.Logger, "method", "serializeConfig"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		state.V1.Config = templateContext
 		return state, nil
 	})
+	return err
 }
 
 func (m *MManager) SerializeListsMetadata(list util.List) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		if state.V1.Metadata == nil {
 			state.V1.Metadata = &Metadata{}
 		}
 		state.V1.Metadata.Lists = append(state.V1.Metadata.Lists, list)
 		return state, nil
 	})
+	return err
 }
 
 func (m *MManager) ClearListsMetadata() error {
 	debug := level.Debug(log.With(m.Logger, "method", "clearListMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 		if state.V1.Metadata == nil {
 			return state, nil
 		}
@@ -245,6 +248,7 @@ func (m *MManager) ClearListsMetadata() error {
 		state.V1.Metadata.Lists = []util.List{}
 		return state, nil
 	})
+	return err
 }
 
 // SerializeConfig takes the application data and input params and serializes a state file to disk
@@ -252,11 +256,12 @@ func (m *MManager) SerializeUpstreamContents(contents *UpstreamContents) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeUpstreamContents"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 
 		state.V1.UpstreamContents = contents
 		return state, nil
 	})
+	return err
 }
 
 // TryLoad will attempt to load a state file from disk, if present
@@ -285,11 +290,12 @@ func (m *MManager) ResetLifecycle() error {
 	debug := level.Debug(log.With(m.Logger, "method", "ResetLifecycle"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 
 		state.V1.Lifecycle = nil
 		return state, nil
 	})
+	return err
 }
 
 // tryLoadFromSecret will attempt to load the state from a secret
@@ -396,11 +402,12 @@ func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 
 		state.V1.Kustomize = kustomize
 		return state, nil
 	})
+	return err
 }
 
 // RemoveStateFile will attempt to remove the state file from disk
@@ -498,7 +505,7 @@ func (m *MManager) AddCert(name string, newCert util.CertType) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 
 		if state.V1.Certs == nil {
 			state.V1.Certs = make(map[string]util.CertType)
@@ -509,13 +516,14 @@ func (m *MManager) AddCert(name string, newCert util.CertType) error {
 		state.V1.Certs[name] = newCert
 		return state, nil
 	})
+	return err
 }
 
 func (m *MManager) AddCA(name string, newCA util.CAType) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	return m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 
 		if state.V1.CAs == nil {
 			state.V1.CAs = make(map[string]util.CAType)
@@ -526,4 +534,5 @@ func (m *MManager) AddCA(name string, newCA util.CAType) error {
 		state.V1.CAs[name] = newCA
 		return state, nil
 	})
+	return err
 }

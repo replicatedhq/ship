@@ -96,31 +96,6 @@ func (mr *MockManagerMockRecorder) ResetLifecycle() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetLifecycle", reflect.TypeOf((*MockManager)(nil).ResetLifecycle))
 }
 
-// StateUpdate mocks base method
-func (m *MockManager) StateUpdate(arg0 state.Update) error {
-	ret := m.ctrl.Call(m, "StateUpdate", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// StateUpdate indicates an expected call of StateUpdate
-func (mr *MockManagerMockRecorder) SafeStateUpdate(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdate", reflect.TypeOf((*MockManager)(nil).StateUpdate), arg0)
-}
-
-// StateUpdateReturn mocks base method
-func (m *MockManager) StateUpdateReturn(arg0 state.Update) (state.State, error) {
-	ret := m.ctrl.Call(m, "StateUpdateReturn", arg0)
-	ret0, _ := ret[0].(state.State)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StateUpdateReturn indicates an expected call of StateUpdateReturn
-func (mr *MockManagerMockRecorder) SafeStateUpdateReturn(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdateReturn", reflect.TypeOf((*MockManager)(nil).StateUpdateReturn), arg0)
-}
-
 // Save mocks base method
 func (m *MockManager) Save(arg0 state.VersionedState) error {
 	ret := m.ctrl.Call(m, "Save", arg0)
@@ -263,6 +238,19 @@ func (m *MockManager) SerializeUpstreamContents(arg0 *state.UpstreamContents) er
 // SerializeUpstreamContents indicates an expected call of SerializeUpstreamContents
 func (mr *MockManagerMockRecorder) SerializeUpstreamContents(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeUpstreamContents", reflect.TypeOf((*MockManager)(nil).SerializeUpstreamContents), arg0)
+}
+
+// StateUpdate mocks base method
+func (m *MockManager) StateUpdate(arg0 state.Update) (state.State, error) {
+	ret := m.ctrl.Call(m, "StateUpdate", arg0)
+	ret0, _ := ret[0].(state.State)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StateUpdate indicates an expected call of StateUpdate
+func (mr *MockManagerMockRecorder) StateUpdate(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdate", reflect.TypeOf((*MockManager)(nil).StateUpdate), arg0)
 }
 
 // TryLoad mocks base method
