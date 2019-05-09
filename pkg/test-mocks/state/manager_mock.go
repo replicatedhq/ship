@@ -96,29 +96,29 @@ func (mr *MockManagerMockRecorder) ResetLifecycle() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetLifecycle", reflect.TypeOf((*MockManager)(nil).ResetLifecycle))
 }
 
-// SafeStateUpdate mocks base method
-func (m *MockManager) SafeStateUpdate(arg0 state.StateUpdate) error {
-	ret := m.ctrl.Call(m, "SafeStateUpdate", arg0)
+// StateUpdate mocks base method
+func (m *MockManager) StateUpdate(arg0 state.Update) error {
+	ret := m.ctrl.Call(m, "StateUpdate", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SafeStateUpdate indicates an expected call of SafeStateUpdate
+// StateUpdate indicates an expected call of StateUpdate
 func (mr *MockManagerMockRecorder) SafeStateUpdate(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SafeStateUpdate", reflect.TypeOf((*MockManager)(nil).SafeStateUpdate), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdate", reflect.TypeOf((*MockManager)(nil).StateUpdate), arg0)
 }
 
-// SafeStateUpdateReturn mocks base method
-func (m *MockManager) SafeStateUpdateReturn(arg0 state.StateUpdate) (state.State, error) {
-	ret := m.ctrl.Call(m, "SafeStateUpdateReturn", arg0)
+// StateUpdateReturn mocks base method
+func (m *MockManager) StateUpdateReturn(arg0 state.Update) (state.State, error) {
+	ret := m.ctrl.Call(m, "StateUpdateReturn", arg0)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SafeStateUpdateReturn indicates an expected call of SafeStateUpdateReturn
+// StateUpdateReturn indicates an expected call of StateUpdateReturn
 func (mr *MockManagerMockRecorder) SafeStateUpdateReturn(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SafeStateUpdateReturn", reflect.TypeOf((*MockManager)(nil).SafeStateUpdateReturn), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdateReturn", reflect.TypeOf((*MockManager)(nil).StateUpdateReturn), arg0)
 }
 
 // Save mocks base method

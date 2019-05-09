@@ -96,11 +96,7 @@ func TestLoadConfig(t *testing.T) {
 				req.NoError(err, "write existing state")
 			}
 
-			manager := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     fs,
-				V:      viper.New(),
-			}
+			manager := NewManager(&logger.TestLogger{T: t}, fs, viper.New())
 
 			state, err := manager.TryLoad()
 			req.NoError(err)
@@ -158,11 +154,7 @@ func TestHelmValue(t *testing.T) {
 			req := require.New(t)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			manager := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     fs,
-				V:      viper.New(),
-			}
+			manager := NewManager(&logger.TestLogger{T: t}, fs, viper.New())
 
 			err := manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnInit)
 			req.NoError(err)
@@ -235,7 +227,7 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -312,7 +304,7 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -390,7 +382,7 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -448,7 +440,7 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -501,7 +493,7 @@ func TestMManager_ResetLifecycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -543,6 +535,79 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 			},
 		},
 		{
+			name: "emptied lists",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					err := m.ClearListsMetadata()
+					req.NoError(err)
+
+					// add the integers 1-20 to the list
+					for i := 1; i <= 20; i++ {
+						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						req.NoError(err)
+					}
+
+					err = m.ClearListsMetadata()
+					req.NoError(err)
+
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				req.Len(state.V1.Metadata.Lists, 0)
+			},
+		},
+		{
+			name: "lists and app metadata",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// add the integers 1-20 to the list
+					for i := 1; i <= 20; i++ {
+						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					err := m.SerializeAppMetadata(api.ReleaseMetadata{Semver: "tested"})
+					req.NoError(err)
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				req.Len(state.V1.Metadata.Lists, 20)
+				req.Equal("tested", state.V1.Metadata.Version)
+			},
+		},
+		{
+			name: "lists, release name and namespace",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// add the integers 1-20 to the list
+					for i := 1; i <= 20; i++ {
+						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					err := m.SerializeReleaseName("testedName")
+					req.NoError(err)
+					group.Done()
+				},
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					err := m.SerializeNamespace("testedNS")
+					req.NoError(err)
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				req.Len(state.V1.Metadata.Lists, 20)
+				req.Equal("testedName", state.CurrentReleaseName())
+				req.Equal("testedNS", state.CurrentNamespace())
+			},
+		},
+		{
 			name: "lists and upstream",
 			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
 				// lists
@@ -558,7 +623,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" a:%d ", i)
 							return state, nil
 						})
@@ -570,7 +635,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" b:%d ", i)
 							return state, nil
 						})
@@ -582,7 +647,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" c:%d ", i)
 							return state, nil
 						})
@@ -594,7 +659,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" d:%d ", i)
 							return state, nil
 						})
@@ -606,7 +671,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						err := m.SafeStateUpdate(func(state VersionedState) (VersionedState, error) {
+						err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
 							state.V1.Upstream += fmt.Sprintf(" e:%d ", i)
 							return state, nil
 						})
@@ -626,6 +691,70 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "certs and keys",
+			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
+				// first cert mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append 100 certs to the cert list
+					for i := 1; i <= 100; i++ {
+						err := m.AddCert(fmt.Sprintf(" a:%d ", i), util.CertType{})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// second cert mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append 100 certs to the cert list
+					for i := 1; i <= 100; i++ {
+						err := m.AddCert(fmt.Sprintf(" b:%d ", i), util.CertType{})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// third cert mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append 100 certs to the cert list
+					for i := 1; i <= 100; i++ {
+						err := m.AddCert(fmt.Sprintf(" c:%d ", i), util.CertType{})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// first ca mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append 100 CAs to the CA list
+					for i := 1; i <= 100; i++ {
+						err := m.AddCA(fmt.Sprintf(" a:%d ", i), util.CAType{})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+				// second ca mutator
+				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
+					// append 100 CAs to the CA list
+					for i := 1; i <= 100; i++ {
+						err := m.AddCA(fmt.Sprintf(" b:%d ", i), util.CAType{})
+						req.NoError(err)
+					}
+					group.Done()
+				},
+			},
+			validator: func(state VersionedState, req *require.Assertions) {
+				totalCAs := state.CurrentCAs()
+				for _, str := range []string{"a", "b"} {
+					for i := 1; i <= 100; i++ {
+						req.Contains(totalCAs, fmt.Sprintf(" %s:%d ", str, i))
+					}
+				}
+				totalCerts := state.CurrentCerts()
+				for _, str := range []string{"a", "b", "c"} {
+					for i := 1; i <= 100; i++ {
+						req.Contains(totalCerts, fmt.Sprintf(" %s:%d ", str, i))
+					}
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -633,7 +762,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 
 			req := require.New(t)
 			m := &MManager{
-				Logger: log.NewNopLogger(),
+				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
@@ -657,5 +786,202 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 			tt.validator(actualState.Versioned(), req)
 		})
 	}
+}
 
+func TestMManager_AddCA(t *testing.T) {
+	tests := []struct {
+		name     string
+		caName   string
+		newCA    util.CAType
+		wantErr  bool
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name:   "basic test",
+			caName: "aCA",
+			newCA:  util.CAType{Cert: "aCert", Key: "aKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+		},
+		{
+			name:   "add to existing",
+			caName: "bCA",
+			newCA:  util.CAType{Cert: "bCert", Key: "bKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+						"bCA": {Cert: "bCert", Key: "bKey"},
+					},
+				},
+			},
+		},
+		{
+			name:    "colliding ca names",
+			wantErr: true,
+			caName:  "aCA",
+			newCA:   util.CAType{Cert: "aCert", Key: "aKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: &logger.TestLogger{T: t},
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.AddCA(tt.caName, tt.newCA)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.AddCA() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
+}
+
+func TestMManager_AddCert(t *testing.T) {
+	tests := []struct {
+		name     string
+		certName string
+		newCert  util.CertType
+		wantErr  bool
+		before   VersionedState
+		expected VersionedState
+	}{
+		{
+			name:     "basic test",
+			certName: "aCert",
+			newCert:  util.CertType{Cert: "aCert", Key: "aKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					Certs: map[string]util.CertType{
+						"aCert": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+		},
+		{
+			name:     "add to existing",
+			certName: "bCert",
+			newCert:  util.CertType{Cert: "bCert", Key: "bKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					Certs: map[string]util.CertType{
+						"aCert": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					Certs: map[string]util.CertType{
+						"aCert": {Cert: "aCert", Key: "aKey"},
+						"bCert": {Cert: "bCert", Key: "bKey"},
+					},
+				},
+			},
+		},
+		{
+			name:     "colliding ca names",
+			wantErr:  true,
+			certName: "aCert",
+			newCert:  util.CertType{Cert: "aCert", Key: "aKey"},
+			before: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					Certs: map[string]util.CertType{
+						"aCert": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+			expected: VersionedState{
+				V1: &V1{
+					Upstream: "abc123",
+					Certs: map[string]util.CertType{
+						"aCert": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			m := &MManager{
+				Logger: &logger.TestLogger{T: t},
+				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
+				V:      viper.New(),
+			}
+
+			err := m.serializeAndWriteState(tt.before)
+			req.NoError(err)
+
+			err = m.AddCert(tt.certName, tt.newCert)
+			if !tt.wantErr {
+				req.NoError(err, "MManager.AddCert() error = %v", err)
+			} else {
+				req.Error(err)
+			}
+
+			actualState, err := m.TryLoad()
+			req.NoError(err)
+
+			req.Equal(tt.expected, actualState)
+		})
+	}
 }
