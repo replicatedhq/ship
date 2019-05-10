@@ -240,6 +240,19 @@ func (mr *MockManagerMockRecorder) SerializeUpstreamContents(arg0 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SerializeUpstreamContents", reflect.TypeOf((*MockManager)(nil).SerializeUpstreamContents), arg0)
 }
 
+// StateUpdate mocks base method
+func (m *MockManager) StateUpdate(arg0 state.Update) (state.State, error) {
+	ret := m.ctrl.Call(m, "StateUpdate", arg0)
+	ret0, _ := ret[0].(state.State)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StateUpdate indicates an expected call of StateUpdate
+func (mr *MockManagerMockRecorder) StateUpdate(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdate", reflect.TypeOf((*MockManager)(nil).StateUpdate), arg0)
+}
+
 // TryLoad mocks base method
 func (m *MockManager) TryLoad() (state.State, error) {
 	ret := m.ctrl.Call(m, "TryLoad")
