@@ -23,6 +23,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Masterminds/sprig"
 	units "github.com/docker/go-units"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -52,29 +53,31 @@ type StaticCtx struct {
 }
 
 func (ctx StaticCtx) FuncMap() template.FuncMap {
-	return template.FuncMap{
-		"Now":          ctx.now,
-		"NowFmt":       ctx.nowFormat,
-		"ToLower":      strings.ToLower,
-		"ToUpper":      strings.ToUpper,
-		"TrimSpace":    strings.TrimSpace,
-		"Trim":         ctx.trim,
-		"UrlEncode":    url.QueryEscape,
-		"Base64Encode": ctx.base64Encode,
-		"Base64Decode": ctx.base64Decode,
-		"Split":        strings.Split,
-		"RandomString": ctx.RandomString,
-		"Add":          ctx.add,
-		"Sub":          ctx.sub,
-		"Mult":         ctx.mult,
-		"Div":          ctx.div,
-		"ParseBool":    ctx.parseBool,
-		"ParseFloat":   ctx.parseFloat,
-		"ParseInt":     ctx.parseInt,
-		"ParseUint":    ctx.parseUint,
-		"HumanSize":    ctx.humanSize,
-		"KubeSeal":     ctx.kubeSeal,
-	}
+	sprigMap := sprig.TxtFuncMap()
+
+	sprigMap["Now"] = ctx.now
+	sprigMap["NowFmt"] = ctx.nowFormat
+	sprigMap["ToLower"] = strings.ToLower
+	sprigMap["ToUpper"] = strings.ToUpper
+	sprigMap["TrimSpace"] = strings.TrimSpace
+	sprigMap["Trim"] = ctx.trim
+	sprigMap["UrlEncode"] = url.QueryEscape
+	sprigMap["Base64Encode"] = ctx.base64Encode
+	sprigMap["Base64Decode"] = ctx.base64Decode
+	sprigMap["Split"] = strings.Split
+	sprigMap["RandomString"] = ctx.RandomString
+	sprigMap["Add"] = ctx.add
+	sprigMap["Sub"] = ctx.sub
+	sprigMap["Mult"] = ctx.mult
+	sprigMap["Div"] = ctx.div
+	sprigMap["ParseBool"] = ctx.parseBool
+	sprigMap["ParseFloat"] = ctx.parseFloat
+	sprigMap["ParseInt"] = ctx.parseInt
+	sprigMap["ParseUint"] = ctx.parseUint
+	sprigMap["HumanSize"] = ctx.humanSize
+	sprigMap["KubeSeal"] = ctx.kubeSeal
+
+	return sprigMap
 }
 
 func (ctx StaticCtx) now() string {
@@ -274,7 +277,7 @@ func (ctx StaticCtx) isUint(val reflect.Value) bool {
 
 // kubeSeal will use the same encryption techniques as the kubeseal application found at
 // https://github.com/bitnami-labs/sealed-secrets
-// This function simply returns the encrpyted value that can be written into a kind: SealedSecret
+// This function simply returns the encrypted value that can be written into a kind: SealedSecret
 // resource, but it does not create the entire resource. That's left to the application developer.
 func (ctx StaticCtx) kubeSeal(certData string, namespace string, name string, value string) (string, error) {
 	certs, err := certUtil.ParseCertsPEM([]byte(certData))

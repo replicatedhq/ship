@@ -309,27 +309,6 @@ func validateConfigItem(
 	return validationErr
 }
 
-func (r *APIConfigRenderer) newBuilder(
-	ctx context.Context,
-	release *api.Release,
-	templateContext map[string]interface{},
-) (*templates.Builder, error) {
-
-	newConfigCtx, err := r.BuilderBuilder.NewConfigContext(
-		release.Spec.Config.V1,
-		templateContext,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	builder := r.BuilderBuilder.NewBuilder(
-		r.BuilderBuilder.NewStaticContext(),
-		newConfigCtx,
-	)
-	return &builder, nil
-}
-
 func (r *APIConfigRenderer) applyConfigGroupFieldTemplates(ctx context.Context, builder templates.Builder, configGroup libyaml.ConfigGroup) (libyaml.ConfigGroup, error) {
 	// configgroup doesn't have a hidden attribute, so if the config group is hidden, we should
 	// set all items as hidden. this is called after applyConfigItemFieldTemplates and will override all hidden
