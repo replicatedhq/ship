@@ -92,12 +92,12 @@ func (m *MManager) StateUpdate(updater Update) (State, error) {
 
 	currentState, err := m.TryLoad()
 	if err != nil {
-		return VersionedState{}, errors.Wrap(err, "tryLoad in safe updater")
+		return nil, errors.Wrap(err, "tryLoad in safe updater")
 	}
 
 	updatedState, err := updater(currentState.Versioned())
 	if err != nil {
-		return VersionedState{}, errors.Wrap(err, "run state update function in safe updater")
+		return nil, errors.Wrap(err, "run state update function in safe updater")
 	}
 
 	return updatedState, errors.Wrap(m.serializeAndWriteState(updatedState), "write state in safe updater")
