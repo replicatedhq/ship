@@ -58,6 +58,9 @@ type NavcycleRoutes struct {
 
 	// Prevent data races when registering preexecute functions
 	mut sync.Mutex
+
+	// Prevent a race when registering completed steps and starting the next step
+	completeMut sync.Mutex
 }
 
 // Register registers routes
@@ -141,6 +144,12 @@ func (d *NavcycleRoutes) maybeAbortDueToMissingRequirement(requires []string, c 
 // although from a UI perspective the order is probably not strictly defined
 func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "getRequiredButIncompleteStepFor"))
+	if len(requires) == 0 {
+		return "", nil
+	}
+
+	d.completeMut.Lock()
+	defer d.completeMut.Unlock()
 
 	stepsCompleted := map[string]interface{}{}
 	currentState, err := d.StateManager.TryLoad()
