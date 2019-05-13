@@ -53,11 +53,12 @@ var _ Manager = &MManager{}
 
 // MManager is the saved output of a plan run to load on future runs
 type MManager struct {
-	Logger  log.Logger
-	FS      afero.Afero
-	V       *viper.Viper
-	patcher patch.Patcher
-	mut     sync.Mutex
+	Logger         log.Logger
+	FS             afero.Afero
+	V              *viper.Viper
+	patcher        patch.Patcher
+	stateUpdateMut sync.Mutex
+	StateRWMut     sync.RWMutex
 }
 
 func (m *MManager) Save(v VersionedState) error {
@@ -87,8 +88,8 @@ type Update func(VersionedState) (VersionedState, error)
 
 // applies the provided updater to the current state. Returns the new state and err
 func (m *MManager) StateUpdate(updater Update) (State, error) {
-	m.mut.Lock()
-	defer m.mut.Unlock()
+	m.stateUpdateMut.Lock()
+	defer m.stateUpdateMut.Unlock()
 
 	currentState, err := m.TryLoad()
 	if err != nil {
@@ -266,6 +267,8 @@ func (m *MManager) SerializeUpstreamContents(contents *UpstreamContents) error {
 
 // TryLoad will attempt to load a state file from disk, if present
 func (m *MManager) TryLoad() (State, error) {
+	m.StateRWMut.RLock()
+	defer m.StateRWMut.RUnlock()
 	stateFrom := m.V.GetString("state-from")
 	if stateFrom == "" {
 		stateFrom = "file"
@@ -426,6 +429,8 @@ func (m *MManager) RemoveStateFile() error {
 }
 
 func (m *MManager) serializeAndWriteState(state VersionedState) error {
+	m.StateRWMut.Lock()
+	defer m.StateRWMut.Unlock()
 	debug := level.Debug(log.With(m.Logger, "method", "serializeAndWriteState"))
 	state = state.migrateDeprecatedFields()
 
