@@ -172,9 +172,9 @@ func loggerWriter(ginLog log.Logger) *io.PipeWriter {
 	go func(bufReader *bufio.Reader, ginLog log.Logger) {
 		for {
 			line, err := bufReader.ReadString('\n')
-			level.Info(ginLog).Log("event", "gin.log", line, "line")
+			level.Info(ginLog).Log("event", "gin.log", "line", line)
 			if err != nil {
-				level.Error(ginLog).Log("event", "gin.log", err, "err")
+				level.Error(ginLog).Log("event", "gin.log", "err", err)
 				return
 			}
 		}
