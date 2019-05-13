@@ -17,9 +17,9 @@ import (
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/lifecycle"
 	planner2 "github.com/replicatedhq/ship/pkg/test-mocks/planner"
-	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/testing/matchers"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -333,16 +333,18 @@ func TestV2CompleteStep(t *testing.T) {
 					},
 				},
 			}
-			mc := gomock.NewController(t)
-			fakeState := state.NewMockManager(mc)
+
 			testLogger := &logger.TestLogger{T: t}
+			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+			realState := state2.NewManager(testLogger, fs, viper.New())
+			mc := gomock.NewController(t)
 			messenger := lifecycle.NewMockMessenger(mc)
 			renderer := lifecycle.NewMockRenderer(mc)
 			mockPlanner := planner2.NewMockPlanner(mc)
 			v2 := &NavcycleRoutes{
-				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New(), fakeState),
+				BuilderBuilder: templates.NewBuilderBuilder(testLogger, viper.New(), realState),
 				Logger:         testLogger,
-				StateManager:   fakeState,
+				StateManager:   realState,
 				Messenger:      messenger,
 				Renderer:       renderer,
 				Planner:        mockPlanner,
@@ -351,14 +353,6 @@ func TestV2CompleteStep(t *testing.T) {
 				},
 				StepProgress: &daemontypes.ProgressMap{},
 			}
-
-			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
-				V1: &state2.V1{
-					Lifecycle: &state2.Lifeycle{
-						StepsCompleted: make(map[string]interface{}),
-					},
-				},
-			}, nil).AnyTimes()
 
 			if test.OnExecute != nil {
 				v2.StepExecutor = test.OnExecute
@@ -379,10 +373,6 @@ func TestV2CompleteStep(t *testing.T) {
 
 				// send request
 				for _, testCase := range test.POSTS {
-					if testCase.ExpectState != nil && testCase.ExpectState.Test != nil {
-						fakeState.EXPECT().Save(testCase.ExpectState).Return(nil)
-					}
-
 					resp, err := http.Post(fmt.Sprintf("%s%s", addr, testCase.POST), "application/json", strings.NewReader(""))
 					req.NoError(err)
 					req.Equal(testCase.ExpectStatus, resp.StatusCode)
@@ -398,6 +388,15 @@ func TestV2CompleteStep(t *testing.T) {
 						bodyForDebug = []byte(err.Error())
 					}
 					req.Empty(diff, "\nexpect: %s\nactual: %s\ndiff: %s", bodyForDebug, string(bytes), strings.Join(diff, "\n"))
+
+					if testCase.ExpectState != nil && testCase.ExpectState.Test != nil {
+						// there is almost certainly a better solution than this
+						time.Sleep(time.Duration(time.Millisecond * 500))
+
+						loadState, err := realState.TryLoad()
+						req.NoError(err)
+						req.True(testCase.ExpectState.Test(loadState), testCase.ExpectState.Describe)
+					}
 				}
 			}()
 		})
