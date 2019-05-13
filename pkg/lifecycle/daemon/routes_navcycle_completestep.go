@@ -12,6 +12,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/statusonly"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util/warnings"
 )
 
@@ -67,14 +68,9 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 		return
 	}
 
-	state, err := d.StateManager.TryLoad()
-	if err != nil {
-		level.Error(d.Logger).Log("event", "state.load.fail", "err", err)
-		return
-	}
-
-	newState := state.Versioned().WithCompletedStep(step)
-	err = d.StateManager.Save(newState)
+	_, err := d.StateManager.StateUpdate(func(currentState state.VersionedState) (state.VersionedState, error) {
+		return currentState.WithCompletedStep(step), nil
+	})
 	if err != nil {
 		level.Error(d.Logger).Log("event", "state.save.fail", "err", err, "step.id", stepID)
 		return

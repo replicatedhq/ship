@@ -8,10 +8,6 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/replicatedhq/libyaml"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
-
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/headless"
@@ -21,6 +17,9 @@ import (
 	templates "github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/replicatedhq/ship/pkg/ui"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
 type daemonResolverTestCase struct {

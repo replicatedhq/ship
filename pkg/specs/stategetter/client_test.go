@@ -6,12 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStateGetter_GetFiles(t *testing.T) {
