@@ -50,14 +50,16 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 
 		d.completeMut.Lock()
 		d.hydrateAndSend(step, c)
-		go d.handleAsync(errChan, debug, step, stepID)
+		go func() {
+			defer d.completeMut.Unlock()
+			d.handleAsync(errChan, debug, step, stepID)
+		}()
 		return
 	}
 	d.errNotFound(c)
 }
 
 func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step api.Step, stepID string) {
-	defer d.completeMut.Unlock()
 	if err := d.awaitAsyncStep(errChan, debug, step); err != nil {
 		debug.Log("event", "execute.fail", "err", err)
 
