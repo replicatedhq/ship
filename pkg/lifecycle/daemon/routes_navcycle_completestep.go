@@ -48,8 +48,12 @@ func (d *NavcycleRoutes) completeStep(c *gin.Context) {
 		// hack, give it 10 ms in case its an instant step. Hydrate and send will read progress from the syncMap
 		time.Sleep(10 * time.Millisecond)
 
+		d.completeMut.Lock()
 		d.hydrateAndSend(step, c)
-		go d.handleAsync(errChan, debug, step, stepID)
+		go func() {
+			defer d.completeMut.Unlock()
+			d.handleAsync(errChan, debug, step, stepID)
+		}()
 		return
 	}
 	d.errNotFound(c)
