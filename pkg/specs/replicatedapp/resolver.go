@@ -141,6 +141,12 @@ func (r *resolver) ResolveEditRelease(ctx context.Context) (*api.Release, error)
 		Metadata: *stateData.ReleaseMetadata(),
 	}
 
+	if r.Runbook == "" {
+		result.Metadata.Type = "replicated.app"
+	} else {
+		result.Metadata.Type = "runbook.replicated.app"
+	}
+
 	if err = yaml.Unmarshal([]byte(stateData.UpstreamContents().AppRelease.Spec), &result.Spec); err != nil {
 		return nil, errors.Wrapf(err, "decode spec from persisted release")
 	}
