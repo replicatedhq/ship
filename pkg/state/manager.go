@@ -42,7 +42,7 @@ type Manager interface {
 	SerializeListsMetadata(util.List) error
 	ClearListsMetadata() error
 	SerializeUpstreamContents(contents *UpstreamContents) error
-	Save(v VersionedState) error
+	Save(v State) error
 	ResetLifecycle() error
 
 	AddCert(name string, newCert util.CertType) error
@@ -61,11 +61,11 @@ type MManager struct {
 	StateRWMut     sync.RWMutex
 }
 
-func (m *MManager) Save(v VersionedState) error {
+func (m *MManager) Save(v State) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state = v
 		return state, nil
 	})
@@ -84,7 +84,7 @@ func NewManager(
 	}
 }
 
-type Update func(VersionedState) (VersionedState, error)
+type Update func(State) (State, error)
 
 // applies the provided updater to the current state. Returns the new state and err
 func (m *MManager) StateUpdate(updater Update) (State, error) {
@@ -93,12 +93,16 @@ func (m *MManager) StateUpdate(updater Update) (State, error) {
 
 	currentState, err := m.TryLoad()
 	if err != nil {
-		return nil, errors.Wrap(err, "tryLoad in safe updater")
+		return State{}, errors.Wrap(err, "tryLoad in safe updater")
+	}
+
+	if currentState.V1 == nil {
+		currentState.V1 = &V1{}
 	}
 
 	updatedState, err := updater(currentState.Versioned())
 	if err != nil {
-		return nil, errors.Wrap(err, "run state update function in safe updater")
+		return State{}, errors.Wrap(err, "run state update function in safe updater")
 	}
 
 	return updatedState, errors.Wrap(m.serializeAndWriteState(updatedState), "write state in safe updater")
@@ -109,7 +113,7 @@ func (m *MManager) SerializeShipMetadata(metadata api.ShipAppMetadata, applicati
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeShipMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.Metadata = &Metadata{
 			ApplicationType: applicationType,
 			ReleaseNotes:    metadata.ReleaseNotes,
@@ -127,7 +131,7 @@ func (m *MManager) SerializeAppMetadata(metadata api.ReleaseMetadata) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeAppMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		if state.V1.Metadata == nil {
 			state.V1.Metadata = &Metadata{}
 		}
@@ -155,7 +159,7 @@ func (m *MManager) SerializeUpstream(upstream string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeUpstream"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.Upstream = upstream
 		return state, nil
 	})
@@ -167,7 +171,7 @@ func (m *MManager) SerializeContentSHA(contentSHA string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SerializeContentSHA"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.ContentSHA = contentSHA
 		return state, nil
 	})
@@ -179,7 +183,7 @@ func (m *MManager) SerializeHelmValues(values string, defaults string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeHelmValues"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.HelmValues = values
 		state.V1.HelmValuesDefaults = defaults
 		return state, nil
@@ -192,7 +196,7 @@ func (m *MManager) SerializeReleaseName(name string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeReleaseName"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.ReleaseName = name
 		return state, nil
 	})
@@ -204,7 +208,7 @@ func (m *MManager) SerializeNamespace(namespace string) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeNamespace"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.Namespace = namespace
 		return state, nil
 	})
@@ -216,7 +220,7 @@ func (m *MManager) SerializeConfig(assets []api.Asset, meta api.ReleaseMetadata,
 	debug := level.Debug(log.With(m.Logger, "method", "serializeConfig"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		state.V1.Config = templateContext
 		return state, nil
 	})
@@ -227,7 +231,7 @@ func (m *MManager) SerializeListsMetadata(list util.List) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeListMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		if state.V1.Metadata == nil {
 			state.V1.Metadata = &Metadata{}
 		}
@@ -241,7 +245,7 @@ func (m *MManager) ClearListsMetadata() error {
 	debug := level.Debug(log.With(m.Logger, "method", "clearListMetadata"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 		if state.V1.Metadata == nil {
 			return state, nil
 		}
@@ -257,7 +261,7 @@ func (m *MManager) SerializeUpstreamContents(contents *UpstreamContents) error {
 	debug := level.Debug(log.With(m.Logger, "method", "serializeUpstreamContents"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 
 		state.V1.UpstreamContents = contents
 		return state, nil
@@ -283,7 +287,7 @@ func (m *MManager) TryLoad() (State, error) {
 		return m.tryLoadFromSecret()
 	default:
 		err := fmt.Errorf("unsupported state-from value: %q", stateFrom)
-		return nil, errors.Wrap(err, "try load state")
+		return State{}, errors.Wrap(err, "try load state")
 	}
 }
 
@@ -293,7 +297,7 @@ func (m *MManager) ResetLifecycle() error {
 	debug := level.Debug(log.With(m.Logger, "method", "ResetLifecycle"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 
 		state.V1.Lifecycle = nil
 		return state, nil
@@ -306,47 +310,46 @@ func (m *MManager) ResetLifecycle() error {
 func (m *MManager) tryLoadFromSecret() (State, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "get in cluster config")
+		return State{}, errors.Wrap(err, "get in cluster config")
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, errors.Wrap(err, "get kubernetes client")
+		return State{}, errors.Wrap(err, "get kubernetes client")
 	}
 
 	ns := m.V.GetString("secret-namespace")
 	if ns == "" {
-		return nil, errors.New("secret-namespace is not set")
+		return State{}, errors.New("secret-namespace is not set")
 	}
 	secretName := m.V.GetString("secret-name")
 	if secretName == "" {
-		return nil, errors.New("secret-name is not set")
+		return State{}, errors.New("secret-name is not set")
 	}
 	secretKey := m.V.GetString("secret-key")
 	if secretKey == "" {
-		return nil, errors.New("secret-key is not set")
+		return State{}, errors.New("secret-key is not set")
 	}
 
 	secret, err := clientset.CoreV1().Secrets(ns).Get(secretName, metav1.GetOptions{})
 	if err != nil {
-		return nil, errors.Wrap(err, "get secret")
+		return State{}, errors.Wrap(err, "get secret")
 	}
 
 	serialized, ok := secret.Data[secretKey]
 	if !ok {
 		err := fmt.Errorf("key %q not found in secret %q", secretKey, secretName)
-		return nil, errors.Wrap(err, "get state from secret")
+		return State{}, errors.Wrap(err, "get state from secret")
 	}
 
 	// An empty secret should be treated as empty state
 	if len(strings.TrimSpace(string(serialized))) == 0 {
-		return Empty{}, nil
+		return State{}, nil
 	}
 
-	// HACK -- try to deserialize it as VersionedState, otherwise, assume its a raw map of config values
-	var state VersionedState
+	var state State
 	if err := json.Unmarshal(serialized, &state); err != nil {
-		return nil, errors.Wrap(err, "unmarshal state")
+		return State{}, errors.Wrap(err, "unmarshal state")
 	}
 
 	level.Debug(m.Logger).Log(
@@ -356,56 +359,35 @@ func (m *MManager) tryLoadFromSecret() (State, error) {
 		"value", fmt.Sprintf("%+v", state),
 	)
 
-	if state.V1 != nil {
-		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
-		return state, nil
-	}
-
-	var mapState map[string]interface{}
-	if err := json.Unmarshal(serialized, &mapState); err != nil {
-		return nil, errors.Wrap(err, "unmarshal state")
-	}
-
-	level.Debug(m.Logger).Log("event", "state.resolve", "type", "raw")
-	return V0(mapState), nil
+	level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
+	return state, nil
 }
 
 func (m *MManager) tryLoadFromFile() (State, error) {
 	if _, err := m.FS.Stat(constants.StatePath); os.IsNotExist(err) {
 		level.Debug(m.Logger).Log("msg", "no saved state exists", "path", constants.StatePath)
-		return Empty{}, nil
+		return State{}, nil
 	}
 
 	serialized, err := m.FS.ReadFile(constants.StatePath)
 	if err != nil {
-		return nil, errors.Wrap(err, "read state file")
+		return State{}, errors.Wrap(err, "read state file")
 	}
 
-	// HACK -- try to deserialize it as VersionedState, otherwise, assume its a raw map of config values
-	var state VersionedState
+	var state State
 	if err := json.Unmarshal(serialized, &state); err != nil {
-		return nil, errors.Wrap(err, "unmarshal state")
+		return State{}, errors.Wrap(err, "unmarshal state")
 	}
 
-	if state.V1 != nil {
-		level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
-		return state, nil
-	}
-
-	var mapState map[string]interface{}
-	if err := json.Unmarshal(serialized, &mapState); err != nil {
-		return nil, errors.Wrap(err, "unmarshal state")
-	}
-
-	level.Debug(m.Logger).Log("event", "state.resolve", "type", "raw")
-	return V0(mapState), nil
+	level.Debug(m.Logger).Log("event", "state.resolve", "type", "versioned")
+	return state, nil
 }
 
 func (m *MManager) SaveKustomize(kustomize *Kustomize) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 
 		state.V1.Kustomize = kustomize
 		return state, nil
@@ -428,7 +410,7 @@ func (m *MManager) RemoveStateFile() error {
 	return nil
 }
 
-func (m *MManager) serializeAndWriteState(state VersionedState) error {
+func (m *MManager) serializeAndWriteState(state State) error {
 	m.StateRWMut.Lock()
 	defer m.StateRWMut.Unlock()
 	debug := level.Debug(log.With(m.Logger, "method", "serializeAndWriteState"))
@@ -452,7 +434,7 @@ func (m *MManager) serializeAndWriteState(state VersionedState) error {
 	}
 }
 
-func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
+func (m *MManager) serializeAndWriteStateFile(state State) error {
 
 	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
@@ -472,7 +454,7 @@ func (m *MManager) serializeAndWriteStateFile(state VersionedState) error {
 	return nil
 }
 
-func (m *MManager) serializeAndWriteStateSecret(state VersionedState) error {
+func (m *MManager) serializeAndWriteStateSecret(state State) error {
 	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")
@@ -510,7 +492,7 @@ func (m *MManager) AddCert(name string, newCert util.CertType) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 
 		if state.V1.Certs == nil {
 			state.V1.Certs = make(map[string]util.CertType)
@@ -528,7 +510,7 @@ func (m *MManager) AddCA(name string, newCA util.CAType) error {
 	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
 
 	debug.Log("event", "safeStateUpdate")
-	_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+	_, err := m.StateUpdate(func(state State) (State, error) {
 
 		if state.V1.CAs == nil {
 			state.V1.CAs = make(map[string]util.CAType)

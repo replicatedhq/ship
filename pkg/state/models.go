@@ -6,72 +6,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/terraform"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"
+	"github.com/replicatedhq/ship/pkg/version"
 )
 
-// now that we have Versioned(), we probably don't need nearly so broad an interface here
-type State interface {
-	CurrentConfig() map[string]interface{}
-	CurrentKustomize() *Kustomize
-	CurrentKustomizeOverlay(filename string) (string, bool)
-	CurrentHelmValues() string
-	CurrentHelmValuesDefaults() string
-	CurrentReleaseName() string
-	CurrentNamespace() string
-	Upstream() string
-	UpstreamContents() *UpstreamContents
-	Versioned() VersionedState
-	IsEmpty() bool
-	CurrentCAs() map[string]util.CAType
-	CurrentCerts() map[string]util.CertType
-	ReleaseMetadata() *api.ReleaseMetadata
-}
-
-var _ State = VersionedState{}
-var _ State = Empty{}
-var _ State = V0{}
-
-type Empty struct{}
-
-func (Empty) CurrentKustomize() *Kustomize                  { return nil }
-func (Empty) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
-func (Empty) CurrentConfig() map[string]interface{}         { return make(map[string]interface{}) }
-func (Empty) CurrentHelmValues() string                     { return "" }
-func (Empty) CurrentHelmValuesDefaults() string             { return "" }
-func (Empty) CurrentReleaseName() string                    { return "" }
-func (Empty) CurrentNamespace() string                      { return "" }
-func (Empty) CurrentCAs() map[string]util.CAType            { return nil }
-func (Empty) CurrentCerts() map[string]util.CertType        { return nil }
-func (Empty) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
-func (Empty) UpstreamContents() *UpstreamContents           { return nil }
-func (Empty) Upstream() string                              { return "" }
-func (Empty) Versioned() VersionedState                     { return VersionedState{V1: &V1{}} }
-func (Empty) IsEmpty() bool                                 { return true }
-
-type V0 map[string]interface{}
-
-func (v V0) CurrentConfig() map[string]interface{}         { return v }
-func (v V0) CurrentKustomize() *Kustomize                  { return nil }
-func (v V0) CurrentKustomizeOverlay(string) (string, bool) { return "", false }
-func (v V0) CurrentHelmValues() string                     { return "" }
-func (v V0) CurrentHelmValuesDefaults() string             { return "" }
-func (v V0) CurrentReleaseName() string                    { return "" }
-func (v V0) CurrentNamespace() string                      { return "" }
-func (v V0) CurrentCAs() map[string]util.CAType            { return nil }
-func (v V0) CurrentCerts() map[string]util.CertType        { return nil }
-func (v V0) ReleaseMetadata() *api.ReleaseMetadata         { return nil }
-func (v V0) UpstreamContents() *UpstreamContents           { return nil }
-func (v V0) Upstream() string                              { return "" }
-func (v V0) Versioned() VersionedState                     { return VersionedState{V1: &V1{Config: v}} }
-func (v V0) IsEmpty() bool                                 { return false }
-
-type VersionedState struct {
+type State struct {
 	V1 *V1 `json:"v1,omitempty" yaml:"v1,omitempty" hcl:"v1,omitempty"`
 }
 
-func (v VersionedState) IsEmpty() bool {
-	return false
+func (v State) IsEmpty() bool {
+	return v.V1 == nil
 }
 
 type V1 struct {
@@ -85,6 +31,7 @@ type V1 struct {
 	Upstream           string                 `json:"upstream,omitempty" yaml:"upstream,omitempty" hcl:"upstream,omitempty"`
 	Metadata           *Metadata              `json:"metadata,omitempty" yaml:"metadata,omitempty" hcl:"metadata,omitempty"`
 	UpstreamContents   *UpstreamContents      `json:"upstreamContents,omitempty" yaml:"upstreamContents,omitempty" hcl:"upstreamContents,omitempty"`
+	ShipVersion        *version.Build         `json:"shipVersion,omitempty" yaml:"shipVersion,omitempty" hcl:"shipVersion,omitempty"`
 
 	//deprecated in favor of upstream
 	ChartURL string `json:"chartURL,omitempty" yaml:"chartURL,omitempty" hcl:"chartURL,omitempty"`
@@ -189,14 +136,14 @@ func (k *Kustomize) Ship() Overlay {
 	return NewOverlay()
 }
 
-func (v VersionedState) CurrentKustomize() *Kustomize {
+func (v State) CurrentKustomize() *Kustomize {
 	if v.V1 != nil {
 		return v.V1.Kustomize
 	}
 	return nil
 }
 
-func (v VersionedState) CurrentKustomizeOverlay(filename string) (contents string, isResource bool) {
+func (v State) CurrentKustomizeOverlay(filename string) (contents string, isResource bool) {
 	if v.V1.Kustomize == nil {
 		return
 	}
@@ -231,42 +178,42 @@ type Terraform struct {
 	State    *terraform.State `json:"state,omitempty" yaml:"state,omitempty" hcl:"state,omitempty"`
 }
 
-func (v VersionedState) CurrentConfig() map[string]interface{} {
+func (v State) CurrentConfig() map[string]interface{} {
 	if v.V1 != nil && v.V1.Config != nil {
 		return v.V1.Config
 	}
 	return make(map[string]interface{})
 }
 
-func (v VersionedState) CurrentHelmValues() string {
+func (v State) CurrentHelmValues() string {
 	if v.V1 != nil {
 		return v.V1.HelmValues
 	}
 	return ""
 }
 
-func (v VersionedState) CurrentHelmValuesDefaults() string {
+func (v State) CurrentHelmValuesDefaults() string {
 	if v.V1 != nil {
 		return v.V1.HelmValuesDefaults
 	}
 	return ""
 }
 
-func (v VersionedState) CurrentReleaseName() string {
+func (v State) CurrentReleaseName() string {
 	if v.V1 != nil {
 		return v.V1.ReleaseName
 	}
 	return ""
 }
 
-func (v VersionedState) CurrentNamespace() string {
+func (v State) CurrentNamespace() string {
 	if v.V1 != nil {
 		return v.V1.Namespace
 	}
 	return ""
 }
 
-func (v VersionedState) Upstream() string {
+func (v State) Upstream() string {
 	if v.V1 != nil {
 		if v.V1.Upstream != "" {
 			return v.V1.Upstream
@@ -276,16 +223,19 @@ func (v VersionedState) Upstream() string {
 	return ""
 }
 
-func (v VersionedState) Versioned() VersionedState {
+func (v State) Versioned() State {
+	if v.V1 == nil {
+		v.V1 = &V1{}
+	}
 	return v
 }
 
-func (v VersionedState) WithCompletedStep(step api.Step) VersionedState {
+func (v State) WithCompletedStep(step api.Step) State {
 	v.V1.Lifecycle = v.V1.Lifecycle.WithCompletedStep(step)
 	return v
 }
 
-func (v VersionedState) migrateDeprecatedFields() VersionedState {
+func (v State) migrateDeprecatedFields() State {
 	if v.V1 != nil {
 		v.V1.Upstream = v.Upstream()
 		v.V1.ChartURL = ""
@@ -293,21 +243,21 @@ func (v VersionedState) migrateDeprecatedFields() VersionedState {
 	return v
 }
 
-func (v VersionedState) CurrentCAs() map[string]util.CAType {
+func (v State) CurrentCAs() map[string]util.CAType {
 	if v.V1 != nil {
 		return v.V1.CAs
 	}
 	return nil
 }
 
-func (v VersionedState) CurrentCerts() map[string]util.CertType {
+func (v State) CurrentCerts() map[string]util.CertType {
 	if v.V1 != nil {
 		return v.V1.Certs
 	}
 	return nil
 }
 
-func (v VersionedState) UpstreamContents() *UpstreamContents {
+func (v State) UpstreamContents() *UpstreamContents {
 	if v.V1 != nil {
 		if v.V1.UpstreamContents != nil {
 			return v.V1.UpstreamContents
@@ -400,7 +350,7 @@ func (r *ShipRelease) githubContents() []api.GithubContent {
 	return result
 }
 
-func (v VersionedState) ReleaseMetadata() *api.ReleaseMetadata {
+func (v State) ReleaseMetadata() *api.ReleaseMetadata {
 	if v.V1 != nil {
 		if v.V1.UpstreamContents != nil {
 			baseMeta := v.V1.UpstreamContents.AppRelease.ToReleaseMeta()

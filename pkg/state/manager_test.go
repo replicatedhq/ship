@@ -51,13 +51,6 @@ func TestLoadConfig(t *testing.T) {
 			expectConfig: make(map[string]interface{}),
 		},
 		{
-			name:     "v0 single item",
-			contents: `{"foo": "bar"}`,
-			expectConfig: map[string]interface{}{
-				"foo": "bar",
-			},
-		},
-		{
 			name:     "v1 single item",
 			contents: `{"v1": {"config": {"foo": "bar"}}}`,
 			expectConfig: map[string]interface{}{
@@ -177,16 +170,16 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 		name     string
 		URL      string
 		wantErr  bool
-		before   VersionedState
-		expected VersionedState
+		before   State
+		expected State
 	}{
 		{
 			name: "basic test",
 			URL:  "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 				},
@@ -195,12 +188,12 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 		{
 			name: "no wipe",
 			URL:  "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					ChartRepoURL: "abc123_",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream:     "abc123",
 					ChartRepoURL: "abc123_",
@@ -210,12 +203,12 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 		{
 			name: "no wipe, but still override",
 			URL:  "xyz789",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					ChartURL: "abc123",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "xyz789",
 				},
@@ -254,16 +247,16 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 		name       string
 		ContentSHA string
 		wantErr    bool
-		before     VersionedState
-		expected   VersionedState
+		before     State
+		expected   State
 	}{
 		{
 			name:       "basic test",
 			ContentSHA: "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					ContentSHA: "abc123",
 				},
@@ -272,12 +265,12 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 		{
 			name:       "no wipe",
 			ContentSHA: "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					ChartRepoURL: "abc123_",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					ContentSHA:   "abc123",
 					ChartRepoURL: "abc123_",
@@ -287,12 +280,12 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 		{
 			name:       "no wipe, but still override",
 			ContentSHA: "xyz789",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					ContentSHA: "abc123",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					ContentSHA: "xyz789",
 				},
@@ -332,16 +325,16 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		HelmValues   string
 		HelmDefaults string // is discarded by the function
 		wantErr      bool
-		before       VersionedState
-		expected     VersionedState
+		before       State
+		expected     State
 	}{
 		{
 			name:       "basic test",
 			HelmValues: "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					HelmValues: "abc123",
 				},
@@ -350,12 +343,12 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		{
 			name:       "no wipe",
 			HelmValues: "abc123",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					ChartRepoURL: "abc123_",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					HelmValues:   "abc123",
 					ChartRepoURL: "abc123_",
@@ -365,12 +358,12 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 		{
 			name:       "no wipe, but still override",
 			HelmValues: "xyz789",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					HelmValues: "abc123",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					HelmValues: "xyz789",
 				},
@@ -409,8 +402,8 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 		name     string
 		Metadata api.ShipAppMetadata
 		wantErr  bool
-		before   VersionedState
-		expected VersionedState
+		before   State
+		expected State
 	}{
 		{
 			name: "basic test",
@@ -419,10 +412,10 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 				Icon:    "test icon",
 				Name:    "test name",
 			},
-			before: VersionedState{
+			before: State{
 				V1: &V1{},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Metadata: &Metadata{
 						ApplicationType: "mock application type",
@@ -465,12 +458,12 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 func TestMManager_ResetLifecycle(t *testing.T) {
 	tests := []struct {
 		name     string
-		before   VersionedState
-		expected VersionedState
+		before   State
+		expected State
 	}{
 		{
 			name: "basic test",
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Lifecycle: &Lifeycle{
 						StepsCompleted: map[string]interface{}{
@@ -481,7 +474,7 @@ func TestMManager_ResetLifecycle(t *testing.T) {
 					},
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Lifecycle: nil,
 				},
@@ -515,7 +508,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 	tests := []struct {
 		name      string
 		runners   []func(*MManager, *require.Assertions, *sync.WaitGroup)
-		validator func(VersionedState, *require.Assertions)
+		validator func(State, *require.Assertions)
 	}{
 		{
 			name: "lists",
@@ -529,7 +522,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				req.Len(state.V1.Metadata.Lists, 20)
 			},
 		},
@@ -552,7 +545,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				req.Len(state.V1.Metadata.Lists, 0)
 			},
 		},
@@ -573,7 +566,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				req.Len(state.V1.Metadata.Lists, 20)
 				req.Equal("tested", state.V1.Metadata.Version)
 			},
@@ -600,7 +593,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				req.Len(state.V1.Metadata.Lists, 20)
 				req.Equal("testedName", state.CurrentReleaseName())
 				req.Equal("testedNS", state.CurrentNamespace())
@@ -622,7 +615,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state State) (State, error) {
 							state.V1.Upstream += fmt.Sprintf(" a:%d ", i)
 							return state, nil
 						})
@@ -634,7 +627,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state State) (State, error) {
 							state.V1.Upstream += fmt.Sprintf(" b:%d ", i)
 							return state, nil
 						})
@@ -646,7 +639,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state State) (State, error) {
 							state.V1.Upstream += fmt.Sprintf(" c:%d ", i)
 							return state, nil
 						})
@@ -658,7 +651,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state State) (State, error) {
 							state.V1.Upstream += fmt.Sprintf(" d:%d ", i)
 							return state, nil
 						})
@@ -670,7 +663,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
 					// append the integers 1-200 to the upstream
 					for i := 1; i <= 200; i++ {
-						_, err := m.StateUpdate(func(state VersionedState) (VersionedState, error) {
+						_, err := m.StateUpdate(func(state State) (State, error) {
 							state.V1.Upstream += fmt.Sprintf(" e:%d ", i)
 							return state, nil
 						})
@@ -679,7 +672,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				req.Len(state.V1.Metadata.Lists, 20)
 
 				totalUpstream := state.Upstream()
@@ -739,7 +732,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 					group.Done()
 				},
 			},
-			validator: func(state VersionedState, req *require.Assertions) {
+			validator: func(state State, req *require.Assertions) {
 				totalCAs := state.CurrentCAs()
 				for _, str := range []string{"a", "b"} {
 					for i := 1; i <= 100; i++ {
@@ -766,7 +759,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				V:      viper.New(),
 			}
 
-			initialState := VersionedState{V1: &V1{Lifecycle: nil}}
+			initialState := State{V1: &V1{Lifecycle: nil}}
 
 			group := sync.WaitGroup{}
 
@@ -793,19 +786,19 @@ func TestMManager_AddCA(t *testing.T) {
 		caName   string
 		newCA    util.CAType
 		wantErr  bool
-		before   VersionedState
-		expected VersionedState
+		before   State
+		expected State
 	}{
 		{
 			name:   "basic test",
 			caName: "aCA",
 			newCA:  util.CAType{Cert: "aCert", Key: "aKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
@@ -818,7 +811,7 @@ func TestMManager_AddCA(t *testing.T) {
 			name:   "add to existing",
 			caName: "bCA",
 			newCA:  util.CAType{Cert: "bCert", Key: "bKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
@@ -826,7 +819,7 @@ func TestMManager_AddCA(t *testing.T) {
 					},
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
@@ -841,7 +834,7 @@ func TestMManager_AddCA(t *testing.T) {
 			wantErr: true,
 			caName:  "aCA",
 			newCA:   util.CAType{Cert: "aCert", Key: "aKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
@@ -849,7 +842,7 @@ func TestMManager_AddCA(t *testing.T) {
 					},
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
@@ -892,19 +885,19 @@ func TestMManager_AddCert(t *testing.T) {
 		certName string
 		newCert  util.CertType
 		wantErr  bool
-		before   VersionedState
-		expected VersionedState
+		before   State
+		expected State
 	}{
 		{
 			name:     "basic test",
 			certName: "aCert",
 			newCert:  util.CertType{Cert: "aCert", Key: "aKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{
@@ -917,7 +910,7 @@ func TestMManager_AddCert(t *testing.T) {
 			name:     "add to existing",
 			certName: "bCert",
 			newCert:  util.CertType{Cert: "bCert", Key: "bKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{
@@ -925,7 +918,7 @@ func TestMManager_AddCert(t *testing.T) {
 					},
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{
@@ -940,7 +933,7 @@ func TestMManager_AddCert(t *testing.T) {
 			wantErr:  true,
 			certName: "aCert",
 			newCert:  util.CertType{Cert: "aCert", Key: "aKey"},
-			before: VersionedState{
+			before: State{
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{
@@ -948,7 +941,7 @@ func TestMManager_AddCert(t *testing.T) {
 					},
 				},
 			},
-			expected: VersionedState{
+			expected: State{
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{

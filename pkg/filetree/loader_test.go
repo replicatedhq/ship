@@ -76,7 +76,7 @@ func TestAferoLoader(t *testing.T) {
 				testResources[resource.Key.(string)] = resource.Value.(string)
 			}
 
-			mockState.EXPECT().TryLoad().Return(state.VersionedState{
+			mockState.EXPECT().TryLoad().Return(state.State{
 				V1: &state.V1{
 					Kustomize: &state.Kustomize{
 						Overlays: map[string]state.Overlay{

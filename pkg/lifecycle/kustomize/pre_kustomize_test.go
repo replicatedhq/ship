@@ -392,7 +392,7 @@ spec:
 			req.NoError(err)
 
 			actualLists := make([]util.List, 0)
-			if currentState.Versioned().V1.Metadata != nil {
+			if currentState.V1 != nil && currentState.V1.Metadata != nil {
 				actualLists = currentState.Versioned().V1.Metadata.Lists
 			}
 

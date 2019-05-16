@@ -329,7 +329,7 @@ resources:
 			mockDaemon := daemon2.NewMockDaemon(mc)
 			mockState := state2.NewMockManager(mc)
 
-			mockState.EXPECT().TryLoad().Return(state.VersionedState{
+			mockState.EXPECT().TryLoad().Return(state.State{
 				V1: &state.V1{
 					Kustomize: &state.Kustomize{
 						Overlays: map[string]state.Overlay{
@@ -508,7 +508,7 @@ resources:
 				BasePath: constants.KustomizeBasePath,
 			})
 			mockDaemon.EXPECT().KustomizeSavedChan().Return(saveChan)
-			mockState.EXPECT().TryLoad().Return(state.VersionedState{V1: &state.V1{
+			mockState.EXPECT().TryLoad().Return(state.State{V1: &state.V1{
 				Kustomize: test.kustomize,
 			}}, nil).Times(2)
 

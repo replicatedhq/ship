@@ -44,7 +44,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group one item, not required, no value",
-			State: []byte(`{"alpha": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -68,7 +68,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group one item, required, no value",
-			State: []byte(`{"alpha": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha":""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -188,7 +188,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group one item, required, value, not hidden",
-			State: []byte(`{"alpha": "100"}`),
+			State: []byte(`{"v1":{"config":{"alpha": "100"}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -212,7 +212,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group one item, not required, no value, not hidden",
-			State: []byte(`{"alpha": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha": ""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -260,7 +260,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group two items, neither required, neither present",
-			State: []byte(`{"alpha": "", "beta": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha": "", "beta": ""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -291,7 +291,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group two items, both required, neither present",
-			State: []byte(`{"alpha": "", "beta": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha": "", "beta": ""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -322,7 +322,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "one group two items, both required, one present",
-			State: []byte(`{"alpha":"", "beta": ""}`),
+			State: []byte(`{"v1":{"config":{"alpha":"", "beta": ""}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -384,7 +384,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "beta value resolves to alpha value",
-			State: []byte(`{"alpha": "101"}`),
+			State: []byte(`{"v1":{"config":{"alpha": "101"}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -415,7 +415,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "beta value resolves to alpha value when wrong beta value is presented",
-			State: []byte(`{"alpha": "101", "beta":"abc"}`),
+			State: []byte(`{"v1":{"config":{"alpha": "101", "beta":"abc"}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
@@ -446,7 +446,7 @@ func TestHeadlessDaemon(t *testing.T) {
 		},
 		{
 			Name:  "charlie value resolves to beta value resolves to alpha value",
-			State: []byte(`{"alpha": "100"}`),
+			State: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
 			Release: &api.Release{
 				Spec: api.Spec{
 					Config: api.Config{
