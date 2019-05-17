@@ -37,10 +37,12 @@ func (s *Ship) Update(ctx context.Context) error {
 		uiPrintableStatePath = constants.StatePath
 	}
 
-	if existingState.Versioned().V1 == nil {
+	if existingState.IsEmpty() {
 		debug.Log("event", "state.missing")
 		return errors.Errorf(`No state file found at %s please run "ship init"`, uiPrintableStatePath)
 	}
+
+	s.State.UpdateVersion()
 
 	debug.Log("event", "read.upstream")
 	upstreamURL := existingState.Upstream()

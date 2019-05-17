@@ -15,6 +15,8 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/util"
+	"github.com/replicatedhq/ship/pkg/version"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,6 +46,7 @@ type Manager interface {
 	SerializeUpstreamContents(contents *UpstreamContents) error
 	Save(v State) error
 	ResetLifecycle() error
+	UpdateVersion()
 
 	AddCert(name string, newCert util.CertType) error
 	AddCA(name string, newCA util.CAType) error
@@ -522,4 +525,20 @@ func (m *MManager) AddCA(name string, newCA util.CAType) error {
 		return state, nil
 	})
 	return err
+}
+
+func (m *MManager) UpdateVersion() {
+	debug := level.Debug(log.With(m.Logger, "method", "SaveKustomize"))
+
+	debug.Log("event", "safeStateUpdate")
+	_, _ = m.StateUpdate(func(state State) (State, error) {
+		if state.V1 == nil {
+			state.V1 = &V1{}
+		}
+
+		currentVersion := version.GetBuild()
+		state.V1.ShipVersion = &currentVersion
+		return state, nil
+	})
+	return
 }

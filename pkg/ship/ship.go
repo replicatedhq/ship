@@ -165,6 +165,8 @@ func (s *Ship) Execute(ctx context.Context) error {
 		return err
 	}
 
+	s.State.UpdateVersion()
+
 	debug.Log("phase", "validate-inputs", "status", "complete")
 
 	selector := &replicatedapp.Selector{
