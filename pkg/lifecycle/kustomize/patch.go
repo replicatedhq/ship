@@ -79,7 +79,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}
-	if state != nil && state.CurrentKustomize() != nil {
+	if state.V1 != nil && state.CurrentKustomize() != nil {
 		excludedBases = state.CurrentKustomize().Ship().ExcludedBases
 	}
 

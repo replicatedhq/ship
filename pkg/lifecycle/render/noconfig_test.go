@@ -26,7 +26,7 @@ func TestRenderNoConfig(t *testing.T) {
 
 	tests := loadTestCases(t, filepath.Join("test-cases", "render-inline.yaml"))
 
-	for _, test := range tests[:1] {
+	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			mc := gomock.NewController(t)
 
@@ -57,10 +57,15 @@ func TestRenderNoConfig(t *testing.T) {
 			func() {
 				defer mc.Finish()
 
-				mockState.EXPECT().TryLoad().Return(state.V0(test.ViperConfig), nil)
+				mockState.EXPECT().TryLoad().Return(state.State{V1: &state.V1{Config: test.ViperConfig}}, nil)
+
+				expectedConfig := test.ViperConfig
+				if expectedConfig == nil {
+					expectedConfig = make(map[string]interface{})
+				}
 
 				p.EXPECT().
-					Build("testdir", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), test.ViperConfig).
+					Build("testdir", test.Spec.Assets.V1, test.Spec.Config.V1, gomock.Any(), expectedConfig).
 					Return(planner.Plan{}, nil)
 
 				p.EXPECT().

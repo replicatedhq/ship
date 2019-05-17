@@ -23,19 +23,17 @@ func (s *Ship) Unfork(ctx context.Context) error {
 	defer s.Shutdown(cancelFunc)
 
 	existingState, _ := s.State.TryLoad()
-	if existingState != nil {
-		if !existingState.IsEmpty() {
-			debug.Log("event", "existing.state")
+	if !existingState.IsEmpty() {
+		debug.Log("event", "existing.state")
 
-			if s.Viper.GetString("state-from") != "file" {
-				debug.Log("event", "existing.state", "state-from", "not file")
-				return warnings.WarnCannotRemoveState
-			}
+		if s.Viper.GetString("state-from") != "file" {
+			debug.Log("event", "existing.state", "state-from", "not file")
+			return warnings.WarnCannotRemoveState
+		}
 
-			if err := s.promptToRemoveState(); err != nil {
-				debug.Log("event", "state.remove.prompt.fail")
-				return err
-			}
+		if err := s.promptToRemoveState(); err != nil {
+			debug.Log("event", "state.remove.prompt.fail")
+			return err
 		}
 	}
 

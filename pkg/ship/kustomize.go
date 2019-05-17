@@ -32,7 +32,7 @@ func (s *Ship) stateFileExists(ctx context.Context) bool {
 		debug.Log("event", "tryLoad.fail")
 		return false
 	}
-	_, noExistingState := existingState.(state.Empty)
+	noExistingState := existingState.Versioned().V1 == nil
 
 	return !noExistingState
 }
@@ -56,25 +56,23 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	existingState, _ := s.State.TryLoad()
-	if existingState != nil {
-		if !existingState.IsEmpty() {
-			debug.Log("event", "existing.state")
+	if !existingState.IsEmpty() {
+		debug.Log("event", "existing.state")
 
-			if s.Viper.GetString("state-from") != "file" {
-				debug.Log("event", "existing.state", "state-from", "not file")
-				return warnings.WarnCannotRemoveState
+		if s.Viper.GetString("state-from") != "file" {
+			debug.Log("event", "existing.state", "state-from", "not file")
+			return warnings.WarnCannotRemoveState
+		}
+
+		if removeExistingState {
+			if err := s.promptToRemoveState(); err != nil {
+				debug.Log("event", "state.remove.prompt.fail")
+				return err
 			}
-
-			if removeExistingState {
-				if err := s.promptToRemoveState(); err != nil {
-					debug.Log("event", "state.remove.prompt.fail")
-					return err
-				}
-			} else {
-				s.UI.Info("Preserving current state")
-				if !s.upstreamMatchesExisting(existingState) {
-					return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
-				}
+		} else {
+			s.UI.Info("Preserving current state")
+			if !s.upstreamMatchesExisting(existingState) {
+				return errors.New(fmt.Sprintf("Upstream %s does not match upstream from state %s", s.Viper.GetString("upstream"), existingState.Upstream()))
 			}
 		}
 	}

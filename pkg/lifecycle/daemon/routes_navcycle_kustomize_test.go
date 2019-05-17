@@ -147,7 +147,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 				StepProgress: progressmap,
 			}
 
-			fakeState.EXPECT().TryLoad().Return(state.VersionedState{
+			fakeState.EXPECT().TryLoad().Return(state.State{
 				V1: &test.InState,
 			}, nil).AnyTimes()
 
@@ -269,7 +269,7 @@ func TestV2KustomizeDeleteFile(t *testing.T) {
 				StepProgress: progressmap,
 			}
 
-			fakeState.EXPECT().TryLoad().Return(state.VersionedState{
+			fakeState.EXPECT().TryLoad().Return(state.State{
 				V1: &test.InState,
 			}, nil).AnyTimes()
 

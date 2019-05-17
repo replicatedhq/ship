@@ -38,7 +38,7 @@ func TestLocalTemplater(t *testing.T) {
 		expectedChannelName string
 		expectHelmOpts      *matchers.Is
 		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
-		state               *state2.VersionedState
+		state               *state2.State
 		requirements        *chartutil.Requirements
 		repoAdd             []string
 		namespace           string
@@ -130,7 +130,7 @@ func TestLocalTemplater(t *testing.T) {
 			name:        "helm template with namespace in state",
 			describe:    "template uses namespace from state",
 			expectError: "",
-			state: &state2.VersionedState{
+			state: &state2.State{
 				V1: &state2.V1{
 					Namespace: "test-namespace",
 				},
@@ -172,7 +172,7 @@ func TestLocalTemplater(t *testing.T) {
 			}
 
 			if test.state == nil {
-				mockState.EXPECT().TryLoad().Return(state2.VersionedState{
+				mockState.EXPECT().TryLoad().Return(state2.State{
 					V1: &state2.V1{
 						HelmValues:  "we fake",
 						ReleaseName: channelName,
@@ -787,7 +787,7 @@ something: maybe
 			err := mockFs.WriteFile(tt.defaultValuesPath, []byte(tt.defaultValuesContent), 0755)
 			req.NoError(err)
 
-			mockState.EXPECT().TryLoad().Return(state2.VersionedState{V1: &state2.V1{}}, nil)
+			mockState.EXPECT().TryLoad().Return(state2.State{V1: &state2.V1{}}, nil)
 			f := &LocalTemplater{
 				Logger:       &logger.TestLogger{T: t},
 				FS:           mockFs,

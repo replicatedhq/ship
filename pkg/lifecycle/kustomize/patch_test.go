@@ -173,7 +173,7 @@ metadata:
 
 			stateManager := state.NewManager(log.NewNopLogger(), mockFs, viper.New())
 
-			err := stateManager.Save(state.VersionedState{V1: &state.V1{Kustomize: &state.Kustomize{}}})
+			err := stateManager.Save(state.State{V1: &state.V1{Kustomize: &state.Kustomize{}}})
 			req.NoError(err)
 
 			l := &Kustomizer{

@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func (s *Ship) WatchAndExit(ctx context.Context) error {
@@ -37,7 +36,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 			uiPrintableStatePath = constants.StatePath
 		}
 
-		if _, noExistingState := existingState.(state.Empty); noExistingState {
+		if existingState.Versioned().V1 == nil {
 			debug.Log("event", "state.missing")
 			return errors.Errorf(`No state found at %s, please run "ship init"`, uiPrintableStatePath)
 		}

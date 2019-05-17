@@ -227,7 +227,7 @@ func TestV2GetStep(t *testing.T) {
 				StepProgress:   progressmap,
 			}
 
-			fakeState.EXPECT().TryLoad().Return(state2.VersionedState{
+			fakeState.EXPECT().TryLoad().Return(state2.State{
 				V1: &state2.V1{
 					Lifecycle: test.State,
 				},
@@ -442,7 +442,7 @@ func TestHydrateStep(t *testing.T) {
 					},
 				},
 			},
-			state: state2.V0{},
+			state: state2.State{V1: &state2.V1{}},
 			want: &daemontypes.StepResponse{
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
@@ -492,7 +492,7 @@ func TestHydrateStep(t *testing.T) {
 				},
 				Spec: api.Spec{},
 			},
-			state: state2.VersionedState{
+			state: state2.State{
 				V1: &state2.V1{
 					HelmValues:         "fake: values",
 					ReleaseName:        "fake-releasename",
@@ -563,7 +563,7 @@ func TestHydrateStep(t *testing.T) {
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			mockState := state.NewMockManager(mc)
 
-			if test.state != nil {
+			if !test.state.IsEmpty() {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 			}
@@ -636,7 +636,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 					},
 				},
 			},
-			state: state2.V0{},
+			state: state2.State{V1: &state2.V1{}},
 			want: &daemontypes.StepResponse{
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
@@ -696,7 +696,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 			progressmap := &daemontypes.ProgressMap{}
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			mockState := state.NewMockManager(mc)
-			if test.state != nil {
+			if !test.state.IsEmpty() {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 				mockState.EXPECT().TryLoad().Return(test.state, nil)

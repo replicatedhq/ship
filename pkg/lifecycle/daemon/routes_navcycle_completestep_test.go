@@ -116,7 +116,7 @@ func TestV2CompleteStep(t *testing.T) {
 					ExpectState: &matchers.Is{
 						Describe: "saved state has step foo completed",
 						Test: func(v interface{}) bool {
-							if versioned, ok := v.(state2.VersionedState); ok {
+							if versioned, ok := v.(state2.State); ok {
 								_, ok := versioned.V1.Lifecycle.StepsCompleted["foo"]
 								return ok
 							}
@@ -168,7 +168,7 @@ func TestV2CompleteStep(t *testing.T) {
 					ExpectState: &matchers.Is{
 						Describe: "saved state has step foo completed and bar uncompleted",
 						Test: func(v interface{}) bool {
-							if versioned, ok := v.(state2.VersionedState); ok {
+							if versioned, ok := v.(state2.State); ok {
 								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
 								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
 								return fooOk && !barOk
@@ -197,7 +197,7 @@ func TestV2CompleteStep(t *testing.T) {
 					ExpectState: &matchers.Is{
 						Describe: "saved state has step foo and bar completed",
 						Test: func(v interface{}) bool {
-							if versioned, ok := v.(state2.VersionedState); ok {
+							if versioned, ok := v.(state2.State); ok {
 								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
 								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
 								return fooOk && barOk
@@ -226,7 +226,7 @@ func TestV2CompleteStep(t *testing.T) {
 					ExpectState: &matchers.Is{
 						Describe: "saved state has step foo completed and step bar invalidated",
 						Test: func(v interface{}) bool {
-							if versioned, ok := v.(state2.VersionedState); ok {
+							if versioned, ok := v.(state2.State); ok {
 								_, fooOk := versioned.V1.Lifecycle.StepsCompleted["foo"]
 								_, barOk := versioned.V1.Lifecycle.StepsCompleted["bar"]
 								return fooOk && !barOk
@@ -299,7 +299,7 @@ func TestV2CompleteStep(t *testing.T) {
 					ExpectState: &matchers.Is{
 						Describe: "saved state has step make-the-things completed",
 						Test: func(v interface{}) bool {
-							if versioned, ok := v.(state2.VersionedState); ok {
+							if versioned, ok := v.(state2.State); ok {
 								_, ok := versioned.V1.Lifecycle.StepsCompleted["make-the-things"]
 								return ok
 							}

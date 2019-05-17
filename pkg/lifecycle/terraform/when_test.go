@@ -14,56 +14,56 @@ import (
 func TestEvaluateWhen(t *testing.T) {
 	tests := []struct {
 		name    string
-		State   state.VersionedState
+		State   state.State
 		when    string
 		release api.Release
 		want    bool
 	}{
 		{
 			name:    "no when",
-			State:   state.VersionedState{V1: &state.V1{}},
+			State:   state.State{V1: &state.V1{}},
 			when:    "",
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    true,
 		},
 		{
 			name:    "true when",
-			State:   state.VersionedState{V1: &state.V1{}},
+			State:   state.State{V1: &state.V1{}},
 			when:    "true",
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    true,
 		},
 		{
 			name:    "false when",
-			State:   state.VersionedState{V1: &state.V1{}},
+			State:   state.State{V1: &state.V1{}},
 			when:    "false",
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    false,
 		},
 		{
 			name:    "trivial template when true",
-			State:   state.VersionedState{V1: &state.V1{}},
+			State:   state.State{V1: &state.V1{}},
 			when:    "{{repl eq 1 1}}",
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    true,
 		},
 		{
 			name:    "trivial template when false",
-			State:   state.VersionedState{V1: &state.V1{}},
+			State:   state.State{V1: &state.V1{}},
 			when:    "{{repl eq 1 2}}",
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    false,
 		},
 		{
 			name:    "configOption template when true",
-			State:   state.VersionedState{V1: &state.V1{Config: map[string]interface{}{"theOption": "hello_world"}}},
+			State:   state.State{V1: &state.V1{Config: map[string]interface{}{"theOption": "hello_world"}}},
 			when:    `{{repl ConfigOptionEquals "theOption" "hello_world"}}`,
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    true,
 		},
 		{
 			name:    "configOption template when false",
-			State:   state.VersionedState{V1: &state.V1{Config: map[string]interface{}{"theOption": "hello_world"}}},
+			State:   state.State{V1: &state.V1{Config: map[string]interface{}{"theOption": "hello_world"}}},
 			when:    `{{repl ConfigOptionEquals "theOption" "something else"}}`,
 			release: api.Release{Metadata: api.ReleaseMetadata{}},
 			want:    false,

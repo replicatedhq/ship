@@ -72,7 +72,7 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 		return
 	}
 
-	_, err := d.StateManager.StateUpdate(func(currentState state.VersionedState) (state.VersionedState, error) {
+	_, err := d.StateManager.StateUpdate(func(currentState state.State) (state.State, error) {
 		return currentState.WithCompletedStep(step), nil
 	})
 	if err != nil {

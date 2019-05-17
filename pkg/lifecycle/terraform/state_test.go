@@ -21,8 +21,8 @@ func TestPersistState(t *testing.T) {
 	tests := []struct {
 		name     string
 		state    string
-		instate  state.VersionedState
-		outstate state.VersionedState
+		instate  state.State
+		outstate state.State
 	}{
 		{
 			name: "post-delete state, mostly empty",
@@ -43,10 +43,10 @@ func TestPersistState(t *testing.T) {
     ]
 }
 `,
-			instate: state.VersionedState{
+			instate: state.State{
 				V1: &state.V1{},
 			},
-			outstate: state.VersionedState{
+			outstate: state.State{
 				V1: &state.V1{
 					Terraform: &state.Terraform{
 						RawState: `{
@@ -98,10 +98,10 @@ func TestPersistState(t *testing.T) {
 			err := mockFs.WriteFile("installer/terraform.tfstate", []byte(test.state), 0644)
 			req.NoError(err)
 
-			statemanager.EXPECT().TryLoad().Return(&test.instate, nil)
+			statemanager.EXPECT().TryLoad().Return(test.instate, nil)
 			statemanager.EXPECT().Save(&matchers.Is{
 				Test: func(v interface{}) bool {
-					vstate := v.(state.VersionedState)
+					vstate := v.(state.State)
 					diff := deep.Equal(*vstate.V1.Terraform, *test.outstate.V1.Terraform)
 					t.Log(strings.Join(diff, "\n"))
 					return len(diff) == 0
@@ -121,7 +121,7 @@ func TestPersistState(t *testing.T) {
 func TestRestoreState(t *testing.T) {
 	tests := []struct {
 		name       string
-		instate    state.VersionedState
+		instate    state.State
 		expectFile string
 	}{
 		{
@@ -143,7 +143,7 @@ func TestRestoreState(t *testing.T) {
     ]
 }
 `,
-			instate: state.VersionedState{
+			instate: state.State{
 				V1: &state.V1{
 					Terraform: &state.Terraform{
 						RawState: `{
@@ -192,7 +192,7 @@ func TestRestoreState(t *testing.T) {
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			statemanager := state2.NewMockManager(mc)
 
-			statemanager.EXPECT().TryLoad().Return(&test.instate, nil)
+			statemanager.EXPECT().TryLoad().Return(test.instate, nil)
 
 			err := restoreState(debug, mockFs, statemanager, "installer")
 			req.NoError(err)

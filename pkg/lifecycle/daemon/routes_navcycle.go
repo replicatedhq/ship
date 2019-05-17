@@ -156,7 +156,8 @@ func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (str
 	if err != nil {
 		return "", errors.Wrap(err, "load state")
 	}
-	if currentState.Versioned().V1.Lifecycle != nil &&
+	if currentState.Versioned().V1 != nil &&
+		currentState.Versioned().V1.Lifecycle != nil &&
 		currentState.Versioned().V1.Lifecycle.StepsCompleted != nil {
 		stepsCompleted = currentState.Versioned().V1.Lifecycle.StepsCompleted
 		debug.Log("event", "steps.notEmpty", "completed", fmt.Sprintf("%v", stepsCompleted))

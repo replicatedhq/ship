@@ -37,7 +37,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "versioned upstream has an update available",
 			upstream: "github.com/o/r/tree/_latest_",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
 						Version: "1.1.0",
@@ -49,7 +49,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "version upstream is above latest",
 			upstream: "github.com/o/r/tree/_latest_",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
 						Version: "1.2.1",
@@ -62,7 +62,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "commit sha upstream",
 			upstream: "github.com/o/r/tree/d3eed9a347ad02f0b79e3f92330878f88953cf64/path",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
 						Version: "1.2.0",
@@ -74,7 +74,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "ref upstream",
 			upstream: "github.com/o/r/tree/abcedfg/path",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
 						Version: "1.2.0",
@@ -86,7 +86,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "versioned upstream with no latest release",
 			upstream: "github.com/a/b/tree/_latest_",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{
 						Version: "1.2.0",
@@ -99,7 +99,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "versioned upstream with no version in state",
 			upstream: "github.com/o/r/tree/_latest_",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{},
 				},
@@ -109,7 +109,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "ref upstream with no version in state",
 			upstream: "github.com/o/r/tree/abranch",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{},
 				},
@@ -119,7 +119,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 		{
 			name:     "not a github url",
 			upstream: "notgithub.com/o/r/tree/_latest_",
-			currentState: &state.VersionedState{
+			currentState: state.State{
 				V1: &state.V1{
 					Metadata: &state.Metadata{},
 				},

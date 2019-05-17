@@ -97,7 +97,7 @@ func (mr *MockManagerMockRecorder) ResetLifecycle() *gomock.Call {
 }
 
 // Save mocks base method
-func (m *MockManager) Save(arg0 state.VersionedState) error {
+func (m *MockManager) Save(arg0 state.State) error {
 	ret := m.ctrl.Call(m, "Save", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
