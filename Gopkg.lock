@@ -1607,15 +1607,15 @@
   ]
   pruneopts = "UT"
   revision = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
   digest = "1:5c8e30a40644c03c864f2a9e3d32b6346ab05c8cafafd1833954c3957abcb160"
   name = "k8s.io/apiextensions-apiserver"
   packages = ["pkg/features"]
   pruneopts = "UT"
-  revision = "d002e88f6236312f0289d9d1deab106751718ff0"
-  version = "kubernetes-1.13.4"
+  revision = "007dc40467c53cdf06a571fc4c0d6479407de1aa"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
   digest = "1:13263fc157caba1744dc741a9126b18bf1f5484e195332ff2bc0c042c2a5ef83"
@@ -1676,7 +1676,7 @@
   ]
   pruneopts = "UT"
   revision = "86fb29eff6288413d76bd8506874fddd9fccdff0"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
   digest = "1:138928c37ee6ec1be14aec46c97dab5f110ffa7e81828b9d27919df371fd8f62"
@@ -1689,8 +1689,8 @@
     "pkg/util/feature",
   ]
   pruneopts = "UT"
-  revision = "79427f02047f9189a75b8cdaadccaf65a126853e"
-  version = "kubernetes-1.13.4"
+  revision = "e9c02aff496d0d0bce2be8e1ee6444102dfdb5f4"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
   digest = "1:63793246976569a95e534c731e79cc555dabee6f8efa29a0b28ca33f23b7e28b"
@@ -1701,11 +1701,11 @@
     "pkg/genericclioptions/resource",
   ]
   pruneopts = "UT"
-  revision = "a9e421a7932607ce4623ff45add8274499cca193"
-  version = "kubernetes-1.13.4"
+  revision = "6615855d02bcb366f0d783c84d7d0af8dbc65864"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
-  digest = "1:88bd66ca829dcc334378382426eb13441b180737a53c331fe2fdbb9fb2c79b88"
+  digest = "1:ed5be67ad870d44c5f3bc6d936601bc15dba2af9f555513e6fb005e4607aae7c"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1787,8 +1787,8 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "b40b2a5939e43f7ffe0028ad67586b7ce50bb675"
-  version = "kubernetes-1.13.4"
+  revision = "65905f29c17c1f14e6485158af1072d74ddb4e9d"
+  version = "kubernetes-1.13.6"
 
 [[projects]]
   digest = "1:8e424594f21a8febc9a887bf51dc3ac3b03a3d77d4449ddea4197b8fe90fbd14"
@@ -1857,7 +1857,7 @@
   revision = "d8ea2fe547a448256204cfc68dfee7b26c720acb"
 
 [[projects]]
-  digest = "1:a533c51e1330839e7ee9e8d4e9d6c85fb40c9fd2ac7913c81d2e1518803308cc"
+  digest = "1:22cf6d767cfa6b7a6e2d0295643407e9ccdb2b5ba2c993f5e5932df91a0b09d4"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -1962,8 +1962,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "c27b913fddd1a6c480c229191a087698aa92f0b1"
-  version = "v1.13.4"
+  revision = "abdda3f9fefa29172298a2e42f5102e777a8ec25"
+  version = "v1.13.6"
 
 [[projects]]
   branch = "master"
@@ -1977,7 +1977,7 @@
   revision = "045dc31ee5c40e8240241ce28dc24d7b56130373"
 
 [[projects]]
-  digest = "1:484c9282492c0d8b7b967e309f24f2035ebc348b247d918b91947813b14b2d73"
+  digest = "1:baee1c50267701e19e15b9d80d8934ce4e4f90db0928296270f7a7818014f6d3"
   name = "sigs.k8s.io/kustomize"
   packages = [
     "k8sdeps",
@@ -2011,8 +2011,8 @@
     "pkg/types",
   ]
   pruneopts = "UT"
-  revision = "b67179e951ebe11d00125bdf3c2670e88dca8817"
-  version = "v2.0.2"
+  revision = "a6f65144121d1955266b0cd836ce954c04122dc8"
+  version = "v2.0.3"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"

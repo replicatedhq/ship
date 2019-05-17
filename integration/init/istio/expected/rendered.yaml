@@ -1251,6 +1251,36 @@ spec:
   scope: Namespaced
   version: v1alpha3
 ---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  labels:
+    app: sidecarInjectorWebhook
+    release: istio
+  name: istio-sidecar-injector
+  namespace: default
+webhooks:
+- clientConfig:
+    caBundle: ""
+    service:
+      name: istio-sidecar-injector
+      namespace: default
+      path: /inject
+  failurePolicy: Fail
+  name: sidecar-injector.istio.io
+  namespaceSelector:
+    matchLabels:
+      istio-injection: enabled
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -3799,36 +3829,6 @@ spec:
           defaultMode: 420
           optional: true
           secretName: istio.default
----
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
-metadata:
-  labels:
-    app: sidecarInjectorWebhook
-    release: istio
-  name: istio-sidecar-injector
-  namespace: default
-webhooks:
-- clientConfig:
-    caBundle: ""
-    service:
-      name: istio-sidecar-injector
-      namespace: default
-      path: /inject
-  failurePolicy: Fail
-  name: sidecar-injector.istio.io
-  namespaceSelector:
-    matchLabels:
-      istio-injection: enabled
-  rules:
-  - apiGroups:
-    - ""
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - pods
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
