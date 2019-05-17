@@ -88,6 +88,8 @@ func (s *Ship) Init(ctx context.Context) error {
 		}
 	}
 
+	s.State.UpdateVersion()
+
 	// we already check in the CMD, but no harm in being extra safe here
 	target := s.Viper.GetString("upstream")
 	if target == "" {

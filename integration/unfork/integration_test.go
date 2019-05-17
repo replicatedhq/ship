@@ -102,6 +102,15 @@ var _ = Describe("ship unfork", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					if testMetadata.IgnoredKeys == nil {
+						testMetadata.IgnoredKeys = make(map[string][]string)
+					}
+					if _, ok := testMetadata.IgnoredKeys[".ship/state.json"]; ok {
+						testMetadata.IgnoredKeys[".ship/state.json"] = append(testMetadata.IgnoredKeys[".ship/state.json"], "v1.shipVersion")
+					} else {
+						testMetadata.IgnoredKeys[".ship/state.json"] = []string{"v1.shipVersion"}
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
 					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, testMetadata.IgnoredFiles, testMetadata.IgnoredKeys)
 					Expect(err).NotTo(HaveOccurred())

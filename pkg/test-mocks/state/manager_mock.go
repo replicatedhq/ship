@@ -265,3 +265,13 @@ func (m *MockManager) TryLoad() (state.State, error) {
 func (mr *MockManagerMockRecorder) TryLoad() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryLoad", reflect.TypeOf((*MockManager)(nil).TryLoad))
 }
+
+// UpdateVersion mocks base method
+func (m *MockManager) UpdateVersion() {
+	m.ctrl.Call(m, "UpdateVersion")
+}
+
+// UpdateVersion indicates an expected call of UpdateVersion
+func (mr *MockManagerMockRecorder) UpdateVersion() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVersion", reflect.TypeOf((*MockManager)(nil).UpdateVersion))
+}

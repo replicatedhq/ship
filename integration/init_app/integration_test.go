@@ -141,6 +141,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 						".ship/state.json": {
 							"v1.upstreamContents.appRelease.entitlements",
 							"v1.upstreamContents.appRelease.registrySecret",
+							"v1.shipVersion",
 						},
 					}
 
@@ -238,6 +239,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 						".ship/state.json": {
 							"v1.upstreamContents.appRelease.entitlements",
 							"v1.upstreamContents.appRelease.registrySecret",
+							"v1.shipVersion",
 						},
 					}
 

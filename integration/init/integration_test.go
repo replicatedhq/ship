@@ -121,8 +121,12 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					err := cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					ignoreShipVersion := map[string][]string{
+						".ship/state.json": {"v1.shipVersion"},
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreShipVersion)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 
@@ -204,8 +208,12 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					err = editCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
+					ignoreShipVersion := map[string][]string{
+						".ship/state.json": {"v1.shipVersion"},
+					}
+
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, map[string][]string{})
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreShipVersion)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)

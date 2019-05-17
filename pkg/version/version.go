@@ -3,7 +3,8 @@ package version
 import "time"
 
 var (
-	build Build
+	build    Build
+	hasBuilt = false
 )
 
 // Build holds details about this build of the Ship binary
@@ -39,24 +40,37 @@ func Init() {
 		Terraform: terraform,
 	}
 	build.Dependencies = deps
+	hasBuilt = true
 }
 
 // GetBuild gets the build
 func GetBuild() Build {
+	if !hasBuilt {
+		Init()
+	}
 	return build
 }
 
 // Version gets the version
 func Version() string {
+	if !hasBuilt {
+		Init()
+	}
 	return build.Version
 }
 
 // GitSHA gets the gitsha
 func GitSHA() string {
+	if !hasBuilt {
+		Init()
+	}
 	return build.GitSHA
 }
 
 // BuildTime gets the build time
 func BuildTime() time.Time {
+	if !hasBuilt {
+		Init()
+	}
 	return build.BuildTime
 }

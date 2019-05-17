@@ -114,7 +114,7 @@ var _ = Describe("ship app", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					ignoreUpstreamContents := map[string][]string{
-						".ship/state.json": {"v1.upstreamContents"},
+						".ship/state.json": {"v1.upstreamContents", "v1.shipVersion"},
 					}
 
 					//compare the files in the temporary directory with those in the "expected" directory
@@ -151,7 +151,7 @@ var _ = Describe("ship app", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					ignoreUpstreamContents := map[string][]string{
-						".ship/state.json": {"v1.upstreamContents"},
+						".ship/state.json": {"v1.upstreamContents", "v1.shipVersion"},
 					}
 
 					//compare the files in the temporary directory with those in the "expected" directory

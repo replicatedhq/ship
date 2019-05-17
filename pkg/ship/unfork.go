@@ -37,6 +37,8 @@ func (s *Ship) Unfork(ctx context.Context) error {
 		}
 	}
 
+	s.State.UpdateVersion()
+
 	upstream := s.Viper.GetString("upstream")
 	if upstream == "" {
 		return errors.New("No upstream provided")
