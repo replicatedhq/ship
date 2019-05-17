@@ -29,7 +29,7 @@ builds:
     -X github.com/replicatedhq/ship/pkg/version.buildTime={{.Date}}
     -X github.com/replicatedhq/ship/pkg/version.helm=v2.13.0
     -X github.com/replicatedhq/ship/pkg/version.kustomize=v2.0.2
-    -X github.com/replicatedhq/ship/pkg/version.terraform=v0.11.13
+    -X github.com/replicatedhq/ship/pkg/version.terraform=v0.11.14
     -extldflags "-static"
   flags: -tags netgo -installsuffix netgo
   binary: ship

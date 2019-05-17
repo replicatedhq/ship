@@ -15,7 +15,7 @@ VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 HELMV = v2.13.0
 KUSTOMIZEV = v2.0.3
-TERRAFORMV = v0.11.13
+TERRAFORMV = v0.11.14
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
