@@ -14,7 +14,7 @@ VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
 VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 HELMV = v2.13.0
-KUSTOMIZEV = v2.0.2
+KUSTOMIZEV = v2.0.3
 TERRAFORMV = v0.11.13
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)

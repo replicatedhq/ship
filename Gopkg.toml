@@ -89,39 +89,39 @@ ignored = [
 
 [[constraint]]
   name = "sigs.k8s.io/kustomize"
-  version = "2.0.2"
+  version = "2.0.3"
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "1.13.4"
+  version = "1.13.6"
 
 [[override]]
   name = "k8s.io/code-generator"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/cli-runtime"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.13.6"
 
 [[override]]
   name = "github.com/russross/blackfriday"
