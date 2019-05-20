@@ -54,6 +54,10 @@ ignored = [
   version = "1.2.1"
 
 [[constraint]]
+  name = "github.com/hashicorp/terraform"
+  version = "0.11.14"
+
+[[constraint]]
   name = "github.com/mholt/archiver"
   revision = "e4ef56d48eb029648b0e895bb0b6a393ef0829c3"
 
