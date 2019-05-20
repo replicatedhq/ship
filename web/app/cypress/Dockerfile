@@ -6,7 +6,7 @@ ADD . /go/src/github.com/replicatedhq/ship
 WORKDIR /go/src/github.com/replicatedhq/ship
 RUN make build-ci-cypress
 
-FROM cypress/browsers:chrome67
+FROM cypress/browsers:node8.9.3-chrome73
 # Unzipping of Cypress binary very slow through npm install
 # Instead, pull binary directly
 # TODO: Verify checksum of binary
