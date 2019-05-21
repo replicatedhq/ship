@@ -75,7 +75,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
   context("outro", () => {
     it("allows the user to complete wizard", () => {
-      cy.get(".btn").first().click();
+      cy.get(".btn.primary", {timeout: 10000}).first().click({force: true});
     })
   })
 });
