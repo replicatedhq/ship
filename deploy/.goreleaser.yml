@@ -34,7 +34,8 @@ builds:
   flags: -tags netgo -installsuffix netgo
   binary: ship
   hooks: {}
-archive:
+archives:
+- id: zip
   format: tar.gz
   name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}'
   files:
@@ -47,16 +48,15 @@ archive:
   - changelog*
   - CHANGELOG*
 dockers:
-  - image: replicated/ship
-    dockerfile: deploy/Dockerfile
-    tag_templates:
-      - "latest"
-      - "{{ .Major }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-      - "slim"
-      - "{{ .Major }}-slim"
-      - "{{ .Major }}.{{ .Minor }}-slim"
-      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}-slim"
+  - dockerfile: deploy/Dockerfile
+    image_templates:
+      - "replicated/ship:latest"
+      - "replicated/ship:{{ .Major }}"
+      - "replicated/ship:{{ .Major }}.{{ .Minor }}"
+      - "replicated/ship:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+      - "replicated/ship:slim"
+      - "replicated/ship:{{ .Major }}-slim"
+      - "replicated/ship:{{ .Major }}.{{ .Minor }}-slim"
+      - "replicated/ship:{{ .Major }}.{{ .Minor }}.{{ .Patch }}-slim"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}

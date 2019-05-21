@@ -544,7 +544,6 @@ jobs:
                docker pull replicated/ship:slim # this should be a no-op since we just built it, but just in case
                docker build -t replicated/ship:full -f deploy/Dockerfile-full deploy
                docker push replicated/ship:full
-
             fi
       # todo drop a release-api message to bump a version in the DB
 

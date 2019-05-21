@@ -34,7 +34,8 @@ builds:
   flags: -tags netgo -installsuffix netgo
   binary: ship
   hooks: {}
-archive:
+archives:
+- id: zip
   format: tar.gz
   name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{.Arm }}{{ end }}-alpha'
   files:
@@ -47,10 +48,9 @@ archive:
   - changelog*
   - CHANGELOG*
 dockers:
-  - image: replicated/ship
-    dockerfile: deploy/Dockerfile
-    tag_templates:
-      - "alpha"
-      - "alpha-slim"
+  - dockerfile: deploy/Dockerfile
+    image_templates:
+    - "replicated/ship:alpha"
+    - "replicated/ship:alpha-slim"
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
