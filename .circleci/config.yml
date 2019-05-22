@@ -545,6 +545,11 @@ jobs:
                docker build -t replicated/ship:full -f deploy/Dockerfile-full deploy
                docker push replicated/ship:full
 
+               # this isn't as good as pushing major + minor + patch images independently
+               # but it's better than not including a versioned 'full' image at all
+               docker tag replicated/ship:full replicated/ship:"$(git describe)"-full
+               docker push replicated/ship:"$(git describe)"-full
+
             fi
       # todo drop a release-api message to bump a version in the DB
 
