@@ -62,7 +62,7 @@ describe("Ship Init test-charts/modify-chart", () => {
       });
       context("valid Kustomize overlay written", () => {
         it("allows the overlay to be saved", () => {
-          cy.get(".primary").click();
+          cy.get(".save-btn").click();
         });
 
         it("allows navigation to the overlay finalization step", () => {
