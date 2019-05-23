@@ -168,10 +168,12 @@ Maintainers of OTS (Off the Shelf) software can customize the `ship init` experi
 
 For those not interested in operating and maintaining a fleet of Ship instances, [Ship Cloud](https://www.replicated.com/ship) is available as a hosted solution for free.   With Ship Cloud, teams can collaborate and manage multiple OTS Kubernetes application settings in one place, with Ship watching and updating on any upstream or local configuration changes, and creating Pull Requests and other integrations into CI/CD systems.
 
+# Contributions and Local Development
+
+For instructions for building the project and making contributions, see [Contributing](./CONTRIBUTING.md).
+
 # Community
 
 For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#ship channel in Kubernetes Slack](https://kubernetes.slack.com/channels/ship).
 
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
-
-For instructions on building the project and making contributions, see [Contributing](./CONTRIBUTING.md)
