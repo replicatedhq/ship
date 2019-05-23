@@ -1,5 +1,6 @@
 import React from "react";
 import * as linter from "replicated-lint";
+import classNames from "classnames";
 import Linter from "../shared/Linter";
 import AceEditor from "react-ace";
 import ErrorBoundary from "../../ErrorBoundary";
@@ -214,7 +215,7 @@ export default class HelmValuesEditor extends React.Component {
                 />
               </div> : null}
             </div>
-            <div className="AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full">
+            <div className={classNames("AceEditor--wrapper helm-values flex1 flex u-height--full u-width--full", {shorten: displaySettings})}>
               <div className="flex1 flex-column u-width--half">
                 <AceEditor
                   ref={(editor) => { this.helmEditor = editor }}
