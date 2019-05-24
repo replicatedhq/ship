@@ -1,10 +1,4 @@
 .AceEditor--wrapper {
-  max-height: 68vh;
-
-  &.shorten {
-    max-height: 50vh;
-  }
-
   &.helm-values {
     margin-bottom: 30px;
     overflow: auto;
