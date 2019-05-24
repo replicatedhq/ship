@@ -118,7 +118,7 @@ jobs:
           # update cache key below
           name: Install Cypress 3.1.0
           working_directory: ~/ship/web/app
-          command: npm install cypress@3.1.0
+          command: npm install cypress@3.2.0
       - run:
           name: Verify Cypress
           working_directory: ~/ship/web/app
@@ -127,7 +127,7 @@ jobs:
           paths:
             - ~/.cache/Cypress
             - web/app/node_modules/cypress
-          key: ship-e2e-setup-cy-3.1.0
+          key: ship-e2e-setup-cy-3.2.0
   e2e_init:
     docker:
       - image: cypress/browsers:node8.9.3-chrome73
