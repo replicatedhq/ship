@@ -22,7 +22,7 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     return (
-      <div className="flex-column flex1">
+      <div className="flex flex1">
         {this.state.hasError ? <div>{this.state.error.toString()}</div> : null}
         {this.props.children}
       </div>
