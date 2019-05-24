@@ -12,8 +12,8 @@ FROM cypress/browsers:node8.9.3-chrome73
 # TODO: Verify checksum of binary
 # See https://github.com/cypress-io/cypress/issues/812
 RUN curl https://download.cypress.io/desktop/3.2.0?platform=linux64 -L -o cypress.zip
-RUN mkdir -p /Cypress/3.1.0
-RUN unzip -q cypress.zip -d /Cypress/3.1.0
+RUN mkdir -p /Cypress/3.2.0
+RUN unzip -q cypress.zip -d /Cypress/3.2.0
 ENV CYPRESS_CACHE_FOLDER=/Cypress
 
 WORKDIR /repo

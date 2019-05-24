@@ -112,11 +112,11 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - ship-e2e-setup-cy-3.1.0
+            - ship-e2e-setup-cy-3.2.0
       - run:
           # When updating Cypress version,
           # update cache key below
-          name: Install Cypress 3.1.0
+          name: Install Cypress 3.2.0
           working_directory: ~/ship/web/app
           command: npm install cypress@3.2.0
       - run:
@@ -136,7 +136,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - ship-e2e-setup-cy-3.1.0
+            - ship-e2e-setup-cy-3.2.0
       - attach_workspace:
           at: ~/
       - run:
