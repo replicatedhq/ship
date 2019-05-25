@@ -22,7 +22,7 @@ export class Ship extends React.Component {
     history: PropTypes.object,
     /** Callback function to be invoked at the finalization of the Ship Init flow */
     onCompletion: PropTypes.func,
-    /** Callback function to be invoked when there's an unresolved error thrown */
+    /** Callback function to be invoked when there's an unresolved error thrown followed componentDidCatch() method signature */
     onError: PropTypes.func
   }
 
