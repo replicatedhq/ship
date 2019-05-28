@@ -4,6 +4,7 @@ const DashboardPlugin = require("webpack-dashboard/plugin");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
 const basePlugins = [
   new MiniCssExtractPlugin({
     filename: "styles.css"
@@ -14,12 +15,12 @@ module.exports = (env, { mode }) => {
   let plugins = [...basePlugins];
   const isProduction = mode === "production";
   console.log(
-    'BUILDING IN',
+    'BUILD MODE:',
     isProduction 
       ? 'PRODUCTION' 
       : 'DEVELOPMENT'
   );
-  if (isProduction) {
+  if (process.env.SHIP_SHOW_BUNDLE_ANALYZER) {
     plugins = plugins.concat([new BundleAnalyzerPlugin()]);
   }
 
@@ -27,7 +28,6 @@ module.exports = (env, { mode }) => {
     plugins = plugins.concat([new DashboardPlugin()])
   }
 
-  
   let optimizations = {};
   if (isProduction) {
     optimizations = {
