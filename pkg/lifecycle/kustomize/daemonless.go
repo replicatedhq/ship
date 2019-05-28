@@ -95,22 +95,6 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 			return errors.Wrap(err, "build overlay")
 		}
 
-		debug.Log("event", "try load state")
-		currentState, err := l.State.TryLoad()
-		if err != nil {
-			return errors.Wrap(err, "try load state")
-		}
-
-		if currentState.Versioned().V1.Metadata != nil {
-			lists := currentState.Versioned().V1.Metadata.Lists
-			if len(lists) > 0 {
-				debug.Log("event", "kustomize.rebuildListYaml")
-				if built, err = l.rebuildListYaml(lists, built); err != nil {
-					return errors.Wrap(err, "rebuild list yaml")
-				}
-			}
-		}
-
 		if err := l.writePostKustomizeFiles(step, built); err != nil {
 			return errors.Wrapf(err, "write kustomized and post processed yaml at %s", step.Dest)
 		}

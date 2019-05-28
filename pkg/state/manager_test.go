@@ -511,51 +511,12 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 		validator func(State, *require.Assertions)
 	}{
 		{
-			name: "lists",
+			name: "content sha and app metadata",
 			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
-					// add the integers 1-20 to the list
+					// set the content sha 20 times
 					for i := 1; i <= 20; i++ {
-						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
-						req.NoError(err)
-					}
-					group.Done()
-				},
-			},
-			validator: func(state State, req *require.Assertions) {
-				req.Len(state.V1.Metadata.Lists, 20)
-			},
-		},
-		{
-			name: "emptied lists",
-			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
-				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
-					err := m.ClearListsMetadata()
-					req.NoError(err)
-
-					// add the integers 1-20 to the list
-					for i := 1; i <= 20; i++ {
-						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
-						req.NoError(err)
-					}
-
-					err = m.ClearListsMetadata()
-					req.NoError(err)
-
-					group.Done()
-				},
-			},
-			validator: func(state State, req *require.Assertions) {
-				req.Len(state.V1.Metadata.Lists, 0)
-			},
-		},
-		{
-			name: "lists and app metadata",
-			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
-				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
-					// add the integers 1-20 to the list
-					for i := 1; i <= 20; i++ {
-						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						err := m.SerializeContentSHA(fmt.Sprintf("%d", i))
 						req.NoError(err)
 					}
 					group.Done()
@@ -567,17 +528,17 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				},
 			},
 			validator: func(state State, req *require.Assertions) {
-				req.Len(state.V1.Metadata.Lists, 20)
+				req.Equal(state.V1.ContentSHA, "20")
 				req.Equal("tested", state.V1.Metadata.Version)
 			},
 		},
 		{
-			name: "lists, release name and namespace",
+			name: "content sha, release name and namespace",
 			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
-					// add the integers 1-20 to the list
+					// set the content sha 20 times
 					for i := 1; i <= 20; i++ {
-						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						err := m.SerializeContentSHA(fmt.Sprintf("%d", i))
 						req.NoError(err)
 					}
 					group.Done()
@@ -594,19 +555,19 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				},
 			},
 			validator: func(state State, req *require.Assertions) {
-				req.Len(state.V1.Metadata.Lists, 20)
+				req.Equal(state.V1.ContentSHA, "20")
 				req.Equal("testedName", state.CurrentReleaseName())
 				req.Equal("testedNS", state.CurrentNamespace())
 			},
 		},
 		{
-			name: "lists and upstream",
+			name: "content sha and upstream",
 			runners: []func(*MManager, *require.Assertions, *sync.WaitGroup){
-				// lists
+				// content sha
 				func(m *MManager, req *require.Assertions, group *sync.WaitGroup) {
-					// add the integers 1-20 to the list
+					// set the content sha 20 times
 					for i := 1; i <= 20; i++ {
-						err := m.SerializeListsMetadata(util.List{APIVersion: fmt.Sprintf("%d", i)})
+						err := m.SerializeContentSHA(fmt.Sprintf("%d", i))
 						req.NoError(err)
 					}
 					group.Done()
@@ -673,7 +634,7 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 				},
 			},
 			validator: func(state State, req *require.Assertions) {
-				req.Len(state.V1.Metadata.Lists, 20)
+				req.Equal(state.V1.ContentSHA, "20")
 
 				totalUpstream := state.Upstream()
 				for _, str := range []string{"a", "b", "c", "d", "e"} {

@@ -91,28 +91,6 @@ func (l *Unforker) Execute(ctx context.Context, release *api.Release, step api.U
 			return errors.Wrap(err, "build overlay")
 		}
 
-		debug.Log("event", "try load state")
-		currentState, err := l.State.TryLoad()
-		if err != nil {
-			return errors.Wrap(err, "try load state")
-		}
-
-		if currentState.Versioned().V1.Metadata != nil {
-			lists := currentState.Versioned().V1.Metadata.Lists
-			if len(lists) > 0 {
-				debug.Log("event", "unfork.rebuildListYaml")
-				if built, err = l.rebuildListYaml(lists, built); err != nil {
-					return errors.Wrap(err, "rebuild list yaml")
-				}
-				// Deleting all the list metadata here as it'll be recreated
-				// during the update flow.
-				currentState.Versioned().V1.Metadata.Lists = []util.List{}
-				if err := l.State.Save(currentState.Versioned()); err != nil {
-					return errors.Wrap(err, "remove lists metadata")
-				}
-			}
-		}
-
 		if err := l.writePostKustomizeFiles(step, built); err != nil {
 			return errors.Wrapf(err, "write kustomized and post processed yaml at %s", step.Dest)
 		}
