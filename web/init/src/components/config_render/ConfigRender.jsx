@@ -1,7 +1,7 @@
 import React from "react";
 import keyBy from "lodash/keyBy";
 import debounce from "lodash/debounce";
-import _ from "lodash";
+import _ from "lodash/core";
 
 import ConfigGroups from "./ConfigGroups";
 import { ConfigService } from "../../services/ConfigService";

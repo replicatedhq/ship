@@ -1,7 +1,9 @@
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-var DashboardPlugin = require("webpack-dashboard/plugin");
-
+const DashboardPlugin = require("webpack-dashboard/plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const basePlugins = [
   new MiniCssExtractPlugin({
     filename: "styles.css"
@@ -10,12 +12,22 @@ const basePlugins = [
 
 module.exports = (env, { mode }) => {
   let plugins = [...basePlugins];
+  const isProduction = mode === "production";
+  console.log(
+    'BUILDING IN',
+    isProduction 
+      ? 'PRODUCTION' 
+      : 'DEVELOPMENT'
+  );
+  if (isProduction) {
+    plugins = plugins.concat([new BundleAnalyzerPlugin()]);
+  }
 
   if (process.env.DASHBOARD) {
     plugins = plugins.concat([new DashboardPlugin()])
   }
 
-  const isProduction = mode === "production";
+  
   let optimizations = {};
   if (isProduction) {
     optimizations = {
@@ -24,7 +36,12 @@ module.exports = (env, { mode }) => {
           new UglifyJsPlugin({
             cache: true,
             parallel: true,
-            sourceMap: true
+            sourceMap: false,
+            uglifyOptions: {
+              output: {
+                comments: false
+              }
+            }
           }),
           new OptimizeCSSAssetsPlugin()
         ]
@@ -68,7 +85,15 @@ module.exports = (env, { mode }) => {
             use: [
                 MiniCssExtractPlugin.loader,
                 "css-loader",
-                "sass-loader"
+                "sass-loader",
+                { 
+                  loader: "postcss-loader",
+                  options: {
+                    parser: 'postcss-scss',
+                    plugins: () => [ require('cssnano') ],
+                    
+                  }
+                }
             ]
         },
         {
@@ -77,7 +102,14 @@ module.exports = (env, { mode }) => {
           },
           {
             test: /\.svg/,
-            use: ["svg-url-loader"],
+            use: [
+              {
+                loader: 'svg-url-loader',
+                options: {
+                  stripdeclarations: true
+                }
+              }
+            ],
           },
           {
             test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,

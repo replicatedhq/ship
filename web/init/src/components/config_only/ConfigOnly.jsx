@@ -1,16 +1,11 @@
 import React from "react";
 import ErrorBoundary from "../../ErrorBoundary";
+import each from 'lodash/each';
+import isEmpty from 'lodash/isEmpty';
+import map from 'lodash/map';
+import partialRight from 'lodash/partialRight';
+import omit from 'lodash/omit';
 
-import {
-  each,
-  isEmpty,
-  map,
-  partialRight,
-  omit,
-  has,
-  forEach,
-  includes
-} from "lodash";
 import { ConfigService } from "../../services/ConfigService";
 
 import Layout from "../../Layout";

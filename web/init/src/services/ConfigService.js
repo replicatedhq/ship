@@ -1,4 +1,8 @@
-import _, { get, isEmpty, some, has } from "lodash";
+import _ from 'lodash/core';
+import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
+import some from 'lodash/some';
+import has from 'lodash/has';
 
 export const ConfigService = {
   getItems(groups) {
