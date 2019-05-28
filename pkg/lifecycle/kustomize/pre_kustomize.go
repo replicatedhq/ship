@@ -9,11 +9,12 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v2"
+	ktypes "sigs.k8s.io/kustomize/pkg/types"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/util"
-	yaml "gopkg.in/yaml.v2"
-	ktypes "sigs.k8s.io/kustomize/pkg/types"
 )
 
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {

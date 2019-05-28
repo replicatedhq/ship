@@ -6,15 +6,16 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/kustomize/pkg/gvk"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
+
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 )
 
 func TestKustomizer_generateTillerPatches(t *testing.T) {

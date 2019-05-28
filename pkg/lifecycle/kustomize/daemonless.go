@@ -7,13 +7,14 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
-	"github.com/spf13/afero"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type Kustomizer struct {
