@@ -1,6 +1,6 @@
 {
   "name": "@replicatedhq/ship-init",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "description": "Shared component that contains the Ship Init app",
   "author": "Replicated, Inc.",
   "license": "Apache-2.0",
