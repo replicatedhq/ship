@@ -11,12 +11,13 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/replicatedhq/ship/pkg/api"
-	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/util"
 	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
+
+	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/util"
 )
 
 type k8sMetadataLabelsOnly struct {

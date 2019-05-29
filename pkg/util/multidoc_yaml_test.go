@@ -382,6 +382,106 @@ spec:
 				},
 			},
 		},
+		{
+			name:      "multidoc-with-list",
+			localPath: "/comment-before-multi",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/comment-before-multi/account.yaml",
+					data: `
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+  namespace: namespace
+---
+apiVersion: v1
+kind: List
+items:
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: svcName
+    labels:
+      app: svcName
+    namespace: anotherNamespace
+  spec:
+    ports:
+    - name: port-name
+      port: 1234
+      protocol: TCP
+      targetPort: 1234
+    type: ClusterIP
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: svcNameTwo
+    labels:
+      app: svcNameTwo
+    namespace: anotherNamespace
+  spec:
+    ports:
+    - name: port-name-two
+      port: 12345
+      protocol: TCP
+      targetPort: 12345
+    type: ClusterIP
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/comment-before-multi/ServiceAccount-name-namespace.yaml",
+					data: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: name
+  name: name
+  namespace: namespace`,
+				},
+				{
+					name: "/comment-before-multi/Service-svcName-anotherNamespace.yaml",
+					data: `apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: svcName
+  name: svcName
+  namespace: anotherNamespace
+spec:
+  ports:
+  - name: port-name
+    port: 1234
+    protocol: TCP
+    targetPort: 1234
+  type: ClusterIP
+`,
+				},
+				{
+					name: "/comment-before-multi/Service-svcNameTwo-anotherNamespace.yaml",
+					data: `apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: svcNameTwo
+  name: svcNameTwo
+  namespace: anotherNamespace
+spec:
+  ports:
+  - name: port-name-two
+    port: 12345
+    protocol: TCP
+    targetPort: 12345
+  type: ClusterIP
+`,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

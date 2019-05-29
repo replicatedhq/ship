@@ -6,6 +6,10 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/patch"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
@@ -13,9 +17,6 @@ import (
 	daemon2 "github.com/replicatedhq/ship/pkg/test-mocks/daemon"
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/kustomize/pkg/patch"
 )
 
 const minimalValidYaml = `

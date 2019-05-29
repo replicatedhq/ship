@@ -3,69 +3,6 @@
     "config": {},
     "releaseName": "ship",
     "upstream": "https://github.com/jaegertracing/jaeger-kubernetes/blob/59e7afcae7b2f3bc109695cfda2a5c116cea4391/jaeger-production-template.yml",
-    "metadata": {
-      "applicationType": "",
-      "sequence": 0,
-      "releaseNotes": "",
-      "version": "",
-      "lists": [
-        {
-          "apiVersion": "v1",
-          "path": "base/jaeger-production-template.yml",
-          "items": [
-            {
-              "kind": "Deployment",
-              "metadata": {
-                "name": "jaeger-collector",
-                "namespace": ""
-              }
-            },
-            {
-              "kind": "Service",
-              "metadata": {
-                "name": "jaeger-collector",
-                "namespace": ""
-              }
-            },
-            {
-              "kind": "Service",
-              "metadata": {
-                "name": "zipkin",
-                "namespace": ""
-              }
-            },
-            {
-              "kind": "Deployment",
-              "metadata": {
-                "name": "jaeger-query",
-                "namespace": ""
-              }
-            },
-            {
-              "kind": "Service",
-              "metadata": {
-                "name": "jaeger-query",
-                "namespace": ""
-              }
-            },
-            {
-              "kind": "DaemonSet",
-              "metadata": {
-                "name": "jaeger-agent",
-                "namespace": ""
-              }
-            }
-          ]
-        }
-      ],
-      "license": {
-        "id": "",
-        "assignee": "",
-        "createdAt": "0001-01-01T00:00:00Z",
-        "expiresAt": "0001-01-01T00:00:00Z",
-        "type": ""
-      }
-    },
     "upstreamContents": {
       "upstreamFiles": [
         {

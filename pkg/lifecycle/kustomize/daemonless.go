@@ -7,13 +7,14 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
-	"github.com/spf13/afero"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type Kustomizer struct {
@@ -92,22 +93,6 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		built, err := l.kustomizeBuild(step.OverlayPath())
 		if err != nil {
 			return errors.Wrap(err, "build overlay")
-		}
-
-		debug.Log("event", "try load state")
-		currentState, err := l.State.TryLoad()
-		if err != nil {
-			return errors.Wrap(err, "try load state")
-		}
-
-		if currentState.Versioned().V1.Metadata != nil {
-			lists := currentState.Versioned().V1.Metadata.Lists
-			if len(lists) > 0 {
-				debug.Log("event", "kustomize.rebuildListYaml")
-				if built, err = l.rebuildListYaml(lists, built); err != nil {
-					return errors.Wrap(err, "rebuild list yaml")
-				}
-			}
 		}
 
 		if err := l.writePostKustomizeFiles(step, built); err != nil {
