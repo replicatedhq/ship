@@ -1,5 +1,5 @@
 const buildRepeatKeyString = (key, length) => Array.from({ length }).fill(key).join("");
-
+const SECONDS = 1000;
 describe("Ship Init test-charts/modify-chart", () => {
   before(() => {
     cy.visit(Cypress.env("HOST"));
@@ -67,7 +67,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
         it("allows navigation to the overlay finalization step", () => {
           cy.get(".finalize-btn").click();
-          cy.wait(10000);
+          cy.wait(10.5 * SECONDS);
           cy.location("pathname", {timeout: 10000}).should("eq", "/outro");
         })
       })
