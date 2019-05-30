@@ -94,6 +94,11 @@ export function pollContentForStep(stepId, cb) {
         clearInterval(intervalId);
         return;
       });
+      // Ignore Gateway Timeout errors
+      if (body.status === 504) {
+        return;
+      }
+      
       dispatch(setProgress(body.progress));
 
       const { progress } = body;
