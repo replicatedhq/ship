@@ -174,9 +174,13 @@ func (l *Kustomizer) writeOverlay(
 	relativeResourcePaths []string,
 ) error {
 	// just always make a new kustomization.yaml for now
+	basePath, err := filepath.Rel(step.OverlayPath(), constants.DefaultOverlaysPath)
+	if err != nil {
+		return err
+	}
 	kustomization := ktypes.Kustomization{
 		Bases: []string{
-			filepath.Join("../../", step.Base),
+			basePath,
 		},
 		PatchesStrategicMerge: relativePatchPaths,
 		Resources:             relativeResourcePaths,
@@ -209,6 +213,16 @@ func (l *Kustomizer) writeBase(base string) error {
 		currentKustomize = &state.Kustomize{}
 	}
 	shipOverlay := currentKustomize.Ship()
+
+	existingKustomize, err := l.FS.Exists(filepath.Join(base, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "check for kustomization in %s", base)
+	}
+	if existingKustomize {
+		// no need to write base, kustomization already exists
+		// but we do need to remove excluded bases
+		return errors.Wrapf(util.ExcludeKubernetesResources(l.FS, base, shipOverlay.ExcludedBases), "write base %s", base)
+	}
 
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(

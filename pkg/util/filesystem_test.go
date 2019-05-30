@@ -1,17 +1,60 @@
 package util
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+
+	"github.com/replicatedhq/ship/pkg/api"
 )
 
 func TestUtil(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Util")
+}
+
+type testFile struct {
+	path     string
+	contents string
+}
+
+func addTestFiles(fs afero.Afero, testFiles []testFile) error {
+	for _, testFile := range testFiles {
+		if err := fs.MkdirAll(filepath.Dir(testFile.path), 0755); err != nil {
+			return err
+		}
+		if err := fs.WriteFile(testFile.path, []byte(testFile.contents), 0644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func readTestFiles(step api.Kustomize, fs afero.Afero) ([]testFile, error) {
+	files := []testFile{}
+	if err := fs.Walk(step.Base, func(targetPath string, info os.FileInfo, err error) error {
+		if filepath.Ext(targetPath) == ".yaml" {
+			contents, err := fs.ReadFile(targetPath)
+			if err != nil {
+				return err
+			}
+
+			files = append(files, testFile{
+				path:     targetPath,
+				contents: string(contents),
+			})
+		}
+		return nil
+	}); err != nil {
+		return files, err
+	}
+
+	return files, nil
 }
 
 var _ = Describe("Util", func() {
@@ -74,3 +117,203 @@ var _ = Describe("Util", func() {
 		})
 	})
 })
+
+func TestRecursiveCopy(t *testing.T) {
+	tests := []struct {
+		name        string
+		sourceFiles []testFile
+		expectFiles []testFile
+		sourceDir   string
+		destDir     string
+		wantErr     bool
+	}{
+		{
+			name: "basic",
+			sourceFiles: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			expectFiles: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			sourceDir: "abc",
+			destDir:   "xyz",
+			wantErr:   false,
+		},
+		{
+			name: "recursive",
+			sourceFiles: []testFile{
+				{
+					path: "abc/abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			expectFiles: []testFile{
+				{
+					path: "abc/abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "xyz/abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			sourceDir: "abc",
+			destDir:   "xyz",
+			wantErr:   false,
+		},
+		{
+			name: "multiple files and dirs",
+			sourceFiles: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "abc/apple.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: apple
+spec:
+  original: a generic apple
+`,
+				},
+				{
+					path: "abc/xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			expectFiles: []testFile{
+				{
+					path: "abc/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "abc/apple.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: apple
+spec:
+  original: a generic apple
+`,
+				},
+				{
+					path: "abc/xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+
+				{
+					path: "xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+				{
+					path: "xyz/apple.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: apple
+spec:
+  original: a generic apple
+`,
+				},
+				{
+					path: "xyz/xyz/dragonfruit.yaml",
+					contents: `kind: Fruit
+metadata:
+  name: dragonfruit
+spec:
+  original: original dragonfruit
+`,
+				},
+			},
+			sourceDir: "abc",
+			destDir:   "xyz",
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			err := addTestFiles(mockFs, tt.sourceFiles)
+			req.NoError(err)
+
+			err = RecursiveCopy(mockFs, tt.sourceDir, tt.destDir)
+			if tt.wantErr {
+				req.Error(err)
+				return
+			} else {
+				req.NoError(err)
+			}
+
+			step := api.Kustomize{Base: ""}
+			actual, err := readTestFiles(step, mockFs)
+			req.NoError(err)
+
+			req.ElementsMatch(tt.expectFiles, actual)
+		})
+	}
+}

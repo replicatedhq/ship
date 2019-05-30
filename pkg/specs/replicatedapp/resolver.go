@@ -334,6 +334,9 @@ func (r *resolver) SetRunbook(runbook string) {
 
 func (r *resolver) loadFakeEntitlements() (*api.Entitlements, error) {
 	var entitlements api.Entitlements
+	if r.SetEntitlementsJSON == "" {
+		return &entitlements, nil
+	}
 	err := json.Unmarshal([]byte(r.SetEntitlementsJSON), &entitlements)
 	if err != nil {
 		return nil, errors.Wrap(err, "load entitlements json")

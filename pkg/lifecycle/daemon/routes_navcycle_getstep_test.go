@@ -601,7 +601,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 		name    string
 		step    api.Step
 		state   state2.State
-		fs      map[string]string
+		fs      []string
 		release *api.Release
 		want    *daemontypes.StepResponse
 	}{
@@ -637,6 +637,9 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 				},
 			},
 			state: state2.State{V1: &state2.V1{}},
+			fs: []string{
+				".ship/tmp/kustomize/bar",
+			},
 			want: &daemontypes.StepResponse{
 				CurrentStep: daemontypes.Step{
 					Source: api.Step{
@@ -650,7 +653,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 						},
 					},
 					Kustomize: &daemontypes.Kustomize{
-						BasePath: "ABCDEF",
+						BasePath: ".ship/tmp/kustomize/bar",
 						Tree: filetree.Node{
 							Children: []filetree.Node{
 								filetree.Node{
@@ -702,6 +705,10 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 				mockState.EXPECT().TryLoad().Return(test.state, nil)
 			}
 
+			for _, dir := range test.fs {
+				req.NoError(mockFs.MkdirAll(dir, 0644))
+			}
+
 			treeLoader := filetree.NewLoader(mockFs, testLogger, mockState)
 
 			v2 := &NavcycleRoutes{
@@ -726,6 +733,7 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 
 			response, err := v2.hydrateStep(daemontypes.NewStep(builtStep))
 			req.NoError(err, "hydrate templated kustomize step")
+
 			req.Equal(test.want, response)
 		})
 	}

@@ -18,10 +18,11 @@ import (
 )
 
 type Kustomizer struct {
-	Logger  log.Logger
-	FS      afero.Afero
-	State   state.Manager
-	Patcher patch.ShipPatcher
+	Logger           log.Logger
+	FS               afero.Afero
+	State            state.Manager
+	Patcher          patch.ShipPatcher
+	renderedUpstream string
 }
 
 func NewDaemonlessKustomizer(

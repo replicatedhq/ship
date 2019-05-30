@@ -93,7 +93,7 @@ func NewStep(apiStep api.Step) Step {
 		}
 	} else if apiStep.Kustomize != nil {
 		step.Kustomize = &Kustomize{
-			BasePath: apiStep.Kustomize.Base,
+			BasePath: apiStep.Kustomize.TempRenderPath(),
 		}
 	} else if apiStep.KustomizeIntro != nil {
 		step.KustomizeIntro = &KustomizeIntro{}

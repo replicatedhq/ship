@@ -26,8 +26,8 @@ var (
 	ReleasePath = path.Join(ShipPathInternal, "release.yml")
 	// TempHelmValuesPath is the folder path used to store the updated values.yaml
 	TempHelmValuesPath = path.Join(HelmChartPath, "tmp")
-	// TempApplyOverlayPath is the folder path used to apply patch
-	TempApplyOverlayPath = path.Join("overlays", "tmp-apply")
+	// DefaultOverlaysPath is the folder path used for the default k8s patches removing helm and tiller labels
+	DefaultOverlaysPath = path.Join("overlays", "defaults")
 	// HelmChartPath is the path used to store Helm chart contents
 	HelmChartPath = path.Join(ShipPathInternalTmp, "chart")
 	// HelmChartForkedPath is the path used to store Helm chart contents of the fork
@@ -36,4 +36,6 @@ var (
 	UnforkForkedBasePath = path.Join(ShipPathInternalTmp, "fork", "base")
 	// HelmLocalDependencyPath is the local temp path that local dependencies are initially saved to
 	HelmLocalDependencyPath = path.Join(ShipPathInternalTmp, "dependencies")
+	// Kustomize render path is the local path that kustomize steps will use to render yaml for display
+	KustomizeRenderPath = path.Join(ShipPathInternalTmp, "kustomize")
 )

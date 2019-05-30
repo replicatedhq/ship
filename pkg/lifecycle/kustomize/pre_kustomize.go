@@ -3,14 +3,9 @@ package kustomize
 import (
 	"context"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
-	ktypes "sigs.k8s.io/kustomize/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -20,27 +15,22 @@ import (
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
 	// Check if the 'base' already includes a kustomization.yaml
 	// if it does, and that refers to another base, we should apply those patches to the upstream base, and then use that in the future
-	newBase, err := l.containsBase(ctx, step.Kustomize.Base)
-	if err != nil {
-		return errors.Wrap(err, "maybe find existing base")
-	}
+	// newBase, err := l.containsBase(ctx, step.Kustomize.Base)
+	// if err != nil {
+	// 	return errors.Wrap(err, "maybe find existing base")
+	// }
 
-	oldBase := step.Kustomize.Base
-	if newBase != "" {
-		// use this base for future steps
-		step.Kustomize.Base = newBase
+	// make a folder for this step to render a base into
+	tempBase := step.Kustomize.TempRenderPath()
+	err := l.FS.MkdirAll(tempBase, os.ModePerm)
+	if err != nil {
+		return errors.Wrapf(err, "create dir %q to render kustomize into", tempBase)
 	}
+	l.renderedUpstream = tempBase
 
 	// Split multi doc yaml first as it will be unmarshalled incorrectly in the following steps
-	if err := util.MaybeSplitMultidocYaml(ctx, l.FS, step.Kustomize.Base); err != nil {
+	if err := util.SplitAllKustomize(l.FS, step.Kustomize.Base); err != nil {
 		return errors.Wrap(err, "maybe split multi doc yaml")
-	}
-
-	if newBase != "" {
-		err = l.runProvidedOverlays(ctx, oldBase, newBase)
-		if err != nil {
-			return errors.Wrap(err, "run provided kustomization yaml")
-		}
 	}
 
 	if err := l.initialKustomizeRun(ctx, *step.Kustomize); err != nil {
@@ -50,59 +40,16 @@ func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
 	return nil
 }
 
-func (l *Kustomizer) containsBase(ctx context.Context, path string) (string, error) {
-	debug := level.Debug(log.With(l.Logger, "step.type", "render", "render.phase", "execute"))
-	debug.Log("event", "readDir", "path", path)
-
-	files, err := l.FS.ReadDir(path)
-	if err != nil {
-		return "", errors.Wrapf(err, "read files in %s", path)
-	}
-
-	for _, file := range files {
-		if file.Name() == "kustomization.yaml" {
-			// read and parse the kustomization yaml
-			fileBytes, err := l.FS.ReadFile(filepath.Join(path, file.Name()))
-			if err != nil {
-				return "", errors.Wrapf(err, "read %s", filepath.Join(path, file.Name()))
-			}
-
-			kustomizeResource := ktypes.Kustomization{}
-
-			err = yaml.Unmarshal(fileBytes, &kustomizeResource)
-			if err != nil {
-				return "", errors.Wrapf(err, "parse file at %s", filepath.Join(path, file.Name()))
-			}
-
-			if len(kustomizeResource.Bases) > 0 {
-				if len(kustomizeResource.Bases) > 1 {
-					return "", errors.New("kustomization.yaml files with multiple bases are not yet supported")
-				}
-
-				newBase := filepath.Join(path, kustomizeResource.Bases[0])
-
-				return newBase, nil
-			}
-
-			return "", nil
-		}
-	}
-
-	return "", nil
-}
-
 func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize) error {
-	if err := l.writeBase(step.Base); err != nil {
-		return errors.Wrap(err, "write base kustomization")
-	}
-
 	if err := l.generateTillerPatches(step); err != nil {
 		return errors.Wrap(err, "generate tiller patches")
 	}
 
-	defer l.FS.RemoveAll(constants.TempApplyOverlayPath)
+	// if err := l.FS.RemoveAll(constants.DefaultOverlaysPath); err != nil {
+	// 	return errors.Wrap(err, "clear overlay dir")
+	// }
 
-	built, err := l.kustomizeBuild(constants.TempApplyOverlayPath)
+	built, err := l.kustomizeBuild(constants.DefaultOverlaysPath)
 	if err != nil {
 		return errors.Wrap(err, "build overlay")
 	}
@@ -111,32 +58,31 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 		return errors.Wrap(err, "write initial kustomized yaml")
 	}
 
-	if err := l.replaceOriginal(step.Base, built); err != nil {
+	if err := l.writeUpdatedBase(step.Base, built); err != nil {
 		return errors.Wrap(err, "replace original yaml")
 	}
 
 	return nil
 }
 
-// 'originalBase' should refer to a kustomize originalBase to render, and 'newBase' the kustomize originalBase to overwrite/modify
-// 'newBase' will be overwritten with yaml containing the patches from 'originalBase', allowing 'originalBase' to be ignored or discarded
-func (l *Kustomizer) runProvidedOverlays(ctx context.Context, originalBase, newBase string) error {
-	if err := l.writeBase(newBase); err != nil {
-		return errors.Wrap(err, "write new base kustomization")
-	}
-
-	built, err := l.kustomizeBuild(originalBase)
+// this writes the updated base files into a tempdir that can be used as a preview of the rendered yaml for the UI
+// this is done by copying files from the original base to the tempdir and then running replaceOriginal over this
+func (l *Kustomizer) writeUpdatedBase(base string, built []util.PostKustomizeFile) error {
+	err := util.RecursiveNormalizeCopyKustomize(l.FS, base, l.renderedUpstream)
 	if err != nil {
-		return errors.Wrap(err, "build overlay")
+		return errors.Wrapf(err, "copy files from %s to %s", base, l.renderedUpstream)
 	}
 
-	if err := l.replaceOriginal(newBase, built); err != nil {
-		return errors.Wrap(err, "replace original yaml")
+	err = l.replaceOriginal(l.renderedUpstream, built)
+	if err != nil {
+		return errors.Wrapf(err, "replace files in %s with kustomized contents", l.renderedUpstream)
 	}
 
 	return nil
 }
 
+// replace this with code to write the built files into a new dir
+// we'll use that dir for everything that expects one resource per file
 func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile) error {
 	builtMap := make(map[util.MinimalK8sYaml]util.PostKustomizeFile)
 	for _, builtFile := range built {
@@ -149,12 +95,6 @@ func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile
 		}
 
 		if !l.shouldAddFileToBase(base, []string{}, targetPath) {
-			if strings.HasSuffix(targetPath, "kustomization.yaml") {
-				if err := l.FS.Remove(targetPath); err != nil {
-					return errors.Wrap(err, "remove kustomization yaml")
-				}
-			}
-
 			return nil
 		}
 

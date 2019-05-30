@@ -51,26 +51,26 @@ var (
 func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "kustomizer", "handler", "generateTillerPatches"))
 
-	debug.Log("event", "mkdir.tempApplyOverlayPath")
-	if err := l.FS.MkdirAll(constants.TempApplyOverlayPath, 0755); err != nil {
-		return errors.Wrap(err, "create temp apply overlay path")
+	debug.Log("event", "mkdir.DefaultOverlaysPath")
+	if err := l.FS.MkdirAll(constants.DefaultOverlaysPath, 0755); err != nil {
+		return errors.Wrapf(err, "create default overlays path at %s", constants.DefaultOverlaysPath)
 	}
 
 	defaultPatches := []patchOperation{removeChartPatch, removeHeritagePatch}
-	for _, defaultPatch := range defaultPatches {
+	for idx, defaultPatch := range defaultPatches {
 		defaultPatchAsSlice := []patchOperation{defaultPatch}
 
 		patchesB, err := json.Marshal(defaultPatchAsSlice)
 		if err != nil {
-			return errors.Wrap(err, "marshal heritage patch")
+			return errors.Wrapf(err, "marshal default patch idx %d", idx)
 		}
 
-		if err := l.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, defaultPatch.writePath), patchesB, 0755); err != nil {
-			return errors.Wrap(err, "write heritage patch")
+		if err := l.FS.WriteFile(path.Join(constants.DefaultOverlaysPath, defaultPatch.writePath), patchesB, 0755); err != nil {
+			return errors.Wrapf(err, "write default patch idx %d", idx)
 		}
 	}
 
-	relativePathToBases, err := filepath.Rel(constants.TempApplyOverlayPath, step.Base)
+	relativePathToBases, err := filepath.Rel(constants.DefaultOverlaysPath, step.Base)
 	if err != nil {
 		return errors.Wrap(err, "relative path to bases")
 	}
@@ -93,16 +93,8 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 				return errors.Wrap(err, "walk path")
 			}
 
-			// ignore non-yaml
-			if filepath.Ext(targetPath) != ".yaml" && filepath.Ext(targetPath) != ".yml" {
-				return nil
-			}
-
-			if info.Mode().IsDir() {
-				return nil
-			}
-
-			if info.Name() == "kustomization.yaml" {
+			// this ignores non-k8s resources and things included in the list of excluded bases
+			if !l.shouldAddFileToBase(step.Base, excludedBases, targetPath) {
 				return nil
 			}
 
@@ -168,7 +160,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 	}
 
 	debug.Log("event", "writeFile.kustomization")
-	if err := l.FS.WriteFile(path.Join(constants.TempApplyOverlayPath, "kustomization.yaml"), kustomizationYamlB, 0755); err != nil {
+	if err := l.FS.WriteFile(path.Join(constants.DefaultOverlaysPath, "kustomization.yaml"), kustomizationYamlB, 0755); err != nil {
 		return errors.Wrap(err, "write temp kustomization")
 	}
 
