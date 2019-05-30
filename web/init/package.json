@@ -8,8 +8,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
-    "build-dev": "npm run build -- --mode development",
-    "start": "npm run build-dev -- --colors --watch",
+    "build-dev": "webpack --config webpack.config.js --mode development",
+    "start": "yarn build-dev --colors --watch",
     "dashboard": "cross-env DASHBOARD=true webpack-dashboard -m -- npm run start",
     "gen-prop-docs": "rmd Ship src/Ship.jsx props.md",
     "test": "node scripts/test.js --env=jsdom"
@@ -46,6 +46,7 @@
     "@babel/cli": "^7.1.2",
     "@babel/core": "^7.1.2",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/polyfill": "^7.4.4",
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-stage-0": "^7.0.0",
@@ -59,7 +60,6 @@
     "babel-jest": "^23.6.0",
     "babel-loader": "^8.0.4",
     "babel-plugin-rewire": "^1.2.0",
-    "babel-polyfill": "^6.26.0",
     "babel-preset-react-app": "^3.1.2",
     "chai": "^4.1.2",
     "cross-env": "^5.2.0",
