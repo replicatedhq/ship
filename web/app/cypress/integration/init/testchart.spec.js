@@ -1,5 +1,5 @@
 const buildRepeatKeyString = (key, length) => Array.from({ length }).fill(key).join("");
-
+const SECONDS = 1000;
 describe("Ship Init test-charts/modify-chart", () => {
   before(() => {
     cy.visit(Cypress.env("HOST"));
@@ -16,7 +16,7 @@ describe("Ship Init test-charts/modify-chart", () => {
     context("required Helm values entered", () => {
       it("successfully saves Helm values", () => {
         const downArrowsToRequiredHelmValue = buildRepeatKeyString("{downarrow}", 16);
-        const rightArrowsToRequiredHelmValue = buildRepeatKeyString("{rightArrow}", 16);
+        const rightArrowsToRequiredHelmValue = buildRepeatKeyString("{rightarrow}", 16);
         const backspacesToDeleteValue = buildRepeatKeyString("{backspace}", 5);
         cy.get(".ace_text-input").first().type(
           `${downArrowsToRequiredHelmValue}${rightArrowsToRequiredHelmValue}${backspacesToDeleteValue}true`,
@@ -67,6 +67,7 @@ describe("Ship Init test-charts/modify-chart", () => {
 
         it("allows navigation to the overlay finalization step", () => {
           cy.get(".finalize-btn").click();
+          cy.wait(10.5 * SECONDS);
           cy.location("pathname", {timeout: 10000}).should("eq", "/outro");
         })
       })
