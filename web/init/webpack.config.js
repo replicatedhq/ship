@@ -51,8 +51,7 @@ module.exports = (env, { mode }) => {
 
   return {
     entry: [
-        "babel-polyfill",
-        path.resolve(__dirname, 'src/index.js'),
+      path.resolve(__dirname, 'src/index.js')
     ],
     mode: "production",
     output: {
