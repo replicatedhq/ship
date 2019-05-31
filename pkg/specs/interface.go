@@ -58,7 +58,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 		return nil, errors.New("Unsupported fork and upstream combination")
 	}
 
-	forkedAsset := api.Asset{}
+	var forkedAsset api.Asset
 	switch forkedApp.GetType() {
 	case "helm":
 		forkedAsset = api.Asset{
@@ -89,7 +89,7 @@ func (r *Resolver) ResolveUnforkRelease(ctx context.Context, upstream string, fo
 		return nil, errors.Errorf("unknown forked application type %q", forkedApp.GetType())
 	}
 
-	upstreamAsset := api.Asset{}
+	var upstreamAsset api.Asset
 	switch upstreamApp.GetType() {
 	case "helm":
 		upstreamAsset = api.Asset{
