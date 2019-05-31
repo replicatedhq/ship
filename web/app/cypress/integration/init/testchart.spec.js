@@ -16,7 +16,7 @@ describe("Ship Init test-charts/modify-chart", () => {
     context("required Helm values entered", () => {
       it("successfully saves Helm values", () => {
         const downArrowsToRequiredHelmValue = buildRepeatKeyString("{downarrow}", 16);
-        const rightArrowsToRequiredHelmValue = buildRepeatKeyString("{rightArrow}", 16);
+        const rightArrowsToRequiredHelmValue = buildRepeatKeyString("{rightarrow}", 16);
         const backspacesToDeleteValue = buildRepeatKeyString("{backspace}", 5);
         cy.get(".ace_text-input").first().type(
           `${downArrowsToRequiredHelmValue}${rightArrowsToRequiredHelmValue}${backspacesToDeleteValue}true`,
