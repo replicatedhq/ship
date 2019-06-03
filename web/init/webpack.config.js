@@ -1,14 +1,19 @@
 const path = require("path");
+const glob = require('glob');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const DashboardPlugin = require("webpack-dashboard/plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const PurgecssPlugin = require('purgecss-webpack-plugin');
 
 const basePlugins = [
   new MiniCssExtractPlugin({
     filename: "styles.css"
   }),
+  new PurgecssPlugin({
+    paths: glob.sync(`${path.join(__dirname, "src")}/**/*`, { nodir: true })
+  })
 ];
 
 module.exports = (env, { mode }) => {
@@ -33,17 +38,17 @@ module.exports = (env, { mode }) => {
     optimizations = {
       optimization: {
         minimizer: [
-          new UglifyJsPlugin({
-            cache: true,
-            parallel: true,
-            sourceMap: false,
-            uglifyOptions: {
+          new TerserPlugin({
+            terserOptions: {
+              warnings: false,
+              parallel: true,
+              sourceMap: false,
               output: {
                 comments: false
               }
             }
-          }),
-          new OptimizeCSSAssetsPlugin()
+            
+          })
         ]
       }
     }
