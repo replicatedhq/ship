@@ -13,7 +13,7 @@ DOCKER_REPO ?= replicated
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
 VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-HELMV = v2.13.0
+HELMV = v2.14.1
 KUSTOMIZEV = v2.0.3
 TERRAFORMV = v0.11.14
 
