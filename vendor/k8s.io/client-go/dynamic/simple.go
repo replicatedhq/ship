@@ -301,7 +301,7 @@ func (c *dynamicResourceClient) Watch(opts metav1.ListOptions) (watch.Interface,
 		WatchWithSpecificDecoders(wrappedDecoderFn, unstructured.UnstructuredJSONScheme)
 }
 
-func (c *dynamicResourceClient) Patch(name string, pt types.PatchType, data []byte, opts metav1.UpdateOptions, subresources ...string) (*unstructured.Unstructured, error) {
+func (c *dynamicResourceClient) Patch(name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*unstructured.Unstructured, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("name is required")
 	}
