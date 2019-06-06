@@ -639,18 +639,6 @@ workflows:
           filters:
             branches:
               only: /master/
-      - deploy_integration:
-          requires:
-          - integration_base
-          - integration_init
-          - integration_init_edit
-          - integration_unfork
-          - integration_init_app
-          - integration_update
-          - deploy_unstable
-          filters:
-            branches:
-              only: /master/
 
 # Stable deploys the `alpha` and `latest` tags to dockerhub and github
   stable:
