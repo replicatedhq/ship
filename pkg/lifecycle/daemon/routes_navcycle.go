@@ -127,14 +127,22 @@ func (d *NavcycleRoutes) shutdown(c *gin.Context) {
 
 // returns false if aborted
 func (d *NavcycleRoutes) maybeAbortDueToMissingRequirement(requires []string, c *gin.Context, requestedStepID string) (ok bool) {
-	required, err := d.getRequiredButIncompleteStepFor(requires)
+	required, err := d.getRequiredButIncompleteStepFor(requires, false)
 	if err != nil {
 		c.AbortWithError(500, errors.Wrapf(err, "check requirements for step %s", requestedStepID))
 		return false
 	}
 	if required != "" {
-		d.errRequired(required, c)
-		return false
+		// if there is a required step that has not been completed, wait for any currently running steps to complete before checking again
+		required, err = d.getRequiredButIncompleteStepFor(requires, true)
+		if err != nil {
+			c.AbortWithError(500, errors.Wrapf(err, "check requirements for step %s", requestedStepID))
+			return false
+		}
+		if required != "" {
+			d.errRequired(required, c)
+			return false
+		}
 	}
 	return true
 }
@@ -142,14 +150,17 @@ func (d *NavcycleRoutes) maybeAbortDueToMissingRequirement(requires []string, c 
 // this will return an incomplete step that is present in the list of required steps.
 // if there are multiple required but incomplete steps, this will return the first one,
 // although from a UI perspective the order is probably not strictly defined
-func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string) (string, error) {
+func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string, withLock bool) (string, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "getRequiredButIncompleteStepFor"))
 	if len(requires) == 0 {
 		return "", nil
 	}
 
-	d.completeMut.Lock()
-	defer d.completeMut.Unlock()
+	if withLock {
+		debug.Log("event", "completeMut.lock")
+		d.completeMut.Lock()
+		defer d.completeMut.Unlock()
+	}
 
 	stepsCompleted := map[string]interface{}{}
 	currentState, err := d.StateManager.TryLoad()
