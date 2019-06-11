@@ -75,6 +75,7 @@ func (d *NavcycleRoutes) handleAsync(errChan chan error, debug log.Logger, step 
 	_, err := d.StateManager.StateUpdate(func(currentState state.State) (state.State, error) {
 		return currentState.WithCompletedStep(step), nil
 	})
+
 	if err != nil {
 		level.Error(d.Logger).Log("event", "state.save.fail", "err", err, "step.id", stepID)
 		return
@@ -97,11 +98,11 @@ func (d *NavcycleRoutes) awaitAsyncStep(errChan chan error, debug log.Logger, st
 				level.Error(debug).Log("event", "async.fail", "err", err, "errorWithStack", errToPrint, "progress", d.progress(step))
 				return err
 			}
-			level.Info(debug).Log("event", "task.complete", "progess", d.progress(step))
+			level.Info(debug).Log("event", "task.complete", "progress", d.progress(step))
 			return nil
 		// debug log progress every ten seconds
 		case <-time.After(10 * time.Second):
-			debug.Log("event", "task.running", "progess", d.progress(step))
+			debug.Log("event", "task.running", "progress", d.progress(step))
 		}
 	}
 }
