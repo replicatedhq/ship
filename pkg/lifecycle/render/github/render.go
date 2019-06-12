@@ -104,7 +104,7 @@ func (r *LocalRenderer) Execute(
 					return errors.Wrap(err, "resolveNoProxyGithubAssets")
 				}
 			} else {
-				return errors.New("github asset returned no files")
+				return fmt.Errorf("github asset %s returned no files in %s at %s", asset.Repo, asset.Path, asset.Ref)
 			}
 		}
 
