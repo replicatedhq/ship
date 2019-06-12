@@ -1,0 +1,15 @@
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          {{repl ShipCustomerRelease }}
+        dest: ./license-info.yaml
+        mode: 0777
+
+config:
+    v1: []
+
+lifecycle:
+  v1:
+    - render: {}

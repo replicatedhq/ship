@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	. "github.com/onsi/gomega"
@@ -113,7 +114,14 @@ func CompareDir(expected, actual string, replacements map[string]string, ignored
 
 			// find and replace strings from the expected contents (customerID, installationID, etc)
 			for k, v := range replacements {
-				expectedContents = strings.Replace(expectedContents, k, v, -1)
+				re := regexp.MustCompile(k)
+				expectedContents = re.ReplaceAllString(expectedContents, v)
+			}
+
+			// find and replace strings from the actual contents (datetime, signature, etc)
+			for k, v := range replacements {
+				re := regexp.MustCompile(k)
+				actualContents = re.ReplaceAllString(actualContents, v)
 			}
 
 			diff := difflib.UnifiedDiff{

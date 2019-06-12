@@ -21,14 +21,15 @@ import (
 )
 
 type TestMetadata struct {
-	LicenseID      string   `yaml:"license_id"`
-	AppSlug        string   `yaml:"app_slug"`
-	InstallationID string   `yaml:"installation_id"`
-	CustomerID     string   `yaml:"customer_id"`
-	ReleaseVersion string   `yaml:"release_version"`
-	SetChannelName string   `yaml:"set_channel_name"`
-	Flavor         string   `yaml:"flavor"`
-	Args           []string `yaml:"args"`
+	LicenseID      string            `yaml:"license_id"`
+	AppSlug        string            `yaml:"app_slug"`
+	InstallationID string            `yaml:"installation_id"`
+	CustomerID     string            `yaml:"customer_id"`
+	ReleaseVersion string            `yaml:"release_version"`
+	SetChannelName string            `yaml:"set_channel_name"`
+	Flavor         string            `yaml:"flavor"`
+	Args           []string          `yaml:"args"`
+	Replacements   map[string]string `yaml:"replacements"`
 
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
@@ -75,6 +76,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
+
+					if testMetadata.Replacements == nil {
+						testMetadata.Replacements = make(map[string]string)
+					}
 
 					// TODO - instead of getting installation ID, etc from test metadata create a release with the vendor api
 					// TODO customer ID and vendor token will need to be read from environment variables
@@ -129,13 +134,11 @@ var _ = Describe("ship init replicated.app/...", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// these strings will be replaced in the "expected" yaml before comparison
-					replacements := map[string]string{
-						"__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
-						"__installationID__": testMetadata.InstallationID,
-						"__customerID__":     testMetadata.CustomerID,
-						"__appSlug__":        testMetadata.AppSlug,
-						"__licenseID__":      testMetadata.LicenseID,
-					}
+					testMetadata.Replacements["__upstream__"] = strings.Replace(upstream, "&", "\\u0026", -1) // this string is encoded within the output
+					testMetadata.Replacements["__installationID__"] = testMetadata.InstallationID
+					testMetadata.Replacements["__customerID__"] = testMetadata.CustomerID
+					testMetadata.Replacements["__appSlug__"] = testMetadata.AppSlug
+					testMetadata.Replacements["__licenseID__"] = testMetadata.LicenseID
 
 					ignoreEntitlementSig := map[string][]string{
 						".ship/state.json": {
@@ -146,7 +149,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreEntitlementSig)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, testMetadata.Replacements, []string{}, ignoreEntitlementSig)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 
@@ -180,6 +183,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
 
+					if testMetadata.Replacements == nil {
+						testMetadata.Replacements = make(map[string]string)
+					}
+
 					close(done)
 				}, 20)
 
@@ -202,19 +209,16 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// copy the expected ship state to the output
 					// and run any replacements needed
 
-					replacements := map[string]string{
-						// "__upstream__":       strings.Replace(upstream, "&", "\\u0026", -1), // this string is encoded within the output
-						"__installationID__": testMetadata.InstallationID,
-						"__customerID__":     testMetadata.CustomerID,
-						"__appSlug__":        testMetadata.AppSlug,
-						"__licenseID__":      testMetadata.LicenseID,
-					}
+					testMetadata.Replacements["__installationID__"] = testMetadata.InstallationID
+					testMetadata.Replacements["__customerID__"] = testMetadata.CustomerID
+					testMetadata.Replacements["__appSlug__"] = testMetadata.AppSlug
+					testMetadata.Replacements["__licenseID__"] = testMetadata.LicenseID
 
 					readPath := filepath.Join(testPath, "expected", ".ship", "state.json")
 					stateFile, err := ioutil.ReadFile(readPath)
 					Expect(err).NotTo(HaveOccurred())
 
-					for k, v := range replacements {
+					for k, v := range testMetadata.Replacements {
 						stateFile = []byte(strings.Replace(string(stateFile), k, v, -1))
 					}
 
@@ -244,7 +248,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
-					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, replacements, []string{}, ignoreEntitlementSig)
+					result, err := integration.CompareDir(path.Join(testPath, "expected"), testOutputPath, testMetadata.Replacements, []string{}, ignoreEntitlementSig)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(result).To(BeTrue())
 				}, 60)
