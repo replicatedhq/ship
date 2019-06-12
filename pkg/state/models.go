@@ -357,6 +357,12 @@ func (v State) ReleaseMetadata() *api.ReleaseMetadata {
 				baseMeta.CustomerID = v.V1.Metadata.CustomerID
 				baseMeta.InstallationID = v.V1.Metadata.InstallationID
 				baseMeta.LicenseID = v.V1.Metadata.LicenseID
+				baseMeta.AppSlug = v.V1.Metadata.AppSlug
+				baseMeta.License.ID = v.V1.Metadata.License.ID
+				baseMeta.License.Assignee = v.V1.Metadata.License.Assignee
+				baseMeta.License.CreatedAt = v.V1.Metadata.License.CreatedAt
+				baseMeta.License.ExpiresAt = v.V1.Metadata.License.ExpiresAt
+				baseMeta.License.Type = v.V1.Metadata.License.Type
 			}
 			return &baseMeta
 		}
