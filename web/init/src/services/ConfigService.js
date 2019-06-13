@@ -1,8 +1,6 @@
-import _ from 'lodash/core';
-import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
-import some from 'lodash/some';
-import has from 'lodash/has';
+// @TODO: Refactor this so its not using so much lodash
+// the "without" module throws if we import every lodash util piecemeal
+import _, { get, isEmpty, some, has } from "lodash";
 
 export const ConfigService = {
   getItems(groups) {
