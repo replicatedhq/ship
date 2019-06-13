@@ -1,8 +1,12 @@
+---
+# Source: kibana/templates/deployment.yaml
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   labels:
     app: kibana
+    chart: "kibana-1.1.2"
+    heritage: Tiller
     release: kibana
   name: kibana
 spec:
@@ -14,25 +18,29 @@ spec:
         checksum/config: 0d42b0d5d1f2c84f74f7e20e3b643f2dabf4f96963c1b4ced060624e7211f4d4
       labels:
         app: kibana
-        release: kibana
+        release: "kibana"
     spec:
+      serviceAccountName: default
       containers:
-      - env: []
-        image: docker.elastic.co/kibana/kibana-oss:6.5.4
+      - name: kibana
+        image: "docker.elastic.co/kibana/kibana-oss:6.5.4"
         imagePullPolicy: IfNotPresent
-        name: kibana
+        env: []
         ports:
         - containerPort: 5601
           name: kibana
           protocol: TCP
-        resources: {}
+        resources:
+          {}
+          
         volumeMounts:
-        - mountPath: /usr/share/kibana/config/kibana.yml
-          name: kibana
+        - name: kibana
+          mountPath: "/usr/share/kibana/config/kibana.yml"
           subPath: kibana.yml
-      serviceAccountName: default
-      tolerations: []
+      tolerations:
+        []
+        
       volumes:
-      - configMap:
-          name: kibana
-        name: kibana
+        - name: kibana
+          configMap:
+            name: kibana

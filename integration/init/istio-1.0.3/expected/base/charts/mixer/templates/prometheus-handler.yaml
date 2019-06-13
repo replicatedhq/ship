@@ -1,11 +1,12 @@
-apiVersion: config.istio.io/v1alpha2
+apiVersion: "config.istio.io/v1alpha2"
 kind: prometheus
 metadata:
   name: handler
   namespace: default
 spec:
   metrics:
-  - instance_name: requestcount.metric.default
+  - name: requests_total
+    instance_name: requestcount.metric.default
     kind: COUNTER
     label_names:
     - reporter
@@ -25,21 +26,7 @@ spec:
     - request_protocol
     - response_code
     - connection_security_policy
-    name: requests_total
-  - buckets:
-      explicit_buckets:
-        bounds:
-        - 0.005
-        - 0.01
-        - 0.025
-        - 0.05
-        - 0.1
-        - 0.25
-        - 0.5
-        - 1
-        - 2.5
-        - 5
-        - 10
+  - name: request_duration_seconds
     instance_name: requestduration.metric.default
     kind: DISTRIBUTION
     label_names:
@@ -60,12 +47,10 @@ spec:
     - request_protocol
     - response_code
     - connection_security_policy
-    name: request_duration_seconds
-  - buckets:
-      exponentialBuckets:
-        growthFactor: 10
-        numFiniteBuckets: 8
-        scale: 1
+    buckets:
+      explicit_buckets:
+        bounds: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  - name: request_bytes
     instance_name: requestsize.metric.default
     kind: DISTRIBUTION
     label_names:
@@ -86,12 +71,12 @@ spec:
     - request_protocol
     - response_code
     - connection_security_policy
-    name: request_bytes
-  - buckets:
+    buckets:
       exponentialBuckets:
-        growthFactor: 10
         numFiniteBuckets: 8
         scale: 1
+        growthFactor: 10
+  - name: response_bytes
     instance_name: responsesize.metric.default
     kind: DISTRIBUTION
     label_names:
@@ -112,8 +97,13 @@ spec:
     - request_protocol
     - response_code
     - connection_security_policy
-    name: response_bytes
-  - instance_name: tcpbytesent.metric.default
+    buckets:
+      exponentialBuckets:
+        numFiniteBuckets: 8
+        scale: 1
+        growthFactor: 10
+  - name: tcp_sent_bytes_total
+    instance_name: tcpbytesent.metric.default
     kind: COUNTER
     label_names:
     - reporter
@@ -131,8 +121,8 @@ spec:
     - destination_service_name
     - destination_service_namespace
     - connection_security_policy
-    name: tcp_sent_bytes_total
-  - instance_name: tcpbytereceived.metric.default
+  - name: tcp_received_bytes_total
+    instance_name: tcpbytereceived.metric.default
     kind: COUNTER
     label_names:
     - reporter
@@ -150,4 +140,3 @@ spec:
     - destination_service_name
     - destination_service_namespace
     - connection_security_policy
-    name: tcp_received_bytes_total

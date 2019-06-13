@@ -1,0 +1,7 @@
+kind: Kustomization
+apiversion: ""
+patchesStrategicMerge:
+- ./patch-configmap-l4.yaml
+bases:
+- ../../base
+- ../../another

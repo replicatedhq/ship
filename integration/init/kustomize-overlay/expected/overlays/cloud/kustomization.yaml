@@ -1,6 +1,6 @@
 kind: ""
 apiversion: ""
+patchesStrategicMerge:
+- ./patch-configmap-l4.yaml
 bases:
-  - ../../base
-patches:
-  - ./patch-configmap-l4.yaml
+- ../../base

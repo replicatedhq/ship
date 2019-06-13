@@ -1,15 +1,17 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
+  name: cert-manager-cainjector
   labels:
     app: cainjector
+    chart: cainjector-v0.7.0
     release: cert-manager
-  name: cert-manager-cainjector
+    heritage: Tiller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cert-manager-cainjector
 subjects:
-- kind: ServiceAccount
-  name: cert-manager-cainjector
-  namespace: cert-manager
+  - name: cert-manager-cainjector
+    namespace: "cert-manager"
+    kind: ServiceAccount

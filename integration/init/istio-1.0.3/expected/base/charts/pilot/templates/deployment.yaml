@@ -1,49 +1,127 @@
+---
+# Source: istio/charts/pilot/templates/deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  annotations:
-    checksum/config-volume: f8da08b6b8c170dde721efd680270b2901e750d4aa186ebb6c22bef5b78a43f9
-  labels:
-    app: istio-pilot
-    istio: pilot
-    release: istio
   name: istio-pilot
   namespace: default
+  # TODO: default template doesn't have this, which one is right ?
+  labels:
+    app: istio-pilot
+    chart: pilot-1.0.3
+    release: istio
+    heritage: Tiller
+    istio: pilot
+  annotations:
+    checksum/config-volume: f8da08b6b8c170dde721efd680270b2901e750d4aa186ebb6c22bef5b78a43f9
 spec:
   replicas: 1
   template:
     metadata:
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ""
-        sidecar.istio.io/inject: "false"
       labels:
-        app: pilot
         istio: pilot
+        app: pilot
+      annotations:
+        sidecar.istio.io/inject: "false"
+        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
-      affinity:
+      serviceAccountName: istio-pilot-service-account
+      containers:
+        - name: discovery
+          image: "gcr.io/istio-release/pilot:release-1.0-latest-daily"
+          imagePullPolicy: IfNotPresent
+          args:
+          - "discovery"
+          ports:
+          - containerPort: 8080
+          - containerPort: 15010
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 5
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: PILOT_CACHE_SQUASH
+            value: "5"
+          - name: GODEBUG
+            value: "gctrace=2"
+          - name: PILOT_PUSH_THROTTLE_COUNT
+            value: "100"
+          - name: PILOT_TRACE_SAMPLING
+            value: "1"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2048Mi
+            
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/istio/config
+          - name: istio-certs
+            mountPath: /etc/certs
+            readOnly: true
+        - name: istio-proxy
+          image: "gcr.io/istio-release/proxyv2:release-1.0-latest-daily"
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 15003
+          - containerPort: 15005
+          - containerPort: 15007
+          - containerPort: 15011
+          args:
+          - proxy
+          - --serviceCluster
+          - istio-pilot
+          - --templateFile
+          - /etc/istio/proxy/envoy_pilot.yaml.tmpl
+          - --controlPlaneAuthPolicy
+          - NONE
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+          resources:
+            requests:
+              cpu: 10m
+            
+          volumeMounts:
+          - name: istio-certs
+            mountPath: /etc/certs
+            readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: istio
+      - name: istio-certs
+        secret:
+          secretName: istio.istio-pilot-service-account
+          optional: true   
+      affinity:      
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-            weight: 2
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-            weight: 2
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
-            weight: 2
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
@@ -53,96 +131,25 @@ spec:
                 - amd64
                 - ppc64le
                 - s390x
-      containers:
-      - args:
-        - discovery
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        - name: PILOT_CACHE_SQUASH
-          value: "5"
-        - name: GODEBUG
-          value: gctrace=2
-        - name: PILOT_PUSH_THROTTLE_COUNT
-          value: "100"
-        - name: PILOT_TRACE_SAMPLING
-          value: "1"
-        image: gcr.io/istio-release/pilot:release-1.0-latest-daily
-        imagePullPolicy: IfNotPresent
-        name: discovery
-        ports:
-        - containerPort: 8080
-        - containerPort: 15010
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 30
-          timeoutSeconds: 5
-        resources:
-          requests:
-            cpu: 500m
-            memory: 2048Mi
-        volumeMounts:
-        - mountPath: /etc/istio/config
-          name: config-volume
-        - mountPath: /etc/certs
-          name: istio-certs
-          readOnly: true
-      - args:
-        - proxy
-        - --serviceCluster
-        - istio-pilot
-        - --templateFile
-        - /etc/istio/proxy/envoy_pilot.yaml.tmpl
-        - --controlPlaneAuthPolicy
-        - NONE
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        - name: INSTANCE_IP
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: status.podIP
-        image: gcr.io/istio-release/proxyv2:release-1.0-latest-daily
-        imagePullPolicy: IfNotPresent
-        name: istio-proxy
-        ports:
-        - containerPort: 15003
-        - containerPort: 15005
-        - containerPort: 15007
-        - containerPort: 15011
-        resources:
-          requests:
-            cpu: 10m
-        volumeMounts:
-        - mountPath: /etc/certs
-          name: istio-certs
-          readOnly: true
-      serviceAccountName: istio-pilot-service-account
-      volumes:
-      - configMap:
-          name: istio
-        name: config-volume
-      - name: istio-certs
-        secret:
-          optional: true
-          secretName: istio.istio-pilot-service-account
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - ppc64le
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - s390x

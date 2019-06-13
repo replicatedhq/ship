@@ -1,10 +1,14 @@
+---
+# Source: basic/templates/deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
+  name: basic
   labels:
     app: basic
+    chart: basic-0.1.0
     release: basic
-  name: basic
+    heritage: Tiller
 spec:
   replicas: 5
   selector:
@@ -18,19 +22,21 @@ spec:
         release: basic
     spec:
       containers:
-      - image: nginx:stable
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          httpGet:
-            path: /
-            port: http
-        name: basic
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /
-            port: http
-        resources: {}
+        - name: basic
+          image: "nginx:stable"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}
+            

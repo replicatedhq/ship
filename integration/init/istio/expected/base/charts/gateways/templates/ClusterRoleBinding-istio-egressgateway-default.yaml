@@ -1,10 +1,15 @@
+---
+# Source: istio/charts/gateways/templates/clusterrolebindings.yaml
+
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
+  name: istio-egressgateway-default
   labels:
     app: gateways
+    chart: gateways
+    heritage: Tiller
     release: istio
-  name: istio-egressgateway-default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

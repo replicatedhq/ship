@@ -1,12 +1,16 @@
+---
+# Source: istio/charts/galley/templates/deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  labels:
-    app: galley
-    istio: galley
-    release: istio
   name: istio-galley
   namespace: default
+  labels:
+    app: galley
+    chart: galley-1.0.3
+    release: istio
+    heritage: Tiller
+    istio: galley
 spec:
   replicas: 1
   strategy:
@@ -15,36 +19,69 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ""
-        sidecar.istio.io/inject: "false"
       labels:
         istio: galley
+      annotations:
+        sidecar.istio.io/inject: "false"
+        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
-      affinity:
+      serviceAccountName: istio-galley-service-account
+      containers:
+        - name: validator
+          image: "gcr.io/istio-release/galley:release-1.0-latest-daily"
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 443
+          - containerPort: 9093
+          command:
+          - /usr/local/bin/galley
+          - validator
+          - --deployment-namespace=default
+          - --caCertFile=/etc/istio/certs/root-cert.pem
+          - --tlsCertFile=/etc/istio/certs/cert-chain.pem
+          - --tlsKeyFile=/etc/istio/certs/key.pem
+          - --healthCheckInterval=1s
+          - --healthCheckFile=/health
+          - --webhook-config-file
+          - /etc/istio/config/validatingwebhookconfiguration.yaml
+          volumeMounts:
+          - name: certs
+            mountPath: /etc/istio/certs
+            readOnly: true
+          - name: config
+            mountPath: /etc/istio/config
+            readOnly: true
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/bin/galley
+                - probe
+                - --probe-path=/health
+                - --interval=10s
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - /usr/local/bin/galley
+                - probe
+                - --probe-path=/health
+                - --interval=10s
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 10m
+            
+      volumes:
+      - name: certs
+        secret:
+          secretName: istio.istio-galley-service-account
+      - name: config
+        configMap:
+          name: istio-galley-configuration
+      affinity:      
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-            weight: 2
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-            weight: 2
-          - preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
-            weight: 2
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
@@ -54,57 +91,25 @@ spec:
                 - amd64
                 - ppc64le
                 - s390x
-      containers:
-      - command:
-        - /usr/local/bin/galley
-        - validator
-        - --deployment-namespace=default
-        - --caCertFile=/etc/istio/certs/root-cert.pem
-        - --tlsCertFile=/etc/istio/certs/cert-chain.pem
-        - --tlsKeyFile=/etc/istio/certs/key.pem
-        - --healthCheckInterval=1s
-        - --healthCheckFile=/health
-        - --webhook-config-file
-        - /etc/istio/config/validatingwebhookconfiguration.yaml
-        image: gcr.io/istio-release/galley:release-1.0-latest-daily
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/galley
-            - probe
-            - --probe-path=/health
-            - --interval=10s
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        name: validator
-        ports:
-        - containerPort: 443
-        - containerPort: 9093
-        readinessProbe:
-          exec:
-            command:
-            - /usr/local/bin/galley
-            - probe
-            - --probe-path=/health
-            - --interval=10s
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        resources:
-          requests:
-            cpu: 10m
-        volumeMounts:
-        - mountPath: /etc/istio/certs
-          name: certs
-          readOnly: true
-        - mountPath: /etc/istio/config
-          name: config
-          readOnly: true
-      serviceAccountName: istio-galley-service-account
-      volumes:
-      - name: certs
-        secret:
-          secretName: istio.istio-galley-service-account
-      - configMap:
-          name: istio-galley-configuration
-        name: config
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - ppc64le
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - s390x

@@ -1,10 +1,13 @@
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: cert-manager-webhook:webhook-requester
   labels:
     app: webhook
+    chart: webhook-v0.7.0
     release: cert-manager
-  name: cert-manager-webhook:webhook-requester
+    heritage: Tiller
 rules:
 - apiGroups:
   - admission.certmanager.k8s.io

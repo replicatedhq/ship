@@ -3,18 +3,11 @@ kind: ClusterRole
 metadata:
   labels:
     app: gateways
+    chart: gateways-1.0.3
+    heritage: Tiller
     release: istio
   name: istio-ingressgateway-default
 rules:
-- apiGroups:
-  - extensions
-  resources:
-  - thirdpartyresources
-  - virtualservices
-  - destinationrules
-  - gateways
-  verbs:
-  - get
-  - watch
-  - list
-  - update
+- apiGroups: ["extensions"]
+  resources: ["thirdpartyresources", "virtualservices", "destinationrules", "gateways"]
+  verbs: ["get", "watch", "list", "update"]

@@ -1,17 +1,19 @@
+
+# Generate a CA Certificate used to sign certificates for the webhook
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
+  name: cert-manager-webhook-ca
+  namespace: "cert-manager"
   labels:
     app: webhook
     chart: webhook-v0.7.0
-    heritage: Tiller
     release: cert-manager
-  name: cert-manager-webhook-ca
-  namespace: cert-manager
+    heritage: Tiller
 spec:
-  commonName: ca.webhook.cert-manager
-  duration: 43800h
-  isCA: true
+  secretName: cert-manager-webhook-ca
+  duration: 43800h # 5y
   issuerRef:
     name: cert-manager-webhook-selfsign
-  secretName: cert-manager-webhook-ca
+  commonName: "ca.webhook.cert-manager"
+  isCA: true

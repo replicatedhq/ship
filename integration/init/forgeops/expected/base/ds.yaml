@@ -1,29 +1,46 @@
+---
+# Source: ds/templates/ds.yaml
+# Copyright (c) 2016-2018 ForgeRock AS. All Rights Reserved.
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  labels:
-    app: ds-ds
-    component: ds
-    instance: ds
-    release: ds
-    vendor: forgerock
   name: ds
+  labels:
+    instance: ds
+    app: ds-ds
+    vendor: forgerock
+    component: ds
+    release: ds
+    heritage: Tiller
 spec:
-  replicas: 1
   serviceName: ds
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: db
+      annotations:
+        pv.beta.kubernetes.io/gid: "11111"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
   template:
     metadata:
       labels:
-        app: ds-ds
-        component: ds
         instance: ds
-        release: ds
+        app: ds-ds
         vendor: forgerock
+        release: ds
+        component: ds
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
+          - weight: 100
+            podAffinityTerm:
               labelSelector:
                 matchExpressions:
                 - key: instance
@@ -31,26 +48,35 @@ spec:
                   values:
                   - ds
               topologyKey: kubernetes.io/hostname
-            weight: 100
+      terminationGracePeriodSeconds: 30
+      # This will make sure the mounted PVCs are writable by the forgerock user with gid 111111.
+      securityContext:
+        fsGroup: 11111
+        runAsUser: 11111
+        supplementalGroups:
+        - 0
+        
+      initContainers: []
+      
       containers:
-      - args:
-        - start
+      - name: ds
+        image:  forgerock-docker-public.bintray.io/forgerock/ds:6.5.0
+        imagePullPolicy: IfNotPresent
+        #terminationGracePeriodSeconds: 10
+        resources:
+            limits:
+              memory: 768Mi
+            requests:
+              memory: 512Mi
+            
+        envFrom:
+        - configMapRef:
+            name: ds
         env:
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        envFrom:
-        - configMapRef:
-            name: ds
-        image: forgerock-docker-public.bintray.io/forgerock/ds:6.5.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 120
-          tcpSocket:
-            port: metrics
-        name: ds
         ports:
         - containerPort: 1389
           name: ldap
@@ -60,45 +86,34 @@ spec:
           name: replication
         - containerPort: 8080
           name: metrics
-        resources:
-          limits:
-            memory: 768Mi
-          requests:
-            memory: 512Mi
         volumeMounts:
-        - mountPath: /var/run/secrets/opendj
-          name: dj-secrets
-        - mountPath: /opt/opendj/bak
-          name: backup
-        - mountPath: /opt/opendj/logs
-          name: logs
-        - mountPath: /opt/opendj/data
-          name: db
-      initContainers: []
-      securityContext:
-        fsGroup: 11111
-        runAsUser: 11111
-        supplementalGroups:
-        - 0
-      terminationGracePeriodSeconds: 30
+        - name: dj-secrets
+          mountPath: /var/run/secrets/opendj
+        - name: backup
+          mountPath: /opt/opendj/bak
+        - name: logs
+          mountPath: /opt/opendj/logs
+        - name: db
+          mountPath: /opt/opendj/data
+        args: [ "start" ]
+        # Due to cost, we don't want to do a full scrape of the metrics http endpoint - so we create a tcp connection
+        # todo: revisit when https://bugster.forgerock.org/jira/browse/OPENDJ-4728 is resolved.
+        # TODO: Uncomment when we get ds to start faster. Seletively disable replication
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: metrics
+        #   periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: metrics
+          initialDelaySeconds: 60
+          periodSeconds: 120
       volumes:
       - name: dj-secrets
         secret:
           secretName: ds
-      - emptyDir: {}
-        name: logs
-      - emptyDir: {}
-        name: backup
-  updateStrategy:
-    type: RollingUpdate
-  volumeClaimTemplates:
-  - metadata:
-      annotations:
-        pv.beta.kubernetes.io/gid: "11111"
-      name: db
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
+      - name: logs
+        emptyDir: {}
+      - name: backup
+        emptyDir: {}
+      

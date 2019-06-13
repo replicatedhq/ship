@@ -1,17 +1,12 @@
+---
+# Source: jenkins/templates/config.yaml
+
+
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins
 data:
-  apply_config.sh: |-
-    mkdir -p /usr/share/jenkins/ref/secrets/;
-    echo "false" > /usr/share/jenkins/ref/secrets/slave-to-master-security-kill-switch;
-    cp --no-clobber /var/jenkins_config/config.xml /var/jenkins_home;
-    cp --no-clobber /var/jenkins_config/jenkins.CLI.xml /var/jenkins_home;
-    cp --no-clobber /var/jenkins_config/jenkins.model.JenkinsLocationConfiguration.xml /var/jenkins_home;
-    # Install missing plugins
-    cp /var/jenkins_config/plugins.txt /var/jenkins_home;
-    rm -rf /usr/share/jenkins/ref/plugins/*.lock
-    /usr/local/bin/install-plugins.sh `echo $(cat /var/jenkins_home/plugins.txt)`;
-    # Copy plugins to shared volume
-    cp -n /usr/share/jenkins/ref/plugins/* /var/jenkins_plugins;
   config.xml: |-
     <?xml version='1.0' encoding='UTF-8'?>
     <hudson>
@@ -114,23 +109,32 @@ data:
       <globalNodeProperties/>
       <noUsageStatistics>true</noUsageStatistics>
     </hudson>
-  jenkins.CLI.xml: |-
-    <?xml version='1.1' encoding='UTF-8'?>
-    <jenkins.CLI>
-      <enabled>false</enabled>
-    </jenkins.CLI>
   jenkins.model.JenkinsLocationConfiguration.xml: |-
     <?xml version='1.1' encoding='UTF-8'?>
     <jenkins.model.JenkinsLocationConfiguration>
       <adminAddress></adminAddress>
       <jenkinsUrl>http://jenkins:8080</jenkinsUrl>
     </jenkins.model.JenkinsLocationConfiguration>
+  jenkins.CLI.xml: |-
+    <?xml version='1.1' encoding='UTF-8'?>
+    <jenkins.CLI>
+      <enabled>false</enabled>
+    </jenkins.CLI>
+  apply_config.sh: |-
+    mkdir -p /usr/share/jenkins/ref/secrets/;
+    echo "false" > /usr/share/jenkins/ref/secrets/slave-to-master-security-kill-switch;
+    cp --no-clobber /var/jenkins_config/config.xml /var/jenkins_home;
+    cp --no-clobber /var/jenkins_config/jenkins.CLI.xml /var/jenkins_home;
+    cp --no-clobber /var/jenkins_config/jenkins.model.JenkinsLocationConfiguration.xml /var/jenkins_home;
+    # Install missing plugins
+    cp /var/jenkins_config/plugins.txt /var/jenkins_home;
+    rm -rf /usr/share/jenkins/ref/plugins/*.lock
+    /usr/local/bin/install-plugins.sh `echo $(cat /var/jenkins_home/plugins.txt)`;
+    # Copy plugins to shared volume
+    cp -n /usr/share/jenkins/ref/plugins/* /var/jenkins_plugins;
   plugins.txt: |-
     kubernetes:1.12.4
     workflow-job:2.24
     workflow-aggregator:2.5
     credentials-binding:1.16
     git:3.9.1
-kind: ConfigMap
-metadata:
-  name: jenkins

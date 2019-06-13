@@ -1,14 +1,15 @@
-apiVersion: config.istio.io/v1alpha2
+apiVersion: "config.istio.io/v1alpha2"
 kind: rule
 metadata:
+  name: promhttp
+  namespace: default
   labels:
     app: mixer
     chart: mixer
     heritage: Tiller
     release: istio
-  name: promhttp
-  namespace: default
 spec:
+  match: context.protocol == "http" || context.protocol == "grpc"
   actions:
   - handler: prometheus
     instances:
@@ -16,4 +17,3 @@ spec:
     - requestduration.metric
     - requestsize.metric
     - responsesize.metric
-  match: context.protocol == "http" || context.protocol == "grpc"

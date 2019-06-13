@@ -1,77 +1,23 @@
-apiVersion: config.istio.io/v1alpha2
+---
+# Source: istio/charts/mixer/templates/config.yaml
+apiVersion: "config.istio.io/v1alpha2"
 kind: attributemanifest
 metadata:
   name: istioproxy
   namespace: default
 spec:
   attributes:
-    api.operation:
-      valueType: STRING
-    api.protocol:
-      valueType: STRING
-    api.service:
-      valueType: STRING
-    api.version:
-      valueType: STRING
-    connection.duration:
-      valueType: DURATION
-    connection.event:
-      valueType: STRING
-    connection.id:
-      valueType: STRING
-    connection.mtls:
-      valueType: BOOL
-    connection.received.bytes:
-      valueType: INT64
-    connection.received.bytes_total:
-      valueType: INT64
-    connection.requested_server_name:
-      valueType: STRING
-    connection.sent.bytes:
-      valueType: INT64
-    connection.sent.bytes_total:
-      valueType: INT64
-    context.protocol:
-      valueType: STRING
-    context.reporter.kind:
-      valueType: STRING
-    context.reporter.local:
-      valueType: BOOL
-    context.reporter.uid:
-      valueType: STRING
-    context.time:
-      valueType: TIMESTAMP
-    context.timestamp:
-      valueType: TIMESTAMP
-    destination.port:
-      valueType: INT64
-    destination.principal:
-      valueType: STRING
-    destination.uid:
-      valueType: STRING
     origin.ip:
       valueType: IP_ADDRESS
     origin.uid:
       valueType: STRING
     origin.user:
       valueType: STRING
-    request.api_key:
-      valueType: STRING
-    request.auth.audiences:
-      valueType: STRING
-    request.auth.claims:
-      valueType: STRING_MAP
-    request.auth.presenter:
-      valueType: STRING
-    request.auth.principal:
-      valueType: STRING
-    request.auth.raw_claims:
-      valueType: STRING
     request.headers:
       valueType: STRING_MAP
-    request.host:
-      valueType: STRING
     request.id:
+      valueType: STRING
+    request.host:
       valueType: STRING
     request.method:
       valueType: STRING
@@ -83,12 +29,12 @@ spec:
       valueType: STRING
     request.scheme:
       valueType: STRING
+    request.total_size:
+          valueType: INT64
     request.size:
       valueType: INT64
     request.time:
       valueType: TIMESTAMP
-    request.total_size:
-      valueType: INT64
     request.useragent:
       valueType: STRING
     response.code:
@@ -97,15 +43,72 @@ spec:
       valueType: DURATION
     response.headers:
       valueType: STRING_MAP
+    response.total_size:
+          valueType: INT64
     response.size:
       valueType: INT64
     response.time:
       valueType: TIMESTAMP
-    response.total_size:
-      valueType: INT64
-    source.principal:
-      valueType: STRING
     source.uid:
       valueType: STRING
-    source.user:
+    source.user: # DEPRECATED
+      valueType: STRING
+    source.principal:
+      valueType: STRING
+    destination.uid:
+      valueType: STRING
+    destination.principal:
+      valueType: STRING
+    destination.port:
+      valueType: INT64
+    connection.event:
+      valueType: STRING
+    connection.id:
+      valueType: STRING
+    connection.received.bytes:
+      valueType: INT64
+    connection.received.bytes_total:
+      valueType: INT64
+    connection.sent.bytes:
+      valueType: INT64
+    connection.sent.bytes_total:
+      valueType: INT64
+    connection.duration:
+      valueType: DURATION
+    connection.mtls:
+      valueType: BOOL
+    connection.requested_server_name:
+      valueType: STRING
+    context.protocol:
+      valueType: STRING
+    context.timestamp:
+      valueType: TIMESTAMP
+    context.time:
+      valueType: TIMESTAMP
+    # Deprecated, kept for compatibility
+    context.reporter.local:
+      valueType: BOOL
+    context.reporter.kind:
+      valueType: STRING
+    context.reporter.uid:
+      valueType: STRING
+    api.service:
+      valueType: STRING
+    api.version:
+      valueType: STRING
+    api.operation:
+      valueType: STRING
+    api.protocol:
+      valueType: STRING
+    request.auth.principal:
+      valueType: STRING
+    request.auth.audiences:
+      valueType: STRING
+    request.auth.presenter:
+      valueType: STRING
+    request.auth.claims:
+      valueType: STRING_MAP
+    request.auth.raw_claims:
+      valueType: STRING
+    request.api_key:
       valueType: STRING

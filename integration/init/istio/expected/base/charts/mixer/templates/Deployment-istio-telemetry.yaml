@@ -1,57 +1,80 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  labels:
-    app: mixer
-    istio: mixer
-    release: istio
   name: istio-telemetry
   namespace: default
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    release: istio
+    istio: mixer
 spec:
   replicas: 1
   template:
     metadata:
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ""
-        sidecar.istio.io/inject: "false"
       labels:
         app: mixer
         chart: mixer
         heritage: Tiller
-        istio: mixer
-        istio-mixer-type: telemetry
         release: istio
         version: 1.1.0
+        istio: mixer
+        istio-mixer-type: telemetry
+      annotations:
+        sidecar.istio.io/inject: "false"
+        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
+      serviceAccountName: istio-mixer-service-account
+      volumes:
+      - name: istio-certs
+        secret:
+          secretName: istio.istio-mixer-service-account
+          optional: true
+      - name: uds-socket
+        emptyDir: {}
       containers:
-      - args:
-        - --address
-        - unix:///sock/mixer.socket
-        - --configStoreURL=k8s://
-        - --configDefaultNamespace=default
-        - --trace_zipkin_url=http://zipkin:9411/api/v1/spans
+      - name: mixer
+        image: "gcr.io/istio-release/mixer:master-latest-daily"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9093
+        - containerPort: 42422
+        args:
+          - --address
+          - unix:///sock/mixer.socket
+          - --configStoreURL=k8s://
+          - --configDefaultNamespace=default
+          - --trace_zipkin_url=http://zipkin:9411/api/v1/spans
         env:
         - name: GODEBUG
-          value: gctrace=2
-        image: gcr.io/istio-release/mixer:master-latest-daily
-        imagePullPolicy: IfNotPresent
+          value: "gctrace=2"
+        resources:
+          requests:
+            cpu: 10m
+          
+        volumeMounts:
+        - name: uds-socket
+          mountPath: /sock
         livenessProbe:
           httpGet:
             path: /version
             port: 9093
           initialDelaySeconds: 5
           periodSeconds: 5
-        name: mixer
+      - name: istio-proxy
+        image: "gcr.io/istio-release/proxyv2:master-latest-daily"
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 9093
-        - containerPort: 42422
-        resources:
-          requests:
-            cpu: 10m
-        volumeMounts:
-        - mountPath: /sock
-          name: uds-socket
-      - args:
+        - containerPort: 9091
+        - containerPort: 15004
+
+        ports:
+        - containerPort: 15090
+          protocol: TCP
+          name: http-envoy-prom
+
+        args:
         - proxy
         - --serviceCluster
         - istio-telemetry
@@ -75,27 +98,15 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: gcr.io/istio-release/proxyv2:master-latest-daily
-        imagePullPolicy: IfNotPresent
-        name: istio-proxy
-        ports:
-        - containerPort: 15090
-          name: http-envoy-prom
-          protocol: TCP
         resources:
           requests:
             cpu: 10m
+          
         volumeMounts:
-        - mountPath: /etc/certs
-          name: istio-certs
+        - name: istio-certs
+          mountPath: /etc/certs
           readOnly: true
-        - mountPath: /sock
-          name: uds-socket
-      serviceAccountName: istio-mixer-service-account
-      volumes:
-      - name: istio-certs
-        secret:
-          optional: true
-          secretName: istio.istio-mixer-service-account
-      - emptyDir: {}
-        name: uds-socket
+        - name: uds-socket
+          mountPath: /sock
+
+--- 

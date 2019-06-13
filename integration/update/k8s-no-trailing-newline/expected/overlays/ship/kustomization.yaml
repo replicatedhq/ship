@@ -4,4 +4,4 @@ patchesStrategicMerge:
 - redis-master-service.yaml
 - redis-slave-service.yaml
 bases:
-- ../../base
+- ../defaults

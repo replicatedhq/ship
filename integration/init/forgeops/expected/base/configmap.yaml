@@ -1,15 +1,18 @@
+---
+# Source: ds/templates/configmap.yaml
 apiVersion: v1
-data:
-  BACKUP_CLUSTER_NAME: default
-  BASE_DN: ou=identities
-  DJ_INSTANCE: ds
-  DS_ENABLE_CONFIGSTORE: "true"
-  DS_ENABLE_CTS: "true"
-  DS_ENABLE_IDMREPO: "true"
-  DS_ENABLE_USERSTORE: "true"
-  DS_SET_SIZE: "1"
-  OPENDJ_JAVA_ARGS: -Xmx512m
-  SLACK_URL: null
 kind: ConfigMap
 metadata:
   name: ds
+data:
+  BASE_DN: ou=identities
+  # example: configstore, cts, userstore. The instance is used to construct the FQDN of DS.
+  DJ_INSTANCE: ds
+  DS_SET_SIZE: "1"
+  OPENDJ_JAVA_ARGS: "-Xmx512m"
+  SLACK_URL: 
+  DS_ENABLE_CTS: "true"
+  DS_ENABLE_USERSTORE: "true"
+  DS_ENABLE_CONFIGSTORE: "true"
+  DS_ENABLE_IDMREPO: "true"
+  BACKUP_CLUSTER_NAME: default

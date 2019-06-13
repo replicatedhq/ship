@@ -1,12 +1,16 @@
+---
+# Source: jaeger/templates/collector-deploy.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  name: jaeger-collector
   labels:
     app: jaeger
-    component: collector
     jaeger-infra: collector-deployment
+    chart: jaeger-0.7.0
+    component: collector
+    heritage: Tiller
     release: jaeger
-  name: jaeger-collector
 spec:
   replicas: 1
   strategy:
@@ -16,53 +20,52 @@ spec:
       labels:
         app: jaeger
         component: collector
-        jaeger-infra: collector-pod
         release: jaeger
+        jaeger-infra: collector-pod
     spec:
+      nodeSelector:
+        {}
+        
       containers:
-      - env:
-        - name: SPAN_STORAGE_TYPE
-          valueFrom:
-            configMapKeyRef:
-              key: span-storage.type
-              name: jaeger
-        - name: CASSANDRA_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.servers
-              name: jaeger
-        - name: CASSANDRA_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.port
-              name: jaeger
-        - name: CASSANDRA_KEYSPACE
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.keyspace
-              name: jaeger
-        - name: COLLECTOR_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: collector.port
-              name: jaeger
-        - name: COLLECTOR_HTTP_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: collector.http-port
-              name: jaeger
-        - name: COLLECTOR_ZIPKIN_HTTP_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: collector.zipkin.http-port
-              name: jaeger
+      - name: jaeger-collector
         image: jaegertracing/jaeger-collector:1.4.1
         imagePullPolicy: IfNotPresent
-        livenessProbe:
-          httpGet:
-            port: healthcheck
-          initialDelaySeconds: 10
-        name: jaeger-collector
+        env:
+          - name: SPAN_STORAGE_TYPE
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: span-storage.type
+          - name: CASSANDRA_SERVERS
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.servers
+          - name: CASSANDRA_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.port
+          - name: CASSANDRA_KEYSPACE
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.keyspace
+          - name: COLLECTOR_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: collector.port
+          - name: COLLECTOR_HTTP_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: collector.http-port
+          - name: COLLECTOR_ZIPKIN_HTTP_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: collector.zipkin.http-port
         ports:
         - containerPort: 14267
           name: tchannel
@@ -80,7 +83,12 @@ spec:
           httpGet:
             port: healthcheck
           initialDelaySeconds: 10
-        resources: {}
+        livenessProbe:
+          httpGet:
+            port: healthcheck
+          initialDelaySeconds: 10
+        resources:
+          {}
+          
       dnsPolicy: ClusterFirst
-      nodeSelector: {}
       restartPolicy: Always

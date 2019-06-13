@@ -3,4 +3,4 @@ apiversion: ""
 patchesStrategicMerge:
 - templates/deployment.yaml
 bases:
-- ../../base
+- ../defaults

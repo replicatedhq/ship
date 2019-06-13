@@ -7,6 +7,6 @@ roleRef:
   kind: ClusterRole
   name: istio-ingressgateway-default
 subjects:
-- kind: ServiceAccount
-  name: istio-ingressgateway-service-account
-  namespace: default
+  - kind: ServiceAccount
+    name: istio-ingressgateway-service-account
+    namespace: default

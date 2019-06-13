@@ -1,3 +1,6 @@
+---
+# Source: istio/charts/gateways/templates/clusterrolebindings.yaml
+
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -7,6 +10,6 @@ roleRef:
   kind: ClusterRole
   name: istio-egressgateway-default
 subjects:
-- kind: ServiceAccount
-  name: istio-egressgateway-service-account
-  namespace: default
+  - kind: ServiceAccount
+    name: istio-egressgateway-service-account
+    namespace: default

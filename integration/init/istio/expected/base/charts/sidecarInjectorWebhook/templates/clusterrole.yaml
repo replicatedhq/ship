@@ -1,26 +1,19 @@
+---
+# Source: istio/charts/sidecarInjectorWebhook/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  name: istio-sidecar-injector-default
   labels:
     app: sidecarInjectorWebhook
-    istio: sidecar-injector
+    chart: sidecarInjectorWebhook
+    heritage: Tiller
     release: istio
-  name: istio-sidecar-injector-default
+    istio: sidecar-injector
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - admissionregistration.k8s.io
-  resources:
-  - mutatingwebhookconfigurations
-  verbs:
-  - get
-  - list
-  - watch
-  - patch
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources: ["mutatingwebhookconfigurations"]
+  verbs: ["get", "list", "watch", "patch"]

@@ -1,19 +1,27 @@
+---
+# Source: concourse/templates/web-svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  annotations: null
+  name: concourse-web
   labels:
     app: concourse-web
-    release: concourse
-  name: concourse-web
+    chart: "concourse-3.7.2"
+    release: "concourse"
+    heritage: "Tiller"
+  annotations:
 spec:
+  type: ClusterIP
+  
+  
   ports:
-  - name: atc
-    port: 8080
-    targetPort: atc
-  - name: tsa
-    port: 2222
-    targetPort: tsa
+    - name: atc
+      port: 8080
+      targetPort: atc
+      
+    - name: tsa
+      port: 2222
+      targetPort: tsa
+      
   selector:
     app: concourse-web
-  type: ClusterIP

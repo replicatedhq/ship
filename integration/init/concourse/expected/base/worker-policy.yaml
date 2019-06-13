@@ -1,10 +1,14 @@
+---
+# Source: concourse/templates/worker-policy.yaml
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
+  name: concourse-worker
   labels:
     app: concourse-worker
-    release: concourse
-  name: concourse-worker
+    chart: "concourse-3.7.2"
+    release: "concourse"
+    heritage: "Tiller"
 spec:
   minAvailable: 1
   selector:

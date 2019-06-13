@@ -1,13 +1,17 @@
-apiVersion: v1
+---
+# Source: concourse/charts/postgresql/templates/pvc.yaml
 kind: PersistentVolumeClaim
+apiVersion: v1
 metadata:
+  name: concourse-postgresql
   labels:
     app: postgresql
+    chart: postgresql-0.13.1
     release: concourse
-  name: concourse-postgresql
+    heritage: Tiller
 spec:
   accessModes:
-  - ReadWriteOnce
+    - "ReadWriteOnce"
   resources:
     requests:
-      storage: 8Gi
+      storage: "8Gi"

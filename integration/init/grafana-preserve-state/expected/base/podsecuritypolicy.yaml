@@ -1,36 +1,41 @@
+---
+# Source: grafana/templates/podsecuritypolicy.yaml
+
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  annotations:
-    apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
-    apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: docker/default
-    seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
+  name: grafana
   labels:
     app: grafana
+    chart: grafana-1.19.0
+    heritage: Tiller
     release: grafana
-  name: grafana
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
 spec:
-  allowPrivilegeEscalation: false
-  fsGroup:
-    rule: RunAsAny
-  hostIPC: false
-  hostNetwork: false
-  hostPID: false
   privileged: false
-  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
   requiredDropCapabilities:
-  - ALL
-  runAsUser:
-    rule: RunAsAny
-  seLinux:
-    rule: RunAsAny
-  supplementalGroups:
-    rule: RunAsAny
+    - ALL
   volumes:
-  - configMap
-  - emptyDir
-  - projected
-  - secret
-  - downwardAPI
-  - persistentVolumeClaim
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: false

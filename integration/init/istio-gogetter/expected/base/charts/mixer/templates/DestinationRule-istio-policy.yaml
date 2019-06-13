@@ -1,13 +1,16 @@
+# Configuration needed by Mixer.
+# Mixer cluster is delivered via CDS
+# Specify mixer cluster settings
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
+  name: istio-policy
+  namespace: default
   labels:
     app: mixer
     chart: mixer
     heritage: Tiller
     release: istio
-  name: istio-policy
-  namespace: default
 spec:
   host: istio-policy.default.svc.cluster.local
   trafficPolicy:

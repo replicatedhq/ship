@@ -1,4 +1,14 @@
+---
+# Source: grafana/templates/configmap.yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+    chart: grafana-1.19.0
+    release: grafana
+    heritage: Tiller
 data:
   grafana.ini: |
     [analytics]
@@ -12,9 +22,3 @@ data:
     logs = /var/log/grafana
     plugins = /var/lib/grafana/plugins
     provisioning = /etc/grafana/provisioning
-kind: ConfigMap
-metadata:
-  labels:
-    app: grafana
-    release: grafana
-  name: grafana

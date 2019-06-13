@@ -1,9 +1,10 @@
-apiVersion: config.istio.io/v1alpha2
+apiVersion: "config.istio.io/v1alpha2"
 kind: rule
 metadata:
   name: promhttp
   namespace: default
 spec:
+  match: context.protocol == "http" || context.protocol == "grpc"
   actions:
   - handler: handler.prometheus
     instances:
@@ -11,4 +12,3 @@ spec:
     - requestduration.metric
     - requestsize.metric
     - responsesize.metric
-  match: context.protocol == "http" || context.protocol == "grpc"

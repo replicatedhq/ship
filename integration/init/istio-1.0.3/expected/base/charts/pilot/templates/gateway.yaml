@@ -1,3 +1,5 @@
+---
+# Source: istio/charts/pilot/templates/gateway.yaml
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -7,9 +9,11 @@ spec:
   selector:
     istio: ingress
   servers:
-  - hosts:
-    - '*'
-    port:
-      name: http
+  - port:
       number: 80
       protocol: HTTP2
+      name: http
+    hosts:
+    - "*"
+
+---

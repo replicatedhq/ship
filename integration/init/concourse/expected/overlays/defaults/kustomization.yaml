@@ -1,0 +1,177 @@
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    kind: ConfigMap
+    name: concourse-postgresql
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ConfigMap
+    name: concourse-postgresql
+    version: v1
+- path: chart-patch.json
+  target:
+    group: extensions
+    kind: Deployment
+    name: concourse-postgresql
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: extensions
+    kind: Deployment
+    name: concourse-postgresql
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: PersistentVolumeClaim
+    name: concourse-postgresql
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: PersistentVolumeClaim
+    name: concourse-postgresql
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: Secret
+    name: concourse-postgresql
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Secret
+    name: concourse-postgresql
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: Service
+    name: concourse-postgresql
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: concourse-postgresql
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: Secret
+    name: concourse-concourse
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Secret
+    name: concourse-concourse
+    version: v1
+- path: chart-patch.json
+  target:
+    group: extensions
+    kind: Deployment
+    name: concourse-web
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: extensions
+    kind: Deployment
+    name: concourse-web
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: concourse-web
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: concourse-web
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: concourse-web
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: concourse-web
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: Service
+    name: concourse-web
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: concourse-web
+    version: v1
+- path: chart-patch.json
+  target:
+    group: policy
+    kind: PodDisruptionBudget
+    name: concourse-worker
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: policy
+    kind: PodDisruptionBudget
+    name: concourse-worker
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: concourse-worker
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: concourse-worker
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: concourse-worker
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: concourse-worker
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: concourse-worker
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: concourse-worker
+    version: v1
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: StatefulSet
+    name: concourse-worker
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: StatefulSet
+    name: concourse-worker
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: Service
+    name: concourse-worker
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: concourse-worker
+    version: v1

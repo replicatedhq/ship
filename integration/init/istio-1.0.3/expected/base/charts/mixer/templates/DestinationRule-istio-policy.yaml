@@ -1,3 +1,6 @@
+# Configuration needed by Mixer.
+# Mixer cluster is delivered via CDS
+# Specify mixer cluster settings
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:

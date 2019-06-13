@@ -1,15 +1,19 @@
+---
+# Source: jenkins/templates/jenkins-agent-svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
+  name: jenkins-agent
   labels:
     app: jenkins
-    component: jenkins-jenkins-master
-  name: jenkins-agent
+    chart: "jenkins-0.20.1"
+    component: "jenkins-jenkins-master"
 spec:
   ports:
-  - name: slavelistener
-    port: 50000
-    targetPort: 50000
+    - port: 50000
+      targetPort: 50000
+      
+      name: slavelistener
   selector:
-    component: jenkins-jenkins-master
+    component: "jenkins-jenkins-master"
   type: ClusterIP

@@ -1,12 +1,17 @@
+---
+# Source: consul/templates/pod-dist-budget.yaml
+
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
+  name: "ship-consul-pdb"
   labels:
-    component: ship-consul
-    release: ship
-  name: ship-consul-pdb
+    heritage: "Tiller"
+    release: "ship"
+    chart: consul-3.5.3
+    component: "ship-consul"
 spec:
   maxUnavailable: 1
   selector:
     matchLabels:
-      component: ship-consul
+      component: "ship-consul"

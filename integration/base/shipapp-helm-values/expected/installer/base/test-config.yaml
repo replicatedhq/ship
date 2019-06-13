@@ -1,4 +1,9 @@
+---
+# Source: consul/templates/test-config.yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ship-consul-tests
 data:
   run.sh: |-
     @test "Testing Consul cluster has quorum" {
@@ -19,6 +24,3 @@ data:
         done
       done
     }
-kind: ConfigMap
-metadata:
-  name: ship-consul-tests
