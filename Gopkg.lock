@@ -794,6 +794,14 @@
   revision = "fa9f258a92500514cc8e9c67020487709df92432"
 
 [[projects]]
+  branch = "master"
+  digest = "1:16ae35b3a854c667baaf55ff5d455c486f7c2baf040a2727f2ef0e4b096b2a95"
+  name = "github.com/hashicorp/logutils"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a335183dfd075f638afcc820c90591ca3c97eba6"
+
+[[projects]]
   digest = "1:2f41d2e82a74475b356fcc25c7a2fcbe156c6ee1c9def67706a4c5b6e72ba828"
   name = "github.com/hashicorp/terraform"
   packages = [
@@ -1120,6 +1128,21 @@
   pruneopts = "UT"
   revision = "d60099175f88c47cd379c4738d158884749ed235"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:3bf1b548c360f000cd76b577960e7c4536de51dae3b3d125371f2d117b2ef00e"
+  name = "github.com/pact-foundation/pact-go"
+  packages = [
+    "client",
+    "dsl",
+    "install",
+    "proxy",
+    "types",
+    "utils",
+  ]
+  pruneopts = "UT"
+  revision = "b5a493b9157808d187d372288d092cfef9cec25f"
+  version = "v1.0.0-beta.5"
 
 [[projects]]
   digest = "1:342c898ef85c5032840d1518520957db169673495e4e1455f3f1f0eaca9a4994"
@@ -2157,6 +2180,7 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/format",
+    "github.com/pact-foundation/pact-go/dsl",
     "github.com/pkg/errors",
     "github.com/pmezard/go-difflib/difflib",
     "github.com/replicatedhq/libyaml",
