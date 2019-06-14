@@ -25,3 +25,5 @@ cmd/ship/overlays
 
 # local circle builds
 altconfig.yaml
+logs/
+pacts/

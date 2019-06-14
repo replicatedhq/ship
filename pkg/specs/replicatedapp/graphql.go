@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const getAppspecQuery = `
+const GetAppspecQuery = `
 query($semver: String) {
   shipRelease (semver: $semver) {
     id
@@ -248,7 +248,7 @@ func NewGraphqlClient(v *viper.Viper, client *http.Client) (*GraphQLClient, erro
 // GetRelease gets a payload from the graphql server
 func (c *GraphQLClient) GetRelease(selector *Selector) (*state.ShipRelease, error) {
 	requestObj := GraphQLRequest{
-		Query: getAppspecQuery,
+		Query: GetAppspecQuery,
 		Variables: map[string]string{
 			"semver": selector.ReleaseSemver,
 		},
@@ -396,6 +396,7 @@ func (c *GraphQLClient) callGQL(ci callInfo, result interface{}) error {
 	if ci.upstream != "" {
 		gqlServer = ci.upstream
 	}
+
 	graphQLRequest, err := http.NewRequest(http.MethodPost, gqlServer, bodyReader)
 	if err != nil {
 		return errors.Wrap(err, "create new request")
