@@ -73,6 +73,13 @@ githooks:
 	echo 'make fmt; git add `git diff --name-only --cached`' > .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
+.PHONY: pacts
+pacts:
+	docker build -t ship-contract-tests -f contracts/Dockerfile.testing .
+	docker run --rm --name ship-contract-tests \
+		ship-contract-tests \
+		bash -c 'go test -v ./contracts/...'
+
 _mockgen:
 	rm -rf pkg/test-mocks
 	mkdir -p pkg/test-mocks/ui

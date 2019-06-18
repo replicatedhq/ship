@@ -158,6 +158,7 @@ jobs:
           name: make test
           command: |
             mkdir -p $GOCACHE
+
             make build-deps citest
             if [ -n "$CC_TEST_REPORTER_ID" ]; then
               make ci-upload-coverage
@@ -166,6 +167,15 @@ jobs:
           paths:
             - /tmp/go/cache
           key: ship-unit-test-build-cache-{{ epoch }}
+
+  pacts:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: make build-deps pacts
 
   windows_build_test:
     docker:
@@ -592,6 +602,7 @@ workflows:
             - e2e_setup
 
       - test
+      - pacts
       - windows_build_test
       - docs
       - integration_base
@@ -627,6 +638,7 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
+            - pacts
             - windows_build_test
             - integration_base
             - integration_init
@@ -689,6 +701,13 @@ workflows:
               ignore: /.*/
 
       - test:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+
+      - pacts:
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
@@ -765,6 +784,7 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
+            - pacts
             - windows_build_test
             - integration_base
             - integration_init

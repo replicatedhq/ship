@@ -142,3 +142,7 @@ ignored = [
 [[override]]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
+
+[[constraint]]
+  name = "github.com/pact-foundation/pact-go"
+  version = "1.0.0-beta"
