@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
-	replapp "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+
+	replapp "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 )
 
 func Test_GetReleaseFromSemver(t *testing.T) {

@@ -77,9 +77,8 @@ githooks:
 pacts:
 	docker build -t ship-contract-tests -f contracts/Dockerfile.testing .
 	docker run --rm --name ship-contract-tests \
-		-v `pwd`:/go/src/github.com/replicatedhq/ship \
 		ship-contract-tests \
-		pwd && ls && go test -v ./contracts/...
+		bash -c 'go test -v ./contracts/...'
 
 _mockgen:
 	rm -rf pkg/test-mocks

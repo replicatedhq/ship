@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	pact.WritePact()
+
 	pact.Teardown()
 
 	os.Exit(code)
