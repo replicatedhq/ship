@@ -16,6 +16,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/fs"
 	"github.com/replicatedhq/ship/pkg/specs/apptype"
 	"github.com/replicatedhq/ship/pkg/specs/githubclient"
@@ -34,11 +35,23 @@ type ContentProcessor struct {
 	ui               cli.Ui
 	appTypeInspector apptype.Inspector
 	shaSummer        shaSummer
+	rootDir          string
 }
 
 func NewContentProcessor(v *viper.Viper) (*ContentProcessor, error) {
 	logger := log.NewLogfmtLogger(os.Stdout)
 	fs := fs.NewBaseFilesystem()
+
+	dir, err := fs.TempDir("", "watch")
+	if err != nil {
+		return nil, err
+	}
+	constants.SetShipRootDir(dir)
+
+	if err := os.MkdirAll(constants.ShipPathInternalTmp, 0755); err != nil {
+		return nil, err
+	}
+
 	ui := &cli.BasicUi{
 		Reader:      os.Stdin,
 		Writer:      os.Stdout,
@@ -58,6 +71,7 @@ func NewContentProcessor(v *viper.Viper) (*ContentProcessor, error) {
 		ui:               ui,
 		appTypeInspector: appTypeInspector,
 		shaSummer:        calculateContentSHA,
+		rootDir:          dir,
 	}, nil
 }
 
@@ -205,4 +219,8 @@ customizing these resources and preparing them to deploy to your infrastructure.
 `, upstream, localPath)
 	}
 	return &md, nil
+}
+
+func (c *ContentProcessor) RemoveAll() error {
+	return c.FS.RemoveAll(c.rootDir)
 }
