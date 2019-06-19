@@ -152,7 +152,8 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 				},
 				Logger: testLogger,
 			}
-			actual, err := r.MaybeResolveVersionedUpstream(context.Background(), tt.upstream, tt.currentState)
+			p := r.NewContentProcessor()
+			actual, err := p.MaybeResolveVersionedUpstream(context.Background(), tt.upstream, tt.currentState)
 			if tt.expectErr {
 				req.Error(err)
 			} else {

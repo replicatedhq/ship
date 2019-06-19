@@ -188,7 +188,7 @@ func (r *LocalRenderer) resolveNoProxyGithubAssets(asset api.GitHubAsset, builde
 
 	var fetcher apptype.FileFetcher
 	localFetchPath := filepath.Join(constants.InstallerPrefixPath, constants.GithubAssetSavePath)
-	fetcher = githubclient.NewGithubClient(r.Fs, r.Logger)
+	fetcher = githubclient.NewGithubClient(r.Logger)
 	if r.Viper.GetBool("prefer-git") {
 		var isSingleFile bool
 		var subdir string

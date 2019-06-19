@@ -16,6 +16,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/util"
+	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -265,7 +266,7 @@ For continuous notification and preparation of application updates via email, we
 func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath string, applicationType string) (*api.ShipAppMetadata, error) {
 	debug := level.Debug(log.With(r.Logger, "method", "ResolveHelmMetadata"))
 
-	baseMetadata, err := r.ResolveBaseMetadata(upstream, localPath)
+	baseMetadata, err := r.NewContentProcessor().ResolveBaseMetadata(upstream, localPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "resolve base metadata")
 	}
@@ -333,45 +334,6 @@ func (r *Resolver) resolveMetadata(ctx context.Context, upstream, localPath stri
 	return baseMetadata, nil
 }
 
-// ResolveBaseMetadata resolves URL, ContentSHA, and Readme for the resource
-func (r *Resolver) ResolveBaseMetadata(upstream string, localPath string) (*api.ShipAppMetadata, error) {
-	debug := level.Debug(log.With(r.Logger, "method", "resolveBaseMetaData"))
-	var md api.ShipAppMetadata
-	md.URL = upstream
-	debug.Log("phase", "calculate-sha", "for", localPath)
-	contentSHA, err := r.shaSummer(r, localPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "calculate chart sha")
-	}
-	md.ContentSHA = contentSHA
-
-	localReadmePath := filepath.Join(localPath, "README.md")
-	debug.Log("phase", "read-readme", "from", localReadmePath)
-	readme, err := r.FS.ReadFile(localReadmePath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, errors.Wrapf(err, "read file from %s", localReadmePath)
-		}
-	}
-	if readme != nil {
-		md.Readme = string(readme)
-	} else {
-		// TODO default README better
-		md.Readme = fmt.Sprintf(`
-Deployment Generator
-===========================
-
-This is a deployment generator for
-
-    ship init %s
-
-Sources for your app have been generated at %s. This installer will walk you through
-customizing these resources and preparing them to deploy to your infrastructure.
-`, upstream, localPath)
-	}
-	return &md, nil
-}
-
 func (r *Resolver) maybeGetShipYAML(ctx context.Context, localPath string) (*api.Spec, error) {
 	localReleasePaths := []string{
 		filepath.Join(localPath, "ship.yaml"),
@@ -404,11 +366,11 @@ func (r *Resolver) maybeGetShipYAML(ctx context.Context, localPath string) (*api
 	return nil, nil
 }
 
-type shaSummer func(r *Resolver, localPath string) (string, error)
+type shaSummer func(fs afero.Afero, localPath string) (string, error)
 
-func (r *Resolver) calculateContentSHA(root string) (string, error) {
+func calculateContentSHA(fs afero.Afero, root string) (string, error) {
 	var contents []byte
-	err := r.FS.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := fs.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.Wrapf(err, "fs walk")
 		}
@@ -430,7 +392,8 @@ func (r *Resolver) calculateContentSHA(root string) (string, error) {
 			return nil
 		}
 
-		fileContents, err := r.FS.ReadFile(path)
+		// TODO: Use checksum writer instead of loading ALL FILES in memory.
+		fileContents, err := fs.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "read file")
 		}

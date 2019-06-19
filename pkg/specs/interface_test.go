@@ -47,7 +47,7 @@ func TestResolver_ResolveRelease(t *testing.T) {
 			name:     "helm chart in github",
 			upstream: "github.com/helm/charts/stable/x5",
 			unfork:   false,
-			shaSummer: func(resolver *Resolver, s string) (string, error) {
+			shaSummer: func(fs afero.Afero, s string) (string, error) {
 				return "abcdef1234567890", nil
 			},
 			expect: func(
@@ -167,7 +167,7 @@ icon: https://kfbr.392/x5.png
 			name:     "plain k8s app",
 			upstream: "github.com/replicatedhq/test-charts/plain-k8s",
 			unfork:   false,
-			shaSummer: func(resolver *Resolver, s string) (string, error) {
+			shaSummer: func(fs afero.Afero, s string) (string, error) {
 				return "abcdef1234567890", nil
 			},
 			expect: func(
@@ -378,7 +378,7 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 				FS:               fs,
 			}
 
-			sha, err := r.ReadContentSHAForWatch(ctx, test.upstream)
+			sha, err := r.NewContentProcessor().ReadContentSHAForWatch(ctx, test.upstream)
 			req.NoError(err)
 			req.Equal(test.expectSHA, sha)
 		})

@@ -129,7 +129,7 @@ func (f *LocalTemplater) createDependencyUpstreamFromAsset(originalAsset api.Hel
 
 func (f *LocalTemplater) fetchLocalHelmDependency(upstream string, fetchPath string) (string, error) {
 	var fetcher apptype.FileFetcher
-	fetcher = githubclient.NewGithubClient(f.FS, f.Logger)
+	fetcher = githubclient.NewGithubClient(f.Logger)
 	if f.Viper.GetBool("prefer-git") {
 		var isSingleFile bool
 		var subdir string

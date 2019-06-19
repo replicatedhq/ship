@@ -50,7 +50,8 @@ func (s *Ship) Update(ctx context.Context) error {
 		return errors.Errorf(`No upstream URL found at %s, please run "ship init"`, uiPrintableStatePath)
 	}
 
-	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
+	p := s.Resolver.NewContentProcessor()
+	maybeVersionedUpstream, err := p.MaybeResolveVersionedUpstream(ctx, upstreamURL, existingState)
 	if err != nil {
 		return errors.New(`Unable to resolve versioned upstream ` + upstreamURL)
 	}

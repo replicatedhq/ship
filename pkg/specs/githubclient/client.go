@@ -18,7 +18,8 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
-	"github.com/spf13/afero"
+
+	// "github.com/spf13/afero"
 	"golang.org/x/oauth2"
 )
 
@@ -32,10 +33,9 @@ var _ GitHubFetcher = &GithubClient{}
 type GithubClient struct {
 	Logger log.Logger
 	Client *github.Client
-	Fs     afero.Afero
 }
 
-func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
+func NewGithubClient(logger log.Logger) *GithubClient {
 	var httpClient *http.Client
 	if accessToken := os.Getenv("GITHUB_TOKEN"); accessToken != "" {
 		level.Debug(logger).Log("msg", "using github access token from environment")
@@ -47,7 +47,6 @@ func NewGithubClient(fs afero.Afero, logger log.Logger) *GithubClient {
 	client := github.NewClient(httpClient)
 	return &GithubClient{
 		Client: client,
-		Fs:     fs,
 		Logger: logger,
 	}
 }
@@ -72,7 +71,7 @@ func (g *GithubClient) GetFiles(
 	}
 
 	debug.Log("event", "removeAll", "destinationPath", destinationPath)
-	err = g.Fs.RemoveAll(destinationPath)
+	err = os.RemoveAll(destinationPath)
 	if err != nil {
 		return "", errors.Wrap(err, "remove chart clone destination")
 	}
@@ -155,10 +154,10 @@ func (g *GithubClient) downloadAndExtractFiles(
 					fileName = strings.TrimPrefix(fileName, basePath)
 				}
 				dirPath, _ := path.Split(fileName)
-				if err := g.Fs.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
+				if err := os.MkdirAll(filepath.Join(filePath, dirPath), 0755); err != nil {
 					return errors.Wrapf(err, "extract tar gz, mkdir")
 				}
-				outFile, err := g.Fs.Create(filepath.Join(filePath, fileName))
+				outFile, err := os.Create(filepath.Join(filePath, fileName))
 				if err != nil {
 					return errors.Wrapf(err, "extract tar gz, create")
 				}

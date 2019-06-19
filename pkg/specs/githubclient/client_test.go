@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,7 +18,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/spf13/afero"
 )
 
 var client *github.Client
@@ -61,23 +61,21 @@ var _ = Describe("GithubClient", func() {
 		Context("With a url prefixed with http(s)", func() {
 			It("should fetch and persist README.md and Chart.yaml", func() {
 				validGitURLWithPrefix := "http://www.github.com/o/r/"
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := &GithubClient{
 					Client: client,
-					Fs:     mockFs,
 					Logger: log.NewNopLogger(),
 				}
 
 				dest, err := gitClient.GetFiles(context.Background(), validGitURLWithPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				readme, err := gitClient.Fs.ReadFile(path.Join(dest, "README.md"))
+				readme, err := ioutil.ReadFile(path.Join(dest, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.Fs.ReadFile(path.Join(dest, "Chart.yaml"))
+				chart, err := ioutil.ReadFile(path.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
-				deployment, err := gitClient.Fs.ReadFile(path.Join(dest, "templates", "deployment.yml"))
+				deployment, err := ioutil.ReadFile(path.Join(dest, "templates", "deployment.yml"))
 				Expect(err).NotTo(HaveOccurred())
-				service, err := gitClient.Fs.ReadFile(path.Join(dest, "templates", "service.yml"))
+				service, err := ioutil.ReadFile(path.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(readme)).To(Equal("foo"))
@@ -90,23 +88,21 @@ var _ = Describe("GithubClient", func() {
 		Context("With a url not prefixed with http", func() {
 			It("should fetch and persist README.md and Chart.yaml", func() {
 				validGitURLWithoutPrefix := "github.com/o/r"
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := &GithubClient{
 					Client: client,
-					Fs:     mockFs,
 					Logger: log.NewNopLogger(),
 				}
 
 				dest, err := gitClient.GetFiles(context.Background(), validGitURLWithoutPrefix, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				readme, err := gitClient.Fs.ReadFile(path.Join(dest, "README.md"))
+				readme, err := ioutil.ReadFile(path.Join(dest, "README.md"))
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.Fs.ReadFile(path.Join(dest, "Chart.yaml"))
+				chart, err := ioutil.ReadFile(path.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
-				deployment, err := gitClient.Fs.ReadFile(path.Join(dest, "templates", "deployment.yml"))
+				deployment, err := ioutil.ReadFile(path.Join(dest, "templates", "deployment.yml"))
 				Expect(err).NotTo(HaveOccurred())
-				service, err := gitClient.Fs.ReadFile(path.Join(dest, "templates", "service.yml"))
+				service, err := ioutil.ReadFile(path.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(readme)).To(Equal("foo"))
@@ -119,10 +115,8 @@ var _ = Describe("GithubClient", func() {
 		Context("With a non-github url", func() {
 			It("should return an error", func() {
 				nonGithubURL := "gitlab.com/o/r"
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := &GithubClient{
 					Client: client,
-					Fs:     mockFs,
 					Logger: log.NewNopLogger(),
 				}
 
@@ -135,17 +129,15 @@ var _ = Describe("GithubClient", func() {
 		Context("With a url path to a single file at the base of the repo", func() {
 			It("should fetch and persist the file", func() {
 				validGithubURLSingle := "github.com/o/r/blob/master/Chart.yaml"
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := &GithubClient{
 					Client: client,
-					Fs:     mockFs,
 					Logger: log.NewNopLogger(),
 				}
 
 				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
 
-				chart, err := gitClient.Fs.ReadFile(filepath.Join(dest, "Chart.yaml"))
+				chart, err := ioutil.ReadFile(filepath.Join(dest, "Chart.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("bar"))
@@ -155,16 +147,14 @@ var _ = Describe("GithubClient", func() {
 		Context("With a url path to a single nested file", func() {
 			It("should fetch and persist the file", func() {
 				validGithubURLSingle := "github.com/o/r/blob/master/templates/service.yml"
-				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 				gitClient := &GithubClient{
 					Client: client,
-					Fs:     mockFs,
 					Logger: log.NewNopLogger(),
 				}
 
 				dest, err := gitClient.GetFiles(context.Background(), validGithubURLSingle, constants.HelmChartPath)
 				Expect(err).NotTo(HaveOccurred())
-				chart, err := gitClient.Fs.ReadFile(filepath.Join(dest, "templates", "service.yml"))
+				chart, err := ioutil.ReadFile(filepath.Join(dest, "templates", "service.yml"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(chart)).To(Equal("service"))
