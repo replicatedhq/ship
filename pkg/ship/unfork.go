@@ -44,7 +44,8 @@ func (s *Ship) Unfork(ctx context.Context) error {
 		return errors.New("No upstream provided")
 	}
 
-	maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstream, existingState)
+	p := s.Resolver.NewContentProcessor()
+	maybeVersionedUpstream, err := p.MaybeResolveVersionedUpstream(ctx, upstream, existingState)
 	if err != nil {
 		return errors.Wrap(err, "create versioned upstream release")
 	}
@@ -54,7 +55,7 @@ func (s *Ship) Unfork(ctx context.Context) error {
 		return errors.New("No fork provided")
 	}
 
-	maybeVersionedFork, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, fork, existingState)
+	maybeVersionedFork, err := p.MaybeResolveVersionedUpstream(ctx, fork, existingState)
 	if err != nil {
 		return errors.Wrap(err, "create versioned fork release")
 	}

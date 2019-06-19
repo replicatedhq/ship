@@ -50,12 +50,10 @@ func NewResolver(
 		Viper:            v,
 		ui:               ui,
 		appTypeInspector: determiner,
-		shaSummer: func(resolver *Resolver, s string) (string, error) {
-			return resolver.calculateContentSHA(s)
-		},
-		AppResolver:   appresolver,
-		GitHubFetcher: github,
-		NoOutro:       v.GetBool("no-outro"),
-		isEdit:        v.GetBool("isEdit"),
+		shaSummer:        calculateContentSHA,
+		AppResolver:      appresolver,
+		GitHubFetcher:    github,
+		NoOutro:          v.GetBool("no-outro"),
+		isEdit:           v.GetBool("isEdit"),
 	}
 }

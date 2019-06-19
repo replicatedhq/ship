@@ -48,10 +48,10 @@ func TestStableContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("")
+	firstPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("")
+	secondPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	req.Equal(firstPass, secondPass)
@@ -75,13 +75,13 @@ func TestChangingContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("")
+	firstPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	err = mockFs.WriteFile("newfile.txt", []byte("I AM A NEW FILE"), 0755)
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("")
+	secondPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	req.NotEqual(firstPass, secondPass)
@@ -107,13 +107,13 @@ func TestStableGitContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("")
+	firstPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	err = mockFs.WriteFile(".git/newfile.txt", []byte("I AM A NEW GIT FILE"), 0755)
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("")
+	secondPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	req.Equal(firstPass, secondPass)
@@ -141,10 +141,10 @@ func TestRootIndependentContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("path1")
+	firstPass, err := calculateContentSHA(r.FS, "path1")
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("path2")
+	secondPass, err := calculateContentSHA(r.FS, "path2")
 	req.NoError(err)
 
 	req.Equal(firstPass, secondPass)
@@ -168,13 +168,13 @@ func TestMoveFileContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("")
+	firstPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	err = mockFs.Rename("templates/README.md", "templated/README.md")
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("")
+	secondPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	req.NotEqual(firstPass, secondPass)
@@ -198,7 +198,7 @@ func TestEditFileContentSha(t *testing.T) {
 		},
 	}
 
-	firstPass, err := r.calculateContentSHA("")
+	firstPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	err = mockFs.Remove("templates/README.md")
@@ -206,7 +206,7 @@ func TestEditFileContentSha(t *testing.T) {
 	err = mockFs.WriteFile("templates/README.md", []byte("not readme"), 0755)
 	req.NoError(err)
 
-	secondPass, err := r.calculateContentSHA("")
+	secondPass, err := calculateContentSHA(r.FS, "")
 	req.NoError(err)
 
 	req.NotEqual(firstPass, secondPass)
