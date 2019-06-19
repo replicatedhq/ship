@@ -65,7 +65,7 @@ query($semver: String) {
   }
 }`
 
-const getSlugAppSpecQuery = `
+const GetSlugAppSpecQuery = `
 query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String) {
   shipSlugRelease (appSlug: $appSlug, licenseID: $licenseID, releaseID: $releaseID, semver: $semver) {
     id
@@ -120,7 +120,7 @@ query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String
   }
 }`
 
-const getLicenseQuery = `
+const GetLicenseQuery = `
 query($licenseId: String) {
   license (licenseId: $licenseId) {
     id
@@ -281,7 +281,7 @@ func (c *GraphQLClient) GetRelease(selector *Selector) (*state.ShipRelease, erro
 // GetSlugRelease gets a release from the graphql server by app slug
 func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*state.ShipRelease, error) {
 	requestObj := GraphQLRequest{
-		Query: getSlugAppSpecQuery,
+		Query: GetSlugAppSpecQuery,
 		Variables: map[string]string{
 			"appSlug":   selector.AppSlug,
 			"licenseID": selector.LicenseID,
@@ -314,9 +314,9 @@ func (c *GraphQLClient) GetSlugRelease(selector *Selector) (*state.ShipRelease, 
 	return &shipResponse.Data.ShipSlugRelease, nil
 }
 
-func (c *GraphQLClient) getLicense(selector *Selector) (*license, error) {
+func (c *GraphQLClient) GetLicense(selector *Selector) (*license, error) {
 	requestObj := GraphQLRequest{
-		Query: getLicenseQuery,
+		Query: GetLicenseQuery,
 		Variables: map[string]string{
 			"licenseId": selector.LicenseID,
 		},

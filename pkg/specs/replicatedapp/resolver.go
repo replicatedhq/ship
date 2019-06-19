@@ -171,7 +171,7 @@ func (r *resolver) FetchLicense(ctx context.Context, selector *Selector) (*licen
 		return &license{}, nil
 	}
 
-	license, err := r.Client.getLicense(selector)
+	license, err := r.Client.GetLicense(selector)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get license")
 	}
