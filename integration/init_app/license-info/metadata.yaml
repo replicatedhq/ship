@@ -6,3 +6,4 @@ replacements:
     "signature.*" : "signature: replaced signature"
 skip_cleanup: false
 skip_edit: false
+skip_init: true
