@@ -357,6 +357,15 @@ func RecursiveNormalizeCopyKustomize(fs afero.Afero, sourceDir, destDir string) 
 			return errors.Wrapf(err, "parse kustomization in %s", sourceDir)
 		}
 
+		// remove strategic merge patches from the copied files - their contents will be added to the relevant bases
+		for _, patch := range kustomization.PatchesStrategicMerge {
+			patchString := string(patch)
+			err = fs.Remove(filepath.Join(destDir, patchString))
+			if err != nil {
+				return errors.Wrapf(err, "remove patch at %s from destDir %s when copying from %s", patchString, destDir, sourceDir)
+			}
+		}
+
 		for _, newBase := range kustomization.Bases {
 			newBase = filepath.Clean(filepath.Join(sourceDir, newBase))
 			cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
