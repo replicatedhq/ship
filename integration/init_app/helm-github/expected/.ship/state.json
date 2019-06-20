@@ -21,7 +21,7 @@
     "upstreamContents": {
       "appRelease": {
         "id": "cZB0VTZLBexn0s53sMzVB0Id3VvSPcCZ",
-        "sequence": 0,
+        "sequence": 6060,
         "channelId": "t_qVrkESBiqOa8ZraseeS38bXy-qgpSe",
         "channelName": "integration replicated.app helm-github",
         "channelIcon": "",

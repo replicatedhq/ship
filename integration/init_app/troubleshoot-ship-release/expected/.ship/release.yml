@@ -1,0 +1,81 @@
+
+---
+# assets are everything an end customer needs to deploy your application, like
+#
+#  - kubernetes or docker-compose manifests
+#  - installation scripts
+#  - modules for ansible/chef/puppet
+#  - private docker images
+#  - compiled artifacts and binaries
+#
+# assets will be templated using customer-supplied
+# install info from the "config" section (below)
+assets:
+  v1:
+    # "inline" can be used to supply assets directly in the spec
+    - inline:
+        contents: |
+          #!/bin/bash
+          echo "applying kuberentes configs"
+          kubectl apply -f ./k8s/* -n {{repl ConfigOption "k8s_namespace" }}
+        dest: ./scripts/install.sh
+        mode: 0777
+    # "inline" can be used to supply assets directly in the spec
+    - inline:
+        contents: |
+          #!/bin/bash
+          set -e
+          kubectl get namespace {{repl ConfigOption "k8s_namespace" }} | wc -l
+          echo "? Namespace Created"
+        dest: ./scripts/test.sh
+        mode: 0777
+
+# Config defines the configuration options available to your application.
+# Values supplied by the end customer will be used during asset generation.
+config:
+  v1:
+    - name: cluster_info
+      title: Kubernetes Cluster Info
+      description: information about your kubernetes cluster
+      items:
+      - name: k8s_namespace
+        title: Namespace to Deploy into
+        type: text
+      - name: worker_replicas
+        title: Number of Workers to Deploy
+        type: text
+
+# Lifecycle allows you to customize the messaging and workflow for your end customer
+# when they are generating assets. Currently the two support lifecycle steps are
+#
+#  - message -- prints a message
+#  - render  -- collects config and generates assets
+lifecycle:
+  v1:
+    - message:
+        contents: |
+          This tool will prepare assets so you can deploy SuperGoodTool-Enterpise
+          to your existing Kubernetes cluster
+    - render: {}
+    - message:
+        contents: |
+          SuperGoodTool is ready to deploy to your kubernetes cluster.
+
+          If you have kubectl configured locally, you can
+          run the following command to deploy SuperGoodTool to
+          your kubernetes cluster:
+
+              bash ./scripts/install.sh
+
+          To upgrade an existing installation, use
+
+              bash ./scripts/upgrade.sh
+
+          To uninstall SuperGoodTool, run
+
+              bash ./scripts/uninstall.sh
+    - message:
+       level: warn
+       contents: |
+         A state file has been written to {{repl context "state_file_path" }} -- please store it
+         somewhere safe, you'll need it if you want to recover or update this installation of SuperGoodTool.

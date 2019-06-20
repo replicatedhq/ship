@@ -17,57 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const GetAppspecQuery = `
-query($semver: String) {
-  shipRelease (semver: $semver) {
-    id
-    channelId
-    channelName
-    channelIcon
-    semver
-    releaseNotes
-    spec
-    images {
-      url
-      source
-      appSlug
-      imageKey
-    }
-    githubContents {
-      repo
-      path
-      ref
-      files {
-        name
-        path
-        sha
-        size
-        data
-      }
-    }
-    entitlements {
-      values {
-        key
-        value
-        labels {
-          key
-          value
-        }
-      }
-      meta {
-        customerID
-        lastUpdated
-      }
-      signature
-    }
-    created
-    registrySecret
-  }
-}`
-
-const GetSlugAppSpecQuery = `
-query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String) {
-  shipSlugRelease (appSlug: $appSlug, licenseID: $licenseID, releaseID: $releaseID, semver: $semver) {
+const ShipRelease = `
     id
     sequence
     channelId
@@ -117,6 +67,20 @@ query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String
     }
     created
     registrySecret
+    collectSpec
+    analyzeSpec`
+
+const GetAppspecQuery = `
+query($semver: String) {
+  shipRelease (semver: $semver) {
+` + ShipRelease + `
+  }
+}`
+
+const GetSlugAppSpecQuery = `
+query($appSlug: String!, $licenseID: String, $releaseID: String, $semver: String) {
+  shipSlugRelease (appSlug: $appSlug, licenseID: $licenseID, releaseID: $releaseID, semver: $semver) {
+` + ShipRelease + `
   }
 }`
 
