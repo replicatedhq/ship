@@ -84,6 +84,14 @@ pacts-ci:
 		ship-contract-tests \
 		bash -c 'go test -v ./contracts/...'
 
+.PHONY: pacts-ci-publish
+pacts-ci-publish:
+	docker build -t ship-contract-tests -f contracts/Dockerfile.testing .
+	docker run --rm --name ship-contract-tests \
+		-e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD -e VERSION=$$CIRCLE_TAG \
+		ship-contract-tests \
+		bash -c 'go test -v ./contracts/... && ./contracts/publish.sh'
+
 _mockgen:
 	rm -rf pkg/test-mocks
 	mkdir -p pkg/test-mocks/ui

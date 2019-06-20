@@ -177,6 +177,15 @@ jobs:
       - setup_remote_docker
       - run: make build-deps pacts-ci
 
+  pacts_publish:
+    docker:
+    - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/replicatedhq/ship
+    steps:
+    - checkout
+    - setup_remote_docker
+    - run: make build-deps pacts-ci-publish
+
   windows_build_test:
     docker:
       - image: golang:1.12
@@ -795,6 +804,14 @@ workflows:
             - ui
             - docs
             - is_upstream
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+            branches:
+              ignore: /.*/
+      - pacts_publish:
+          requires:
+            - deploy
           filters:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
