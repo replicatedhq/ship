@@ -66,7 +66,9 @@ const ShipRelease = `
       signature
     }
     created
-    registrySecret`
+    registrySecret
+    collectSpec
+    analyzeSpec`
 
 const GetAppspecQuery = `
 query($semver: String) {

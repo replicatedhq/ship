@@ -1,0 +1,42 @@
+{
+  "v1": {
+    "config": {},
+    "upstream": "__upstream__",
+    "contentSHA": "71dd296d8fae1f07f66b05d2e12710eb58bd7725d55093e41b6501b592418b31",
+    "metadata": {
+      "applicationType": "replicated.app",
+      "customerID": "__customerID__",
+      "installationID": "__installationID__",
+      "license": {
+        "assignee": "",
+        "createdAt": "0001-01-01T00:00:00Z",
+        "expiresAt": "0001-01-01T00:00:00Z",
+        "id": "",
+        "type": ""
+      },
+      "releaseNotes": "",
+      "sequence": 0,
+      "version": "0.0.1"
+    },
+    "releaseName": "stable",
+    "upstreamContents": {
+      "appRelease": {
+        "id": "J6APm7ozSXsvq7DvBpXe0V2Ck3Il7c6K",
+        "sequence": 2,
+        "channelId": "c-uuoWhpOVAhShsdYnfoNk-v2kYOEpHq",
+        "channelName": "Stable",
+        "channelIcon": "",
+        "semver": "0.0.1",
+        "releaseNotes": "",
+        "spec": "\n---\n# assets are everything an end customer needs to deploy your application, like\n#\n#  - kubernetes or docker-compose manifests\n#  - installation scripts\n#  - modules for ansible/chef/puppet\n#  - private docker images\n#  - compiled artifacts and binaries\n#\n# assets will be templated using customer-supplied\n# install info from the \"config\" section (below)\nassets:\n  v1:\n    # \"inline\" can be used to supply assets directly in the spec\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"applying kuberentes configs\"\n          kubectl apply -f ./k8s/* -n {{repl ConfigOption \"k8s_namespace\" }}\n        dest: ./scripts/install.sh\n        mode: 0777\n    # \"inline\" can be used to supply assets directly in the spec\n    - inline:\n        contents: |\n          #!/bin/bash\n          set -e\n          kubectl get namespace {{repl ConfigOption \"k8s_namespace\" }} | wc -l\n          echo \"? Namespace Created\"\n        dest: ./scripts/test.sh\n        mode: 0777\n\n# Config defines the configuration options available to your application.\n# Values supplied by the end customer will be used during asset generation.\nconfig:\n  v1:\n    - name: cluster_info\n      title: Kubernetes Cluster Info\n      description: information about your kubernetes cluster\n      items:\n      - name: k8s_namespace\n        title: Namespace to Deploy into\n        type: text\n      - name: worker_replicas\n        title: Number of Workers to Deploy\n        type: text\n\n# Lifecycle allows you to customize the messaging and workflow for your end customer\n# when they are generating assets. Currently the two support lifecycle steps are\n#\n#  - message -- prints a message\n#  - render  -- collects config and generates assets\nlifecycle:\n  v1:\n    - message:\n        contents: |\n          This tool will prepare assets so you can deploy SuperGoodTool-Enterpise\n          to your existing Kubernetes cluster\n    - render: {}\n    - message:\n        contents: |\n          SuperGoodTool is ready to deploy to your kubernetes cluster.\n\n          If you have kubectl configured locally, you can\n          run the following command to deploy SuperGoodTool to\n          your kubernetes cluster:\n\n              bash ./scripts/install.sh\n\n          To upgrade an existing installation, use\n\n              bash ./scripts/upgrade.sh\n\n          To uninstall SuperGoodTool, run\n\n              bash ./scripts/uninstall.sh\n    - message:\n       level: warn\n       contents: |\n         A state file has been written to {{repl context \"state_file_path\" }} -- please store it\n         somewhere safe, you'll need it if you want to recover or update this installation of SuperGoodTool.\n  ",
+        "images": [],
+        "githubContents": [],
+        "created": "Wed Jun 19 2019 23:57:55 GMT+0000 (UTC)",
+        "registrySecret": "THIS IS NOT A SECRET",
+        "entitlements": {},
+        "collectSpec": "collect:\n  v1:\n    - docker.info:\n        output_dir: /docker/info\n    - docker.ps:\n        output_dir: /docker/ps\n    - docker.container-inspect:\n        output_dir: /docker/my-container\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"my-sweet-container\"\n    \n\n    - kubernetes.version:\n        output_dir: /k8s/version\n    - kubernetes.cluster-info:\n        output_dir: /k8s/cluster\n    \n\n    - os.loadavg:\n        output_dir: /os/loadavg\n    - os.hostname:\n        output_dir: /os/hostname\n    - os.uptime:\n        output_dir: /os/uptime\n    - os.run-command:\n        output_dir: /os/df\n        name: df\n        args:\n          - -h\n          - --total\n    - os.run-command:\n        output_dir: /os/proc/meminfo\n        name: cat\n        args:\n          - /proc/meminfo\n    - os.run-command:\n        output_dir: /os/proc/cpuinfo\n        name: cat\n        args:\n          - /proc/cpuinfo\n    - os.run-command:\n        output_dir: /os/ps\n        name: ps\n        args:\n          - auwwf\n    - os.read-file:\n        filepath: /etc/os-release\n        output_dir: /os/etc/os-release\n    - os.read-file:\n        filepath: /usr/lib/os-release\n        output_dir: /os/usr/lib/os-release\n    - os.read-file:\n        filepath: /etc/centos-release\n        output_dir: /os/etc/centos-release\n    \n\n    - docker.container-inspect:\n        output_dir: /replicated/replicated/inspect\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"replicated\"\n              - \"retraced\"\n              - \"premkit\"\n\n    - docker.logs:\n        output_dir: /replicated/replicated/logs\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"replicated\"\n              - \"retraced\"\n              - \"premkit\"\n    ",
+        "analyzeSpec": "analyze:\n  v1:\n    - name: replicated.api.ok\n      labels:\n        iconKey: gray_checkmark\n      registerVariables:\n        - name: replicatedApiIoTimeout\n          fileMatch:\n            pathRegexps:\n              - /replicated\\.log\n              - /replicated\\.stderr\n            regexpCapture:\n              regexp: 'Get https://api\\.replicated\\.com.+ dial tcp .+ i/o timeout'\n              index: 0\n            scannable: true\n      evaluateConditions:\n        - condition:\n            empty: {}\n            variableRef: replicatedApiIoTimeout\n          insightOnFalse:\n            primary: api.replicated.com i/o timeout\n            detail: Cannot access Replicated APIs at api.replicated.com\n            severity: error\n          labels:\n            iconKey: gray_checkmark\n      insight:\n        primary: Can access api.replicated.com!\n        detail: Can access Replicated APIs at api.replicated.com\n        severity: info\n"
+      }
+    }
+  }
+}
