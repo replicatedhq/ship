@@ -13,7 +13,7 @@ import (
 	replapp "github.com/replicatedhq/ship/pkg/specs/replicatedapp"
 )
 
-func Test_GetReleaseFromSemver(t *testing.T) {
+func Test_GetRelease(t *testing.T) {
 	customerID := "ship-fetch-release-customer-0"
 	installationID := "ship-fetch-release-installation-0"
 	semver := "1.0.2"

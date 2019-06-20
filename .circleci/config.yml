@@ -175,7 +175,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: make build-deps pacts
+      - run: make build-deps pacts-ci
 
   windows_build_test:
     docker:

@@ -75,6 +75,10 @@ githooks:
 
 .PHONY: pacts
 pacts:
+	go test -v ./contracts/...
+
+.PHONY: pacts-ci
+pacts-ci:
 	docker build -t ship-contract-tests -f contracts/Dockerfile.testing .
 	docker run --rm --name ship-contract-tests \
 		ship-contract-tests \

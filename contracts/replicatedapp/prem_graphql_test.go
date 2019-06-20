@@ -29,8 +29,8 @@ func TestMain(m *testing.M) {
 func createPact() dsl.Pact {
 	dir, _ := os.Getwd()
 
-	pactDir := path.Join(dir, "..", "..", "..", "pacts")
-	logDir := path.Join(dir, "..", "..", "..", "logs")
+	pactDir := path.Join(dir, "..", "..", "pacts")
+	logDir := path.Join(dir, "..", "..", "logs")
 
 	return dsl.Pact{
 		Consumer: "ship",
