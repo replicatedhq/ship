@@ -140,7 +140,6 @@ func generateOutputYaml(idx int, fileString string) ([]outputYaml, []string, err
 // if a kustomization yaml existed beforehand, it rewrites the resource list to match the new filenames
 // if not, it creates a kustomization yaml
 // if an existing kustomization yaml referred to other bases, splitAll will be called on those bases as well
-
 func SplitAllKustomize(fs afero.Afero, path string) error {
 	existingKustomize, err := fs.Exists(filepath.Join(path, "kustomization.yaml"))
 	if err != nil {
@@ -300,6 +299,9 @@ func generateKustomizationYaml(fs afero.Afero, path string) error {
 	kustomization := types.Kustomization{}
 	dirFiles := []string{}
 	err := fs.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if !info.IsDir() {
 			dirFiles = append(dirFiles, path)
 		}
@@ -345,41 +347,44 @@ func RecursiveNormalizeCopyKustomize(fs afero.Afero, sourceDir, destDir string) 
 	if err != nil {
 		return errors.Wrapf(err, "check if kustomization exists in %s", sourceDir)
 	}
-	if kustExists {
-		kustBytes, err := fs.ReadFile(filepath.Join(sourceDir, "kustomization.yaml"))
+	if !kustExists {
+		// no other bases to copy, and no patches/kustomization to filter
+		return nil
+	}
+
+	kustBytes, err := fs.ReadFile(filepath.Join(sourceDir, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "read kustomization in %s", sourceDir)
+	}
+
+	kustomization := types.Kustomization{}
+	err = yaml.Unmarshal(kustBytes, &kustomization)
+	if err != nil {
+		return errors.Wrapf(err, "parse kustomization in %s", sourceDir)
+	}
+
+	// remove strategic merge patches from the copied files - their contents will be added to the relevant bases
+	for _, patch := range kustomization.PatchesStrategicMerge {
+		patchString := string(patch)
+		err = fs.Remove(filepath.Join(destDir, patchString))
 		if err != nil {
-			return errors.Wrapf(err, "read kustomization in %s", sourceDir)
+			return errors.Wrapf(err, "remove patch at %s from destDir %s when copying from %s", patchString, destDir, sourceDir)
 		}
+	}
 
-		kustomization := types.Kustomization{}
-		err = yaml.Unmarshal(kustBytes, &kustomization)
+	for _, newBase := range kustomization.Bases {
+		newBase = filepath.Clean(filepath.Join(sourceDir, newBase))
+		cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
+		// cleanBase = "base-" + cleanBase
+		err = RecursiveNormalizeCopyKustomize(fs, newBase, filepath.Join(destDir, cleanBase))
 		if err != nil {
-			return errors.Wrapf(err, "parse kustomization in %s", sourceDir)
+			return errors.Wrapf(err, "copy base %s of %s", newBase, sourceDir)
 		}
+	}
 
-		// remove strategic merge patches from the copied files - their contents will be added to the relevant bases
-		for _, patch := range kustomization.PatchesStrategicMerge {
-			patchString := string(patch)
-			err = fs.Remove(filepath.Join(destDir, patchString))
-			if err != nil {
-				return errors.Wrapf(err, "remove patch at %s from destDir %s when copying from %s", patchString, destDir, sourceDir)
-			}
-		}
-
-		for _, newBase := range kustomization.Bases {
-			newBase = filepath.Clean(filepath.Join(sourceDir, newBase))
-			cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
-			// cleanBase = "base-" + cleanBase
-			err = RecursiveNormalizeCopyKustomize(fs, newBase, filepath.Join(destDir, cleanBase))
-			if err != nil {
-				return errors.Wrapf(err, "copy base %s of %s", newBase, sourceDir)
-			}
-		}
-
-		err = fs.Remove(filepath.Join(destDir, "kustomization.yaml"))
-		if err != nil {
-			return errors.Wrapf(err, "remove kustomization from rendered yaml dir %s", destDir)
-		}
+	err = fs.Remove(filepath.Join(destDir, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "remove kustomization from rendered yaml dir %s", destDir)
 	}
 
 	return nil

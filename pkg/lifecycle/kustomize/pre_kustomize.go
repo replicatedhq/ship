@@ -13,13 +13,6 @@ import (
 )
 
 func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
-	// Check if the 'base' already includes a kustomization.yaml
-	// if it does, and that refers to another base, we should apply those patches to the upstream base, and then use that in the future
-	// newBase, err := l.containsBase(ctx, step.Kustomize.Base)
-	// if err != nil {
-	// 	return errors.Wrap(err, "maybe find existing base")
-	// }
-
 	// make a folder for this step to render a base into
 	tempBase := step.Kustomize.TempRenderPath()
 	err := l.FS.MkdirAll(tempBase, os.ModePerm)
@@ -44,10 +37,6 @@ func (l *Kustomizer) initialKustomizeRun(ctx context.Context, step api.Kustomize
 	if err := l.generateTillerPatches(step); err != nil {
 		return errors.Wrap(err, "generate tiller patches")
 	}
-
-	// if err := l.FS.RemoveAll(constants.DefaultOverlaysPath); err != nil {
-	// 	return errors.Wrap(err, "clear overlay dir")
-	// }
 
 	built, err := l.kustomizeBuild(constants.DefaultOverlaysPath)
 	if err != nil {

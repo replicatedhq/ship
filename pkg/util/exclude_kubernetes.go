@@ -40,9 +40,7 @@ func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource
 
 	newResources := []string{}
 	for _, existingResource := range kustomization.Resources {
-		if existingResource == excludedResource {
-			fmt.Printf("excluding %s from %s", excludedResource, basePath)
-		} else {
+		if existingResource != excludedResource {
 			newResources = append(newResources, existingResource)
 		}
 	}
@@ -61,42 +59,42 @@ func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource
 			return errors.Wrapf(err, "write kustomization yaml to %s", basePath)
 		}
 		return nil
-	} else {
-		// check if the resource is already removed from this dir
-		alreadyRemoved := false
-		err = fs.Walk(basePath, func(path string, info os.FileInfo, err error) error {
-			if !info.IsDir() {
-				relPath, err := filepath.Rel(basePath, path)
-				if err != nil {
-					return errors.Wrapf(err, "get relative path to %s from %s", path, basePath)
-				}
-				fmt.Printf("path %s, excluded %s\n", relPath, excludedResource)
-				if relPath == excludedResource {
-					alreadyRemoved = true
-				}
+	}
+
+	// check if the resource is already removed from this dir
+	alreadyRemoved := false
+	err = fs.Walk(basePath, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if err != nil {
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return errors.Wrapf(err, "walk files in %s", basePath)
-		}
-		if alreadyRemoved {
-			// the file to be removed exists within this base dir, and not within the kustomization yaml
-			return nil
-		}
-
-		for _, newBase := range kustomization.Bases {
-			newBase = filepath.Clean(filepath.Join(basePath, newBase))
-			cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
-
-			fmt.Printf("newBase: %s cleanBase: %s\n", newBase, cleanBase)
-
-			if strings.HasPrefix(excludedResource, cleanBase) {
-				updatedResource := strings.TrimPrefix(excludedResource, cleanBase)
-				updatedResource = strings.TrimPrefix(updatedResource, string(filepath.Separator))
-
-				return ExcludeKubernetesResource(fs, newBase, updatedResource)
+			relPath, err := filepath.Rel(basePath, path)
+			if err != nil {
+				return errors.Wrapf(err, "get relative path to %s from %s", path, basePath)
 			}
+			if relPath == excludedResource {
+				alreadyRemoved = true
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return errors.Wrapf(err, "walk files in %s", basePath)
+	}
+	if alreadyRemoved {
+		// the file to be removed exists within this base dir, and not within the kustomization yaml
+		return nil
+	}
+
+	for _, newBase := range kustomization.Bases {
+		newBase = filepath.Clean(filepath.Join(basePath, newBase))
+		cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
+
+		if strings.HasPrefix(excludedResource, cleanBase) {
+			updatedResource := strings.TrimPrefix(excludedResource, cleanBase)
+			updatedResource = strings.TrimPrefix(updatedResource, string(filepath.Separator))
+
+			return ExcludeKubernetesResource(fs, newBase, updatedResource)
 		}
 	}
 
