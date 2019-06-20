@@ -34,6 +34,7 @@ type TestMetadata struct {
 	// debugging
 	SkipCleanup bool `yaml:"skip_cleanup"`
 	SkipEdit    bool `yaml:"skip_edit"`
+	SkipInit    bool `yaml:"skip_init"`
 }
 
 func TestInitReplicatedApp(t *testing.T) {
@@ -99,6 +100,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}, 20)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
+					if testMetadata.SkipInit {
+						Skip("this test case is set to skip init tests")
+						return
+					}
 
 					upstream := "staging.replicated.app/some-cool-ci-tool"
 
