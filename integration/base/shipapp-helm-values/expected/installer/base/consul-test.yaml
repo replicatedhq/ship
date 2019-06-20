@@ -1,40 +1,39 @@
+---
+# Source: consul/templates/consul-test.yaml
 apiVersion: v1
 kind: Pod
 metadata:
+  name: "ship-ui-test-t7kxl"
   annotations:
-    helm.sh/hook: test-success
-  name: ship-ui-test-ol3of
+    "helm.sh/hook": test-success
 spec:
-  containers:
-  - command:
-    - /tools/bats/bats
-    - -t
-    - /tests/run.sh
-    image: lachlanevenson/k8s-kubectl:v1.4.8-bash
-    name: ship-ui-test
-    volumeMounts:
-    - mountPath: /tests
-      name: tests
-      readOnly: true
-    - mountPath: /tools
-      name: tools
   initContainers:
-  - command:
-    - bash
-    - -c
-    - |
-      set -ex
-      # copy bats to tools dir
-      cp -R /usr/local/libexec/ /tools/bats/
-    image: dduportal/bats:0.4.0
-    name: test-framework
-    volumeMounts:
-    - mountPath: /tools
-      name: tools
-  restartPolicy: Never
+    - name: test-framework
+      image: dduportal/bats:0.4.0
+      command:
+      - "bash"
+      - "-c"
+      - |
+        set -ex
+        # copy bats to tools dir
+        cp -R /usr/local/libexec/ /tools/bats/
+      volumeMounts:
+      - mountPath: /tools
+        name: tools
+  containers:
+    - name: ship-ui-test
+      image: lachlanevenson/k8s-kubectl:v1.4.8-bash
+      command: ["/tools/bats/bats", "-t", "/tests/run.sh"]
+      volumeMounts:
+      - mountPath: /tests
+        name: tests
+        readOnly: true
+      - mountPath: /tools
+        name: tools
   volumes:
-  - configMap:
+  - name: tests
+    configMap:
       name: ship-consul-tests
-    name: tests
-  - emptyDir: {}
-    name: tools
+  - name: tools
+    emptyDir: {}
+  restartPolicy: Never

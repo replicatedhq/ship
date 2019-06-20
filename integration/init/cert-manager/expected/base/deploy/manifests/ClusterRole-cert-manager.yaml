@@ -1,36 +1,20 @@
+# Source: cert-manager/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  name: cert-manager
   labels:
     app: cert-manager
+    chart: cert-manager-v0.7.0
     release: cert-manager
-  name: cert-manager
+    heritage: Tiller
 rules:
-- apiGroups:
-  - certmanager.k8s.io
-  resources:
-  - certificates
-  - certificates/finalizers
-  - issuers
-  - clusterissuers
-  - orders
-  - orders/finalizers
-  - challenges
-  verbs:
-  - '*'
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - secrets
-  - events
-  - services
-  - pods
-  verbs:
-  - '*'
-- apiGroups:
-  - extensions
-  resources:
-  - ingresses
-  verbs:
-  - '*'
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates", "certificates/finalizers", "issuers", "clusterissuers", "orders", "orders/finalizers", "challenges"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "events", "services", "pods"]
+    verbs: ["*"]
+  - apiGroups: ["extensions"]
+    resources: ["ingresses"]
+    verbs: ["*"]

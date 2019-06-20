@@ -1,0 +1,215 @@
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-cainjector
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-cainjector
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-edit
+    version: v1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-edit
+    version: v1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-view
+    version: v1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-view
+    version: v1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-webhook:webhook-requester
+    version: v1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-webhook:webhook-requester
+    version: v1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager-cainjector
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager-cainjector
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager-webhook:auth-delegator
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager-webhook:auth-delegator
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: cert-manager
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager
+    namespace: cert-manager
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager
+    namespace: cert-manager
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: cert-manager-webhook:webhook-authentication-reader
+    namespace: kube-system
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: cert-manager-webhook:webhook-authentication-reader
+    namespace: kube-system
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: Service
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: cert-manager-webhook
+    namespace: cert-manager
+    version: v1
+- path: chart-patch.json
+  target:
+    group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+    name: cert-manager-webhook
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+    name: cert-manager-webhook
+    version: v1beta1

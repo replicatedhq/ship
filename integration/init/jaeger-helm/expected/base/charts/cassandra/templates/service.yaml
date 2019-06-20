@@ -1,12 +1,17 @@
+---
+# Source: jaeger/charts/cassandra/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
+  name: jaeger-cassandra
   labels:
     app: cassandra
+    chart: cassandra-0.13.1
     release: jaeger
-  name: jaeger-cassandra
+    heritage: Tiller
 spec:
   clusterIP: None
+  type: ClusterIP
   ports:
   - name: intra
     port: 7000
@@ -26,4 +31,3 @@ spec:
   selector:
     app: cassandra
     release: jaeger
-  type: ClusterIP

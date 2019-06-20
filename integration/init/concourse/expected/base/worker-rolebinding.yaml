@@ -1,10 +1,14 @@
+---
+# Source: concourse/templates/worker-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
+  name: concourse-worker
   labels:
     app: concourse-worker
+    chart: concourse-3.7.2
+    heritage: Tiller
     release: concourse
-  name: concourse-worker
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

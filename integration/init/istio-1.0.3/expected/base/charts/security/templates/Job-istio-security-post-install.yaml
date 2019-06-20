@@ -1,35 +1,35 @@
+
 apiVersion: batch/v1
 kind: Job
 metadata:
-  annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-delete-policy: hook-succeeded
-  labels:
-    app: istio-security
-    release: istio
   name: istio-security-post-install
   namespace: default
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+  labels:
+    app: istio-security
+    chart: security-1.0.3
+    release: istio
+    heritage: Tiller
 spec:
   template:
     metadata:
+      name: istio-security-post-install
       labels:
         app: istio-security
         release: istio
-      name: istio-security-post-install
     spec:
-      containers:
-      - command:
-        - /bin/bash
-        - /tmp/security/run.sh
-        - /tmp/security/custom-resources.yaml
-        image: quay.io/coreos/hyperkube:v1.7.6_coreos.0
-        name: hyperkube
-        volumeMounts:
-        - mountPath: /tmp/security
-          name: tmp-configmap-security
-      restartPolicy: OnFailure
       serviceAccountName: istio-security-post-install-account
+      containers:
+        - name: hyperkube
+          image: "quay.io/coreos/hyperkube:v1.7.6_coreos.0"
+          command: [ "/bin/bash", "/tmp/security/run.sh", "/tmp/security/custom-resources.yaml" ]
+          volumeMounts:
+            - mountPath: "/tmp/security"
+              name: tmp-configmap-security
       volumes:
-      - configMap:
-          name: istio-security-custom-resources
-        name: tmp-configmap-security
+        - name: tmp-configmap-security
+          configMap:
+            name: istio-security-custom-resources
+      restartPolicy: OnFailure

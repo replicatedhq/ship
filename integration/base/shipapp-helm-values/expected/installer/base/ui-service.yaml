@@ -1,14 +1,19 @@
+---
+# Source: consul/templates/ui-service.yaml
+
 apiVersion: v1
 kind: Service
 metadata:
+  name: "ship-consul-ui"
   labels:
-    component: ship-consul
-    release: ship
-  name: ship-consul-ui
+    heritage: "Tiller"
+    release: "ship"
+    chart: consul-3.5.3
+    component: "ship-consul"
 spec:
   ports:
   - name: http
     port: 8500
   selector:
-    component: ship-consul
-  type: NodePort
+    component: "ship-consul"
+  type: "NodePort"

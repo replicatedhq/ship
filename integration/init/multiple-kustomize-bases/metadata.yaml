@@ -1,0 +1,5 @@
+upstream: "input/ship.yaml"
+make_absolute: true
+args: ["--prefer-git"]
+skip_cleanup: true
+skip_edit: false

@@ -1,4 +1,15 @@
+---
+# Source: istio/charts/prometheus/templates/configmap.yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus
+  namespace: default
+  labels:
+    app: prometheus
+    chart: prometheus-1.0.3
+    release: istio
+    heritage: Tiller
 data:
   prometheus.yml: |-
     global:
@@ -311,10 +322,3 @@ data:
       - source_labels: [__meta_kubernetes_pod_name]
         action: replace
         target_label: pod_name
-kind: ConfigMap
-metadata:
-  labels:
-    app: prometheus
-    release: istio
-  name: prometheus
-  namespace: default

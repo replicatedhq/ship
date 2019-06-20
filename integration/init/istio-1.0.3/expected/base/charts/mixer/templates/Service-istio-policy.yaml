@@ -1,11 +1,15 @@
+---
+# Source: istio/charts/mixer/templates/service.yaml
+
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    istio: mixer
-    release: istio
   name: istio-policy
   namespace: default
+  labels:
+    chart: mixer-1.0.3
+    release: istio
+    istio: mixer
 spec:
   ports:
   - name: grpc-mixer

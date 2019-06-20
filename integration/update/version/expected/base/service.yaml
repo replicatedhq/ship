@@ -1,17 +1,21 @@
+---
+# Source: version/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
+  name: version
   labels:
     app: version
+    chart: version-0.0.2
     release: version
-  name: version
+    heritage: Tiller
 spec:
+  type: ClusterIP
   ports:
-  - name: http
-    port: 82
-    protocol: TCP
-    targetPort: http
+    - port: 82
+      targetPort: http
+      protocol: TCP
+      name: http
   selector:
     app: version
     release: version
-  type: ClusterIP

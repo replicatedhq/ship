@@ -1,0 +1,4 @@
+kind: Kustomization
+apiversion: ""
+resources:
+- ./placeholder-service.yaml

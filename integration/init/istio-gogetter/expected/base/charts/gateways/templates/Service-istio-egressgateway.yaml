@@ -1,20 +1,27 @@
+---
+# Source: istio/charts/gateways/templates/service.yaml
+
 apiVersion: v1
 kind: Service
 metadata:
-  annotations: null
-  labels:
-    app: istio-egressgateway
-    istio: egressgateway
-    release: istio
   name: istio-egressgateway
   namespace: default
+  annotations:
+  labels:
+    chart: gateways
+    heritage: Tiller
+    release: istio
+    app: istio-egressgateway
+    istio: egressgateway
 spec:
-  ports:
-  - name: http2
-    port: 80
-  - name: https
-    port: 443
+  type: ClusterIP
   selector:
     app: istio-egressgateway
     istio: egressgateway
-  type: ClusterIP
+  ports:
+    -
+      name: http2
+      port: 80
+    -
+      name: https
+      port: 443

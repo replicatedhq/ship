@@ -1,0 +1,115 @@
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: grafana-clusterrole
+    version: v1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: grafana-clusterrole
+    version: v1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: grafana-clusterrolebinding
+    version: v1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: grafana-clusterrolebinding
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: ConfigMap
+    name: grafana
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ConfigMap
+    name: grafana
+    version: v1
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: grafana
+    version: v1beta2
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: grafana
+    version: v1beta2
+- path: chart-patch.json
+  target:
+    group: extensions
+    kind: PodSecurityPolicy
+    name: grafana
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: extensions
+    kind: PodSecurityPolicy
+    name: grafana
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: grafana
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: grafana
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: grafana
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: grafana
+    version: v1beta1
+- path: chart-patch.json
+  target:
+    kind: Secret
+    name: grafana
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Secret
+    name: grafana
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: Service
+    name: grafana
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: grafana
+    version: v1
+- path: chart-patch.json
+  target:
+    kind: ServiceAccount
+    name: grafana
+    version: v1
+- path: heritage-patch.json
+  target:
+    kind: ServiceAccount
+    name: grafana
+    version: v1

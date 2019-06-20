@@ -31,7 +31,7 @@ assets:
           apiversion: ""
           bases:
             - ../../base
-          patches:
+          patchesStrategicMerge:
             - ./patch-configmap-l4.yaml
 
     - inline:

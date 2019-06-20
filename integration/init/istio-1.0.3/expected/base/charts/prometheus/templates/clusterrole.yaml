@@ -1,27 +1,21 @@
+---
+# Source: istio/charts/prometheus/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: prometheus-default
 rules:
-- apiGroups:
-  - ""
+- apiGroups: [""]
   resources:
   - nodes
   - services
   - endpoints
   - pods
   - nodes/proxy
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
   resources:
   - configmaps
-  verbs:
-  - get
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
+  verbs: ["get"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]

@@ -1,0 +1,14 @@
+bases:
+- ../../base
+patchesJson6902:
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: StatefulSet
+    name: ds
+    version: v1beta1
+- path: heritage-patch.json
+  target:
+    kind: Service
+    name: ds
+    version: v1

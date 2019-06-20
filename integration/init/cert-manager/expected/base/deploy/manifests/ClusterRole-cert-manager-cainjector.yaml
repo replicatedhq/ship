@@ -1,44 +1,26 @@
+# Source: cert-manager/charts/cainjector/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  name: cert-manager-cainjector
   labels:
     app: cainjector
+    chart: cainjector-v0.7.0
     release: cert-manager
-  name: cert-manager-cainjector
+    heritage: Tiller
 rules:
-- apiGroups:
-  - certmanager.k8s.io
-  resources:
-  - certificates
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - events
-  verbs:
-  - '*'
-- apiGroups:
-  - admissionregistration.k8s.io
-  resources:
-  - validatingwebhookconfigurations
-  - mutatingwebhookconfigurations
-  verbs:
-  - '*'
-- apiGroups:
-  - apiregistration.k8s.io
-  resources:
-  - apiservices
-  verbs:
-  - '*'
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "events"]
+    verbs: ["*"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+    verbs: ["*"]
+  - apiGroups: ["apiregistration.k8s.io"]
+    resources: ["apiservices"]
+    verbs: ["*"]

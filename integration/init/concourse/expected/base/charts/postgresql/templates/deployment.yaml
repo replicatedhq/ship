@@ -1,11 +1,16 @@
+---
+# Source: concourse/charts/postgresql/templates/deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  name: concourse-postgresql
   labels:
     app: postgresql
+    chart: postgresql-0.13.1
     release: concourse
-  name: concourse-postgresql
+    heritage: Tiller
 spec:
+  template:
   selector:
     matchLabels:
       app: postgresql
@@ -17,14 +22,18 @@ spec:
         release: concourse
     spec:
       containers:
-      - args: []
+      - name: concourse-postgresql
+        image: "postgres:9.6.2"
+        imagePullPolicy: ""
+        args: []
         env:
         - name: POSTGRES_USER
-          value: concourse
+          value: "concourse"
+          # Required for pg_isready in the health probes.
         - name: PGUSER
-          value: concourse
+          value: "concourse"
         - name: POSTGRES_DB
-          value: concourse
+          value: "concourse"
         - name: POSTGRES_INITDB_ARGS
           value: ""
         - name: PGDATA
@@ -32,27 +41,22 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: postgres-password
               name: concourse-postgresql
+              key: postgres-password
         - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        image: postgres:9.6.2
-        imagePullPolicy: ""
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        ports:
+        - name: postgresql
+          containerPort: 5432
         livenessProbe:
           exec:
             command:
             - sh
             - -c
             - exec pg_isready --host $POD_IP
-          failureThreshold: 6
           initialDelaySeconds: 120
           timeoutSeconds: 5
-        name: concourse-postgresql
-        ports:
-        - containerPort: 5432
-          name: postgresql
+          failureThreshold: 6
         readinessProbe:
           exec:
             command:
@@ -60,15 +64,16 @@ spec:
             - -c
             - exec pg_isready --host $POD_IP
           initialDelaySeconds: 5
-          periodSeconds: 5
           timeoutSeconds: 3
+          periodSeconds: 5
         resources:
           requests:
             cpu: 100m
             memory: 256Mi
+          
         volumeMounts:
-        - mountPath: /var/lib/postgresql/data/pgdata
-          name: data
+        - name: data
+          mountPath: /var/lib/postgresql/data/pgdata
           subPath: postgresql-db
       volumes:
       - name: data

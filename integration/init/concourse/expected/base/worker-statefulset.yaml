@@ -1,130 +1,137 @@
+---
+# Source: concourse/templates/worker-statefulset.yaml
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
+  name: concourse-worker
   labels:
     app: concourse-worker
-    release: concourse
-  name: concourse-worker
+    chart: "concourse-3.7.2"
+    release: "concourse"
+    heritage: "Tiller"
+
 spec:
-  podManagementPolicy: Parallel
-  replicas: 2
   serviceName: concourse-worker
+  replicas: 2
   template:
     metadata:
-      annotations: null
       labels:
         app: concourse-worker
-        release: concourse
+        release: "concourse"
+      annotations:
     spec:
+      serviceAccountName: concourse-worker
+      tolerations:
+        []
+        
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: concourse-worker
+          image: "concourse/concourse:4.2.2"
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - |-
+              cp /dev/null /tmp/.liveness_probe
+              rm -rf ${CONCOURSE_WORK_DIR:-/concourse-work-dir}/*
+              while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
+                touch /tmp/.pre_start_cleanup
+                sleep 5
+              done
+              rm -f /tmp/.pre_start_cleanup
+              concourse worker --name=${HOSTNAME} | tee -a /tmp/.liveness_probe
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |-
+                  FATAL_ERRORS=$( echo "${LIVENESS_PROBE_FATAL_ERRORS}" | grep -q '\S' && \
+                      grep -F "${LIVENESS_PROBE_FATAL_ERRORS}" /tmp/.liveness_probe )
+                  cp /dev/null /tmp/.liveness_probe
+                  if [ ! -z "${FATAL_ERRORS}" ]; then
+                    >&2 echo "Fatal error detected: ${FATAL_ERRORS}"
+                    exit 1
+                  fi
+                  if [ -f /tmp/.pre_start_cleanup ]; then
+                    >&2 echo "Still trying to clean up before starting concourse. 'fly prune-worker -w ${HOSTNAME}' might need to be called to force cleanup."
+                    exit 1
+                  fi
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |-
+                    while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
+                      sleep 5
+                    done
+          env:
+            - name: CONCOURSE_WORK_DIR
+              value: "/concourse-work-dir"
+
+            - name: CONCOURSE_TSA_HOST
+              value: "concourse-web:2222"
+            - name: CONCOURSE_TSA_PUBLIC_KEY
+              value: "/concourse-keys/host_key.pub"
+            - name: CONCOURSE_TSA_WORKER_PRIVATE_KEY
+              value: "/concourse-keys/worker_key"
+            - name: CONCOURSE_GARDEN_BIND_PORT
+              value: "7777"
+            - name: CONCOURSE_BAGGAGECLAIM_DRIVER
+              value: "naive"
+            - name: LIVENESS_PROBE_FATAL_ERRORS
+              value: "guardian.api.garden-server.create.failed\nbaggageclaim.api.volume-server.create-volume-async.failed-to-create"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: concourse-keys
+              mountPath: "/concourse-keys"
+              readOnly: true
+            - name: concourse-work-dir
+              mountPath: "/concourse-work-dir"
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
               labelSelector:
                 matchLabels:
                   app: concourse-worker
-                  release: concourse
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      containers:
-      - args:
-        - -c
-        - |-
-          cp /dev/null /tmp/.liveness_probe
-          rm -rf ${CONCOURSE_WORK_DIR:-/concourse-work-dir}/*
-          while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
-            touch /tmp/.pre_start_cleanup
-            sleep 5
-          done
-          rm -f /tmp/.pre_start_cleanup
-          concourse worker --name=${HOSTNAME} | tee -a /tmp/.liveness_probe
-        command:
-        - /bin/sh
-        env:
-        - name: CONCOURSE_WORK_DIR
-          value: /concourse-work-dir
-        - name: CONCOURSE_TSA_HOST
-          value: concourse-web:2222
-        - name: CONCOURSE_TSA_PUBLIC_KEY
-          value: /concourse-keys/host_key.pub
-        - name: CONCOURSE_TSA_WORKER_PRIVATE_KEY
-          value: /concourse-keys/worker_key
-        - name: CONCOURSE_GARDEN_BIND_PORT
-          value: "7777"
-        - name: CONCOURSE_BAGGAGECLAIM_DRIVER
-          value: naive
-        - name: LIVENESS_PROBE_FATAL_ERRORS
-          value: |-
-            guardian.api.garden-server.create.failed
-            baggageclaim.api.volume-server.create-volume-async.failed-to-create
-        image: concourse/concourse:4.2.2
-        imagePullPolicy: IfNotPresent
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - |-
-                while ! concourse retire-worker --name=${HOSTNAME} | grep -q worker-not-found; do
-                  sleep 5
-                done
-        livenessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - |-
-              FATAL_ERRORS=$( echo "${LIVENESS_PROBE_FATAL_ERRORS}" | grep -q '\S' && \
-                  grep -F "${LIVENESS_PROBE_FATAL_ERRORS}" /tmp/.liveness_probe )
-              cp /dev/null /tmp/.liveness_probe
-              if [ ! -z "${FATAL_ERRORS}" ]; then
-                >&2 echo "Fatal error detected: ${FATAL_ERRORS}"
-                exit 1
-              fi
-              if [ -f /tmp/.pre_start_cleanup ]; then
-                >&2 echo "Still trying to clean up before starting concourse. 'fly prune-worker -w ${HOSTNAME}' might need to be called to force cleanup."
-                exit 1
-              fi
-          failureThreshold: 1
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        name: concourse-worker
+                  release: "concourse"
+      volumes:
+        - name: concourse-keys
+          secret:
+            secretName: concourse-concourse
+            defaultMode: 0400
+            items:
+              - key: host-key-pub
+                path: host_key.pub
+              - key: worker-key
+                path: worker_key
+              - key: worker-key-pub
+                path: worker_key.pub
+  volumeClaimTemplates:
+    - metadata:
+        name: concourse-work-dir
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
         resources:
           requests:
-            cpu: 100m
-            memory: 512Mi
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - mountPath: /concourse-keys
-          name: concourse-keys
-          readOnly: true
-        - mountPath: /concourse-work-dir
-          name: concourse-work-dir
-      serviceAccountName: concourse-worker
-      terminationGracePeriodSeconds: 60
-      tolerations: []
-      volumes:
-      - name: concourse-keys
-        secret:
-          defaultMode: 256
-          items:
-          - key: host-key-pub
-            path: host_key.pub
-          - key: worker-key
-            path: worker_key
-          - key: worker-key-pub
-            path: worker_key.pub
-          secretName: concourse-concourse
+            storage: "20Gi"
   updateStrategy:
     type: RollingUpdate
-  volumeClaimTemplates:
-  - metadata:
-      name: concourse-work-dir
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 20Gi
+  podManagementPolicy: Parallel

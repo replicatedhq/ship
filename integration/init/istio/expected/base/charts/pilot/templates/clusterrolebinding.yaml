@@ -1,15 +1,19 @@
+---
+# Source: istio/charts/pilot/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
+  name: istio-pilot-default
   labels:
     app: pilot
+    chart: pilot
+    heritage: Tiller
     release: istio
-  name: istio-pilot-default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: istio-pilot-default
 subjects:
-- kind: ServiceAccount
-  name: istio-pilot-service-account
-  namespace: default
+  - kind: ServiceAccount
+    name: istio-pilot-service-account
+    namespace: default

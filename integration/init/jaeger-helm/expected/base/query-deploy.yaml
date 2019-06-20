@@ -1,12 +1,16 @@
+---
+# Source: jaeger/templates/query-deploy.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  name: jaeger-query
   labels:
     app: jaeger
-    component: query
     jaeger-infra: query-deployment
+    chart: jaeger-0.7.0
+    component: query
+    heritage: Tiller
     release: jaeger
-  name: jaeger-query
 spec:
   replicas: 1
   strategy:
@@ -16,52 +20,56 @@ spec:
       labels:
         app: jaeger
         component: query
-        jaeger-infra: query-pod
         release: jaeger
+        jaeger-infra: query-pod
     spec:
+      nodeSelector:
+        {}
+        
       containers:
-      - env:
-        - name: SPAN_STORAGE_TYPE
-          valueFrom:
-            configMapKeyRef:
-              key: span-storage.type
-              name: jaeger
-        - name: CASSANDRA_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.servers
-              name: jaeger
-        - name: CASSANDRA_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.port
-              name: jaeger
-        - name: CASSANDRA_KEYSPACE
-          valueFrom:
-            configMapKeyRef:
-              key: cassandra.keyspace
-              name: jaeger
-        - name: QUERY_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: query.port
-              name: jaeger
-        - name: QUERY_HEALTH_CHECK_HTTP_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: query.health-check-http-port
-              name: jaeger
+      - name: jaeger-query
         image: jaegertracing/jaeger-query:1.4.1
         imagePullPolicy: IfNotPresent
-        name: jaeger-query
+        env:
+          - name: SPAN_STORAGE_TYPE
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: span-storage.type
+          - name: CASSANDRA_SERVERS
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.servers
+          - name: CASSANDRA_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.port
+          - name: CASSANDRA_KEYSPACE
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: cassandra.keyspace
+          - name: QUERY_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: query.port
+          - name: QUERY_HEALTH_CHECK_HTTP_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: jaeger
+                key: query.health-check-http-port
         ports:
         - containerPort: 16686
           protocol: TCP
+        resources:
+          {}
+          
         readinessProbe:
           httpGet:
             path: /
             port: 16687
-        resources: {}
       dnsPolicy: ClusterFirst
-      nodeSelector: {}
       restartPolicy: Always

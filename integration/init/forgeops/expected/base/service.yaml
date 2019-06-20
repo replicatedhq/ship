@@ -1,26 +1,31 @@
+---
+# Source: ds/templates/service.yaml
+# Copyright (c) 2016-2017 ForgeRock AS. Use of this source code is subject to the
+# Common Development and Distribution License (CDDL) that can be found in the LICENSE file
 apiVersion: v1
 kind: Service
 metadata:
+  name: ds
   labels:
     app: ds
     component: ds
     vendor: forgerock
-  name: ds
+    heritage: Tiller
 spec:
   clusterIP: None
   ports:
-  - name: ldap
-    port: 1389
-    targetPort: 1389
-  - name: djadmin
-    port: 4444
-    targetPort: 4444
-  - name: ldaps
-    port: 1636
-    targetPort: 1636
-  - name: metrics
-    port: 8080
-    protocol: TCP
+    - port: 1389
+      name: ldap
+      targetPort: 1389
+    - port: 4444
+      name: djadmin
+      targetPort: 4444
+    - port: 1636
+      name: ldaps
+      targetPort: 1636
+    - port: 8080
+      protocol: TCP
+      name: metrics
   selector:
     app: ds-ds
     release: ds

@@ -134,7 +134,7 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 			expectFile: `kind: ""
 apiversion: ""
 bases:
-- ../../base
+- ../defaults
 `,
 		},
 		{
@@ -147,7 +147,7 @@ patchesStrategicMerge:
 - b.yaml
 - c.yaml
 bases:
-- ../../base
+- ../defaults
 `,
 		},
 	}
@@ -381,7 +381,7 @@ func TestKustomizer(t *testing.T) {
 				"overlays/ship/kustomization.yaml": `kind: ""
 apiversion: ""
 bases:
-- ../../base
+- ../defaults
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""
@@ -418,7 +418,7 @@ apiversion: ""
 patchesStrategicMerge:
 - deployment.yaml
 bases:
-- ../../base
+- ../defaults
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""
@@ -469,7 +469,7 @@ apiversion: ""
 resources:
 - limitrange.yaml
 bases:
-- ../../base
+- ../defaults
 `,
 				"base/kustomization.yaml": `kind: ""
 apiversion: ""

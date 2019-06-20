@@ -1,31 +1,39 @@
+---
+# Source: jaeger/templates/agent-ds.yaml
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
+  name: jaeger-agent
   labels:
     app: jaeger
-    component: agent
     jaeger-infra: agent-daemonset
+    chart: jaeger-0.7.0
+    component: agent
+    heritage: Tiller
     release: jaeger
-  name: jaeger-agent
 spec:
   template:
     metadata:
       labels:
         app: jaeger
         component: agent
-        jaeger-infra: agent-instance
         release: jaeger
+        jaeger-infra: agent-instance
     spec:
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        {}
+        
       containers:
-      - env:
+      - name: jaeger-agent
+        image: jaegertracing/jaeger-agent:1.4.1
+        imagePullPolicy: IfNotPresent
+        env:
         - name: COLLECTOR_HOST_PORT
           valueFrom:
             configMapKeyRef:
-              key: collector.host-port
               name: jaeger
-        image: jaegertracing/jaeger-agent:1.4.1
-        imagePullPolicy: IfNotPresent
-        name: jaeger-agent
+              key: collector.host-port
         ports:
         - containerPort: 5775
           protocol: UDP
@@ -35,6 +43,6 @@ spec:
           protocol: UDP
         - containerPort: 5778
           protocol: TCP
-        resources: {}
-      dnsPolicy: ClusterFirst
-      nodeSelector: {}
+        resources:
+          {}
+          

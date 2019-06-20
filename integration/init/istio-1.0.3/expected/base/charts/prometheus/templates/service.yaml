@@ -1,16 +1,18 @@
+---
+# Source: istio/charts/prometheus/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    prometheus.io/scrape: "true"
-  labels:
-    name: prometheus
   name: prometheus
   namespace: default
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    name: prometheus
 spec:
-  ports:
-  - name: http-prometheus
-    port: 9090
-    protocol: TCP
   selector:
     app: prometheus
+  ports:
+  - name: http-prometheus
+    protocol: TCP
+    port: 9090

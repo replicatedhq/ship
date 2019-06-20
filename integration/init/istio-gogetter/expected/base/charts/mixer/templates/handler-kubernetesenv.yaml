@@ -1,13 +1,20 @@
-apiVersion: config.istio.io/v1alpha2
+
+apiVersion: "config.istio.io/v1alpha2"
 kind: handler
 metadata:
+  name: kubernetesenv
+  namespace: default
   labels:
     app: mixer
     chart: mixer
     heritage: Tiller
     release: istio
-  name: kubernetesenv
-  namespace: default
 spec:
   compiledAdapter: kubernetesenv
-  params: null
+  params:
+    # when running from mixer root, use the following config after adding a
+    # symbolic link to a kubernetes config file via:
+    #
+    # $ ln -s ~/.kube/config mixer/adapter/kubernetes/kubeconfig
+    #
+    # kubeconfig_path: "mixer/adapter/kubernetes/kubeconfig"

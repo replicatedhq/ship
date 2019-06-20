@@ -522,3 +522,716 @@ spec:
 		})
 	}
 }
+
+func TestResolver_SplitAllKustomize(t *testing.T) {
+	type fileStruct struct {
+		name string
+		data string
+	}
+
+	tests := []struct {
+		name        string
+		localPath   string
+		wantErr     bool
+		inputFiles  []fileStruct
+		outputFiles []fileStruct
+	}{
+		{
+			name:      "one kustomize resource",
+			localPath: "/test",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/test/jaeger-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `kind: should be preserved
+apiversion: should also be preserved
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/test/jaeger-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+		},
+		{
+			name:      "one multidoc kustomize resource",
+			localPath: "/test",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/test/jaeger-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `kind: should be preserved
+apiversion: should also be preserved
+resources:
+- Deployment-jaeger-collector.yaml
+- Deployment-jaeger-collector-two.yaml
+`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector-two.yaml",
+					data: `apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+		},
+		{
+			name:      "basic kustomize chain",
+			localPath: "/test",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/test/jaeger-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+resources:
+- another-collector.yaml
+`,
+				},
+				{
+					name: "/another/another-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: another
+  labels:
+    app: another
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `kind: should be preserved
+apiversion: should also be preserved
+resources:
+- Deployment-jaeger-collector.yaml
+- Deployment-jaeger-collector-two.yaml
+bases:
+- ../another
+`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector-two.yaml",
+					data: `apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/kustomization.yaml",
+					data: `kind: should be preserved
+apiversion: should also be preserved
+resources:
+- another-collector.yaml
+`,
+				},
+				{
+					name: "/another/another-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: another
+  labels:
+    app: another
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+		},
+		{
+			name:      "basic kustomize chain with no kustomization yaml in leaf",
+			localPath: "/test",
+			wantErr:   false,
+			inputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/test/jaeger-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/another-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: another
+  labels:
+    app: another
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/subdir/redis-deployment.yml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-collector
+  labels:
+    app: redis
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-collector-two
+  labels:
+    app: redis
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/test/kustomization.yaml",
+					data: `kind: should be preserved
+apiversion: should also be preserved
+resources:
+- Deployment-jaeger-collector.yaml
+- Deployment-jaeger-collector-two.yaml
+bases:
+- ../another
+`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate`,
+				},
+				{
+					name: "/test/Deployment-jaeger-collector-two.yaml",
+					data: `apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jaeger-collector-two
+  labels:
+    app: jaeger
+    jaeger-infra: collector-deployment
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/kustomization.yaml",
+					data: `kind: ""
+apiversion: ""
+resources:
+- another-collector.yaml
+- subdir/Deployment-redis-collector-two.yaml
+- subdir/Deployment-redis-collector.yaml
+`,
+				},
+				{
+					name: "/another/another-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: another
+  labels:
+    app: another
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+				{
+					name: "/another/subdir/Deployment-redis-collector.yaml",
+					data: `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-collector
+  labels:
+    app: redis
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate`,
+				},
+				{
+					name: "/another/subdir/Deployment-redis-collector-two.yaml",
+					data: `apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-collector-two
+  labels:
+    app: redis
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+`,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			// setup input FS
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			req.NoError(mockFs.MkdirAll(tt.localPath, os.FileMode(0644)))
+			for _, inFile := range tt.inputFiles {
+				req.NoError(mockFs.WriteFile(inFile.name, []byte(inFile.data), os.FileMode(0644)))
+			}
+
+			// run split function
+			if err := SplitAllKustomize(mockFs, tt.localPath); (err != nil) != tt.wantErr {
+				t.Errorf("Resolver.SplitAllKustomize() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			// compare output FS
+			actualFileNames := []string{}
+			err := mockFs.Walk("/", func(path string, info os.FileInfo, err error) error {
+				if !info.IsDir() {
+					actualFileNames = append(actualFileNames, path)
+				}
+				return nil
+			})
+			req.NoError(err, "read output fs")
+
+			var expectedFileNames []string
+			for _, expectedFile := range tt.outputFiles {
+				expectedFileNames = append(expectedFileNames, expectedFile.name)
+			}
+
+			req.ElementsMatch(expectedFileNames, actualFileNames, "comparing expected and actual output files, expected %+v got %+v", expectedFileNames, actualFileNames)
+
+			for _, outFile := range tt.outputFiles {
+				fileBytes, err := mockFs.ReadFile(outFile.name)
+				req.NoError(err, "reading output file %s", outFile.name)
+
+				req.Equal(outFile.data, string(fileBytes), "compare file %s", outFile.name)
+			}
+
+		})
+	}
+}
+
+func TestRecursiveNormalizeCopyKustomize(t *testing.T) {
+	type fileStruct struct {
+		name string
+		data string
+	}
+	tests := []struct {
+		name        string
+		sourceDir   string
+		destDir     string
+		wantErr     bool
+		inputFiles  []fileStruct
+		outputFiles []fileStruct
+	}{
+		{
+			name:      "kustomize additional base",
+			sourceDir: "/source",
+			destDir:   "/dest",
+			inputFiles: []fileStruct{
+				{
+					name: "/source/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/source/jaeger-deployment.yml",
+					data: `
+this is a resource file
+`,
+				},
+				{
+					name: "/another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/source/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+resources:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/source/jaeger-deployment.yml",
+					data: `
+this is a resource file
+`,
+				},
+				{
+					name: "/another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+				{
+					name: "/dest/jaeger-deployment.yml",
+					data: `
+this is a resource file
+`,
+				},
+				{
+					name: "/dest/-another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+			},
+		},
+		{
+			name:      "kustomize patch file",
+			sourceDir: "/source",
+			destDir:   "/dest",
+			inputFiles: []fileStruct{
+				{
+					name: "/source/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+patchesStrategicMerge:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/source/jaeger-deployment.yml",
+					data: `
+this is a patch file
+`,
+				},
+				{
+					name: "/another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+			},
+			outputFiles: []fileStruct{
+				{
+					name: "/source/kustomization.yaml",
+					data: `
+kind: "should be preserved"
+apiversion: "should also be preserved"
+# a comment will not be preserved
+bases:
+- ../another
+patchesStrategicMerge:
+- jaeger-deployment.yml
+`,
+				},
+				{
+					name: "/source/jaeger-deployment.yml",
+					data: `
+this is a patch file
+`,
+				},
+				{
+					name: "/another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+				{
+					name: "/dest/-another/jaeger-deployment.yml",
+					data: `
+this is another resource file
+`,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+
+			// setup input FS
+			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
+			for _, inFile := range tt.inputFiles {
+				req.NoError(mockFs.MkdirAll(filepath.Dir(inFile.name), os.FileMode(0644)))
+				req.NoError(mockFs.WriteFile(inFile.name, []byte(inFile.data), os.FileMode(0644)))
+			}
+
+			if err := RecursiveNormalizeCopyKustomize(mockFs, tt.sourceDir, tt.destDir); (err != nil) != tt.wantErr {
+				t.Errorf("RecursiveNormalizeCopyKustomize() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			// compare output FS
+			actualFileNames := []string{}
+			err := mockFs.Walk("/", func(path string, info os.FileInfo, err error) error {
+				if !info.IsDir() {
+					actualFileNames = append(actualFileNames, path)
+				}
+				return nil
+			})
+			req.NoError(err, "read output fs")
+
+			var expectedFileNames []string
+			for _, expectedFile := range tt.outputFiles {
+				expectedFileNames = append(expectedFileNames, expectedFile.name)
+			}
+
+			req.ElementsMatch(expectedFileNames, actualFileNames, "comparing expected and actual output files, expected %+v got %+v", expectedFileNames, actualFileNames)
+
+			for _, outFile := range tt.outputFiles {
+				fileBytes, err := mockFs.ReadFile(outFile.name)
+				req.NoError(err, "reading output file %s", outFile.name)
+
+				req.Equal(outFile.data, string(fileBytes), "compare file %s", outFile.name)
+			}
+		})
+	}
+}

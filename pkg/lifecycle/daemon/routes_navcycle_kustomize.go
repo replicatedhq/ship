@@ -136,7 +136,7 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 
 	var base []byte
 	if !isResource {
-		base, err = d.TreeLoader.LoadFile(step.Kustomize.Base, request.Path)
+		base, err = d.TreeLoader.LoadFile(step.Kustomize.TempRenderPath(), request.Path)
 		if err != nil {
 			level.Warn(d.Logger).Log("event", "load file failed", "err", err)
 			c.AbortWithError(500, err)
@@ -237,7 +237,7 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 	}
 
 	debug.Log("event", "load.originalFile")
-	original, err := d.TreeLoader.LoadFile(step.Kustomize.Base, request.Original)
+	original, err := d.TreeLoader.LoadFile(step.Kustomize.TempRenderPath(), request.Original)
 	if err != nil {
 		level.Error(d.Logger).Log("event", "failed to read original file", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))

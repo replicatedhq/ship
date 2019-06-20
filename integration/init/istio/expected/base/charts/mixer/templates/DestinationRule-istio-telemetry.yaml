@@ -1,13 +1,13 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
+  name: istio-telemetry
+  namespace: default
   labels:
     app: mixer
     chart: mixer
     heritage: Tiller
     release: istio
-  name: istio-telemetry
-  namespace: default
 spec:
   host: istio-telemetry.default.svc.cluster.local
   trafficPolicy:

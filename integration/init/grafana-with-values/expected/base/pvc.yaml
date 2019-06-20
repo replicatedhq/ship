@@ -1,14 +1,19 @@
+---
+# Source: grafana/templates/pvc.yaml
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: grafana
   labels:
     app: grafana
+    chart: grafana-1.19.0
     release: grafana
-  name: grafana
+    heritage: Tiller
 spec:
   accessModes:
-  - ReadWriteOnce
+    - "ReadWriteOnce"
   resources:
     requests:
-      storage: 111Gi
+      storage: "111Gi"
   storageClassName: default

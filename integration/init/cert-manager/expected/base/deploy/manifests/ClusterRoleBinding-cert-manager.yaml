@@ -1,15 +1,17 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
+  name: cert-manager
   labels:
     app: cert-manager
+    chart: cert-manager-v0.7.0
     release: cert-manager
-  name: cert-manager
+    heritage: Tiller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cert-manager
 subjects:
-- kind: ServiceAccount
-  name: cert-manager
-  namespace: cert-manager
+  - name: cert-manager
+    namespace: "cert-manager"
+    kind: ServiceAccount

@@ -3,52 +3,34 @@ kind: StatefulSet
 metadata:
   name: cockroachdb
 spec:
+  serviceName: "cockroachdb"
   replicas: 3
-  serviceName: cockroachdb
   template:
     metadata:
       labels:
         app: cockroachdb
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - cockroachdb
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      containers:
-      - command:
-        - /bin/bash
-        - -ecx
-        - exec /cockroach/cockroach start --logtostderr --certs-dir /cockroach/cockroach-certs
-          --host $(hostname -f) --http-host 0.0.0.0 --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb
-          --cache 25% --max-sql-memory 25%
-        image: cockroachdb/cockroach:v1.1.5
-        imagePullPolicy: IfNotPresent
-        name: cockroachdb
-        ports:
-        - containerPort: 26257
-          name: grpc
-        - containerPort: 8080
-          name: http
-        volumeMounts:
-        - mountPath: /cockroach/cockroach-data
-          name: datadir
-        - mountPath: /cockroach/cockroach-certs
-          name: certs
+      serviceAccountName: cockroachdb
+      # Init containers are run only once in the lifetime of a pod, before
+      # it's started up for the first time. It has to exit successfully
+      # before the pod's main containers are allowed to start.
       initContainers:
-      - command:
-        - /bin/ash
-        - -ecx
-        - /request-cert -namespace=${POD_NAMESPACE} -certs-dir=/cockroach-certs -type=node
-          -addresses=localhost,127.0.0.1,${POD_IP},$(hostname -f),$(hostname -f|cut
-          -f 1-2 -d '.'),cockroachdb-public -symlink-ca-from=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      # The init-certs container sends a certificate signing request to the
+      # kubernetes cluster.
+      # You can see pending requests using: kubectl get csr
+      # CSRs can be approved using:         kubectl certificate approve <csr name>
+      #
+      # All addresses used to contact a node must be specified in the --addresses arg.
+      #
+      # In addition to the node certificate and key, the init-certs entrypoint will symlink
+      # the cluster CA to the certs directory.
+      - name: init-certs
+        image: cockroachdb/cockroach-k8s-request-cert:0.2
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/ash"
+        - "-ecx"
+        - "/request-cert -namespace=${POD_NAMESPACE} -certs-dir=/cockroach-certs -type=node -addresses=localhost,127.0.0.1,${POD_IP},$(hostname -f),$(hostname -f|cut -f 1-2 -d '.'),cockroachdb-public -symlink-ca-from=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
         env:
         - name: POD_IP
           valueFrom:
@@ -58,20 +40,52 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: cockroachdb/cockroach-k8s-request-cert:0.2
-        imagePullPolicy: IfNotPresent
-        name: init-certs
         volumeMounts:
-        - mountPath: /cockroach-certs
-          name: certs
-      serviceAccountName: cockroachdb
+        - name: certs
+          mountPath: /cockroach-certs
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - cockroachdb
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: cockroachdb
+        image: cockroachdb/cockroach:v1.1.5
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 26257
+          name: grpc
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: datadir
+          mountPath: /cockroach/cockroach-data
+        - name: certs
+          mountPath: /cockroach/cockroach-certs
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          # The use of qualified `hostname -f` is crucial:
+          # Other nodes aren't able to look up the unqualified hostname.
+          # Once 2.0 is out, we should be able to switch from --host to --advertise-host to make port-forwarding work to the main port.
+          - "exec /cockroach/cockroach start --logtostderr --certs-dir /cockroach/cockroach-certs --host $(hostname -f) --http-host 0.0.0.0 --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb --cache 25% --max-sql-memory 25%"
+      # No pre-stop hook is required, a SIGTERM plus some time is all that's
+      # needed for graceful shutdown of a node.
       terminationGracePeriodSeconds: 60
       volumes:
       - name: datadir
         persistentVolumeClaim:
           claimName: datadir
-      - emptyDir: {}
-        name: certs
+      - name: certs
+        emptyDir: {}
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates:
@@ -79,7 +93,7 @@ spec:
       name: datadir
     spec:
       accessModes:
-      - ReadWriteOnce
+        - "ReadWriteOnce"
       resources:
         requests:
           storage: 1Gi

@@ -1,0 +1,15 @@
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: basic
+    version: v1beta2
+- path: heritage-patch.json
+  target:
+    group: apps
+    kind: Deployment
+    name: basic
+    version: v1beta2

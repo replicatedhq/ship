@@ -1,11 +1,16 @@
+---
+# Source: concourse/charts/postgresql/templates/svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
+  name: concourse-postgresql
   labels:
     app: postgresql
+    chart: postgresql-0.13.1
     release: concourse
-  name: concourse-postgresql
+    heritage: Tiller
 spec:
+  type: ClusterIP
   ports:
   - name: postgresql
     port: 5432
@@ -13,4 +18,3 @@ spec:
   selector:
     app: postgresql
     release: concourse
-  type: ClusterIP

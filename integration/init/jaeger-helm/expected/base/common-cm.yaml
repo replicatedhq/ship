@@ -1,27 +1,85 @@
+---
+# Source: jaeger/templates/common-cm.yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger
+  labels:
+    app: jaeger
+    jaeger-infra: common-configmap
+    chart: jaeger-0.7.0
+    heritage: Tiller
+    release: jaeger
 data:
   cassandra.contact-points: jaeger-cassandra:9042
-  cassandra.datacenter.name: dc1
-  cassandra.keyspace: jaeger_v1_dc1
+  cassandra.datacenter.name: "dc1"
+  cassandra.keyspace: "jaeger_v1_dc1"
   cassandra.port: "9042"
-  cassandra.schema.mode: prod
+  cassandra.schema.mode: "prod"
   cassandra.servers: jaeger-cassandra
   collector.host-port: jaeger-collector:14267
   collector.http-port: "14268"
   collector.port: "14267"
   collector.zipkin.http-port: "9411"
-  es.nodes-wan-only: "false"
   es.password: changeme
   es.server-urls: http://elasticsearch:9200
   es.username: elastic
-  hotrod.agent-host-port: jaeger-agent-agent:6831
+  es.nodes-wan-only: "false"
+  hotrod.agent-host-port: "jaeger-agent-agent:6831"
+  span-storage.type: "cassandra"
   query.health-check-http-port: "16687"
   query.port: "16686"
-  span-storage.type: cassandra
-kind: ConfigMap
-metadata:
-  labels:
-    app: jaeger
-    jaeger-infra: common-configmap
-    release: jaeger
-  name: jaeger
+  # Not implemented
+  # cassandra.archive.connections-per-host:
+  # cassandra.archive.keyspace:
+  # cassandra.archive.max-retry-attempts:
+  # cassandra.archive.password:
+  # cassandra.archive.port:
+  # cassandra.archive.proto-version:
+  # cassandra.archive.servers:
+  # cassandra.archive.socket-keep-alive:
+  # cassandra.archive.timeout:
+  # cassandra.archive.username:
+  # cassandra.connections-per-host:
+  # cassandra.max-retry-attempts:
+  # cassandra.password:
+  # cassandra.proto-version:
+  # cassandra.socket-keep-alive:
+  # cassandra.timeout:
+  # cassandra.username:
+  # collector.health-check-http-port:
+  # collector.num-workers:
+  # collector.queue-size:
+  # collector.write-cache-ttl:
+  # dependency-storage.data-frequency:
+  # discovery.min-peers:
+  # es.archive.max-span-age:
+  # es.archive.num-replicas:
+  # es.archive.num-shards:
+  # es.archive.password:
+  # es.archive.server-urls:
+  # es.archive.sniffer:
+  # es.archive.username:
+  # es.max-span-age:
+  # es.num-replicas:
+  # es.num-shards:
+  # es.sniffer:
+  # http-server.host-port:
+  # log-level:
+  # metrics-backend:
+  # metrics-http-route:
+  # processor.jaeger-binary.server-host-port:
+  # processor.jaeger-binary.server-max-packet-size:
+  # processor.jaeger-binary.server-queue-size:
+  # processor.jaeger-binary.workers:
+  # processor.jaeger-compact.server-host-port:
+  # processor.jaeger-compact.server-max-packet-size:
+  # processor.jaeger-compact.server-queue-size:
+  # processor.jaeger-compact.workers:
+  # processor.zipkin-compact.server-host-port:
+  # processor.zipkin-compact.server-max-packet-size:
+  # processor.zipkin-compact.server-queue-size:
+  # processor.zipkin-compact.workers:
+  # query.prefix:
+  # query.static-files:
+  # query.ui-config:

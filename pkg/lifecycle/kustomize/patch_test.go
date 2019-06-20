@@ -69,6 +69,85 @@ metadata:
 			},
 		},
 		{
+			name: "kustomization yaml",
+			step: api.Kustomize{
+				Base: "strawberry",
+			},
+			testFiles: []testFile{
+				{
+					path: "strawberry/kustomization.yaml",
+					contents: `apiVersion: apps/v1beta2
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-cainjector
+    version: v1beta1
+`,
+				},
+			},
+			expectKustomization: k8stypes.Kustomization{
+				Bases:           []string{"../../strawberry"},
+				PatchesJson6902: nil,
+			},
+		},
+		{
+			name: "both kustomization and relevant yaml with heritage and chart labels",
+			step: api.Kustomize{
+				Base: "strawberry",
+			},
+			testFiles: []testFile{
+				{
+					path: "strawberry/deployment.yaml",
+					contents: `apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: strawberry
+    heritage: Tiller
+    chart: strawberry-1.0.0
+  name: strawberry
+`,
+				},
+				{
+					path: "strawberry/kustomization.yaml",
+					contents: `apiVersion: apps/v1beta2
+bases:
+- ../../base
+patchesJson6902:
+- path: chart-patch.json
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-cainjector
+    version: v1beta1
+`,
+				},
+			},
+			expectKustomization: k8stypes.Kustomization{
+				Bases: []string{"../../strawberry"},
+				PatchesJson6902: []kustomizepatch.Json6902{
+					{
+						Path: "chart-patch.json",
+						Target: &kustomizepatch.Target{
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "strawberry",
+						},
+					},
+					{
+						Path: "heritage-patch.json",
+						Target: &kustomizepatch.Target{
+							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+							Name: "strawberry",
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "yaml with only heritage label",
 			step: api.Kustomize{
 				Base: "pomegranate",
@@ -185,7 +264,7 @@ metadata:
 			err = l.generateTillerPatches(tt.step)
 			req.NoError(err)
 
-			kustomizationB, err := mockFs.ReadFile(path.Join(constants.TempApplyOverlayPath, "kustomization.yaml"))
+			kustomizationB, err := mockFs.ReadFile(path.Join(constants.DefaultOverlaysPath, "kustomization.yaml"))
 			req.NoError(err)
 
 			kustomizationYaml := k8stypes.Kustomization{}

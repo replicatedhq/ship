@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    istio: mixer
-    release: istio
   name: istio-telemetry
   namespace: default
+  labels:
+    chart: mixer-1.0.3
+    release: istio
+    istio: mixer
 spec:
   ports:
   - name: grpc-mixer

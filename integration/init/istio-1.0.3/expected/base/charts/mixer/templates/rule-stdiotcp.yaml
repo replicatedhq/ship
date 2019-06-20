@@ -1,11 +1,11 @@
-apiVersion: config.istio.io/v1alpha2
+apiVersion: "config.istio.io/v1alpha2"
 kind: rule
 metadata:
   name: stdiotcp
   namespace: default
 spec:
+  match: context.protocol == "tcp"
   actions:
   - handler: handler.stdio
     instances:
     - tcpaccesslog.logentry
-  match: context.protocol == "tcp"
