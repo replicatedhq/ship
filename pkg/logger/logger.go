@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	golog "log"
 	"os"
 	"path"
@@ -32,7 +33,7 @@ func New(v *viper.Viper, fs afero.Afero) log.Logger {
 
 	fullPathCaller := pathCaller(6)
 	var stdoutLogger log.Logger
-	stdoutLogger = withFormat(viper.GetString("log-format"))
+	stdoutLogger = withFormat(viper.GetString("log-format"), os.Stdout)
 	stdoutLogger = log.With(stdoutLogger, "ts", log.DefaultTimestampUTC)
 	stdoutLogger = log.With(stdoutLogger, "caller", fullPathCaller)
 	stdoutLogger = withLevel(stdoutLogger, v.GetString("log-level"))
@@ -52,7 +53,7 @@ func New(v *viper.Viper, fs afero.Afero) log.Logger {
 		return stdoutLogger
 	}
 
-	debugLogger = log.NewJSONLogger(debugLogWriter)
+	debugLogger = withFormat(viper.GetString("log-format"), debugLogWriter)
 	debugLogger = log.With(debugLogger, "ts", log.DefaultTimestampUTC)
 	debugLogger = log.With(debugLogger, "caller", fullPathCaller)
 	debugLogger = withLevel(debugLogger, "debug")
@@ -68,14 +69,14 @@ func New(v *viper.Viper, fs afero.Afero) log.Logger {
 	return realLogger
 }
 
-func withFormat(format string) log.Logger {
+func withFormat(format string, w io.Writer) log.Logger {
 	switch format {
 	case "json":
-		return log.NewJSONLogger(os.Stdout)
+		return log.NewJSONLogger(w)
 	case "logfmt":
-		return log.NewLogfmtLogger(os.Stdout)
+		return log.NewLogfmtLogger(w)
 	default:
-		return log.NewLogfmtLogger(os.Stdout)
+		return log.NewLogfmtLogger(w)
 	}
 
 }
