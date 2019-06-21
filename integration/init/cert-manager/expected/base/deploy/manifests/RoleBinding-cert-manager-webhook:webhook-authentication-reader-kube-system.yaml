@@ -4,7 +4,7 @@ metadata:
   labels:
     app: webhook
     release: cert-manager
-  name: cert-manager-webhook:webhook-authentication-reader
+  name: cert-manager-webhook-webhook-authentication-reader
   namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
