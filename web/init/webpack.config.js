@@ -5,14 +5,10 @@ const DashboardPlugin = require("webpack-dashboard/plugin");
 const TerserPlugin = require('terser-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const PurgecssPlugin = require('purgecss-webpack-plugin');
 
 const basePlugins = [
   new MiniCssExtractPlugin({
     filename: "styles.css"
-  }),
-  new PurgecssPlugin({
-    paths: glob.sync(`${path.join(__dirname, "src")}/**/*`, { nodir: true })
   })
 ];
 
@@ -21,8 +17,8 @@ module.exports = (env, { mode }) => {
   const isProduction = mode === "production";
   console.log(
     'BUILD MODE:',
-    isProduction 
-      ? 'PRODUCTION' 
+    isProduction
+      ? 'PRODUCTION'
       : 'DEVELOPMENT'
   );
   if (process.env.SHIP_SHOW_BUNDLE_ANALYZER) {
@@ -47,7 +43,7 @@ module.exports = (env, { mode }) => {
                 comments: false
               }
             }
-            
+
           })
         ]
       }
@@ -90,12 +86,12 @@ module.exports = (env, { mode }) => {
                 MiniCssExtractPlugin.loader,
                 "css-loader",
                 "sass-loader",
-                { 
+                {
                   loader: "postcss-loader",
                   options: {
                     parser: 'postcss-scss',
                     plugins: () => [ require('cssnano') ],
-                    
+
                   }
                 }
             ]

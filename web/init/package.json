@@ -1,6 +1,6 @@
 {
   "name": "@replicatedhq/ship-init",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Shared component that contains the Ship Init app",
   "author": "Replicated, Inc.",
   "license": "Apache-2.0",
@@ -80,7 +80,6 @@
     "postcss-loader": "^3.0.0",
     "postcss-scss": "^2.0.0",
     "publish": "^0.6.0",
-    "purgecss-webpack-plugin": "^1.5.0",
     "react": "^16.5.1",
     "react-dom": "^16.5.1",
     "react-markdown-gen": "^0.0.11",
