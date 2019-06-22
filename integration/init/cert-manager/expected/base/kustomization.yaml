@@ -7,10 +7,10 @@ resources:
 - deploy/manifests/ClusterRole-cert-manager-cainjector.yaml
 - deploy/manifests/ClusterRole-cert-manager-edit.yaml
 - deploy/manifests/ClusterRole-cert-manager-view.yaml
-- deploy/manifests/ClusterRole-cert-manager-webhook:webhook-requester.yaml
+- deploy/manifests/ClusterRole-cert-manager-webhook-webhook-requester.yaml
 - deploy/manifests/ClusterRole-cert-manager.yaml
 - deploy/manifests/ClusterRoleBinding-cert-manager-cainjector.yaml
-- deploy/manifests/ClusterRoleBinding-cert-manager-webhook:auth-delegator.yaml
+- deploy/manifests/ClusterRoleBinding-cert-manager-webhook-auth-delegator.yaml
 - deploy/manifests/ClusterRoleBinding-cert-manager.yaml
 - deploy/manifests/CustomResourceDefinitions.yaml
 - deploy/manifests/Deployment-cert-manager-cainjector-cert-manager.yaml
@@ -19,7 +19,7 @@ resources:
 - deploy/manifests/Issuer-cert-manager-webhook-ca-cert-manager.yaml
 - deploy/manifests/Issuer-cert-manager-webhook-selfsign-cert-manager.yaml
 - deploy/manifests/Namespace-cert-manager.yaml
-- deploy/manifests/RoleBinding-cert-manager-webhook:webhook-authentication-reader-kube-system.yaml
+- deploy/manifests/RoleBinding-cert-manager-webhook-webhook-authentication-reader-kube-system.yaml
 - deploy/manifests/Service-cert-manager-webhook-cert-manager.yaml
 - deploy/manifests/ServiceAccount-cert-manager-cainjector-cert-manager.yaml
 - deploy/manifests/ServiceAccount-cert-manager-cert-manager.yaml
