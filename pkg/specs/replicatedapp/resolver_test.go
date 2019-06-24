@@ -60,7 +60,7 @@ assets:
 				CustomerID:     "kfbr",
 				InstallationID: "392",
 			},
-			shaSummer: func(bytes []byte) string {
+			shaSummer: func(resolver state2.ShipRelease) string {
 				return "abcdef"
 			},
 			license: &license{},

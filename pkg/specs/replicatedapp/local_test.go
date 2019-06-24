@@ -19,7 +19,7 @@ func TestLoadLocalGitHubContents(t *testing.T) {
 		{
 			name:           "none to set",
 			githubContent:  nil,
-			expectContents: nil,
+			expectContents: []state.GithubContent{},
 		},
 		{
 			name: "set one file",
