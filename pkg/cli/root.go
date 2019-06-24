@@ -7,7 +7,6 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,7 +28,6 @@ func RootCmd() *cobra.Command {
 		// I think its okay to use real OS filesystem commands instead of afero here,
 		// since I think cobra lives outside the scope of dig injection/unit testing.
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			version.Init()
 			var multiErr *multierror.Error
 			multiErr = multierror.Append(multiErr, os.RemoveAll(constants.ShipPathInternalTmp))
 			multiErr = multierror.Append(multiErr, os.MkdirAll(constants.ShipPathInternalTmp, 0755))
