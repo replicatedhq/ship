@@ -48,7 +48,8 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.New(`No current chart url found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
-		maybeVersionedUpstream, err := s.Resolver.MaybeResolveVersionedUpstream(ctx, upstream, existingState)
+		p := s.Resolver.NewContentProcessor()
+		maybeVersionedUpstream, err := p.MaybeResolveVersionedUpstream(ctx, upstream, existingState)
 		if err != nil {
 			return errors.New(`Unable to resolve versioned upstream ` + upstream)
 		}
@@ -59,7 +60,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 			return errors.New(`No current SHA found at ` + s.Viper.GetString("state-file") + `, please run "ship init"`)
 		}
 
-		contentSHA, err := s.Resolver.ReadContentSHAForWatch(ctx, maybeVersionedUpstream)
+		contentSHA, err := p.ReadContentSHAForWatch(ctx, maybeVersionedUpstream)
 		if err != nil {
 			return errors.Wrap(err, "read content SHA")
 		}

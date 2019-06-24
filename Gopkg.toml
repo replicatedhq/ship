@@ -76,7 +76,7 @@ ignored = [
 
 [[constraint]]
   name = "github.com/google/go-github"
-  version = "15.0.0"
+  version = "18.2.0"
 
 [[constraint]]
   name = "github.com/ghodss/yaml"

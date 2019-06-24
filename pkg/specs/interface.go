@@ -2,7 +2,6 @@ package specs
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"net/url"
 	"os"
@@ -234,58 +233,6 @@ func (r *Resolver) ResolveRelease(ctx context.Context, upstream string) (*api.Re
 	}
 
 	return nil, errors.Errorf("unknown application type %q for upstream %q", app.GetType(), upstream)
-}
-
-// read the content sha without writing anything to state
-func (r *Resolver) ReadContentSHAForWatch(ctx context.Context, upstream string) (string, error) {
-
-	debug := level.Debug(log.With(r.Logger, "method", "ReadContentSHAForWatch"))
-	debug.Log("event", "fetch latest chart")
-	app, err := r.appTypeInspector.DetermineApplicationType(ctx, upstream)
-	if err != nil {
-		return "", errors.Wrapf(err, "resolve app type for %s", upstream)
-	}
-	debug.Log("event", "apptype.inspect", "type", app.GetType(), "localPath", app.GetLocalPath())
-
-	defer func() {
-		if err := app.Remove(r.FS); err != nil {
-			level.Error(r.Logger).Log("event", "remove watch dir", "err", err)
-		}
-	}()
-
-	// this switch block is kinda duped from above, and we ought to centralize parts of this,
-	// but in this case we only want to read the metadata without persisting anything to state,
-	// and there doesn't seem to be a good way to evolve that abstraction cleanly from what we have, at least not just yet
-	switch app.GetType() {
-	case "helm":
-		fallthrough
-	case "k8s":
-		fallthrough
-	case "inline.replicated.app":
-		metadata, err := r.ResolveBaseMetadata(upstream, app.GetLocalPath())
-		if err != nil {
-			return "", errors.Wrapf(err, "resolve metadata and content sha for %s %s", app.GetType(), upstream)
-		}
-		return metadata.ContentSHA, nil
-
-	case "runbook.replicated.app":
-		r.AppResolver.SetRunbook(app.GetLocalPath())
-		fallthrough
-	case "replicated.app":
-		parsed, err := url.Parse(upstream)
-		if err != nil {
-			return "", errors.Wrapf(err, "parse url %s", upstream)
-		}
-		selector := (&replicatedapp.Selector{}).UnmarshalFrom(parsed)
-		release, err := r.AppResolver.FetchRelease(ctx, selector)
-		if err != nil {
-			return "", errors.Wrap(err, "fetch release")
-		}
-
-		return fmt.Sprintf("%x", sha256.Sum256([]byte(release.Spec))), nil
-	}
-
-	return "", errors.Errorf("Could not continue with application type %q of upstream %s", app.GetType(), upstream)
 }
 
 func (r *Resolver) resolveUnforkRelease(

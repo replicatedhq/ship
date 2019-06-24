@@ -18,6 +18,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
+
 	"github.com/spf13/afero"
 	"golang.org/x/oauth2"
 )
