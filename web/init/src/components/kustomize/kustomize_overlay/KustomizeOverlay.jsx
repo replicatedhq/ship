@@ -139,15 +139,15 @@ export default class KustomizeOverlay extends React.Component {
     };
     await this.props.applyPatch(applyPayload)
       .catch((err) => {
-        this.setState({ 
+        this.setState({
           applyPatchErr: true,
-          applyPatchErrorMessage: err.message 
+          applyPatchErrorMessage: err.message
         });
 
         setTimeout(() => {
-          this.setState({ 
+          this.setState({
             applyPatchErr: false,
-            applyPatchErrorMessage: "" 
+            applyPatchErrorMessage: ""
           });
         }, 3000);
       });
@@ -423,40 +423,42 @@ export default class KustomizeOverlay extends React.Component {
           <div className="flex flex1 u-minHeight--full u-height--full">
             <div className="flex-column flex1 Sidebar-wrapper u-overflow--hidden">
               <div className="flex-column flex1">
-                <div className="flex1 dirtree-wrapper flex-column u-overflow-hidden u-background--biscay">
-                  {fileTree.map((tree, i) => (
-                    <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
-                      <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
-                      <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
-                      <FileTree
-                        files={tree.children}
-                        basePath={tree.name}
-                        handleFileSelect={(path) => this.setSelectedFile(path)}
-                        handleDeleteOverlay={this.toggleModal}
-                        handleClickExcludedBase={this.toggleModalForExcludedBase}
-                        selectedFile={this.state.selectedFile}
-                        isOverlayTree={tree.name === "overlays"}
-                        isResourceTree={tree.name === "resources"}
-                        isBaseTree={tree.name === "/"}
+                <div className="flex1 u-overflow--auto u-background--biscay">
+                  <div className="flex1 dirtree-wrapper u-overflow--hidden flex-column">
+                    {fileTree.map((tree, i) => (
+                      <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
+                        <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
+                        <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
+                        <FileTree
+                          files={tree.children}
+                          basePath={tree.name}
+                          handleFileSelect={(path) => this.setSelectedFile(path)}
+                          handleDeleteOverlay={this.toggleModal}
+                          handleClickExcludedBase={this.toggleModalForExcludedBase}
+                          selectedFile={this.state.selectedFile}
+                          isOverlayTree={tree.name === "overlays"}
+                          isResourceTree={tree.name === "resources"}
+                          isBaseTree={tree.name === "/"}
+                        />
+                      </div>
+                    ))}
+                    <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
+                      <input
+                        type="text"
+                        className={`Input add-resource-name-input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
+                        name="new-resource"
+                        placeholder="filename.yaml"
+                        onChange={(e) => { this.setState({ newResourceName: e.target.value }) }}
+                        onKeyPress={(e) => { this.handleCreateNewResource(e) }}
+                        value={newResourceName}
+                        ref={this.addResourceInput}
                       />
+                      <p
+                        className={`add-resource-link u-position--absolute u-marginTop--small u-marginLeft--normal u-cursor--pointer u-fontSize--small u-color--silverSand u-fontWeight--bold ${addingNewResource ? "u-visibility--hidden" : ""}`}
+                        onClick={this.handleAddResourceClick}
+                      >+ Add Resource
+                      </p>
                     </div>
-                  ))}
-                  <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
-                    <input
-                      type="text"
-                      className={`Input add-resource-name-input u-position--absolute ${!addingNewResource ? "u-visibility--hidden" : ""}`}
-                      name="new-resource"
-                      placeholder="filename.yaml"
-                      onChange={(e) => { this.setState({ newResourceName: e.target.value }) }}
-                      onKeyPress={(e) => { this.handleCreateNewResource(e) }}
-                      value={newResourceName}
-                      ref={this.addResourceInput}
-                    />
-                    <p
-                      className={`add-resource-link u-position--absolute u-marginTop--small u-marginLeft--normal u-cursor--pointer u-fontSize--small u-color--silverSand u-fontWeight--bold ${addingNewResource ? "u-visibility--hidden" : ""}`}
-                      onClick={this.handleAddResourceClick}
-                    >+ Add Resource
-                    </p>
                   </div>
                 </div>
               </div>
