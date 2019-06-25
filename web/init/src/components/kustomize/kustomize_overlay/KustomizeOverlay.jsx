@@ -423,8 +423,8 @@ export default class KustomizeOverlay extends React.Component {
           <div className="flex flex1 u-minHeight--full u-height--full">
             <div className="flex-column flex1 Sidebar-wrapper u-overflow--hidden">
               <div className="flex-column flex1">
-                <div className="flex1 u-overflow--auto">
-                  <div className="flex1 dirtree-wrapper u-overflow--hidden flex-column u-background--biscay">
+                <div className="flex1 u-overflow--auto u-background--biscay">
+                  <div className="flex1 dirtree-wrapper u-overflow--hidden flex-column">
                     {fileTree.map((tree, i) => (
                       <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
                         <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
