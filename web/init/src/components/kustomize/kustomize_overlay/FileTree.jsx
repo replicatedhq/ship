@@ -9,9 +9,9 @@ export default class FileTree extends React.Component {
   }
 
   handleDeleteOverlay = (e, path) => {
-    const { isResourceTree, isBaseTree, isOverlayTree } = this.props;
     e.stopPropagation();
 
+    const { isResourceTree, isBaseTree, isOverlayTree } = this.props;
     if (isResourceTree) {
       return this.props.handleDeleteOverlay(path, RESOURCE_OVERLAY);
     }
@@ -41,19 +41,34 @@ export default class FileTree extends React.Component {
             <FileTree
               files={file.children}
               handleFileSelect={(path) => handleFileSelect(path)}
-              handleDeleteOverlay={(path) => handleDeleteOverlay(path)}
+              handleDeleteOverlay={(path, type) => handleDeleteOverlay(path, type)}
+              handleClickExcludedBase={(e) => this.props.handleClickExcludedBase(e, file.path)}
               selectedFile={selectedFile}
               isOverlayTree={isOverlayTree}
               isBaseTree={isBaseTree}
             />
           </li>
           :
-          file.isExcluded ? <li key={file.path} className={`u-position--relative is-file ${file.isExcluded ? "is-excluded" : ""}`} onClick={(e) => this.handleClickExcludedBase(e, file.path)}>{file.name}</li> :
-          <li key={file.path} className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""} ${isBaseTree ? "is-base" : ""}`} onClick={() => this.handleFileSelect(file.path)}>
-            {file.name}
-            {isOverlayTree || isResourceTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
-            {isBaseTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
-          </li>
+          file.isExcluded
+            ? (
+              <li
+                key={file.path}
+                className={`u-position--relative is-file ${file.isExcluded ? "is-excluded" : ""}`}
+                onClick={(e) => this.handleClickExcludedBase(e, file.path)}
+                >
+                {file.name}
+              </li>
+            )
+            :(
+              <li
+                key={file.path}
+                className={`u-position--relative is-file ${selectedFile === file.path ? "is-selected" : ""} ${file.hasOverlay ? "edited" : ""} ${isBaseTree ? "is-base" : ""}`}
+                onClick={() => this.handleFileSelect(file.path)}>
+                {file.name}
+                {isOverlayTree || isResourceTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
+                {isBaseTree ? <span className="icon clickable u-deleteOverlayIcon" onClick={(e) => this.handleDeleteOverlay(e, file.path)}></span> : null}
+              </li>
+            )
         ))
         }
       </ul>
