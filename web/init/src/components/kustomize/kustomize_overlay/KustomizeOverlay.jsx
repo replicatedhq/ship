@@ -1,4 +1,5 @@
 import React from "react";
+import classNames from "classnames";
 import AceEditor from "react-ace";
 import ReactTooltip from "react-tooltip"
 import * as yaml from "js-yaml";
@@ -231,7 +232,6 @@ export default class KustomizeOverlay extends React.Component {
     const { fileTree, selectedFile } = this.state;
     const isResource = overlayType === RESOURCE_OVERLAY;
     const isBase = overlayType === BASE_OVERLAY;
-
     const overlays = find(fileTree, { name: "overlays" });
     const overlayExists = overlays && findIndex(overlays.children, { path }) > -1;
 
@@ -425,23 +425,38 @@ export default class KustomizeOverlay extends React.Component {
               <div className="flex-column flex1">
                 <div className="flex1 u-overflow--auto u-background--biscay">
                   <div className="flex1 dirtree-wrapper u-overflow--hidden flex-column">
-                    {fileTree.map((tree, i) => (
-                      <div className={`u-overflow--auto FileTree-wrapper u-position--relative dirtree ${i > 0 ? "flex-auto has-border" : "flex-0-auto"}`} key={i}>
-                        <input type="checkbox" name={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} id={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`} defaultChecked={true} />
-                        <label htmlFor={`sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`}>{tree.name === "/" ? "base" : tree.name}</label>
-                        <FileTree
-                          files={tree.children}
-                          basePath={tree.name}
-                          handleFileSelect={(path) => this.setSelectedFile(path)}
-                          handleDeleteOverlay={this.toggleModal}
-                          handleClickExcludedBase={this.toggleModalForExcludedBase}
-                          selectedFile={this.state.selectedFile}
-                          isOverlayTree={tree.name === "overlays"}
-                          isResourceTree={tree.name === "resources"}
-                          isBaseTree={tree.name === "/"}
-                        />
-                      </div>
-                    ))}
+                    {fileTree.map((tree, i) => {
+                        const id = `sub-dir-${tree.name}-${tree.children.length}-${tree.path}-${i}`;
+                        return (
+                          <div
+                            key={id}
+                            className={classNames("u-overflow--auto FileTree-wrapper u-position--relative dirtree", {
+                              "flex-auto has-border": i > 0,
+                              "flex-0-auto": i <= 0
+                            })}>
+                              <input
+                                type="checkbox"
+                                name={id}
+                                id={id}
+                                defaultChecked={true}
+                              />
+                              <label htmlFor={id}>
+                                {tree.name === "/" ? "base" : tree.name}
+                              </label>
+                              <FileTree
+                                files={tree.children}
+                                basePath={tree.name}
+                                handleFileSelect={(path) => this.setSelectedFile(path)}
+                                handleDeleteOverlay={this.toggleModal}
+                                handleClickExcludedBase={this.toggleModalForExcludedBase}
+                                selectedFile={this.state.selectedFile}
+                                isOverlayTree={tree.name === "overlays"}
+                                isResourceTree={tree.name === "resources"}
+                                isBaseTree={tree.name === "/"}
+                              />
+                          </div>
+                        );
+                      })}
                     <div className="add-new-resource u-position--relative" ref={this.addResourceWrapper}>
                       <input
                         type="text"
