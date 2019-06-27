@@ -193,7 +193,7 @@ export default class ConfigOnly extends React.Component {
 
     return (
       <Layout configOnly={true} configRouteId={routeId}>
-        <ErrorBoundary>
+        <ErrorBoundary className="flex-column">
           <div className="flex-column flex1">
             <div className="flex-column flex1 u-overflow--hidden u-position--relative">
               <Toast toast={toastDetails} onCancel={this.cancelToast} />
