@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
@@ -34,6 +35,11 @@ func (s *urlSerializer) Load() (State, error) {
 	serialized, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return State{}, errors.Wrap(err, "read state body")
+	}
+
+	// An empty file should be treated as empty state
+	if len(strings.TrimSpace(string(serialized))) == 0 {
+		return State{}, nil
 	}
 
 	var state State
