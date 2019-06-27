@@ -25,7 +25,7 @@ builds:
   main: cmd/ship/main.go
   ldflags: -s -w
     -X github.com/replicatedhq/ship/pkg/version.version={{.Version}}
-    -X github.com/replicatedhq/ship/pkg/version.gitSHA={{.Commit}}
+    -X github.com/replicatedhq/ship/pkg/version.gitSHA={{.FullCommit}}
     -X github.com/replicatedhq/ship/pkg/version.buildTime={{.Date}}
     -X github.com/replicatedhq/ship/pkg/version.helm=v2.14.1
     -X github.com/replicatedhq/ship/pkg/version.kustomize=v2.0.3
