@@ -7,7 +7,7 @@ import isEmpty from "lodash/isEmpty";
 import { ConfigService } from "../../services/ConfigService";
 
 import ConfigInput from "./ConfigInput";
-import ConfigTextara from "./ConfigTextarea";
+import ConfixTextarea from "./ConfigTextarea";
 import ConfigSelectOne from "./ConfigSelectOne";
 import ConfigItemTitle from "./ConfigItemTitle";
 import ConfigCheckbox from "./ConfigCheckbox";
@@ -37,7 +37,7 @@ export default class ConfigGroup extends React.Component {
         );
       case "textarea":
         return (
-          <ConfigTextara
+          <ConfixTextarea
             key={`${i}-${item.name}`}
             handleOnChange={this.handleItemChange}
             hidden={item.hidden}
