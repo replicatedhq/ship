@@ -145,6 +145,8 @@ export default class ConfigOnly extends React.Component {
     const { configErrors } = this.props;
     if (!configErrors.length) return;
     configErrors.map((err) => {
+      // TODO: Refactor to pass errors down instead of manipulating
+      // the DOM
       const el = document.getElementById(`${err.fieldName}-errblock`);
       el.innerHTML = err.message;
       el.classList.add("visible");

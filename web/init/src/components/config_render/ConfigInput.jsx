@@ -31,11 +31,14 @@ export default class ConfigInput extends React.Component {
       this.setState({ inputVal: this.props.value });
     }
   }
-
+  // p1-2019-06-27
+  // Fields that are required sometimes don't have a title associated with them.
+  // Use title -OR- required prop to render <ConfigItemTitle> to make sure error
+  // elements are rendered.
   render() {
     return (
       <div className={`field field-type-text ${this.props.hidden ? "hidden" : "u-marginTop--15"}`}>
-        {this.props.title !== "" ?
+        {this.props.title !== "" || this.props.required ?
           <ConfigItemTitle
             title={this.props.title}
             recommended={this.props.recommended}
