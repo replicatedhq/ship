@@ -1,5 +1,5 @@
 import React from "react";
-
+import classNames from "classnames";
 /**
  * Creates an error boundary for any child component rendered inside
  */
@@ -26,10 +26,10 @@ export default class ErrorBoundary extends React.Component {
   }
 
   render() {
-    const { children } = this.props;
+    const { children, className } = this.props;
     const { hasError, error } = this.state;
     return (
-      <div className="flex flex1">
+      <div className={classNames("flex flex1", className)}>
         {hasError && <div>{error.toString()}</div>}
         {children}
       </div>
