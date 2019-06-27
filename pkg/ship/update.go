@@ -23,11 +23,15 @@ func (s *Ship) Update(ctx context.Context) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
 
+	if err := s.maybeWriteStateFromFile(); err != nil {
+		return err
+	}
+
 	s.Viper.Set("rm-asset-dest", true)
 
 	s.Daemon.SetProgress(daemontypes.StringProgress("kustomize", `loading state`))
 	// does a state already exist
-	existingState, err := s.State.TryLoad()
+	existingState, err := s.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}
@@ -71,5 +75,13 @@ func (s *Ship) Update(ctx context.Context) error {
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	return s.execute(ctx, release, nil)
+	if err := s.execute(ctx, release, nil); err != nil {
+		return errors.Wrap(err, "execute")
+	}
+
+	if err := s.State.CommitState(); err != nil {
+		return errors.Wrap(err, "commit state")
+	}
+
+	return nil
 }

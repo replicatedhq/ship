@@ -32,7 +32,12 @@ func (ctx builderContext) FuncMap() template.FuncMap {
 			debug.Log("event", "daemon.missing", "func", "ConfigOption", "requested", name)
 			return ""
 		}
-		configItemValue, ok := ctx.daemon.GetCurrentConfig()[name]
+		currentConfig, err := ctx.daemon.GetCurrentConfig()
+		if err != nil {
+			debug.Log("event", "daemon.missing", "func", "ConfigOption", "requested", name, "error", err)
+			return ""
+		}
+		configItemValue, ok := currentConfig[name]
 		if !ok {
 			debug.Log("event", "daemon.missing", "func", "ConfigOption", "requested", name)
 		}

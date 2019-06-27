@@ -1,7 +1,9 @@
 package headless
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/mitchellh/cli"
@@ -604,11 +606,8 @@ func TestHeadlessDaemon(t *testing.T) {
 				Viper:  v,
 			}
 
-			manager := &state.MManager{
-				Logger: testLogger,
-				FS:     fakeFS,
-				V:      viper.New(),
-			}
+			manager, err := state.NewDisposableManager(testLogger, fakeFS, v)
+			req.NoError(err)
 
 			resolver := &resolve.APIConfigRenderer{
 				Logger:         testLogger,
@@ -630,14 +629,20 @@ func TestHeadlessDaemon(t *testing.T) {
 				req.Error(err)
 			} else {
 				resolvedConfig := daemon.ResolvedConfig
-
 				req.Equal(test.ExpectedConfig, resolvedConfig)
 			}
+
+			err = manager.CommitState()
+			req.NoError(err)
 
 			updatedState, err := fakeFS.ReadFile(constants.StatePath)
 			req.NoError(err)
 
-			req.Equal(test.State, updatedState)
+			var indented bytes.Buffer
+			err = json.Indent(&indented, test.State, "", "  ")
+			req.NoError(err)
+
+			req.Equal(indented.Bytes(), updatedState)
 		})
 	}
 }

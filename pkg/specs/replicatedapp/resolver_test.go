@@ -159,19 +159,20 @@ func Test_resolver_updateUpstream(t *testing.T) {
 
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			realState := state2.MManager{FS: fs, Logger: &logger.TestLogger{T: t}, V: viper.New()}
+			realState, err := state2.NewDisposableManager(&logger.TestLogger{T: t}, fs, viper.New())
+			req.NoError(err)
 
 			resolver := &resolver{
 				Logger:       &logger.TestLogger{T: t},
-				StateManager: &realState,
+				StateManager: realState,
 			}
 
 			req.NoError(realState.SerializeUpstream(tt.initUpstream))
 
-			err := resolver.updateUpstream(tt.selector)
+			err = resolver.updateUpstream(tt.selector)
 			req.NoError(err)
 
-			afterState, err := realState.TryLoad()
+			afterState, err := realState.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expectUpstream, afterState.Upstream())

@@ -32,7 +32,7 @@ func persistState(debug log.Logger, fs afero.Afero, statemanager state.Manager, 
 	}
 
 	debug.Log("event", "state.load", "path", statePath)
-	shipstate, err := statemanager.TryLoad()
+	shipstate, err := statemanager.CachedState()
 	if err != nil {
 		return errors.Wrapf(err, "load ship state")
 	}
@@ -54,7 +54,7 @@ func persistState(debug log.Logger, fs afero.Afero, statemanager state.Manager, 
 func restoreState(debug log.Logger, fs afero.Afero, statemanager state.Manager, dir string) error {
 
 	debug.Log("event", "state.load")
-	shipstate, err := statemanager.TryLoad()
+	shipstate, err := statemanager.CachedState()
 	if err != nil {
 		return errors.Wrapf(err, "load ship state")
 	}

@@ -251,9 +251,10 @@ metadata:
 				req.NoError(err)
 			}
 
-			stateManager := state.NewManager(log.NewNopLogger(), mockFs, viper.New())
+			stateManager, err := state.NewDisposableManager(log.NewNopLogger(), mockFs, viper.New())
+			req.NoError(err)
 
-			err := stateManager.Save(state.State{V1: &state.V1{Kustomize: &state.Kustomize{}}})
+			err = stateManager.Save(state.State{V1: &state.V1{Kustomize: &state.Kustomize{}}})
 			req.NoError(err)
 
 			l := &Kustomizer{

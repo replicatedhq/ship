@@ -31,16 +31,6 @@
       "sequence": 0,
       "version": "1.19.0"
     },
-    "contentSHA": "091919437262ee08b6d7afa80dc43e55c59acf7c2995118bfaaa9dfbc7facf7f",
-    "lifecycle": {
-      "stepsCompleted": {
-        "intro": true,
-        "kustomize": true,
-        "kustomize-intro": true,
-        "outro": true,
-        "render": true,
-        "values": true
-      }
-    }
+    "contentSHA": "091919437262ee08b6d7afa80dc43e55c59acf7c2995118bfaaa9dfbc7facf7f"
   }
 }

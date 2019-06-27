@@ -63,7 +63,7 @@ func (d *DaemonResolver) awaitConfigSaved(ctx context.Context, daemonExitedChan 
 		select {
 		case <-d.Daemon.ConfigSavedChan():
 			debug.Log("event", "config.saved")
-			return d.Daemon.GetCurrentConfig(), nil
+			return d.Daemon.GetCurrentConfig()
 		case <-time.After(10 * time.Second):
 			debug.Log("waitingFor", "config.saved")
 		case <-ctx.Done():

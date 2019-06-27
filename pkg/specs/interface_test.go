@@ -102,7 +102,7 @@ icon: https://kfbr.392/x5.png
 				}, "helm").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
-				inOrder = mockState.EXPECT().TryLoad().Return(state2.State{}, nil).After(inOrder)
+				inOrder = mockState.EXPECT().CachedState().Return(state2.State{}, nil).After(inOrder)
 				mockState.EXPECT().SerializeReleaseName("i-know-what-the-x5-is").After(inOrder)
 
 			},
@@ -205,7 +205,7 @@ icon: https://kfbr.392/x5.png
 				inOrder = mockState.EXPECT().SerializeContentSHA("abcdef1234567890").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("Looking for ship.yaml ...").After(inOrder)
 				inOrder = mockUi.EXPECT().Info("ship.yaml not found in upstream, generating default lifecycle for application ...").After(inOrder)
-				inOrder = mockState.EXPECT().TryLoad().Return(state2.State{}, nil).After(inOrder)
+				inOrder = mockState.EXPECT().CachedState().Return(state2.State{}, nil).After(inOrder)
 				mockState.EXPECT().SerializeReleaseName("ship").After(inOrder)
 			},
 			expectRelease: &api.Release{

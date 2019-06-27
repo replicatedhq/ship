@@ -33,7 +33,7 @@ func (d *NavcycleRoutes) postAppConfigLive(release *api.Release) gin.HandlerFunc
 		}
 
 		debug.Log("event", "state.tryLoad")
-		savedSate, err := d.StateManager.TryLoad()
+		savedSate, err := d.StateManager.CachedState()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -46,7 +46,14 @@ func (d *NavcycleRoutes) postAppConfigLive(release *api.Release) gin.HandlerFunc
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedSate.CurrentConfig(), liveValues, true)
+		currentConfig, err := savedSate.CurrentConfig()
+		if err != nil {
+			level.Error(d.Logger).Log("msg", "failed to get current config", "err", err)
+			c.AbortWithStatus(500)
+			return
+		}
+
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, currentConfig, liveValues, true)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)
@@ -92,7 +99,7 @@ func (d *NavcycleRoutes) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "state.tryLoad")
-		savedState, err := d.StateManager.TryLoad()
+		savedState, err := d.StateManager.CachedState()
 		if err != nil {
 			level.Error(d.Logger).Log("msg", "failed to load stateManager", "err", err)
 			c.AbortWithStatus(500)
@@ -105,7 +112,14 @@ func (d *NavcycleRoutes) putAppConfig(release *api.Release) gin.HandlerFunc {
 		}
 
 		debug.Log("event", "resolveConfig")
-		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, savedState.CurrentConfig(), liveValues, false)
+		currentConfig, err := savedState.CurrentConfig()
+		if err != nil {
+			level.Error(d.Logger).Log("msg", "failed to get current config", "err", err)
+			c.AbortWithStatus(500)
+			return
+		}
+
+		resolvedConfig, err := d.ConfigRenderer.ResolveConfig(c, release, currentConfig, liveValues, false)
 		if err != nil {
 			level.Error(d.Logger).Log("event", "resolveconfig failed", "err", err)
 			c.AbortWithStatus(500)

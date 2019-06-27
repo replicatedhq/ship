@@ -36,6 +36,11 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
+// WithEmptyState a mock with an empty state
+func (m *MockManager) WithEmptyState(ctrl *gomock.Controller) *MockManager {
+	return m
+}
+
 // AddCA mocks base method
 func (m *MockManager) AddCA(arg0 string, arg1 util.CAType) error {
 	ret := m.ctrl.Call(m, "AddCA", arg0, arg1)
@@ -229,17 +234,41 @@ func (mr *MockManagerMockRecorder) StateUpdate(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StateUpdate", reflect.TypeOf((*MockManager)(nil).StateUpdate), arg0)
 }
 
-// TryLoad mocks base method
-func (m *MockManager) TryLoad() (state.State, error) {
-	ret := m.ctrl.Call(m, "TryLoad")
+// CachedState mocks base method
+func (m *MockManager) CachedState() (state.State, error) {
+	ret := m.ctrl.Call(m, "CachedState")
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// TryLoad indicates an expected call of TryLoad
-func (mr *MockManagerMockRecorder) TryLoad() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryLoad", reflect.TypeOf((*MockManager)(nil).TryLoad))
+// CachedState indicates an expected call of CachedState
+func (mr *MockManagerMockRecorder) CachedState() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CachedState", reflect.TypeOf((*MockManager)(nil).CachedState))
+}
+
+// CommitState mocks base method
+func (m *MockManager) CommitState() error {
+	ret := m.ctrl.Call(m, "CommitState")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CommitState indicates an expected call of CommitState
+func (mr *MockManagerMockRecorder) CommitState() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommitState", reflect.TypeOf((*MockManager)(nil).CommitState))
+}
+
+// ReloadFile mocks base method
+func (m *MockManager) ReloadFile() error {
+	ret := m.ctrl.Call(m, "ReloadFile")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReloadFile indicates an expected call of CommitState
+func (mr *MockManagerMockRecorder) ReloadFile() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReloadFile", reflect.TypeOf((*MockManager)(nil).ReloadFile))
 }
 
 // UpdateVersion mocks base method

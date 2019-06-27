@@ -172,7 +172,7 @@ func TestLocalTemplater(t *testing.T) {
 			}
 
 			if test.state == nil {
-				mockState.EXPECT().TryLoad().Return(state2.State{
+				mockState.EXPECT().CachedState().Return(state2.State{
 					V1: &state2.V1{
 						HelmValues:  "we fake",
 						ReleaseName: channelName,
@@ -181,7 +181,7 @@ func TestLocalTemplater(t *testing.T) {
 			} else {
 				testState := *test.state
 				testState.V1.ReleaseName = channelName
-				mockState.EXPECT().TryLoad().Return(testState, nil)
+				mockState.EXPECT().CachedState().Return(testState, nil)
 			}
 
 			chartRoot := "/tmp/chartroot"
@@ -787,7 +787,7 @@ something: maybe
 			err := mockFs.WriteFile(tt.defaultValuesPath, []byte(tt.defaultValuesContent), 0755)
 			req.NoError(err)
 
-			mockState.EXPECT().TryLoad().Return(state2.State{V1: &state2.V1{}}, nil)
+			mockState.EXPECT().CachedState().Return(state2.State{V1: &state2.V1{}}, nil)
 			f := &LocalTemplater{
 				Logger:       &logger.TestLogger{T: t},
 				FS:           mockFs,

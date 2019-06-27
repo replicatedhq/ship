@@ -28,12 +28,17 @@ func evaluateWhen(when string, release api.Release, logger log.Logger, viper *vi
 
 	builderBuilder := templates.BuilderBuilder{Logger: logger, Viper: viper, Manager: manager}
 
-	configState, err := manager.TryLoad()
+	configState, err := manager.CachedState()
 	if err != nil {
 		_ = logger.Log("terraform.when.loadState", err.Error())
 	}
 
-	fullBuilder, err := builderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, configState.CurrentConfig())
+	currentConfig, err := configState.CurrentConfig()
+	if err != nil {
+		_ = logger.Log("terraform.when.getConfig", err.Error())
+	}
+
+	fullBuilder, err := builderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currentConfig)
 	if err != nil {
 		_ = logger.Log("terraform.when.buildBuilder", err.Error())
 	}

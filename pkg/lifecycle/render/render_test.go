@@ -61,11 +61,13 @@ func TestRender(t *testing.T) {
 			renderer.UI = mockUI
 			renderer.ConfigResolver = configResolver
 			renderer.Planner = p
-			renderer.StateManager = &state.MManager{
-				Logger: renderer.Logger,
-				FS:     mockFS,
-				V:      viper.New(),
-			}
+
+			// this has to be the singleton state manager because ship will not always
+			// re-use renderer.StateManager
+			state, err := state.GetManager(renderer.Logger, mockFS, viper.New())
+			assert.NoError(t, err)
+
+			renderer.StateManager = state
 
 			prog := mockDaemon.EXPECT().SetProgress(ProgressRead)
 			prog = mockDaemon.EXPECT().SetProgress(ProgressRender).After(prog)

@@ -236,7 +236,7 @@ func (d *V1Routes) getCurrentStep(c *gin.Context) {
 		return
 	}
 
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		level.Error(d.Logger).Log("event", "tryLoad,fail", "err", err)
 		c.AbortWithError(500, errors.New("internal_server_error"))

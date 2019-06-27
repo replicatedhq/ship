@@ -16,6 +16,7 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
+	"github.com/replicatedhq/ship/pkg/state"
 	"gopkg.in/yaml.v2"
 )
 
@@ -76,10 +77,14 @@ var _ = Describe("ship app", func() {
 
 				AfterEach(func() {
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
+						err := state.GetSingleton().RemoveStateFile()
+						Expect(err).NotTo(HaveOccurred())
+
 						// remove the temporary directory
-						err := os.RemoveAll(testOutputPath)
+						err = os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
 					}
+
 					os.Chdir(integrationDir)
 				}, 20)
 
@@ -101,8 +106,11 @@ var _ = Describe("ship app", func() {
 						"--log-level=off",
 						"--terraform-apply-yes",
 					}
-					if !testMetadata.NoStateFile {
+					if testMetadata.NoStateFile {
+						os.Setenv("PRELOAD_TEST_STATE", "")
+					} else {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+						os.Setenv("PRELOAD_TEST_STATE", "1")
 					}
 
 					if testMetadata.SetEntitlementsJSON != "" {
@@ -143,8 +151,11 @@ var _ = Describe("ship app", func() {
 						"--log-level=off",
 						"--terraform-apply-yes",
 					}
-					if !testMetadata.NoStateFile {
+					if testMetadata.NoStateFile {
+						os.Setenv("PRELOAD_TEST_STATE", "")
+					} else {
 						args = append(args, fmt.Sprintf("--state-file=%s", path.Join(testInputPath, ".ship/state.json")))
+						os.Setenv("PRELOAD_TEST_STATE", "1")
 					}
 					cmd.SetArgs(args)
 					err := cmd.Execute()

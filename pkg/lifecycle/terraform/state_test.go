@@ -98,7 +98,7 @@ func TestPersistState(t *testing.T) {
 			err := mockFs.WriteFile("installer/terraform.tfstate", []byte(test.state), 0644)
 			req.NoError(err)
 
-			statemanager.EXPECT().TryLoad().Return(test.instate, nil)
+			statemanager.EXPECT().CachedState().Return(test.instate, nil)
 			statemanager.EXPECT().Save(&matchers.Is{
 				Test: func(v interface{}) bool {
 					vstate := v.(state.State)
@@ -192,7 +192,7 @@ func TestRestoreState(t *testing.T) {
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			statemanager := state2.NewMockManager(mc)
 
-			statemanager.EXPECT().TryLoad().Return(test.instate, nil)
+			statemanager.EXPECT().CachedState().Return(test.instate, nil)
 
 			err := restoreState(debug, mockFs, statemanager, "installer")
 			req.NoError(err)
