@@ -1,6 +1,7 @@
 {
   "v1": {
     "config": {},
+    "contentSHA": "8ac80c107e69986c9dd4ca9f7eec75790a2582bd14f2fc67d516837636694fdf",
     "releaseName": "integration-replicated-app-helm-github",
     "upstream": "__upstream__",
     "metadata": {
@@ -244,7 +245,6 @@
         "created": "Wed Dec 12 2018 22:03:17 GMT+0000 (UTC)",
         "entitlements": {}
       }
-    },
-    "contentSHA": "687a05a7437c94d295cab91b748304d97ebb19e398cfed034e1659d81d852876"
+    }
   }
 }
