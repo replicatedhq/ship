@@ -2,7 +2,6 @@ package headless
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/mitchellh/cli"
@@ -19,11 +18,11 @@ import (
 )
 
 type TestHeadless struct {
-	Name          string
-	State         []byte
-	Release       *api.Release
-	ExpectedValue []byte
-	ExpectedError bool
+	Name           string
+	State          []byte
+	Release        *api.Release
+	ExpectedConfig map[string]interface{}
+	ExpectedError  bool
 }
 
 func TestHeadlessDaemon(t *testing.T) {
@@ -39,8 +38,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, not required, no value",
@@ -63,8 +62,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": ""},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, required, no value",
@@ -87,8 +86,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
-			ExpectedError: true,
+			ExpectedConfig: map[string]interface{}{},
+			ExpectedError:  true,
 		},
 		{
 			Name:  "one group one item, required, value, hidden",
@@ -111,8 +110,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, not required, no value, hidden",
@@ -135,8 +134,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, required, no value, hidden",
@@ -159,8 +158,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": ""},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, required, no value, not hidden",
@@ -183,8 +182,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": ""},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, required, value, not hidden",
@@ -207,8 +206,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, not required, no value, not hidden",
@@ -231,8 +230,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":""}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": ""},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group one item, required, value, hidden",
@@ -255,8 +254,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group two items, neither required, neither present",
@@ -286,8 +285,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"","beta":""}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "", "beta": ""},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "one group two items, both required, neither present",
@@ -317,8 +316,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{}}}`),
-			ExpectedError: true,
+			ExpectedConfig: map[string]interface{}{"alpha": "", "beta": ""},
+			ExpectedError:  true,
 		},
 		{
 			Name:  "one group two items, both required, one present",
@@ -348,8 +347,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"","beta":""}}}`),
-			ExpectedError: true,
+			ExpectedConfig: map[string]interface{}{"alpha": "", "beta": ""},
+			ExpectedError:  true,
 		},
 		{
 			Name:  "one group two items, both required, both present",
@@ -379,8 +378,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"200"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100", "beta": "200"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "beta value resolves to alpha value",
@@ -410,8 +409,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"101","beta":"101"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "101", "beta": "101"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "beta value resolves to alpha value when wrong beta value is presented",
@@ -441,8 +440,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"101","beta":"101"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "101", "beta": "101"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "charlie value resolves to beta value resolves to alpha value",
@@ -479,8 +478,8 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"100","charlie":"100"}}}`),
-			ExpectedError: false,
+			ExpectedConfig: map[string]interface{}{"alpha": "100", "beta": "100", "charlie": "100"},
+			ExpectedError:  false,
 		},
 		{
 			Name:  "multiple groups with multiple items",
@@ -552,8 +551,39 @@ func TestHeadlessDaemon(t *testing.T) {
 					},
 				},
 			},
-			ExpectedValue: []byte(`{"v1":{"config":{"alpha":"100","beta":"100","charlie":"100"}}}`),
-			ExpectedError: true,
+			ExpectedConfig: map[string]interface{}{"alpha": "100", "beta": "100", "charlie": "100"},
+			ExpectedError:  true,
+		},
+		{
+			Name:  "beta value resolves to alpha default",
+			State: []byte(`{"v1":{"config":{}}}`),
+			Release: &api.Release{
+				Spec: api.Spec{
+					Config: api.Config{
+						V1: []libyaml.ConfigGroup{{
+							Name: "testing",
+							Items: []*libyaml.ConfigItem{
+								{
+									Name:     "alpha",
+									Value:    "",
+									Default:  "100",
+									Required: false,
+									Hidden:   false,
+								},
+								{
+									Name:     "beta",
+									Value:    `{{repl ConfigOption "alpha" }}`,
+									Default:  "",
+									Required: false,
+									ReadOnly: true,
+								},
+							},
+						}},
+					},
+				},
+			},
+			ExpectedConfig: map[string]interface{}{"alpha": "100", "beta": "100"},
+			ExpectedError:  false,
 		},
 	}
 
@@ -599,16 +629,15 @@ func TestHeadlessDaemon(t *testing.T) {
 			if test.ExpectedError {
 				req.Error(err)
 			} else {
-				updatedState, err := fakeFS.ReadFile(constants.StatePath)
-				req.NoError(err)
+				resolvedConfig := daemon.ResolvedConfig
 
-				var obj interface{}
-				err = json.Unmarshal(test.ExpectedValue, &obj)
-				req.NoError(err)
-				pretty, err := json.MarshalIndent(obj, "", "  ")
-				req.NoError(err)
-				req.Equal(pretty, updatedState)
+				req.Equal(test.ExpectedConfig, resolvedConfig)
 			}
+
+			updatedState, err := fakeFS.ReadFile(constants.StatePath)
+			req.NoError(err)
+
+			req.Equal(test.State, updatedState)
 		})
 	}
 }

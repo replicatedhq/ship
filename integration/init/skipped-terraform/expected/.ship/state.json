@@ -1,8 +1,6 @@
 {
   "v1": {
-    "config": {
-      "id_length": "8"
-    },
+    "config": {},
     "releaseName": "ship",
     "upstream": "__upstream__",
     "upstreamContents": {
