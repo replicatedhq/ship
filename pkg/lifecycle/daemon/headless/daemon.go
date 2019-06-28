@@ -198,11 +198,6 @@ func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Relea
 	}
 
 	d.ResolvedConfig = templateContext
-	if err := d.StateManager.SerializeConfig(nil, api.ReleaseMetadata{}, templateContext); err != nil {
-		warn.Log("msg", "serialize state failed", "err", err)
-		return err
-	}
-
 	return nil
 }
 
