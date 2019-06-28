@@ -117,6 +117,8 @@ var _ = Describe("ship update", func() {
 						".ship/state.json": {
 							"v1.upstreamContents.appRelease.entitlements",
 							"v1.upstreamContents.appRelease.registrySecret",
+							"v1.upstreamContents.appRelease.analyzeSpec",
+							"v1.upstreamContents.appRelease.collectSpec",
 							"v1.shipVersion",
 						},
 					}

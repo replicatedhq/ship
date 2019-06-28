@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "upstream": "staging.replicated.app/some-cool-ci-tool?installation_id=3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-&customer_id=-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
-    "contentSHA": "9728a969294231e722662390ed73a8573a1af59f7a50bce21a8373612b69635e",
+    "contentSHA": "37cbc1ee09877a15e0546122aef478713fbbc687d46b0fde0177928e2f4337d5",
     "metadata": {
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",
