@@ -141,7 +141,31 @@ jobs:
           at: ~/
       - run:
           name: Run Tests
-          command: make cypress_base
+          # https://unix.stackexchange.com/a/137639
+          command: |
+            function fail {
+              echo $1 >&2
+              exit 1
+            }
+
+            function retry {
+              local n=1
+              local max=5
+              local delay=5
+              while true; do
+                "$@" && break || {
+                  if [[ $n -lt $max ]]; then
+                    ((n++))
+                    echo "Command failed. Attempt $n/$max:"
+                    sleep $delay;
+                  else
+                    fail "The command has failed after $n attempts."
+                  fi
+                }
+              done
+            }
+
+            retry make cypress_base
 
   test:
     docker:
