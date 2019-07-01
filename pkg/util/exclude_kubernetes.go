@@ -101,4 +101,75 @@ func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource
 	return fmt.Errorf("unable to find resource %s in %s or its bases", excludedResource, basePath)
 }
 
-// TODO add a function to do the opposite of ExcludeKubernetesResource
+// UnExcludeKubernetesResource finds a deleted resource in a child of the basePath and includes it again
+func UnExcludeKubernetesResource(fs afero.Afero, basePath string, unExcludedResource string) error {
+
+	kustomizeYaml, err := fs.ReadFile(filepath.Join(basePath, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "read kustomization yaml in %s", basePath)
+	}
+
+	kustomization := types.Kustomization{}
+	err = yaml.Unmarshal(kustomizeYaml, &kustomization)
+	if err != nil {
+		return errors.Wrapf(err, "unmarshal kustomization yaml from %s", basePath)
+	}
+
+	unExcludedResource = strings.TrimPrefix(unExcludedResource, string(filepath.Separator))
+
+	// check if the resource is already included, if it is there is nothing left to do
+	for _, existingResource := range kustomization.Resources {
+		if existingResource == unExcludedResource {
+			return nil
+		}
+	}
+
+	resourceLength := len(kustomization.Resources)
+
+	err = fs.Walk(basePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "walk %s", path)
+		}
+		relPath, err := filepath.Rel(basePath, path)
+		if err != nil {
+			return errors.Wrapf(err, "get relative path to %s from %s", path, basePath)
+		}
+
+		if relPath == unExcludedResource {
+			kustomization.Resources = append(kustomization.Resources, unExcludedResource)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return errors.Wrapf(err, "walk files in %s", basePath)
+	}
+
+	if resourceLength != len(kustomization.Resources) {
+		// write updated kustomization to disk - resource has been reincluded
+		kustomizeYaml, err = yaml.Marshal(kustomization)
+		if err != nil {
+			return errors.Wrapf(err, "marshal kustomization yaml from %s", basePath)
+		}
+
+		err = fs.WriteFile(filepath.Join(basePath, "kustomization.yaml"), kustomizeYaml, 0644)
+		if err != nil {
+			return errors.Wrapf(err, "write kustomization yaml to %s", basePath)
+		}
+		return nil
+	}
+
+	for _, newBase := range kustomization.Bases {
+		newBase = filepath.Clean(filepath.Join(basePath, newBase))
+		cleanBase := strings.ReplaceAll(newBase, string(filepath.Separator), "-")
+
+		if strings.HasPrefix(unExcludedResource, cleanBase) {
+			updatedResource := strings.TrimPrefix(unExcludedResource, cleanBase)
+			updatedResource = strings.TrimPrefix(updatedResource, string(filepath.Separator))
+
+			return UnExcludeKubernetesResource(fs, newBase, updatedResource)
+		}
+	}
+
+	return fmt.Errorf("unable to find resource %s in %s or its bases", unExcludedResource, basePath)
+}

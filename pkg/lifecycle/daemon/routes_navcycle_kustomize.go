@@ -11,6 +11,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/filetree"
 	"github.com/replicatedhq/ship/pkg/state"
+	"github.com/replicatedhq/ship/pkg/util"
 )
 
 type SaveOverlayRequest struct {
@@ -335,10 +336,22 @@ func (d *NavcycleRoutes) includeBase(c *gin.Context) {
 		return
 	}
 
+	debug.Log("event", "getKustomizationStep")
+	step, ok := d.getKustomizeStepOrAbort(c)
+	if !ok {
+		level.Error(d.Logger).Log("event", "get kustomize step")
+		return
+	}
+	err := util.UnExcludeKubernetesResource(d.Fs, step.Kustomize.Base, request.Path)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "include base"))
+		return
+	}
+
 	debug.Log("event", "load state")
 	currentState, err := d.StateManager.TryLoad()
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
+		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "include base"))
 		return
 	}
 
@@ -362,7 +375,7 @@ func (d *NavcycleRoutes) includeBase(c *gin.Context) {
 	kustomize.Overlays["ship"] = shipOverlay
 
 	if err := d.StateManager.SaveKustomize(kustomize); err != nil {
-		c.AbortWithError(500, errors.Wrap(err, "delete base"))
+		c.AbortWithError(500, errors.Wrap(err, "include base"))
 		return
 	}
 	c.JSON(200, map[string]string{"status": "success"})
