@@ -123,7 +123,7 @@ var _ = Describe("ship init replicated.app/...", func() {
 					}
 
 					if testMetadata.ReleaseVersion != "" {
-						upstream = fmt.Sprintf("%s&semver=%s", upstream, testMetadata.ReleaseVersion)
+						upstream = fmt.Sprintf("%s&release_semver=%s", upstream, testMetadata.ReleaseVersion)
 					}
 
 					cmd := cli.RootCmd()
