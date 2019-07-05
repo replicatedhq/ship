@@ -125,12 +125,17 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 }
 
 func (d *DaemonlessKubectl) prepareCmd(release api.Release, step api.KubectlApply) (*exec.Cmd, error) {
-	currState, err := d.StateManager.TryLoad()
+	currState, err := d.StateManager.CachedState()
 	if err != nil {
 		return nil, errors.Wrap(err, "load state")
 	}
 
-	builder, err := d.BuilderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currState.CurrentConfig())
+	currentConfig, err := currState.CurrentConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "get current config")
+	}
+
+	builder, err := d.BuilderBuilder.FullBuilder(release.Metadata, release.Spec.Config.V1, currentConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "get builder")
 	}

@@ -44,7 +44,7 @@ func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, st
 	debug.Log("event", "step.execute")
 
 	debug.Log("event", "try.load")
-	previousState, err := r.StateManager.TryLoad()
+	previousState, err := r.StateManager.CachedState()
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,12 @@ func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, st
 	r.StatusReceiver.SetProgress(ProgressRead)
 
 	debug.Log("event", "resolve.config")
-	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, previousState.CurrentConfig())
+	currentConfig, err := previousState.CurrentConfig()
+	if err != nil {
+		return errors.Wrap(err, "get current config")
+	}
+
+	templateContext, err := r.ConfigResolver.ResolveConfig(ctx, release, currentConfig)
 	if err != nil {
 		return errors.Wrap(err, "resolve config")
 	}
@@ -90,10 +95,15 @@ func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, st
 		return errors.Wrap(err, "execute plan")
 	}
 
+	currentConfig, err = previousState.CurrentConfig()
+	if err != nil {
+		return errors.Wrap(err, "get current config")
+	}
+
 	stateTemplateContext := make(map[string]interface{})
 	for _, configGroup := range release.Spec.Config.V1 {
 		for _, configItem := range configGroup.Items {
-			if valueNotOverriddenByDefault(configItem, templateContext, previousState.CurrentConfig()) {
+			if valueNotOverriddenByDefault(configItem, templateContext, currentConfig) {
 				stateTemplateContext[configItem.Name] = templateContext[configItem.Name]
 			}
 		}

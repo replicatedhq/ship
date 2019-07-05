@@ -25,7 +25,7 @@ func (s *Ship) Watch(ctx context.Context) error {
 	defer s.Shutdown(cancelFunc)
 
 	for {
-		existingState, err := s.State.TryLoad()
+		existingState, err := s.State.CachedState()
 		if err != nil {
 			return errors.Wrap(err, "load state")
 		}
@@ -84,6 +84,10 @@ func (s *Ship) Watch(ctx context.Context) error {
 
 		noUpdateMsg := fmt.Sprintf("No update was found for %s", upstream)
 		s.UI.Info(noUpdateMsg)
+
+		if err := s.State.CommitState(); err != nil {
+			return errors.Wrap(err, "commit state")
+		}
 
 		if s.Viper.GetBool("exit") {
 			return nil

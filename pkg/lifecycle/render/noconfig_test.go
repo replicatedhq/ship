@@ -57,7 +57,7 @@ func TestRenderNoConfig(t *testing.T) {
 			func() {
 				defer mc.Finish()
 
-				mockState.EXPECT().TryLoad().Return(state.State{V1: &state.V1{Config: test.ViperConfig}}, nil)
+				mockState.EXPECT().CachedState().Return(state.State{V1: &state.V1{Config: test.ViperConfig}}, nil)
 
 				expectedConfig := test.ViperConfig
 				if expectedConfig == nil {

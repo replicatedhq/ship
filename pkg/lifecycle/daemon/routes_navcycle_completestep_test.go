@@ -336,7 +336,9 @@ func TestV2CompleteStep(t *testing.T) {
 
 			testLogger := &logger.TestLogger{T: t}
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
-			realState := state2.NewManager(testLogger, fs, viper.New())
+			realState, err := state2.NewDisposableManager(testLogger, fs, viper.New())
+			req.NoError(err)
+
 			mc := gomock.NewController(t)
 			messenger := lifecycle.NewMockMessenger(mc)
 			renderer := lifecycle.NewMockRenderer(mc)
@@ -393,7 +395,7 @@ func TestV2CompleteStep(t *testing.T) {
 						// there is almost certainly a better solution than this
 						time.Sleep(time.Duration(time.Millisecond * 500))
 
-						loadState, err := realState.TryLoad()
+						loadState, err := realState.CachedState()
 						req.NoError(err)
 						req.True(testCase.ExpectState.Test(loadState), testCase.ExpectState.Describe)
 					}

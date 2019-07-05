@@ -8,9 +8,9 @@ func (d *V1Routes) ConfigSavedChan() chan interface{} {
 	return d.ConfigSaved
 }
 
-func (d *V1Routes) GetCurrentConfig() map[string]interface{} {
+func (d *V1Routes) GetCurrentConfig() (map[string]interface{}, error) {
 	if d.CurrentConfig == nil {
-		return make(map[string]interface{})
+		return make(map[string]interface{}), nil
 	}
-	return d.CurrentConfig
+	return d.CurrentConfig, nil
 }

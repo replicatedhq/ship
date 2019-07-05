@@ -466,13 +466,15 @@ func TestHeadlessResolver(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			req := require.New(t)
 			v := viper.New()
 
 			viper.Set("api-port", 0)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			log := &logger.TestLogger{T: t}
 
-			manager := state.NewManager(log, fs, v)
+			manager, err := state.NewDisposableManager(log, fs, v)
+			req.NoError(err)
 
 			builderBuilder := templates.NewBuilderBuilder(log, v, manager)
 

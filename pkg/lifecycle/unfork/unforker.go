@@ -99,7 +99,7 @@ func (l *daemonunforker) awaitUnforkerSaved(ctx context.Context, daemonExitedCha
 func (l *Unforker) writeBase(step api.Unfork) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
-	currentState, err := l.State.TryLoad()
+	currentState, err := l.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}

@@ -50,14 +50,18 @@ func (d *NavcycleRoutes) getStep(c *gin.Context) {
 }
 
 func (d *NavcycleRoutes) buildStepContents(step api.Step) (api.Step, error) {
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		level.Error(d.Logger).Log("event", "tryLoad.fail", "err", err)
 		return api.Step{}, errors.Wrap(err, "load state")
 	}
 
 	if step.Kustomize != nil {
-		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		currentConfig, err := currentState.CurrentConfig()
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "get current config")
+		}
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentConfig)
 		if err != nil {
 			return api.Step{}, errors.Wrap(err, "create kustomize template builder")
 		}
@@ -69,7 +73,11 @@ func (d *NavcycleRoutes) buildStepContents(step api.Step) (api.Step, error) {
 	}
 
 	if step.Message != nil {
-		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentState.CurrentConfig())
+		currentConfig, err := currentState.CurrentConfig()
+		if err != nil {
+			return api.Step{}, errors.Wrap(err, "get current config")
+		}
+		builder, err := d.BuilderBuilder.FullBuilder(d.Release.Metadata, d.Release.Spec.Config.V1, currentConfig)
 		if err != nil {
 			return api.Step{}, errors.Wrap(err, "create message template builder")
 		}
@@ -86,7 +94,7 @@ func (d *NavcycleRoutes) buildStepContents(step api.Step) (api.Step, error) {
 func (d *NavcycleRoutes) hydrateStep(step daemontypes.Step) (*daemontypes.StepResponse, error) {
 	debug := level.Debug(log.With(d.Logger, "method", "hydrateStep"))
 
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		level.Error(d.Logger).Log("event", "tryLoad.fail", "err", err)
 		return nil, errors.Wrap(err, "load state")

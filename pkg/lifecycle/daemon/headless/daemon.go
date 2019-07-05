@@ -152,23 +152,34 @@ func (d *HeadlessDaemon) ConfigSavedChan() chan interface{} {
 	return ch
 }
 
-func (d *HeadlessDaemon) GetCurrentConfig() map[string]interface{} {
+func (d *HeadlessDaemon) GetCurrentConfig() (map[string]interface{}, error) {
 	if d.ResolvedConfig != nil {
-		return d.ResolvedConfig
+		return d.ResolvedConfig, nil
 	}
 
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "getCurrentConfig"))
-	currentConfig, err := d.StateManager.TryLoad()
+	currentConfig, err := d.StateManager.CachedState()
 	if err != nil {
 		warn.Log("event", "state missing", "err", err)
+		return nil, err
 	}
 
-	return currentConfig.CurrentConfig()
+	config, err := currentConfig.CurrentConfig()
+	if err != nil {
+		warn.Log("event", "get config", "err", err)
+		return nil, err
+	}
+
+	return config, nil
 }
 
 func (d *HeadlessDaemon) HeadlessResolve(ctx context.Context, release *api.Release) error {
 	warn := level.Warn(log.With(d.Logger, "struct", "fakeDaemon", "method", "HeadlessResolve"))
-	currentConfig := d.GetCurrentConfig()
+	currentConfig, err := d.GetCurrentConfig()
+	if err != nil {
+		warn.Log("event", "get config failed", "err", err)
+		return err
+	}
 
 	resolved, err := d.ConfigRenderer.ResolveConfig(ctx, release, currentConfig, make(map[string]interface{}), false)
 	if err != nil {

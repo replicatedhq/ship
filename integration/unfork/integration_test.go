@@ -16,6 +16,7 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
+	"github.com/replicatedhq/ship/pkg/state"
 	"gopkg.in/yaml.v2"
 )
 
@@ -71,6 +72,8 @@ var _ = Describe("ship unfork", func() {
 				}, 20)
 
 				AfterEach(func() {
+					err := state.GetSingleton().RemoveStateFile()
+					Expect(err).NotTo(HaveOccurred())
 					os.Chdir(integrationDir)
 				}, 20)
 

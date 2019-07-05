@@ -46,12 +46,16 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 
 	r.StatusReceiver.SetProgress(ProgressRead)
 	debug.Log("event", "try.load")
-	previousState, err := r.StateManager.TryLoad()
+	previousState, err := r.StateManager.CachedState()
 	if err != nil {
 		return err
 	}
 
-	templateContext := previousState.CurrentConfig()
+	templateContext, err := previousState.CurrentConfig()
+	if err != nil {
+		return err
+	}
+
 	r.StatusReceiver.SetProgress(ProgressRender)
 
 	// this should probably happen even higher up, like to the validation stage where we assign IDs to lifecycle steps, but moving it up here for now

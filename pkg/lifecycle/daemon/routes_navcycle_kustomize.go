@@ -60,7 +60,7 @@ func (d *NavcycleRoutes) kustomizeDoSaveOverlay(request SaveOverlayRequest) erro
 	debug := level.Debug(log.With(d.Logger, "handler", "kustomizeSaveOverlay"))
 
 	debug.Log("event", "state.load")
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}
@@ -126,7 +126,7 @@ func (d *NavcycleRoutes) kustomizeGetFile(c *gin.Context) {
 		return
 	}
 
-	savedState, err := d.StateManager.TryLoad()
+	savedState, err := d.StateManager.CachedState()
 	if err != nil {
 		level.Error(d.Logger).Log("event", "load state failed", "err", err)
 		c.AbortWithError(500, err)
@@ -286,7 +286,7 @@ func (d *NavcycleRoutes) deleteBase(c *gin.Context) {
 		return
 	}
 
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "delete base"))
 		return
@@ -349,7 +349,7 @@ func (d *NavcycleRoutes) includeBase(c *gin.Context) {
 	}
 
 	debug.Log("event", "load state")
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, errors.Wrap(err, "include base"))
 		return
@@ -427,7 +427,7 @@ func (d *NavcycleRoutes) deletePatch(c *gin.Context) {
 func (d *NavcycleRoutes) deleteFile(pathQueryParam string, getFiles func(overlay state.Overlay) map[string]string) error {
 	debug := level.Debug(log.With(d.Logger, "struct", "daemon", "handler", "deleteFile"))
 	debug.Log("event", "state.load")
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}

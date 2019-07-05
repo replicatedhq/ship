@@ -111,7 +111,7 @@ func (f *LocalTemplater) Template(
 		return errors.Wrapf(err, "create tmp directory in %s", constants.ShipPathInternalTmp)
 	}
 
-	state, err := f.StateManager.TryLoad()
+	state, err := f.StateManager.CachedState()
 	if err != nil {
 		debug.Log("event", "tryloadState.fail", "err", err)
 		return errors.Wrapf(err, "try load state")
@@ -425,7 +425,7 @@ func (f *LocalTemplater) writeMergedAndDefaultHelmValues(valuesPath, defaultValu
 func (f *LocalTemplater) writeStateHelmValuesTo(dest string, defaultValuesPath string) error {
 	debug := level.Debug(log.With(f.Logger, "step.type", "helmValues", "resolveHelmValues"))
 	debug.Log("event", "tryLoadState")
-	editState, err := f.StateManager.TryLoad()
+	editState, err := f.StateManager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}
