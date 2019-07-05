@@ -193,6 +193,30 @@ func testCases() []TestInstallation {
 			Tpl:      `You get {{repl EntitlementValue "num_repos" }} repos`,
 			Expected: `You get  repos`,
 		},
+		{
+			Name: "collect spec",
+			Meta: api.ReleaseMetadata{
+				CollectSpec: `collect:
+  v1:
+    - {}`,
+			},
+			Tpl: `{{repl CollectSpec }}`,
+			Expected: `collect:
+  v1:
+    - {}`,
+		},
+		{
+			Name: "analyze spec",
+			Meta: api.ReleaseMetadata{
+				AnalyzeSpec: `analyze:
+  v1:
+    - {}`,
+			},
+			Tpl: `{{repl AnalyzeSpec }}`,
+			Expected: `analyze:
+  v1:
+    - {}`,
+		},
 	}
 	return tests
 }

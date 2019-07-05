@@ -1,0 +1,29 @@
+analyze:
+  v1:
+    - name: replicated.api.ok
+      labels:
+        iconKey: gray_checkmark
+      registerVariables:
+        - name: replicatedApiIoTimeout
+          fileMatch:
+            pathRegexps:
+              - /replicated\.log
+              - /replicated\.stderr
+            regexpCapture:
+              regexp: 'Get https://api\.replicated\.com.+ dial tcp .+ i/o timeout'
+              index: 0
+            scannable: true
+      evaluateConditions:
+        - condition:
+            empty: {}
+            variableRef: replicatedApiIoTimeout
+          insightOnFalse:
+            primary: api.replicated.com i/o timeout
+            detail: Cannot access Replicated APIs at api.replicated.com
+            severity: error
+          labels:
+            iconKey: gray_checkmark
+      insight:
+        primary: Can access api.replicated.com!
+        detail: Can access Replicated APIs at api.replicated.com
+        severity: info
