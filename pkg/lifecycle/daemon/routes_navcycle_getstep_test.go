@@ -227,7 +227,7 @@ func TestV2GetStep(t *testing.T) {
 				StepProgress:   progressmap,
 			}
 
-			fakeState.EXPECT().TryLoad().Return(state2.State{
+			fakeState.EXPECT().CachedState().Return(state2.State{
 				V1: &state2.V1{
 					Lifecycle: test.State,
 				},
@@ -564,8 +564,8 @@ func TestHydrateStep(t *testing.T) {
 			mockState := state.NewMockManager(mc)
 
 			if !test.state.IsEmpty() {
-				mockState.EXPECT().TryLoad().Return(test.state, nil)
-				mockState.EXPECT().TryLoad().Return(test.state, nil)
+				mockState.EXPECT().CachedState().Return(test.state, nil)
+				mockState.EXPECT().CachedState().Return(test.state, nil)
 			}
 
 			for fn, file := range test.fs {
@@ -700,9 +700,9 @@ func TestHydrateTemplatedKustomizeStep(t *testing.T) {
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			mockState := state.NewMockManager(mc)
 			if !test.state.IsEmpty() {
-				mockState.EXPECT().TryLoad().Return(test.state, nil)
-				mockState.EXPECT().TryLoad().Return(test.state, nil)
-				mockState.EXPECT().TryLoad().Return(test.state, nil)
+				mockState.EXPECT().CachedState().Return(test.state, nil)
+				mockState.EXPECT().CachedState().Return(test.state, nil)
+				mockState.EXPECT().CachedState().Return(test.state, nil)
 			}
 
 			for _, dir := range test.fs {

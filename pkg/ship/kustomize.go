@@ -27,7 +27,7 @@ func (s *Ship) InitAndMaybeExit(ctx context.Context) error {
 func (s *Ship) stateFileExists(ctx context.Context) bool {
 	debug := level.Debug(log.With(s.Logger, "method", "stateFileExists"))
 
-	existingState, err := s.State.TryLoad()
+	existingState, err := s.State.CachedState()
 	if err != nil {
 		debug.Log("event", "tryLoad.fail")
 		return false
@@ -43,6 +43,12 @@ func (s *Ship) Init(ctx context.Context) error {
 	defer s.Shutdown(cancelFunc)
 	removeExistingState := !s.Viper.GetBool("preserve-state")
 
+	if os.Getenv("PRELOAD_TEST_STATE") == "1" {
+		if err := s.maybeWriteStateFromFile(); err != nil {
+			return err
+		}
+	}
+
 	if s.Viper.GetString("raw") != "" {
 		release := s.fakeKustomizeRawRelease()
 		return s.execute(ctx, release, nil)
@@ -55,8 +61,8 @@ func (s *Ship) Init(ctx context.Context) error {
 		}
 	}
 
-	existingState, _ := s.State.TryLoad()
-	if !existingState.IsEmpty() {
+	existingState, _ := s.State.CachedState()
+	if !existingState.IsEmpty() && s.Viper.GetString("state-file") == "" {
 		debug.Log("event", "existing.state")
 
 		if s.Viper.GetString("state-from") != "file" {
@@ -77,14 +83,9 @@ func (s *Ship) Init(ctx context.Context) error {
 		}
 	}
 
-	if removeExistingState {
+	if removeExistingState && os.Getenv("PRELOAD_TEST_STATE") != "1" {
 		if err := s.maybeWriteStateFromFile(); err != nil {
 			return err
-		}
-	} else {
-		debug.Log("event", "reset steps completed for existing state")
-		if err := s.StateManager.ResetLifecycle(); err != nil {
-			return errors.Wrap(err, "reset state.json completed lifecycle")
 		}
 	}
 
@@ -108,7 +109,15 @@ func (s *Ship) Init(ctx context.Context) error {
 	}
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
-	return s.execute(ctx, release, nil)
+	if err := s.execute(ctx, release, nil); err != nil {
+		return errors.Wrap(err, "execute")
+	}
+
+	if err := s.State.CommitState(); err != nil {
+		return errors.Wrap(err, "commit state")
+	}
+
+	return nil
 }
 
 func (s *Ship) promptToRemoveState() error {

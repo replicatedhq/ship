@@ -21,9 +21,10 @@ func TestSerialize(t *testing.T) {
 	templateContext["key"] = "value"
 
 	state := &MManager{
-		Logger: log.NewNopLogger(),
-		FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-		V:      viper.New(),
+		Logger:      log.NewNopLogger(),
+		FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+		V:           viper.New(),
+		cachedState: &State{},
 	}
 
 	req := require.New(t)
@@ -88,12 +89,16 @@ func TestLoadConfig(t *testing.T) {
 				req.NoError(err, "write existing state")
 			}
 
-			manager := NewManager(&logger.TestLogger{T: t}, fs, viper.New())
-
-			state, err := manager.TryLoad()
+			manager, err := NewDisposableManager(&logger.TestLogger{T: t}, fs, viper.New())
 			req.NoError(err)
+
+			state, err := manager.CachedState()
+			req.NoError(err)
+
 			if test.expectConfig != nil {
-				diff := deep.Equal(test.expectConfig, state.CurrentConfig())
+				currentConfig, err := state.CurrentConfig()
+				req.NoError(err)
+				diff := deep.Equal(test.expectConfig, currentConfig)
 				req.Empty(diff)
 			}
 
@@ -146,19 +151,20 @@ func TestHelmValue(t *testing.T) {
 			req := require.New(t)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			manager := NewManager(&logger.TestLogger{T: t}, fs, viper.New())
-
-			err := manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnInit)
+			manager, err := NewDisposableManager(&logger.TestLogger{T: t}, fs, viper.New())
 			req.NoError(err)
 
-			t0State, err := manager.TryLoad()
+			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnInit)
+			req.NoError(err)
+
+			t0State, err := manager.CachedState()
 			req.NoError(err)
 			req.Equal(test.userInputValues, t0State.CurrentHelmValues())
 
 			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnUpdate)
 			req.NoError(err)
 
-			t1State, err := manager.TryLoad()
+			t1State, err := manager.CachedState()
 			req.NoError(err)
 			req.Equal(test.wantValuesAfterUpdate, t1State.CurrentHelmValues())
 		})
@@ -218,23 +224,28 @@ func TestMManager_SerializeChartURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
+			m1 := &MManager{
 				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
+			m1.cachedState = &tt.before
 
-			err = m.SerializeUpstream(tt.URL)
+			err := m1.SerializeUpstream(tt.URL)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeChartURL() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -295,23 +306,28 @@ func TestMManager_SerializeContentSHA(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
+			m1 := &MManager{
 				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
+			m1.cachedState = &tt.before
 
-			err = m.SerializeContentSHA(tt.ContentSHA)
+			err := m1.SerializeContentSHA(tt.ContentSHA)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeContentSHA() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -373,23 +389,28 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
+			m1 := &MManager{
 				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
 				V:      viper.New(),
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
+			m1.cachedState = &tt.before
 
-			err = m.SerializeHelmValues(tt.HelmValues, tt.HelmDefaults)
+			err := m1.SerializeHelmValues(tt.HelmValues, tt.HelmDefaults)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeHelmValues() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -431,23 +452,27 @@ func TestMManager_SerializeShipMetadata(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+			m1 := &MManager{
+				Logger:      &logger.TestLogger{T: t},
+				FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+				V:           viper.New(),
+				cachedState: &tt.before,
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
-
-			err = m.SerializeShipMetadata(tt.Metadata, "mock application type")
+			err := m1.SerializeShipMetadata(tt.Metadata, "mock application type")
 			if !tt.wantErr {
 				req.NoError(err, "MManager.SerializeShipMetadata() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -484,19 +509,23 @@ func TestMManager_ResetLifecycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+			m1 := &MManager{
+				Logger:      &logger.TestLogger{T: t},
+				FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+				V:           viper.New(),
+				cachedState: &tt.before,
 			}
 
-			err := m.serializeAndWriteState(tt.before)
+			err := m1.ResetLifecycle()
 			req.NoError(err)
 
-			err = m.ResetLifecycle()
+			err = m1.CommitState()
 			req.NoError(err)
 
-			actualState, err := m.TryLoad()
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -714,26 +743,27 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			req := require.New(t)
-			m := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+			m1 := &MManager{
+				Logger:      &logger.TestLogger{T: t},
+				FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+				V:           viper.New(),
+				cachedState: &State{V1: &V1{Lifecycle: nil}},
 			}
-
-			initialState := State{V1: &V1{Lifecycle: nil}}
 
 			group := sync.WaitGroup{}
 
-			err := m.serializeAndWriteState(initialState)
-			req.NoError(err)
-
 			group.Add(len(tt.runners))
 			for _, runner := range tt.runners {
-				go runner(m, req, &group)
+				go runner(m1, req, &group)
 			}
 
 			group.Wait()
-			actualState, err := m.TryLoad()
+			m1.CommitState()
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			tt.validator(actualState.Versioned(), req)
@@ -816,23 +846,27 @@ func TestMManager_AddCA(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+			m1 := &MManager{
+				Logger:      &logger.TestLogger{T: t},
+				FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+				V:           viper.New(),
+				cachedState: &tt.before,
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
-
-			err = m.AddCA(tt.caName, tt.newCA)
+			err := m1.AddCA(tt.caName, tt.newCA)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.AddCA() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)
@@ -915,23 +949,27 @@ func TestMManager_AddCert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
-			m := &MManager{
-				Logger: &logger.TestLogger{T: t},
-				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+			m1 := &MManager{
+				Logger:      &logger.TestLogger{T: t},
+				FS:          afero.Afero{Fs: afero.NewMemMapFs()},
+				V:           viper.New(),
+				cachedState: &tt.before,
 			}
 
-			err := m.serializeAndWriteState(tt.before)
-			req.NoError(err)
-
-			err = m.AddCert(tt.certName, tt.newCert)
+			err := m1.AddCert(tt.certName, tt.newCert)
 			if !tt.wantErr {
 				req.NoError(err, "MManager.AddCert() error = %v", err)
 			} else {
 				req.Error(err)
 			}
 
-			actualState, err := m.TryLoad()
+			err = m1.CommitState()
+			req.NoError(err)
+
+			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
+			req.NoError(err)
+
+			actualState, err := m2.CachedState()
 			req.NoError(err)
 
 			req.Equal(tt.expected, actualState)

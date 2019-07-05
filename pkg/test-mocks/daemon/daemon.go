@@ -103,10 +103,11 @@ func (mr *MockDaemonMockRecorder) EnsureStarted(arg0, arg1 interface{}) *gomock.
 }
 
 // GetCurrentConfig mocks base method
-func (m *MockDaemon) GetCurrentConfig() map[string]interface{} {
+func (m *MockDaemon) GetCurrentConfig() (map[string]interface{}, error) {
 	ret := m.ctrl.Call(m, "GetCurrentConfig")
 	ret0, _ := ret[0].(map[string]interface{})
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetCurrentConfig indicates an expected call of GetCurrentConfig

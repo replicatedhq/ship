@@ -163,7 +163,7 @@ func (d *NavcycleRoutes) getRequiredButIncompleteStepFor(requires []string, with
 	}
 
 	stepsCompleted := map[string]interface{}{}
-	currentState, err := d.StateManager.TryLoad()
+	currentState, err := d.StateManager.CachedState()
 	if err != nil {
 		return "", errors.Wrap(err, "load state")
 	}

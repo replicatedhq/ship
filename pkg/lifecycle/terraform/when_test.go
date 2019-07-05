@@ -75,7 +75,8 @@ func TestEvaluateWhen(t *testing.T) {
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 			tlogger := &logger.TestLogger{T: t}
 			tviper := viper.New()
-			stateManager := state.NewManager(tlogger, fs, tviper)
+			stateManager, err := state.NewDisposableManager(tlogger, fs, tviper)
+			req.NoError(err)
 
 			req.NoError(stateManager.Save(tt.State))
 			req.NoError(stateManager.SerializeAppMetadata(tt.release.Metadata))

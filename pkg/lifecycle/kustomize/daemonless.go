@@ -46,7 +46,7 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		return errors.Wrap(err, "write base kustomization")
 	}
 
-	current, err := l.State.TryLoad()
+	current, err := l.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}

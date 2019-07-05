@@ -56,7 +56,7 @@ func (h *helmValues) Execute(ctx context.Context, release *api.Release, step *ap
 
 	debug.Log("event", "readfile.attempt", "dest", path.Join(constants.HelmChartPath, "values.yaml"))
 
-	currentState, err := h.StateManager.TryLoad()
+	currentState, err := h.StateManager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}
@@ -113,7 +113,7 @@ func (h *helmValues) resolveStateHelmValues() error {
 func resolveStateHelmValues(logger log.Logger, manager state.Manager, fs afero.Afero) error {
 	debug := level.Debug(log.With(logger, "step.type", "helmValues", "resolveHelmValues"))
 	debug.Log("event", "tryLoadState")
-	editState, err := manager.TryLoad()
+	editState, err := manager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "try load state")
 	}

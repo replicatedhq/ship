@@ -51,7 +51,7 @@ type aferoLoader struct {
 }
 
 func (a *aferoLoader) loadShipOverlay() error {
-	currentState, err := a.StateManager.TryLoad()
+	currentState, err := a.StateManager.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "failed to load state")
 	}

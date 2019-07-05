@@ -69,8 +69,9 @@ func Test_inspector_fetchEditFiles(t *testing.T) {
 			vip := viper.New()
 			vip.Set("isEdit", true)
 
-			manager := state.NewManager(&tlog, fs, vip)
-			err := manager.SerializeUpstreamContents(&tt.state)
+			manager, err := state.NewDisposableManager(&tlog, fs, vip)
+			req.NoError(err)
+			err = manager.SerializeUpstreamContents(&tt.state)
 			req.NoError(err)
 
 			i := NewInspector(&tlog, fs, vip, manager, nil).(*inspector)

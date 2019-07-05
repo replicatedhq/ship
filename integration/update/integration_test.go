@@ -15,6 +15,7 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
+	"github.com/replicatedhq/ship/pkg/state"
 	"gopkg.in/yaml.v2"
 )
 
@@ -88,8 +89,11 @@ var _ = Describe("ship update", func() {
 
 				AfterEach(func() {
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
+						err := state.GetSingleton().RemoveStateFile()
+						Expect(err).NotTo(HaveOccurred())
+
 						// remove the temporary directory
-						err := os.RemoveAll(testOutputPath)
+						err = os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
 					}
 					os.Chdir(integrationDir)
@@ -103,6 +107,7 @@ var _ = Describe("ship update", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
+					os.Setenv("PRELOAD_TEST_STATE", "1")
 					args := []string{
 						"update",
 						"--headless",

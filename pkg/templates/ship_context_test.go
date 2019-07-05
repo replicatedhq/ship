@@ -15,23 +15,21 @@ import (
 )
 
 func makeTestShipCtx(t *testing.T) ShipContext {
+	req := require.New(t)
+
 	testLogger := logger.TestLogger{T: t}
 	testViper := viper.New()
 
 	mmFs := afero.NewMemMapFs()
 	mmAfero := afero.Afero{Fs: mmFs}
 
-	testManager := state.NewManager(
-		&testLogger,
-		mmAfero,
-		testViper,
-	)
+	testManager, err := state.NewDisposableManager(&testLogger, mmAfero, testViper)
+	req.NoError(err)
 
 	return ShipContext{
 		Logger:  &testLogger,
 		Manager: testManager,
 	}
-
 }
 
 // tests that generated CAs can be referenced again + that more than one CA can be generated

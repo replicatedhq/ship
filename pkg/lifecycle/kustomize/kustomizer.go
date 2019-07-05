@@ -203,7 +203,7 @@ func (l *Kustomizer) writeOverlay(
 func (l *Kustomizer) writeBase(base string) error {
 	debug := level.Debug(log.With(l.Logger, "method", "writeBase"))
 
-	currentState, err := l.State.TryLoad()
+	currentState, err := l.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}

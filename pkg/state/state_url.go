@@ -75,3 +75,7 @@ func (s *urlSerializer) Save(state State) error {
 
 	return nil
 }
+
+func (s *urlSerializer) Remove() error {
+	return errors.New("URL based state storage does not support state removal")
+}

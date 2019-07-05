@@ -76,7 +76,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 		daemon.NewV1Router,
 		resolve.NewRenderer,
 
-		state.NewManager,
+		state.GetManager,
 		planner.NewFactory,
 		specs.NewResolver,
 		replicatedapp.NewGraphqlClient,

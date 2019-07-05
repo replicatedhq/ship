@@ -22,7 +22,7 @@ func (s *Ship) Unfork(ctx context.Context) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer s.Shutdown(cancelFunc)
 
-	existingState, _ := s.State.TryLoad()
+	existingState, _ := s.State.CachedState()
 	if !existingState.IsEmpty() {
 		debug.Log("event", "existing.state")
 
@@ -67,5 +67,13 @@ func (s *Ship) Unfork(ctx context.Context) error {
 
 	release.Spec.Lifecycle = s.IDPatcher.EnsureAllStepsHaveUniqueIDs(release.Spec.Lifecycle)
 
-	return s.execute(ctx, release, nil)
+	if err := s.execute(ctx, release, nil); err != nil {
+		return errors.Wrap(err, "execute")
+	}
+
+	if err := s.State.CommitState(); err != nil {
+		return errors.Wrap(err, "commit state")
+	}
+
+	return nil
 }

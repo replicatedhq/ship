@@ -17,6 +17,7 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
+	"github.com/replicatedhq/ship/pkg/state"
 	"gopkg.in/yaml.v2"
 )
 
@@ -92,10 +93,17 @@ var _ = Describe("ship init replicated.app/...", func() {
 				AfterEach(func() {
 					os.Unsetenv("REPLICATED_REGISTRY")
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
+						err := state.GetSingleton().RemoveStateFile()
+						Expect(err).NotTo(HaveOccurred())
+
 						// remove the temporary directory
-						err := os.RemoveAll(testOutputPath)
+						err = os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
 					}
+
+					err := state.GetSingleton().RemoveStateFile()
+					Expect(err).NotTo(HaveOccurred())
+
 					os.Chdir(integrationDir)
 				}, 20)
 
@@ -204,6 +212,10 @@ var _ = Describe("ship init replicated.app/...", func() {
 						err := os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
 					}
+
+					err := state.GetSingleton().RemoveStateFile()
+					Expect(err).NotTo(HaveOccurred())
+
 					os.Chdir(integrationDir)
 				}, 20)
 
@@ -234,6 +246,11 @@ var _ = Describe("ship init replicated.app/...", func() {
 					Expect(err).NotTo(HaveOccurred())
 					err = ioutil.WriteFile(writePath, stateFile, os.ModePerm)
 					Expect(err).NotTo(HaveOccurred())
+
+					if state.GetSingleton() != nil {
+						err = state.GetSingleton().ReloadFile()
+						Expect(err).NotTo(HaveOccurred())
+					}
 
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)

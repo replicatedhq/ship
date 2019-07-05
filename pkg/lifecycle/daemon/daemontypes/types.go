@@ -36,7 +36,7 @@ type Daemon interface {
 	TerraformConfirmedChan() chan bool
 	KustomizeSavedChan() chan interface{}
 	UnforkSavedChan() chan interface{}
-	GetCurrentConfig() map[string]interface{}
+	GetCurrentConfig() (map[string]interface{}, error)
 	AwaitShutdown() error
 }
 

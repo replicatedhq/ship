@@ -76,7 +76,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 	}
 
 	var excludedBases []string
-	state, err := l.State.TryLoad()
+	state, err := l.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
 	}

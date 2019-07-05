@@ -266,5 +266,8 @@ func (s *Ship) maybeWriteStateFromFile() error {
 	if err := s.FS.WriteFile(constants.StatePath, stateFile, 0644); err != nil {
 		return errors.Wrap(err, "write passed state file to constants.StatePath")
 	}
+
+	s.State.ReloadFile()
+
 	return nil
 }
