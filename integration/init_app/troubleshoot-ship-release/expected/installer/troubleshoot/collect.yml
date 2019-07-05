@@ -11,13 +11,13 @@ collect:
           Filters:
             name:
               - "my-sweet-container"
-
+    
 
     - kubernetes.version:
         output_dir: /k8s/version
     - kubernetes.cluster-info:
         output_dir: /k8s/cluster
-
+    
 
     - os.loadavg:
         output_dir: /os/loadavg
@@ -55,7 +55,7 @@ collect:
     - os.read-file:
         filepath: /etc/centos-release
         output_dir: /os/etc/centos-release
-
+    
 
     - docker.container-inspect:
         output_dir: /replicated/replicated/inspect
@@ -76,3 +76,4 @@ collect:
               - "replicated"
               - "retraced"
               - "premkit"
+    
