@@ -2,6 +2,7 @@ package kustomize
 
 import (
 	"context"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-kit/kit/log"
@@ -11,6 +12,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -40,12 +42,6 @@ func NewDaemonlessKustomizer(
 func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api.Kustomize) error {
 	debug := level.Debug(log.With(l.Logger, "struct", "daemonless.kustomizer", "method", "execute"))
 
-	debug.Log("event", "write.base.kustomization.yaml")
-	err := l.writeBase(step.Base)
-	if err != nil {
-		return errors.Wrap(err, "write base kustomization")
-	}
-
 	current, err := l.State.CachedState()
 	if err != nil {
 		return errors.Wrap(err, "load state")
@@ -59,6 +55,27 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		debug.Log("event", "state.kustomize.empty")
 	} else {
 		shipOverlay = kustomizeState.Ship()
+	}
+
+	debug.Log("event", "base.kustomization.check")
+	existingKustomize, err := l.FS.Exists(filepath.Join(step.Base, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "check for kustomization in %s", step.Base)
+	}
+	if existingKustomize {
+		// no need to write base, kustomization already exists
+		// but we do need to remove excluded bases
+		debug.Log("event", "exclude.kustomize.resources")
+		err = util.ExcludeKubernetesResources(l.FS, step.Base, constants.DefaultOverlaysPath, shipOverlay.ExcludedBases)
+		if err != nil {
+			return errors.Wrapf(err, "write base %s", step.Base)
+		}
+	} else {
+		debug.Log("event", "write.base.kustomization.yaml")
+		err = l.writeBase(step.Base)
+		if err != nil {
+			return errors.Wrap(err, "write base kustomization")
+		}
 	}
 
 	fs, err := l.getPotentiallyChrootedFs(release)
