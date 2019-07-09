@@ -35,7 +35,7 @@ func ExcludeKubernetesResources(fs afero.Afero, basePath string, overlaysPath st
 func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource string) ([]resid.ResId, error) {
 	kustomization, err := getKustomization(fs, basePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "exclude resource %s", excludedResource)
+		return nil, errors.Wrapf(err, "get kustomization for %s", basePath)
 	}
 
 	excludedResource = strings.TrimPrefix(excludedResource, string(filepath.Separator))
@@ -85,7 +85,7 @@ func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource
 
 		excludedResources, err := NewKubernetesResources(excludedResourceBytes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "parse to-be-excluded resource file")
+			return nil, errors.Wrapf(err, "parse already-excluded resource file")
 		}
 
 		return ResIDs(excludedResources), nil
@@ -111,7 +111,7 @@ func ExcludeKubernetesResource(fs afero.Afero, basePath string, excludedResource
 func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource resid.ResId) error {
 	kustomization, err := getKustomization(fs, basePath)
 	if err != nil {
-		return errors.Wrapf(err, "exclude patch %s", excludedResource.String())
+		return errors.Wrapf(err, "get kustomization for %s", basePath)
 	}
 
 	newJSONPatches := []patch.Json6902{}
@@ -142,7 +142,7 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 	for _, base := range kustomization.Bases {
 		err = ExcludeKubernetesPatch(fs, filepath.Join(basePath, base), excludedResource)
 		if err != nil {
-			return errors.Wrapf(err, "base %s of %s", base, basePath)
+			return errors.Wrapf(err, "exclude kubernetes patch %s from base %s of %s", excludedResource.String(), base, basePath)
 		}
 	}
 
@@ -158,7 +158,7 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 func UnExcludeKubernetesResource(fs afero.Afero, basePath string, unExcludedResource string) error {
 	kustomization, err := getKustomization(fs, basePath)
 	if err != nil {
-		return errors.Wrapf(err, "unexclude resource %s", unExcludedResource)
+		return errors.Wrapf(err, "get kustomization for %s", basePath)
 	}
 
 	unExcludedResource = strings.TrimPrefix(unExcludedResource, string(filepath.Separator))
