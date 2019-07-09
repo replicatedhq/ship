@@ -31,7 +31,7 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"google.golang.org/grpc/status"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/kube"

@@ -7,22 +7,23 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	yaml "gopkg.in/yaml.v3"
+
 	"github.com/replicatedhq/ship/pkg/state"
 	state2 "github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/tmpfs"
-	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type TestCase struct {
-	Name      string        `yaml:"name"`
-	Mkdir     []string      `yaml:"mkdir"`
-	Touch     []string      `yaml:"touch"`
-	Patches   yaml.MapSlice `yaml:"patches"`
-	Resources yaml.MapSlice `yaml:"resources"`
-	Read      string        `yaml:"read"`
-	Expect    *Node         `yaml:"expect"`
-	ExpectErr string        `yaml:"expectErr"`
+	Name      string            `yaml:"name"`
+	Mkdir     []string          `yaml:"mkdir"`
+	Touch     []string          `yaml:"touch"`
+	Patches   map[string]string `yaml:"patches"`
+	Resources map[string]string `yaml:"resources"`
+	Read      string            `yaml:"read"`
+	Expect    *Node             `yaml:"expect"`
+	ExpectErr string            `yaml:"expectErr"`
 }
 
 func loadTestCases(t *testing.T) []TestCase {
@@ -30,7 +31,7 @@ func loadTestCases(t *testing.T) []TestCase {
 	require.NoError(t, err, "load test cases")
 
 	cases := make([]TestCase, 1)
-	err = yaml.UnmarshalStrict(contents, &cases)
+	err = yaml.Unmarshal(contents, &cases)
 
 	require.NoError(t, err, "unmarshal test cases")
 
@@ -67,13 +68,13 @@ func TestAferoLoader(t *testing.T) {
 			}
 
 			testPatches := make(map[string]string)
-			for _, patch := range test.Patches {
-				testPatches[patch.Key.(string)] = patch.Value.(string)
+			for key, patch := range test.Patches {
+				testPatches[key] = patch
 			}
 
 			testResources := make(map[string]string)
-			for _, resource := range test.Resources {
-				testResources[resource.Key.(string)] = resource.Value.(string)
+			for key, resource := range test.Resources {
+				testResources[key] = resource
 			}
 
 			mockState.EXPECT().CachedState().Return(state.State{
@@ -96,7 +97,7 @@ func TestAferoLoader(t *testing.T) {
 				req.Regexp(test.ExpectErr, err.Error())
 				return
 			}
-			eq := EqualTrees(*tree, *test.Expect)
+			eq := equalTrees(*tree, *test.Expect)
 
 			expectTree, err := json.Marshal(test.Expect)
 			actualTree, err := json.Marshal(tree)
@@ -105,7 +106,7 @@ func TestAferoLoader(t *testing.T) {
 	}
 }
 
-func EqualTrees(node Node, expectNode Node) bool {
+func equalTrees(node Node, expectNode Node) bool {
 	treesAreEqual := true
 
 	if len(node.Children) == 0 && len(expectNode.Children) == 0 {
@@ -119,14 +120,14 @@ func EqualTrees(node Node, expectNode Node) bool {
 	}
 
 	if len(node.Children) > 0 && len(expectNode.Children) > 0 && len(node.Children) == len(expectNode.Children) {
-		doChildrenMatch := EqualChildren(node.Children, expectNode.Children)
+		doChildrenMatch := equalChildren(node.Children, expectNode.Children)
 		treesAreEqual = treesAreEqual && doChildrenMatch
 	}
 
 	return treesAreEqual
 }
 
-func EqualChildren(nodes []Node, expectNodes []Node) bool {
+func equalChildren(nodes []Node, expectNodes []Node) bool {
 	expectNodeMap := make(map[string]Node)
 	for _, expectNode := range expectNodes {
 		expectNodeMap[expectNode.Name] = expectNode
@@ -139,7 +140,7 @@ func EqualChildren(nodes []Node, expectNodes []Node) bool {
 			return false
 		}
 
-		doChildrenMatch := EqualTrees(node, matchingExpectNode)
+		doChildrenMatch := equalTrees(node, matchingExpectNode)
 		allChildrenMatch = allChildrenMatch && doChildrenMatch
 	}
 	return allChildrenMatch

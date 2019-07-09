@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type apiTestcase struct {
@@ -261,7 +261,7 @@ func loadAPITestCases(t *testing.T, path string) []apiTestcase {
 		assert.NoError(t, err)
 
 		test := make([]apiTestcase, 0)
-		err = yaml.UnmarshalStrict(contents, &test)
+		err = yaml.Unmarshal(contents, &test)
 		assert.NoError(t, err)
 
 		tests = append(tests, test...)

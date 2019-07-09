@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"
@@ -154,7 +154,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 		PatchesJson6902: json6902Patches,
 	}
 
-	kustomizationYamlB, err := yaml.Marshal(kustomizationYaml)
+	kustomizationYamlB, err := util.MarshalIndent(2, kustomizationYaml)
 	if err != nil {
 		return errors.Wrap(err, "marshal kustomization yaml")
 	}

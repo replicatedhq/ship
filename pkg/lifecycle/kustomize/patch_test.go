@@ -4,11 +4,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/log"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	yaml "gopkg.in/yaml.v3"
 	"sigs.k8s.io/kustomize/pkg/gvk"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
 	k8stypes "sigs.k8s.io/kustomize/pkg/types"

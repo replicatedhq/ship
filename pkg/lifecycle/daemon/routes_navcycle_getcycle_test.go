@@ -13,7 +13,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type lifecycleTestcase struct {
@@ -80,7 +80,7 @@ func loadTestCases(t *testing.T) []lifecycleTestcase {
 	require.NoError(t, err, "load test cases")
 
 	cases := make([]lifecycleTestcase, 1)
-	err = yaml.UnmarshalStrict(contents, &cases)
+	err = yaml.Unmarshal(contents, &cases)
 
 	require.NoError(t, err, "unmarshal test cases")
 

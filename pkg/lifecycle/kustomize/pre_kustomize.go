@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -112,7 +112,7 @@ func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile
 			return errors.Wrap(err, "remove original file")
 		}
 
-		initKustomizedB, err := yaml.Marshal(initKustomized.Full)
+		initKustomizedB, err := util.MarshalIndent(2, initKustomized.Full)
 		if err != nil {
 			return errors.Wrap(err, "marshal init kustomized")
 		}

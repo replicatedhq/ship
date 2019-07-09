@@ -12,6 +12,12 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+	yaml "gopkg.in/yaml.v3"
+	"k8s.io/client-go/kubernetes/scheme"
+	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
+	"sigs.k8s.io/kustomize/pkg/types"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
@@ -19,11 +25,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
-	"github.com/spf13/afero"
-	yaml "gopkg.in/yaml.v2"
-	"k8s.io/client-go/kubernetes/scheme"
-	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/types"
 )
 
 func NewDaemonUnforker(logger log.Logger, daemon daemontypes.Daemon, fs afero.Afero, stateManager state.Manager, patcher patch.Patcher) lifecycle.Unforker {
@@ -136,7 +137,7 @@ func (l *Unforker) writeBase(step api.Unfork) error {
 		return errors.New("Base directory is empty")
 	}
 
-	marshalled, err := yaml.Marshal(baseKustomization)
+	marshalled, err := util.MarshalIndent(2, baseKustomization)
 	if err != nil {
 		return errors.Wrap(err, "marshal base kustomization.yaml")
 	}
@@ -231,7 +232,7 @@ func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizep
 		Resources:             relativeResourcePaths,
 	}
 
-	marshalled, err := yaml.Marshal(kustomization)
+	marshalled, err := util.MarshalIndent(2, kustomization)
 	if err != nil {
 		return errors.Wrap(err, "marshal kustomization.yaml")
 	}
