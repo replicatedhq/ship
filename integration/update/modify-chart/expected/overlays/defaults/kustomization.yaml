@@ -1,25 +1,27 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: apps
+    version: v1beta2
+    kind: Deployment
+    name: modify-chart
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta2
+    kind: Deployment
+    name: modify-chart
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: modify-chart
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: modify-chart
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: modify-chart
-    version: v1beta2
-- path: heritage-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: modify-chart
-    version: v1beta2
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: modify-chart
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: modify-chart
-    version: v1

@@ -1,115 +1,117 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRole
+    name: grafana-clusterrole
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRole
+    name: grafana-clusterrole
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRoleBinding
+    name: grafana-clusterrolebinding
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRoleBinding
+    name: grafana-clusterrolebinding
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    name: grafana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    name: grafana
+  path: heritage-patch.json
+- target:
+    group: apps
+    version: v1beta2
+    kind: Deployment
+    name: grafana
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta2
+    kind: Deployment
+    name: grafana
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: PodSecurityPolicy
+    name: grafana
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: PodSecurityPolicy
+    name: grafana
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: Role
+    name: grafana
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: Role
+    name: grafana
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: RoleBinding
+    name: grafana
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: RoleBinding
+    name: grafana
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: grafana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: grafana
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: grafana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: grafana
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    name: grafana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    name: grafana
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: grafana-clusterrole
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: grafana-clusterrole
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: grafana-clusterrolebinding
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: grafana-clusterrolebinding
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: grafana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: grafana
-    version: v1
-- path: chart-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: grafana
-    version: v1beta2
-- path: heritage-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: grafana
-    version: v1beta2
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: PodSecurityPolicy
-    name: grafana
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: PodSecurityPolicy
-    name: grafana
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: Role
-    name: grafana
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: Role
-    name: grafana
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: RoleBinding
-    name: grafana
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: RoleBinding
-    name: grafana
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Secret
-    name: grafana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Secret
-    name: grafana
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: grafana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: grafana
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: grafana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: grafana
-    version: v1

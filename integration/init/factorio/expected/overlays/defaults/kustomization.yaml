@@ -1,45 +1,47 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: factorio-factorio
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: factorio-factorio
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: factorio-factorio
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: factorio-factorio
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: PersistentVolumeClaim
+    name: factorio-factorio-savedgames
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: PersistentVolumeClaim
+    name: factorio-factorio-savedgames
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: factorio-factorio
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: factorio-factorio
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: factorio-factorio
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: factorio-factorio
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: factorio-factorio
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: factorio-factorio
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: PersistentVolumeClaim
-    name: factorio-factorio-savedgames
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: PersistentVolumeClaim
-    name: factorio-factorio-savedgames
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: Secret
-    name: factorio-factorio
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Secret
-    name: factorio-factorio
-    version: v1

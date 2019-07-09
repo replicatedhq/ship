@@ -17,7 +17,7 @@ import (
 	"github.com/replicatedhq/ship/integration"
 	"github.com/replicatedhq/ship/pkg/cli"
 	"github.com/replicatedhq/ship/pkg/state"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type TestMetadata struct {

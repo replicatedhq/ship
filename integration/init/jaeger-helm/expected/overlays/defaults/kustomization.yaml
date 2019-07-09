@@ -1,113 +1,115 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: extensions
+    version: v1beta1
+    kind: DaemonSet
+    name: jaeger-agent
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: DaemonSet
+    name: jaeger-agent
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-agent
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-agent
+  path: heritage-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: jaeger-cassandra-schema
+  path: chart-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: jaeger-cassandra-schema
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-cassandra
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-cassandra
+  path: heritage-patch.json
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: jaeger-cassandra
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: jaeger-cassandra
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: jaeger-collector
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: jaeger-collector
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-collector
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-collector
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    name: jaeger
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    name: jaeger
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: jaeger-query
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    name: jaeger-query
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-query
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jaeger-query
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: DaemonSet
-    name: jaeger-agent
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: DaemonSet
-    name: jaeger-agent
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: jaeger-agent
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: jaeger-agent
-    version: v1
-- path: chart-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: jaeger-cassandra-schema
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: jaeger-cassandra-schema
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: jaeger-cassandra
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: jaeger-cassandra
-    version: v1
-- path: chart-patch.json
-  target:
-    group: apps
-    kind: StatefulSet
-    name: jaeger-cassandra
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: apps
-    kind: StatefulSet
-    name: jaeger-cassandra
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: jaeger-collector
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: jaeger-collector
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: jaeger-collector
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: jaeger-collector
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: jaeger
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: jaeger
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: jaeger-query
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: jaeger-query
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: jaeger-query
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: jaeger-query
-    version: v1

@@ -1,57 +1,59 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    version: v1
+    kind: Service
+    name: ship-consul
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: ship-consul
+  path: heritage-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: StatefulSet
+    name: ship-consul
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: StatefulSet
+    name: ship-consul
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: ship-consul-gossip-key
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: ship-consul-gossip-key
+  path: heritage-patch.json
+- target:
+    group: policy
+    version: v1beta1
+    kind: PodDisruptionBudget
+    name: ship-consul-pdb
+  path: chart-patch.json
+- target:
+    group: policy
+    version: v1beta1
+    kind: PodDisruptionBudget
+    name: ship-consul-pdb
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: ship-consul-ui
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: ship-consul-ui
+  path: heritage-patch.json
 bases:
 - ../../installer/base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: ship-consul
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: ship-consul
-    version: v1
-- path: chart-patch.json
-  target:
-    group: apps
-    kind: StatefulSet
-    name: ship-consul
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: apps
-    kind: StatefulSet
-    name: ship-consul
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Secret
-    name: ship-consul-gossip-key
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Secret
-    name: ship-consul-gossip-key
-    version: v1
-- path: chart-patch.json
-  target:
-    group: policy
-    kind: PodDisruptionBudget
-    name: ship-consul-pdb
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: policy
-    kind: PodDisruptionBudget
-    name: ship-consul-pdb
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: ship-consul-ui
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: ship-consul-ui
-    version: v1
