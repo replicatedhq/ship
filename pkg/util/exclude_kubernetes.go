@@ -15,14 +15,14 @@ import (
 )
 
 // calls ExcludeKubernetesResource for each excluded resource. Returns after the first error.
-func ExcludeKubernetesResources(fs afero.Afero, basePath string, excludedResources []string) error {
+func ExcludeKubernetesResources(fs afero.Afero, basePath string, overlaysPath string, excludedResources []string) error {
 	for _, excludedResource := range excludedResources {
 		excludedIDs, err := ExcludeKubernetesResource(fs, basePath, excludedResource)
 		if err != nil {
 			return errors.Wrapf(err, "excluding %s from %s", excludedResource, basePath)
 		}
 		for _, excludedID := range excludedIDs {
-			err = ExcludeKubernetesPatch(fs, basePath, excludedID)
+			err = ExcludeKubernetesPatch(fs, overlaysPath, excludedID)
 			if err != nil {
 				return errors.Wrapf(err, "excluding %s of %s from %s", excludedID.String(), excludedResource, basePath)
 			}

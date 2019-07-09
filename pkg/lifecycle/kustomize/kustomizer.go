@@ -214,16 +214,6 @@ func (l *Kustomizer) writeBase(base string) error {
 	}
 	shipOverlay := currentKustomize.Ship()
 
-	existingKustomize, err := l.FS.Exists(filepath.Join(base, "kustomization.yaml"))
-	if err != nil {
-		return errors.Wrapf(err, "check for kustomization in %s", base)
-	}
-	if existingKustomize {
-		// no need to write base, kustomization already exists
-		// but we do need to remove excluded bases
-		return errors.Wrapf(util.ExcludeKubernetesResources(l.FS, base, shipOverlay.ExcludedBases), "write base %s", base)
-	}
-
 	baseKustomization := ktypes.Kustomization{}
 	if err := l.FS.Walk(
 		base,
