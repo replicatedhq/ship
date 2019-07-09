@@ -114,7 +114,7 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 		return errors.Wrapf(err, "exclude patch %s", excludedResource.String())
 	}
 
-	newJsonPatches := []patch.Json6902{}
+	newJSONPatches := []patch.Json6902{}
 	for _, jsonPatch := range kustomization.PatchesJson6902 {
 		if excludedResource.Gvk().Equals(jsonPatch.Target.Gvk) {
 			if jsonPatch.Target.Name == excludedResource.Name() {
@@ -122,34 +122,20 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 				continue
 			}
 		}
-		newJsonPatches = append(newJsonPatches, jsonPatch)
+		newJSONPatches = append(newJSONPatches, jsonPatch)
 	}
-	kustomization.PatchesJson6902 = newJsonPatches
+	kustomization.PatchesJson6902 = newJSONPatches
 
 	newMergePatches := []patch.StrategicMerge{}
-MERGEPATCHES:
 	for _, mergePatch := range kustomization.PatchesStrategicMerge {
-		// read contents of resource and convert it to ResID form
-		patchBytes, err := fs.ReadFile(filepath.Join(basePath, string(mergePatch)))
+		matches, err := mergePatchMatches(fs, basePath, string(mergePatch), excludedResource)
 		if err != nil {
-			return errors.Wrapf(err, "read %s in %s to exclude patches for %s", string(mergePatch), basePath, excludedResource.String())
+			return errors.Wrapf(err, "check if patch matches excluded resource")
 		}
 
-		patchResources, err := NewKubernetesResources(patchBytes)
-		if err != nil {
-			return errors.Wrapf(err, "parse %s in %s to exclude patches for %s", string(mergePatch), basePath, excludedResource.String())
+		if !matches {
+			newMergePatches = append(newMergePatches, mergePatch)
 		}
-
-		patchIDs := ResIDs(patchResources)
-
-		for _, patchID := range patchIDs {
-			if patchID.GvknEquals(excludedResource) {
-				// this file of patches touches the excluded resource, and should be discarded
-				continue MERGEPATCHES
-			}
-		}
-
-		newMergePatches = append(newMergePatches, mergePatch)
 	}
 	kustomization.PatchesStrategicMerge = newMergePatches
 
@@ -262,4 +248,28 @@ func writeKustomization(fs afero.Afero, basePath string, kustomization *types.Ku
 		return errors.Wrapf(err, "write kustomization yaml to %s", basePath)
 	}
 	return nil
+}
+
+// checks if the merge patch file at a given path matches the provided resource
+func mergePatchMatches(fs afero.Afero, basePath string, mergePatch string, excludedResource resid.ResId) (bool, error) {
+	// read contents of resource and convert it to ResID form
+	patchBytes, err := fs.ReadFile(filepath.Join(basePath, string(mergePatch)))
+	if err != nil {
+		return false, errors.Wrapf(err, "read %s in %s to exclude patches for %s", string(mergePatch), basePath, excludedResource.String())
+	}
+
+	patchResources, err := NewKubernetesResources(patchBytes)
+	if err != nil {
+		return false, errors.Wrapf(err, "parse %s in %s to exclude patches for %s", string(mergePatch), basePath, excludedResource.String())
+	}
+
+	patchIDs := ResIDs(patchResources)
+
+	for _, patchID := range patchIDs {
+		if patchID.GvknEquals(excludedResource) {
+			// this file of patches touches the excluded resource, and should be discarded
+			return true, nil
+		}
+	}
+	return false, nil
 }
