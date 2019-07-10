@@ -2121,72 +2121,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  config: "policy: enabled\ntemplate: |-\n  initContainers:\n  - name: istio-init\n
-    \   image: \"gcr.io/istio-release/proxy_init:master-latest-daily\"\n    args:\n
-    \   - \"-p\"\n    - [[ .MeshConfig.ProxyListenPort ]]\n    - \"-u\"\n    - 1337\n
-    \   - \"-m\"\n    - [[ annotation .ObjectMeta `sidecar.istio.io/interceptionMode`
-    .ProxyConfig.InterceptionMode ]]\n    - \"-i\"\n    - \"[[ annotation .ObjectMeta
-    `traffic.sidecar.istio.io/includeOutboundIPRanges`  \"*\"  ]]\"\n    - \"-x\"\n
-    \   - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundIPRanges`
-    \ \"\"  ]]\"\n    - \"-b\"\n    - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts`
-    (includeInboundPorts .Spec.Containers) ]]\"\n    - \"-d\"\n    - \"[[ excludeInboundPort
-    (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) (annotation .ObjectMeta
-    `traffic.sidecar.istio.io/excludeInboundPorts`  \"\" ) ]]\"\n    imagePullPolicy:
-    IfNotPresent\n    resources:\n      requests:\n        cpu: 10m\n        memory:
-    10Mi\n      limits:\n        cpu: 10m\n        memory: 10Mi\n    securityContext:\n
-    \     capabilities:\n        add:\n        - NET_ADMIN\n      restartPolicy: Always\n
-    \ \n  containers:\n  - name: istio-proxy\n    image: [[ annotation .ObjectMeta
-    `sidecar.istio.io/proxyImage`  \"gcr.io/istio-release/proxyv2:master-latest-daily\"
-    \ ]]\n\n    ports:\n    - containerPort: 15090\n      protocol: TCP\n      name:
-    http-envoy-prom\n\n    args:\n    - proxy\n    - sidecar\n    - --configPath\n
-    \   - [[ .ProxyConfig.ConfigPath ]]\n    - --binaryPath\n    - [[ .ProxyConfig.BinaryPath
-    ]]\n    - --serviceCluster\n    [[ if ne \"\" (index .ObjectMeta.Labels \"app\")
-    -]]\n    - [[ index .ObjectMeta.Labels \"app\" ]].[[ valueOrDefault .DeploymentMeta.Namespace
-    \"default\" ]]\n    [[ else -]]\n    - [[ valueOrDefault .DeploymentMeta.Name
-    \"istio-proxy\" ]].[[ valueOrDefault .DeploymentMeta.Namespace \"default\" ]]\n
-    \   [[ end -]]\n    - --drainDuration\n    - [[ formatDuration .ProxyConfig.DrainDuration
-    ]]\n    - --parentShutdownDuration\n    - [[ formatDuration .ProxyConfig.ParentShutdownDuration
-    ]]\n    - --discoveryAddress\n    - [[ .ProxyConfig.DiscoveryAddress ]]\n    -
-    --zipkinAddress\n    - [[ .ProxyConfig.GetTracing.GetZipkin.GetAddress ]]\n    -
-    --connectTimeout\n    - [[ formatDuration .ProxyConfig.ConnectTimeout ]]\n    -
-    --proxyAdminPort\n    - [[ .ProxyConfig.ProxyAdminPort ]]\n    [[ if gt .ProxyConfig.Concurrency
-    0 -]]\n    - --concurrency\n    - [[ .ProxyConfig.Concurrency ]]\n    [[ end -]]\n
-    \   - --controlPlaneAuthPolicy\n    - [[ annotation .ObjectMeta `sidecar.istio.io/controlPlaneAuthPolicy`
-    .ProxyConfig.ControlPlaneAuthPolicy ]]\n  [[- if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`
-    \ 15020 ) \"0\") ]]\n    - --statusPort\n    - [[ annotation .ObjectMeta `status.sidecar.istio.io/port`
-    \ 15020  ]]\n    - --applicationPorts\n    - \"[[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/applicationPorts`
-    (applicationPorts .Spec.Containers) ]]\"\n  [[- end ]]\n    env:\n    - name:
-    POD_NAME\n      valueFrom:\n        fieldRef:\n          fieldPath: metadata.name\n
-    \   - name: POD_NAMESPACE\n      valueFrom:\n        fieldRef:\n          fieldPath:
-    metadata.namespace\n    - name: INSTANCE_IP\n      valueFrom:\n        fieldRef:\n
-    \         fieldPath: status.podIP\n    - name: ISTIO_META_POD_NAME\n      valueFrom:\n
-    \       fieldRef:\n          fieldPath: metadata.name\n    - name: ISTIO_META_INTERCEPTION_MODE\n
-    \     value: [[ or (index .ObjectMeta.Annotations \"sidecar.istio.io/interceptionMode\")
-    .ProxyConfig.InterceptionMode.String ]]\n    [[ if .ObjectMeta.Annotations ]]\n
-    \   - name: ISTIO_METAJSON_ANNOTATIONS\n      value: |\n             [[ toJSON
-    .ObjectMeta.Annotations ]]\n    [[ end ]]\n    [[ range $k,$v := .ObjectMeta.Labels
-    ]]\n    - name: ISTIO_META_[[ $k ]]\n      value: \"[[ $v ]]\"\n    [[ end ]]\n
-    \   imagePullPolicy: IfNotPresent\n    [[ if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`
-    \ 15020 ) \"0\") ]]\n    readinessProbe:\n      httpGet:\n        path: /healthz/ready\n
-    \       port: [[ annotation .ObjectMeta `status.sidecar.istio.io/port`  15020
-    \ ]]\n      initialDelaySeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/initialDelaySeconds`
-    \ 1  ]]\n      periodSeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/periodSeconds`
-    \ 2  ]]\n      failureThreshold: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/failureThreshold`
-    \ 30  ]]\n    [[ end -]]securityContext:\n      \n      readOnlyRootFilesystem:
-    true\n      [[ if eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode`
-    .ProxyConfig.InterceptionMode) \"TPROXY\" -]]\n      capabilities:\n        add:\n
-    \       - NET_ADMIN\n      runAsGroup: 1337\n      [[ else -]]\n      runAsUser:
-    1337\n      [[- end ]]\n    resources:\n      [[ if (isset .ObjectMeta.Annotations
-    `sidecar.istio.io/proxyCPU`) -]]\n      requests:\n        cpu: \"[[ index .ObjectMeta.Annotations
-    `sidecar.istio.io/proxyCPU` ]]\"\n        memory: \"[[ index .ObjectMeta.Annotations
-    `sidecar.istio.io/proxyMemory` ]]\"\n    [[ else -]]\n      requests:\n        cpu:
-    10m\n      \n    [[ end -]]\n    volumeMounts:\n    - mountPath: /etc/istio/proxy\n
-    \     name: istio-envoy\n    - mountPath: /etc/certs/\n      name: istio-certs\n
-    \     readOnly: true\n    \n    \n  volumes:\n  \n  \n  - emptyDir:\n      medium:
-    Memory\n    name: istio-envoy\n  - name: istio-certs\n    secret:\n      optional:
-    true\n      [[ if eq .Spec.ServiceAccountName \"\" -]]\n      secretName: istio.default\n
-    \     [[ else -]]\n      secretName: [[ printf \"istio.%s\" .Spec.ServiceAccountName
-    ]]\n      [[ end -]]"
+  config: "policy: enabled\ntemplate: |-\n  initContainers:\n  - name: istio-init\n    image: \"gcr.io/istio-release/proxy_init:master-latest-daily\"\n    args:\n    - \"-p\"\n    - [[ .MeshConfig.ProxyListenPort ]]\n    - \"-u\"\n    - 1337\n    - \"-m\"\n    - [[ annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode ]]\n    - \"-i\"\n    - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/includeOutboundIPRanges`  \"*\"  ]]\"\n    - \"-x\"\n    - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundIPRanges`  \"\"  ]]\"\n    - \"-b\"\n    - \"[[ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` (includeInboundPorts .Spec.Containers) ]]\"\n    - \"-d\"\n    - \"[[ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts`  \"\" ) ]]\"\n    imagePullPolicy: IfNotPresent\n    resources:\n      requests:\n        cpu: 10m\n        memory: 10Mi\n      limits:\n        cpu: 10m\n        memory: 10Mi\n    securityContext:\n      capabilities:\n        add:\n        - NET_ADMIN\n      restartPolicy: Always\n  \n  containers:\n  - name: istio-proxy\n    image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`  \"gcr.io/istio-release/proxyv2:master-latest-daily\"  ]]\n\n    ports:\n    - containerPort: 15090\n      protocol: TCP\n      name: http-envoy-prom\n\n    args:\n    - proxy\n    - sidecar\n    - --configPath\n    - [[ .ProxyConfig.ConfigPath ]]\n    - --binaryPath\n    - [[ .ProxyConfig.BinaryPath ]]\n    - --serviceCluster\n    [[ if ne \"\" (index .ObjectMeta.Labels \"app\") -]]\n    - [[ index .ObjectMeta.Labels \"app\" ]].[[ valueOrDefault .DeploymentMeta.Namespace \"default\" ]]\n    [[ else -]]\n    - [[ valueOrDefault .DeploymentMeta.Name \"istio-proxy\" ]].[[ valueOrDefault .DeploymentMeta.Namespace \"default\" ]]\n    [[ end -]]\n    - --drainDuration\n    - [[ formatDuration .ProxyConfig.DrainDuration ]]\n    - --parentShutdownDuration\n    - [[ formatDuration .ProxyConfig.ParentShutdownDuration ]]\n    - --discoveryAddress\n    - [[ .ProxyConfig.DiscoveryAddress ]]\n    - --zipkinAddress\n    - [[ .ProxyConfig.GetTracing.GetZipkin.GetAddress ]]\n    - --connectTimeout\n    - [[ formatDuration .ProxyConfig.ConnectTimeout ]]\n    - --proxyAdminPort\n    - [[ .ProxyConfig.ProxyAdminPort ]]\n    [[ if gt .ProxyConfig.Concurrency 0 -]]\n    - --concurrency\n    - [[ .ProxyConfig.Concurrency ]]\n    [[ end -]]\n    - --controlPlaneAuthPolicy\n    - [[ annotation .ObjectMeta `sidecar.istio.io/controlPlaneAuthPolicy` .ProxyConfig.ControlPlaneAuthPolicy ]]\n  [[- if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) \"0\") ]]\n    - --statusPort\n    - [[ annotation .ObjectMeta `status.sidecar.istio.io/port`  15020  ]]\n    - --applicationPorts\n    - \"[[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/applicationPorts` (applicationPorts .Spec.Containers) ]]\"\n  [[- end ]]\n    env:\n    - name: POD_NAME\n      valueFrom:\n        fieldRef:\n          fieldPath: metadata.name\n    - name: POD_NAMESPACE\n      valueFrom:\n        fieldRef:\n          fieldPath: metadata.namespace\n    - name: INSTANCE_IP\n      valueFrom:\n        fieldRef:\n          fieldPath: status.podIP\n    - name: ISTIO_META_POD_NAME\n      valueFrom:\n        fieldRef:\n          fieldPath: metadata.name\n    - name: ISTIO_META_INTERCEPTION_MODE\n      value: [[ or (index .ObjectMeta.Annotations \"sidecar.istio.io/interceptionMode\") .ProxyConfig.InterceptionMode.String ]]\n    [[ if .ObjectMeta.Annotations ]]\n    - name: ISTIO_METAJSON_ANNOTATIONS\n      value: |\n             [[ toJSON .ObjectMeta.Annotations ]]\n    [[ end ]]\n    [[ range $k,$v := .ObjectMeta.Labels ]]\n    - name: ISTIO_META_[[ $k ]]\n      value: \"[[ $v ]]\"\n    [[ end ]]\n    imagePullPolicy: IfNotPresent\n    [[ if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) \"0\") ]]\n    readinessProbe:\n      httpGet:\n        path: /healthz/ready\n        port: [[ annotation .ObjectMeta `status.sidecar.istio.io/port`  15020  ]]\n      initialDelaySeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/initialDelaySeconds`  1  ]]\n      periodSeconds: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/periodSeconds`  2  ]]\n      failureThreshold: [[ annotation .ObjectMeta `readiness.status.sidecar.istio.io/failureThreshold`  30  ]]\n    [[ end -]]securityContext:\n      \n      readOnlyRootFilesystem: true\n      [[ if eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) \"TPROXY\" -]]\n      capabilities:\n        add:\n        - NET_ADMIN\n      runAsGroup: 1337\n      [[ else -]]\n      runAsUser: 1337\n      [[- end ]]\n    resources:\n      [[ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) -]]\n      requests:\n        cpu: \"[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU` ]]\"\n        memory: \"[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory` ]]\"\n    [[ else -]]\n      requests:\n        cpu: 10m\n      \n    [[ end -]]\n    volumeMounts:\n    - mountPath: /etc/istio/proxy\n      name: istio-envoy\n    - mountPath: /etc/certs/\n      name: istio-certs\n      readOnly: true\n    \n    \n  volumes:\n  \n  \n  - emptyDir:\n      medium: Memory\n    name: istio-envoy\n  - name: istio-certs\n    secret:\n      optional: true\n      [[ if eq .Spec.ServiceAccountName \"\" -]]\n      secretName: istio.default\n      [[ else -]]\n      secretName: [[ printf \"istio.%s\" .Spec.ServiceAccountName ]]\n      [[ end -]]"
 kind: ConfigMap
 metadata:
   labels:
@@ -2198,40 +2133,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  mesh: "# Set the following variable to true to disable policy checks by the Mixer.\n#
-    Note that metrics will still be reported to the Mixer.\ndisablePolicyChecks: false\n\n#
-    Set enableTracing to false to disable request tracing.\nenableTracing: true\n\n#
-    Set accessLogFile to empty string to disable access log.\naccessLogFile: \"/dev/stdout\"\n#\n#
-    Deprecated: mixer is using EDS\nmixerCheckServer: istio-policy.default.svc.cluster.local:9091\nmixerReportServer:
-    istio-telemetry.default.svc.cluster.local:9091\n\n# Unix Domain Socket through
-    which envoy communicates with NodeAgent SDS to get\n# key/cert for mTLS. Use secret-mount
-    files instead of SDS if set to empty. \nsdsUdsPath: \"\"\n\n#\ndefaultConfig:\n
-    \ #\n  # TCP connection timeout between Envoy & the application, and between Envoys.\n
-    \ connectTimeout: 10s\n  #\n  ### ADVANCED SETTINGS #############\n  # Where should
-    envoy's configuration be stored in the istio-proxy container\n  configPath: \"/etc/istio/proxy\"\n
-    \ binaryPath: \"/usr/local/bin/envoy\"\n  # The pseudo service name used for Envoy.\n
-    \ serviceCluster: istio-proxy\n  # These settings that determine how long an old
-    Envoy\n  # process should be kept alive after an occasional reload.\n  drainDuration:
-    45s\n  parentShutdownDuration: 1m0s\n  #\n  # The mode used to redirect inbound
-    connections to Envoy. This setting\n  # has no effect on outbound traffic: iptables
-    REDIRECT is always used for\n  # outbound connections.\n  # If \"REDIRECT\", use
-    iptables REDIRECT to NAT and redirect to Envoy.\n  # The \"REDIRECT\" mode loses
-    source addresses during redirection.\n  # If \"TPROXY\", use iptables TPROXY to
-    redirect to Envoy.\n  # The \"TPROXY\" mode preserves both the source and destination
-    IP\n  # addresses and ports, so that they can be used for advanced filtering\n
-    \ # and manipulation.\n  # The \"TPROXY\" mode also configures the sidecar to
-    run with the\n  # CAP_NET_ADMIN capability, which is required to use TPROXY.\n
-    \ #interceptionMode: REDIRECT\n  #\n  # Port where Envoy listens (on local host)
-    for admin commands\n  # You can exec into the istio-proxy container in a pod and\n
-    \ # curl the admin port (curl http://localhost:15000/) to obtain\n  # diagnostic
-    information from Envoy. See\n  # https://lyft.github.io/envoy/docs/operations/admin.html\n
-    \ # for more details\n  proxyAdminPort: 15000\n  #\n  # Set concurrency to a specific
-    number to control the number of Proxy worker threads.\n  # If set to 0 (default),
-    then start worker thread for each CPU thread/core.\n  concurrency: 0\n  #\n  tracing:\n
-    \   zipkin:\n      # Address of the Zipkin collector\n      address: zipkin.default:9411\n
-    \ #\n  # Mutual TLS authentication between sidecars and istio control plane.\n
-    \ controlPlaneAuthPolicy: NONE\n  #\n  # Address where istio Pilot service is
-    running\n  discoveryAddress: istio-pilot.default:15010"
+  mesh: "# Set the following variable to true to disable policy checks by the Mixer.\n# Note that metrics will still be reported to the Mixer.\ndisablePolicyChecks: false\n\n# Set enableTracing to false to disable request tracing.\nenableTracing: true\n\n# Set accessLogFile to empty string to disable access log.\naccessLogFile: \"/dev/stdout\"\n#\n# Deprecated: mixer is using EDS\nmixerCheckServer: istio-policy.default.svc.cluster.local:9091\nmixerReportServer: istio-telemetry.default.svc.cluster.local:9091\n\n# Unix Domain Socket through which envoy communicates with NodeAgent SDS to get\n# key/cert for mTLS. Use secret-mount files instead of SDS if set to empty. \nsdsUdsPath: \"\"\n\n#\ndefaultConfig:\n  #\n  # TCP connection timeout between Envoy & the application, and between Envoys.\n  connectTimeout: 10s\n  #\n  ### ADVANCED SETTINGS #############\n  # Where should envoy's configuration be stored in the istio-proxy container\n  configPath: \"/etc/istio/proxy\"\n  binaryPath: \"/usr/local/bin/envoy\"\n  # The pseudo service name used for Envoy.\n  serviceCluster: istio-proxy\n  # These settings that determine how long an old Envoy\n  # process should be kept alive after an occasional reload.\n  drainDuration: 45s\n  parentShutdownDuration: 1m0s\n  #\n  # The mode used to redirect inbound connections to Envoy. This setting\n  # has no effect on outbound traffic: iptables REDIRECT is always used for\n  # outbound connections.\n  # If \"REDIRECT\", use iptables REDIRECT to NAT and redirect to Envoy.\n  # The \"REDIRECT\" mode loses source addresses during redirection.\n  # If \"TPROXY\", use iptables TPROXY to redirect to Envoy.\n  # The \"TPROXY\" mode preserves both the source and destination IP\n  # addresses and ports, so that they can be used for advanced filtering\n  # and manipulation.\n  # The \"TPROXY\" mode also configures the sidecar to run with the\n  # CAP_NET_ADMIN capability, which is required to use TPROXY.\n  #interceptionMode: REDIRECT\n  #\n  # Port where Envoy listens (on local host) for admin commands\n  # You can exec into the istio-proxy container in a pod and\n  # curl the admin port (curl http://localhost:15000/) to obtain\n  # diagnostic information from Envoy. See\n  # https://lyft.github.io/envoy/docs/operations/admin.html\n  # for more details\n  proxyAdminPort: 15000\n  #\n  # Set concurrency to a specific number to control the number of Proxy worker threads.\n  # If set to 0 (default), then start worker thread for each CPU thread/core.\n  concurrency: 0\n  #\n  tracing:\n    zipkin:\n      # Address of the Zipkin collector\n      address: zipkin.default:9411\n  #\n  # Mutual TLS authentication between sidecars and istio control plane.\n  controlPlaneAuthPolicy: NONE\n  #\n  # Address where istio Pilot service is running\n  discoveryAddress: istio-pilot.default:15010"
 kind: ConfigMap
 metadata:
   labels:
@@ -4462,8 +4364,7 @@ spec:
     apiClaims: request.auth.raw_claims | ""
     apiKey: request.api_key | request.headers["x-api-key"] | ""
     clientTraceId: request.headers["x-client-trace-id"] | ""
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destinationApp: destination.labels["app"] | ""
     destinationIp: destination.ip | ip("0.0.0.0")
     destinationName: destination.name | ""
@@ -4482,8 +4383,7 @@ spec:
     protocol: request.scheme | context.protocol | "http"
     receivedBytes: request.total_size | 0
     referer: request.referer | ""
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     requestId: request.headers["x-request-id"] | ""
     requestSize: request.size | 0
     requestedServerName: connection.requested_server_name | ""
@@ -4517,8 +4417,7 @@ spec:
   severity: '"Info"'
   timestamp: context.time | timestamp("2017-01-01T00:00:00Z")
   variables:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     connectionDuration: connection.duration | "0ms"
     connectionEvent: connection.event | ""
     destinationApp: destination.labels["app"] | ""
@@ -4531,8 +4430,7 @@ spec:
     destinationWorkload: destination.workload.name | ""
     protocol: context.protocol | "tcp"
     receivedBytes: connection.received.bytes | 0
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     requestedServerName: connection.requested_server_name | ""
     sentBytes: connection.sent.bytes | 0
     sourceApp: source.labels["app"] | ""
@@ -4557,8 +4455,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.host | "unknown"
@@ -4569,8 +4466,7 @@ spec:
     destination_workload_namespace: destination.workload.namespace | "unknown"
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
     source_app: source.labels["app"] | "unknown"
@@ -4593,8 +4489,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.host | "unknown"
@@ -4605,8 +4500,7 @@ spec:
     destination_workload_namespace: destination.workload.namespace | "unknown"
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
     source_app: source.labels["app"] | "unknown"
@@ -4629,8 +4523,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.host | "unknown"
@@ -4641,8 +4534,7 @@ spec:
     destination_workload_namespace: destination.workload.namespace | "unknown"
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
     source_app: source.labels["app"] | "unknown"
@@ -4665,8 +4557,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.host | "unknown"
@@ -4677,8 +4568,7 @@ spec:
     destination_workload_namespace: destination.workload.namespace | "unknown"
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
     source_app: source.labels["app"] | "unknown"
@@ -4701,8 +4591,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.name | "unknown"
@@ -4711,8 +4600,7 @@ spec:
     destination_version: destination.labels["version"] | "unknown"
     destination_workload: destination.workload.name | "unknown"
     destination_workload_namespace: destination.workload.namespace | "unknown"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     source_app: source.labels["app"] | "unknown"
     source_principal: source.principal | "unknown"
     source_version: source.labels["version"] | "unknown"
@@ -4733,8 +4621,7 @@ metadata:
   namespace: default
 spec:
   dimensions:
-    connection_security_policy: conditional((context.reporter.kind | "inbound") ==
-      "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
     destination_app: destination.labels["app"] | "unknown"
     destination_principal: destination.principal | "unknown"
     destination_service: destination.service.name | "unknown"
@@ -4743,8 +4630,7 @@ spec:
     destination_version: destination.labels["version"] | "unknown"
     destination_workload: destination.workload.name | "unknown"
     destination_workload_namespace: destination.workload.namespace | "unknown"
-    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source",
-      "destination")
+    reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
     source_app: source.labels["app"] | "unknown"
     source_principal: source.principal | "unknown"
     source_version: source.labels["version"] | "unknown"
