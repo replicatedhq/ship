@@ -1619,6 +1619,14 @@
   version = "v0.9.1"
 
 [[projects]]
+  branch = "v3"
+  digest = "1:1a3e6466321d5db6fecc061256a4a0d34e774fc3d4c24cda50a2cff2f4c62147"
+  name = "gopkg.in/laverya/yaml.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7e41983cfdfabfd21e87161a68a3348c09bfb9b4"
+
+[[projects]]
   digest = "1:b57bb9a6a2a03558d63166f1afc3c0c4f91ad137f63bf2bee995e9baeb976a9c"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
@@ -2202,6 +2210,7 @@
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/oauth2",
     "google.golang.org/grpc/status",
+    "gopkg.in/laverya/yaml.v3",
     "gopkg.in/yaml.v3",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime/schema",

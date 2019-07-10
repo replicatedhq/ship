@@ -134,9 +134,7 @@ spec:
       - command:
         - /bin/bash
         - -ecx
-        - exec /cockroach/cockroach start --logtostderr --certs-dir /cockroach/cockroach-certs
-          --host $(hostname -f) --http-host 0.0.0.0 --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb
-          --cache 25% --max-sql-memory 25%
+        - exec /cockroach/cockroach start --logtostderr --certs-dir /cockroach/cockroach-certs --host $(hostname -f) --http-host 0.0.0.0 --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb --cache 25% --max-sql-memory 25%
         image: cockroachdb/cockroach:v1.1.5
         imagePullPolicy: IfNotPresent
         name: cockroachdb
@@ -154,9 +152,7 @@ spec:
       - command:
         - /bin/ash
         - -ecx
-        - /request-cert -namespace=${POD_NAMESPACE} -certs-dir=/cockroach-certs -type=node
-          -addresses=localhost,127.0.0.1,${POD_IP},$(hostname -f),$(hostname -f|cut
-          -f 1-2 -d '.'),cockroachdb-public -symlink-ca-from=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - /request-cert -namespace=${POD_NAMESPACE} -certs-dir=/cockroach-certs -type=node -addresses=localhost,127.0.0.1,${POD_IP},$(hostname -f),$(hostname -f|cut -f 1-2 -d '.'),cockroachdb-public -symlink-ca-from=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         env:
         - name: POD_IP
           valueFrom:
