@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	yaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/kustomize/pkg/patch"
 	ktypes "sigs.k8s.io/kustomize/pkg/types"
 
@@ -186,7 +185,7 @@ func (l *Kustomizer) writeOverlay(
 		Resources:             relativeResourcePaths,
 	}
 
-	marshalled, err := yaml.Marshal(kustomization)
+	marshalled, err := util.MarshalIndent(2, kustomization)
 	if err != nil {
 		return errors.Wrap(err, "marshal kustomization.yaml")
 	}
@@ -240,7 +239,7 @@ func (l *Kustomizer) writeBase(base string) error {
 		return errors.New("Base directory is empty")
 	}
 
-	marshalled, err := yaml.Marshal(baseKustomization)
+	marshalled, err := util.MarshalIndent(2, baseKustomization)
 	if err != nil {
 		return errors.Wrap(err, "marshal base kustomization.yaml")
 	}

@@ -1640,6 +1640,14 @@
   version = "v2.2.1"
 
 [[projects]]
+  branch = "v3"
+  digest = "1:46754188622566b86271d7526cb643b88c2b9589ee224c2d55e282f0f35a0df8"
+  name = "gopkg.in/yaml.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "674ba3eaed223079f9377fbb0c98c0951bf6ec10"
+
+[[projects]]
   digest = "1:7b8963a5f5bb45d0b3c18806459c02b2284a4267c8c7e9444606e95b95b51fe3"
   name = "k8s.io/api"
   packages = [
@@ -2194,7 +2202,7 @@
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/oauth2",
     "google.golang.org/grpc/status",
-    "gopkg.in/yaml.v2",
+    "gopkg.in/yaml.v3",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/util/strategicpatch",
@@ -2226,6 +2234,7 @@
     "sigs.k8s.io/kustomize/pkg/gvk",
     "sigs.k8s.io/kustomize/pkg/loader",
     "sigs.k8s.io/kustomize/pkg/patch",
+    "sigs.k8s.io/kustomize/pkg/resid",
     "sigs.k8s.io/kustomize/pkg/resource",
     "sigs.k8s.io/kustomize/pkg/target",
     "sigs.k8s.io/kustomize/pkg/types",

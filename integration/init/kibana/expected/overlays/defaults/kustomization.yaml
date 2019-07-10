@@ -1,35 +1,37 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    version: v1
+    kind: ConfigMap
+    name: kibana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    name: kibana
+  path: heritage-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: Deployment
+    name: kibana
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: Deployment
+    name: kibana
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: kibana
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: kibana
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: kibana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: kibana
-    version: v1
-- path: chart-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: kibana
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: apps
-    kind: Deployment
-    name: kibana
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: kibana
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: kibana
-    version: v1

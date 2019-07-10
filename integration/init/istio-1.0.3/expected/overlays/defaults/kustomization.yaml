@@ -1,577 +1,579 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-galley-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-galley-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-galley-admin-role-binding-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-galley-admin-role-binding-default
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-galley-configuration
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-galley-configuration
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-galley
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-galley
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-galley-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-galley-service-account
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-egressgateway-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-egressgateway-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-ingressgateway-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-ingressgateway-default
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-egressgateway
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-egressgateway
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-ingressgateway
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-ingressgateway
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-egressgateway
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-egressgateway
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-ingressgateway
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-ingressgateway
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-egressgateway-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-egressgateway-service-account
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-ingressgateway-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-ingressgateway-service-account
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-policy
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-telemetry
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-policy
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-telemetry
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-mixer-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-mixer-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-mixer-admin-role-binding-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-mixer-admin-role-binding-default
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-statsd-prom-bridge
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-statsd-prom-bridge
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-mixer-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-mixer-service-account
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-pilot-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-pilot-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-pilot-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-pilot-default
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-pilot
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-pilot
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-pilot
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    namespace: default
+    name: istio-pilot
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-pilot-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-pilot-service-account
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: prometheus
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: prometheus
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: prometheus
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: prometheus
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-cleanup-secrets-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-cleanup-secrets-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-security-post-install-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-security-post-install-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-cleanup-secrets-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-cleanup-secrets-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-security-post-install-role-binding-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-security-post-install-role-binding-default
+  path: heritage-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    namespace: default
+    name: istio-cleanup-secrets
+  path: chart-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    namespace: default
+    name: istio-cleanup-secrets
+  path: heritage-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    namespace: default
+    name: istio-security-post-install
+  path: chart-patch.json
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    namespace: default
+    name: istio-security-post-install
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-cleanup-secrets-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-cleanup-secrets-service-account
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-security-post-install-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-security-post-install-account
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-citadel-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-citadel-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-citadel-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-citadel-default
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-security-custom-resources
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-security-custom-resources
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-citadel
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-citadel
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-citadel-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-citadel-service-account
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-sidecar-injector-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRole
+    name: istio-sidecar-injector-default
+  path: heritage-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-sidecar-injector-admin-role-binding-default
+  path: chart-patch.json
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1beta1
+    kind: ClusterRoleBinding
+    name: istio-sidecar-injector-admin-role-binding-default
+  path: heritage-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-sidecar-injector
+  path: chart-patch.json
+- target:
+    group: extensions
+    version: v1beta1
+    kind: Deployment
+    namespace: default
+    name: istio-sidecar-injector
+  path: heritage-patch.json
+- target:
+    group: admissionregistration.k8s.io
+    version: v1beta1
+    kind: MutatingWebhookConfiguration
+    namespace: default
+    name: istio-sidecar-injector
+  path: chart-patch.json
+- target:
+    group: admissionregistration.k8s.io
+    version: v1beta1
+    kind: MutatingWebhookConfiguration
+    namespace: default
+    name: istio-sidecar-injector
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-sidecar-injector-service-account
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ServiceAccount
+    namespace: default
+    name: istio-sidecar-injector-service-account
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-sidecar-injector
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: ConfigMap
+    namespace: default
+    name: istio-sidecar-injector
+  path: heritage-patch.json
 bases:
 - ../../base
-patchesJson6902:
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-galley-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-galley-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-galley-admin-role-binding-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-galley-admin-role-binding-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-galley-configuration
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-galley-configuration
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-galley
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-galley
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-galley-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-galley-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-egressgateway-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-egressgateway-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-ingressgateway-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-ingressgateway-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-egressgateway
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-egressgateway
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-ingressgateway
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-ingressgateway
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: istio-egressgateway
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: istio-egressgateway
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: istio-ingressgateway
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: istio-ingressgateway
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-egressgateway-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-egressgateway-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-ingressgateway-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-ingressgateway-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-policy
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-telemetry
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: istio-policy
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: istio-telemetry
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-mixer-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-mixer-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-mixer-admin-role-binding-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-mixer-admin-role-binding-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-statsd-prom-bridge
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-statsd-prom-bridge
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-mixer-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-mixer-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-pilot-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-pilot-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-pilot-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-pilot-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-pilot
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-pilot
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: Service
-    name: istio-pilot
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: Service
-    name: istio-pilot
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-pilot-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-pilot-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: prometheus
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: prometheus
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: prometheus
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: prometheus
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-cleanup-secrets-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-cleanup-secrets-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-security-post-install-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-security-post-install-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-cleanup-secrets-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-cleanup-secrets-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-security-post-install-role-binding-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-security-post-install-role-binding-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: istio-cleanup-secrets
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: istio-cleanup-secrets
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: istio-security-post-install
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    group: batch
-    kind: Job
-    name: istio-security-post-install
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-cleanup-secrets-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-cleanup-secrets-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-security-post-install-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-security-post-install-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-citadel-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-citadel-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-citadel-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-citadel-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-security-custom-resources
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-security-custom-resources
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-citadel
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-citadel
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-citadel-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-citadel-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-sidecar-injector-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: istio-sidecar-injector-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-sidecar-injector-admin-role-binding-default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-    name: istio-sidecar-injector-admin-role-binding-default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: extensions
-    kind: Deployment
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    group: admissionregistration.k8s.io
-    kind: MutatingWebhookConfiguration
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1beta1
-- path: heritage-patch.json
-  target:
-    group: admissionregistration.k8s.io
-    kind: MutatingWebhookConfiguration
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1beta1
-- path: chart-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-sidecar-injector-service-account
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ServiceAccount
-    name: istio-sidecar-injector-service-account
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: istio
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: istio
-    namespace: default
-    version: v1
-- path: chart-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1
-- path: heritage-patch.json
-  target:
-    kind: ConfigMap
-    name: istio-sidecar-injector
-    namespace: default
-    version: v1

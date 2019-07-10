@@ -1,14 +1,16 @@
-bases:
-- ../../base
+kind: ""
+apiversion: ""
 patchesJson6902:
-- path: heritage-patch.json
-  target:
+- target:
     group: apps
+    version: v1beta1
     kind: StatefulSet
     name: ds
-    version: v1beta1
-- path: heritage-patch.json
-  target:
+  path: heritage-patch.json
+- target:
+    version: v1
     kind: Service
     name: ds
-    version: v1
+  path: heritage-patch.json
+bases:
+- ../../base

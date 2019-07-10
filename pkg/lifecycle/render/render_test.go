@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type testcase struct {
@@ -166,7 +166,7 @@ func loadTestCases(t *testing.T, path string) []testcase {
 	tests := make([]testcase, 1)
 	contents, err := ioutil.ReadFile(path)
 	assert.NoError(t, err)
-	err = yaml.UnmarshalStrict(contents, &tests)
+	err = yaml.Unmarshal(contents, &tests)
 	assert.NoError(t, err)
 	return tests
 }
