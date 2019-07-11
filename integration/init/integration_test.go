@@ -23,6 +23,7 @@ import (
 type TestMetadata struct {
 	Upstream     string   `yaml:"upstream"`
 	Args         []string `yaml:"args"`
+	EditArgs     []string `yaml:"edit_args"`
 	MakeAbsolute bool     `yaml:"make_absolute"`
 	SkipEdit     bool     `yaml:"skip_edit"`
 	// debugging
@@ -218,11 +219,11 @@ var _ = Describe("ship init with arbitrary upstream", func() {
 					editCmd := cli.RootCmd()
 					editBuf := new(bytes.Buffer)
 					editCmd.SetOutput(editBuf)
-					editCmd.SetArgs([]string{
+					editCmd.SetArgs(append([]string{
 						"edit",
 						"--headless",
 						"--log-level=off",
-					})
+					}, testMetadata.EditArgs...))
 
 					err = editCmd.Execute()
 					Expect(err).NotTo(HaveOccurred())

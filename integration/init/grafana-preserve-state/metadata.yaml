@@ -2,4 +2,7 @@ upstream: "https://github.com/helm/charts/tree/353ba5ef6467fd64035b7d5446df426f8
 args:
   - --preserve-state
   - --prefer-git
+  - --kustomize-in-state
+edit_args:
+  - --kustomize-in-state
 skip_cleanup: false

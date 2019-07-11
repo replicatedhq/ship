@@ -1,3 +1,4 @@
-args: []
+args:
+  - --kustomize-in-state
 
 skip_cleanup: false

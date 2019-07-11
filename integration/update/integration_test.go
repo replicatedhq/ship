@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -65,23 +66,13 @@ var _ = Describe("ship update", func() {
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
 
-					// create `/test/.ship/state.json` and copy in the input state file before the test runs
-					err := os.Mkdir(path.Join(testOutputPath, ".ship"), 0777)
-					Expect(err).NotTo(HaveOccurred())
-					outputStateFile := path.Join(testOutputPath, ".ship/state.json")
-
-					// read .ship/state.json from input state file
-					stateFile, err := ioutil.ReadFile(path.Join(testInputPath, ".ship/state.json"))
-					Expect(err).NotTo(HaveOccurred())
+					recursiveCopy(testInputPath, testOutputPath)
 
 					// the test needs to execute in the same directory throughout the lifecycle of `ship update`
 					testInputPath = testOutputPath
 
-					// copy .ship/state.json from testInputPath to testOutputPath
-					err = ioutil.WriteFile(outputStateFile, stateFile, 0777)
+					err = os.Chdir(testOutputPath)
 					Expect(err).NotTo(HaveOccurred())
-
-					os.Chdir(testOutputPath)
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
@@ -148,4 +139,23 @@ func readMetadata(testPath string) TestMetadata {
 	Expect(err).NotTo(HaveOccurred())
 
 	return testMetadata
+}
+
+func recursiveCopy(sourceDir, destDir string) {
+	err := os.MkdirAll(destDir, os.ModePerm)
+	Expect(err).NotTo(HaveOccurred())
+	srcFiles, err := ioutil.ReadDir(sourceDir)
+	Expect(err).NotTo(HaveOccurred())
+	for _, file := range srcFiles {
+		if file.IsDir() {
+			recursiveCopy(filepath.Join(sourceDir, file.Name()), filepath.Join(destDir, file.Name()))
+		} else {
+			// is file
+			contents, err := ioutil.ReadFile(filepath.Join(sourceDir, file.Name()))
+			Expect(err).NotTo(HaveOccurred())
+
+			err = ioutil.WriteFile(filepath.Join(destDir, file.Name()), contents, file.Mode())
+			Expect(err).NotTo(HaveOccurred())
+		}
+	}
 }
