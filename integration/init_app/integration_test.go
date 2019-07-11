@@ -155,8 +155,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 
 					ignoreEntitlementSig := map[string][]string{
 						".ship/state.json": {
-							"v1.upstreamContents.appRelease.configSpec",
-							"v1.upstreamContents.appRelease.entitlementSpec",
+              "v1.upstreamContents.appRelease.configSpec",
+              "v1.upstreamContents.appRelease.entitlementSpec",
 							"v1.upstreamContents.appRelease.entitlements",
 							"v1.upstreamContents.appRelease.registrySecret",
 							"v1.upstreamContents.appRelease.analyzeSpec",
