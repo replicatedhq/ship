@@ -77,8 +77,53 @@ func Test_GetSlugRelease(t *testing.T) {
 						"spec": dsl.Like(dsl.String("assets:\n  v1:\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"installing nothing\"\n          echo \"config option: {{repl ConfigOption \"test_option\" }}\"\n        dest: ./scripts/install.sh\n        mode: 0777\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"tested nothing\"\n          echo \"customer {{repl Installation \"customer_id\" }}\"\n          echo \"install {{repl Installation \"installation_id\" }}\"\n        dest: ./scripts/test.sh\n        mode: 0777\nconfig:\n  v1:\n    - name: test_options\n      title: Test Options\n      description: testing testing 123\n      items:\n      - name: test_option\n        title: Test Option\n        default: abc123_test-option-value\n        type: text\nlifecycle:\n  v1:\n    - render: {}\n")),
 						"images": []string{},
 						"githubContents": []string{},
+						"configSpec": dsl.Like(dsl.String("v1:\n  - name: test_options\n    title: Test Options\n    description: testing testing 123\n    items:\n      - name: test_option\n        title: Test Option\n        default: abc123_test-option-value\n        type: text\n")),
+						"entitlementSpec": dsl.Like(dsl.String("---\n- name: Has Contract\n  key: has_contract\n  type: boolean\n  default: false\n- name: Is SAML Allowed\n  key: is_saml_allowed\n  type: boolean\n  default: false\n- name: Has Private Support\n  key: is_support_ticket_allowed\n  type: boolean\n  default: false\n")),
 						"entitlements": map[string]interface{}{
-							"values": []string{},
+							"values": [3]map[string]interface{}{
+								{
+									"key": "has_contract",
+									"value": "false",
+									"labels": [2]map[string]interface{}{
+										{
+											"key": "replicated.default",
+											"value": "true",
+										},
+										{
+											"key": "entitlements.replicated.com/type",
+											"value": "boolean",
+										},
+									},
+								},
+								{
+									"key": "is_saml_allowed",
+									"value": "false",
+									"labels": [2]map[string]interface{}{
+										{
+											"key": "replicated.default",
+											"value": "true",
+										},
+										{
+											"key": "entitlements.replicated.com/type",
+											"value": "boolean",
+										},
+									},
+								},
+								{
+									"key": "is_support_ticket_allowed",
+									"value": "false",
+									"labels": [2]map[string]interface{}{
+										{
+											"key": "replicated.default",
+											"value": "true",
+										},
+										{
+											"key": "entitlements.replicated.com/type",
+											"value": "boolean",
+										},
+									},
+								},
+							},
 							"utilizations": []string{},
 							"meta": map[string]interface{}{
 								"lastUpdated": dsl.Like(dsl.String("Wed Jun 19 2019 21:12:23 GMT+0000 (Coordinated Universal Time)")),

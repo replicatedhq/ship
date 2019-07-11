@@ -303,40 +303,44 @@ type GithubContent struct {
 
 // ShipRelease is the release response from GQL
 type ShipRelease struct {
-	ID             string           `json:"id"`
-	Sequence       int64            `json:"sequence"`
-	ChannelID      string           `json:"channelId"`
-	ChannelName    string           `json:"channelName"`
-	ChannelIcon    string           `json:"channelIcon"`
-	Semver         string           `json:"semver"`
-	ReleaseNotes   string           `json:"releaseNotes"`
-	Spec           string           `json:"spec"`
-	Images         []Image          `json:"images"`
-	GithubContents []GithubContent  `json:"githubContents"`
-	Created        string           `json:"created"` // TODO: this time is not in RFC 3339 format
-	RegistrySecret string           `json:"registrySecret,omitempty"`
-	Entitlements   api.Entitlements `json:"entitlements,omitempty"`
-	CollectSpec    string           `json:"collectSpec,omitempty"`
-	AnalyzeSpec    string           `json:"analyzeSpec,omitempty"`
+	ID              string           `json:"id"`
+	Sequence        int64            `json:"sequence"`
+	ChannelID       string           `json:"channelId"`
+	ChannelName     string           `json:"channelName"`
+	ChannelIcon     string           `json:"channelIcon"`
+	Semver          string           `json:"semver"`
+	ReleaseNotes    string           `json:"releaseNotes"`
+	Spec            string           `json:"spec"`
+	Images          []Image          `json:"images"`
+	GithubContents  []GithubContent  `json:"githubContents"`
+	Created         string           `json:"created"` // TODO: this time is not in RFC 3339 format
+	RegistrySecret  string           `json:"registrySecret,omitempty"`
+	EntitlementSpec string           `json:"entitlementSpec,omitempty"`
+	Entitlements    api.Entitlements `json:"entitlements,omitempty"`
+	ConfigSpec      string           `json:"configSpec,omitempty"`
+	CollectSpec     string           `json:"collectSpec,omitempty"`
+	AnalyzeSpec     string           `json:"analyzeSpec,omitempty"`
 }
 
 // ToReleaseMeta linter
 func (r *ShipRelease) ToReleaseMeta() api.ReleaseMetadata {
 	return api.ReleaseMetadata{
-		ReleaseID:      r.ID,
-		Sequence:       r.Sequence,
-		ChannelID:      r.ChannelID,
-		ChannelName:    r.ChannelName,
-		ChannelIcon:    r.ChannelIcon,
-		Semver:         r.Semver,
-		ReleaseNotes:   r.ReleaseNotes,
-		Created:        r.Created,
-		RegistrySecret: r.RegistrySecret,
-		Images:         r.apiImages(),
-		GithubContents: r.githubContents(),
-		Entitlements:   r.Entitlements,
-		CollectSpec:    r.CollectSpec,
-		AnalyzeSpec:    r.AnalyzeSpec,
+		ReleaseID:       r.ID,
+		Sequence:        r.Sequence,
+		ChannelID:       r.ChannelID,
+		ChannelName:     r.ChannelName,
+		ChannelIcon:     r.ChannelIcon,
+		Semver:          r.Semver,
+		ReleaseNotes:    r.ReleaseNotes,
+		Created:         r.Created,
+		RegistrySecret:  r.RegistrySecret,
+		Images:          r.apiImages(),
+		GithubContents:  r.githubContents(),
+		EntitlementSpec: r.EntitlementSpec,
+		Entitlements:    r.Entitlements,
+		ConfigSpec:      r.ConfigSpec,
+		CollectSpec:     r.CollectSpec,
+		AnalyzeSpec:     r.AnalyzeSpec,
 	}
 }
 

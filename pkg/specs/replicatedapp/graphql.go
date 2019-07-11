@@ -25,7 +25,8 @@ const ShipRelease = `
     channelIcon
     semver
     releaseNotes
-    spec
+		spec
+		configSpec
     images {
       url
       source
@@ -43,7 +44,8 @@ const ShipRelease = `
         size
         data
       }
-    }
+		}
+		entitlementSpec
     entitlements {
       values {
         key
