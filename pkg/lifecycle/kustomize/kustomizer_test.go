@@ -402,7 +402,6 @@ metadata:
 spec:
   replicas: 100`,
 						},
-						KustomizationYAML: "",
 					},
 				},
 			},
@@ -446,7 +445,6 @@ spec:
       memory: 256Mi
     type: Container`,
 						},
-						KustomizationYAML: "",
 					},
 				},
 			},

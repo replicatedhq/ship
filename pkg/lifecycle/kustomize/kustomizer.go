@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"sigs.k8s.io/kustomize/pkg/patch"
 	ktypes "sigs.k8s.io/kustomize/pkg/types"
 
@@ -28,12 +29,14 @@ func NewDaemonKustomizer(
 	daemon daemontypes.Daemon,
 	fs afero.Afero,
 	stateManager state.Manager,
+	viper *viper.Viper,
 ) lifecycle.Kustomizer {
 	return &daemonkustomizer{
 		Kustomizer: Kustomizer{
 			Logger: logger,
 			FS:     fs,
 			State:  stateManager,
+			Viper:  viper,
 		},
 		Daemon: daemon,
 	}

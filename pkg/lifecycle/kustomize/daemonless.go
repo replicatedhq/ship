@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v3"
 
 	"github.com/replicatedhq/ship/pkg/api"
@@ -24,6 +25,7 @@ type Kustomizer struct {
 	FS               afero.Afero
 	State            state.Manager
 	Patcher          patch.ShipPatcher
+	Viper            *viper.Viper
 	renderedUpstream string
 }
 
@@ -31,11 +33,13 @@ func NewDaemonlessKustomizer(
 	logger log.Logger,
 	fs afero.Afero,
 	state state.Manager,
+	viper *viper.Viper,
 ) lifecycle.Kustomizer {
 	return &Kustomizer{
 		Logger: logger,
 		FS:     fs,
 		State:  state,
+		Viper:  viper,
 	}
 }
 
@@ -116,6 +120,11 @@ func (l *Kustomizer) Execute(ctx context.Context, release *api.Release, step api
 		if err := l.writePostKustomizeFiles(step, built); err != nil {
 			return errors.Wrapf(err, "write kustomized and post processed yaml at %s", step.Dest)
 		}
+	}
+
+	err = l.maybeCleanupKustomizeState()
+	if err != nil {
+		return errors.Wrapf(err, "maybe cleanup kustomize state")
 	}
 
 	return nil

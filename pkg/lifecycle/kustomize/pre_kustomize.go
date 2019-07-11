@@ -3,12 +3,15 @@ package kustomize
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
+	"sigs.k8s.io/kustomize/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 )
 
@@ -28,6 +31,10 @@ func (l *Kustomizer) PreExecute(ctx context.Context, step api.Step) error {
 
 	if err := l.initialKustomizeRun(ctx, *step.Kustomize); err != nil {
 		return errors.Wrap(err, "initial kustomize run")
+	}
+
+	if err := l.resolveExistingKustomize(ctx, step.Kustomize.Overlay); err != nil {
+		return errors.Wrap(err, "resolve existing kustomize")
 	}
 
 	return nil
@@ -124,6 +131,77 @@ func (l *Kustomizer) replaceOriginal(base string, built []util.PostKustomizeFile
 		return nil
 	}); err != nil {
 		return errors.Wrap(err, "replace original with init kustomized")
+	}
+
+	return nil
+}
+
+func (l *Kustomizer) resolveExistingKustomize(ctx context.Context, overlayDir string) error {
+	exists, err := l.FS.Exists(filepath.Join(overlayDir, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "check if kustomization exists in %s", overlayDir)
+	}
+
+	// no kustomization exists, so no need to update the state
+	if !exists {
+		return nil
+	}
+
+	// read in kustomization yaml
+	kustomizationYaml, err := l.FS.ReadFile(filepath.Join(overlayDir, "kustomization.yaml"))
+	if err != nil {
+		return errors.Wrapf(err, "read kustomization exists in %s", overlayDir)
+	}
+
+	kustomization := types.Kustomization{}
+	err = yaml.Unmarshal(kustomizationYaml, &kustomization)
+	if err != nil {
+		return errors.Wrapf(err, "unmarshal kustomization yaml from %s", overlayDir)
+	}
+
+	currentState, err := l.State.CachedState()
+	if err != nil {
+		return errors.Wrap(err, "load state")
+	}
+
+	currentKustomize := currentState.CurrentKustomize()
+	if currentKustomize == nil {
+		currentKustomize = &state.Kustomize{}
+	}
+	if currentKustomize.Overlays == nil {
+		currentKustomize.Overlays = map[string]state.Overlay{}
+	}
+	currentOverlay := currentKustomize.Ship()
+	fsResources := make(map[string]string)
+
+	for _, kustomizeResource := range kustomization.Resources {
+		// read resource referred to by kustomize yaml
+		kustomizeResourceContents, err := l.FS.ReadFile(filepath.Join(overlayDir, kustomizeResource))
+		if err != nil {
+			return errors.Wrapf(err, "read resource %s within %s", kustomizeResource, overlayDir)
+		}
+
+		fsResources[string(filepath.Separator)+kustomizeResource] = string(kustomizeResourceContents)
+	}
+	currentOverlay.Resources = fsResources
+
+	fsPatches := make(map[string]string)
+
+	for _, kustomizePatch := range kustomization.PatchesStrategicMerge {
+		// read resource referred to by kustomize yaml
+		kustomizePatchContents, err := l.FS.ReadFile(filepath.Join(overlayDir, string(kustomizePatch)))
+		if err != nil {
+			return errors.Wrapf(err, "read patch %s within %s", kustomizePatch, overlayDir)
+		}
+
+		fsPatches[string(filepath.Separator)+string(kustomizePatch)] = string(kustomizePatchContents)
+	}
+	currentOverlay.Patches = fsPatches
+
+	currentKustomize.Overlays["ship"] = currentOverlay
+	err = l.State.SaveKustomize(currentKustomize)
+	if err != nil {
+		return errors.Wrapf(err, "save updated kustomize")
 	}
 
 	return nil
