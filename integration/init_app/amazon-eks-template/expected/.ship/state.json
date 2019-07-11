@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "upstream": "__upstream__",
-    "contentSHA": "a682a4883b682d147acbdd00e90e058574ee8abb611c461fde9ab9241899feeb",
+    "contentSHA": "733cc0bacfc5a6ab9cdd5a50a9b72a65a614cc832f824abf65f00452ba5a8d44",
     "metadata": {
       "applicationType": "replicated.app",
       "customerID": "__customerID__",
