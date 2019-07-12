@@ -1,14 +1,17 @@
 package kustomize
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/api"
+	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -305,6 +308,203 @@ spec:
 			req.NoError(err)
 
 			req.ElementsMatch(tt.expect, actual)
+		})
+	}
+}
+
+func TestKustomizer_resolveExistingKustomize(t *testing.T) {
+	tests := []struct {
+		name       string
+		original   []testFile
+		InKust     *state.Kustomize
+		overlayDir string
+		WantKust   *state.Kustomize
+		wantErr    bool
+	}{
+		{
+			name: "no files in overlay dir, no current state",
+			original: []testFile{
+				{
+					path:     "test/overlays/ship/placeholder",
+					contents: "abc",
+				},
+			},
+			overlayDir: "test/overlays/ship",
+			InKust:     nil,
+			WantKust:   nil,
+		},
+		{
+			name: "no files in overlay dir, some current state",
+			original: []testFile{
+				{
+					path:     "test/overlays/placeholder",
+					contents: "abc",
+				},
+			},
+			overlayDir: "test/overlays",
+			InKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"abc": "xyz"},
+						Resources:     map[string]string{"abc": "xyz"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+			WantKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"abc": "xyz"},
+						Resources:     map[string]string{"abc": "xyz"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+		},
+		{
+			name: "garbled kustomization in current dir, some current state",
+			original: []testFile{
+				{
+					path:     "test/overlays/kustomization.yaml",
+					contents: "abc",
+				},
+			},
+			overlayDir: "test/overlays",
+			InKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"abc": "xyz"},
+						Resources:     map[string]string{"abc": "xyz"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+			wantErr: true,
+			WantKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"abc": "xyz"},
+						Resources:     map[string]string{"abc": "xyz"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+		},
+		{
+			name: "overlays and resources files in overlay dir, some current state",
+			original: []testFile{
+				{
+					path: "test/overlays/kustomization.yaml",
+					contents: `kind: ""
+apiversion: ""
+bases:
+- ../abc
+resources:
+- myresource.yaml
+patchesStrategicMerge:
+- mypatch.yaml
+`,
+				},
+				{
+					path:     "test/overlays/myresource.yaml",
+					contents: `this is my resource`,
+				},
+				{
+					path:     "test/overlays/mypatch.yaml",
+					contents: `this is my patch`,
+				},
+			},
+			overlayDir: "test/overlays",
+			InKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"abc": "xyz"},
+						Resources:     map[string]string{"abc": "xyz"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+			WantKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches:       map[string]string{"/mypatch.yaml": "this is my patch"},
+						Resources:     map[string]string{"/myresource.yaml": "this is my resource"},
+						ExcludedBases: []string{"excludedBase"},
+					},
+				},
+			},
+		},
+		{
+			name: "resources files in overlay dir, no current state",
+			original: []testFile{
+				{
+					path: "test/overlays/kustomization.yaml",
+					contents: `kind: ""
+apiversion: ""
+bases:
+- ../abc
+resources:
+- myresource.yaml
+- myotherresource.yaml
+`,
+				},
+				{
+					path:     "test/overlays/myresource.yaml",
+					contents: `this is my resource`,
+				},
+				{
+					path:     "test/overlays/myotherresource.yaml",
+					contents: `this is my other resource`,
+				},
+			},
+			overlayDir: "test/overlays",
+			InKust:     nil,
+			WantKust: &state.Kustomize{
+				Overlays: map[string]state.Overlay{
+					"ship": state.Overlay{
+						Patches: map[string]string{},
+						Resources: map[string]string{
+							"/myresource.yaml":      "this is my resource",
+							"/myotherresource.yaml": "this is my other resource",
+						},
+						ExcludedBases: []string{},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			fs := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			err := addTestFiles(fs, tt.original)
+			req.NoError(err)
+
+			manager, err := state.NewDisposableManager(log.NewNopLogger(), fs, viper.New())
+			req.NoError(err)
+
+			err = manager.SaveKustomize(tt.InKust)
+			req.NoError(err)
+
+			l := &Kustomizer{
+				Logger: log.NewNopLogger(),
+				FS:     fs,
+				State:  manager,
+			}
+
+			err = l.resolveExistingKustomize(context.Background(), tt.overlayDir)
+			if tt.wantErr {
+				req.Error(err)
+			} else {
+				req.NoError(err)
+			}
+
+			outState, err := manager.CachedState()
+			req.NoError(err)
+
+			outKust := outState.CurrentKustomize()
+			req.Equal(tt.WantKust, outKust)
 		})
 	}
 }
