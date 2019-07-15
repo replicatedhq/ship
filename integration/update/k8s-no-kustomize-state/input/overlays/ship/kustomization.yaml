@@ -1,0 +1,7 @@
+kind: ""
+apiversion: ""
+patchesStrategicMerge:
+- redis-master-service.yaml
+- redis-slave-service.yaml
+bases:
+- ../defaults

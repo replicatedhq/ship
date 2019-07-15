@@ -1,3 +1,4 @@
-args: []
+args:
+  - --files-in-state
 
 skip_cleanup: false
