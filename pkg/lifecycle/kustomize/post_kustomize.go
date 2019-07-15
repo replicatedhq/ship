@@ -24,7 +24,7 @@ func (l *Kustomizer) maybeCleanupKustomizeState() error {
 		return nil
 	}
 
-	kustomizeInState := l.Viper.GetBool(constants.KustomizeInStateFlag)
+	kustomizeInState := l.Viper.GetBool(constants.FilesInStateFlag)
 	if !kustomizeInState {
 		debug.Log("event", "kustomize.state.removal.given.flag")
 

@@ -87,7 +87,7 @@ func TestKustomizer_maybeCleanupKustomizeState(t *testing.T) {
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
 			tViper := viper.New()
-			tViper.Set(constants.KustomizeInStateFlag, tt.keepStateFlag)
+			tViper.Set(constants.FilesInStateFlag, tt.keepStateFlag)
 
 			manager, err := state.NewDisposableManager(log.NewNopLogger(), fs, tViper)
 			req.NoError(err)

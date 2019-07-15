@@ -1,4 +1,4 @@
 args:
  - "--prefer-git"
- - --kustomize-in-state
+ - --files-in-state
 skip_cleanup: false
