@@ -65,6 +65,8 @@ var valueLineRegex = regexp.MustCompile(`^\s*value:\s*$`)
 
 var nullValueLineRegex = regexp.MustCompile(`^(\s*value:)\s*null\s*$`)
 
+var templateFunctionRegex = regexp.MustCompile(`^\s*{{`)
+
 // LocalTemplater implements Templater by using the Commands interface
 // from pkg/helm and creating the chart in place
 type LocalTemplater struct {
@@ -566,6 +568,11 @@ func checkIsChild(firstLine, secondLine string) bool {
 
 	if firstIndentation < secondIndentation {
 		// if the next line is more indented, it's a child
+		return true
+	}
+
+	if templateFunctionRegex.MatchString(secondLine) {
+		// next line is a template function
 		return true
 	}
 
