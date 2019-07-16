@@ -703,6 +703,42 @@ func Test_validateGeneratedFiles(t *testing.T) {
 			},
 		},
 		{
+			name: "templated values",
+			dir:  "test",
+			inputFiles: []file{
+				{
+					path: "test/null_values.yaml",
+					contents: `
+  value:
+
+{{ template }}
+
+  value:
+  {{ template }}
+
+  value:
+    value: {{ template }}
+`,
+				},
+			},
+			outputFiles: []file{
+				{
+					path: "test/null_values.yaml",
+					contents: `
+  value:
+
+{{ template }}
+
+  value:
+  {{ template }}
+
+  value:
+    value: {{ template }}
+`,
+				},
+			},
+		},
+		{
 			name: "everything",
 			dir:  "test",
 			inputFiles: []file{
