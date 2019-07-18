@@ -10,16 +10,18 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 type fileSerializer struct {
 	statePath string
 	fs        afero.Afero
 	logger    log.Logger
+	V         *viper.Viper
 }
 
-func newFileSerializer(fs afero.Afero, logger log.Logger, statePath string) stateSerializer {
-	return &fileSerializer{fs: fs, logger: logger, statePath: statePath}
+func newFileSerializer(fs afero.Afero, logger log.Logger, viper *viper.Viper, statePath string) stateSerializer {
+	return &fileSerializer{fs: fs, logger: logger, V: viper, statePath: statePath}
 }
 
 func (s *fileSerializer) Load() (State, error) {
@@ -38,11 +40,29 @@ func (s *fileSerializer) Load() (State, error) {
 		return State{}, errors.Wrap(err, "unmarshal state")
 	}
 
+	state, err = readHelmFiles(s.fs, state)
+	if err != nil {
+		return State{}, errors.Wrap(err, "read helm files")
+	}
+
 	level.Debug(s.logger).Log("event", "state.resolve", "type", "versioned")
 	return state, nil
 }
 
 func (s *fileSerializer) Save(state State) error {
+	err := writeHelmFiles(s.fs, state)
+	if err != nil {
+		return errors.Wrap(err, "write helm file")
+	}
+
+	if !s.V.GetBool(constants.FilesInStateFlag) && state.V1 != nil {
+		state2 := *state.V1
+
+		state2.HelmValues = ""
+		state2.HelmValuesDefaults = ""
+		state.V1 = &state2
+	}
+
 	serialized, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "serialize state")

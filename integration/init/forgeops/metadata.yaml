@@ -1,3 +1,4 @@
 upstream: "https://github.com/ForgeRock/forgeops/tree/b8a579493e58e5336dffc8ec394e37da9f074a45/helm/ds"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

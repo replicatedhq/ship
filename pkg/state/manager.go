@@ -310,7 +310,7 @@ func (m *MManager) getStateSerializer() (stateSerializer, error) {
 	case "file":
 		// Even thought there's a "state-file" command line argument,
 		// ship has never used it to load state.
-		return newFileSerializer(m.FS, m.Logger, constants.StatePath), nil
+		return newFileSerializer(m.FS, m.Logger, m.V, constants.StatePath), nil
 	case "secret":
 		return newSecretSerializer(m.Logger, m.V.GetString("secret-namespace"), m.V.GetString("secret-name"), m.V.GetString("secret-key")), nil
 	case "url":

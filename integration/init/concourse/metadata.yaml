@@ -1,3 +1,4 @@
 upstream: "https://github.com/helm/charts/tree/0662ec9efe30dda63467bf19ae00217472b1385c/stable/concourse"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false
