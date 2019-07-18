@@ -1,0 +1,112 @@
+# Copyright (c) 2016-2018 ForgeRock AS.
+
+
+# If useDefaultSecrets is set to true (the default), the secret values in ../secrets will
+# be used to create a secret map with the same name as the instance ($instance).
+# If you set useDefaultSecrets to false, you must create this secret map yourself before the DS
+# instances will be provisioned. This allows you to inject your own secrets rather
+# than use the default ones bundled in the chart. An alternate strategy is to fork this chart.
+# and replace the secrets in ./secrets with your own.
+useDefaultSecrets: true
+
+# The default DS baseDN for the user store.  Note the ds image creates several backends that are hard coded and this
+# setting will have no impact on those backends. This setting will be removed in the future.
+baseDN: "ou=identities"
+
+# The default instance name. This will create a stateful set that can be resolved at
+#  $instance-0.$instance. You can also use the service name $instance - which will get (randomly)
+# load balanced to an instance (not recommended )
+instance: ds
+
+component: ds
+
+# If you want to disable the userstore backend, set this to false
+userstore:
+  enabled: true
+
+# If you want to disable specific backends, set to false:
+cts:
+  enabled: true
+
+configstore:
+  enabled: true
+
+idmRepo:
+  enabled: true
+
+image:
+  repository: forgerock-docker-public.bintray.io/forgerock/ds
+  pullPolicy: IfNotPresent
+  tag: 6.5.0
+
+# The number of instances in the StatefulSet. Each instance is a combined DS/RS pair.
+# You can not change this after installation.
+replicas: 1
+
+# Size for DS database storage. Note GKE IOPS scale based on the size of the volume.
+storageSize: "10Gi"
+
+# Set storageClass only on clusters that support it (GCP / AWS).
+#storageClass: fast
+
+
+backup:
+  # This is an optional parameter that will mount the named PVC volume (most likely an NFS share)
+  # on the bak/ directory. If this is not specified, an emptyDir will be mounted instead.
+  # The pvc is usually created by the dsadmin/ chart.
+  #pvcClaimName: ds-backup
+
+  # This configures the top level directory under bak/
+  # The backup folder is set to $clusterName/$instance-$namespace. This
+  # forces each instance backup to go to a different folder on the shared PVC drive. Without this
+  # you will get collisions on backup / restore.
+  # If you have many clusters backing up same shared NFS volume, change the default here. For example, 
+  # set it to "production"
+  clusterName: "default"
+
+
+# You need to be on JDK 8u131 or higher to enable these options.
+# todo: find JDK 11 args
+#opendjJavaArgs: "-server -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:+UseCompressedOops -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:MaxRAMFraction=2"
+
+# These defaults work for a small test instance
+opendjJavaArgs: "-Xmx512m"
+
+# Resource limits.
+# These help for pod placement in a larger cluster to ensure the DS instance gets sufficient resources.
+# The default values are artificially low.
+# For production, you will want to increase them.
+resources:
+  requests:
+   memory: 512Mi
+  limits:
+   memory: 768Mi
+
+# DS persistence switch. Setting this to false disables volume claims - all data is stored inside the docker image.
+# Used in testing environments without pv providers. When the pod is terminated, the DS data will be deleted!
+persistence: true
+
+# Pod Anti Affinity switch. For production this should be set to "hard", otherwise use "soft".
+# The hard setting will force ds pods to be spread out over multiple hosts/zones. soft is best effort
+# but pods will still be scheduled together if sufficient resources are not available.
+podAntiAffinity: "soft"
+
+# This is the exact value for TopologyKey. The other possible value is "failure-domain.beta.kubernetes.io/zone"
+# which will ensure that pod is scheduled on nodes in different zones thus allowing for HA across zones.
+# Note you want to leave this value as is if you are deploying a single zone cluster and change the values only
+# if you have a multi-zone cluster.
+topologyKey: "kubernetes.io/hostname"
+
+# Restore parameters. 
+restore:
+  # If true, runs the init containers that restores the directory from a backup folder in the bak/ folder.
+  # The backup data must be present in the bak/ folder. 
+  # Restore will not overwrite existing DS data.  
+  # A backup folder contains a full backup and a number of incrementals. The most up to date incremental 
+  # is used to recover.
+  enabled: false
+
+securityContext:
+  runAsUser: 11111
+  fsGroup: 11111
+  supplementalGroups: [ 0 ]

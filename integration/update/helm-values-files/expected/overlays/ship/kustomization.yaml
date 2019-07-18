@@ -1,0 +1,6 @@
+kind: ""
+apiversion: ""
+patchesStrategicMerge:
+- jenkins-master-deployment.yaml
+bases:
+- ../defaults

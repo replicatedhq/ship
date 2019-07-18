@@ -1,0 +1,64 @@
+## Google Cloud SQL Proxy image
+## ref: https://cloud.google.com/sql/docs/mysql/sql-proxy
+## ref: https://cloud.google.com/sql/docs/postgres/sql-proxy
+image: b.gcr.io/cloudsql-docker/gce-proxy
+imageTag: "1.11"
+
+## Specify a imagePullPolicy
+## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+##
+imagePullPolicy: IfNotPresent
+
+## Replicas Set count
+replicasCount: 1
+
+## Set the GCP service account key JSON file.
+## Service account has access be set to Cloud SQL instances
+## the key must be encoded with base64
+## e.g. `cat service-account.json | base64`
+##
+serviceAccountKey:
+  # Set to false to generate and manage secrets outside the Helm chart
+  create: true
+  key: |
+    {
+    "type": "service_account",
+    "project_id": "XXX",
+    "private_key_id": "XXX",
+    "private_key": "XXX",
+    "client_email": "XXX",
+    "client_id": "XXX",
+    "auth_uri": "XXX",
+    "token_uri": "XXX",
+    "auth_provider_x509_cert_url": "XXX",
+    "client_x509_cert_url": "XXX"
+    }
+
+## SQL connection settings
+##
+cloudsql:
+  ## PostgreSQL/MySQL instances:
+  ## update with your GCP project, the region of your Cloud SQL instance
+  ## and the name of your Cloud SQL instance
+  ## PostgreSQL port 5432 or MySQL port 3306, or other port you set for your SQL instance.
+  ## Use different ports for different instances.
+  instances:
+  - instance: "instance"
+    project: "project"
+    region: "region"
+    port: 5432
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    memory: 150Mi
+    cpu: 150m
+
+## Node selector
+nodeSelector: {}

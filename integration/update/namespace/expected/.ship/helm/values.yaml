@@ -1,0 +1,89 @@
+rbac:
+  create: true
+  pspEnabled: true
+serviceAccount:
+  create: true
+  name: null
+replicas: 1
+deploymentStrategy: RollingUpdate
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 60
+  timeoutSeconds: 30
+  failureThreshold: 10
+image:
+  repository: grafana/grafana
+  tag: 5.3.4
+  pullPolicy: IfNotPresent
+securityContext:
+  runAsUser: 472
+  fsGroup: 472
+downloadDashboardsImage:
+  repository: appropriate/curl
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+  labels: {}
+ingress:
+  enabled: false
+  annotations: {}
+  labels: {}
+  path: /
+  hosts:
+  - chart-example.local
+  tls: []
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+persistence:
+  enabled: false
+adminUser: admin
+env: {}
+envFromSecret: ""
+extraSecretMounts: []
+plugins: []
+datasources: {}
+dashboardProviders: {}
+dashboards: {}
+dashboardsConfigMaps: {}
+grafana.ini:
+  paths:
+    data: /var/lib/grafana/data
+    logs: /var/log/grafana
+    plugins: /var/lib/grafana/plugins
+    provisioning: /etc/grafana/provisioning
+  analytics:
+    check_for_updates: true
+  log:
+    mode: console
+  grafana_net:
+    url: https://grafana.net
+ldap:
+  existingSecret: ""
+  config: ""
+smtp:
+  existingSecret: ""
+sidecar:
+  image: kiwigrid/k8s-sidecar:0.0.6
+  imagePullPolicy: IfNotPresent
+  resources: null
+  dashboards:
+    enabled: false
+    label: grafana_dashboard
+    folder: /tmp/dashboards
+    searchNamespace: null
+  datasources:
+    enabled: false
+    label: grafana_datasource
+    searchNamespace: null
+adminPassword: strongpassword

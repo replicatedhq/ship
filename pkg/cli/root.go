@@ -78,7 +78,7 @@ func RootCmd() *cobra.Command {
 
 	cmd.PersistentFlags().Bool("no-outro", false, "skip outro step in Ship UI")
 
-	cmd.PersistentFlags().Bool(constants.FilesInStateFlag, false, "persist files (kustomize patches and resources) in the ship state in addition to the overlays directory")
+	cmd.PersistentFlags().Bool(constants.FilesInStateFlag, false, "persist files (helm values and defaults files, kustomize patches and resources) in the ship state in addition to .ship/helm and the overlays directory")
 
 	cmd.AddCommand(Init())
 	cmd.AddCommand(Watch())

@@ -151,7 +151,10 @@ func TestHelmValue(t *testing.T) {
 			req := require.New(t)
 			fs := afero.Afero{Fs: afero.NewMemMapFs()}
 
-			manager, err := NewDisposableManager(&logger.TestLogger{T: t}, fs, viper.New())
+			tviper := viper.New()
+			tviper.Set(constants.FilesInStateFlag, true)
+
+			manager, err := NewDisposableManager(&logger.TestLogger{T: t}, fs, tviper)
 			req.NoError(err)
 
 			err = manager.SerializeHelmValues(test.userInputValues, test.chartValuesOnInit)
@@ -389,10 +392,13 @@ func TestMManager_SerializeHelmValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
+
+			tviper := viper.New()
+			tviper.Set(constants.FilesInStateFlag, true)
 			m1 := &MManager{
 				Logger: &logger.TestLogger{T: t},
 				FS:     afero.Afero{Fs: afero.NewMemMapFs()},
-				V:      viper.New(),
+				V:      tviper,
 			}
 
 			m1.cachedState = &tt.before
