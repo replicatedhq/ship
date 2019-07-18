@@ -1,0 +1,35 @@
+# Default values for elastic-stack.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+ingress:
+  enabled: false
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts:
+  - chart-example.local
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  tls:
+    # Secrets must be manually created in the namespace.
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+
+# elasticsearch subchart
+elasticsearch:
+  image:
+    repository: gcr.io/cos-containers/elasticsearch
+    tag: 5.4.2-xpack
+    pullPolicy: Always
+  env:
+    XPACK_MONITORING_ENABLED: "true"
+
+# kibana subchart
+kibana:
+  image:
+    repository: docker.elastic.co/kibana/kibana
+    tag: 5.4.2
+    pullPolicy: IfNotPresent
+  env:
+    XPACK_MONITORING_ENABLED: "true"
