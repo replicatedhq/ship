@@ -1624,7 +1624,7 @@
   name = "gopkg.in/ksplit.v0"
   packages = ["pkg"]
   pruneopts = "UT"
-  revision = "56f2220fc1b6dbce763fc3ea4f2ec6b46fe12499"
+  revision = "6df646615657df895f9b642b7622ab6368a34c1f"
 
 [[projects]]
   branch = "v3"
