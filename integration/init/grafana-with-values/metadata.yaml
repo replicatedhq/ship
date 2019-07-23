@@ -2,6 +2,8 @@ upstream: "https://github.com/helm/charts/tree/353ba5ef6467fd64035b7d5446df426f8
 args:
   - --upload-assets-to=http://localhost:4569/some-bucket/some-key
   - --prefer-git
+  - --files-in-state
+edit_args: ["--files-in-state"]
 skip_cleanup: false
 valuesFile: input/values.yaml
 

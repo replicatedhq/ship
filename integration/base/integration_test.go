@@ -30,7 +30,8 @@ type TestMetadata struct {
 	NoStateFile         bool   `yaml:"no_state_file"` // used to denote that there is no input state.json
 	SetEntitlementsJSON string `yaml:"set_entitlements_json"`
 	//debugging
-	SkipCleanup bool `yaml:"skip_cleanup"`
+	SkipCleanup bool     `yaml:"skip_cleanup"`
+	Args        []string `yaml:"args"`
 }
 
 func TestShipApp(t *testing.T) {
@@ -116,6 +117,8 @@ var _ = Describe("ship app", func() {
 					if testMetadata.SetEntitlementsJSON != "" {
 						args = append(args, fmt.Sprintf("--set-entitlements-json=%s", testMetadata.SetEntitlementsJSON))
 					}
+
+					args = append(args, testMetadata.Args...)
 
 					cmd.SetArgs(args)
 					err := cmd.Execute()

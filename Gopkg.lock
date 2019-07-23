@@ -1619,6 +1619,14 @@
   version = "v0.9.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:450d287b628efab5e45bf1d13cf4ad16a6d06bbc3f96a556bb113f08d4930000"
+  name = "gopkg.in/ksplit.v0"
+  packages = ["pkg"]
+  pruneopts = "UT"
+  revision = "6df646615657df895f9b642b7622ab6368a34c1f"
+
+[[projects]]
   digest = "1:d8a17baa5e84fd25aef61a01e448a0734957591ed99701c65789fa2748cc4708"
   name = "gopkg.in/laverya/yaml.v3"
   packages = ["."]
@@ -2210,6 +2218,7 @@
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/oauth2",
     "google.golang.org/grpc/status",
+    "gopkg.in/ksplit.v0/pkg",
     "gopkg.in/laverya/yaml.v3",
     "gopkg.in/yaml.v3",
     "k8s.io/apimachinery/pkg/apis/meta/v1",

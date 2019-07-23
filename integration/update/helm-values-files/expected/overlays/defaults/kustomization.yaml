@@ -1,0 +1,52 @@
+kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    version: v1
+    kind: PersistentVolumeClaim
+    name: jenkins
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: PersistentVolumeClaim
+    name: jenkins
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jenkins-agent
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: Deployment
+    name: jenkins
+  path: chart-patch.json
+- target:
+    group: apps
+    version: v1beta1
+    kind: Deployment
+    name: jenkins
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jenkins
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Service
+    name: jenkins
+  path: heritage-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: jenkins
+  path: chart-patch.json
+- target:
+    version: v1
+    kind: Secret
+    name: jenkins
+  path: heritage-patch.json
+bases:
+- ../../base

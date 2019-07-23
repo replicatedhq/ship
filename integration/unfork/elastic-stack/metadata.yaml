@@ -1,3 +1,3 @@
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
 upstream: https://github.com/replicatedhq/test-charts/tree/2f4b5abb35405c61bbe44f00748eeb2d8799a0d2/elastic-stack-upstream-snapshot/elastic-stack
 fork: https://github.com/replicatedhq/test-charts/tree/2f4b5abb35405c61bbe44f00748eeb2d8799a0d2/elastic-stack-forked/elastic-stack

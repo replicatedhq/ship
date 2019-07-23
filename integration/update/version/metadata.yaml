@@ -1,2 +1,2 @@
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
 skip_cleanup: false

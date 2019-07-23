@@ -1,2 +1,3 @@
 skip_cleanup: false
+args: ["--files-in-state"]
 disable_online: true

@@ -2,6 +2,9 @@ upstream: "https://github.com/helm/charts/tree/ffb84f85a861e765caade879491a75a6d
 args:
   - --upload-assets-to=http://localhost:4569/some-bucket/some-key
   - --prefer-git
+  - --files-in-state
+edit_args:
+  - --files-in-state
 skip_cleanup: false
 
 

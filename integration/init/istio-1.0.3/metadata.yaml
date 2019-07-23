@@ -1,3 +1,4 @@
 upstream: "https://github.com/istio/istio/tree/1.0.3/install/kubernetes/helm/istio"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false
