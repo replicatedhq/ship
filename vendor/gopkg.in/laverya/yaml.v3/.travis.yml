@@ -12,4 +12,7 @@ go:
     - "1.12"
     - tip
 
-go_import_path: gopkg.in/yaml.v3
+go_import_path: gopkg.in/laverya/yaml.v3
+
+script:
+- GO111MODULE=on go test -v -race ./...
