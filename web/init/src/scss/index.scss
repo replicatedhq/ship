@@ -19,9 +19,11 @@
   @import "./utilities/terminal.css";
   @import "./components/shared/FileTree.scss";
   @import "./components/shared/DetermineStep.scss";
+  @import "./components/shared/PreflightChecksPage.scss";
   @import "./components/kustomize/HelmChartInfo.scss";
   @import "./components/kustomize/HelmValuesEditor.scss";
   @import "./components/kustomize/KustomizeOverlay.scss";
+  @import "./components/shared/CodeSnippet.scss";
   @import "./components/shared/Linter.scss";
   @import "./components/shared/NavBar.scss";
   @import "./components/shared/Popover.scss";

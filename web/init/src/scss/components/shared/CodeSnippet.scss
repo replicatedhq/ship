@@ -1,0 +1,22 @@
+.CodeSnippet {
+  // background-color: #323232;
+  // color: #f8f8f2;
+  // font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+}
+
+.CodeSnippet-content {
+  padding: 15px;
+  border: 1px solid $secondary-background-color;
+  border-radius: 4px;
+  background-color: #F5F8FC;
+}
+
+.CodeSnippet-copy {
+  color: #337AB7;
+  font-size: 12px;
+
+  &:hover {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}

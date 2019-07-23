@@ -6,6 +6,7 @@ import NavBar from "../../containers/Navbar";
 
 import Loader from "./Loader";
 import StepNumbers from "./StepNumbers";
+import PreflightChecksPage from "./PreflightChecksPage";
 import DetermineComponentForRoute from "../../containers/DetermineComponentForRoute";
 import StepDone from "./StepDone";
 
@@ -40,6 +41,7 @@ const ShipRoutesWrapper = ({ routes, headerEnabled, stepsEnabled, basePath, onCo
                   />}
                 />
               ))}
+              <Route exaxt path="/preflight-checks" component={() => <PreflightChecksPage />} />
               <Route exact path={`${basePath}/`} component={() => <div className="flex1 flex-column justifyContent--center alignItems--center"><Loader size="60" /></div> } />
               <Route exact path={`${basePath}/done`} component={() =>  <StepDone />} />
             </Switch>
