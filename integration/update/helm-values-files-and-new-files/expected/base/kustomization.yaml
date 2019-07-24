@@ -1,0 +1,10 @@
+kind: ""
+apiversion: ""
+resources:
+- config.yaml
+- home-pvc.yaml
+- jenkins-agent-svc.yaml
+- jenkins-master-deployment.yaml
+- jenkins-master-svc.yaml
+- secret.yaml
+- test-config.yaml

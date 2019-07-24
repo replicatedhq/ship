@@ -39,6 +39,7 @@ func (m *MockPlanConfirmer) EXPECT() *MockPlanConfirmerMockRecorder {
 
 // ConfirmPlan mocks base method
 func (m *MockPlanConfirmer) ConfirmPlan(arg0 context.Context, arg1 string, arg2 api.Release, arg3 chan bool) (bool, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConfirmPlan", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -47,11 +48,13 @@ func (m *MockPlanConfirmer) ConfirmPlan(arg0 context.Context, arg1 string, arg2 
 
 // ConfirmPlan indicates an expected call of ConfirmPlan
 func (mr *MockPlanConfirmerMockRecorder) ConfirmPlan(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfirmPlan", reflect.TypeOf((*MockPlanConfirmer)(nil).ConfirmPlan), arg0, arg1, arg2, arg3)
 }
 
 // WithStatusReceiver mocks base method
 func (m *MockPlanConfirmer) WithStatusReceiver(arg0 daemontypes.StatusReceiver) tfplan.PlanConfirmer {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithStatusReceiver", arg0)
 	ret0, _ := ret[0].(tfplan.PlanConfirmer)
 	return ret0
@@ -59,5 +62,6 @@ func (m *MockPlanConfirmer) WithStatusReceiver(arg0 daemontypes.StatusReceiver) 
 
 // WithStatusReceiver indicates an expected call of WithStatusReceiver
 func (mr *MockPlanConfirmerMockRecorder) WithStatusReceiver(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithStatusReceiver", reflect.TypeOf((*MockPlanConfirmer)(nil).WithStatusReceiver), arg0)
 }

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis2
+  labels:
+    component: redis2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: redis2
+  template:
+    metadata:
+      labels:
+        component: redis2
+    spec:
+      containers:
+        - name: redis2
+          image: redis

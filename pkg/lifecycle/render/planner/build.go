@@ -20,7 +20,7 @@ type buildProgress struct {
 }
 
 // Build builds a plan in memory from assets+resolved config
-func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, error) {
+func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups []libyaml.ConfigGroup, meta api.ReleaseMetadata, templateContext map[string]interface{}) (Plan, []string, error) {
 	defer p.Status.ClearProgress()
 	debug := level.Debug(log.With(p.Logger, "step.type", "render", "phase", "plan"))
 
@@ -29,7 +29,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 
 	builder, err := p.BuilderBuilder.FullBuilder(meta, configGroups, templateContext)
 	if err != nil {
-		return Plan{}, errors.Wrap(err, "init builder")
+		return nil, nil, errors.Wrap(err, "init builder")
 	}
 
 	var plan Plan
@@ -43,7 +43,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		if asset.Inline != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Inline.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "inline")
@@ -53,7 +53,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.Docker != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Docker.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "docker")
@@ -63,7 +63,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.Helm != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Helm.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "helm")
@@ -73,7 +73,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.Local != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Local.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "local")
@@ -83,7 +83,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.DockerLayer != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.DockerLayer.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "dockerlayer")
@@ -93,7 +93,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.Web != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Web.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "web")
@@ -103,7 +103,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.GitHub != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.GitHub.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "github")
@@ -113,7 +113,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.Terraform != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.Terraform.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			p.logAssetResolve(debug, evaluatedWhen, "terraform")
@@ -123,7 +123,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.AmazonEKS != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.AmazonEKS.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "amazon kubernetes cluster")
 			if evaluatedWhen {
@@ -132,7 +132,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.GoogleGKE != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.GoogleGKE.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "google kubernetes cluster")
 			if evaluatedWhen {
@@ -141,7 +141,7 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 		} else if asset.AzureAKS != nil {
 			evaluatedWhen, err := p.evalAssetWhen(debug, *builder, asset, asset.AzureAKS.AssetShared.When)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			p.logAssetResolve(debug, evaluatedWhen, "azure kubernetes cluster")
 			if evaluatedWhen {
@@ -149,13 +149,19 @@ func (p *CLIPlanner) Build(renderRoot string, assets []api.Asset, configGroups [
 			}
 		} else {
 			debug.Log("event", "asset.resolve.fail", "asset", fmt.Sprintf("%#v", asset))
-			return nil, errors.New(
+			return nil, nil, errors.New(
 				"Unknown asset: type is not one of " +
 					"[inline docker helm dockerlayer github terraform amazon_eks google_gke azure_aks]",
 			)
 		}
 	}
-	return plan, nil
+
+	dests, err := planToDests(plan, builder)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return plan, dests, nil
 }
 
 func (p *CLIPlanner) inlineStep(
@@ -356,4 +362,18 @@ func (p *CLIPlanner) watchProgress(ch chan interface{}, debug log.Logger) error 
 		}
 	}
 	return saveError
+}
+
+func planToDests(plan Plan, builder *templates.Builder) ([]string, error) {
+	var dests []string
+
+	for _, step := range plan {
+		dest, err := builder.String(step.Dest)
+		if err != nil {
+			return nil, errors.Wrapf(err, "building dest %q", step.Dest)
+		}
+		dests = append(dests, dest)
+	}
+
+	return dests, nil
 }

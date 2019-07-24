@@ -1,0 +1,4 @@
+args:
+- "--prefer-git"
+
+skip_cleanup: false
