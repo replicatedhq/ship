@@ -23,7 +23,7 @@ func removeDests(fs *afero.Afero, dests []string) error {
 		dirs[dest] = true
 	}
 
-	for dir, _ := range dirs {
+	for dir := range dirs {
 		err := util.IsLegalPath(dir)
 		if err != nil {
 			continue
