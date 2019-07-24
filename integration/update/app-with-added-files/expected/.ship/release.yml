@@ -1,0 +1,62 @@
+assets:
+  v1:
+  - inline:
+      contents: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: redis
+          labels:
+            component: redis
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: redis
+          template:
+            metadata:
+              labels:
+                component: redis
+            spec:
+              containers:
+                - name: redis
+                  image: redis
+      dest: base/redis-deployment.yaml
+      mode: 0644
+  - inline:
+      contents: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: redis2
+          labels:
+            component: redis2
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: redis2
+          template:
+            metadata:
+              labels:
+                component: redis2
+            spec:
+              containers:
+                - name: redis2
+                  image: redis
+      dest: base/redis2-deployment.yaml
+      mode: 0644
+config:
+  v1: []
+lifecycle:
+  v1:
+    - config:
+        invalidates: ["render"]
+    - render:
+        requires: ["config"]
+        root: "."
+    - kustomize:
+        requires: ["render"]
+        base: ./base
+        overlay: overlays/ship
+        dest: rendered.yaml

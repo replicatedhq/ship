@@ -1,0 +1,10 @@
+kind: ""
+apiversion: ""
+resources:
+#- config.yaml #this should be added by the update process
+- home-pvc.yaml
+- jenkins-agent-svc.yaml
+- jenkins-master-deployment.yaml
+- jenkins-master-svc.yaml
+- secret-redux.yaml #this should be removed by the update process (and replaced with secret.yaml)
+- test-config.yaml

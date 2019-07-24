@@ -39,20 +39,24 @@ func (m *MockPlanner) EXPECT() *MockPlannerMockRecorder {
 }
 
 // Build mocks base method
-func (m *MockPlanner) Build(arg0 string, arg1 []api.Asset, arg2 []libyaml.ConfigGroup, arg3 api.ReleaseMetadata, arg4 map[string]interface{}) (planner.Plan, error) {
+func (m *MockPlanner) Build(arg0 string, arg1 []api.Asset, arg2 []libyaml.ConfigGroup, arg3 api.ReleaseMetadata, arg4 map[string]interface{}) (planner.Plan, []string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Build", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(planner.Plan)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].([]string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Build indicates an expected call of Build
 func (mr *MockPlannerMockRecorder) Build(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockPlanner)(nil).Build), arg0, arg1, arg2, arg3, arg4)
 }
 
 // Execute mocks base method
 func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -60,11 +64,13 @@ func (m *MockPlanner) Execute(arg0 context.Context, arg1 planner.Plan) error {
 
 // Execute indicates an expected call of Execute
 func (mr *MockPlannerMockRecorder) Execute(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPlanner)(nil).Execute), arg0, arg1)
 }
 
 // WithStatusReceiver mocks base method
 func (m *MockPlanner) WithStatusReceiver(arg0 daemontypes.StatusReceiver) planner.Planner {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithStatusReceiver", arg0)
 	ret0, _ := ret[0].(planner.Planner)
 	return ret0
@@ -72,5 +78,6 @@ func (m *MockPlanner) WithStatusReceiver(arg0 daemontypes.StatusReceiver) planne
 
 // WithStatusReceiver indicates an expected call of WithStatusReceiver
 func (mr *MockPlannerMockRecorder) WithStatusReceiver(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithStatusReceiver", reflect.TypeOf((*MockPlanner)(nil).WithStatusReceiver), arg0)
 }

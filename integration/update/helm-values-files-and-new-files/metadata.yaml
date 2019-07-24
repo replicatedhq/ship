@@ -1,0 +1,7 @@
+args:
+- "--prefer-git"
+#- --files-in-state
+
+skip_cleanup: false
+ignoredFiles:
+  - base/jenkins-test.yaml
