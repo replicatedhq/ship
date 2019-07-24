@@ -18,6 +18,7 @@ exclude_paterns:
   - "**/vendor/"
   - "**/*_test.go"
   - "**/node_modules"
+  - "**/test-mocks/"
 
 checks:
   return-statements:
