@@ -7,19 +7,22 @@ class CodeSnippet extends Component {
   state = {
     didCopy: false
   }
+
   static propTypes = {
     children: PropTypes.string.isRequired,
     canCopy: PropTypes.bool,
-    language: PropTypes.string
+    language: PropTypes.string,
+    copyDelay: PropTypes.number
   }
 
   static defaultProps = {
     language: "bash",
-    copyText: "Copy command"
+    copyText: "Copy command",
+    copyDelay: 3000
   }
 
   copySnippet = () => {
-    const { children } = this.props;
+    const { children, copyDelay } = this.props;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(children).then( () => {
@@ -27,7 +30,7 @@ class CodeSnippet extends Component {
 
         setTimeout(() => {
           this.setState({ didCopy: false });
-        }, 3000);
+        }, copyDelay);
       });
     }
   }
@@ -50,12 +53,12 @@ class CodeSnippet extends Component {
             {children}
           </Prism>
           {canCopy && (
-            <p className="CodeSnippet-copy u-fontWeight--bold" onClick={this.copySnippet}>
+            <span className="CodeSnippet-copy u-fontWeight--bold" onClick={this.copySnippet}>
               {didCopy
                 ? "Copied!"
                 : copyText
               }
-            </p>
+            </span>
           )}
         </div>
       </div>

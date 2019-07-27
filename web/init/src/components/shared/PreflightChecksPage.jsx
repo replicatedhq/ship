@@ -8,11 +8,19 @@ class PreflightChecksPage extends Component {
     super(props);
 
     this.state = {
-      lol: "k"
+      showPreflightInstructions: false
     };
   }
 
+  togglePreflightInstructions = () => {
+    const { showPreflightInstructions } = this.state;
+    this.setState({
+      showPreflightInstructions: !showPreflightInstructions
+    });
+  }
+
   render() {
+    const { showPreflightInstructions } = this.state;
     return (
       <div className="flex-column flex1">
         <div className="PreflightChecks--wrapper u-paddingTop--30">
@@ -29,13 +37,20 @@ class PreflightChecksPage extends Component {
             <p className="u-marginTop--10 u-marginBottom-10">
               You will be able to see the results in your terminal window as well as in this UI.
             </p>
-            <CodeSnippet
-              className="u-marginTop--10"
-              language="bash"
-              canCopy={true}
-            >
+            <CodeSnippet className="u-marginTop--10" language="bash" canCopy={true}>
               kubectl preflight https://git.io/preflight-k8s.version.yaml
             </CodeSnippet>
+            <div className="section-border flex justifyContent--center u-position--relative u-marginTop--20">
+              <p
+                className="preflight-button flex-auto u-fontSize--small u-color--astral u-fontWeight--medium u-cursor--pointer"
+                onClick={this.togglePreflightInstructions}
+              >
+                {showPreflightInstructions
+                  ? "I already have the preflight tool"
+                  : "I need to install the preflight tool"
+                }
+              </p>
+            </div>
           </div>
         </div>
       </div>
