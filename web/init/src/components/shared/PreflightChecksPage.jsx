@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 
 import CodeSnippet from "./CodeSnippet";
@@ -51,6 +51,28 @@ class PreflightChecksPage extends Component {
                 }
               </p>
             </div>
+            {showPreflightInstructions && (
+              <Fragment>
+                <p className="u-fontSize--jumbo u-color--tuna u-fontWeight--bold u-marginTop--20">
+                  Install the preflight tool
+                </p>
+                <CodeSnippet
+                  className="u-marginTop--10"
+                  preText={(
+                    <span className="">
+                      The best way to install the preflight tool is using Kubernetes package manager
+                      <a target="_blank" rel="noopener noreferrer" href="https://github.com/kubernetes-sigs/krew/"> krew</a>.
+                    </span>
+                  )}
+                  language="bash"
+                  canCopy={true}
+                >
+                  krew install preflight
+                </CodeSnippet>
+
+
+              </Fragment>
+            )}
           </div>
         </div>
       </div>

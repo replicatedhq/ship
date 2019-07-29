@@ -11,6 +11,7 @@ class CodeSnippet extends Component {
   static propTypes = {
     children: PropTypes.string.isRequired,
     canCopy: PropTypes.bool,
+    preText: PropTypes.string,
     language: PropTypes.string,
     copyDelay: PropTypes.number
   }
@@ -40,6 +41,7 @@ class CodeSnippet extends Component {
       className,
       children,
       language,
+      preText,
       canCopy,
       copyText
     } = this.props;
@@ -49,6 +51,12 @@ class CodeSnippet extends Component {
     return (
       <div className={classNames("CodeSnippet", className)}>
         <div className="CodeSnippet-content">
+          {preText && React.isValidElement(preText)
+            ? preText
+            : (
+              <div className="u-fontSize--small u-fontWeight--bold">{preText}</div>
+            )
+          }
           <Prism language={language}>
             {children}
           </Prism>
