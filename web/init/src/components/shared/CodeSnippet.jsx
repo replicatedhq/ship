@@ -11,7 +11,7 @@ class CodeSnippet extends Component {
   static propTypes = {
     children: PropTypes.string.isRequired,
     canCopy: PropTypes.bool,
-    preText: PropTypes.string,
+    preText: PropTypes.node,
     language: PropTypes.string,
     copyDelay: PropTypes.number
   }
