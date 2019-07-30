@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 
 import CodeSnippet from "./CodeSnippet";
+import TabView, { Tab } from "./TabView";
 
 class PreflightChecksPage extends Component {
   constructor(props) {
@@ -38,7 +39,7 @@ class PreflightChecksPage extends Component {
               <p className="u-marginTop--10 u-marginBottom-10">
                 You will be able to see the results in your terminal window as well as in this UI.
             </p>
-              <CodeSnippet className="u-marginTop--10" language="bash" canCopy={true}>
+            <CodeSnippet className="u-marginTop--10" language="bash" canCopy={true}>
                 kubectl preflight https://git.io/preflight-k8s.version.yaml
             </CodeSnippet>
               <div className="section-border flex justifyContent--center u-position--relative u-marginTop--20">
@@ -70,6 +71,24 @@ class PreflightChecksPage extends Component {
                   >
                     krew install preflight
                   </CodeSnippet>
+                  <TabView>
+                    <Tab name="mac" displayText="MacOS">
+                      <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
+                        {"brew tap replicatedhq/troubleshoot\nbrew install replicatedhq/preflight"}
+                      </CodeSnippet>
+                    </Tab>
+                    <Tab name="win" displayText="Windows">
+                      <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
+                        choco install replicatedhq/preflight
+                      </CodeSnippet>
+                    </Tab>
+                    <Tab name="linux" displayText="Linux"
+                    >
+                      <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
+                        sudo apt-get install replicatedhq/troubleshoot
+                      </CodeSnippet>
+                    </Tab>
+                  </TabView>
                 </Fragment>
               )}
             </div>
