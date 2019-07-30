@@ -1,7 +1,3 @@
-.tabview {
-
-}
-
 .tabview-tabname {
   padding: 0 8px;
 
@@ -14,6 +10,7 @@
   }
 
   &.selected {
+    color: #323232;
     font-weight: bold;
   }
 

@@ -20,6 +20,10 @@ class PreflightChecksPage extends Component {
     });
   }
 
+  onTabChange = name => {
+    console.log(name);
+  }
+
   render() {
     const { showPreflightInstructions } = this.state;
     return (
@@ -71,7 +75,10 @@ class PreflightChecksPage extends Component {
                   >
                     krew install preflight
                   </CodeSnippet>
-                  <TabView className="u-marginTop--10">
+                    <TabView
+                      className="u-marginTop--10"
+                      onTabChange={this.onTabChange}
+                    >
                     <Tab name="mac" displayText="MacOS">
                       <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
                         {"brew tap replicatedhq/troubleshoot\nbrew install replicatedhq/preflight"}
@@ -82,8 +89,7 @@ class PreflightChecksPage extends Component {
                         choco install replicatedhq/preflight
                       </CodeSnippet>
                     </Tab>
-                    <Tab name="linux" displayText="Linux"
-                    >
+                    <Tab name="linux" displayText="Linux">
                       <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
                         sudo apt-get install replicatedhq/troubleshoot
                       </CodeSnippet>

@@ -20,18 +20,24 @@ export default class TabView extends Component {
       PropTypes.element,
       PropTypes.arrayOf(PropTypes.element)
     ]),
-    separator: PropTypes.string
+    separator: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.element
+    ]),
+    onTabChange: PropTypes.func
   }
 
   static defaultProps = {
-    separator: "|"
+    separator: "|",
+    onTabChange: () => {}
   }
 
   setTab = name => {
+    const { onTabChange } = this.props;
 
     this.setState({
       currentTab: name
-    });
+    }, () => onTabChange(name) );
   }
 
   render() {
@@ -48,8 +54,8 @@ export default class TabView extends Component {
           {React.Children.map(children, (child, idx ) => {
             const { displayText, name } = child.props;
             return (
-              <Fragment>
-                <span key={name} className={classNames("tabview-tabname u-cursor--pointer", {
+              <Fragment key={name}>
+                <span className={classNames("tabview-tabname u-cursor--pointer u-fontSize--small", {
                   selected: name === currentTab
                 })} onClick={() => { this.setTab(name); }}>
                   {displayText}
