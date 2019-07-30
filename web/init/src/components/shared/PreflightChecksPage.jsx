@@ -71,7 +71,7 @@ class PreflightChecksPage extends Component {
                   >
                     krew install preflight
                   </CodeSnippet>
-                  <TabView>
+                  <TabView className="u-marginTop--10">
                     <Tab name="mac" displayText="MacOS">
                       <CodeSnippet className="u-marginTop--10" language="bash" canCopy={false}>
                         {"brew tap replicatedhq/troubleshoot\nbrew install replicatedhq/preflight"}
