@@ -34,8 +34,8 @@
         "registrySecret": "3bfd99a69b5748fab756a593c7dcc852",
         "entitlements": {
           "meta": {
-            "last_updated": "0001-01-01T00:00:00Z",
-            "customer_id": ""
+            "lastUpdated": "0001-01-01T00:00:00Z",
+            "customerID": ""
           },
           "signature": "eVlVacoh3aPSx+EvhmD+B8vG3QicsaWkJ+9vcFReB2xRgPtNgedfQkS7bmJxNwCHZlcOXX/m1io5IkFFXPdW4mXvIRO/5p6xJWFj/icU1iHOBPYf6Q2pEC9+ylXAj8upyPPGGJc+MN5X83Sxk/JumRJPMCNoykwgixkai7NtiZgEjvyfMLPZhYwZ5MBNEv6CJ5NCCw7JO1Ga8G6CDa6E3NLsFJLLLcYUQO+7+hDb9IMxkynHJCoazJ1587fVUgeZ1QLt+mWdJoILn+ioDH4TJ0XZMWvLdRDoV6JTugs1O3O9qh3sMu5C2fow0i3Cnr+K8DsWDpazXTBQzd2ZIuUFf02CgCEF+0M/o9DMbpocePjmHufxZXcEl3jv8rMv5wa6civwRA9W8dbv+eepMf4ngcUP/hxz4WkCSTWT5Zf6+JngXYylDZta+/HnzRMczhG9Laaa+TRhm+fsxApQ4wORvdms3xwcxg35FTzUy4gMoSCLFiNjN7e/GZWsb9NYlFoI/sfhqVsNljFJlN4+XgqEGyU1tn4ggdBeQ9J4/E6NUkvu8+lWqfvNrapGNm2+3J7hAIvfpNo/sOXLGfbHjXu+hM3RWkxgvVKecqMeEAO0MSNZouIRMKmT/qHz15Ds7vww0lkRKQG2xcXFitLVCglcAe2ApriNTAY19MWBVVMUKfY=",
           "values": [

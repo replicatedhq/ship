@@ -34,8 +34,8 @@
         "registrySecret": "3bfd99a69b5748fab756a593c7dcc852",
         "entitlements": {
           "meta": {
-            "last_updated": "0001-01-01T00:00:00Z",
-            "customer_id": ""
+            "lastUpdated": "0001-01-01T00:00:00Z",
+            "customerID": "a16_bcTnkNqFWs1UEcCJ3DQFYzfnLfVr"
           },
           "signature": "pyT3OMJVavJ3u40TRMaiolFTnVJx1oj2vxfSZWsDAPSaLM8g1M9gX1HiRvzRvkm3HhA7olXXo8Ore8QXDpMBrpH4TFqMN3y0chC8rle4ORs/UYZdugLM2LJ1QsUwmBSbxTf7vS/fmXOPoAM2VcoJ8DS7cPpIDyrQ7dclR3l5yRJL5Vqhjx9CUMVQu8avRIYu2YUnFGADC+nfqNUabmIx7/5DUtZ/EaDSK98MD8pvhyB+2y2O9Q1zEgk6uXVlJ+DYgsb4rKGoVRRaVKlkGhR9NlFNGao9vjd/uSAoZ5OWSCTJub4Ys2SaWeIhj2P5LV/wHLuYEZaIVlrKqW/gKTKJ9HCFwiHbsi2zr48WxVAufkk0Q4m6hhQryz/qcBzcFA3Cnhl9y0dfR+8C39h8N5wEAXLz267SKpQfZQEOUmexeCzV+TcXoHasmFtKBhvgP5jQdiua1bpEumm+t3LhBlg7u3czPMkMuNluU3ovlZ9rxhjJK1aLmI9Eriigg94kKfAgr+ueNnsHZc4zNxAqXQnZ/7PipJjrLCs5o3+VwYVUrP09f71kocVQIreOhlB382CEPOzEsDZtUb3wV1z3TW0qUOf+wGP24jVj4CfY9AK3LvVUQkVvU7Xg8pJeIxlJ5DIVwun+zeeBjig4K9vQdIGeU1FTj+KewmjmO0lx7UO/CtM="
         },
@@ -58,6 +58,6 @@
         "arch": "amd64"
       }
     },
-    "contentSHA": "9e4b1247ff8bc186ade63a7d07fc25ad5bac07bf16f705c74b21d8b6183afea4"
+    "contentSHA": "251f17dc410c816470730c309d9304af29980150047b736cc7861271785410a1"
   }
 }

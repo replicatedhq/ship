@@ -4,7 +4,7 @@
       "methodType": "GET",
       "resourceURL": "https://raw.githubusercontent.com/replicatedhq/test-charts/5bf016aac1786cb74c678c3419bb8623f0388f8d/web-asset/web-asset"
     },
-    "contentSHA": "c914ad6c3972e186008cb3dc7bd11de3fa23150a18f0b94858cbcbc7e18906e2",
+    "contentSHA": "d0d955a1d3e5a2775b86f2e585252dc581f449b87a86aaf80f6428c039fe49d0",
     "metadata": {
       "applicationType": "replicated.app",
       "customerID": "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G",

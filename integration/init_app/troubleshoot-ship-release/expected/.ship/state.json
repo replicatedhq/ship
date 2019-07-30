@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "upstream": "__upstream__",
-    "contentSHA": "4f2573405df7fa89aa1b719db234e69e8332c356fa1bf8e0bacbf16a84529109",
+    "contentSHA": "9891fe3082c1abccbb13771004f397307e2cb084586e940c02bf6ca77f4e5944",
     "metadata": {
       "applicationType": "replicated.app",
       "license": {
