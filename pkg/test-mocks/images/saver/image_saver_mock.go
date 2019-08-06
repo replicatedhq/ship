@@ -37,6 +37,7 @@ func (m *MockImageSaver) EXPECT() *MockImageSaverMockRecorder {
 
 // SaveImage mocks base method
 func (m *MockImageSaver) SaveImage(arg0 context.Context, arg1 images.SaveOpts) chan interface{} {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveImage", arg0, arg1)
 	ret0, _ := ret[0].(chan interface{})
 	return ret0
@@ -44,5 +45,6 @@ func (m *MockImageSaver) SaveImage(arg0 context.Context, arg1 images.SaveOpts) c
 
 // SaveImage indicates an expected call of SaveImage
 func (mr *MockImageSaverMockRecorder) SaveImage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveImage", reflect.TypeOf((*MockImageSaver)(nil).SaveImage), arg0, arg1)
 }

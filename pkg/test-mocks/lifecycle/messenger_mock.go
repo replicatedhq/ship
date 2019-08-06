@@ -37,6 +37,7 @@ func (m *MockMessenger) EXPECT() *MockMessengerMockRecorder {
 
 // Execute mocks base method
 func (m *MockMessenger) Execute(arg0 context.Context, arg1 *api.Release, arg2 *api.Message) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -44,5 +45,6 @@ func (m *MockMessenger) Execute(arg0 context.Context, arg1 *api.Release, arg2 *a
 
 // Execute indicates an expected call of Execute
 func (mr *MockMessengerMockRecorder) Execute(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockMessenger)(nil).Execute), arg0, arg1, arg2)
 }

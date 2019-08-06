@@ -44,7 +44,7 @@ type Planner interface {
 		[]libyaml.ConfigGroup,
 		api.ReleaseMetadata,
 		map[string]interface{},
-	) (Plan, error)
+	) (Plan, []string, error)
 
 	Execute(context.Context, Plan) error
 
@@ -87,7 +87,7 @@ func (f Factory) Build(
 	configGroups []libyaml.ConfigGroup,
 	releaseMeta api.ReleaseMetadata,
 	templateContext map[string]interface{},
-) (Plan, error) {
+) (Plan, []string, error) {
 	planner := f()
 	return planner.Build(root, assets, configGroups, releaseMeta, templateContext)
 }

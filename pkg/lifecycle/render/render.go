@@ -9,13 +9,14 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/libyaml"
+	"github.com/spf13/afero"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/config"
 	pkgplanner "github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
-	"github.com/spf13/afero"
 )
 
 var (
@@ -75,9 +76,16 @@ func (r *headlessrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	debug.Log("event", "render.plan")
-	pln, err := r.Planner.Build(step.Root, assets, release.Spec.Config.V1, release.Metadata, templateContext)
+	pln, dests, err := r.Planner.Build(step.Root, assets, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
+	}
+
+	debug.Log("event", "clean.start")
+	// cleanup dests
+	err = removeDests(&r.Fs, dests)
+	if err != nil {
+		return errors.Wrap(err, "clean destination")
 	}
 
 	if step.Root != "." && step.Root != "./" {

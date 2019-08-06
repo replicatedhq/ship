@@ -40,6 +40,7 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 
 // FetchRelease mocks base method
 func (m *MockResolver) FetchRelease(arg0 context.Context, arg1 *replicatedapp.Selector) (*state.ShipRelease, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchRelease", arg0, arg1)
 	ret0, _ := ret[0].(*state.ShipRelease)
 	ret1, _ := ret[1].(error)
@@ -48,11 +49,13 @@ func (m *MockResolver) FetchRelease(arg0 context.Context, arg1 *replicatedapp.Se
 
 // FetchRelease indicates an expected call of FetchRelease
 func (mr *MockResolverMockRecorder) FetchRelease(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchRelease", reflect.TypeOf((*MockResolver)(nil).FetchRelease), arg0, arg1)
 }
 
 // RegisterInstall mocks base method
 func (m *MockResolver) RegisterInstall(arg0 context.Context, arg1 replicatedapp.Selector, arg2 *api.Release) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterInstall", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -60,11 +63,13 @@ func (m *MockResolver) RegisterInstall(arg0 context.Context, arg1 replicatedapp.
 
 // RegisterInstall indicates an expected call of RegisterInstall
 func (mr *MockResolverMockRecorder) RegisterInstall(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterInstall", reflect.TypeOf((*MockResolver)(nil).RegisterInstall), arg0, arg1, arg2)
 }
 
 // ResolveAppRelease mocks base method
 func (m *MockResolver) ResolveAppRelease(arg0 context.Context, arg1 *replicatedapp.Selector, arg2 apptype.LocalAppCopy) (*api.Release, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveAppRelease", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*api.Release)
 	ret1, _ := ret[1].(error)
@@ -73,11 +78,13 @@ func (m *MockResolver) ResolveAppRelease(arg0 context.Context, arg1 *replicateda
 
 // ResolveAppRelease indicates an expected call of ResolveAppRelease
 func (mr *MockResolverMockRecorder) ResolveAppRelease(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveAppRelease", reflect.TypeOf((*MockResolver)(nil).ResolveAppRelease), arg0, arg1, arg2)
 }
 
 // ResolveEditRelease mocks base method
 func (m *MockResolver) ResolveEditRelease(arg0 context.Context) (*api.Release, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveEditRelease", arg0)
 	ret0, _ := ret[0].(*api.Release)
 	ret1, _ := ret[1].(error)
@@ -86,15 +93,18 @@ func (m *MockResolver) ResolveEditRelease(arg0 context.Context) (*api.Release, e
 
 // ResolveEditRelease indicates an expected call of ResolveEditRelease
 func (mr *MockResolverMockRecorder) ResolveEditRelease(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveEditRelease", reflect.TypeOf((*MockResolver)(nil).ResolveEditRelease), arg0)
 }
 
 // SetRunbook mocks base method
 func (m *MockResolver) SetRunbook(arg0 string) {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetRunbook", arg0)
 }
 
 // SetRunbook indicates an expected call of SetRunbook
 func (mr *MockResolverMockRecorder) SetRunbook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRunbook", reflect.TypeOf((*MockResolver)(nil).SetRunbook), arg0)
 }

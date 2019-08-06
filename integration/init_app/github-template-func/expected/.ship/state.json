@@ -4,7 +4,7 @@
       "option": "abc123"
     },
     "upstream": "__upstream__",
-    "contentSHA": "e00d542a56bac2c850a73795c41336f1f68af52e6facc5d4fde6fd1e57eaa1a8",
+    "contentSHA": "6c76198ecbf868cf6968d5c8e047424ccd7952a99b13b6da65c4edb78a0a7b6d",
     "metadata": {
       "applicationType": "replicated.app",
       "customerID": "__customerID__",

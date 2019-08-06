@@ -14,10 +14,11 @@ plugins:
       GoLint/Comments/DocComments:
         enabled: false
 
-exclude_paterns:
+exclude_patterns:
   - "**/vendor/"
   - "**/*_test.go"
   - "**/node_modules"
+  - "**/test-mocks/"
 
 checks:
   return-statements:

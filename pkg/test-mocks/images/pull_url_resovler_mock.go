@@ -36,6 +36,7 @@ func (m *MockPullURLResolver) EXPECT() *MockPullURLResolverMockRecorder {
 
 // ResolvePullURL mocks base method
 func (m *MockPullURLResolver) ResolvePullURL(arg0 api.DockerAsset, arg1 api.ReleaseMetadata) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolvePullURL", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -44,5 +45,6 @@ func (m *MockPullURLResolver) ResolvePullURL(arg0 api.DockerAsset, arg1 api.Rele
 
 // ResolvePullURL indicates an expected call of ResolvePullURL
 func (mr *MockPullURLResolverMockRecorder) ResolvePullURL(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolvePullURL", reflect.TypeOf((*MockPullURLResolver)(nil).ResolvePullURL), arg0, arg1)
 }

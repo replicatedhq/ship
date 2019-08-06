@@ -8,6 +8,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/mitchellh/cli"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	"go.uber.org/dig"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"github.com/replicatedhq/ship/pkg/lifecycle"
@@ -15,9 +19,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/planner"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/replicatedhq/ship/pkg/util"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	"go.uber.org/dig"
 )
 
 func NoConfigRenderer(render noconfigrenderer) lifecycle.Renderer {
@@ -69,9 +70,16 @@ func (r *noconfigrenderer) Execute(ctx context.Context, release *api.Release, st
 	}
 
 	debug.Log("event", "render.plan")
-	pln, err := r.Planner.Build(step.Root, assets, release.Spec.Config.V1, release.Metadata, templateContext)
+	pln, dests, err := r.Planner.Build(step.Root, assets, release.Spec.Config.V1, release.Metadata, templateContext)
 	if err != nil {
 		return errors.Wrap(err, "build plan")
+	}
+
+	debug.Log("event", "clean.start")
+	// cleanup dests
+	err = removeDests(&r.Fs, dests)
+	if err != nil {
+		return errors.Wrap(err, "clean destination")
 	}
 
 	debug.Log("event", "backup.start")
