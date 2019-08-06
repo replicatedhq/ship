@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBindingList
+items:
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: rolebinding-prometheus
+    labels:
+      app: default-prometheus
+    namespace: default
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: role-prometheus
+  subjects:
+  - kind: ServiceAccount
+    name: role-prometheus
+    namespace: default

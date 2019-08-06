@@ -1,0 +1,4 @@
+#this dotfile is valid yaml (though also nonsense)
+#but not valid kubernetes yaml
+
+ignore: "something"

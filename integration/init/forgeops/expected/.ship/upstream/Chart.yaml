@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Deploy a pair of DS servers replicated
+name: ds
+version: 6.5.0

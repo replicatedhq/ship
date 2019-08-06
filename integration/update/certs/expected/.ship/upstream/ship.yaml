@@ -1,0 +1,61 @@
+
+---
+assets:
+  v1:
+    - inline:
+        contents: |
+          {{repl GetCaKey "ca1" "rsa-4096"}}
+        dest: ./rsa-certs/ca.key
+    - inline:
+        contents: |
+          {{repl GetCaCert "ca1"}}
+        dest: ./rsa-certs/ca.crt
+    - inline:
+        contents: |
+          {{repl GetKey "cert1" "ca1" "abc.example.com,example.com" "rsa-2048"}}
+        dest: ./rsa-certs/cert.key
+    - inline:
+        contents: |
+          {{repl GetCert "cert1"}}
+        dest: ./rsa-certs/cert.crt
+
+    - inline:
+        contents: |
+          {{repl GetCaKey "p521-ca" "P521"}}
+        dest: ./ecdsa-certs/ca.key
+    - inline:
+        contents: |
+          {{repl GetCaCert "p521-ca"}}
+        dest: ./ecdsa-certs/ca.crt
+    - inline:
+        contents: |
+          {{repl GetKey "p384-cert" "p521-ca" "xyz.example.com,1.2.3.4" "P384"}}
+        dest: ./ecdsa-certs/cert.key
+    - inline:
+        contents: |
+          {{repl GetCert "p384-cert"}}
+        dest: ./ecdsa-certs/cert.crt
+
+    - inline:
+        contents: |
+          {{repl GetKey "p256-cert" "ca1" "www.example.com" "P256"}}
+        dest: ./ecdsa-certs/mixed-cert.key
+    - inline:
+        contents: |
+          {{repl GetCert "p256-cert"}}
+        dest: ./ecdsa-certs/mixed-cert.crt
+
+    - inline:
+        contents: |
+          {{repl GetKey "newCA-cert" "newCA" "ftp.example.com" "P256"}}
+        dest: ./ecdsa-certs/newCA-cert.key
+    - inline:
+        contents: |
+          {{repl GetCert "newCA-cert"}}
+        dest: ./ecdsa-certs/newCA-cert.crt
+
+config: {}
+
+lifecycle:
+  v1:
+    - render: {}

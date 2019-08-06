@@ -1,0 +1,86 @@
+assets:
+  v1:
+  - github:
+      dest: base/common
+      repo: kubernetes/ingress-nginx
+      path: deploy/mandatory.yaml
+      ref: nginx-0.22.0
+      proxy: false
+      strip_path: true
+
+  - github:
+      dest: base
+      repo: kubernetes/ingress-nginx
+      path: deploy/provider/aws/service-l4.yaml
+      ref: nginx-0.22.0
+      proxy: false
+      strip_path: true
+
+  - github:
+      dest: overlays/cloud
+      repo: kubernetes/ingress-nginx
+      path: deploy/provider/aws/patch-configmap-l4.yaml
+      ref: nginx-0.22.0
+      proxy: false
+      strip_path: true
+
+  - inline:
+      dest: ./overlays/cloud/kustomization.yaml
+      contents: |
+        kind: "Kustomization"
+        apiversion: ""
+        bases:
+          - ../../base
+          - ../../another
+        patchesStrategicMerge:
+          - ./patch-configmap-l4.yaml
+
+  - inline:
+      dest: ./another/kustomization.yaml
+      contents: |
+        kind: "Kustomization"
+        apiversion: ""
+        resources:
+          - ./placeholder-service.yaml
+
+  - inline:
+      dest: ./another/placeholder-service.yaml
+      contents: |
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: placeholder
+          namespace: placeholder
+        spec:
+          ports:
+          - name: http
+            port: 80
+            targetPort: http
+          - name: https
+            port: 443
+            targetPort: https
+          selector:
+            app.kubernetes.io/name: placeholder
+            app.kubernetes.io/part-of: placeholder
+          type: LoadBalancer
+
+  - inline:
+      dest: ./installer/.gitkeep
+      contents: |
+        a workaround for the fact that ship always creates the installer directory
+
+config:
+  v1: []
+
+lifecycle:
+  v1:
+  - render:
+      root: .
+
+  - kustomize:
+      requires: ["render"]
+      base: overlays/cloud
+      overlay: overlays/ship
+      dest: nginx-ingress-controller.yaml
+  - message:
+      contents: "outro"

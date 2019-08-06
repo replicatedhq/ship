@@ -18,36 +18,6 @@
       "sequence": 0,
       "version": "1.0.0-SNAPSHOT"
     },
-    "contentSHA": "a7a367e40499c34031462f1eaba15c86947d1694b3a02fe56a1b37880d3b4aab",
-    "upstreamContents": {
-      "appRelease": {
-        "id": "jDtI-DiraCbkN5euJHmbS3kIFw4N1Iw9",
-        "sequence": 9091,
-        "channelId": "_KVsR5SFu9Rj2IR6dxPhuBYcNIKtw6SI",
-        "channelName": "integration-test-docker",
-        "channelIcon": "",
-        "semver": "1.0.0-SNAPSHOT",
-        "registrySecret": "THIS IS NOT A SECRET",
-        "releaseNotes": "",
-        "spec": "---\nassets:\n  v1:\n    - docker:\n        image: replicated/helloscratch:1.0.0\n        source: public\n        dest: docker/replicated-helloscratch-public.tar\n    - docker:\n        image: registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0\n        source: replicated-qa\n        dest: docker/replicated-helloscratch-private.tar\nconfig:\n  v1: []\nlifecycle:\n  v1:\n    - render: {}\n",
-        "images": [
-          {
-            "url": "replicated/helloscratch:1.0.0",
-            "source": "public",
-            "appSlug": "",
-            "imageKey": ""
-          },
-          {
-            "url": "registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0",
-            "source": "replicated-qa",
-            "appSlug": "",
-            "imageKey": "6e8bj5x3cwerg"
-          }
-        ],
-        "githubContents": [],
-        "created": "Fri Jan 18 2019 20:45:25 GMT+0000 (UTC)",
-        "entitlements": {}
-      }
-    }
+    "contentSHA": "a7a367e40499c34031462f1eaba15c86947d1694b3a02fe56a1b37880d3b4aab"
   }
 }

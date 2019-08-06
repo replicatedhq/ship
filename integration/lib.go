@@ -200,3 +200,22 @@ func replaceInJSON(obj map[string]interface{}, path string) map[string]interface
 
 	return obj
 }
+
+func RecursiveCopy(sourceDir, destDir string) {
+	err := os.MkdirAll(destDir, os.ModePerm)
+	Expect(err).NotTo(HaveOccurred())
+	srcFiles, err := ioutil.ReadDir(sourceDir)
+	Expect(err).NotTo(HaveOccurred())
+	for _, file := range srcFiles {
+		if file.IsDir() {
+			RecursiveCopy(filepath.Join(sourceDir, file.Name()), filepath.Join(destDir, file.Name()))
+		} else {
+			// is file
+			contents, err := ioutil.ReadFile(filepath.Join(sourceDir, file.Name()))
+			Expect(err).NotTo(HaveOccurred())
+
+			err = ioutil.WriteFile(filepath.Join(destDir, file.Name()), contents, file.Mode())
+			Expect(err).NotTo(HaveOccurred())
+		}
+	}
+}

@@ -1,3 +1,4 @@
 upstream: "github.com/replicatedhq/test-charts/plain-k8s"
-args: []
+args: ["--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

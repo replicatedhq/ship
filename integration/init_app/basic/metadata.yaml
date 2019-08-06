@@ -1,4 +1,5 @@
 customer_id: "-Am-_6i5pw0u4AbspOwKN4lZUCn49u_G"
 installation_id: "3Z6uuPbVz6jTxRuXHn_l6UlYQz3hWz6-"
 release_version: "1.0.2"
+args: ["--files-in-state"]
 skip_cleanup: false

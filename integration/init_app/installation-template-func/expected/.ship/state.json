@@ -18,22 +18,6 @@
       "sequence": 0,
       "version": "1.0.1-SNAPSHOT"
     },
-    "upstreamContents": {
-      "appRelease": {
-        "id": "VFOvxrc3Bpu1doy2AtFGoypU6skZvXSZ",
-        "sequence": 6680,
-        "channelId": "PH6juE8b84A4zOCO-SVzVNS_OHs-LEl3",
-        "channelName": "integration replicated.app installation-template-func",
-        "channelIcon": "",
-        "semver": "1.0.1-SNAPSHOT",
-        "releaseNotes": "integration tests",
-        "spec": "---\nassets:\n  v1:\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"installing nothing\"\n          echo \"semver: {{repl Installation \"semver\" }}\"\n        dest: ./scripts/install.sh\n        mode: 0777\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"tested nothing\"\n        dest: ./scripts/test.sh\n        mode: 0777\nconfig:\n  v1:\n    - name: test_options\n      title: Test Options\n      description: testing testing 123\n      items:\n      - name: test_option\n        title: Test Option\n        default: abc123_test-option-value\n        type: text\nlifecycle:\n  v1:\n    - render: {}\n",
-        "images": [],
-        "githubContents": [],
-        "created": "Fri Nov 02 2018 17:08:04 GMT+0000 (UTC)",
-        "entitlements": {}
-      }
-    },
     "releaseName": "integration-replicated-app-installation-template-func"
   }
 }

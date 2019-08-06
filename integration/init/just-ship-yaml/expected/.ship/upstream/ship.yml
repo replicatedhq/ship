@@ -1,0 +1,20 @@
+assets:
+  v1:
+    - inline:
+         dest: jasper_values.yaml
+         contents: |
+           two_plus_two: {{repl Add 2 3}}
+           service_type: {{repl ConfigOption "service_type"}}
+
+config:
+  v1:
+    - name: k8s
+      items: 
+        - name: service_type
+          type: text
+          title: "Service Type (LoadBalancer, NodePort, etc)"
+
+lifecycle:
+  v1:
+    - config: {}
+    - render: {}

@@ -18,36 +18,6 @@
       "sequence": 0,
       "version": "0.0.1"
     },
-    "contentSHA": "93707ba161f8777e5db8f4b97215416f92ff2d9e2b0eb94cd7528333f241e3cf",
-    "upstreamContents": {
-      "appRelease": {
-        "id": "oVSYJqtZnSew_8A3fFuwz0WPwn40zjn6",
-        "sequence": 1,
-        "channelId": "kR3s2M1opgn7txyRbH7NsbsiJgMyz1ui",
-        "channelName": "Nightly",
-        "channelIcon": "",
-        "semver": "0.0.1",
-        "releaseNotes": "",
-        "registrySecret": "THIS IS NOT A SECRET",
-        "spec": "---\nassets:\n  v1:\n    - docker:\n        image: replicated/helloscratch:1.0.0\n        source: public\n        dest: docker/replicated-helloscratch-public.tar\n    - docker:\n        image: registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0\n        source: replicated-qa\n        dest: docker/replicated-helloscratch-private.tar\nconfig:\n  v1: []\nlifecycle:\n  v1:\n    - render: {}",
-        "images": [
-          {
-            "url": "replicated/helloscratch:1.0.0",
-            "source": "public",
-            "appSlug": "ship-private-image",
-            "imageKey": ""
-          },
-          {
-            "url": "registry.staging.replicated.com/alpha/replicated-helloscratch:1.0.0",
-            "source": "replicated-qa",
-            "appSlug": "ship-private-image",
-            "imageKey": "6e8bj5x3cwerg"
-          }
-        ],
-        "githubContents": [],
-        "created": "Tue Mar 19 2019 00:47:09 GMT+0000 (UTC)",
-        "entitlements": {}
-      }
-    }
+    "contentSHA": "93707ba161f8777e5db8f4b97215416f92ff2d9e2b0eb94cd7528333f241e3cf"
   }
 }

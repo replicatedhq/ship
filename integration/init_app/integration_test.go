@@ -163,6 +163,14 @@ var _ = Describe("ship init replicated.app/...", func() {
 							"v1.upstreamContents.appRelease.collectSpec",
 							"v1.shipVersion",
 						},
+						".ship/upstream/appRelease.json": {
+							"configSpec",
+							"entitlementSpec",
+							"entitlements",
+							"registrySecret",
+							"analyzeSpec",
+							"collectSpec",
+						},
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
@@ -230,6 +238,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 					// copy the expected ship state to the output
 					// and run any replacements needed
 
+					integration.RecursiveCopy(filepath.Join(testPath, "expected", ".ship"), filepath.Join(testOutputPath, ".ship"))
+
 					testMetadata.Replacements["__installationID__"] = testMetadata.InstallationID
 					testMetadata.Replacements["__customerID__"] = testMetadata.CustomerID
 					testMetadata.Replacements["__appSlug__"] = testMetadata.AppSlug
@@ -257,11 +267,11 @@ var _ = Describe("ship init replicated.app/...", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					cmd.SetArgs([]string{
+					cmd.SetArgs(append([]string{
 						"edit",
 						"--headless",
 						"--log-level=off",
-					})
+					}, testMetadata.Args...))
 					err = cmd.Execute()
 					Expect(err).NotTo(HaveOccurred())
 
@@ -274,6 +284,14 @@ var _ = Describe("ship init replicated.app/...", func() {
 							"v1.upstreamContents.appRelease.analyzeSpec",
 							"v1.upstreamContents.appRelease.collectSpec",
 							"v1.shipVersion",
+						},
+						".ship/upstream/appRelease.json": {
+							"configSpec",
+							"entitlementSpec",
+							"entitlements",
+							"registrySecret",
+							"analyzeSpec",
+							"collectSpec",
 						},
 					}
 

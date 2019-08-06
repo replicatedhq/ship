@@ -1,0 +1,20 @@
+{
+  "id": "pAb_dFxe4M4TdvkPWSdgDhgtpDbOcGAM",
+  "sequence": 4603,
+  "channelId": "lD4lzjnjwOYzKbNsjK0JlcpzF19PswXz",
+  "channelName": "integration replicated.app basic",
+  "channelIcon": "",
+  "semver": "1.0.2",
+  "releaseNotes": "integration tests",
+  "spec": "---\nassets:\n  v1:\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"installing nothing\"\n          echo \"config option: {{repl ConfigOption \"test_option\" }}\"\n        dest: ./scripts/install.sh\n        mode: 0777\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"tested nothing\"\n          echo \"customer {{repl Installation \"customer_id\" }}\"\n          echo \"install {{repl Installation \"installation_id\" }}\"\n        dest: ./scripts/test.sh\n        mode: 0777\nconfig:\n  v1:\n    - name: test_options\n      title: Test Options\n      description: testing testing 123\n      items:\n      - name: test_option\n        title: Test Option\n        default: abc123_test-option-value\n        type: text\nlifecycle:\n  v1:\n    - render: {}\n",
+  "images": [],
+  "githubContents": [],
+  "created": "Tue Dec 04 2018 03:21:49 GMT+0000 (UTC)",
+  "entitlements": {
+    "meta": {
+      "last_updated": "0001-01-01T00:00:00Z",
+      "customer_id": ""
+    },
+    "signature": ""
+  }
+}

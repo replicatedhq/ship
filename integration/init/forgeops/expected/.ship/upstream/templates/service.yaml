@@ -1,0 +1,29 @@
+# Copyright (c) 2016-2017 ForgeRock AS. Use of this source code is subject to the
+# Common Development and Distribution License (CDDL) that can be found in the LICENSE file
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.instance }}
+  labels:
+    app: {{ .Values.instance }}
+    component: {{ .Values.component }}
+    vendor: forgerock
+    heritage: {{ .Release.Service }}
+spec:
+  clusterIP: None
+  ports:
+    - port: 1389
+      name: ldap
+      targetPort: 1389
+    - port: 4444
+      name: djadmin
+      targetPort: 4444
+    - port: 1636
+      name: ldaps
+      targetPort: 1636
+    - port: 8080
+      protocol: TCP
+      name: metrics
+  selector:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
