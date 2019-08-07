@@ -118,6 +118,14 @@ var _ = Describe("ship update", func() {
 							"v1.upstreamContents.appRelease.collectSpec",
 							"v1.shipVersion",
 						},
+						".ship/upstream/appRelease.json": {
+							"configSpec",
+							"entitlementSpec",
+							"entitlements",
+							"registrySecret",
+							"analyzeSpec",
+							"collectSpec",
+						},
 					}
 
 					// compare the files in the temporary directory with those in the "expected" directory
