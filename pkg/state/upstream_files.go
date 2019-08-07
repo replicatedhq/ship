@@ -121,7 +121,7 @@ func readUpstreamFiles(fs afero.Afero, state State) (State, error) {
 
 			relpath, err := filepath.Rel(constants.UpstreamContentsPath, path)
 			if err != nil {
-				return errors.Wrapf(err, "cannot find relative path to file %s", path)
+				return errors.Wrapf(err, "find relative path to file %s", path)
 			}
 
 			encodedFile := base64.StdEncoding.EncodeToString(fileBytes)
