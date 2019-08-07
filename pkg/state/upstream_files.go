@@ -20,7 +20,12 @@ func writeUpstreamFiles(fs afero.Afero, state State) error {
 
 	contents := state.V1.UpstreamContents
 
-	err := fs.MkdirAll(constants.UpstreamContentsPath, 0755)
+	err := fs.RemoveAll(constants.UpstreamContentsPath)
+	if err != nil {
+		return errors.Wrapf(err, "clear upstream contents path %s", constants.UpstreamContentsPath)
+	}
+
+	err = fs.MkdirAll(constants.UpstreamContentsPath, 0755)
 	if err != nil {
 		return errors.Wrapf(err, "create upstream contents path %s", constants.UpstreamContentsPath)
 	}
@@ -114,9 +119,14 @@ func readUpstreamFiles(fs afero.Afero, state State) (State, error) {
 				return errors.Wrapf(err, "read file %s", path)
 			}
 
+			relpath, err := filepath.Rel(constants.UpstreamContentsPath, path)
+			if err != nil {
+				return errors.Wrapf(err, "cannot find relative path to file %s", path)
+			}
+
 			encodedFile := base64.StdEncoding.EncodeToString(fileBytes)
 			newUpstreamContents.UpstreamFiles = append(newUpstreamContents.UpstreamFiles, UpstreamFile{
-				FilePath:     path,
+				FilePath:     relpath,
 				FileContents: encodedFile,
 			})
 			return nil
