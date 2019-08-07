@@ -1,0 +1,160 @@
+# Copyright (c) 2016-2018 ForgeRock AS. All Rights Reserved.
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.instance }}
+  labels:
+    instance: {{ .Values.instance }}
+    app: {{ template "fullname" . }}
+    vendor: forgerock
+    component: {{ .Values.component }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  serviceName: {{ .Values.instance }}
+  replicas: {{default 1 .Values.replicas }}
+  updateStrategy:
+    type: RollingUpdate
+  {{- if .Values.persistence }}
+  volumeClaimTemplates:
+  - metadata:
+      name: db
+      annotations:
+        pv.beta.kubernetes.io/gid: "11111"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ default "5Gi"  .Values.storageSize }}
+      {{- if .Values.storageClass }}
+      storageClassName:  {{ .Values.storageClass }}
+      {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        instance: {{ .Values.instance }}
+        app: {{ template "fullname" . }}
+        vendor: forgerock
+        release: {{ .Release.Name }}
+        component: {{ .Values.component }}
+    spec:
+      affinity:
+        podAntiAffinity:
+        {{- if eq .Values.podAntiAffinity "hard" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: {{ .Values.topologyKey }}
+            labelSelector:
+                matchExpressions:
+                - key: instance
+                  operator: In
+                  values:
+                  - {{ .Values.instance }}
+         {{- else if eq .Values.podAntiAffinity "soft" }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: instance
+                  operator: In
+                  values:
+                  - {{ .Values.instance }}
+              topologyKey: {{ .Values.topologyKey }}
+         {{- end }}
+      terminationGracePeriodSeconds: 30
+      # This will make sure the mounted PVCs are writable by the forgerock user with gid 111111.
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
+      initContainers:
+      {{ if .Values.restore.enabled }}
+      - name: restore
+        image:  {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: db
+          mountPath: /opt/opendj/data
+        - name: backup
+          mountPath: /opt/opendj/bak
+        - name: dj-secrets
+          mountPath: /var/run/secrets/opendj
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.instance }}
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        args: [ "restore" ]
+      {{- end }}
+      containers:
+      - name: ds
+        image:  {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        #terminationGracePeriodSeconds: 10
+        {{- if eq .Values.instance "ctsstore" }}
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "/opt/opendj/scripts/cts-poststart.sh"]
+        {{ end }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.instance }}
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: 1389
+          name: ldap
+        - containerPort: 4444
+          name: admin
+        - containerPort: 8989
+          name: replication
+        - containerPort: 8080
+          name: metrics
+        volumeMounts:
+        - name: dj-secrets
+          mountPath: /var/run/secrets/opendj
+        - name: backup
+          mountPath: /opt/opendj/bak
+        - name: logs
+          mountPath: /opt/opendj/logs
+        - name: db
+          mountPath: /opt/opendj/data
+        args: [ "start" ]
+        # Due to cost, we don't want to do a full scrape of the metrics http endpoint - so we create a tcp connection
+        # todo: revisit when https://bugster.forgerock.org/jira/browse/OPENDJ-4728 is resolved.
+        # TODO: Uncomment when we get ds to start faster. Seletively disable replication
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: metrics
+        #   periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: metrics
+          initialDelaySeconds: 60
+          periodSeconds: 120
+      volumes:
+      - name: dj-secrets
+        secret:
+          secretName: {{ .Values.instance }}
+      - name: logs
+        emptyDir: {}
+      {{- if .Values.backup.pvcClaimName }}
+      - name: backup
+        persistentVolumeClaim:
+          claimName: {{ .Values.backup.pvcClaimName }}
+      {{ else }}
+      - name: backup
+        emptyDir: {}
+      {{ end }}
+      {{- if not .Values.persistence }}
+      - name: db
+        emptyDir: {}
+      {{ end }}

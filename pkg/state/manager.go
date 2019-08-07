@@ -351,6 +351,11 @@ func (m *MManager) tryLoad() error {
 		return errors.Wrap(err, "read helm files")
 	}
 
+	state, err = readUpstreamFiles(m.FS, state)
+	if err != nil {
+		return errors.Wrap(err, "read upstream files")
+	}
+
 	m.cachedState = &state
 	return nil
 }
@@ -413,11 +418,17 @@ func (m *MManager) serializeAndWriteState(state State) error {
 		return errors.Wrap(err, "write helm file")
 	}
 
+	err = writeUpstreamFiles(m.FS, state)
+	if err != nil {
+		return errors.Wrap(err, "write upstream file")
+	}
+
 	if !m.V.GetBool(constants.FilesInStateFlag) && state.V1 != nil {
 		state2 := *state.V1
 
 		state2.HelmValues = ""
 		state2.HelmValuesDefaults = ""
+		state2.UpstreamContents = nil
 		state.V1 = &state2
 	}
 

@@ -1,0 +1,22 @@
+{
+  "id": "SQiNQrWzKziDEPULQGJ-eGKakO4OT70p",
+  "sequence": 1,
+  "channelId": "3Z3r5ELqPj0755EddvxjWA8sR7C-Eqfw",
+  "channelName": "Nightly",
+  "channelIcon": "",
+  "semver": "1.0.1",
+  "releaseNotes": "",
+  "spec": "assets:\n  v1:\n  - inline:\n      contents: |\n        apiVersion: apps/v1\n        kind: Deployment\n        metadata:\n          name: redis\n          labels:\n            component: redis\n        spec:\n          replicas: 1\n          selector:\n            matchLabels:\n              component: redis\n          template:\n            metadata:\n              labels:\n                component: redis\n            spec:\n              containers:\n                - name: redis\n                  image: redis\n                  args: [\"--appendonly\", \"yes\"]\n      dest: base/redis-deployment.yaml\n      mode: 0644\nconfig:\n  v1: []\nlifecycle:\n  v1:\n  - config:\n      invalidates: [\"render\"]\n  - render:\n      requires: [\"config\"]\n      root: \".\"\n  - kustomize:\n      requires: [\"render\"]\n      base: ./base\n      overlay: overlays/ship\n      dest: rendered.yaml\n",
+  "images": [],
+  "githubContents": [],
+  "created": "Tue Jul 23 2019 17:45:00 GMT+0000 (UTC)",
+  "registrySecret": "3bfd99a69b5748fab756a593c7dcc852",
+  "entitlements": {
+    "meta": {
+      "lastUpdated": "0001-01-01T00:00:00Z",
+      "customerID": ""
+    },
+    "signature": ""
+  },
+  "configSpec": "v1: []\n"
+}

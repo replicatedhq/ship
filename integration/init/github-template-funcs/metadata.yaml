@@ -1,3 +1,4 @@
 upstream: "https://github.com/replicatedhq/test-charts/tree/fd6c6c83ff38d272311b0ed00d6e579ba8b3579e/template-functions-noproxy"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

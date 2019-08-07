@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.instance }}
+data:
+  BASE_DN: {{ .Values.baseDN }}
+  # example: configstore, cts, userstore. The instance is used to construct the FQDN of DS.
+  DJ_INSTANCE: {{ .Values.instance }}
+  DS_SET_SIZE: "{{ .Values.replicas }}"
+  OPENDJ_JAVA_ARGS: "{{ .Values.opendjJavaArgs }}"
+  SLACK_URL: {{ .Values.slackUrl }}
+  DS_ENABLE_CTS: "{{ .Values.cts.enabled }}"
+  DS_ENABLE_USERSTORE: "{{ .Values.userstore.enabled }}"
+  DS_ENABLE_CONFIGSTORE: "{{ .Values.configstore.enabled }}"
+  DS_ENABLE_IDMREPO: "{{ .Values.idmRepo.enabled }}"
+  BACKUP_CLUSTER_NAME: {{ default "default" .Values.backup.clusterName }}

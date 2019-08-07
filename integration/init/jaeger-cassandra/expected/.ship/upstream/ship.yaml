@@ -1,0 +1,26 @@
+assets:
+  v1:
+    - github:
+        repo: jaegertracing/jaeger-kubernetes
+        ref: e49ee50e350b82d2e6703afbabf8b96e943201e5
+        path: /production/cassandra.yml
+        dest: ./base
+        strip_path: true
+    - github:
+        dest: ./base
+        ref: 6a960247728d0bbd71710abc613407f305366a2e
+        repo: jaegertracing/jaeger-kubernetes
+        path: jaeger-production-template.yml
+        proxy: false
+        strip_path: true
+    - inline:
+        dest: installer/.gitkeep
+        contents:
+          workaround
+lifecycle:
+  v1:
+    - render:
+        root: .
+    - kustomize:
+        base: base
+        dest: rendered.yaml

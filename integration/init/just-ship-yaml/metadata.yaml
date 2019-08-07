@@ -1,3 +1,4 @@
 upstream: "https://github.com/replicatedhq/test-charts/tree/ebebc9e692db3caeadb308ddeec37e9565acba1e/just-ship-yaml"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

@@ -1,3 +1,4 @@
 upstream: "https://github.com/replicatedhq/test-charts/tree/0e13bc2c19778b67f83f68c5e2886de0cd43d59f/other-list-types"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

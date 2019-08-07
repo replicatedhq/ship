@@ -1,3 +1,4 @@
 upstream: "github.com/replicatedhq/test-charts/blob/3427d6997bd150c60caa00ba0298fdfe17e3ed04/plain-k8s/frontend-deployment.yaml"
-args: []
+args: ["--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false

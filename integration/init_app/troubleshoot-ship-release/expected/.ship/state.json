@@ -18,25 +18,6 @@
       "appSlug": "__appSlug__",
       "licenseID": "__licenseID__"
     },
-    "releaseName": "stable",
-    "upstreamContents": {
-      "appRelease": {
-        "id": "DPlOMsAbj4e95MuzNrPTwRFV0l9jB7TU",
-        "sequence": 4,
-        "channelId": "c-uuoWhpOVAhShsdYnfoNk-v2kYOEpHq",
-        "channelName": "Stable",
-        "channelIcon": "",
-        "semver": "0.0.3",
-        "releaseNotes": "",
-        "spec": "---\nassets:\n  v1:\n    - inline:\n        contents: |\n          {{repl CollectSpec }}\n        dest: ./troubleshoot/collect.yml\n        mode: 0644\n    - inline:\n        contents: |\n          {{repl AnalyzeSpec }}\n        dest: ./troubleshoot/analyze.yml\n        mode: 0644\n\nconfig: {}\n\nlifecycle:\n  v1:\n    - render: {}\n",
-        "images": [],
-        "githubContents": [],
-        "created": "Fri Jul 05 2019 18:12:17 GMT+0000 (UTC)",
-        "registrySecret": "THIS IS NOT A SECRET",
-        "entitlements": {},
-        "collectSpec": "collect:\n  v1:\n    - docker.info:\n        output_dir: /docker/info\n    - docker.ps:\n        output_dir: /docker/ps\n    - docker.container-inspect:\n        output_dir: /docker/my-container\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"my-sweet-container\"\n    \n\n    - kubernetes.version:\n        output_dir: /k8s/version\n    - kubernetes.cluster-info:\n        output_dir: /k8s/cluster\n    \n\n    - os.loadavg:\n        output_dir: /os/loadavg\n    - os.hostname:\n        output_dir: /os/hostname\n    - os.uptime:\n        output_dir: /os/uptime\n    - os.run-command:\n        output_dir: /os/df\n        name: df\n        args:\n          - -h\n          - --total\n    - os.run-command:\n        output_dir: /os/proc/meminfo\n        name: cat\n        args:\n          - /proc/meminfo\n    - os.run-command:\n        output_dir: /os/proc/cpuinfo\n        name: cat\n        args:\n          - /proc/cpuinfo\n    - os.run-command:\n        output_dir: /os/ps\n        name: ps\n        args:\n          - auwwf\n    - os.read-file:\n        filepath: /etc/os-release\n        output_dir: /os/etc/os-release\n    - os.read-file:\n        filepath: /usr/lib/os-release\n        output_dir: /os/usr/lib/os-release\n    - os.read-file:\n        filepath: /etc/centos-release\n        output_dir: /os/etc/centos-release\n    \n\n    - docker.container-inspect:\n        output_dir: /replicated/replicated/inspect\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"replicated\"\n              - \"retraced\"\n              - \"premkit\"\n\n    - docker.logs:\n        output_dir: /replicated/replicated/logs\n        container_list_options:\n          All: true\n          Filters:\n            name:\n              - \"replicated\"\n              - \"retraced\"\n              - \"premkit\"\n    ",
-        "analyzeSpec": "analyze:\n  v1:\n    - name: replicated.api.ok\n      labels:\n        iconKey: gray_checkmark\n      registerVariables:\n        - name: replicatedApiIoTimeout\n          fileMatch:\n            pathRegexps:\n              - /replicated\\.log\n              - /replicated\\.stderr\n            regexpCapture:\n              regexp: 'Get https://api\\.replicated\\.com.+ dial tcp .+ i/o timeout'\n              index: 0\n            scannable: true\n      evaluateConditions:\n        - condition:\n            empty: {}\n            variableRef: replicatedApiIoTimeout\n          insightOnFalse:\n            primary: api.replicated.com i/o timeout\n            detail: Cannot access Replicated APIs at api.replicated.com\n            severity: error\n          labels:\n            iconKey: gray_checkmark\n      insight:\n        primary: Can access api.replicated.com!\n        detail: Can access Replicated APIs at api.replicated.com\n        severity: info\n"
-      }
-    }
+    "releaseName": "stable"
   }
 }

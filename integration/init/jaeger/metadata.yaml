@@ -1,4 +1,5 @@
 upstream: "https://github.com/jaegertracing/jaeger-kubernetes/blob/59e7afcae7b2f3bc109695cfda2a5c116cea4391/jaeger-production-template.yml"
-args: ["--prefer-git"]
+args: ["--prefer-git", "--files-in-state"]
+edit_args: ["--files-in-state"]
 skip_cleanup: false
 skip_edit: false
