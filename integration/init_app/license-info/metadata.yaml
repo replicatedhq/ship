@@ -3,7 +3,6 @@ app_slug: "ship-integration-testing"
 release_version: "0.0.1"
 replacements:
     "installed.*" : "installed: replaced datetime"
-    "signature.*" : "signature: replaced signature"
 skip_cleanup: false
 skip_edit: false
 skip_init: true

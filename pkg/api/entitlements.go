@@ -34,6 +34,7 @@ type Utilization struct {
 // Entitlements is a signed object containing entitlments info+metadata
 type Entitlements struct {
 	Meta         Meta               `json:"meta"`
+	Serialized   string             `json:"serialized"`
 	Signature    string             `json:"signature"`
 	Values       []EntitlementValue `json:"values,omitempty"`
 	Utilizations []Utilization      `json:"utilizations,omitempty"`

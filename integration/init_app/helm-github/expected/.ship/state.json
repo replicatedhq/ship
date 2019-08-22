@@ -1,7 +1,7 @@
 {
   "v1": {
     "config": {},
-    "contentSHA": "deaf3417dc3eb72f3d2bd7cf7434153cc555e8609e5e48ccb28795b39e2e5d87",
+    "contentSHA": "d47ebd26011bd04c77946884c93a7ec98bee02108ef164424c05cd9095199f7b",
     "releaseName": "integration-replicated-app-helm-github",
     "upstream": "__upstream__",
     "metadata": {
