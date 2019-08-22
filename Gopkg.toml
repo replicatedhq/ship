@@ -58,6 +58,10 @@ ignored = [
   version = "0.11.14"
 
 [[constraint]]
+  name = "github.com/hashicorp/go-getter"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/mholt/archiver"
   revision = "e4ef56d48eb029648b0e895bb0b6a393ef0829c3"
 
