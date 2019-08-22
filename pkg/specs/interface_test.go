@@ -356,7 +356,7 @@ func TestResolver_ReadContentSHAForWatch(t *testing.T) {
 					AppSlug:        "",
 				}).Return(&state2.ShipRelease{Spec: "its fake"}, nil)
 			},
-			expectSHA: "c28f8f4146e25744f36644d3ff1c0dfbae4898a34d581238057b1fce2448f13d", // sha256.Sum256(json.Marshal(state2.ShipRelease{Spec: "its fake"}))
+			expectSHA: "6a479c38783839a2ace8f6b1060536e35d87d0b9a5ccc792e9c9032bfb313c4a", // sha256.Sum256(json.Marshal(state2.ShipRelease{Spec: "its fake"}))
 		},
 	}
 	for _, test := range tests {
