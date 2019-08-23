@@ -172,8 +172,9 @@ func (l *Kustomizer) resolveExistingKustomize(ctx context.Context, overlayDir st
 		currentKustomize.Overlays = map[string]state.Overlay{}
 	}
 	currentOverlay := currentKustomize.Ship()
-	fsResources := make(map[string]string)
+	currentOverlay.RawKustomize = kustomization
 
+	fsResources := make(map[string]string)
 	for _, kustomizeResource := range kustomization.Resources {
 		// read resource referred to by kustomize yaml
 		kustomizeResourceContents, err := l.FS.ReadFile(filepath.Join(overlayDir, kustomizeResource))
@@ -186,7 +187,6 @@ func (l *Kustomizer) resolveExistingKustomize(ctx context.Context, overlayDir st
 	currentOverlay.Resources = fsResources
 
 	fsPatches := make(map[string]string)
-
 	for _, kustomizePatch := range kustomization.PatchesStrategicMerge {
 		// read resource referred to by kustomize yaml
 		kustomizePatchContents, err := l.FS.ReadFile(filepath.Join(overlayDir, string(kustomizePatch)))

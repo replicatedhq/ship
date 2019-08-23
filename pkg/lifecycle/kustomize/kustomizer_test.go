@@ -8,7 +8,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/gvk"
 	"sigs.k8s.io/kustomize/pkg/patch"
+	"sigs.k8s.io/kustomize/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -123,10 +125,11 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 	}
 
 	tests := []struct {
-		name               string
-		relativePatchPaths []patch.StrategicMerge
-		expectFile         string
-		wantErr            bool
+		name                  string
+		relativePatchPaths    []patch.StrategicMerge
+		existingKustomization types.Kustomization
+		expectFile            string
+		wantErr               bool
 	}{
 		{
 			name:               "No patches",
@@ -150,6 +153,39 @@ bases:
 - ../defaults
 `,
 		},
+		{
+			name:               "No patches but existing kustomization",
+			relativePatchPaths: []patch.StrategicMerge{},
+			existingKustomization: types.Kustomization{
+				PatchesJson6902: []patch.Json6902{
+					{
+						Path: "abc.json",
+						Target: &patch.Target{
+							Gvk: gvk.Gvk{
+								Group:   "groupa",
+								Version: "versionb",
+								Kind:    "kindc",
+							},
+							Namespace: "nsd",
+							Name:      "namee",
+						},
+					},
+				},
+			},
+			expectFile: `kind: ""
+apiversion: ""
+patchesJson6902:
+- target:
+    group: groupa
+    version: versionb
+    kind: kindc
+    namespace: nsd
+    name: namee
+  path: abc.json
+bases:
+- ../defaults
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -168,7 +204,7 @@ bases:
 				},
 				Daemon: mockDaemon,
 			}
-			if err := l.writeOverlay(mockStep, tt.relativePatchPaths, nil); (err != nil) != tt.wantErr {
+			if err := l.writeOverlay(mockStep, tt.relativePatchPaths, nil, tt.existingKustomization); (err != nil) != tt.wantErr {
 				t.Errorf("kustomizer.writeOverlay() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
