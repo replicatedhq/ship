@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/kustomize/pkg/patch"
+	"sigs.k8s.io/kustomize/pkg/types"
 )
 
 type testFile struct {
@@ -430,6 +432,11 @@ patchesStrategicMerge:
 						Patches:       map[string]string{"/mypatch.yaml": "this is my patch"},
 						Resources:     map[string]string{"/myresource.yaml": "this is my resource"},
 						ExcludedBases: []string{"excludedBase"},
+						RawKustomize: types.Kustomization{
+							PatchesStrategicMerge: []patch.StrategicMerge{"mypatch.yaml"},
+							Resources:             []string{"myresource.yaml"},
+							Bases:                 []string{"../abc"},
+						},
 					},
 				},
 			},
@@ -468,6 +475,13 @@ resources:
 							"/myotherresource.yaml": "this is my other resource",
 						},
 						ExcludedBases: []string{},
+						RawKustomize: types.Kustomization{
+							Resources: []string{
+								"myresource.yaml",
+								"myotherresource.yaml",
+							},
+							Bases: []string{"../abc"},
+						},
 					},
 				},
 			},

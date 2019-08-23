@@ -128,7 +128,7 @@ spec:
         - name: GET_HOSTS_FROM
           value: dns
         image: gcr.io/google_samples/gb-redisslave:v1
-        name: slave
+        name: replacedSlave
         ports:
         - containerPort: 6379
         resources:

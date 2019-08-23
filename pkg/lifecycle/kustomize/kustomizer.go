@@ -174,19 +174,16 @@ func (l *Kustomizer) writeOverlay(
 	step api.Kustomize,
 	relativePatchPaths []patch.StrategicMerge,
 	relativeResourcePaths []string,
+	kustomization ktypes.Kustomization,
 ) error {
 	// just always make a new kustomization.yaml for now
 	basePath, err := filepath.Rel(step.OverlayPath(), constants.DefaultOverlaysPath)
 	if err != nil {
 		return err
 	}
-	kustomization := ktypes.Kustomization{
-		Bases: []string{
-			basePath,
-		},
-		PatchesStrategicMerge: relativePatchPaths,
-		Resources:             relativeResourcePaths,
-	}
+	kustomization.Bases = []string{basePath}
+	kustomization.PatchesStrategicMerge = relativePatchPaths
+	kustomization.Resources = relativeResourcePaths
 
 	marshalled, err := util.MarshalIndent(2, kustomization)
 	if err != nil {

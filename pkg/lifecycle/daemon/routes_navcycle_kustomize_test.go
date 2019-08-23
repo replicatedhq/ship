@@ -164,7 +164,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 					}
 					return true
 				},
-				Describe: fmt.Sprintf("expect state equal to %s", test.ExpectState),
+				Describe: fmt.Sprintf("expect state equal to %+v", test.ExpectState),
 			}).Return(nil).AnyTimes()
 
 			err := v2.kustomizeDoSaveOverlay(test.Body)
@@ -286,7 +286,7 @@ func TestV2KustomizeDeleteFile(t *testing.T) {
 					}
 					return true
 				},
-				Describe: fmt.Sprintf("expect state equal to %s", test.ExpectState),
+				Describe: fmt.Sprintf("expect state equal to %+v", test.ExpectState),
 			}).Return(nil).AnyTimes()
 
 			err := v2.deleteFile(test.DeleteFileParams.pathQueryParam, test.DeleteFileParams.getFiles)

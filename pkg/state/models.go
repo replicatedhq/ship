@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/terraform"
+	"sigs.k8s.io/kustomize/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"
@@ -107,9 +108,10 @@ func (l *Lifeycle) WithCompletedStep(step api.Step) *Lifeycle {
 }
 
 type Overlay struct {
-	ExcludedBases []string          `json:"excludedBases,omitempty" yaml:"excludedBases,omitempty" hcl:"excludedBases,omitempty"`
-	Patches       map[string]string `json:"patches,omitempty" yaml:"patches,omitempty" hcl:"patches,omitempty"`
-	Resources     map[string]string `json:"resources,omitempty" yaml:"resources,omitempty" hcl:"resources,omitempty"`
+	ExcludedBases []string            `json:"excludedBases,omitempty" yaml:"excludedBases,omitempty" hcl:"excludedBases,omitempty"`
+	Patches       map[string]string   `json:"patches,omitempty" yaml:"patches,omitempty" hcl:"patches,omitempty"`
+	Resources     map[string]string   `json:"resources,omitempty" yaml:"resources,omitempty" hcl:"resources,omitempty"`
+	RawKustomize  types.Kustomization `json:"-"`
 }
 
 func NewOverlay() Overlay {
