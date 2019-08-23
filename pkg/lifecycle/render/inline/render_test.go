@@ -2,6 +2,8 @@ package inline
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/replicatedhq/libyaml"
@@ -16,13 +18,18 @@ import (
 )
 
 func TestInlineRender(t *testing.T) {
+	type fileStruct struct {
+		contents string
+		path     string
+		mode     os.FileMode
+	}
 	tests := []struct {
 		name            string
 		asset           api.InlineAsset
 		meta            api.ReleaseMetadata
 		templateContext map[string]interface{}
 		configGroups    []libyaml.ConfigGroup
-		expect          map[string]interface{}
+		expect          fileStruct
 		expectErr       bool
 	}{
 		{
@@ -33,8 +40,10 @@ func TestInlineRender(t *testing.T) {
 					Dest: "foo.txt",
 				},
 			},
-			expect: map[string]interface{}{
-				"foo.txt": "hello!",
+			expect: fileStruct{
+				path:     "foo.txt",
+				contents: "hello!",
+				mode:     0644,
 			},
 
 			meta:            api.ReleaseMetadata{},
@@ -47,10 +56,13 @@ func TestInlineRender(t *testing.T) {
 				Contents: "hello!",
 				AssetShared: api.AssetShared{
 					Dest: "{{repl if true}}foo.txt{{repl else}}notfoo.txt{{repl end}}",
+					Mode: os.ModePerm,
 				},
 			},
-			expect: map[string]interface{}{
-				"foo.txt": "hello!",
+			expect: fileStruct{
+				path:     "foo.txt",
+				contents: "hello!",
+				mode:     os.ModePerm,
 			},
 
 			meta:            api.ReleaseMetadata{},
@@ -65,7 +77,6 @@ func TestInlineRender(t *testing.T) {
 					Dest: "/bin/runc",
 				},
 			},
-			expect: map[string]interface{}{},
 
 			meta:            api.ReleaseMetadata{},
 			templateContext: map[string]interface{}{},
@@ -80,16 +91,34 @@ func TestInlineRender(t *testing.T) {
 					Dest: "../../../bin/runc",
 				},
 			},
-			expect: map[string]interface{}{},
 
 			meta:            api.ReleaseMetadata{},
 			templateContext: map[string]interface{}{},
 			configGroups:    []libyaml.ConfigGroup{},
 			expectErr:       true,
 		},
+		{
+			name: "odd filemode",
+			asset: api.InlineAsset{
+				Contents: "hello!",
+				AssetShared: api.AssetShared{
+					Dest: "foo.txt",
+					Mode: 0543,
+				},
+			},
+			expect: fileStruct{
+				path:     "foo.txt",
+				contents: "hello!",
+				mode:     0543,
+			},
+
+			meta:            api.ReleaseMetadata{},
+			templateContext: map[string]interface{}{},
+			configGroups:    []libyaml.ConfigGroup{},
+		},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name+" aferoFS", func(t *testing.T) {
 			req := require.New(t)
 			testLogger := &logger.TestLogger{T: t}
 			v := viper.New()
@@ -118,10 +147,55 @@ func TestInlineRender(t *testing.T) {
 				req.Error(err)
 			}
 
-			for filename, expectContents := range test.expect {
-				contents, err := rootFs.ReadFile(filename)
+			if !test.expectErr {
+				contents, err := rootFs.ReadFile(test.expect.path)
 				req.NoError(err)
-				req.Equal(expectContents, string(contents))
+				req.Equal(test.expect.contents, string(contents))
+				stat, err := rootFs.Stat(test.expect.path)
+				req.NoError(err)
+				req.Equal(test.expect.mode, stat.Mode())
+			}
+		})
+
+		t.Run(test.name+" real FS", func(t *testing.T) {
+			req := require.New(t)
+			testLogger := &logger.TestLogger{T: t}
+			v := viper.New()
+			bb := templates.NewBuilderBuilder(testLogger, v, &state.MockManager{})
+			tempdir, err := ioutil.TempDir("", "inline-render-test")
+			req.NoError(err)
+			defer os.RemoveAll(tempdir)
+			rootFs := root.Fs{
+				Afero:    afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tempdir)},
+				RootPath: "",
+			}
+
+			renderer := &LocalRenderer{
+				Logger:         testLogger,
+				Viper:          v,
+				BuilderBuilder: bb,
+			}
+
+			err = renderer.Execute(
+				rootFs,
+				test.asset,
+				test.meta,
+				test.templateContext,
+				test.configGroups,
+			)(context.Background())
+			if !test.expectErr {
+				req.NoError(err)
+			} else {
+				req.Error(err)
+			}
+
+			if !test.expectErr {
+				contents, err := rootFs.ReadFile(test.expect.path)
+				req.NoError(err)
+				req.Equal(test.expect.contents, string(contents))
+				stat, err := rootFs.Stat(test.expect.path)
+				req.NoError(err)
+				req.Equal(test.expect.mode, stat.Mode())
 			}
 		})
 	}
