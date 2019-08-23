@@ -25,18 +25,18 @@ func TestIsGoGettable(t *testing.T) {
 			path: "github.com/replicatedhq/ship",
 			want: true,
 		},
-		// {
-		// 	name: "bitbucket",
-		// 	// this needs to be a valid bitbucket repo to work
-		// 	path: "bitbucket.org/hashicorp/tf-test-git",
-		// 	want: true,
-		// },
-		// {
-		// 	name: "bitbucket",
-		// 	// this needs to be a valid bitbucket repo to work
-		// 	path: "bitbucket.org/hashicorp/tf-test-hg",
-		// 	want: true,
-		// },
+		{
+			name: "bitbucket",
+			// this needs to be a valid bitbucket repo to work
+			path: "bitbucket.org/hashicorp/tf-test-git",
+			want: true,
+		},
+		{
+			name: "bitbucket",
+			// this needs to be a valid bitbucket repo to work
+			path: "bitbucket.org/hashicorp/tf-test-hg",
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
