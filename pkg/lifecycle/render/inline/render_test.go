@@ -2,19 +2,21 @@ package inline
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/replicatedhq/libyaml"
+	"github.com/spf13/afero"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/lifecycle/render/root"
 	"github.com/replicatedhq/ship/pkg/templates"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 )
 
 func TestInlineRender(t *testing.T) {
@@ -197,6 +199,55 @@ func TestInlineRender(t *testing.T) {
 				req.NoError(err)
 				req.Equal(test.expect.mode, stat.Mode())
 			}
+		})
+	}
+}
+
+func TestAfero(t *testing.T) {
+	modes := []os.FileMode{
+		os.ModePerm,
+		0666,
+		0555,
+		0444,
+		0333,
+		0222,
+		0111,
+		0000,
+		0644,
+		0600,
+		0700,
+		0733,
+		0777,
+		0755,
+	}
+	for _, mode := range modes {
+		t.Run(fmt.Sprint(mode)+" afero FS", func(t *testing.T) {
+			req := require.New(t)
+			aferoFS := afero.Afero{Fs: afero.NewMemMapFs()}
+
+			err := aferoFS.WriteFile("test.txt", []byte("Hello, World!"), mode)
+			req.NoError(err)
+
+			stat, err := aferoFS.Stat("test.txt")
+			req.NoError(err)
+
+			req.Equal(fmt.Sprint(mode), fmt.Sprint(stat.Mode()))
+		})
+
+		t.Run(fmt.Sprint(mode)+" real FS", func(t *testing.T) {
+			req := require.New(t)
+			tempdir, err := ioutil.TempDir("", "afero-test")
+			req.NoError(err)
+			defer os.RemoveAll(tempdir)
+			realFS := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tempdir)}
+
+			err = realFS.WriteFile("test.txt", []byte("Hello, World!"), mode)
+			req.NoError(err)
+
+			stat, err := realFS.Stat("test.txt")
+			req.NoError(err)
+
+			req.Equal(fmt.Sprint(mode), fmt.Sprint(stat.Mode()))
 		})
 	}
 }
