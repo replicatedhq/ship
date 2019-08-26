@@ -70,7 +70,6 @@
       "examples": [
         {
           "dest": "install.sh",
-          "mode": 755,
           "contents": "#!/bin/sh\nkubectl apply -f ./deploy.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
         },
         {
@@ -101,7 +100,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.inline.properties.mode",
     "merge": {
-      "description": "Specifies file mode of the created asset, defaults to `0644`"
+      "description": "Specifies file mode of the created asset, defaults to `0644`. Make sure to include a leading `0` if specifying an octal value"
     }
   },
   {
@@ -162,7 +161,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.docker.properties.mode",
     "merge": {
-      "description": "The unix file permissions to be set on the image tar archive, e.g `600`."
+      "description": "The unix file permissions to be set on the image tar archive, e.g `0600`. Make sure to include a leading `0` if specifying an octal value"
     }
   },
   {
@@ -456,7 +455,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.github.properties.mode",
     "merge": {
-      "description": "If present, overrides the file mode of all files included by this asset."
+      "description": "If present, overrides the file mode of all files included by this asset. Make sure to include a leading `0` if specifying an octal value"
     }
   },
   {
@@ -562,7 +561,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.web.properties.mode",
     "merge": {
-      "description": "Unix file permissions to set on the asset"
+      "description": "Unix file permissions to set on the asset. Make sure to include a leading `0` if specifying an octal value"
     }
   },
   {
@@ -1041,7 +1040,7 @@
   {
     "path": "properties.assets.properties.v1.items.properties.terraform.properties.mode",
     "merge": {
-      "description": "Specifies file mode of the created asset, defaults to `0644`"
+      "description": "Specifies file mode of the created asset, defaults to `0644`. Make sure to include a leading `0` if specifying an octal value"
     }
   },
   {

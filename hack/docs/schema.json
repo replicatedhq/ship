@@ -337,7 +337,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "The unix file permissions to be set on the image tar archive, e.g `600`.",
+                    "description": "The unix file permissions to be set on the image tar archive, e.g `0600`. Make sure to include a leading `0` if specifying an octal value",
                     "type": "integer"
                   },
                   "source": {
@@ -429,7 +429,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "If present, overrides the file mode of all files included by this asset.",
+                    "description": "If present, overrides the file mode of all files included by this asset. Make sure to include a leading `0` if specifying an octal value",
                     "type": "integer"
                   },
                   "path": {
@@ -689,7 +689,6 @@
                 "examples": [
                   {
                     "dest": "install.sh",
-                    "mode": 755,
                     "contents": "#!/bin/sh\nkubectl apply -f ./deploy.yml -n {{repl ConfigOption \"k8s_namespace\" }}"
                   },
                   {
@@ -711,7 +710,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "Specifies file mode of the created asset, defaults to `0644`",
+                    "description": "Specifies file mode of the created asset, defaults to `0644`. Make sure to include a leading `0` if specifying an octal value",
                     "type": "integer"
                   },
                   "when": {
@@ -749,7 +748,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "Specifies file mode of the created asset, defaults to `0644`",
+                    "description": "Specifies file mode of the created asset, defaults to `0644`. Make sure to include a leading `0` if specifying an octal value",
                     "type": "integer"
                   },
                   "when": {
@@ -806,7 +805,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "Unix file permissions to set on the asset",
+                    "description": "Unix file permissions to set on the asset. Make sure to include a leading `0` if specifying an octal value",
                     "type": "integer"
                   },
                   "url": {
@@ -949,6 +948,14 @@
                   },
                   "path": {
                     "type": "string"
+                  },
+                  "readme": {
+                    "type": "object",
+                    "properties": {
+                      "contents": {
+                        "type": "string"
+                      }
+                    }
                   },
                   "requires": {
                     "type": "array",
