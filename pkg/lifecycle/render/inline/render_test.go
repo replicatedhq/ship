@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/replicatedhq/libyaml"
@@ -227,6 +228,8 @@ func TestAfero(t *testing.T) {
 
 			err := aferoFS.WriteFile("test.txt", []byte("Hello, World!"), mode)
 			req.NoError(err)
+			err = aferoFS.Chmod("test.txt", mode)
+			req.NoError(err)
 
 			stat, err := aferoFS.Stat("test.txt")
 			req.NoError(err)
@@ -243,8 +246,26 @@ func TestAfero(t *testing.T) {
 
 			err = realFS.WriteFile("test.txt", []byte("Hello, World!"), mode)
 			req.NoError(err)
+			err = realFS.Chmod("test.txt", mode)
+			req.NoError(err)
 
 			stat, err := realFS.Stat("test.txt")
+			req.NoError(err)
+
+			req.Equal(fmt.Sprint(mode), fmt.Sprint(stat.Mode()))
+		})
+
+		t.Run(fmt.Sprint(mode)+" manual FS", func(t *testing.T) {
+			req := require.New(t)
+			tempdir, err := ioutil.TempDir("", "afero-test")
+			req.NoError(err)
+			defer os.RemoveAll(tempdir)
+
+			err = ioutil.WriteFile(filepath.Join(tempdir, "test.txt"), []byte("Hello, World!"), mode)
+			req.NoError(err)
+			err = os.Chmod(filepath.Join(tempdir, "test.txt"), mode)
+			req.NoError(err)
+			stat, err := os.Stat(filepath.Join(tempdir, "test.txt"))
 			req.NoError(err)
 
 			req.Equal(fmt.Sprint(mode), fmt.Sprint(stat.Mode()))
