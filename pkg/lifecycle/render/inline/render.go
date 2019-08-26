@@ -85,13 +85,17 @@ func (r *LocalRenderer) Execute(
 
 		mode := os.FileMode(0644)
 		if builtAsset.Mode != os.FileMode(0) {
-			debug.Log("event", "applying override permissions")
+			debug.Log("event", "applying override permissions", "override.filemode", builtAsset.Mode, "override.filemode.int", int(builtAsset.Mode))
 			mode = builtAsset.Mode
 		}
 
 		if err := rootFs.WriteFile(builtAsset.Dest, []byte(builtAsset.Contents), mode); err != nil {
 			debug.Log("event", "execute.fail", "err", err)
 			return errors.Wrapf(err, "Write inline asset to %s", builtAsset.Dest)
+		}
+		if err := rootFs.Chmod(builtAsset.Dest, mode); err != nil {
+			debug.Log("event", "chmod.fail", "err", err)
+			return errors.Wrapf(err, "Set inline asset %s filemode to %s", builtAsset.Dest, mode)
 		}
 		return nil
 

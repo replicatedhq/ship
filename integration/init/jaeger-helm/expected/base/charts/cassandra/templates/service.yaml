@@ -6,7 +6,7 @@ metadata:
   name: jaeger-cassandra
   labels:
     app: cassandra
-    chart: cassandra-0.13.1
+    chart: cassandra-0.13.2
     release: jaeger
     heritage: Tiller
 spec:

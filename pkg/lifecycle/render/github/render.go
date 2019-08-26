@@ -167,6 +167,7 @@ func (r *LocalRenderer) resolveProxyGithubAssets(asset api.GitHubAsset, builder 
 
 		mode := os.FileMode(0644) // TODO: how to get mode info from github?
 		if asset.AssetShared.Mode != os.FileMode(0000) {
+			debug.Log("event", "applying override permissions", "override.filemode", asset.AssetShared.Mode, "override.filemode.int", int(asset.AssetShared.Mode))
 			mode = asset.AssetShared.Mode
 		}
 		if err := rootFs.WriteFile(filePath, []byte(built), mode); err != nil {
