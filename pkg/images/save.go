@@ -187,7 +187,9 @@ func buildDestinationParams(destinationURL *url.URL) (DestinationParams, error) 
 	authOpts := types.AuthConfig{}
 	if destinationURL.User != nil {
 		authOpts.Username = destinationURL.User.Username()
+		authOpts.Username, _ = url.PathUnescape(authOpts.Username)
 		authOpts.Password, _ = destinationURL.User.Password()
+		authOpts.Password, _ = url.PathUnescape(authOpts.Password)
 	}
 
 	destinationParams := DestinationParams{

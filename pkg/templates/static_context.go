@@ -62,6 +62,7 @@ func (ctx StaticCtx) FuncMap() template.FuncMap {
 	sprigMap["TrimSpace"] = strings.TrimSpace
 	sprigMap["Trim"] = ctx.trim
 	sprigMap["UrlEncode"] = url.QueryEscape
+	sprigMap["UrlPathEscape"] = url.PathEscape
 	sprigMap["Base64Encode"] = ctx.base64Encode
 	sprigMap["Base64Decode"] = ctx.base64Decode
 	sprigMap["Split"] = strings.Split
