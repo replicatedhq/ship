@@ -82,7 +82,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 			fs := afero.Afero{Fs: afero.NewOsFs()}
 			tmpdir, err := fs.TempDir("./", tt.name)
 			req.NoError(err)
-			defer fs.RemoveAll(tmpdir)
+			defer fs.RemoveAll(tmpdir) // nolint: errcheck
 
 			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
 			// its chrooted to a temp dir, but this needs to exist

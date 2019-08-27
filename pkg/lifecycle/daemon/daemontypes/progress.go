@@ -26,7 +26,7 @@ func (p Progress) String() string {
 func (p Progress) Status() string {
 	if p.Detail != "" {
 		var statusDetail map[string]string
-		json.Unmarshal([]byte(p.Detail), &statusDetail)
+		_ = json.Unmarshal([]byte(p.Detail), &statusDetail)
 		return statusDetail["status"]
 	}
 	return ""

@@ -138,7 +138,10 @@ func (r *APIConfigRenderer) resolveConfigValuesMap(
 	deps := depGraph{
 		BuilderBuilder: r.BuilderBuilder,
 	}
-	deps.ParseConfigGroup(configGroups)
+	err = deps.ParseConfigGroup(configGroups)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse config groups")
+	}
 	var headNodes []string
 
 	headNodes, err = deps.GetHeadNodes()

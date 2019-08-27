@@ -33,13 +33,13 @@ Upstream can be one of:
   (github.com/hashicorp/go-getter)              [git::gitlab.com/myrepo/mychart, ./local-charts/nginx-ingress, github.com/myrepo/mychart?ref=abcdef123456//my/path]
 `,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlags(cmd.Flags())
-			viper.BindPFlags(cmd.PersistentFlags())
+			_ = viper.BindPFlags(cmd.Flags())
+			_ = viper.BindPFlags(cmd.PersistentFlags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := viper.GetViper()
 			if len(args) == 0 {
-				cmd.Help()
+				_ = cmd.Help()
 				return errors.New("Error: please supply an upstream")
 			}
 

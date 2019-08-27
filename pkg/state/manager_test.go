@@ -764,7 +764,8 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 			}
 
 			group.Wait()
-			m1.CommitState()
+			err := m1.CommitState()
+			req.NoError(err)
 
 			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
 			req.NoError(err)

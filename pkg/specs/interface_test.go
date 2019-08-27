@@ -287,7 +287,7 @@ icon: https://kfbr.392/x5.png
 			fs := afero.Afero{Fs: afero.NewOsFs()}
 			tmpdir, err := fs.TempDir("./", test.name)
 			req.NoError(err)
-			defer fs.RemoveAll(tmpdir)
+			defer fs.RemoveAll(tmpdir) // nolint: errcheck
 
 			mockFs := afero.Afero{Fs: afero.NewBasePathFs(afero.NewOsFs(), tmpdir)}
 			// its chrooted to a temp dir, but this needs to exist

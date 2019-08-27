@@ -273,7 +273,9 @@ func (c *GraphQLClient) checkErrors(errer Errer) error {
 		var multiErr *multierror.Error
 		for _, err := range errer.GraphQLError() {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("%s: %s", err.Code, err.Message))
-
+		}
+		if multiErr == nil {
+			return fmt.Errorf("expected %d gql errors but none found", len(errer.GraphQLError()))
 		}
 		return multiErr.ErrorOrNil()
 	}

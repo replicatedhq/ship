@@ -330,7 +330,7 @@ func (m *MManager) CachedState() (State, error) {
 
 func (m *MManager) CommitState() error {
 	if m.cachedState == nil {
-		errors.New("cannot save state that has not been initialized")
+		return errors.New("cannot save state that has not been initialized")
 	}
 	return errors.Wrap(m.serializeAndWriteState(*m.cachedState), "serialize cached state")
 }

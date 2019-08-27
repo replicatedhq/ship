@@ -8,3 +8,5 @@ go install github.com/golang/mock/mockgen
 go get github.com/elazarl/go-bindata-assetfs/go-bindata-assetfs
 go get -u github.com/jteeuwen/go-bindata/go-bindata
 go get -u github.com/gordonklaus/ineffassign
+go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.17.1
+

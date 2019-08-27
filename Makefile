@@ -2,6 +2,7 @@
 
 .PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
 
+export GO111MODULE=on
 
 SHELL := /bin/bash -o pipefail
 SRC = $(shell find pkg -name "*.go" ! -name "ui.bindatafs.go")
@@ -254,14 +255,14 @@ fmt: .state/build-deps .state/fmt
 
 vet: .state/vet
 
-.state/ineffassign: .state/build-deps $(SRC)
-	ineffassign ./pkg
-	ineffassign ./cmd
-	ineffassign ./integration
+.state/golangci-lint: .state/build-deps $(SRC)
+	golangci-lint run ./pkg/...
+	golangci-lint run ./cmd/...
+	golangci-lint run ./integration/...
 	@mkdir -p .state
-	@touch .state/ineffassign
+	@touch .state/golangci-lint
 
-ineffassign: .state/ineffassign
+golangci-lint: .state/golangci-lint
 
 .state/lint: $(SRC)
 	golint ./pkg/... | grep -vE '_mock|e2e' | grep -v "should have comment" | grep -v "comment on exported" | grep -v "package comment should be of the form" | grep -v bindatafs || :
@@ -269,7 +270,7 @@ ineffassign: .state/ineffassign
 	@mkdir -p .state
 	@touch .state/lint
 
-lint: vet ineffassign .state/lint
+lint: vet golangci-lint .state/lint
 
 .state/test: $(SRC)
 	go test ./pkg/... ./integration | grep -v '?'
@@ -290,7 +291,7 @@ race: lint .state/race
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
 	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/... ./integration
 
-citest: .state/vet .state/ineffassign .state/lint .state/coverage.out
+citest: .state/vet .state/golangci-lint .state/lint .state/coverage.out
 
 .state/cc-test-reporter:
 	@mkdir -p .state/

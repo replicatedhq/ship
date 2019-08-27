@@ -72,7 +72,7 @@ func (g *GoGetter) getSingleFile(ctx context.Context, upstream, savePath string)
 	if err != nil {
 		return "", errors2.FetchFilesError{Message: err.Error()}
 	}
-	defer g.FS.RemoveAll(tmpDir)
+	defer g.FS.RemoveAll(tmpDir) // nolint: errcheck
 
 	err = g.FS.MkdirAll(filepath.Dir(filepath.Join(savePath, g.Subdir)), os.FileMode(0777))
 	if err != nil {

@@ -137,7 +137,7 @@ func TestResolver_MaybeResolveVersionedUpstream(t *testing.T) {
 			TagName: &latestTag,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(latest)
+		_ = json.NewEncoder(w).Encode(latest)
 	})
 	defer teardown()
 

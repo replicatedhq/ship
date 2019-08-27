@@ -255,7 +255,8 @@ lifecycle:
 
 			mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
 			if test.UpstreamShipYAML != "" {
-				mockFs.WriteFile(filepath.Join(constants.HelmChartPath, "ship.yaml"), []byte(test.UpstreamShipYAML), 0755)
+				err := mockFs.WriteFile(filepath.Join(constants.HelmChartPath, "ship.yaml"), []byte(test.UpstreamShipYAML), 0755)
+				req.NoError(err)
 			}
 
 			r := Resolver{

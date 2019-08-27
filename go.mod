@@ -50,15 +50,16 @@ require (
 	github.com/go-stack/stack v1.8.0
 	github.com/go-test/deep v1.0.1
 	github.com/gobuffalo/packr v1.30.1 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/golang/mock v1.2.0
+	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/golangci/golangci-lint v1.17.1 // indirect
 	github.com/google/certificate-transparency-go v1.0.21 // indirect
 	github.com/google/go-github/v18 v18.0.0
 	github.com/google/go-querystring v1.0.0
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
+	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8 // indirect
 	github.com/gosuri/uitable v0.0.0-20160404203958-36ee7e946282
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001
@@ -72,10 +73,10 @@ require (
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da
 	github.com/jmoiron/sqlx v1.2.0 // indirect
 	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be // indirect
+	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.0.0-20180723221831-d5012789d665 // indirect
-	github.com/mattn/go-isatty v0.0.3 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20171001215842-821f57ef6082
 	github.com/mholt/archiver v0.0.0-20180417220235-e4ef56d48eb0
@@ -87,8 +88,8 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/mozilla-services/yaml v0.0.0-20180922153656-28ffe5d0cafb // indirect
 	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
-	github.com/onsi/ginkgo v1.5.0
-	github.com/onsi/gomega v1.4.0
+	github.com/onsi/ginkgo v1.6.0
+	github.com/onsi/gomega v1.4.2
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pact-foundation/pact-go v1.0.0-beta.5
@@ -110,8 +111,13 @@ require (
 	github.com/zclconf/go-cty v0.0.0-20181017232614-01c5aba823a6 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/dig v1.3.0
-	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
+	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
+	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
+	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/oauth2 v0.0.0-20181120190819-8f65e3013eba
+	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
+	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190827152308-062dbaebb618 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
 	google.golang.org/grpc v1.21.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

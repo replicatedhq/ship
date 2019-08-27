@@ -97,7 +97,10 @@ func (s *CLISaver) saveImage(ctx context.Context, saveOpts SaveOpts, progressCh 
 	if err != nil {
 		return errors.Wrapf(err, "pull image %s", saveOpts.PullURL)
 	}
-	copyDockerProgress(debug, saveOpts.PullURL, progressReader, progressCh)
+	err = copyDockerProgress(debug, saveOpts.PullURL, progressReader, progressCh)
+	if err != nil {
+		return errors.Wrapf(err, "copy docker progress pulling image %s", saveOpts.PullURL)
+	}
 	if saveOpts.Filename != "" {
 		return s.createFile(ctx, progressCh, saveOpts)
 	} else if saveOpts.DestinationURL != nil {

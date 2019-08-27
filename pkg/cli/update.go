@@ -14,8 +14,8 @@ func Update() *cobra.Command {
 		Short: "Fetch the latest upstream for a Ship application",
 		Long:  `Given an existing Ship state.json, fetch the latest upstream and merge`,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlags(cmd.Flags())
-			viper.BindPFlags(cmd.PersistentFlags())
+			_ = viper.BindPFlags(cmd.Flags())
+			_ = viper.BindPFlags(cmd.PersistentFlags())
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {

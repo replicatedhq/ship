@@ -63,7 +63,8 @@ var _ = Describe("Util", func() {
 			It("returns the file path to the subdirectory", func() {
 				singleSubDirPath := "singleSubDirPath"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.Mkdir(filepath.Join(singleSubDirPath, "test"), 0755)
+				err := mockFs.Mkdir(filepath.Join(singleSubDirPath, "test"), 0755)
+				Expect(err).NotTo(HaveOccurred())
 
 				dirPath, err := FindOnlySubdir(singleSubDirPath, mockFs)
 				Expect(err).NotTo(HaveOccurred())
@@ -74,10 +75,12 @@ var _ = Describe("Util", func() {
 			It("returns an error", func() {
 				multipleSubDirPath := "multipleSubDirPath"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.Mkdir(filepath.Join(multipleSubDirPath, "test"), 0755)
-				mockFs.Mkdir(filepath.Join(multipleSubDirPath, "test2"), 0755)
+				err := mockFs.Mkdir(filepath.Join(multipleSubDirPath, "test"), 0755)
+				Expect(err).NotTo(HaveOccurred())
+				err = mockFs.Mkdir(filepath.Join(multipleSubDirPath, "test2"), 0755)
+				Expect(err).NotTo(HaveOccurred())
 
-				_, err := FindOnlySubdir(multipleSubDirPath, mockFs)
+				_, err = FindOnlySubdir(multipleSubDirPath, mockFs)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -85,9 +88,10 @@ var _ = Describe("Util", func() {
 			It("returns an error", func() {
 				noSubDirPath := "noSubDirPath"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.Mkdir(filepath.Join(noSubDirPath), 0755)
+				err := mockFs.Mkdir(filepath.Join(noSubDirPath), 0755)
+				Expect(err).NotTo(HaveOccurred())
 
-				_, err := FindOnlySubdir(noSubDirPath, mockFs)
+				_, err = FindOnlySubdir(noSubDirPath, mockFs)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -95,11 +99,14 @@ var _ = Describe("Util", func() {
 			It("returns the file path to the subdirectory", func() {
 				onlyFilesPath := "onlyFilesPath"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.Mkdir(filepath.Join(onlyFilesPath), 0755)
-				mockFs.WriteFile(filepath.Join(onlyFilesPath, "test"), []byte("hi"), 0644)
-				mockFs.WriteFile(filepath.Join(onlyFilesPath, "test2"), []byte("bye"), 0644)
+				err := mockFs.Mkdir(filepath.Join(onlyFilesPath), 0755)
+				Expect(err).NotTo(HaveOccurred())
+				err = mockFs.WriteFile(filepath.Join(onlyFilesPath, "test"), []byte("hi"), 0644)
+				Expect(err).NotTo(HaveOccurred())
+				err = mockFs.WriteFile(filepath.Join(onlyFilesPath, "test2"), []byte("bye"), 0644)
+				Expect(err).NotTo(HaveOccurred())
 
-				_, err := FindOnlySubdir(onlyFilesPath, mockFs)
+				_, err = FindOnlySubdir(onlyFilesPath, mockFs)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -107,9 +114,12 @@ var _ = Describe("Util", func() {
 			It("returns the file path to the subdirectory", func() {
 				filesAndSubDirPath := "filesAndSubDirPath"
 				mockFs := afero.Afero{Fs: afero.NewMemMapFs()}
-				mockFs.MkdirAll(filepath.Join(filesAndSubDirPath, "testSubDir"), 0755)
-				mockFs.WriteFile(filepath.Join(filesAndSubDirPath, "test"), []byte("hi"), 0644)
-				mockFs.WriteFile(filepath.Join(filesAndSubDirPath, "test2"), []byte("bye"), 0644)
+				err := mockFs.MkdirAll(filepath.Join(filesAndSubDirPath, "testSubDir"), 0755)
+				Expect(err).NotTo(HaveOccurred())
+				err = mockFs.WriteFile(filepath.Join(filesAndSubDirPath, "test"), []byte("hi"), 0644)
+				Expect(err).NotTo(HaveOccurred())
+				err = mockFs.WriteFile(filepath.Join(filesAndSubDirPath, "test2"), []byte("bye"), 0644)
+				Expect(err).NotTo(HaveOccurred())
 
 				dirPath, _ := FindOnlySubdir(filesAndSubDirPath, mockFs)
 				Expect(dirPath).To(Equal(filepath.Join(filesAndSubDirPath, "testSubDir")))

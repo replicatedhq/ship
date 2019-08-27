@@ -62,7 +62,7 @@ func (u *Unpacker) Execute(
 			return errors.Wrap(err, "create root tmp path dir")
 		}
 		savePath, firstPassUnpackPath, basePath, layerPath, err := u.getPaths(asset, rootFs)
-		defer rootFs.RemoveAll("tmp")
+		defer rootFs.RemoveAll("tmp") // nolint: errcheck
 		if err != nil {
 			return errors.Wrap(err, "resolve unpack paths")
 		}

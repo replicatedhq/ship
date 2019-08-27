@@ -158,7 +158,8 @@ func TestDaemonResolver(t *testing.T) {
 
 			require.NoError(t, log.Log("starting daemon"))
 			go func(closeChan chan struct{}) {
-				daemon.Serve(daemonCtx, test.release)
+				err := daemon.Serve(daemonCtx, test.release)
+				require.NoError(t, err)
 				closeChan <- struct{}{}
 			}(daemonCloseChan)
 

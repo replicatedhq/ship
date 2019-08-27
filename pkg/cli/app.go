@@ -16,8 +16,8 @@ func App() *cobra.Command {
 		Long:   `Download and configure a third party application using a supplied customer id.`,
 		Hidden: true,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlags(cmd.Flags())
-			viper.BindPFlags(cmd.PersistentFlags())
+			_ = viper.BindPFlags(cmd.Flags())
+			_ = viper.BindPFlags(cmd.PersistentFlags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			viper.Set("is-app", true)
@@ -48,11 +48,11 @@ func App() *cobra.Command {
 
 	// Deprecated developer flags
 	cmd.Flags().String("studio-file", "", developerFlagUsage)
-	cmd.Flags().MarkDeprecated("studio-file", "please upgrade to the --runbook flag")
+	_ = cmd.Flags().MarkDeprecated("studio-file", "please upgrade to the --runbook flag")
 	cmd.Flags().String("studio-channel-name", "", developerFlagUsage)
-	cmd.Flags().MarkDeprecated("studio-channel-name", "please upgrade to the --set-channel-name flag")
+	_ = cmd.Flags().MarkDeprecated("studio-channel-name", "please upgrade to the --set-channel-name flag")
 	cmd.Flags().String("studio-channel-icon", "", developerFlagUsage)
-	cmd.Flags().MarkDeprecated("studio-channel-icon", "please upgrade to the --set-channel-icon flag")
+	_ = cmd.Flags().MarkDeprecated("studio-channel-icon", "please upgrade to the --set-channel-icon flag")
 
 	return cmd
 }

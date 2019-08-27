@@ -105,9 +105,9 @@ func NewShip(
 
 func (s *Ship) Shutdown(cancelFunc context.CancelFunc) {
 	// remove the temp dir -- if we're exiting with an error, then cobra wont get a chance to clean up
-	s.FS.RemoveAll(constants.ShipPathInternalTmp)
+	_ = s.FS.RemoveAll(constants.ShipPathInternalTmp)
 
-	// need to pause beforce canceling the context, because we need
+	// need to pause before canceling the context, because we need
 	// the daemon to stay up for a few seconds so the UI can know its
 	// time to show the "You're all done" page
 	level.Info(s.Logger).Log("event", "shutdown.prePause", "waitTime", "1s")
@@ -267,7 +267,9 @@ func (s *Ship) maybeWriteStateFromFile() error {
 		return errors.Wrap(err, "write passed state file to constants.StatePath")
 	}
 
-	s.State.ReloadFile()
+	if err := s.State.ReloadFile(); err != nil {
+		return errors.Wrap(err, "reload state-file")
+	}
 
 	return nil
 }
