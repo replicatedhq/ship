@@ -51,6 +51,10 @@ func (d *DaemonlessKubectl) Execute(ctx context.Context, release api.Release, st
 	debug := level.Debug(log.With(d.Logger, "step.type", "kubectl"))
 
 	cmd, err := d.prepareCmd(release, step)
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare command for daemonless kubectl execution")
+	}
+
 	debug.Log("event", "kubectl.execute", "args", fmt.Sprintf("%+v", cmd.Args))
 
 	var stderr bytes.Buffer
