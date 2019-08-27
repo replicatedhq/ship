@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v18/github"
 	"github.com/pkg/errors"
 	errors2 "github.com/replicatedhq/ship/pkg/util/errors"
 

@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v18/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/replicatedhq/ship/pkg/constants"
