@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	ksplit "github.com/go-ksplit/ksplit/pkg"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	ksplit "gopkg.in/ksplit.v0/pkg"
 	yaml "gopkg.in/yaml.v3"
 	"sigs.k8s.io/kustomize/pkg/types"
 )
