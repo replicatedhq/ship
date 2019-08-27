@@ -89,7 +89,7 @@ func (i *inspector) DetermineApplicationType(ctx context.Context, upstream strin
 
 	i.ui.Info(fmt.Sprintf("Attempting to retrieve upstream %s ...", upstream))
 	// use the integrated github client if the url is a github url and does not contain "//", unless perfer-git is set)
-	if i.viper.GetBool("prefer-git") == false && util.IsGithubURL(upstream) {
+	if !i.viper.GetBool("prefer-git") && util.IsGithubURL(upstream) {
 		githubClient := githubclient.NewGithubClient(i.fs, i.logger)
 		return i.determineTypeFromContents(ctx, upstream, githubClient)
 	}

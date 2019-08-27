@@ -45,7 +45,6 @@ var _ = Describe("GithubClient", func() {
 	client, mux, serverURL, teardown = setupGitClient()
 	redirectArchive := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, serverURL+"/archive.tar.gz", http.StatusFound)
-		return
 	}
 	mux.HandleFunc("/repos/o/r/tarball/", redirectArchive)
 	mux.HandleFunc("/repos/o/r/tarball", redirectArchive)

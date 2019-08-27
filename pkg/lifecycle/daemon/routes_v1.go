@@ -48,7 +48,6 @@ type V1Routes struct {
 	// it only makes sense for Message steps
 	currentStepActions []daemontypes.Action
 
-	initConfig    sync.Once
 	ConfigSaved   chan interface{}
 	CurrentConfig map[string]interface{}
 
@@ -258,21 +257,21 @@ func (d *V1Routes) getCurrentStep(c *gin.Context) {
 	c.JSON(200, result)
 }
 
-func (d *V1Routes) terraformApply(c *gin.Context) {
-	debug := log.With(level.Debug(d.Logger), "handler", "terraformApply")
-	defer d.locker(debug)()
-	debug.Log("event", "terraform.apply.send")
-	d.TerraformConfirmed <- true
-	debug.Log("event", "terraform.apply.sent")
-}
-
-func (d *V1Routes) terraformSkip(c *gin.Context) {
-	debug := log.With(level.Debug(d.Logger), "handler", "terraformSkip")
-	defer d.locker(debug)()
-	debug.Log("event", "terraform.skip.send")
-	d.TerraformConfirmed <- false
-	debug.Log("event", "terraform.skip.sent")
-}
+// func (d *V1Routes) terraformApply(c *gin.Context) {
+// 	debug := log.With(level.Debug(d.Logger), "handler", "terraformApply")
+// 	defer d.locker(debug)()
+// 	debug.Log("event", "terraform.apply.send")
+// 	d.TerraformConfirmed <- true
+// 	debug.Log("event", "terraform.apply.sent")
+// }
+//
+// func (d *V1Routes) terraformSkip(c *gin.Context) {
+// 	debug := log.With(level.Debug(d.Logger), "handler", "terraformSkip")
+// 	defer d.locker(debug)()
+// 	debug.Log("event", "terraform.skip.send")
+// 	d.TerraformConfirmed <- false
+// 	debug.Log("event", "terraform.skip.sent")
+// }
 
 func (d *V1Routes) postConfirmMessage(c *gin.Context) {
 	debug := level.Debug(log.With(d.Logger, "handler", "postConfirmMessage"))
@@ -329,5 +328,4 @@ func (d *V1Routes) getCurrentMessage(c *gin.Context) {
 	c.JSON(200, map[string]interface{}{
 		"message": d.currentStep.Message,
 	})
-	return
 }

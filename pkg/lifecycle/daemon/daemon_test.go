@@ -64,8 +64,7 @@ func initTestDaemon(
 
 	log.Log("starting daemon")
 	go func() {
-		err := daemon.Serve(daemonCtx, release)
-		require.NoError(t, err)
+		_ = daemon.Serve(daemonCtx, release)
 	}()
 
 	var daemonError error

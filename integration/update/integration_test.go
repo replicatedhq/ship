@@ -60,7 +60,8 @@ var _ = Describe("ship update", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
-					os.Setenv("NO_OS_EXIT", "1")
+					err = os.Setenv("NO_OS_EXIT", "1")
+					Expect(err).NotTo(HaveOccurred())
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
@@ -86,7 +87,8 @@ var _ = Describe("ship update", func() {
 						err = os.RemoveAll(testOutputPath)
 						Expect(err).NotTo(HaveOccurred())
 					}
-					os.Chdir(integrationDir)
+					err = os.Chdir(integrationDir)
+					Expect(err).NotTo(HaveOccurred())
 				}, 20)
 
 				It("Should output files matching those expected when running in update mode", func() {
@@ -97,7 +99,8 @@ var _ = Describe("ship update", func() {
 					cmd := cli.RootCmd()
 					buf := new(bytes.Buffer)
 					cmd.SetOutput(buf)
-					os.Setenv("PRELOAD_TEST_STATE", "1")
+					err = os.Setenv("PRELOAD_TEST_STATE", "1")
+					Expect(err).NotTo(HaveOccurred())
 					args := []string{
 						"update",
 						"--headless",

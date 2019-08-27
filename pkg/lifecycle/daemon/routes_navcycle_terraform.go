@@ -19,13 +19,13 @@ func (d *NavcycleRoutes) terraformApply(c *gin.Context) {
 	})
 }
 
-func (d *NavcycleRoutes) terraformSkip(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "method", "terraformSkip"))
-
-	debug.Log("event", "deny.terraformPlan")
-	d.TerraformConfirmed <- false
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"status": "denied",
-	})
-}
+// func (d *NavcycleRoutes) terraformSkip(c *gin.Context) {
+// 	debug := level.Debug(log.With(d.Logger, "method", "terraformSkip"))
+//
+// 	debug.Log("event", "deny.terraformPlan")
+// 	d.TerraformConfirmed <- false
+//
+// 	c.JSON(http.StatusOK, map[string]interface{}{
+// 		"status": "denied",
+// 	})
+// }

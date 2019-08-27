@@ -24,19 +24,6 @@ func (s *Ship) InitAndMaybeExit(ctx context.Context) error {
 	return nil
 }
 
-func (s *Ship) stateFileExists(ctx context.Context) bool {
-	debug := level.Debug(log.With(s.Logger, "method", "stateFileExists"))
-
-	existingState, err := s.State.CachedState()
-	if err != nil {
-		debug.Log("event", "tryLoad.fail")
-		return false
-	}
-	noExistingState := existingState.Versioned().V1 == nil
-
-	return !noExistingState
-}
-
 func (s *Ship) Init(ctx context.Context) error {
 	debug := level.Debug(log.With(s.Logger, "method", "init"))
 	ctx, cancelFunc := context.WithCancel(ctx)

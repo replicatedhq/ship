@@ -85,7 +85,7 @@ func (k *ForkKubectl) Execute(ctx context.Context, release api.Release, step api
 	wg.Add(1)
 
 	go func() {
-		for true {
+		for {
 			select {
 			case <-time.After(time.Second):
 				newStderr := stderr.String()

@@ -89,10 +89,7 @@ func (g *GoGetter) getSingleFile(ctx context.Context, upstream, savePath string)
 
 func IsGoGettable(path string) bool {
 	_, err := getter.Detect(path, "", getter.Detectors)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // if this path is a github path of the form `github.com/OWNER/REPO/tree/REF/SUBDIR` or `github.com/OWNER/REPO/SUBDIR`,

@@ -157,14 +157,6 @@ func setValueAtKey(m yaml.MapSlice, key, value interface{}) (next yaml.MapSlice)
 	return
 }
 
-func makeStringMap(m map[interface{}]interface{}) map[string]interface{} {
-	result := map[string]interface{}{}
-	for k, v := range m {
-		result[k.(string)] = v
-	}
-	return result
-}
-
 func valuesEqual(val1, val2 interface{}) (bool, error) {
 	val1Array, val1OK := val1.([]interface{})
 	val2Array, val2OK := val2.([]interface{})

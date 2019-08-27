@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/replicatedhq/ship/pkg/version"
 
@@ -63,7 +62,6 @@ type MManager struct {
 	Logger         log.Logger
 	FS             afero.Afero
 	V              *viper.Viper
-	patcher        patch.Patcher
 	stateUpdateMut sync.Mutex
 	StateRWMut     sync.RWMutex
 
@@ -488,5 +486,4 @@ func (m *MManager) UpdateVersion() {
 		state.V1.ShipVersion = &currentVersion
 		return state, nil
 	})
-	return
 }

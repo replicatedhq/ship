@@ -64,7 +64,6 @@ func TestKustomizer_replaceOriginal(t *testing.T) {
 		built    []util.PostKustomizeFile
 		original []testFile
 		expect   []testFile
-		wantErr  bool
 	}{
 		{
 			name: "replace single file",

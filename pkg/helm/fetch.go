@@ -55,7 +55,7 @@ type fetchCmd struct {
 	keyFile  string // identify HTTPS client using this SSL key file
 	caFile   string // verify certificates of HTTPS-enabled servers using this CA bundle
 
-	devel bool // use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored.
+	// devel bool // use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored.
 
 	out io.Writer
 

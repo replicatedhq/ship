@@ -83,10 +83,7 @@ func TestRenderer(t *testing.T) {
 				Describe: "inline asset",
 				Test: func(v interface{}) bool {
 					_, ok := v.(api.InlineAsset)
-					if !ok {
-						return false
-					}
-					return true
+					return ok
 				},
 			}
 
