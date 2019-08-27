@@ -1,6 +1,6 @@
 .NOTPARALLEL:
 
-.PHONY: build-deps dep-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
+.PHONY: build-deps docker shell githooks dep e2e run citest ci-upload-coverage goreleaser integration-test build_ship_integration_test build-ui build-ui-dev mark-ui-gitignored fmt lint vet test build embed-ui clean-ship clean clean-integration
 
 export GO111MODULE=on
 
@@ -47,14 +47,18 @@ define LDFLAGS
 endef
 
 .state/build-deps: hack/get_build_deps.sh
-	./hack/get_build_deps.sh
+	time ./hack/get_build_deps.sh
 	@mkdir -p .state/
 	@touch .state/build-deps
 
 build-deps: .state/build-deps
 
-dep-deps:
-	go get -u github.com/golang/dep/cmd/dep
+.state/lint-deps: hack/get_lint_deps.sh
+	time ./hack/get_lint_deps.sh
+	@mkdir -p .state/
+	@touch .state/lint-deps
+
+lint-deps: .state/lint-deps
 
 docker:
 	docker build -t ship .
@@ -76,14 +80,14 @@ githooks:
 
 .PHONY: pacts
 pacts:
-	go test -v ./contracts/...
+	go test -v -mod vendor ./contracts/...
 
 .PHONY: pacts-ci
 pacts-ci:
 	docker build -t ship-contract-tests -f contracts/Dockerfile.testing .
 	docker run --rm --name ship-contract-tests \
 		ship-contract-tests \
-		bash -c 'go test -v ./contracts/...'
+		bash -c 'go test -v -mod vendor ./contracts/...'
 
 .PHONY: pacts-ci-publish
 pacts-ci-publish:
@@ -91,9 +95,9 @@ pacts-ci-publish:
 	docker run --rm --name ship-contract-tests \
 		-e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD -e VERSION=$$CIRCLE_TAG \
 		ship-contract-tests \
-		bash -c 'go test -v ./contracts/... && ./contracts/publish.sh'
+		bash -c 'go test -v -mod vendor ./contracts/... && ./contracts/publish.sh'
 
-_mockgen:
+_mockgen: build-deps
 	rm -rf pkg/test-mocks
 	mkdir -p pkg/test-mocks/ui
 	mkdir -p pkg/test-mocks/config
@@ -244,18 +248,24 @@ deps:
 	@touch .state/fmt
 
 
-fmt: .state/build-deps .state/fmt
+fmt: .state/lint-deps .state/fmt
 
 .state/vet: $(SRC)
-	go vet ./pkg/...
-	go vet ./cmd/...
-	go vet ./integration/...
+	go vet -mod vendor ./pkg/...
+	go vet -mod vendor ./cmd/...
+	go vet -mod vendor ./integration/...
 	@mkdir -p .state
 	@touch .state/vet
 
 vet: .state/vet
 
-.state/golangci-lint: .state/build-deps $(SRC)
+.state/golangci-lint-ci: .state/lint-deps $(SRC)
+	golangci-lint run -j 1 ./cmd/...
+	for D in ./pkg/*; do echo $$D; golangci-lint run -j 1 $$D/...; done
+	@mkdir -p .state
+	@touch .state/golangci-lint-ci
+
+.state/golangci-lint: .state/lint-deps $(SRC)
 	golangci-lint run ./pkg/...
 	golangci-lint run ./cmd/...
 	golangci-lint run ./integration/...
@@ -273,14 +283,14 @@ golangci-lint: .state/golangci-lint
 lint: vet golangci-lint .state/lint
 
 .state/test: $(SRC)
-	go test ./pkg/... ./integration | grep -v '?'
+	go test -mod vendor ./pkg/... ./integration | grep -v '?'
 	@mkdir -p .state
 	@touch .state/test
 
 test: lint .state/test
 
 .state/race: $(SRC)
-	go test --race ./pkg/...
+	go test --race -mod vendor ./pkg/...
 	@mkdir -p .state
 	@touch .state/race
 
@@ -289,9 +299,12 @@ race: lint .state/race
 .state/coverage.out: $(SRC)
 	@mkdir -p .state/
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
-	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out ./pkg/... ./integration
+	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out -mod vendor ./pkg/... ./integration
 
-citest: .state/vet .state/golangci-lint .state/lint .state/coverage.out
+citest: .state/coverage.out
+
+.PHONY: cilint
+cilint: .state/vet .state/golangci-lint-ci .state/lint
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
@@ -312,6 +325,7 @@ build-minimal: build-ui pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
 bin/ship: $(FULLSRC)
 	go build \
+		-mod vendor \
 		${LDFLAGS} \
 		-i \
 		-o bin/ship \
@@ -320,6 +334,7 @@ bin/ship: $(FULLSRC)
 
 bin/ship.exe: $(SRC)
 	GOOS=windows go build \
+		-mod vendor \
 		${LDFLAGS} \
 		-i \
 		-o bin/ship.exe \
