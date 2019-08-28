@@ -2,6 +2,7 @@ package planner
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -372,6 +373,14 @@ func planToDests(plan Plan, builder *templates.Builder) ([]string, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "building dest %q", step.Dest)
 		}
+
+		// special case for docker URL dests - don't attempt to remove url paths
+		destinationURL, err := url.Parse(dest)
+		// if there was an error parsing the dest as a url, or the scheme was not 'docker', add to the dests list as normal
+		if err == nil && destinationURL.Scheme == "docker" {
+			continue
+		}
+
 		dests = append(dests, dest)
 	}
 

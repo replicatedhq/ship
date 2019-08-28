@@ -239,7 +239,7 @@ mockgen: _mockgen fmt
 deps:
 	dep ensure -v
 
-
+.state/fmt: GO111MODULE=off
 .state/fmt: $(SRC)
 	goimports -w pkg
 	goimports -w cmd
