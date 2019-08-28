@@ -259,11 +259,14 @@ fmt: .state/lint-deps .state/fmt
 
 vet: .state/vet
 
-.state/golangci-lint-ci: .state/lint-deps $(SRC)
-	golangci-lint run -j 1 ./cmd/...
-	for D in ./pkg/*; do echo $$D; golangci-lint run -j 1 $$D/...; done
+.state/ineffassign: .state/lint-deps $(SRC)
+	ineffassign ./pkg
+	ineffassign ./cmd
+	ineffassign ./integration
 	@mkdir -p .state
-	@touch .state/golangci-lint-ci
+	@touch .state/ineffassign
+
+ineffassign: .state/ineffassign
 
 .state/golangci-lint: .state/lint-deps $(SRC)
 	golangci-lint run ./pkg/...
@@ -304,7 +307,7 @@ race: lint .state/race
 citest: .state/coverage.out
 
 .PHONY: cilint
-cilint: .state/vet .state/golangci-lint-ci .state/lint
+cilint: .state/vet .state/ineffassign .state/lint
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
