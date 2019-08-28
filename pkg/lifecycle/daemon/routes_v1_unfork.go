@@ -8,20 +8,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/lifecycle/daemon/daemontypes"
 )
 
-// func (d *V1Routes) requireUnfork() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		if d.currentStep == nil || d.currentStep.Unfork == nil {
-// 			c.AbortWithError(
-// 				400,
-// 				errors.Errorf("bad request: expected phase unfork, was %q", d.currentStepName),
-// 			)
-// 			return
-// 		}
-// 		c.Next()
-//
-// 	}
-// }
-
 func (d *V1Routes) UnforkSavedChan() chan interface{} {
 	return d.UnforkSaved
 }
