@@ -116,8 +116,14 @@ func (r *resolver) loadLocalGithubFiles(localpath string, repoPath string) ([]st
 
 		encodedData := &bytes.Buffer{}
 		encoder := base64.NewEncoder(base64.StdEncoding, encodedData)
-		encoder.Write(contents)
-		encoder.Close()
+		_, err = encoder.Write(contents)
+		if err != nil {
+			return errors.Wrap(err, "write to base64 encoder")
+		}
+		err = encoder.Close()
+		if err != nil {
+			return errors.Wrap(err, "close base64 encoder")
+		}
 		sha := fmt.Sprintf("%x", sha256.Sum256(contents))
 		files = append(files, state.GithubFile{
 			Name: info.Name(),

@@ -22,18 +22,18 @@ var githubRegex = regexp.MustCompile(`^[htps:/]*[w.]*github\.com/([^/?=]+)/([^/?
 func ParseGithubURL(url string, defaultRef string) (GithubURL, error) {
 	var parsed GithubURL
 	matches := githubTreeRegex.FindStringSubmatch(url)
-	if matches != nil && len(matches) == 5 {
+	if len(matches) == 5 {
 		parsed.Owner = matches[1]
 		parsed.Repo = matches[2]
 		parsed.Ref = matches[3]
 		parsed.Subdir = matches[4]
-	} else if matches = githubBlobRegex.FindStringSubmatch(url); matches != nil && len(matches) == 5 {
+	} else if matches = githubBlobRegex.FindStringSubmatch(url); len(matches) == 5 {
 		parsed.Owner = matches[1]
 		parsed.Repo = matches[2]
 		parsed.Ref = matches[3]
 		parsed.Subdir = matches[4]
 		parsed.IsBlob = true
-	} else if matches = githubRegex.FindStringSubmatch(url); matches != nil && len(matches) == 5 {
+	} else if matches = githubRegex.FindStringSubmatch(url); len(matches) == 5 {
 		parsed.Owner = matches[1]
 		parsed.Repo = matches[2]
 		parsed.Ref = defaultRef

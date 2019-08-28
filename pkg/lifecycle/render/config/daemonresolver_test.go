@@ -26,7 +26,7 @@ type daemonResolverTestCase struct {
 	name         string
 	release      *api.Release
 	inputContext map[string]interface{}
-	posts        []func(t *testing.T)
+	posts        []func(t *testing.T) //nolint:structcheck
 	expect       func(t *testing.T, config map[string]interface{}, err error)
 }
 
@@ -158,7 +158,7 @@ func TestDaemonResolver(t *testing.T) {
 
 			require.NoError(t, log.Log("starting daemon"))
 			go func(closeChan chan struct{}) {
-				daemon.Serve(daemonCtx, test.release)
+				_ = daemon.Serve(daemonCtx, test.release)
 				closeChan <- struct{}{}
 			}(daemonCloseChan)
 

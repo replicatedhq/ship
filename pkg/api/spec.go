@@ -9,7 +9,7 @@ import (
 	"github.com/replicatedhq/ship/pkg/constants"
 )
 
-var releaseNameRegex = regexp.MustCompile("[^a-zA-Z0-9\\-]")
+var releaseNameRegex = regexp.MustCompile(`[^a-zA-Z0-9\-]`)
 
 // Spec is the top level Ship document that defines an application
 type Spec struct {

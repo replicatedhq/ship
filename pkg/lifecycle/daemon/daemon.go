@@ -103,7 +103,7 @@ func (d *ShipDaemon) Serve(ctx context.Context, release *api.Release) error {
 		debug.Log("event", "server.shutdown")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		server.Shutdown(shutdownCtx)
+		_ = server.Shutdown(shutdownCtx)
 	}()
 
 	select {

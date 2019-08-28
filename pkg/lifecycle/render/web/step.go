@@ -166,14 +166,13 @@ func (p *DefaultStep) buildAsset(
 }
 
 func (p *DefaultStep) pullWebAsset(rootFs root.Fs, built *Built) error {
-	resp, err := p.makeRequest(built.URL, built.BodyFormat, built.Method, built.Body)
+	req, err := http.NewRequest(built.Method, built.URL, strings.NewReader(built.Body))
 	if err != nil {
 		return errors.Wrapf(err, "Request web asset from %s", built.URL)
 	}
 
-	req, err := http.NewRequest(built.Method, built.URL, strings.NewReader(built.Body))
-	if err != nil {
-		return errors.Wrapf(err, "Request web asset from %s", built.URL)
+	if built.Method == "POST" {
+		req.Header.Set("Content-Type", built.BodyFormat)
 	}
 
 	if len(built.Headers) != 0 {
@@ -188,7 +187,7 @@ func (p *DefaultStep) pullWebAsset(rootFs root.Fs, built *Built) error {
 	if respErr != nil {
 		return errors.Wrapf(respErr, "%s web asset at %s", built.Method, built.URL)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode > 299 {
 		return errors.Errorf("received response with status %d", resp.StatusCode)
@@ -202,34 +201,5 @@ func (p *DefaultStep) pullWebAsset(rootFs root.Fs, built *Built) error {
 	if _, err := io.Copy(file, resp.Body); err != nil {
 		return errors.Wrapf(err, "Stream HTTP response body to %s", file.Name())
 	}
-	file.Close()
-
-	return nil
-}
-
-func (p *DefaultStep) makeRequest(url string, bodyFormat string, method string, body string) (*http.Response, error) {
-	switch method {
-	case "":
-		// Empty method defaults to 'GET'
-		resp, err := p.Client.Get(url)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Request web asset from %s", url)
-		}
-		return resp, err
-	case "GET":
-		resp, err := p.Client.Get(url)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Request web asset from %s", url)
-		}
-		return resp, err
-	case "POST":
-		resp, err := p.Client.Post(url, bodyFormat, strings.NewReader(body))
-		if err != nil {
-			return nil, errors.Wrapf(err, "Request web asset from %s", url)
-		}
-		return resp, nil
-	default:
-		// Unsupported method
-		return nil, errors.New("Parse web request")
-	}
+	return errors.Wrapf(file.Close(), "close file at %s", built.Dest)
 }

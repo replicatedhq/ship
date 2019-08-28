@@ -138,7 +138,10 @@ func (r *APIConfigRenderer) resolveConfigValuesMap(
 	deps := depGraph{
 		BuilderBuilder: r.BuilderBuilder,
 	}
-	deps.ParseConfigGroup(configGroups)
+	err = deps.ParseConfigGroup(configGroups)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse config groups")
+	}
 	var headNodes []string
 
 	headNodes, err = deps.GetHeadNodes()
@@ -197,7 +200,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 	liveValues map[string]interface{},
 	firstPass bool,
 ) ([]libyaml.ConfigGroup, error) {
-	resolvedConfig := make([]libyaml.ConfigGroup, 0, 0)
+	resolvedConfig := make([]libyaml.ConfigGroup, 0)
 	configCopy, err := r.deepCopyConfig(release.Spec.Config.V1)
 	if err != nil {
 		return resolvedConfig, errors.Wrap(err, "deep copy config")
@@ -225,7 +228,7 @@ func (r *APIConfigRenderer) ResolveConfig(
 	}
 
 	for _, configGroup := range configCopy {
-		resolvedItems := make([]*libyaml.ConfigItem, 0, 0)
+		resolvedItems := make([]*libyaml.ConfigItem, 0)
 		for _, configItem := range configGroup.Items {
 			if !isReadOnly(configItem) {
 				if val, ok := combinedState[configItem.Name]; ok {
@@ -339,17 +342,6 @@ func (r *APIConfigRenderer) applyConfigGroupFieldTemplates(ctx context.Context, 
 }
 
 func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, builder templates.Builder, configItem *libyaml.ConfigItem, configValues map[string]interface{}) (*libyaml.ConfigItem, error) {
-	// filters
-	var filters []string
-	for _, filter := range configItem.Filters {
-		builtFilter, err := builder.String(filter)
-		if err != nil {
-			level.Error(r.Logger).Log("msg", "unable to build filter", "err", err)
-			return nil, err
-		}
-		filters = append(filters, builtFilter)
-	}
-
 	// type should default to "text"
 	if configItem.Type == "" {
 		configItem.Type = "text"
@@ -415,7 +407,7 @@ func (r *APIConfigRenderer) applyConfigItemFieldTemplates(ctx context.Context, b
 
 	// build subitems
 	if configItem.Items != nil {
-		childItems := make([]*libyaml.ConfigChildItem, 0, 0)
+		childItems := make([]*libyaml.ConfigChildItem, 0)
 		for _, item := range configItem.Items {
 			builtChildItem, err := r.resolveConfigChildItem(ctx, builder, item)
 			if err != nil {

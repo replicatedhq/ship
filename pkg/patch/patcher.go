@@ -164,7 +164,7 @@ func (p *ShipPatcher) MergePatches(original []byte, path []string, step api.Kust
 func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource string) ([]byte, error) {
 	debug := level.Debug(log.With(p.Logger, "struct", "patcher", "handler", "applyPatch"))
 
-	defer p.deleteTempKustomization(step)
+	defer p.deleteTempKustomization(step) // nolint: errcheck
 
 	if err := p.FS.MkdirAll(step.TempRenderPath(), 0777); err != nil {
 		return nil, errors.Wrap(err, "ensure temp patch overlay dir exists")

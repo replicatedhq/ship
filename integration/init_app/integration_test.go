@@ -69,12 +69,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func(done chan<- interface{}) {
-					os.Setenv("NO_OS_EXIT", "1")
-					os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
+					err = os.Setenv("NO_OS_EXIT", "1")
+					Expect(err).NotTo(HaveOccurred())
+					err = os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
+					Expect(err).NotTo(HaveOccurred())
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
-					os.Chdir(testOutputPath)
+					err = os.Chdir(testOutputPath)
+					Expect(err).NotTo(HaveOccurred())
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
@@ -91,7 +94,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}, 20)
 
 				AfterEach(func() {
-					os.Unsetenv("REPLICATED_REGISTRY")
+					err = os.Unsetenv("REPLICATED_REGISTRY")
+					Expect(err).NotTo(HaveOccurred())
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						err := state.GetSingleton().RemoveStateFile()
 						Expect(err).NotTo(HaveOccurred())
@@ -104,7 +108,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err := state.GetSingleton().RemoveStateFile()
 					Expect(err).NotTo(HaveOccurred())
 
-					os.Chdir(integrationDir)
+					err = os.Chdir(integrationDir)
+					Expect(err).NotTo(HaveOccurred())
 				}, 20)
 
 				It("Should output files matching those expected when communicating with the graphql api", func() {
@@ -198,12 +203,15 @@ var _ = Describe("ship init replicated.app/...", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func(done chan<- interface{}) {
-					os.Setenv("NO_OS_EXIT", "1")
-					os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
+					err = os.Setenv("NO_OS_EXIT", "1")
+					Expect(err).NotTo(HaveOccurred())
+					err = os.Setenv("REPLICATED_REGISTRY", "registry.staging.replicated.com")
+					Expect(err).NotTo(HaveOccurred())
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
-					os.Chdir(testOutputPath)
+					err = os.Chdir(testOutputPath)
+					Expect(err).NotTo(HaveOccurred())
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
@@ -216,7 +224,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 				}, 20)
 
 				AfterEach(func() {
-					os.Unsetenv("REPLICATED_REGISTRY")
+					err = os.Unsetenv("REPLICATED_REGISTRY")
+					Expect(err).NotTo(HaveOccurred())
 					if !testMetadata.SkipCleanup && os.Getenv("SHIP_INTEGRATION_SKIP_CLEANUP_ALL") == "" {
 						// remove the temporary directory
 						err := os.RemoveAll(testOutputPath)
@@ -226,7 +235,8 @@ var _ = Describe("ship init replicated.app/...", func() {
 					err := state.GetSingleton().RemoveStateFile()
 					Expect(err).NotTo(HaveOccurred())
 
-					os.Chdir(integrationDir)
+					err = os.Chdir(integrationDir)
+					Expect(err).NotTo(HaveOccurred())
 				}, 20)
 
 				It("Should output files matching those expected when running with ship edit", func() {

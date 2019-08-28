@@ -64,7 +64,7 @@ func initTestDaemon(
 
 	log.Log("starting daemon")
 	go func() {
-		daemon.Serve(daemonCtx, release)
+		_ = daemon.Serve(daemonCtx, release)
 	}()
 
 	var daemonError error

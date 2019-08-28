@@ -18,7 +18,6 @@ import (
 	"github.com/replicatedhq/ship/pkg/test-mocks/helm"
 	"github.com/replicatedhq/ship/pkg/test-mocks/state"
 	"github.com/replicatedhq/ship/pkg/testing/logger"
-	"github.com/replicatedhq/ship/pkg/testing/matchers"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -36,7 +35,6 @@ func TestLocalTemplater(t *testing.T) {
 		templateContext     map[string]interface{}
 		channelName         string
 		expectedChannelName string
-		expectHelmOpts      *matchers.Is
 		ontemplate          func(req *require.Assertions, mockFs afero.Afero) func(chartRoot string, args []string) error
 		state               *state2.State
 		requirements        *chartutil.Requirements

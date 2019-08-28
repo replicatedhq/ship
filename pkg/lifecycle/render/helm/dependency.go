@@ -92,25 +92,6 @@ func (f *LocalTemplater) getLocalDependency(repo string, chartRoot string, origi
 	return depPath, nil
 }
 
-// Local path creation logic taken from
-// https://github.com/helm/helm/blob/c82c0b6046b852f449dcaae768ba57331116dc87/pkg/resolver/resolver.go#L132
-func (f *LocalTemplater) getLocalDependencyPath(repo string, chartRoot string) (string, error) {
-	var depPath string
-	var err error
-	p := strings.TrimPrefix(repo, "file://")
-
-	// root path is absolute
-	if strings.HasPrefix(p, "/") {
-		if depPath, err = filepath.Abs(p); err != nil {
-			return "", err
-		}
-	} else {
-		depPath = filepath.Join(chartRoot, p)
-	}
-
-	return depPath, nil
-}
-
 func (f *LocalTemplater) createDependencyUpstreamFromAsset(originalAsset api.HelmAsset, path string) (string, error) {
 	upstream := originalAsset.Upstream
 	if util.IsGithubURL(upstream) {
@@ -128,8 +109,7 @@ func (f *LocalTemplater) createDependencyUpstreamFromAsset(originalAsset api.Hel
 }
 
 func (f *LocalTemplater) fetchLocalHelmDependency(upstream string, fetchPath string) (string, error) {
-	var fetcher apptype.FileFetcher
-	fetcher = githubclient.NewGithubClient(f.FS, f.Logger)
+	var fetcher apptype.FileFetcher = githubclient.NewGithubClient(f.FS, f.Logger)
 	if f.Viper.GetBool("prefer-git") {
 		var isSingleFile bool
 		var subdir string
@@ -143,8 +123,4 @@ func (f *LocalTemplater) fetchLocalHelmDependency(upstream string, fetchPath str
 	}
 
 	return savedPath, nil
-}
-
-func (f *LocalTemplater) getDependencyPath(chartRoot, path string) string {
-	return filepath.Join(chartRoot, path)
 }

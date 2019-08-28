@@ -108,8 +108,9 @@ func (d *depGraph) ParseConfigGroup(configGroups []libyaml.ConfigGroup) error {
 			depBuilder.Functs = d.funcMap(configItem.Name)
 
 			// while builder is normally stateless, the functions it uses within this loop are not
-			depBuilder.String(configItem.Default)
-			depBuilder.String(configItem.Value)
+			// errors are also discarded as we do not have the full set of template functions available here
+			_, _ = depBuilder.String(configItem.Default)
+			_, _ = depBuilder.String(configItem.Value)
 		}
 	}
 

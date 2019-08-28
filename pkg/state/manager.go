@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
-	"github.com/replicatedhq/ship/pkg/patch"
 	"github.com/replicatedhq/ship/pkg/util"
 	"github.com/replicatedhq/ship/pkg/version"
 
@@ -63,7 +62,6 @@ type MManager struct {
 	Logger         log.Logger
 	FS             afero.Afero
 	V              *viper.Viper
-	patcher        patch.Patcher
 	stateUpdateMut sync.Mutex
 	StateRWMut     sync.RWMutex
 
@@ -330,7 +328,7 @@ func (m *MManager) CachedState() (State, error) {
 
 func (m *MManager) CommitState() error {
 	if m.cachedState == nil {
-		errors.New("cannot save state that has not been initialized")
+		return errors.New("cannot save state that has not been initialized")
 	}
 	return errors.Wrap(m.serializeAndWriteState(*m.cachedState), "serialize cached state")
 }
@@ -488,5 +486,4 @@ func (m *MManager) UpdateVersion() {
 		state.V1.ShipVersion = &currentVersion
 		return state, nil
 	})
-	return
 }

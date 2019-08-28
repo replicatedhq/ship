@@ -40,6 +40,7 @@ func TestExecute(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
+			req := require.New(t)
 			mockFS := afero.Afero{Fs: afero.NewMemMapFs()}
 			planner := &CLIPlanner{
 				Logger: log.NewNopLogger(),
@@ -48,12 +49,13 @@ func TestExecute(t *testing.T) {
 			}
 
 			plan := test.Plan(planner)
-			planner.Execute(context.Background(), plan)
+			err := planner.Execute(context.Background(), plan)
+			req.NoError(err)
 
 			for file, expected := range test.Expect {
 				actual, err := mockFS.ReadFile(file)
-				require.New(t).NoError(err)
-				require.New(t).Equal(expected, string(actual))
+				req.NoError(err)
+				req.Equal(expected, string(actual))
 			}
 		})
 	}

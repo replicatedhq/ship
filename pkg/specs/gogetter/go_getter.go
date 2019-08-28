@@ -72,7 +72,7 @@ func (g *GoGetter) getSingleFile(ctx context.Context, upstream, savePath string)
 	if err != nil {
 		return "", errors2.FetchFilesError{Message: err.Error()}
 	}
-	defer g.FS.RemoveAll(tmpDir)
+	defer g.FS.RemoveAll(tmpDir) // nolint: errcheck
 
 	err = g.FS.MkdirAll(filepath.Dir(filepath.Join(savePath, g.Subdir)), os.FileMode(0777))
 	if err != nil {
@@ -89,10 +89,7 @@ func (g *GoGetter) getSingleFile(ctx context.Context, upstream, savePath string)
 
 func IsGoGettable(path string) bool {
 	_, err := getter.Detect(path, "", getter.Detectors)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // if this path is a github path of the form `github.com/OWNER/REPO/tree/REF/SUBDIR` or `github.com/OWNER/REPO/SUBDIR`,

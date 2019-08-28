@@ -143,14 +143,16 @@ func TestBacksUpExisting(t *testing.T) {
 				req.NoError(err)
 			}
 
-			r.backupIfPresent(test.target)
+			err := r.backupIfPresent(test.target)
+			req.NoError(err)
 
 			debugFs := &strings.Builder{}
-			r.Fs.Walk("/", func(path string, info os.FileInfo, err error) error {
+			err = r.Fs.Walk("/", func(path string, info os.FileInfo, err error) error {
 				debugFs.WriteString(path)
 				debugFs.WriteString("\n")
 				return nil
 			})
+			req.NoError(err)
 
 			for _, filename := range test.expect {
 				exists, err := mockFS.Exists(filename)

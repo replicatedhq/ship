@@ -14,8 +14,8 @@ func Edit() *cobra.Command {
 		Short: "Edit settings for the current version of a Ship application",
 		Long:  `Given an existing Ship state.json, use the stored upstream state to edit settings without updating the version`,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlags(cmd.Flags())
-			viper.BindPFlags(cmd.PersistentFlags())
+			_ = viper.BindPFlags(cmd.Flags())
+			_ = viper.BindPFlags(cmd.PersistentFlags())
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {

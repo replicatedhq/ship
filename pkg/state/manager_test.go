@@ -39,7 +39,7 @@ func TestLoadConfig(t *testing.T) {
 		contents        string
 		expectConfig    map[string]interface{}
 		expectKustomize *Kustomize
-		expectErr       error
+		expectErr       bool
 	}{
 		{
 			name:         "v0 Empty",
@@ -77,6 +77,11 @@ func TestLoadConfig(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:      "invalid json",
+			contents:  `this is not a valid ship state`,
+			expectErr: true,
+		},
 	}
 
 	for _, test := range tests {
@@ -90,6 +95,11 @@ func TestLoadConfig(t *testing.T) {
 			}
 
 			manager, err := NewDisposableManager(&logger.TestLogger{T: t}, fs, viper.New())
+			if test.expectErr {
+				req.Error(err)
+				req.Equal(nil, manager)
+				return
+			}
 			req.NoError(err)
 
 			state, err := manager.CachedState()
@@ -764,7 +774,8 @@ func TestMManager_ParallelUpdates(t *testing.T) {
 			}
 
 			group.Wait()
-			m1.CommitState()
+			err := m1.CommitState()
+			req.NoError(err)
 
 			m2, err := NewDisposableManager(m1.Logger, m1.FS, m1.V)
 			req.NoError(err)

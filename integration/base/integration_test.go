@@ -66,11 +66,13 @@ var _ = Describe("ship app", func() {
 				var testMetadata TestMetadata
 
 				BeforeEach(func() {
-					os.Setenv("NO_OS_EXIT", "1")
+					err = os.Setenv("NO_OS_EXIT", "1")
+					Expect(err).NotTo(HaveOccurred())
 					// create a temporary directory within this directory to compare files with
 					testOutputPath, err = ioutil.TempDir(testPath, "_test_")
 					Expect(err).NotTo(HaveOccurred())
-					os.Chdir(testOutputPath)
+					err = os.Chdir(testOutputPath)
+					Expect(err).NotTo(HaveOccurred())
 
 					// read the test metadata
 					testMetadata = readMetadata(testPath)
@@ -86,7 +88,8 @@ var _ = Describe("ship app", func() {
 						Expect(err).NotTo(HaveOccurred())
 					}
 
-					os.Chdir(integrationDir)
+					err = os.Chdir(integrationDir)
+					Expect(err).NotTo(HaveOccurred())
 				}, 20)
 
 				It("Should output files matching those expected when running app command in local mode", func() {

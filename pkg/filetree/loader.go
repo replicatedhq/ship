@@ -203,11 +203,8 @@ func IsSupported(file []byte) bool {
 	}
 	r := resources[0]
 
-	if r.GetKind() == CustomResourceDefinition {
-		return false
-	}
-
-	return true
+	// any kind but CRDs are supported
+	return r.GetKind() != CustomResourceDefinition
 }
 
 func (n Node) withChild(child Node) Node {

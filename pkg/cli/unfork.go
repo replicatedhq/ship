@@ -19,7 +19,7 @@ func Unfork() *cobra.Command {
 			v := viper.GetViper()
 
 			if len(args) == 0 {
-				cmd.Help()
+				_ = cmd.Help()
 				return errors.New("Error: please supply a fork")
 			}
 
@@ -37,7 +37,7 @@ func Unfork() *cobra.Command {
 
 	cmd.Flags().StringP("upstream", "", "", "path to the upstream")
 
-	viper.BindPFlags(cmd.Flags())
+	_ = viper.BindPFlags(cmd.Flags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd

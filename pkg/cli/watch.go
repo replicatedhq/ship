@@ -18,8 +18,8 @@ func Watch() *cobra.Command {
 change has been published. The watch command will return with an exit code
 of 0 when there's an update available.`,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlags(cmd.Flags())
-			viper.BindPFlags(cmd.PersistentFlags())
+			_ = viper.BindPFlags(cmd.Flags())
+			_ = viper.BindPFlags(cmd.PersistentFlags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			s, err := ship.Get(v)

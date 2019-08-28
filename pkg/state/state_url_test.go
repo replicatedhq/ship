@@ -19,7 +19,7 @@ func TestURLSerializer(t *testing.T) {
 	srv, err := startStateServer(t)
 	req.NoError(err)
 
-	defer srv.Shutdown(context.TODO())
+	defer srv.Shutdown(context.TODO()) // nolint: errcheck
 
 	s := newURLSerializer(
 		log.NewNopLogger(),
@@ -61,7 +61,7 @@ func startStateServer(t *testing.T) (*http.Server, error) {
 
 	http.HandleFunc("/testurlserializer/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(""))
+		_, _ = w.Write([]byte(""))
 	})
 
 	var stateData []byte
@@ -74,12 +74,12 @@ func startStateServer(t *testing.T) (*http.Server, error) {
 		stateData = body
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(""))
+		_, _ = w.Write([]byte(""))
 	})
 
 	http.HandleFunc("/testurlserializer/get-state", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(stateData)
+		_, _ = w.Write(stateData)
 	})
 
 	go func() {

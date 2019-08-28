@@ -348,7 +348,7 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 		excludedBases = append(excludedBases, string(filepath.Separator)+relPathToBase)
 	}
 
-	sort.Sort(sort.StringSlice(excludedBases))
+	sort.Strings(excludedBases)
 	overlay.ExcludedBases = excludedBases
 
 	kustomize.Overlays = map[string]state.Overlay{
@@ -440,7 +440,7 @@ func containsNonGVK(data []byte) (bool, error) {
 		return false, errors.Wrap(err, "unmarshal patch")
 	}
 
-	keys := make([]string, 0, 0)
+	keys := make([]string, 0)
 	for k := range unmarshalled {
 		keys = append(keys, k)
 	}

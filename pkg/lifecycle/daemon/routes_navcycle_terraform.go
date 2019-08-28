@@ -18,14 +18,3 @@ func (d *NavcycleRoutes) terraformApply(c *gin.Context) {
 		"status": "confirmed",
 	})
 }
-
-func (d *NavcycleRoutes) terraformSkip(c *gin.Context) {
-	debug := level.Debug(log.With(d.Logger, "method", "terraformSkip"))
-
-	debug.Log("event", "deny.terraformPlan")
-	d.TerraformConfirmed <- false
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"status": "denied",
-	})
-}

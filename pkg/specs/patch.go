@@ -56,7 +56,7 @@ func (p *IDPatcher) EnsureAllStepsHaveUniqueIDs(lc api.Lifecycle) api.Lifecycle 
 
 func (p *IDPatcher) generateID(seenIds idSet, step api.Step) string {
 	// try with the $shortname
-	candidateID := fmt.Sprintf("%s", step.ShortName())
+	candidateID := step.ShortName()
 	if !seenIds.contains(candidateID) {
 		return candidateID
 	}

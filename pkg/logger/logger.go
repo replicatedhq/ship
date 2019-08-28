@@ -32,7 +32,7 @@ func (c *compositeLogger) Log(keyvals ...interface{}) error {
 func New(v *viper.Viper, fs afero.Afero) log.Logger {
 
 	fullPathCaller := pathCaller(6)
-	var stdoutLogger log.Logger
+	var stdoutLogger log.Logger //nolint:gosimple
 	stdoutLogger = withFormat(viper.GetString("log-format"), os.Stdout)
 	stdoutLogger = log.With(stdoutLogger, "ts", log.DefaultTimestampUTC)
 	stdoutLogger = log.With(stdoutLogger, "caller", fullPathCaller)

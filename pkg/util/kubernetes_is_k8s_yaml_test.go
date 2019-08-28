@@ -62,11 +62,10 @@ func TestIsK8sYaml(t *testing.T) {
 		path     string
 	}
 	tests := []struct {
-		name     string
-		basePath string
-		files    []file
-		target   string
-		want     bool
+		name   string
+		files  []file
+		target string
+		want   bool
 	}{
 		{
 			name:   "file does not exist",

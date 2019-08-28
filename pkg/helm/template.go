@@ -185,7 +185,7 @@ func (t *templateCmd) run(cmd *cobra.Command, args []string) error {
 			Namespace: t.namespace,
 			Info:      &release.Info{LastDeployed: timeconv.Timestamp(time.Now())},
 		}
-		printRelease(os.Stdout, rel)
+		_ = printRelease(os.Stdout, rel)
 	}
 
 	listManifests := manifest.SplitManifests(renderedTemplates)

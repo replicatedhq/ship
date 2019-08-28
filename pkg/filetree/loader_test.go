@@ -100,7 +100,9 @@ func TestAferoLoader(t *testing.T) {
 			eq := equalTrees(*tree, *test.Expect)
 
 			expectTree, err := json.Marshal(test.Expect)
+			req.NoError(err)
 			actualTree, err := json.Marshal(tree)
+			req.NoError(err)
 			req.True(eq, "%s\n%s", string(expectTree), string(actualTree))
 		})
 	}
@@ -110,10 +112,7 @@ func equalTrees(node Node, expectNode Node) bool {
 	treesAreEqual := true
 
 	if len(node.Children) == 0 && len(expectNode.Children) == 0 {
-		if node.Name == expectNode.Name {
-			return true
-		}
-		return false
+		return node.Name == expectNode.Name
 	}
 	if len(node.Children) != len(expectNode.Children) {
 		return false

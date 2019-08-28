@@ -22,7 +22,7 @@ func RootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			_ = cmd.Help()
 			os.Exit(1)
 		},
 		// I think its okay to use real OS filesystem commands instead of afero here,
@@ -88,8 +88,8 @@ func RootCmd() *cobra.Command {
 	cmd.AddCommand(App())
 	cmd.AddCommand(Version())
 
-	viper.BindPFlags(cmd.Flags())
-	viper.BindPFlags(cmd.PersistentFlags())
+	_ = viper.BindPFlags(cmd.Flags())
+	_ = viper.BindPFlags(cmd.PersistentFlags())
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	return cmd
