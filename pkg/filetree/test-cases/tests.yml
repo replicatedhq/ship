@@ -21,7 +21,7 @@
   touch:
     - foo.txt
   read: foo.txt
-  expectErr: 'read dir "foo.txt": fdopendir: not a directory'
+  expectErr: 'read dir "foo.txt": .*: not a directory'
 
 - name: read single file
   touch:
