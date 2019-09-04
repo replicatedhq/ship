@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+
+	"go.uber.org/dig/internal/dot"
 )
 
 // The result interface represents a result produced by a constructor.
@@ -31,48 +33,45 @@ import (
 // The following implementations exist:
 //   resultList    All values returned by the constructor.
 //   resultSingle  A single value produced by a constructor.
-//   resultError   An error returned by the constructor.
 //   resultObject  dig.Out struct where each field in the struct can be
 //                 another result.
 //   resultGrouped A value produced by a constructor that is part of a value
 //                 group.
 type result interface {
 	// Extracts the values for this result from the provided value and
-	// stores them into the provided resultReceiver.
+	// stores them into the provided containerWriter.
 	//
 	// This MAY panic if the result does not consume a single value.
-	Extract(resultReceiver, reflect.Value)
-}
+	Extract(containerWriter, reflect.Value)
 
-// resultReceiver receives the values or failures produced by constructors.
-type resultReceiver interface {
-	// Notifies the receiver that the constructor failed with the given error.
-	SubmitError(error)
-
-	// Submits a new value to the receiver.
-	SubmitValue(name string, t reflect.Type, v reflect.Value)
-
-	// Submits a new value to a value group.
-	SubmitGroupValue(group string, t reflect.Type, v reflect.Value)
+	// DotResult returns a slice of dot.Result(s).
+	DotResult() []*dot.Result
 }
 
 var (
 	_ result = resultSingle{}
-	_ result = resultError{}
 	_ result = resultObject{}
 	_ result = resultList{}
 	_ result = resultGrouped{}
 )
 
+type resultOptions struct {
+	// If set, this is the name of the associated result value.
+	//
+	// For Result Objects, name:".." tags on fields override this.
+	Name  string
+	Group string
+}
+
 // newResult builds a result from the given type.
-func newResult(t reflect.Type) (result, error) {
+func newResult(t reflect.Type, opts resultOptions) (result, error) {
 	switch {
 	case IsIn(t) || (t.Kind() == reflect.Ptr && IsIn(t.Elem())) || embedsType(t, _inPtrType):
 		return nil, fmt.Errorf("cannot provide parameter objects: %v embeds a dig.In", t)
 	case isError(t):
-		return resultError{}, nil
+		return nil, fmt.Errorf("cannot return an error here, return it from the constructor instead")
 	case IsOut(t):
-		return newResultObject(t)
+		return newResultObject(t, opts)
 	case embedsType(t, _outPtrType):
 		return nil, fmt.Errorf(
 			"cannot build a result object by embedding *dig.Out, embed dig.Out instead: "+
@@ -81,8 +80,10 @@ func newResult(t reflect.Type) (result, error) {
 		return nil, fmt.Errorf(
 			"cannot return a pointer to a result object, use a value instead: "+
 				"%v is a pointer to a struct that embeds dig.Out", t)
+	case len(opts.Group) > 0:
+		return resultGrouped{Type: t, Group: opts.Group}, nil
 	default:
-		return resultSingle{Type: t}, nil
+		return resultSingle{Type: t, Name: opts.Name}, nil
 	}
 }
 
@@ -133,7 +134,7 @@ func walkResult(r result, v resultVisitor) {
 	}
 
 	switch res := r.(type) {
-	case resultSingle, resultError, resultGrouped:
+	case resultSingle, resultGrouped:
 		// No sub-results
 	case resultObject:
 		w := v
@@ -163,45 +164,69 @@ type resultList struct {
 	ctype reflect.Type
 
 	Results []result
+
+	// For each item at index i returned by the constructor, resultIndexes[i]
+	// is the index in .Results for the corresponding result object.
+	// resultIndexes[i] is -1 for errors returned by constructors.
+	resultIndexes []int
 }
 
-func newResultList(ctype reflect.Type) (resultList, error) {
+func (rl resultList) DotResult() []*dot.Result {
+	var types []*dot.Result
+	for _, result := range rl.Results {
+		types = append(types, result.DotResult()...)
+	}
+	return types
+}
+
+func newResultList(ctype reflect.Type, opts resultOptions) (resultList, error) {
 	rl := resultList{
-		ctype:   ctype,
-		Results: make([]result, ctype.NumOut()),
+		ctype:         ctype,
+		Results:       make([]result, 0, ctype.NumOut()),
+		resultIndexes: make([]int, ctype.NumOut()),
 	}
 
+	resultIdx := 0
 	for i := 0; i < ctype.NumOut(); i++ {
-		r, err := newResult(ctype.Out(i))
+		t := ctype.Out(i)
+		if isError(t) {
+			rl.resultIndexes[i] = -1
+			continue
+		}
+
+		r, err := newResult(t, opts)
 		if err != nil {
 			return rl, errWrapf(err, "bad result %d", i+1)
 		}
-		rl.Results[i] = r
+
+		rl.Results = append(rl.Results, r)
+		rl.resultIndexes[i] = resultIdx
+		resultIdx++
 	}
 
 	return rl, nil
 }
 
-func (resultList) Extract(resultReceiver, reflect.Value) {
+func (resultList) Extract(containerWriter, reflect.Value) {
 	panic("It looks like you have found a bug in dig. " +
 		"Please file an issue at https://github.com/uber-go/dig/issues/ " +
 		"and provide the following message: " +
 		"resultList.Extract() must never be called")
 }
 
-func (rl resultList) ExtractList(rr resultReceiver, values []reflect.Value) {
-	for i, r := range rl.Results {
-		r.Extract(rr, values[i])
-	}
-}
+func (rl resultList) ExtractList(cw containerWriter, values []reflect.Value) error {
+	for i, v := range values {
+		if resultIdx := rl.resultIndexes[i]; resultIdx >= 0 {
+			rl.Results[resultIdx].Extract(cw, v)
+			continue
+		}
 
-// resultError is an error returned by a constructor.
-type resultError struct{}
-
-func (resultError) Extract(rr resultReceiver, v reflect.Value) {
-	if err, _ := v.Interface().(error); err != nil {
-		rr.SubmitError(err)
+		if err, _ := v.Interface().(error); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 // resultSingle is an explicit value produced by a constructor, optionally
@@ -213,8 +238,19 @@ type resultSingle struct {
 	Type reflect.Type
 }
 
-func (rs resultSingle) Extract(rr resultReceiver, v reflect.Value) {
-	rr.SubmitValue(rs.Name, rs.Type, v)
+func (rs resultSingle) DotResult() []*dot.Result {
+	return []*dot.Result{
+		{
+			Node: &dot.Node{
+				Type: rs.Type,
+				Name: rs.Name,
+			},
+		},
+	}
+}
+
+func (rs resultSingle) Extract(cw containerWriter, v reflect.Value) {
+	cw.setValue(rs.Name, rs.Type, v)
 }
 
 // resultObject is a dig.Out struct where each field is another result.
@@ -226,8 +262,25 @@ type resultObject struct {
 	Fields []resultObjectField
 }
 
-func newResultObject(t reflect.Type) (resultObject, error) {
+func (ro resultObject) DotResult() []*dot.Result {
+	var types []*dot.Result
+	for _, field := range ro.Fields {
+		types = append(types, field.DotResult()...)
+	}
+	return types
+}
+
+func newResultObject(t reflect.Type, opts resultOptions) (resultObject, error) {
 	ro := resultObject{Type: t}
+	if len(opts.Name) > 0 {
+		return ro, fmt.Errorf(
+			"cannot specify a name for result objects: %v embeds dig.Out", t)
+	}
+
+	if len(opts.Group) > 0 {
+		return ro, fmt.Errorf(
+			"cannot specify a group for result objects: %v embeds dig.Out", t)
+	}
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -236,7 +289,7 @@ func newResultObject(t reflect.Type) (resultObject, error) {
 			continue
 		}
 
-		rof, err := newResultObjectField(i, f)
+		rof, err := newResultObjectField(i, f, opts)
 		if err != nil {
 			return ro, errWrapf(err, "bad field %q of %v", f.Name, t)
 		}
@@ -246,9 +299,9 @@ func newResultObject(t reflect.Type) (resultObject, error) {
 	return ro, nil
 }
 
-func (ro resultObject) Extract(rr resultReceiver, v reflect.Value) {
+func (ro resultObject) Extract(cw containerWriter, v reflect.Value) {
 	for _, f := range ro.Fields {
-		f.Result.Extract(rr, v.Field(f.FieldIndex))
+		f.Result.Extract(cw, v.Field(f.FieldIndex))
 	}
 }
 
@@ -267,9 +320,13 @@ type resultObjectField struct {
 	Result result
 }
 
-// newResultObjectField(i, f) builds a resultObjectField from the field f at
-// index i.
-func newResultObjectField(idx int, f reflect.StructField) (resultObjectField, error) {
+func (rof resultObjectField) DotResult() []*dot.Result {
+	return rof.Result.DotResult()
+}
+
+// newResultObjectField(i, f, opts) builds a resultObjectField from the field
+// f at index i.
+func newResultObjectField(idx int, f reflect.StructField, opts resultOptions) (resultObjectField, error) {
 	rof := resultObjectField{
 		FieldName:  f.Name,
 		FieldIndex: idx,
@@ -281,12 +338,6 @@ func newResultObjectField(idx int, f reflect.StructField) (resultObjectField, er
 		return rof, fmt.Errorf(
 			"unexported fields not allowed in dig.Out, did you mean to export %q (%v)?", f.Name, f.Type)
 
-	case isError(f.Type):
-		return rof, fmt.Errorf(
-			"cannot return errors from dig.Out, return it from the constructor instead: "+
-				"field %q (%v) is an error field",
-			f.Name, f.Type)
-
 	case f.Tag.Get(_groupTag) != "":
 		var err error
 		r, err = newResultGrouped(f)
@@ -296,16 +347,14 @@ func newResultObjectField(idx int, f reflect.StructField) (resultObjectField, er
 
 	default:
 		var err error
-		r, err = newResult(f.Type)
+		if name := f.Tag.Get(_nameTag); len(name) > 0 {
+			// can modify in-place because options are passed-by-value.
+			opts.Name = name
+		}
+		r, err = newResult(f.Type, opts)
 		if err != nil {
 			return rof, err
 		}
-	}
-
-	if rs, ok := r.(resultSingle); ok {
-		// Field tags apply only if the result is "simple"
-		rs.Name = f.Tag.Get(_nameTag)
-		r = rs
 	}
 
 	rof.Result = r
@@ -322,6 +371,17 @@ type resultGrouped struct {
 
 	// Type of value produced.
 	Type reflect.Type
+}
+
+func (rt resultGrouped) DotResult() []*dot.Result {
+	return []*dot.Result{
+		{
+			Node: &dot.Node{
+				Type:  rt.Type,
+				Group: rt.Group,
+			},
+		},
+	}
 }
 
 // newResultGrouped(f) builds a new resultGrouped from the provided field.
@@ -341,6 +401,6 @@ func newResultGrouped(f reflect.StructField) (resultGrouped, error) {
 	return rg, nil
 }
 
-func (rt resultGrouped) Extract(rr resultReceiver, v reflect.Value) {
-	rr.SubmitGroupValue(rt.Group, rt.Type, v)
+func (rt resultGrouped) Extract(cw containerWriter, v reflect.Value) {
+	cw.submitGroupedValue(rt.Group, rt.Type, v)
 }

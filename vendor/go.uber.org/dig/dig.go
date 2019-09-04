@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"go.uber.org/dig/internal/digreflect"
+	"go.uber.org/dig/internal/dot"
 )
 
 const (
@@ -57,10 +59,72 @@ type optionFunc func(*Container)
 
 func (f optionFunc) applyOption(c *Container) { f(c) }
 
-// A ProvideOption modifies the default behavior of Provide. It's included for
-// future functionality; currently, there are no concrete implementations.
+type provideOptions struct {
+	Name  string
+	Group string
+}
+
+func (o *provideOptions) Validate() error {
+	if len(o.Group) > 0 && len(o.Name) > 0 {
+		return fmt.Errorf(
+			"cannot use named values with value groups: name:%q provided with group:%q", o.Name, o.Group)
+	}
+
+	// Names must be representable inside a backquoted string. The only
+	// limitation for raw string literals as per
+	// https://golang.org/ref/spec#raw_string_lit is that they cannot contain
+	// backquotes.
+	if strings.ContainsRune(o.Name, '`') {
+		return fmt.Errorf("invalid dig.Name(%q): names cannot contain backquotes", o.Name)
+	}
+	if strings.ContainsRune(o.Group, '`') {
+		return fmt.Errorf("invalid dig.Group(%q): group names cannot contain backquotes", o.Group)
+	}
+	return nil
+}
+
+// A ProvideOption modifies the default behavior of Provide.
 type ProvideOption interface {
-	unimplemented()
+	applyProvideOption(*provideOptions)
+}
+
+type provideOptionFunc func(*provideOptions)
+
+func (f provideOptionFunc) applyProvideOption(opts *provideOptions) { f(opts) }
+
+// Name is a ProvideOption that specifies that all values produced by a
+// constructor should have the given name. See also the package documentation
+// about Named Values.
+//
+// Given,
+//
+//   func NewReadOnlyConnection(...) (*Connection, error)
+//   func NewReadWriteConnection(...) (*Connection, error)
+//
+// The following will provide two connections to the container: one under the
+// name "ro" and the other under the name "rw".
+//
+//   c.Provide(NewReadOnlyConnection, dig.Name("ro"))
+//   c.Provide(NewReadWriteConnection, dig.Name("rw"))
+//
+// This option cannot be provided for constructors which produce result
+// objects.
+func Name(name string) ProvideOption {
+	return provideOptionFunc(func(opts *provideOptions) {
+		opts.Name = name
+	})
+}
+
+// Group is a ProvideOption that specifies that all values produced by a
+// constructor should be added to the specified group. See also the package
+// documentation about Value Groups.
+//
+// This option cannot be provided for constructors which produce result
+// objects.
+func Group(group string) ProvideOption {
+	return provideOptionFunc(func(opts *provideOptions) {
+		opts.Group = group
+	})
 }
 
 // An InvokeOption modifies the default behavior of Invoke. It's included for
@@ -75,6 +139,9 @@ type Container struct {
 	// key.
 	providers map[key][]*node
 
+	// All nodes in the container.
+	nodes []*node
+
 	// Values that have already been generated in the container.
 	values map[key]reflect.Value
 
@@ -83,6 +150,75 @@ type Container struct {
 
 	// Source of randomness.
 	rand *rand.Rand
+
+	// Flag indicating whether the graph has been checked for cycles.
+	isVerifiedAcyclic bool
+
+	// Defer acyclic check on provide until Invoke.
+	deferAcyclicVerification bool
+}
+
+// containerWriter provides write access to the Container's underlying data
+// store.
+type containerWriter interface {
+	// setValue sets the value with the given name and type in the container.
+	// If a value with the same name and type already exists, it will be
+	// overwritten.
+	setValue(name string, t reflect.Type, v reflect.Value)
+
+	// submitGroupedValue submits a value to the value group with the provided
+	// name.
+	submitGroupedValue(name string, t reflect.Type, v reflect.Value)
+}
+
+// containerStore provides access to the Container's underlying data store.
+type containerStore interface {
+	containerWriter
+
+	// Returns a slice containing all known types.
+	knownTypes() []reflect.Type
+
+	// Retrieves the value with the provided name and type, if any.
+	getValue(name string, t reflect.Type) (v reflect.Value, ok bool)
+
+	// Retrieves all values for the provided group and type.
+	//
+	// The order in which the values are returned is undefined.
+	getValueGroup(name string, t reflect.Type) []reflect.Value
+
+	// Returns the providers that can produce a value with the given name and
+	// type.
+	getValueProviders(name string, t reflect.Type) []provider
+
+	// Returns the providers that can produce values for the given group and
+	// type.
+	getGroupProviders(name string, t reflect.Type) []provider
+
+	createGraph() *dot.Graph
+}
+
+// provider encapsulates a user-provided constructor.
+type provider interface {
+	// ID is a unique numerical identifier for this provider.
+	ID() dot.CtorID
+
+	// Location returns where this constructor was defined.
+	Location() *digreflect.Func
+
+	// ParamList returns information about the direct dependencies of this
+	// constructor.
+	ParamList() paramList
+
+	// ResultList returns information about the values produced by this
+	// constructor.
+	ResultList() resultList
+
+	// Calls the underlying constructor, reading values from the
+	// containerStore as needed.
+	//
+	// The values produced by this provider should be submitted into the
+	// containerStore.
+	Call(containerStore) error
 }
 
 // New constructs a Container.
@@ -100,6 +236,19 @@ func New(opts ...Option) *Container {
 	return c
 }
 
+// DeferAcyclicVerification is an Option to override the default behavior
+// of container.Provide, deferring the dependency graph validation to no longer
+// run after each call to container.Provide. The container will instead verify
+// the graph on first `Invoke`.
+//
+// Applications adding providers to a container in a tight loop may experience
+// performance improvements by initializing the container with this option.
+func DeferAcyclicVerification() Option {
+	return optionFunc(func(c *Container) {
+		c.deferAcyclicVerification = true
+	})
+}
+
 // Changes the source of randomness for the container.
 //
 // This will help provide determinism during tests.
@@ -107,6 +256,57 @@ func setRand(r *rand.Rand) Option {
 	return optionFunc(func(c *Container) {
 		c.rand = r
 	})
+}
+
+func (c *Container) knownTypes() []reflect.Type {
+	typeSet := make(map[reflect.Type]struct{}, len(c.providers))
+	for k := range c.providers {
+		typeSet[k.t] = struct{}{}
+	}
+
+	types := make([]reflect.Type, 0, len(typeSet))
+	for t := range typeSet {
+		types = append(types, t)
+	}
+	sort.Sort(byTypeName(types))
+	return types
+}
+
+func (c *Container) getValue(name string, t reflect.Type) (v reflect.Value, ok bool) {
+	v, ok = c.values[key{name: name, t: t}]
+	return
+}
+
+func (c *Container) setValue(name string, t reflect.Type, v reflect.Value) {
+	c.values[key{name: name, t: t}] = v
+}
+
+func (c *Container) getValueGroup(name string, t reflect.Type) []reflect.Value {
+	items := c.groups[key{group: name, t: t}]
+	// shuffle the list so users don't rely on the ordering of grouped values
+	return shuffledCopy(c.rand, items)
+}
+
+func (c *Container) submitGroupedValue(name string, t reflect.Type, v reflect.Value) {
+	k := key{group: name, t: t}
+	c.groups[k] = append(c.groups[k], v)
+}
+
+func (c *Container) getValueProviders(name string, t reflect.Type) []provider {
+	return c.getProviders(key{name: name, t: t})
+}
+
+func (c *Container) getGroupProviders(name string, t reflect.Type) []provider {
+	return c.getProviders(key{group: name, t: t})
+}
+
+func (c *Container) getProviders(k key) []provider {
+	nodes := c.providers[k]
+	providers := make([]provider, len(nodes))
+	for i, n := range nodes {
+		providers[i] = n
+	}
+	return providers
 }
 
 // Provide teaches the container how to build values of one or more types and
@@ -133,7 +333,16 @@ func (c *Container) Provide(constructor interface{}, opts ...ProvideOption) erro
 	if ctype.Kind() != reflect.Func {
 		return fmt.Errorf("must provide constructor function, got %v (type %v)", constructor, ctype)
 	}
-	if err := c.provide(constructor); err != nil {
+
+	var options provideOptions
+	for _, o := range opts {
+		o.applyProvideOption(&options)
+	}
+	if err := options.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.provide(constructor, options); err != nil {
 		return errProvide{
 			Func:   digreflect.InspectFunc(constructor),
 			Reason: err,
@@ -165,7 +374,16 @@ func (c *Container) Invoke(function interface{}, opts ...InvokeOption) error {
 	}
 
 	if err := shallowCheckDependencies(c, pl); err != nil {
-		return errMissingDependencies{Func: digreflect.InspectFunc(function), Reason: err}
+		return errMissingDependencies{
+			Func:   digreflect.InspectFunc(function),
+			Reason: err,
+		}
+	}
+
+	if !c.isVerifiedAcyclic {
+		if err := c.verifyAcyclic(); err != nil {
+			return err
+		}
 	}
 
 	args, err := pl.BuildList(c)
@@ -188,8 +406,26 @@ func (c *Container) Invoke(function interface{}, opts ...InvokeOption) error {
 	return nil
 }
 
-func (c *Container) provide(ctor interface{}) error {
-	n, err := newNode(ctor)
+func (c *Container) verifyAcyclic() error {
+	visited := make(map[key]struct{})
+	for _, n := range c.nodes {
+		if err := detectCycles(n, c, nil /* path */, visited); err != nil {
+			return errWrapf(err, "cycle detected in dependency graph")
+		}
+	}
+
+	c.isVerifiedAcyclic = true
+	return nil
+}
+
+func (c *Container) provide(ctor interface{}, opts provideOptions) error {
+	n, err := newNode(
+		ctor,
+		nodeOptions{
+			ResultName:  opts.Name,
+			ResultGroup: opts.Group,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -205,13 +441,21 @@ func (c *Container) provide(ctor interface{}) error {
 	}
 
 	for k := range keys {
-		oldProducers := c.providers[k]
-		c.providers[k] = append(oldProducers, n)
+		c.isVerifiedAcyclic = false
+		oldProviders := c.providers[k]
+		c.providers[k] = append(c.providers[k], n)
+
+		if c.deferAcyclicVerification {
+			continue
+		}
 		if err := verifyAcyclic(c, n, k); err != nil {
-			c.providers[k] = oldProducers
+			c.providers[k] = oldProviders
 			return err
 		}
+		c.isVerifiedAcyclic = true
 	}
+
+	c.nodes = append(c.nodes, n)
 
 	return nil
 }
@@ -220,7 +464,7 @@ func (c *Container) provide(ctor interface{}) error {
 func (c *Container) findAndValidateResults(n *node) (map[key]struct{}, error) {
 	var err error
 	keyPaths := make(map[key]string)
-	walkResult(n.Results, connectionVisitor{
+	walkResult(n.ResultList(), connectionVisitor{
 		c:        c,
 		n:        n,
 		err:      &err,
@@ -304,7 +548,7 @@ func (cv connectionVisitor) Visit(res result) resultVisitor {
 		if ps := cv.c.providers[k]; len(ps) > 0 {
 			cons := make([]string, len(ps))
 			for i, p := range ps {
-				cons[i] = fmt.Sprint(p.Func)
+				cons[i] = fmt.Sprint(p.Location())
 			}
 
 			*cv.err = fmt.Errorf(
@@ -335,64 +579,94 @@ func (cv connectionVisitor) Visit(res result) resultVisitor {
 type node struct {
 	ctor  interface{}
 	ctype reflect.Type
-	Func  *digreflect.Func
+
+	// Location where this function was defined.
+	location *digreflect.Func
+
+	// id uniquely identifies the constructor that produces a node.
+	id dot.CtorID
 
 	// Whether the constructor owned by this node was already called.
 	called bool
 
 	// Type information about constructor parameters.
-	Params paramList
+	paramList paramList
 
 	// Type information about constructor results.
-	Results resultList
+	resultList resultList
 }
 
-func newNode(ctor interface{}) (*node, error) {
-	ctype := reflect.TypeOf(ctor)
+type nodeOptions struct {
+	// If specified, all values produced by this node have the provided name
+	// or belong to the specified value group
+	ResultName  string
+	ResultGroup string
+}
+
+func newNode(ctor interface{}, opts nodeOptions) (*node, error) {
+	cval := reflect.ValueOf(ctor)
+	ctype := cval.Type()
+	cptr := cval.Pointer()
 
 	params, err := newParamList(ctype)
 	if err != nil {
 		return nil, err
 	}
 
-	results, err := newResultList(ctype)
+	results, err := newResultList(
+		ctype,
+		resultOptions{
+			Name:  opts.ResultName,
+			Group: opts.ResultGroup,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &node{
-		ctor:    ctor,
-		ctype:   ctype,
-		Func:    digreflect.InspectFunc(ctor),
-		Params:  params,
-		Results: results,
+		ctor:       ctor,
+		ctype:      ctype,
+		location:   digreflect.InspectFunc(ctor),
+		id:         dot.CtorID(cptr),
+		paramList:  params,
+		resultList: results,
 	}, err
 }
 
+func (n *node) Location() *digreflect.Func { return n.location }
+func (n *node) ParamList() paramList       { return n.paramList }
+func (n *node) ResultList() resultList     { return n.resultList }
+func (n *node) ID() dot.CtorID             { return n.id }
+
 // Call calls this node's constructor if it hasn't already been called and
 // injects any values produced by it into the provided container.
-func (n *node) Call(c *Container) error {
+func (n *node) Call(c containerStore) error {
 	if n.called {
 		return nil
 	}
 
-	if err := shallowCheckDependencies(c, n.Params); err != nil {
-		return errMissingDependencies{Func: n.Func, Reason: err}
+	if err := shallowCheckDependencies(c, n.paramList); err != nil {
+		return errMissingDependencies{
+			Func:   n.location,
+			Reason: err,
+		}
 	}
 
-	args, err := n.Params.BuildList(c)
+	args, err := n.paramList.BuildList(c)
 	if err != nil {
-		return errArgumentsFailed{Func: n.Func, Reason: err}
+		return errArgumentsFailed{
+			Func:   n.location,
+			Reason: err,
+		}
 	}
 
-	receiver := newStagingReceiver()
+	receiver := newStagingContainerWriter()
 	results := reflect.ValueOf(n.ctor).Call(args)
-	n.Results.ExtractList(receiver, results)
-
-	if err := receiver.Commit(c); err != nil {
-		return errConstructorFailed{Func: n.Func, Reason: err}
+	if err := n.resultList.ExtractList(receiver, results); err != nil {
+		return errConstructorFailed{Func: n.location, Reason: err}
 	}
-
+	receiver.Commit(c)
 	n.called = true
 	return nil
 }
@@ -416,17 +690,18 @@ func isFieldOptional(f reflect.StructField) (bool, error) {
 
 // Checks that all direct dependencies of the provided param are present in
 // the container. Returns an error if not.
-func shallowCheckDependencies(c *Container, p param) error {
+func shallowCheckDependencies(c containerStore, p param) error {
 	var missing errMissingManyTypes
+	var addMissingNodes []*dot.Param
 	walkParam(p, paramVisitorFunc(func(p param) bool {
 		ps, ok := p.(paramSingle)
 		if !ok {
 			return true
 		}
 
-		k := key{name: ps.Name, t: ps.Type}
-		if ns := c.providers[k]; len(ns) == 0 && !ps.Optional {
-			missing = append(missing, newErrMissingType(c, k))
+		if ns := c.getValueProviders(ps.Name, ps.Type); len(ns) == 0 && !ps.Optional {
+			missing = append(missing, newErrMissingType(c, key{name: ps.Name, t: ps.Type}))
+			addMissingNodes = append(addMissingNodes, ps.DotParam()...)
 		}
 
 		return true
@@ -438,50 +713,62 @@ func shallowCheckDependencies(c *Container, p param) error {
 	return nil
 }
 
-type stagingReceiver struct {
-	err    error
+// stagingContainerWriter is a containerWriter that records the changes that
+// would be made to a containerWriter and defers them until Commit is called.
+type stagingContainerWriter struct {
 	values map[key]reflect.Value
 	groups map[key][]reflect.Value
 }
 
-func newStagingReceiver() *stagingReceiver {
-	return &stagingReceiver{
+var _ containerWriter = (*stagingContainerWriter)(nil)
+
+func newStagingContainerWriter() *stagingContainerWriter {
+	return &stagingContainerWriter{
 		values: make(map[key]reflect.Value),
 		groups: make(map[key][]reflect.Value),
 	}
 }
 
-func (sr *stagingReceiver) SubmitError(err error) {
-	// record failure only if we haven't already failed
-	if sr.err == nil {
-		sr.err = err
-	}
-}
-
-func (sr *stagingReceiver) SubmitValue(name string, t reflect.Type, v reflect.Value) {
+func (sr *stagingContainerWriter) setValue(name string, t reflect.Type, v reflect.Value) {
 	sr.values[key{t: t, name: name}] = v
 }
 
-func (sr *stagingReceiver) SubmitGroupValue(group string, t reflect.Type, v reflect.Value) {
+func (sr *stagingContainerWriter) submitGroupedValue(group string, t reflect.Type, v reflect.Value) {
 	k := key{t: t, group: group}
 	sr.groups[k] = append(sr.groups[k], v)
 }
 
-// Commit commits the received results to the provided container.
-//
-// If the resultReceiver failed, no changes are committed to the container.
-func (sr *stagingReceiver) Commit(c *Container) error {
-	if sr.err != nil {
-		return sr.err
-	}
-
+// Commit commits the received results to the provided containerWriter.
+func (sr *stagingContainerWriter) Commit(cw containerWriter) {
 	for k, v := range sr.values {
-		c.values[k] = v
+		cw.setValue(k.name, k.t, v)
 	}
 
 	for k, vs := range sr.groups {
-		c.groups[k] = append(c.groups[k], vs...)
+		for _, v := range vs {
+			cw.submitGroupedValue(k.group, k.t, v)
+		}
 	}
+}
 
-	return nil
+type byTypeName []reflect.Type
+
+func (bs byTypeName) Len() int {
+	return len(bs)
+}
+
+func (bs byTypeName) Less(i int, j int) bool {
+	return fmt.Sprint(bs[i]) < fmt.Sprint(bs[j])
+}
+
+func (bs byTypeName) Swap(i int, j int) {
+	bs[i], bs[j] = bs[j], bs[i]
+}
+
+func shuffledCopy(rand *rand.Rand, items []reflect.Value) []reflect.Value {
+	newItems := make([]reflect.Value, len(items))
+	for i, j := range rand.Perm(len(items)) {
+		newItems[i] = items[j]
+	}
+	return newItems
 }

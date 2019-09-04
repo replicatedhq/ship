@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import (
 	"sort"
 
 	"go.uber.org/dig/internal/digreflect"
+	"go.uber.org/dig/internal/dot"
 )
 
 // Errors which know their underlying cause should implement this interface to
@@ -139,6 +140,7 @@ func (e errMissingDependencies) Error() string {
 type errParamSingleFailed struct {
 	Key    key
 	Reason error
+	CtorID dot.CtorID
 }
 
 func (e errParamSingleFailed) cause() error { return e.Reason }
@@ -147,17 +149,33 @@ func (e errParamSingleFailed) Error() string {
 	return fmt.Sprintf("failed to build %v: %v", e.Key, e.Reason)
 }
 
+func (e errParamSingleFailed) updateGraph(g *dot.Graph) {
+	failed := &dot.Result{
+		Node: &dot.Node{
+			Name:  e.Key.name,
+			Group: e.Key.group,
+			Type:  e.Key.t,
+		},
+	}
+	g.FailNodes([]*dot.Result{failed}, e.CtorID)
+}
+
 // errParamGroupFailed is returned when a value group cannot be built because
 // any of the values in the group failed to build.
 type errParamGroupFailed struct {
 	Key    key
 	Reason error
+	CtorID dot.CtorID
 }
 
 func (e errParamGroupFailed) cause() error { return e.Reason }
 
 func (e errParamGroupFailed) Error() string {
 	return fmt.Sprintf("could not build value group %v: %v", e.Key, e.Reason)
+}
+
+func (e errParamGroupFailed) updateGraph(g *dot.Graph) {
+	g.FailGroupNodes(e.Key.group, e.Key.t, e.CtorID)
 }
 
 // errMissingType is returned when a single value that was expected in the
@@ -170,7 +188,7 @@ type errMissingType struct {
 	suggestions []key
 }
 
-func newErrMissingType(c *Container, k key) errMissingType {
+func newErrMissingType(c containerStore, k key) errMissingType {
 	// Possible types we will look for in the container. We will always look
 	// for pointers to the requested type and some extras on a per-Kind basis.
 
@@ -180,19 +198,20 @@ func newErrMissingType(c *Container, k key) errMissingType {
 		suggestions = append(suggestions, k.t.Elem())
 	}
 
+	knownTypes := c.knownTypes()
 	if k.t.Kind() == reflect.Interface {
 		// Maybe we have an implementation of the interface.
-		for p := range c.providers {
-			if p.t.Implements(k.t) {
-				suggestions = append(suggestions, p.t)
+		for _, t := range knownTypes {
+			if t.Implements(k.t) {
+				suggestions = append(suggestions, t)
 			}
 		}
 	} else {
 		// Maybe we have an interface that this type implements.
-		for p := range c.providers {
-			if p.t.Kind() == reflect.Interface {
-				if k.t.Implements(p.t) {
-					suggestions = append(suggestions, p.t)
+		for _, t := range knownTypes {
+			if t.Kind() == reflect.Interface {
+				if k.t.Implements(t) {
+					suggestions = append(suggestions, t)
 				}
 			}
 		}
@@ -204,8 +223,8 @@ func newErrMissingType(c *Container, k key) errMissingType {
 
 	err := errMissingType{Key: k}
 	for _, t := range suggestions {
-		k.t = t
-		if len(c.providers[k]) > 0 {
+		if len(c.getValueProviders(k.name, t)) > 0 {
+			k.t = t
 			err.suggestions = append(err.suggestions, k)
 		}
 	}
@@ -285,16 +304,21 @@ func (e errMissingManyTypes) Error() string {
 	return b.String()
 }
 
-type byTypeName []reflect.Type
+func (e errMissingManyTypes) updateGraph(g *dot.Graph) {
+	missing := make([]*dot.Result, len(e))
 
-func (bs byTypeName) Len() int {
-	return len(bs)
+	for i, err := range e {
+		missing[i] = &dot.Result{
+			Node: &dot.Node{
+				Name:  err.Key.name,
+				Group: err.Key.group,
+				Type:  err.Key.t,
+			},
+		}
+	}
+	g.AddMissingNodes(missing)
 }
 
-func (bs byTypeName) Less(i int, j int) bool {
-	return fmt.Sprint(bs[i]) < fmt.Sprint(bs[j])
-}
-
-func (bs byTypeName) Swap(i int, j int) {
-	bs[i], bs[j] = bs[j], bs[i]
+type errVisualizer interface {
+	updateGraph(*dot.Graph)
 }

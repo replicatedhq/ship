@@ -32,15 +32,14 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/emicklei/go-restful v2.8.1+incompatible // indirect
-	github.com/emosbaugh/yaml v0.0.0-20181204005157-5e4a83743e09
+	github.com/emosbaugh/yaml v0.0.0-20190904220717-870a979afaf0
 	github.com/evanphx/json-patch v3.0.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
-	github.com/gin-contrib/sse v0.0.0-20170109093832-22d885f9ecc7 // indirect
 	github.com/gin-gonic/contrib v0.0.0-20180614032058-39cfb9727134
-	github.com/gin-gonic/gin v0.0.0-20170702092826-d459835d2b07
+	github.com/gin-gonic/gin v1.4.1-0.20190904042650-c3f7fc399a11
 	github.com/go-kit/kit v0.8.0
 	github.com/go-ksplit/ksplit v0.0.0-20190719193349-6df646615657
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa // indirect
@@ -50,13 +49,13 @@ require (
 	github.com/go-stack/stack v1.8.0
 	github.com/go-test/deep v1.0.1
 	github.com/gobuffalo/packr v1.30.1 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/mock v1.3.1
+	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
-	github.com/golangci/golangci-lint v1.17.1 // indirect
 	github.com/google/certificate-transparency-go v1.0.21 // indirect
 	github.com/google/go-github/v18 v18.0.0
 	github.com/google/go-querystring v1.0.0
-	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8 // indirect
@@ -72,8 +71,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da
 	github.com/jmoiron/sqlx v1.2.0 // indirect
-	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be // indirect
-	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
+	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.0.0-20180723221831-d5012789d665 // indirect
@@ -84,9 +82,6 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
-	github.com/mozilla-services/yaml v0.0.0-20180922153656-28ffe5d0cafb // indirect
 	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
 	github.com/onsi/ginkgo v1.6.0
 	github.com/onsi/gomega v1.4.2
@@ -110,18 +105,16 @@ require (
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	github.com/zclconf/go-cty v0.0.0-20181017232614-01c5aba823a6 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
-	go.uber.org/dig v1.3.0
+	go.uber.org/dig v1.7.0
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/oauth2 v0.0.0-20181120190819-8f65e3013eba
-	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
+	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
 	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20190828211409-a0cf054a4555 // indirect
+	golang.org/x/tools v0.0.0-20190904211325-a4fdb3a8b281 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
 	google.golang.org/grpc v1.21.0
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/laverya/yaml.v3 v3.0.0-beta3
