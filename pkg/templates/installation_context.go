@@ -35,12 +35,32 @@ func (ctx *InstallationContext) entitlementValue(name string) string {
 }
 
 func (ctx *InstallationContext) shipCustomerRelease() string {
+	restrictedMeta := ctx.Meta
+	restrictedMeta.ConfigSpec = ""
+	restrictedMeta.CollectSpec = ""
+	restrictedMeta.AnalyzeSpec = ""
+	restrictedMeta.GithubContents = nil
+	restrictedMeta.Images = nil
+
+	data, err := util.MarshalIndent(2, restrictedMeta)
+	if err != nil {
+		level.Error(ctx.Logger).Log("msg", "unable to marshal release meta", "err", err)
+		return ""
+	}
+	return string(data)
+}
+
+func (ctx *InstallationContext) shipCustomerReleaseFull() string {
 	data, err := util.MarshalIndent(2, ctx.Meta)
 	if err != nil {
 		level.Error(ctx.Logger).Log("msg", "unable to marshal release meta", "err", err)
 		return ""
 	}
 	return string(data)
+}
+
+func (ctx *InstallationContext) configSpec() string {
+	return ctx.Meta.ConfigSpec
 }
 
 func (ctx *InstallationContext) collectSpec() string {
@@ -53,11 +73,13 @@ func (ctx *InstallationContext) analyzeSpec() string {
 
 func (ctx *InstallationContext) FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"ShipCustomerRelease": ctx.shipCustomerRelease,
-		"EntitlementValue":    ctx.entitlementValue,
-		"LicenseFieldValue":   ctx.entitlementValue,
-		"CollectSpec":         ctx.collectSpec,
-		"AnalyzeSpec":         ctx.analyzeSpec,
+		"ShipCustomerRelease":     ctx.shipCustomerRelease,
+		"ShipCustomerReleaseFull": ctx.shipCustomerReleaseFull,
+		"EntitlementValue":        ctx.entitlementValue,
+		"LicenseFieldValue":       ctx.entitlementValue,
+		"ConfigSpec":              ctx.configSpec,
+		"CollectSpec":             ctx.collectSpec,
+		"AnalyzeSpec":             ctx.analyzeSpec,
 		"Installation": func(name string) string {
 			switch name {
 			case "state_file_path":
