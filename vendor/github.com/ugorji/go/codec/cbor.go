@@ -633,7 +633,7 @@ func (d *cborDecDriver) DecodeNaked() {
 		d.readNextBd()
 	}
 
-	n := d.d.naked()
+	n := d.d.n
 	var decodeFurther bool
 
 	switch d.bd {
@@ -649,7 +649,8 @@ func (d *cborDecDriver) DecodeNaked() {
 		n.v = valueTypeFloat
 		n.f = d.DecodeFloat64()
 	case cborBdIndefiniteBytes:
-		decNakedReadRawBytes(d, d.d, n, d.h.RawToString)
+		n.v = valueTypeBytes
+		n.l = d.DecodeBytes(nil, false)
 	case cborBdIndefiniteString:
 		n.v = valueTypeString
 		n.s = d.DecodeString()
@@ -673,7 +674,8 @@ func (d *cborDecDriver) DecodeNaked() {
 			n.v = valueTypeInt
 			n.i = d.DecodeInt64()
 		case d.bd >= cborBaseBytes && d.bd < cborBaseString:
-			decNakedReadRawBytes(d, d.d, n, d.h.RawToString)
+			n.v = valueTypeBytes
+			n.l = d.DecodeBytes(nil, false)
 		case d.bd >= cborBaseString && d.bd < cborBaseArray:
 			n.v = valueTypeString
 			n.s = d.DecodeString()

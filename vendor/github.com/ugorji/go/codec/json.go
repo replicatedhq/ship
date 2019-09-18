@@ -1211,7 +1211,7 @@ func (d *jsonDecDriver) bsToString() string {
 }
 
 func (d *jsonDecDriver) DecodeNaked() {
-	z := d.d.naked()
+	z := d.d.n
 	// var decodeFurther bool
 
 	if d.tok == 0 {

@@ -142,29 +142,6 @@ func (x *atomicRtidFnSlice) store(p []codecRtidFn) {
 }
 
 // --------------------------
-func (n *decNaked) ru() reflect.Value {
-	return reflect.ValueOf(&n.u).Elem()
-}
-func (n *decNaked) ri() reflect.Value {
-	return reflect.ValueOf(&n.i).Elem()
-}
-func (n *decNaked) rf() reflect.Value {
-	return reflect.ValueOf(&n.f).Elem()
-}
-func (n *decNaked) rl() reflect.Value {
-	return reflect.ValueOf(&n.l).Elem()
-}
-func (n *decNaked) rs() reflect.Value {
-	return reflect.ValueOf(&n.s).Elem()
-}
-func (n *decNaked) rt() reflect.Value {
-	return reflect.ValueOf(&n.t).Elem()
-}
-func (n *decNaked) rb() reflect.Value {
-	return reflect.ValueOf(&n.b).Elem()
-}
-
-// --------------------------
 func (d *Decoder) raw(f *codecFnInfo, rv reflect.Value) {
 	rv.SetBytes(d.rawBytes())
 }
@@ -248,12 +225,7 @@ func (e *Encoder) kTime(f *codecFnInfo, rv reflect.Value) {
 }
 
 func (e *Encoder) kString(f *codecFnInfo, rv reflect.Value) {
-	s := rv.String()
-	if e.h.StringToRaw {
-		e.e.EncodeStringBytesRaw(bytesView(s))
-	} else {
-		e.e.EncodeStringEnc(cUTF8, s)
-	}
+	e.e.EncodeStringEnc(cUTF8, rv.String())
 }
 
 func (e *Encoder) kFloat64(f *codecFnInfo, rv reflect.Value) {
