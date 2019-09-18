@@ -22,7 +22,7 @@
       "buildTime": "0001-01-01T00:00:00Z",
       "dependencies": {},
       "go": {
-        "version": "go1.12.7",
+        "version": "go1.13.0",
         "compiler": "gc",
         "os": "darwin",
         "arch": "amd64"

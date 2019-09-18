@@ -81,7 +81,7 @@ jobs:
             - ship/web/app/build
   build_binary:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     environment:
       GOCACHE: "/tmp/go/cache"
     working_directory: /go/src/github.com/replicatedhq/ship
@@ -169,7 +169,7 @@ jobs:
 
   test:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     environment:
       GOCACHE: "/tmp/go/cache"
     working_directory: /go/src/github.com/replicatedhq/ship
@@ -195,7 +195,7 @@ jobs:
 
   lint:
     docker:
-    - image: circleci/golang:1.12
+    - image: circleci/golang:1.13
     environment:
       GOCACHE: "/tmp/go/cache"
     working_directory: /go/src/github.com/replicatedhq/ship
@@ -217,7 +217,7 @@ jobs:
 
   pacts:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -226,7 +226,7 @@ jobs:
 
   pacts_publish:
     docker:
-    - image: circleci/golang:1.12
+    - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
     - checkout
@@ -235,7 +235,7 @@ jobs:
 
   windows_build_test:
     docker:
-      - image: golang:1.12
+      - image: golang:1.13
     environment:
       GOCACHE: "/tmp/go/cache"
     working_directory: /go/src/github.com/replicatedhq/ship
@@ -270,7 +270,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-base
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -310,7 +310,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -351,7 +351,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-init
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -391,7 +391,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-unfork
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -433,7 +433,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init-app
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -475,7 +475,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-update
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -550,7 +550,7 @@ jobs:
 
   deploy_unstable:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -574,7 +574,7 @@ jobs:
 
   deploy_integration:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -590,7 +590,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - checkout
@@ -621,7 +621,7 @@ jobs:
 
   is_upstream:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/replicatedhq/ship
     steps:
       - run: |
