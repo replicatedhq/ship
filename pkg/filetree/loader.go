@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/ship/pkg/state"
 	"github.com/spf13/afero"
-	"sigs.k8s.io/kustomize/k8sdeps/kunstruct"
-	"sigs.k8s.io/kustomize/pkg/resource"
+	"sigs.k8s.io/kustomize/api/k8sdeps/kunstruct"
+	"sigs.k8s.io/kustomize/api/resource"
 )
 
 const (

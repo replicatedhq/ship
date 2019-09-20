@@ -545,7 +545,7 @@ func TestResolver_SplitAllKustomize(t *testing.T) {
 					name: "/test/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 resources:
 - jaeger-deployment.yml
@@ -572,7 +572,7 @@ metadata:
 				{
 					name: "/test/kustomization.yaml",
 					data: `kind: should be preserved
-apiversion: should also be preserved
+apiVersion: should also be preserved
 resources:
 - jaeger-deployment.yml
 `,
@@ -604,7 +604,7 @@ metadata:
 					name: "/test/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 resources:
 - jaeger-deployment.yml
@@ -643,7 +643,7 @@ metadata:
 				{
 					name: "/test/kustomization.yaml",
 					data: `kind: should be preserved
-apiversion: should also be preserved
+apiVersion: should also be preserved
 resources:
 - Deployment-jaeger-collector.yaml
 - Deployment-jaeger-collector-two.yaml
@@ -690,7 +690,7 @@ metadata:
 					name: "/test/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another
@@ -730,7 +730,7 @@ metadata:
 					name: "/another/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 resources:
 - another-collector.yaml
@@ -756,7 +756,7 @@ metadata:
 				{
 					name: "/test/kustomization.yaml",
 					data: `kind: should be preserved
-apiversion: should also be preserved
+apiVersion: should also be preserved
 resources:
 - Deployment-jaeger-collector.yaml
 - Deployment-jaeger-collector-two.yaml
@@ -797,7 +797,7 @@ metadata:
 				{
 					name: "/another/kustomization.yaml",
 					data: `kind: should be preserved
-apiversion: should also be preserved
+apiVersion: should also be preserved
 resources:
 - another-collector.yaml
 `,
@@ -828,7 +828,7 @@ metadata:
 					name: "/test/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another
@@ -910,7 +910,7 @@ metadata:
 				{
 					name: "/test/kustomization.yaml",
 					data: `kind: should be preserved
-apiversion: should also be preserved
+apiVersion: should also be preserved
 resources:
 - Deployment-jaeger-collector.yaml
 - Deployment-jaeger-collector-two.yaml
@@ -950,8 +950,8 @@ metadata:
 				},
 				{
 					name: "/another/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - another-collector.yaml
 - subdir/Deployment-redis-collector-two.yaml
@@ -1070,7 +1070,7 @@ func TestRecursiveNormalizeCopyKustomize(t *testing.T) {
 					name: "/source/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another
@@ -1096,7 +1096,7 @@ this is another resource file
 					name: "/source/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another
@@ -1139,7 +1139,7 @@ this is another resource file
 					name: "/source/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another
@@ -1165,7 +1165,7 @@ this is another resource file
 					name: "/source/kustomization.yaml",
 					data: `
 kind: "should be preserved"
-apiversion: "should also be preserved"
+apiVersion: "should also be preserved"
 # a comment will not be preserved
 bases:
 - ../another

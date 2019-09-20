@@ -13,8 +13,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/api/types"
 )
 
 type testFile struct {
@@ -396,8 +395,8 @@ func TestKustomizer_resolveExistingKustomize(t *testing.T) {
 			original: []testFile{
 				{
 					path: "test/overlays/kustomization.yaml",
-					contents: `kind: ""
-apiversion: ""
+					contents: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../abc
 resources:
@@ -432,7 +431,8 @@ patchesStrategicMerge:
 						Resources:     map[string]string{"/myresource.yaml": "this is my resource"},
 						ExcludedBases: []string{"excludedBase"},
 						RawKustomize: types.Kustomization{
-							PatchesStrategicMerge: []patch.StrategicMerge{"mypatch.yaml"},
+							TypeMeta:              types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+							PatchesStrategicMerge: []types.PatchStrategicMerge{"mypatch.yaml"},
 							Resources:             []string{"myresource.yaml"},
 							Bases:                 []string{"../abc"},
 						},
@@ -445,8 +445,8 @@ patchesStrategicMerge:
 			original: []testFile{
 				{
 					path: "test/overlays/kustomization.yaml",
-					contents: `kind: ""
-apiversion: ""
+					contents: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../abc
 resources:
@@ -475,6 +475,7 @@ resources:
 						},
 						ExcludedBases: []string{},
 						RawKustomize: types.Kustomization{
+							TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
 							Resources: []string{
 								"myresource.yaml",
 								"myotherresource.yaml",

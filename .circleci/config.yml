@@ -283,6 +283,7 @@ jobs:
           tar -zxvf golang.tar.gz -C /tmp
           sudo rm -rf ${GOROOT}
           sudo mv /tmp/go ${GOROOT}
+      - run: GO111MODULE=on $GO mod vendor
       - run: $GO get github.com/onsi/ginkgo/ginkgo
       - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
       - run: sudo ./hack/get_run_deps.sh
@@ -323,6 +324,7 @@ jobs:
         tar -zxvf golang.tar.gz -C /tmp
         sudo rm -rf ${GOROOT}
         sudo mv /tmp/go ${GOROOT}
+    - run: GO111MODULE=on $GO mod vendor
     - run: $GO get github.com/onsi/ginkgo/ginkgo
     - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
     - run: sudo ./hack/get_run_deps.sh
@@ -364,6 +366,7 @@ jobs:
           tar -zxvf golang.tar.gz -C /tmp
           sudo rm -rf ${GOROOT}
           sudo mv /tmp/go ${GOROOT}
+      - run: GO111MODULE=on $GO mod vendor
       - run: $GO get github.com/onsi/ginkgo/ginkgo
       - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
       - run: sudo ./hack/get_run_deps.sh
@@ -404,6 +407,7 @@ jobs:
         tar -zxvf golang.tar.gz -C /tmp
         sudo rm -rf ${GOROOT}
         sudo mv /tmp/go ${GOROOT}
+    - run: GO111MODULE=on $GO mod vendor
     - run: $GO get github.com/onsi/ginkgo/ginkgo
     - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
     - run: sudo ./hack/get_run_deps.sh
@@ -446,6 +450,7 @@ jobs:
         tar -zxvf golang.tar.gz -C /tmp
         sudo rm -rf ${GOROOT}
         sudo mv /tmp/go ${GOROOT}
+    - run: GO111MODULE=on $GO mod vendor
     - run: $GO get github.com/onsi/ginkgo/ginkgo
     - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
     - run: sudo ./hack/get_run_deps.sh
@@ -488,6 +493,7 @@ jobs:
         tar -zxvf golang.tar.gz -C /tmp
         sudo rm -rf ${GOROOT}
         sudo mv /tmp/go ${GOROOT}
+    - run: GO111MODULE=on $GO mod vendor
     - run: $GO get github.com/onsi/ginkgo/ginkgo
     - run: GO111MODULE=off $GO get github.com/docker/distribution/cmd/registry
     - run: sudo ./hack/get_run_deps.sh

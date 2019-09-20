@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v3"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/api/types"
 )
 
 // this function is not perfect, and has known limitations. One of these is that it does not account for `\n---\n` in multiline strings.
@@ -52,7 +52,9 @@ func splitKustomizeDir(fs afero.Afero, path string) error {
 		return errors.Wrapf(err, "read kustomization yaml in %s", path)
 	}
 
-	kustomization := types.Kustomization{}
+	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	err = yaml.Unmarshal(kustomizeYaml, &kustomization)
 	if err != nil {
 		return errors.Wrapf(err, "unmarshal kustomization yaml from %s", path)
@@ -178,7 +180,9 @@ func splitYamlDir(fs afero.Afero, path string) error {
 
 // given a dir containing k8s yaml and no kustomization yaml, make a kustomization yaml containing all the k8s yaml as resources
 func generateKustomizationYaml(fs afero.Afero, path string) error {
-	kustomization := types.Kustomization{}
+	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	dirFiles := []string{}
 	err := fs.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -239,7 +243,9 @@ func RecursiveNormalizeCopyKustomize(fs afero.Afero, sourceDir, destDir string) 
 		return errors.Wrapf(err, "read kustomization in %s", sourceDir)
 	}
 
-	kustomization := types.Kustomization{}
+	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	err = yaml.Unmarshal(kustBytes, &kustomization)
 	if err != nil {
 		return errors.Wrapf(err, "parse kustomization in %s", sourceDir)

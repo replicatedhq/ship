@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/terraform"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/api/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"

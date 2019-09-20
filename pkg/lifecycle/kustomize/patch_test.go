@@ -9,9 +9,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v3"
-	"sigs.k8s.io/kustomize/pkg/gvk"
-	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	k8stypes "sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/api/resid"
+	k8stypes "sigs.k8s.io/kustomize/api/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -49,19 +48,20 @@ metadata:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
-				Bases: []string{"../../strawberry"},
-				PatchesJson6902: []kustomizepatch.Json6902{
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+				Bases:    []string{"../../strawberry"},
+				PatchesJson6902: []k8stypes.PatchJson6902{
 					{
 						Path: "chart-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "strawberry",
 						},
 					},
 					{
 						Path: "heritage-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "strawberry",
 						},
 					},
@@ -90,6 +90,7 @@ patchesJson6902:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
+				TypeMeta:        k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
 				Bases:           []string{"../../strawberry"},
 				PatchesJson6902: nil,
 			},
@@ -128,19 +129,20 @@ patchesJson6902:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
-				Bases: []string{"../../strawberry"},
-				PatchesJson6902: []kustomizepatch.Json6902{
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+				Bases:    []string{"../../strawberry"},
+				PatchesJson6902: []k8stypes.PatchJson6902{
 					{
 						Path: "chart-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "strawberry",
 						},
 					},
 					{
 						Path: "heritage-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "strawberry",
 						},
 					},
@@ -166,12 +168,13 @@ metadata:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
-				Bases: []string{"../../pomegranate"},
-				PatchesJson6902: []kustomizepatch.Json6902{
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+				Bases:    []string{"../../pomegranate"},
+				PatchesJson6902: []k8stypes.PatchJson6902{
 					{
 						Path: "heritage-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "pomegranate",
 						},
 					},
@@ -197,12 +200,13 @@ metadata:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
-				Bases: []string{"../../apple"},
-				PatchesJson6902: []kustomizepatch.Json6902{
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+				Bases:    []string{"../../apple"},
+				PatchesJson6902: []k8stypes.PatchJson6902{
 					{
 						Path: "chart-patch.json",
-						Target: &kustomizepatch.Target{
-							Gvk:  gvk.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
+						Target: &k8stypes.PatchTarget{
+							Gvk:  resid.Gvk{Group: "apps", Kind: "Deployment", Version: "v1beta2"},
 							Name: "apple",
 						},
 					},
@@ -237,7 +241,8 @@ metadata:
 				},
 			},
 			expectKustomization: k8stypes.Kustomization{
-				Bases: []string{"../../banana"},
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+				Bases:    []string{"../../banana"},
 			},
 		},
 	}
@@ -268,7 +273,9 @@ metadata:
 			kustomizationB, err := mockFs.ReadFile(path.Join(constants.DefaultOverlaysPath, "kustomization.yaml"))
 			req.NoError(err)
 
-			kustomizationYaml := k8stypes.Kustomization{}
+			kustomizationYaml := k8stypes.Kustomization{
+				TypeMeta: k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
+			}
 			err = yaml.Unmarshal(kustomizationB, &kustomizationYaml)
 			req.NoError(err)
 

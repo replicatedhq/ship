@@ -9,9 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v3"
-	"sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/resid"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/api/resid"
+	"sigs.k8s.io/kustomize/api/types"
 )
 
 // calls ExcludeKubernetesResource for each excluded resource. Returns after the first error.
@@ -114,10 +113,10 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 		return errors.Wrapf(err, "get kustomization for %s", basePath)
 	}
 
-	newJSONPatches := []patch.Json6902{}
+	newJSONPatches := []types.PatchJson6902{}
 	for _, jsonPatch := range kustomization.PatchesJson6902 {
-		if excludedResource.Gvk().Equals(jsonPatch.Target.Gvk) {
-			if jsonPatch.Target.Name == excludedResource.Name() {
+		if excludedResource.Gvk.Equals(jsonPatch.Target.Gvk) {
+			if jsonPatch.Target.Name == excludedResource.Name {
 				// don't add to new patch list
 				continue
 			}
@@ -126,7 +125,7 @@ func ExcludeKubernetesPatch(fs afero.Afero, basePath string, excludedResource re
 	}
 	kustomization.PatchesJson6902 = newJSONPatches
 
-	newMergePatches := []patch.StrategicMerge{}
+	newMergePatches := []types.PatchStrategicMerge{}
 	for _, mergePatch := range kustomization.PatchesStrategicMerge {
 		matches, err := mergePatchMatches(fs, basePath, string(mergePatch), excludedResource)
 		if err != nil {
@@ -229,7 +228,9 @@ func getKustomization(fs afero.Afero, basePath string) (*types.Kustomization, er
 		return nil, errors.Wrapf(err, "read kustomization yaml in %s", basePath)
 	}
 
-	kustomization := types.Kustomization{}
+	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	err = yaml.Unmarshal(kustomizeYaml, &kustomization)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unmarshal kustomization yaml from %s", basePath)
