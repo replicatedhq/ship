@@ -1,5 +1,5 @@
-kind: ""
-apiversion: ""
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 #- config.yaml #this should be added by the update process
 - home-pvc.yaml

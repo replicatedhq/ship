@@ -13,8 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"sigs.k8s.io/kustomize/pkg/patch"
-	ktypes "sigs.k8s.io/kustomize/pkg/types"
+	ktypes "sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -104,13 +103,13 @@ func (l *Kustomizer) writePatches(
 	fs afero.Afero,
 	shipOverlay state.Overlay,
 	destDir string,
-) (relativePatchPaths []patch.StrategicMerge, err error) {
+) (relativePatchPaths []ktypes.PatchStrategicMerge, err error) {
 	patches, err := l.writeFileMap(fs, shipOverlay.Patches, destDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write file map to %s", destDir)
 	}
 	for _, p := range patches {
-		relativePatchPaths = append(relativePatchPaths, patch.StrategicMerge(p))
+		relativePatchPaths = append(relativePatchPaths, ktypes.PatchStrategicMerge(p))
 	}
 	return
 }
@@ -172,7 +171,7 @@ func (l *Kustomizer) writeFile(fs afero.Afero, name string, contents string) err
 
 func (l *Kustomizer) writeOverlay(
 	step api.Kustomize,
-	relativePatchPaths []patch.StrategicMerge,
+	relativePatchPaths []ktypes.PatchStrategicMerge,
 	relativeResourcePaths []string,
 	kustomization ktypes.Kustomization,
 ) error {
@@ -181,6 +180,7 @@ func (l *Kustomizer) writeOverlay(
 	if err != nil {
 		return err
 	}
+	kustomization.TypeMeta = ktypes.TypeMeta{Kind: ktypes.KustomizationKind, APIVersion: ktypes.KustomizationVersion}
 	kustomization.Bases = []string{basePath}
 	kustomization.PatchesStrategicMerge = relativePatchPaths
 	kustomization.Resources = relativeResourcePaths
@@ -213,7 +213,9 @@ func (l *Kustomizer) writeBase(base string) error {
 	}
 	shipOverlay := currentKustomize.Ship()
 
-	baseKustomization := ktypes.Kustomization{}
+	baseKustomization := ktypes.Kustomization{
+		TypeMeta: ktypes.TypeMeta{Kind: ktypes.KustomizationKind, APIVersion: ktypes.KustomizationVersion},
+	}
 	if err := l.FS.Walk(
 		base,
 		func(targetPath string, info os.FileInfo, err error) error {

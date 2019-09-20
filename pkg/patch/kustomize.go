@@ -6,10 +6,16 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"sigs.k8s.io/kustomize/k8sdeps"
-	"sigs.k8s.io/kustomize/pkg/fs"
-	"sigs.k8s.io/kustomize/pkg/loader"
-	"sigs.k8s.io/kustomize/pkg/target"
+	"sigs.k8s.io/kustomize/v3/k8sdeps/kunstruct"
+	"sigs.k8s.io/kustomize/v3/k8sdeps/transformer"
+	"sigs.k8s.io/kustomize/v3/pkg/fs"
+	"sigs.k8s.io/kustomize/v3/pkg/loader"
+	"sigs.k8s.io/kustomize/v3/pkg/plugins"
+	"sigs.k8s.io/kustomize/v3/pkg/resmap"
+	"sigs.k8s.io/kustomize/v3/pkg/resource"
+	"sigs.k8s.io/kustomize/v3/pkg/target"
+	"sigs.k8s.io/kustomize/v3/pkg/validators"
+	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 )
 
 func (p *ShipPatcher) RunKustomize(kustomizationPath string) ([]byte, error) {
@@ -29,14 +35,16 @@ func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizat
 		return err
 	}
 
-	ldr, err := loader.NewLoader(absPath, fSys)
+	lrc := loader.RestrictionRootOnly
+	ldr, err := loader.NewLoader(lrc, validators.MakeFakeValidator(), absPath, fSys)
 	if err != nil {
 		return errors.Wrap(err, "make loader")
 	}
+	// defer ldr.Cleanup()
 
-	k8sFactory := k8sdeps.NewFactory()
-
-	kt, err := target.NewKustTarget(ldr, k8sFactory.ResmapF, k8sFactory.TransformerF)
+	rf := resmap.NewFactory(resource.NewFactory(kunstruct.NewKunstructuredFactoryImpl()), transformer.NewFactoryImpl())
+	pc := plugins.DefaultPluginConfig()
+	kt, err := target.NewKustTarget(ldr, rf, transformer.NewFactoryImpl(), plugins.NewLoader(pc, rf))
 	if err != nil {
 		return errors.Wrap(err, "make customized kustomize target")
 	}
@@ -46,8 +54,13 @@ func (p *ShipPatcher) runKustomize(out io.Writer, fSys fs.FileSystem, kustomizat
 		return errors.Wrap(err, "make customized res map")
 	}
 
+	err = builtin.NewLegacyOrderTransformerPlugin().Transform(allResources)
+	if err != nil {
+		return errors.Wrap(err, "order res map")
+	}
+
 	// Output the objects.
-	res, err := allResources.EncodeAsYaml()
+	res, err := allResources.AsYaml()
 	if err != nil {
 		return errors.Wrap(err, "encode as yaml")
 	}

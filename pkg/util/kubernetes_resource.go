@@ -5,10 +5,10 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/kustomize/k8sdeps/kunstruct"
-	"sigs.k8s.io/kustomize/pkg/gvk"
-	"sigs.k8s.io/kustomize/pkg/resid"
-	"sigs.k8s.io/kustomize/pkg/resource"
+	"sigs.k8s.io/kustomize/v3/k8sdeps/kunstruct"
+	"sigs.k8s.io/kustomize/v3/pkg/gvk"
+	"sigs.k8s.io/kustomize/v3/pkg/resid"
+	"sigs.k8s.io/kustomize/v3/pkg/resource"
 )
 
 func NewKubernetesResource(in []byte) (*resource.Resource, error) {
@@ -37,7 +37,7 @@ func NewKubernetesResources(in []byte) ([]*resource.Resource, error) {
 
 func ResIDs(in []*resource.Resource) (generated []resid.ResId) {
 	for _, thisResource := range in {
-		generated = append(generated, thisResource.Id())
+		generated = append(generated, thisResource.CurId())
 	}
 	return
 }

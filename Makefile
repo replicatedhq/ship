@@ -14,8 +14,8 @@ DOCKER_REPO ?= replicated
 VERSION_PACKAGE = github.com/replicatedhq/ship/pkg/version
 VERSION ?=`git describe --tags`
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-HELMV = v2.14.1
-KUSTOMIZEV = v2.0.3
+HELMV = v2.14.3
+KUSTOMIZEV = v3.2.0
 TERRAFORMV = v0.11.14
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
@@ -250,6 +250,13 @@ deps:
 
 fmt: .state/lint-deps .state/fmt
 
+.state/vendor: $(SRC)
+	go mod vendor
+	@mkdir -p .state
+	@touch .state/vendor
+
+vendor: .state/vendor
+
 .state/vet: $(SRC)
 	go vet -mod vendor ./pkg/...
 	go vet -mod vendor ./cmd/...
@@ -304,10 +311,10 @@ race: lint .state/race
 	#the reduced parallelism here is to avoid hitting the memory limits - we consistently did so with two threads on a 4gb instance
 	go test -parallel 1 -p 1 -coverprofile=.state/coverage.out -mod vendor ./pkg/... ./integration
 
-citest: .state/coverage.out
+citest: .state/vendor .state/coverage.out
 
 .PHONY: cilint
-cilint: .state/vet .state/ineffassign .state/lint
+cilint: .state/vendor .state/vet .state/ineffassign .state/lint
 
 .state/cc-test-reporter:
 	@mkdir -p .state/
@@ -318,13 +325,13 @@ ci-upload-coverage: .state/coverage.out .state/cc-test-reporter
 	./.state/cc-test-reporter format-coverage -o .state/codeclimate/codeclimate.json -t gocov .state/coverage.out
 	./.state/cc-test-reporter upload-coverage -i .state/codeclimate/codeclimate.json
 
-build: fmt embed-ui-dev test bin/ship
+build: vendor fmt embed-ui-dev test bin/ship
 
-build-ci: ci-embed-ui bin/ship
+build-ci: vendor ci-embed-ui bin/ship
 
-build-ci-cypress: mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
+build-ci-cypress: venor mark-ui-gitignored pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
-build-minimal: build-ui pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
+build-minimal: vendor build-ui pkg/lifecycle/daemon/ui.bindatafs.go bin/ship
 
 bin/ship: $(FULLSRC)
 	go build \
@@ -335,7 +342,7 @@ bin/ship: $(FULLSRC)
 		./cmd/ship
 	@echo built bin/ship
 
-bin/ship.exe: $(SRC)
+bin/ship.exe: vendor $(SRC)
 	GOOS=windows go build \
 		-mod vendor \
 		${LDFLAGS} \

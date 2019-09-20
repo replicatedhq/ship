@@ -1,5 +1,5 @@
-kind: ""
-apiversion: ""
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - Deployment-jaeger-collector.yaml
 - Deployment-jaeger-query.yaml

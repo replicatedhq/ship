@@ -36,7 +36,7 @@ func TestUnfork(t *testing.T) {
 }
 
 var _ = Describe("ship unfork", func() {
-	dockerClient, err := client.NewEnvClient()
+	dockerClient, err := client.NewClientWithOpts()
 	if err != nil {
 		panic(err)
 	}

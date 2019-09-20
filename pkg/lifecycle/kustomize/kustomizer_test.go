@@ -8,9 +8,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/kustomize/pkg/gvk"
-	"sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/v3/pkg/gvk"
+	"sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -38,7 +37,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 		name        string
 		args        args
 		expectFiles map[string]string
-		want        []patch.StrategicMerge
+		want        []types.PatchStrategicMerge
 		wantErr     bool
 	}{
 		{
@@ -67,7 +66,7 @@ func Test_kustomizer_writePatches(t *testing.T) {
 				"a.yaml":        "---",
 				"folder/b.yaml": "---",
 			},
-			want: []patch.StrategicMerge{"a.yaml", "folder/b.yaml"},
+			want: []types.PatchStrategicMerge{"a.yaml", "folder/b.yaml"},
 		},
 	}
 	for _, tt := range tests {
@@ -126,25 +125,25 @@ func Test_kustomizer_writeOverlay(t *testing.T) {
 
 	tests := []struct {
 		name                  string
-		relativePatchPaths    []patch.StrategicMerge
+		relativePatchPaths    []types.PatchStrategicMerge
 		existingKustomization types.Kustomization
 		expectFile            string
 		wantErr               bool
 	}{
 		{
 			name:               "No patches",
-			relativePatchPaths: []patch.StrategicMerge{},
-			expectFile: `kind: ""
-apiversion: ""
+			relativePatchPaths: []types.PatchStrategicMerge{},
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../defaults
 `,
 		},
 		{
 			name:               "Patches provided",
-			relativePatchPaths: []patch.StrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
-			expectFile: `kind: ""
-apiversion: ""
+			relativePatchPaths: []types.PatchStrategicMerge{"a.yaml", "b.yaml", "c.yaml"},
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - a.yaml
 - b.yaml
@@ -155,12 +154,13 @@ bases:
 		},
 		{
 			name:               "No patches but existing kustomization",
-			relativePatchPaths: []patch.StrategicMerge{},
+			relativePatchPaths: []types.PatchStrategicMerge{},
 			existingKustomization: types.Kustomization{
-				PatchesJson6902: []patch.Json6902{
+				TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+				PatchesJson6902: []types.PatchJson6902{
 					{
 						Path: "abc.json",
-						Target: &patch.Target{
+						Target: &types.PatchTarget{
 							Gvk: gvk.Gvk{
 								Group:   "groupa",
 								Version: "versionb",
@@ -172,8 +172,8 @@ bases:
 					},
 				},
 			},
-			expectFile: `kind: ""
-apiversion: ""
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesJson6902:
 - target:
     group: groupa
@@ -271,8 +271,8 @@ func Test_kustomizer_writeBase(t *testing.T) {
 					return fs, nil
 				},
 			},
-			expectFile: `kind: ""
-apiversion: ""
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - a.yaml
 - b.yaml
@@ -310,8 +310,8 @@ resources:
 					return fs, nil
 				},
 			},
-			expectFile: `kind: ""
-apiversion: ""
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - charts/kube-stats-metrics/templates/deployment.yaml
 - clusterrole.yaml
@@ -349,8 +349,8 @@ resources:
 					return fs, nil
 				},
 			},
-			expectFile: `kind: ""
-apiversion: ""
+			expectFile: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - charts/kube-stats-metrics/templates/deployment.yaml
 - deployment.yaml
@@ -414,13 +414,13 @@ func TestKustomizer(t *testing.T) {
 			name:      "no files",
 			kustomize: nil,
 			expectFiles: map[string]string{
-				"overlays/ship/kustomization.yaml": `kind: ""
-apiversion: ""
+				"overlays/ship/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../defaults
 `,
-				"base/kustomization.yaml": `kind: ""
-apiversion: ""
+				"base/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - deployment.yaml
 `,
@@ -448,15 +448,15 @@ metadata:
 spec:
   replicas: 100`,
 
-				"overlays/ship/kustomization.yaml": `kind: ""
-apiversion: ""
+				"overlays/ship/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - deployment.yaml
 bases:
 - ../defaults
 `,
-				"base/kustomization.yaml": `kind: ""
-apiversion: ""
+				"base/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - deployment.yaml
 `,
@@ -498,15 +498,15 @@ spec:
       memory: 256Mi
     type: Container`,
 
-				"overlays/ship/kustomization.yaml": `kind: ""
-apiversion: ""
+				"overlays/ship/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - limitrange.yaml
 bases:
 - ../defaults
 `,
-				"base/kustomization.yaml": `kind: ""
-apiversion: ""
+				"base/kustomization.yaml": `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - deployment.yaml
 `,

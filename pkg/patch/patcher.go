@@ -15,8 +15,7 @@ import (
 	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/client-go/kubernetes/scheme"
-	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	k8stypes "sigs.k8s.io/kustomize/pkg/types"
+	k8stypes "sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/util"
@@ -108,7 +107,7 @@ func (p *ShipPatcher) CreateTwoWayMergePatch(original, modified []byte) ([]byte,
 		return nil, errors.Wrap(err, "create kube resource with original json")
 	}
 
-	versionedObj, err := scheme.Scheme.New(util.ToGroupVersionKind(r.Id().Gvk()))
+	versionedObj, err := scheme.Scheme.New(util.ToGroupVersionKind(r.CurId().Gvk))
 	if err != nil {
 		return nil, errors.Wrap(err, "read group, version kind from kube resource")
 	}
@@ -182,8 +181,9 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 	}
 
 	kustomizationYaml := k8stypes.Kustomization{
+		TypeMeta:              k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
 		Resources:             []string{relativePathToResource},
-		PatchesStrategicMerge: []kustomizepatch.StrategicMerge{TempYamlPath},
+		PatchesStrategicMerge: []k8stypes.PatchStrategicMerge{TempYamlPath},
 	}
 
 	kustomizationYamlBytes, err := yamlv3.Marshal(kustomizationYaml)

@@ -12,8 +12,7 @@ import (
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
-	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	k8stypes "sigs.k8s.io/kustomize/pkg/types"
+	k8stypes "sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -84,7 +83,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 		excludedBases = state.CurrentKustomize().Ship().ExcludedBases
 	}
 
-	json6902Patches := []kustomizepatch.Json6902{}
+	json6902Patches := []k8stypes.PatchJson6902{}
 	if err := l.FS.Walk(
 		step.Base,
 		func(targetPath string, info os.FileInfo, err error) error {
@@ -109,7 +108,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 				return nil
 			}
 
-			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(resource.Id().Gvk())); err != nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(resource.CurId().Gvk)); err != nil {
 				// Ignore all non-k8s resources
 				return nil
 			}
@@ -132,11 +131,11 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 				patchLabel := splitDefaultPath[len(splitDefaultPath)-1]
 
 				if l.hasMetadataLabel(patchLabel, fileMetadataOnly) {
-					json6902Patches = append(json6902Patches, kustomizepatch.Json6902{
-						Target: &kustomizepatch.Target{
+					json6902Patches = append(json6902Patches, k8stypes.PatchJson6902{
+						Target: &k8stypes.PatchTarget{
 							Gvk:       resource.GetGvk(),
-							Namespace: resource.Id().Namespace(),
-							Name:      resource.GetName(),
+							Namespace: resource.CurId().Namespace,
+							Name:      resource.CurId().Name,
 						},
 						Path: defaultPatch.writePath,
 					})
@@ -150,6 +149,7 @@ func (l *Kustomizer) generateTillerPatches(step api.Kustomize) error {
 	}
 
 	kustomizationYaml := k8stypes.Kustomization{
+		TypeMeta:        k8stypes.TypeMeta{Kind: k8stypes.KustomizationKind, APIVersion: k8stypes.KustomizationVersion},
 		Bases:           []string{relativePathToBases},
 		PatchesJson6902: json6902Patches,
 	}

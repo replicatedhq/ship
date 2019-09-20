@@ -28,7 +28,7 @@ assets:
       dest: ./overlays/cloud/kustomization.yaml
       contents: |
         kind: "Kustomization"
-        apiversion: ""
+        apiVersion: kustomize.config.k8s.io/v1beta1
         bases:
           - ../../base
           - ../../another
@@ -39,7 +39,7 @@ assets:
       dest: ./another/kustomization.yaml
       contents: |
         kind: "Kustomization"
-        apiversion: ""
+        apiVersion: kustomize.config.k8s.io/v1beta1
         resources:
           - ./placeholder-service.yaml
 

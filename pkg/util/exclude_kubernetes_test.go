@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/kustomize/pkg/gvk"
-	"sigs.k8s.io/kustomize/pkg/resid"
+	"sigs.k8s.io/kustomize/v3/pkg/gvk"
+	"sigs.k8s.io/kustomize/v3/pkg/resid"
 )
 
 func TestExcludeKubernetesResource(t *testing.T) {
@@ -34,8 +34,8 @@ func TestExcludeKubernetesResource(t *testing.T) {
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -53,8 +53,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - notmyresource.yaml
 `,
@@ -77,8 +77,8 @@ resources:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -96,8 +96,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -121,8 +121,8 @@ resources:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../another/base
 resources:
@@ -135,8 +135,8 @@ resources:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - anotherresource.yaml
 `,
@@ -160,8 +160,8 @@ metadata:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../another/base
 resources:
@@ -174,8 +174,8 @@ resources:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 `,
 				},
 				{
@@ -204,8 +204,8 @@ metadata:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - notmyresource.yaml
 `,
@@ -222,8 +222,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - notmyresource.yaml
 `,
@@ -304,8 +304,8 @@ func TestExcludeKubernetesPatch(t *testing.T) {
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - myresource.yaml
 - notmyresource.yaml
@@ -345,8 +345,8 @@ metadata:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - notmyresource.yaml
 `,
@@ -391,8 +391,8 @@ metadata:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - myresource.yaml
 - notmyresource.yaml
@@ -432,8 +432,8 @@ metadata:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - myresource.yaml
 - notmyresource.yaml
@@ -479,8 +479,8 @@ metadata:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../another/base
 patchesStrategicMerge:
@@ -504,8 +504,8 @@ metadata:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - anotherresource.yaml
 `,
@@ -529,8 +529,8 @@ metadata:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - myresource.yaml
 bases:
@@ -554,8 +554,8 @@ metadata:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 `,
 				},
 				{
@@ -583,8 +583,8 @@ metadata:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - notmyresource.yaml
 `,
@@ -623,8 +623,8 @@ metadata:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesStrategicMerge:
 - notmyresource.yaml
 `,
@@ -669,8 +669,8 @@ metadata:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesJson6902:
 - path: chart-patch.json
   target:
@@ -690,8 +690,8 @@ patchesJson6902:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 patchesJson6902:
 - target:
     group: extensions
@@ -768,8 +768,8 @@ func TestUnExcludeKubernetesResource(t *testing.T) {
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - notmyresource.yaml
 `,
@@ -786,8 +786,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - notmyresource.yaml
 - myresource.yaml
@@ -811,8 +811,8 @@ resources:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -830,8 +830,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -855,8 +855,8 @@ resources:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../another/base
 resources:
@@ -869,8 +869,8 @@ resources:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 `,
 				},
 				{
@@ -881,8 +881,8 @@ apiversion: ""
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 bases:
 - ../another/base
 resources:
@@ -895,8 +895,8 @@ resources:
 				},
 				{
 					name: "another/base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - anotherresource.yaml
 `,
@@ -915,8 +915,8 @@ resources:
 			inputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml
@@ -934,8 +934,8 @@ resources:
 			outputFiles: []fileStruct{
 				{
 					name: "base/kustomization.yaml",
-					data: `kind: ""
-apiversion: ""
+					data: `kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
 resources:
 - myresource.yaml
 - notmyresource.yaml

@@ -15,8 +15,7 @@ import (
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes/scheme"
-	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -111,7 +110,9 @@ func (l *Unforker) writeBase(step api.Unfork) error {
 	}
 	shipOverlay := currentKustomize.Ship()
 
-	baseKustomization := types.Kustomization{}
+	baseKustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	if err := l.FS.Walk(
 		step.UpstreamBase,
 		func(targetPath string, info os.FileInfo, err error) error {
@@ -156,13 +157,13 @@ func (l *Unforker) shouldAddFileToBase(basePath string, excludedBases []string, 
 	return util.ShouldAddFileToBase(&baseFs, excludedBases, targetPath)
 }
 
-func (l *Unforker) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []kustomizepatch.StrategicMerge, err error) {
+func (l *Unforker) writePatches(fs afero.Afero, shipOverlay state.Overlay, destDir string) (relativePatchPaths []types.PatchStrategicMerge, err error) {
 	patches, err := l.writeFileMap(fs, shipOverlay.Patches, destDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write file map to %s", destDir)
 	}
 	for _, p := range patches {
-		relativePatchPaths = append(relativePatchPaths, kustomizepatch.StrategicMerge(p))
+		relativePatchPaths = append(relativePatchPaths, types.PatchStrategicMerge(p))
 	}
 	return
 }
@@ -222,9 +223,10 @@ func (l *Unforker) writeFile(fs afero.Afero, name string, contents string) error
 	return nil
 }
 
-func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []kustomizepatch.StrategicMerge, relativeResourcePaths []string) error {
+func (l *Unforker) writeOverlay(step api.Unfork, relativePatchPaths []types.PatchStrategicMerge, relativeResourcePaths []string) error {
 	// just always make a new kustomization.yaml for now
 	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
 		Bases: []string{
 			filepath.Join("../../", step.UpstreamBase),
 		},
@@ -291,7 +293,7 @@ func (l *Unforker) generatePatchesAndExcludeBases(fs afero.Afero, step api.Unfor
 				return errors.Wrapf(err, "create new k8s resource %s", targetPath)
 			}
 
-			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(forkedResource.Id().Gvk())); err != nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(forkedResource.CurId().Gvk)); err != nil {
 				// Ignore all non-k8s resources
 				return nil
 			}
@@ -388,7 +390,7 @@ func (l *Unforker) mapUpstream(upstreamMap map[util.MinimalK8sYaml]string, upstr
 
 		upstreamResource, err := util.NewKubernetesResource(upstreamB)
 		if err == nil {
-			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(upstreamResource.Id().Gvk())); err == nil {
+			if _, err := scheme.Scheme.New(util.ToGroupVersionKind(upstreamResource.CurId().Gvk)); err == nil {
 				upstreamMinimal := util.MinimalK8sYaml{}
 				if err := yaml.Unmarshal(upstreamB, &upstreamMinimal); err != nil {
 					return errors.Wrapf(err, "unmarshal file %s", upstreamPath)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
-	"sigs.k8s.io/kustomize/pkg/types"
+	"sigs.k8s.io/kustomize/v3/pkg/types"
 
 	"github.com/replicatedhq/ship/pkg/api"
 	"github.com/replicatedhq/ship/pkg/constants"
@@ -153,7 +153,9 @@ func (l *Kustomizer) resolveExistingKustomize(ctx context.Context, overlayDir st
 		return errors.Wrapf(err, "read kustomization exists in %s", overlayDir)
 	}
 
-	kustomization := types.Kustomization{}
+	kustomization := types.Kustomization{
+		TypeMeta: types.TypeMeta{Kind: types.KustomizationKind, APIVersion: types.KustomizationVersion},
+	}
 	err = yaml.Unmarshal(kustomizationYaml, &kustomization)
 	if err != nil {
 		return errors.Wrapf(err, "unmarshal kustomization yaml from %s", overlayDir)
