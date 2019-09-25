@@ -9,8 +9,9 @@ import "./scss/index.scss";
 
 export class ShipConfigRenderer extends React.Component {
   static propTypes = {
-    /** Config groups itesms to render */
-    groups: PropTypes.array.isRequired,
+    groups: PropTypes.array.isRequired, // Config groups items to render
+    handleChange: PropTypes.func,
+    getData: PropTypes.func,
   }
 
   static defaultProps = {
@@ -32,8 +33,7 @@ export class ShipConfigRenderer extends React.Component {
         <ConfigRender
           fieldsList={groupsList}
           fields={_groups}
-          handleChange={() => { return; }}
-          getData={() => { return; }}
+          handleChange={this.props.handleChange}
         />
       </div>
     )
