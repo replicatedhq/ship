@@ -79,7 +79,7 @@ export default class ConfigRender extends React.Component {
     this.setState({groups: keyBy(groups, "name")});
 
     // TODO: maybe this should only be on submit
-    this.triggerChange(groups);
+    this.triggerChange(this.props.getData(groups));
   }
 
   componentDidUpdate(lastProps) {

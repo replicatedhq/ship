@@ -33,7 +33,8 @@ export class ShipConfigRenderer extends React.Component {
         <ConfigRender
           fieldsList={groupsList}
           fields={_groups}
-          handleChange={this.props.handleChange}
+          handleChange={this.props.handleChange || (() => { return; })}
+          getData={this.props.getData || (() => { return; })}
         />
       </div>
     )
