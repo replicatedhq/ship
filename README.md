@@ -39,12 +39,12 @@ Configuration workflow `ship.yaml` files can be included in Kubernetes manifest 
 Ship is packaged as a single binary, and Linux and MacOS versions are distributed:
 - To download the latest Linux build, run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.47.2/ship_0.47.2_linux_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.51.2/ship_0.51.2_linux_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
 ```
 
 - To download the latest MacOS build, you can either run:
 ```shell
-curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.47.2/ship_0.47.2_darwin_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
+curl -sSL https://github.com/replicatedhq/ship/releases/download/v0.51.2/ship_0.51.2_darwin_amd64.tar.gz | tar zxv && sudo mv ship /usr/local/bin
 ```
 
 - ... or you can install with [Homebrew](https://brew.sh/):

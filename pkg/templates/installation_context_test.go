@@ -217,6 +217,165 @@ func testCases() []TestInstallation {
   v1:
     - {}`,
 		},
+		{
+			Name: "ship customer release",
+			Meta: api.ReleaseMetadata{
+				AnalyzeSpec: `this is not an analyze spec`,
+				ConfigSpec:  ``,
+				CollectSpec: ``,
+				GithubContents: []api.GithubContent{{
+					Repo: "abc",
+					Path: "xyz",
+					Ref:  "test",
+					Files: []api.GithubFile{{
+						Name: "abc",
+						Path: "xyz",
+						Sha:  "123",
+						Size: 456,
+						Data: "789",
+					}},
+				}},
+				Images: []api.Image{{
+					URL:      "abc",
+					Source:   "xyz",
+					AppSlug:  "123",
+					ImageKey: "456",
+				}},
+				LicenseID: "myLicenseID",
+			},
+			Tpl: `{{repl ShipCustomerRelease }}`,
+			Expected: `releaseId: ""
+sequence: 0
+customerId: ""
+installation: ""
+channelId: ""
+appSlug: ""
+licenseId: myLicenseID
+channelName: ""
+channelIcon: ""
+semver: ""
+releaseNotes: ""
+created: ""
+installed: ""
+registrySecret: ""
+images: []
+githubContents: []
+shipAppMetadata:
+  description: ""
+  version: ""
+  icon: ""
+  name: ""
+  readme: ""
+  url: ""
+  contentSHA: ""
+  releaseNotes: ""
+entitlements:
+  meta:
+    lastupdated: 0001-01-01T00:00:00Z
+    customerid: ""
+  serialized: ""
+  signature: ""
+  values: []
+  utilizations: []
+entitlementSpec: ""
+configSpec: ""
+collectSpec: ""
+analyzeSpec: ""
+type: ""
+license:
+  id: ""
+  assignee: ""
+  createdAt: 0001-01-01T00:00:00Z
+  expiresAt: 0001-01-01T00:00:00Z
+  type: ""
+`,
+		},
+		{
+			Name: "ship customer release full",
+			Meta: api.ReleaseMetadata{
+				AnalyzeSpec: `this is not an analyze spec`,
+				ConfigSpec:  `this is not a config spec`,
+				CollectSpec: `this is not a collect spec`,
+				GithubContents: []api.GithubContent{{
+					Repo: "abc",
+					Path: "xyz",
+					Ref:  "test",
+					Files: []api.GithubFile{{
+						Name: "abc",
+						Path: "xyz",
+						Sha:  "123",
+						Size: 456,
+						Data: "789",
+					}},
+				}},
+				Images: []api.Image{{
+					URL:      "abc",
+					Source:   "xyz",
+					AppSlug:  "123",
+					ImageKey: "456",
+				}},
+				LicenseID: "myLicenseID",
+			},
+			Tpl: `{{repl ShipCustomerReleaseFull }}`,
+			Expected: `releaseId: ""
+sequence: 0
+customerId: ""
+installation: ""
+channelId: ""
+appSlug: ""
+licenseId: myLicenseID
+channelName: ""
+channelIcon: ""
+semver: ""
+releaseNotes: ""
+created: ""
+installed: ""
+registrySecret: ""
+images:
+- url: abc
+  source: xyz
+  appSlug: "123"
+  imageKey: "456"
+githubContents:
+- repo: abc
+  path: xyz
+  ref: test
+  files:
+  - name: abc
+    path: xyz
+    sha: "123"
+    size: 456
+    data: "789"
+shipAppMetadata:
+  description: ""
+  version: ""
+  icon: ""
+  name: ""
+  readme: ""
+  url: ""
+  contentSHA: ""
+  releaseNotes: ""
+entitlements:
+  meta:
+    lastupdated: 0001-01-01T00:00:00Z
+    customerid: ""
+  serialized: ""
+  signature: ""
+  values: []
+  utilizations: []
+entitlementSpec: ""
+configSpec: this is not a config spec
+collectSpec: this is not a collect spec
+analyzeSpec: this is not an analyze spec
+type: ""
+license:
+  id: ""
+  assignee: ""
+  createdAt: 0001-01-01T00:00:00Z
+  expiresAt: 0001-01-01T00:00:00Z
+  type: ""
+`,
+		},
 	}
 	return tests
 }
