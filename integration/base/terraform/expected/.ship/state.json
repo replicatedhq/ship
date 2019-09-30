@@ -4,7 +4,7 @@
       "id_length": "1"
     },
     "terraform": {
-      "rawState": "{\n    \"version\": 3,\n    \"terraform_version\": \"0.11.14\",\n    \"serial\": 5,\n    \"lineage\": \"9c4547a4-c042-5ef9-01de-12509401b810\",\n    \"modules\": [\n        {\n            \"path\": [\n                \"root\"\n            ],\n            \"outputs\": {},\n            \"resources\": {\n                \"local_file.foo\": {\n                    \"type\": \"local_file\",\n                    \"depends_on\": [],\n                    \"primary\": {\n                        \"id\": \"356a192b7913b04c54574d18c28d46e6395428ab\",\n                        \"attributes\": {\n                            \"content\": \"1\",\n                            \"filename\": \"/tmp/foo.bar\",\n                            \"id\": \"356a192b7913b04c54574d18c28d46e6395428ab\"\n                        },\n                        \"meta\": {},\n                        \"tainted\": false\n                    },\n                    \"deposed\": [],\n                    \"provider\": \"provider.local\"\n                }\n            },\n            \"depends_on\": []\n        }\n    ]\n}\n",
+      "rawState": "{\n    \"version\": 3,\n    \"terraform_version\": \"0.11.14\",\n    \"serial\": 5,\n    \"lineage\": \"9c4547a4-c042-5ef9-01de-12509401b810\",\n    \"modules\": [\n        {\n            \"path\": [\n                \"root\"\n            ],\n            \"outputs\": {},\n            \"resources\": {\n                \"local_file.foo\": {\n                    \"type\": \"local_file\",\n                    \"depends_on\": [],\n                    \"primary\": {\n                        \"id\": \"356a192b7913b04c54574d18c28d46e6395428ab\",\n                        \"attributes\": {\n                            \"content\": \"1\",\n                            \"directory_permission\": \"0777\",\n                            \"file_permission\": \"0777\",\n                            \"filename\": \"/tmp/foo.bar\",\n                            \"id\": \"356a192b7913b04c54574d18c28d46e6395428ab\"\n                        },\n                        \"meta\": {},\n                        \"tainted\": false\n                    },\n                    \"deposed\": [],\n                    \"provider\": \"provider.local\"\n                }\n            },\n            \"depends_on\": []\n        }\n    ]\n}\n",
       "state": {
         "version": 3,
         "terraform_version": "0.11.14",
@@ -24,6 +24,8 @@
                   "id": "356a192b7913b04c54574d18c28d46e6395428ab",
                   "attributes": {
                     "content": "1",
+                    "directory_permission": "0777",
+                    "file_permission": "0777",
                     "filename": "/tmp/foo.bar",
                     "id": "356a192b7913b04c54574d18c28d46e6395428ab"
                   },

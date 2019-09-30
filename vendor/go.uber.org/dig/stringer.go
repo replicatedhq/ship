@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ func (c *Container) String() string {
 }
 
 func (n *node) String() string {
-	return fmt.Sprintf("deps: %v, ctor: %v", n.Params, n.ctype)
+	return fmt.Sprintf("deps: %v, ctor: %v", n.paramList, n.ctype)
 }
 
 func (k key) String() string {

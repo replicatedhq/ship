@@ -4,9 +4,8 @@ go_import_path: go.uber.org/dig
 
 matrix:
   include:
-    - go: 1.7
-    - go: 1.8
-    - go: 1.9
+    - go: "1.10"
+    - go: "1.11"
       env: LINT=1
 
 cache:
@@ -15,5 +14,5 @@ cache:
 install:
   - make dependencies
 script:
-  - test "$LINT" -eq 1 && make lint || echo "Skipping lint"
+  - test -z "$LINT" && echo "Skipping lint" || make lint
   - make ci
