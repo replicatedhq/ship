@@ -1,6 +1,6 @@
 module github.com/replicatedhq/ship
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
@@ -12,27 +12,20 @@ require (
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d // indirect
 	github.com/aokoli/goutils v1.0.1 // indirect
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/armon/go-radix v0.0.0-20170727155443-1fca145dffbc // indirect
 	github.com/asaskevich/govalidator v0.0.0-20180315120708-ccb8e960c48f // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/bshuster-repo/logrus-logstash-hook v0.4.1 // indirect
-	github.com/bugsnag/bugsnag-go v1.5.3 // indirect
-	github.com/bugsnag/panicwrap v1.2.0 // indirect
 	github.com/buildkite/terminal v3.1.0+incompatible
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190328212615-ea569c5aa1be
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
-	github.com/denverdino/aliyungo v0.0.0-20190924033012-e8e08fe22cb2 // indirect
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v0.0.0-20171205013456-4047cede6586
 	github.com/docker/go-connections v0.3.0 // indirect
-	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/go-units v0.3.3
-	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
 	github.com/dsnet/compress v0.0.0-20171208185109-cc9eb1d7ad76 // indirect
 	github.com/elazarl/go-bindata-assetfs v1.0.0
@@ -43,7 +36,6 @@ require (
 	github.com/evanphx/json-patch v3.0.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/garyburd/redigo v1.6.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
 	github.com/gin-gonic/contrib v0.0.0-20180614032058-39cfb9727134
@@ -58,7 +50,6 @@ require (
 	github.com/go-test/deep v1.0.1
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/certificate-transparency-go v1.0.21 // indirect
@@ -66,9 +57,6 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
-	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8 // indirect
-	github.com/gorilla/handlers v1.4.2 // indirect
-	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/gosuri/uitable v0.0.0-20160404203958-36ee7e946282
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001
@@ -91,7 +79,6 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
-	github.com/ncw/swift v1.0.49 // indirect
 	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
 	github.com/onsi/ginkgo v1.6.0
 	github.com/onsi/gomega v1.4.2
@@ -104,6 +91,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/posener/complete v1.1.1 // indirect
+	github.com/prometheus/client_golang v1.1.0 // indirect
 	github.com/replicatedhq/libyaml v0.0.0-20180221210949-7a5c7548e512
 	github.com/rubenv/sql-migrate v0.0.0-20190327083759-54bad0a9b051 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20160302144031-75fb7ed4208c
@@ -113,21 +101,15 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	github.com/yvasiyarov/go-metrics v0.0.0-20150112132944-c25f46c4b940 // indirect
-	github.com/yvasiyarov/gorelic v0.0.7 // indirect
-	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
 	github.com/zclconf/go-cty v0.0.0-20181017232614-01c5aba823a6 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/dig v1.7.0
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
-	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/oauth2 v0.0.0-20181120190819-8f65e3013eba
 	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
 	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20190904211325-a4fdb3a8b281 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
-	google.golang.org/cloud v0.0.0-20151119220103-975617b05ea8 // indirect
 	google.golang.org/grpc v1.21.0
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -145,7 +127,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20180719232738-d8ea2fe547a4 // indirect
 	k8s.io/kubernetes v1.14.3 // indirect
 	k8s.io/utils v0.0.0-20190529001817-6999998975a7 // indirect
-	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/kustomize v2.0.3+incompatible
 	sigs.k8s.io/yaml v1.1.0 // indirect
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect

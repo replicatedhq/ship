@@ -1,5 +1,5 @@
 # build the test
-FROM golang:1.12-alpine as build-step
+FROM golang:1.13-alpine as build-step
 ENV GOPATH=/go
 
 RUN apk update && apk add ca-certificates curl git build-base
@@ -60,7 +60,3 @@ COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/init_app
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/init/init.test /test/init/
 COPY --from=build-step /go/src/github.com/replicatedhq/ship/integration/unfork/unfork.test /test/unfork
 CMD ./integration_docker_start.sh
-
-
-
-
