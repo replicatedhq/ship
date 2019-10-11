@@ -11,8 +11,3 @@ linters-settings:
     # the regex is used to ignore names within pkg. (default "fmt:.*").
     # see https://github.com/kisielk/errcheck#the-deprecated-method for details
     ignore: fmt:.*,github.com/go-kit/kit/log:.*
-
-issues:
-  exclude:
-  - "not declared by package utf8"
-  - "unicode/utf8/utf8.go"
