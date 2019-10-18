@@ -446,9 +446,6 @@ func (m *MManager) AddCert(name string, newCert util.CertType) error {
 		if state.V1.Certs == nil {
 			state.V1.Certs = make(map[string]util.CertType)
 		}
-		if _, ok := state.V1.Certs[name]; ok {
-			return state, fmt.Errorf("cert with name %s already exists in state", name)
-		}
 		state.V1.Certs[name] = newCert
 		return state, nil
 	})
@@ -464,8 +461,10 @@ func (m *MManager) AddCA(name string, newCA util.CAType) error {
 		if state.V1.CAs == nil {
 			state.V1.CAs = make(map[string]util.CAType)
 		}
-		if _, ok := state.V1.CAs[name]; ok {
-			return state, fmt.Errorf("cert with name %s already exists in state", name)
+		if existing, ok := state.V1.CAs[name]; ok {
+			if existing.Key != newCA.Key {
+				return state, fmt.Errorf("cert with name %s already exists in state", name)
+			}
 		}
 		state.V1.CAs[name] = newCA
 		return state, nil

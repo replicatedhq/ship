@@ -49,14 +49,15 @@ require (
 	github.com/go-stack/stack v1.8.0
 	github.com/go-test/deep v1.0.1
 	github.com/gobuffalo/packr v1.30.1 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/golangci/golangci-lint v1.20.0 // indirect
 	github.com/google/certificate-transparency-go v1.0.21 // indirect
 	github.com/google/go-github/v18 v18.0.0
 	github.com/google/go-querystring v1.0.0
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
+	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8 // indirect
 	github.com/gosuri/uitable v0.0.0-20160404203958-36ee7e946282
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001
@@ -69,7 +70,6 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da
 	github.com/jmoiron/sqlx v1.2.0 // indirect
-	github.com/lib/pq v1.1.1 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.0.0-20180723221831-d5012789d665 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
@@ -80,8 +80,8 @@ require (
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
-	github.com/onsi/ginkgo v1.6.0
-	github.com/onsi/gomega v1.4.2
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pact-foundation/pact-go v1.0.0-beta.5
@@ -98,17 +98,16 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	github.com/zclconf/go-cty v0.0.0-20181017232614-01c5aba823a6 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/dig v1.7.0
-	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
-	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
+	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
+	golang.org/x/lint v0.0.0-20190930215403-16217165b5de // indirect
 	golang.org/x/oauth2 v0.0.0-20181120190819-8f65e3013eba
-	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
-	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20191018192435-a1005cf9b2e3 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
 	google.golang.org/grpc v1.21.0
 	gopkg.in/gorp.v1 v1.7.2 // indirect

@@ -3,6 +3,7 @@ package templates
 import (
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/replicatedhq/ship/pkg/state"
@@ -95,6 +96,31 @@ func (ctx ShipContext) makeCaKey(caName string, caType string) string {
 	CAs := currentState.CurrentCAs()
 	if CAs != nil {
 		if ca, ok := CAs[caName]; ok {
+			// check the expiry date of the ca's cert
+			// if it is within the next 6 months, regenerate it
+			left, err := util.TimeToExpire([]byte(ca.Cert))
+			if err != nil {
+				ctx.Logger.Log("method", "makeCaKey", "action", "calculateExpire", "error", err)
+				return ""
+			}
+
+			// if the existing ca cert expires in more than 6 months
+			if left > time.Hour*180*24 {
+				return ca.Key
+			}
+
+			renewedCA, err := util.RenewCA(ca)
+			if err != nil {
+				ctx.Logger.Log("method", "makeCaKey", "action", "renewCACert", "error", err)
+				return ""
+			}
+
+			err = ctx.Manager.AddCA(caName, renewedCA)
+			if err != nil {
+				ctx.Logger.Log("method", "makeCaKey", "action", "saveUpdatedCA", "error", err)
+				return ""
+			}
+
 			return ca.Key
 		}
 	}
@@ -143,11 +169,22 @@ func (ctx ShipContext) makeCertKey(certName string, caName string, hosts string,
 	certs := currentState.CurrentCerts()
 	if certs != nil {
 		if cert, ok := certs[certName]; ok {
-			return cert.Key
+			// check the expiry date of the cert
+			// if it is within the next 6 months, regenerate it
+			left, err := util.TimeToExpire([]byte(cert.Cert))
+			if err != nil {
+				ctx.Logger.Log("method", "makeCertKey", "action", "calculateExpire", "error", err)
+				return ""
+			}
+
+			// if the existing cert expires in more than 6 months
+			if left > time.Hour*180*24 {
+				return cert.Key
+			}
 		}
 	}
 
-	// cert does not yet exist - get CA and make a cert with it
+	// cert does not yet exist or is expired - get CA and make a cert with it
 	caKey := ctx.makeCaKey(caName, certType)
 	if caKey == "" {
 		ctx.Logger.Log("method", "makeCertKey", "error", "caKeyNotPresent")
