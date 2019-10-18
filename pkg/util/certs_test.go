@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"testing"
+	"time"
 
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/stretchr/testify/require"
@@ -206,6 +207,11 @@ func TestMakeCert(t *testing.T) {
 				err = parsedCert.VerifyHostname(host)
 				req.NoError(err, "hostname %s must be present on cert", host)
 			}
+
+			// validate that the cert is valid for two more years
+			req.True(parsedCert.NotAfter.Add(-time.Hour * (17520 - 1)).After(time.Now()))
+			// and that it is valid now
+			req.True(parsedCert.NotBefore.Before(time.Now()))
 		})
 	}
 }

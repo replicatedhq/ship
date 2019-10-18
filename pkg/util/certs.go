@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/helpers"
 	"github.com/cloudflare/cfssl/initca"
@@ -77,7 +78,14 @@ func MakeCert(host []string, certKind, CACert, CAKey string) (CertType, error) {
 		return CertType{}, errors.Wrap(err, "parse csr")
 	}
 
-	localSigner, err := local.NewSigner(parsedCaKey, parsedCaCert, signer.DefaultSigAlgo(parsedCaKey), nil)
+	twoYearConfig := config.DefaultConfig()
+	twoYearConfig.Expiry = 17520 * time.Hour // two years
+	twoYearConfig.ExpiryString = "17520h"
+	signConfig := config.Signing{
+		Default: twoYearConfig,
+	}
+
+	localSigner, err := local.NewSigner(parsedCaKey, parsedCaCert, signer.DefaultSigAlgo(parsedCaKey), &signConfig)
 	if err != nil {
 		return CertType{}, errors.Wrap(err, "create signer")
 	}
