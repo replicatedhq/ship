@@ -1,11 +1,14 @@
 package util
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/helpers"
 	"github.com/cloudflare/cfssl/initca"
@@ -77,7 +80,14 @@ func MakeCert(host []string, certKind, CACert, CAKey string) (CertType, error) {
 		return CertType{}, errors.Wrap(err, "parse csr")
 	}
 
-	localSigner, err := local.NewSigner(parsedCaKey, parsedCaCert, signer.DefaultSigAlgo(parsedCaKey), nil)
+	twoYearConfig := config.DefaultConfig()
+	twoYearConfig.Expiry = 17520 * time.Hour // two years
+	twoYearConfig.ExpiryString = "17520h"
+	signConfig := config.Signing{
+		Default: twoYearConfig,
+	}
+
+	localSigner, err := local.NewSigner(parsedCaKey, parsedCaCert, signer.DefaultSigAlgo(parsedCaKey), &signConfig)
 	if err != nil {
 		return CertType{}, errors.Wrap(err, "create signer")
 	}
@@ -113,4 +123,36 @@ func MakeCA(caKind string) (CAType, error) {
 	}
 
 	return CAType{Cert: string(cert), Key: string(key)}, nil
+}
+
+// TimeToExpire takes a certificate, parses it, and returns the duration left until the certificate expires.
+func TimeToExpire(cert []byte) (time.Duration, error) {
+	block, _ := pem.Decode(cert)
+	parsedCert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return time.Duration(0), errors.Wrap(err, "parse cert for expiration")
+	}
+	return time.Until(parsedCert.NotAfter), nil
+}
+
+// RenewCA takes an existing CA and generates a new certificate with the notBefore/notAfter dates updated.
+func RenewCA(ca CAType) (CAType, error) {
+	// regenerate the CA cert *with the same key*
+	parsedCert, err := helpers.ParseCertificatePEM([]byte(ca.Cert))
+	if err != nil {
+		return CAType{}, errors.Wrap(err, "parse ca certificate")
+	}
+
+	parsedKey, err := helpers.ParsePrivateKeyPEM([]byte(ca.Key))
+	if err != nil {
+		return CAType{}, errors.Wrap(err, "parse ca key")
+	}
+
+	newCABytes, err := initca.RenewFromSigner(parsedCert, parsedKey)
+	if err != nil {
+		return CAType{}, errors.Wrap(err, "renew ca certificate")
+	}
+
+	ca.Cert = string(newCABytes)
+	return ca, nil
 }

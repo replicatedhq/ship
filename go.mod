@@ -69,7 +69,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da
 	github.com/jmoiron/sqlx v1.2.0 // indirect
-	github.com/lib/pq v1.1.1 // indirect
+	github.com/lib/pq v1.2.0 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.0.0-20180723221831-d5012789d665 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
@@ -80,8 +80,8 @@ require (
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
-	github.com/onsi/ginkgo v1.6.0
-	github.com/onsi/gomega v1.4.2
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pact-foundation/pact-go v1.0.0-beta.5
@@ -97,17 +97,18 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20160302144031-75fb7ed4208c
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	github.com/zclconf/go-cty v0.0.0-20181017232614-01c5aba823a6 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/dig v1.7.0
-	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
-	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/net v0.0.0-20190923162816-aa69164e4478 // indirect
 	golang.org/x/oauth2 v0.0.0-20181120190819-8f65e3013eba
-	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
+	golang.org/x/sys v0.0.0-20191018095205-727590c5006e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/appengine v1.3.0 // indirect
 	google.golang.org/grpc v1.21.0
@@ -115,6 +116,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/laverya/yaml.v3 v3.0.0-beta3
 	gopkg.in/square/go-jose.v2 v2.1.8 // indirect
+	gopkg.in/yaml.v2 v2.2.4 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20190709130402-674ba3eaed22
 	k8s.io/api v0.0.0-20190516230258-a675ac48af67 // indirect
 	k8s.io/apiextensions-apiserver v0.0.0-20190516231611-bf6753f2aa24 // indirect

@@ -841,7 +841,7 @@ func TestMManager_AddCA(t *testing.T) {
 			name:    "colliding ca names",
 			wantErr: true,
 			caName:  "aCA",
-			newCA:   util.CAType{Cert: "aCert", Key: "aKey"},
+			newCA:   util.CAType{Cert: "bCert", Key: "bKey"},
 			before: State{
 				V1: &V1{
 					Upstream: "abc123",
@@ -855,6 +855,28 @@ func TestMManager_AddCA(t *testing.T) {
 					Upstream: "abc123",
 					CAs: map[string]util.CAType{
 						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+		},
+		{
+			name:    "colliding ca names with a new cert",
+			wantErr: false,
+			caName:  "aCA",
+			newCA:   util.CAType{Cert: "bCert", Key: "aKey"},
+			before: State{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "aCert", Key: "aKey"},
+					},
+				},
+			},
+			expected: State{
+				V1: &V1{
+					Upstream: "abc123",
+					CAs: map[string]util.CAType{
+						"aCA": {Cert: "bCert", Key: "aKey"},
 					},
 				},
 			},
@@ -941,10 +963,10 @@ func TestMManager_AddCert(t *testing.T) {
 			},
 		},
 		{
-			name:     "colliding ca names",
-			wantErr:  true,
+			name:     "colliding cert names",
+			wantErr:  false,
 			certName: "aCert",
-			newCert:  util.CertType{Cert: "aCert", Key: "aKey"},
+			newCert:  util.CertType{Cert: "bCert", Key: "bKey"},
 			before: State{
 				V1: &V1{
 					Upstream: "abc123",
@@ -957,7 +979,7 @@ func TestMManager_AddCert(t *testing.T) {
 				V1: &V1{
 					Upstream: "abc123",
 					Certs: map[string]util.CertType{
-						"aCert": {Cert: "aCert", Key: "aKey"},
+						"aCert": {Cert: "bCert", Key: "bKey"},
 					},
 				},
 			},
