@@ -822,7 +822,7 @@ k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/retry
 # k8s.io/cloud-provider v0.0.0-20190314002645-c892ea32361a
 k8s.io/cloud-provider/features
-# k8s.io/helm v2.14.1+incompatible
+# k8s.io/helm v2.15.0+incompatible
 k8s.io/helm/cmd/helm/installer
 k8s.io/helm/pkg/chartutil
 k8s.io/helm/pkg/downloader
