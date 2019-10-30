@@ -680,8 +680,8 @@ k8s.io/client-go v0.0.0-20190516230509-ae8359b20417 h1:8k7W86o/YHr0Yw+7EX1DX/ZCm
 k8s.io/client-go v0.0.0-20190516230509-ae8359b20417/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
 k8s.io/cloud-provider v0.0.0-20190314002645-c892ea32361a h1:BI+pqnBBhVvQ3CzDgj/S3/ibB2zyyX6if8CfnZb4DO4=
 k8s.io/cloud-provider v0.0.0-20190314002645-c892ea32361a/go.mod h1:LlIffnLBu+GG7d4ppPzC8UnA1Ex8S+ntmSRVsnr7Xy4=
-k8s.io/helm v2.14.1+incompatible h1:BkhE6K7/cuxwakmyjZA+btfqM9nFJGTYNuFiYahb9Kk=
-k8s.io/helm v2.14.1+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
+k8s.io/helm v2.15.2+incompatible h1:UjEb+c5BUZDGR9zU3dWG3OXASLIeqLeY0FCIx6ZyfTY=
+k8s.io/helm v2.15.2+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
 k8s.io/klog v0.3.0 h1:0VPpR+sizsiivjIfIAQH/rl8tan6jvWkS7lU+0di3lE=
 k8s.io/klog v0.3.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
 k8s.io/kube-openapi v0.0.0-20180719232738-d8ea2fe547a4 h1:C8xi0mJeE8wOFsLofmG7JVxRV2ZAgjYftRc9m2ypdmo=
