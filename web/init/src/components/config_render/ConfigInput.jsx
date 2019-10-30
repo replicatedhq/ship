@@ -36,8 +36,10 @@ export default class ConfigInput extends React.Component {
   // Use title -OR- required prop to render <ConfigItemTitle> to make sure error
   // elements are rendered.
   render() {
+    var hidden = this.props.hidden || this.props.when === "false";
+
     return (
-      <div className={`field field-type-text ${this.props.hidden ? "hidden" : "u-marginTop--15"}`}>
+      <div className={`field field-type-text ${hidden ? "hidden" : "u-marginTop--15"}`}>
         {this.props.title !== "" || this.props.required ?
           <ConfigItemTitle
             title={this.props.title}

@@ -6,11 +6,15 @@ export default class ConfigItemTitle extends React.Component {
     const {
       title,
       recommended,
-      required
+      required,
+      hidden,
+      when
     } = this.props;
 
+    var isHidden = hidden || when === "false";
+
     return (
-      <h4 className={`sub-header-color field-section-sub-header ${this.props.hidden ? "hidden" : ""}`}>{title} {
+      <h4 className={`sub-header-color field-section-sub-header ${isHidden ? "hidden" : ""}`}>{title} {
         required ? 
           <span className="field-label required">Required</span> :
           recommended ? 

@@ -32,6 +32,7 @@ export default class ConfigGroup extends React.Component {
             handleOnChange={this.handleItemChange}
             inputType="text"
             hidden={item.hidden}
+            when={item.when}
             {...item}
           />
         );
@@ -41,6 +42,7 @@ export default class ConfigGroup extends React.Component {
             key={`${i}-${item.name}`}
             handleOnChange={this.handleItemChange}
             hidden={item.hidden}
+            when={item.when}
             {...item}
           />
         );
@@ -50,6 +52,7 @@ export default class ConfigGroup extends React.Component {
             key={`${i}-${item.name}`}
             handleOnChange={this.handleItemChange}
             hidden={item.hidden}
+            when={item.when}
             {...item}
           />
         );
@@ -61,6 +64,7 @@ export default class ConfigGroup extends React.Component {
               recommended={item.recommended}
               required={item.required}
               hidden={item.hidden}
+              when={item.when}
               name={item.name}
             />
           </div>
@@ -75,6 +79,7 @@ export default class ConfigGroup extends React.Component {
               required={item.required}
               handleChange={this.handleItemChange}
               hidden={item.hidden}
+              when={item.when}
             />
           </div>
         );
@@ -84,12 +89,13 @@ export default class ConfigGroup extends React.Component {
             key={`${i}-${item.name}`}
             handleOnChange={this.handleItemChange}
             hidden={item.hidden}
+            when={item.when}
             {...item}
           />
         );
       case "heading":
         return (
-          <div key={`${i}-${item.name}`} className={`u-marginTop--40 u-marginBottom--15 ${item.hidden ? "hidden" : ""}`}>
+          <div key={`${i}-${item.name}`} className={`u-marginTop--40 u-marginBottom--15 ${item.hidden || item.when === "false" ? "hidden" : ""}`}>
             <h3 className="header-color field-section-header">{item.title}</h3>
           </div>
         );
@@ -99,6 +105,7 @@ export default class ConfigGroup extends React.Component {
             key={`${i}-${item.name}`}
             handleOnChange={this.handleItemChange}
             hidden={item.hidden}
+            when={item.when}
             inputType="password"
             {...item}
           />
