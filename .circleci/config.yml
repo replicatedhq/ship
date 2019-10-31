@@ -270,7 +270,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-base
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -310,7 +310,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -351,7 +351,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-init
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -391,7 +391,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-unfork
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -433,7 +433,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init-app
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -475,7 +475,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-update
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
