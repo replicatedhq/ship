@@ -261,7 +261,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -301,7 +301,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -342,7 +342,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -382,7 +382,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -424,7 +424,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -466,7 +466,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
