@@ -7390,10 +7390,10 @@ mkdirp@0.5.1, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0, mkd
   dependencies:
     minimist "0.0.8"
 
-monaco-editor@^0.16.0:
-  version "0.16.2"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.16.2.tgz#950084ed82eeaef1c8c9d3c1bcab849fe11b2415"
-  integrity sha512-NtGrFzf54jADe7qsWh3lazhS7Kj0XHkJUGBq9fA/Jbwc+sgVcyfsYF6z2AQ7hPqDC+JmdOt/OwFjBnRwqXtx6w==
+monaco-editor@^0.14.2:
+  version "0.14.3"
+  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.14.3.tgz#7cc4a4096a3821f52fea9b10489b527ef3034e22"
+  integrity sha512-RhaO4xXmWn/p0WrkEOXe4PoZj6xOcvDYjoAh0e1kGUrQnP1IOpc0m86Ceuaa2CLEMDINqKijBSmqhvBQnsPLHQ==
 
 moo@^0.4.3:
   version "0.4.3"
@@ -9322,14 +9322,14 @@ react-modal@^3.5.1:
     react-lifecycles-compat "^3.0.0"
     warning "^4.0.3"
 
-react-monaco-editor@^0.25.1:
-  version "0.25.1"
-  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.25.1.tgz#29215061da23d0e4ad7bf928d9403288d5be4e92"
-  integrity sha512-VLksQjt8fmeIZoET9fQgmR0sdCCBFaiss92MwW5JvgO3JfrnhHtrLBqrSQRjtbUmef1EmEKi4gZp5Mh0oidvVg==
+react-monaco-editor@0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.18.0.tgz#098d847733667905aee80a0cd2473e80ab7b1302"
+  integrity sha512-azMSMDF3eS9XFd9RWfujDInYvSQtdipozmEXSJRuJqsq3JmJlToOjMRSNEkTPmxnR6ZcI9DVhMImCLGNgUk5bQ==
   dependencies:
     "@types/react" "*"
-    monaco-editor "^0.16.0"
-    prop-types "^15.7.2"
+    monaco-editor "^0.14.2"
+    prop-types "^15.6.2"
 
 react-redux@^5.0.7:
   version "5.1.1"
