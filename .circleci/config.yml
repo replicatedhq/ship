@@ -261,7 +261,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -270,7 +270,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-base
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -301,7 +301,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -310,7 +310,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -342,7 +342,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -351,7 +351,7 @@ jobs:
           keys:
             - ship-integration-test-build-cache-init
       - run: |
-          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+          export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
           export GOROOT=/usr/local/go
           export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
           sudo apt update --fix-missing
@@ -382,7 +382,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -391,7 +391,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-unfork
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -424,7 +424,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -433,7 +433,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-init-app
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
@@ -466,7 +466,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/replicatedhq/ship
     environment:
       GOPATH: /home/circleci/go
-      GO_SHA256SUM: 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
+      GO_SHA256SUM: 0804bf02020dceaa8a7d7275ee79f7a142f1996bfd0c39216ccb405f93f994c0
       GO: /usr/local/go/bin/go
       GOCACHE: "/tmp/go/cache"
     steps:
@@ -475,7 +475,7 @@ jobs:
         keys:
         - ship-integration-test-build-cache-update
     - run: |
-        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+        export GO_DOWNLOAD_URL=https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz
         export GOROOT=/usr/local/go
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
         sudo apt update --fix-missing
