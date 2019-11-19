@@ -28,7 +28,6 @@ export default class ConfigCheckbox extends React.Component {
             ref={(checkbox) => this.checkbox = checkbox}
             type="checkbox"
             name={this.props.name}
-            default={this.props.default}
             id={this.props.name}
             value="1"
             checked={checked}
