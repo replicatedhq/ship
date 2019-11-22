@@ -1,3 +1,8 @@
+## Replicated Ship has been superseded by [Kots](https://www.github.com/replicatedhq/kots).
+
+Kots provides the core functionality of Ship, but with a different architecture.
+While Ship will continue to be supported, it is no longer under active development.
+
 Replicated Ship
 =======
 
