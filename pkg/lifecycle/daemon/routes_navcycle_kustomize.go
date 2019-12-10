@@ -220,11 +220,11 @@ func (d *NavcycleRoutes) createOrMergePatch(c *gin.Context) {
 
 	var stringPath []string
 	for _, value := range request.Path {
-		switch value.(type) {
+		switch v := value.(type) {
 		case float64:
-			stringPath = append(stringPath, strconv.FormatFloat(value.(float64), 'f', 0, 64))
+			stringPath = append(stringPath, strconv.FormatFloat(v, 'f', 0, 64))
 		case string:
-			stringPath = append(stringPath, value.(string))
+			stringPath = append(stringPath, v)
 		default:
 			level.Error(d.Logger).Log("event", "invalid path provided")
 			c.AbortWithError(500, errors.New("internal_server_error"))
@@ -307,9 +307,7 @@ func (d *NavcycleRoutes) deleteBase(c *gin.Context) {
 	}
 	shipOverlay.ExcludedBases = append(shipOverlay.ExcludedBases, pathQueryParam)
 
-	if _, exists := shipOverlay.Patches[pathQueryParam]; exists {
-		delete(shipOverlay.Patches, pathQueryParam)
-	}
+	delete(shipOverlay.Patches, pathQueryParam)
 
 	if kustomize.Overlays == nil {
 		kustomize.Overlays = map[string]state.Overlay{}
