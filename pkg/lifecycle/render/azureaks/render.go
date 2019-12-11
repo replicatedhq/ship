@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/go-kit/kit/log"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"

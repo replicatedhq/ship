@@ -23,7 +23,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	units "github.com/docker/go-units"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"

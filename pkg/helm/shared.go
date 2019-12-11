@@ -28,7 +28,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/replicatedhq/ship/pkg/constants"
 	"google.golang.org/grpc/status"
 	yaml "gopkg.in/yaml.v3"
