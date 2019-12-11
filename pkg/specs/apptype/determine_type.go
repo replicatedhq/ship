@@ -140,34 +140,32 @@ func (i *inspector) determineTypeFromContents(ctx context.Context, upstream stri
 	}
 
 	finalPath, err := fetcher.GetFiles(ctx, upstream, repoSavePath)
-	if err != nil {
-		if _, ok := err.(errors2.FetchFilesError); ok {
-			i.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
+	if _, ok := err.(errors2.FetchFilesError); ok {
+		i.ui.Info(fmt.Sprintf("Failed to retrieve upstream %s", upstream))
 
-			var retryError = err
-			retries := i.viper.GetInt("retries")
-			hasSucceeded := false
-			for idx := 1; idx <= retries && !hasSucceeded; idx++ {
-				debug.Log("event", "retry.getFiles", "attempt", idx)
-				i.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
+		var retryError = err
+		retries := i.viper.GetInt("retries")
+		hasSucceeded := false
+		for idx := 1; idx <= retries && !hasSucceeded; idx++ {
+			debug.Log("event", "retry.getFiles", "attempt", idx)
+			i.ui.Info(fmt.Sprintf("Retrying to retrieve upstream %s ...", upstream))
 
-				time.Sleep(time.Second * 5)
-				finalPath, retryError = fetcher.GetFiles(ctx, upstream, repoSavePath)
+			time.Sleep(time.Second * 5)
+			finalPath, retryError = fetcher.GetFiles(ctx, upstream, repoSavePath)
 
-				if retryError != nil {
-					i.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
-					level.Error(i.logger).Log("event", "getFiles", "err", retryError)
-				} else {
-					hasSucceeded = true
-				}
+			if retryError != nil {
+				i.ui.Info(fmt.Sprintf("Retry attempt %v out of %v to fetch upstream failed", idx, retries))
+				level.Error(i.logger).Log("event", "getFiles", "err", retryError)
+			} else {
+				hasSucceeded = true
 			}
-
-			if !hasSucceeded {
-				return nil, retryError
-			}
-		} else {
-			return nil, err
 		}
+
+		if !hasSucceeded {
+			return nil, retryError
+		}
+	} else if err != nil {
+		return nil, err
 	}
 
 	// if there's a ship.yaml, assume its a replicated.app

@@ -520,7 +520,7 @@ func fixFile(fs afero.Afero, thisPath string, mode os.FileMode) error {
 			fmt.Fprintln(&outputFile, line)
 		} else {
 			// avoid adding trailing newlines
-			fmt.Fprintf(&outputFile, line)
+			fmt.Fprint(&outputFile, line)
 		}
 	}
 
