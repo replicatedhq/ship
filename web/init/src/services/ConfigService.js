@@ -114,7 +114,7 @@ export const ConfigService = {
   },
 
   isVisible(groups, obj) {
-    return !obj.hidden && ConfigService.isEnabled(groups, obj);
+    return !obj.hidden && obj.when !== "false" && ConfigService.isEnabled(groups, obj);
   },
 
   isEnabled(groups, obj) {
