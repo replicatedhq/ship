@@ -179,6 +179,6 @@ For instructions for building the project and making contributions, see [Contrib
 
 # Community
 
-For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#ship channel in Kubernetes Slack](https://kubernetes.slack.com/channels/ship).
+For questions about using Ship, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#kots channel in Kubernetes Slack](https://kubernetes.slack.com/channels/kots).
 
 For bug reports, please [open an issue](https://github.com/replicatedhq/ship/issues/new) in this repo.
