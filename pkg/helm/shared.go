@@ -30,6 +30,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/replicatedhq/ship/pkg/constants"
+	"github.com/replicatedhq/ship/pkg/util"
 	"google.golang.org/grpc/status"
 	yaml "gopkg.in/yaml.v3"
 	"k8s.io/helm/pkg/getter"
@@ -140,7 +141,7 @@ func vals(valueFiles valueFiles, values []string, stringValues []string, fileVal
 		}
 	}
 
-	return yaml.Marshal(base)
+	return util.MarshalIndent(2, base)
 }
 
 func generateName(nameTemplate string) (string, error) {
