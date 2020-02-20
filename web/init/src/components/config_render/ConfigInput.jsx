@@ -31,12 +31,21 @@ export default class ConfigInput extends React.Component {
       this.setState({ inputVal: this.props.value });
     }
   }
+
+  maskValue = value => {
+    if (!value) {
+      return "";
+    }
+    return value.replace(/./g, '•');
+  }
+  
   // p1-2019-06-27
   // Fields that are required sometimes don't have a title associated with them.
   // Use title -OR- required prop to render <ConfigItemTitle> to make sure error
   // elements are rendered.
   render() {
     var hidden = this.props.hidden || this.props.when === "false";
+    var placeholder = this.props.inputType === "password" ? this.maskValue(this.props.default) : this.props.default;
 
     return (
       <div className={`field field-type-text ${hidden ? "hidden" : "u-marginTop--15"}`}>
@@ -54,7 +63,7 @@ export default class ConfigInput extends React.Component {
             ref={this.inputRef}
             type={this.props.inputType}
             {...this.props.props}
-            placeholder={this.props.default}
+            placeholder={placeholder}
             value={this.state.inputVal}
             readOnly={this.props.readonly}
             disabled={this.props.readonly}
