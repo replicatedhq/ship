@@ -55,6 +55,7 @@ export default class ConfigInput extends React.Component {
             recommended={this.props.recommended}
             required={this.props.required}
             name={this.props.name}
+            error={this.props.error}
           />
           : null}
         {this.props.help_text !== "" ? <p className="field-section-help-text u-marginTop--small u-lineHeight--normal">{this.props.help_text}</p> : null}
