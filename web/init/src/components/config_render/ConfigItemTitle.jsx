@@ -1,5 +1,6 @@
 import React from "react";
 import Markdown from "react-remarkable";
+import classNames from "classnames";
 
 export default class ConfigItemTitle extends React.Component {
 
@@ -9,7 +10,8 @@ export default class ConfigItemTitle extends React.Component {
       recommended,
       required,
       hidden,
-      when
+      when,
+      error = ""
     } = this.props;
 
     var isHidden = hidden || when === "false" || (!title && !required && !recommended);
@@ -38,7 +40,7 @@ export default class ConfigItemTitle extends React.Component {
               recommended ? 
                 <span className="field-label recommended">Recommended</span> :
                   null}
-          <span className="u-marginLeft--small config-errblock" id={`${this.props.name}-errblock`}></span>
+          <span className={classNames("u-marginLeft--small config-errblock", { "visible": !!error })} id={`${this.props.name}-errblock`}>{error || ""}</span>
         </div>
       </h4>
     );
