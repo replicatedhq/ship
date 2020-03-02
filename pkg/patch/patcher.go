@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/client-go/kubernetes/scheme"
 	kustomizepatch "sigs.k8s.io/kustomize/pkg/patch"
@@ -186,7 +185,7 @@ func (p *ShipPatcher) ApplyPatch(patch []byte, step api.Kustomize, resource stri
 		PatchesStrategicMerge: []kustomizepatch.StrategicMerge{TempYamlPath},
 	}
 
-	kustomizationYamlBytes, err := yamlv3.Marshal(kustomizationYaml)
+	kustomizationYamlBytes, err := util.MarshalIndent(2, kustomizationYaml)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal kustomization yaml")
 	}
