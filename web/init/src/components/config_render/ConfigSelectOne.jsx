@@ -46,7 +46,7 @@ export default class ConfigSelectOne extends React.Component {
           />
           : null}
         {this.props.help_text !== "" ? <p className="field-section-help-text u-marginTop--small u-lineHeight--normal">{this.props.help_text}</p> : null}
-        <div className="field-input-wrapper u-marginTop--15 flex alignItems--center flexWrap--wrap">
+        <div className="field-input-wrapper u-marginTop--15 flex flexWrap--wrap">
           {options}
         </div>
       </div>
