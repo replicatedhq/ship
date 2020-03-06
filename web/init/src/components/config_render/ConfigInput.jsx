@@ -1,5 +1,6 @@
 import React from "react";
 import ConfigItemTitle from "./ConfigItemTitle";
+import Markdown from "react-remarkable";
 
 export default class ConfigInput extends React.Component {
 
@@ -58,7 +59,17 @@ export default class ConfigInput extends React.Component {
             error={this.props.error}
           />
           : null}
-        {this.props.help_text !== "" ? <p className="field-section-help-text u-marginTop--small u-lineHeight--normal">{this.props.help_text}</p> : null}
+        {this.props.help_text !== "" ? 
+          <p className="field-section-help-text u-marginTop--small u-lineHeight--normal u-marginLeft--small">
+            <Markdown
+              options={{
+                linkTarget: "_blank",
+                linkify: true,
+              }}>
+              {this.props.help_text}
+            </Markdown>
+          </p>
+        : null}
         <div className="field-input-wrapper u-marginTop--15">
           <input
             ref={this.inputRef}
