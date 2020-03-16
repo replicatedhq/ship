@@ -602,6 +602,11 @@ jobs:
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: |
+            git diff go.mod
+            git update-index --assume-unchanged go.mod
+            git diff go.sum
+            git update-index --assume-unchanged go.sum
+
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
                docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
                curl -sL https://git.io/goreleaser | bash -s -- --config deploy/.goreleaser.yml
