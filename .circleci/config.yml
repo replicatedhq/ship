@@ -602,7 +602,7 @@ jobs:
       - run: docker pull alpine:latest # make sure it's fresh
       - deploy:
           command: |
-            git diff
+            git --no-pager diff
 
             if [ "${CIRCLE_PROJECT_USERNAME}" == "replicatedhq" ]; then
                docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
