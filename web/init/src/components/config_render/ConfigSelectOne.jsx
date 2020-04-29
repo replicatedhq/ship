@@ -57,7 +57,7 @@ export default class ConfigSelectOne extends React.Component {
             </Markdown>
           </p>
         : null}
-        <div className="field-input-wrapper u-marginTop--15 flex flexWrap--wrap">
+        <div className="field-input-wrapper u-marginTop--5 flex flexWrap--wrap">
           {options}
         </div>
       </div>
