@@ -79,15 +79,12 @@ export default class FileInput extends React.Component {
               />
               <label htmlFor={`${this.props.name} selector`} className="u-position--relative">
                 <span className={`icon clickable ${this.state.fileAdded || this.props.value ? "u-smallCheckGreen" : "u-ovalIcon"} u-marginRight--normal u-top--3`}></span>
-                {this.state.fileAdded || this.props.value ? `${this.props.title} file selected` : `Browse files for ${this.props.title}`}
+                {this.state.fileAdded || this.props.value ? this.props.multiple ? this.state.fileNames.join(",") : this.state.fileName : `Browse files for ${this.props.title}`}
+                {this.state.fileAdded || this.props.value ? 
+                  <p className="u-color--astral u-textDecoration--underlineOnHover u-fontSize--small u-marginLeft--30 u-marginTop--5">Select a different file</p>
+                : null }
               </label>
             </div>
-            {this.state.fileAdded || this.props.value ?
-              <div className="u-color--tuna u-marginLeft--normal"> File uploaded:
-              <p className="Form-label-subtext"> {this.props.multiple ? this.state.fileNames.join(",") : this.state.fileName} </p>
-                <p className="Form-label-subtext"> {this.props.getFilenamesText} </p>
-              </div>
-              : null}
           </div>
         </div>
         <small className="text-danger"> {this.state.errText}</small>
