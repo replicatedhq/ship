@@ -24,7 +24,7 @@ export default class ConfigCheckbox extends React.Component {
     return (
       <div className={`field field-checkbox-wrapper u-marginTop--15 flex ${hidden ? "hidden" : ""}`}>
         <span className="u-marginTop--10 config-errblock" id={`${this.props.name}-errblock`}></span>
-        <div className="flex-auto flex u-marginRight--20">
+        <div className="flex1 flex u-marginRight--20">
           <input
             ref={(checkbox) => this.checkbox = checkbox}
             type="checkbox"
