@@ -19,7 +19,7 @@ export default class ConfigRadio extends React.Component {
     const checked = val === this.props.name;
 
     return (
-      <div className="flex-auto flex alignItems--center u-marginRight--20 u-marginTop--10">
+      <div className="flex alignItems--center u-marginRight--20 u-marginTop--10">
         <input
           type="radio"
           name={this.props.group}
@@ -28,7 +28,7 @@ export default class ConfigRadio extends React.Component {
           checked={checked}
           disabled={this.props.readOnly}
           onChange={(e) => this.handleOnChange(e)}
-          className={`${this.props.className || ""} flex-auto ${this.props.readOnly ? "readonly" : ""}`} />
+          className={`${this.props.className || ""} ${this.props.readOnly ? "readonly" : ""}`} />
         <label htmlFor={`${this.props.group}-${this.props.name}`} className={`u-marginLeft--small header-color field-section-sub-header u-userSelect--none ${this.props.readOnly ? "u-cursor--default" : "u-cursor--pointer"}`}>{this.props.title}</label>
       </div>
     );
