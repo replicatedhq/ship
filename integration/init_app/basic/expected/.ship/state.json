@@ -2,7 +2,7 @@
   "v1": {
     "config": {},
     "upstream": "__upstream__",
-    "contentSHA": "aafa722a828058d1da1eee0ee2f449533b9ddff13534ea94760fd177ab79e864",
+    "contentSHA": "8997ab5eed1468dfdcc8953b793a89d39efbcc08cac820f4e6d343f27636d3fc",
     "metadata": {
       "applicationType": "replicated.app",
       "customerID": "__customerID__",
@@ -31,7 +31,7 @@
         "spec": "---\nassets:\n  v1:\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"installing nothing\"\n          echo \"config option: {{repl ConfigOption \"test_option\" }}\"\n        dest: ./scripts/install.sh\n        mode: 0777\n    - inline:\n        contents: |\n          #!/bin/bash\n          echo \"tested nothing\"\n          echo \"customer {{repl Installation \"customer_id\" }}\"\n          echo \"install {{repl Installation \"installation_id\" }}\"\n        dest: ./scripts/test.sh\n        mode: 0777\nconfig:\n  v1:\n    - name: test_options\n      title: Test Options\n      description: testing testing 123\n      items:\n      - name: test_option\n        title: Test Option\n        default: abc123_test-option-value\n        type: text\nlifecycle:\n  v1:\n    - render: {}\n",
         "images": [],
         "githubContents": [],
-        "created": "Tue Dec 04 2018 03:21:49 GMT+0000 (UTC)",
+        "created": "2018-12-04T03:21:49.000Z",
         "entitlements": {}
       }
     }
