@@ -142,7 +142,7 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
-# github.com/elazarl/go-bindata-assetfs v1.0.0
+# github.com/elazarl/go-bindata-assetfs v1.0.1
 github.com/elazarl/go-bindata-assetfs
 # github.com/emicklei/go-restful v2.8.1+incompatible
 github.com/emicklei/go-restful

@@ -28,7 +28,7 @@ require (
 	github.com/docker/go-units v0.3.3
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
 	github.com/dsnet/compress v0.0.0-20171208185109-cc9eb1d7ad76 // indirect
-	github.com/elazarl/go-bindata-assetfs v1.0.0
+	github.com/elazarl/go-bindata-assetfs v1.0.1
 	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/emicklei/go-restful v2.8.1+incompatible // indirect
