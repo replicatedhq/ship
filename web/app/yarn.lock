@@ -182,8 +182,28 @@
     fsevents "^1.1.3"
 
 "@replicatedhq/ship-init@link:../init":
-  version "0.0.0"
-  uid ""
+  version "1.6.22"
+  dependencies:
+    brace "^0.11.1"
+    classnames "^2.2.6"
+    history "^4.7.2"
+    isomorphic-fetch "^2.2.1"
+    lodash "^4.17.11"
+    rc-progress "^2.2.5"
+    react-ace "^6.2.0"
+    react-document-title "^2.0.3"
+    react-modal "^3.5.1"
+    react-monaco-editor "0.18.0"
+    react-redux "^5.0.7"
+    react-remarkable "^1.1.3"
+    react-router-dom "^4.2.2"
+    react-router-hash-link "^1.2.0"
+    react-tooltip "^3.6.1"
+    redux "^3.7.2"
+    redux-segment "^1.6.2"
+    redux-thunk "2.2.0"
+    replicated-lint "0.14.9"
+    yaml-ast-parser "^0.0.41"
 
 "@snyk/composer-lockfile-parser@1.0.3":
   version "1.0.3"
@@ -1611,9 +1631,9 @@ bluebird@^3.4.7, bluebird@^3.5.1:
   integrity sha512-5am6HnnfN+urzt4yfg7IgTbotDjIT/u8AJpEt0sIU9FtXfVeezXAPKswrG+xKUCOYAINpSdgZVDU6QFh+cuH3w==
 
 bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
-  version "4.11.8"
-  resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.8.tgz#2cde09eb5ee341f484746bb0309b3253b1b1442f"
-  integrity sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA==
+  version "4.11.9"
+  resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.9.tgz#26d556829458f9d1e81fc48952493d0ba3507828"
+  integrity sha512-E6QoYqCKZfgatHTdHzs1RRKP7ip4vvm+EyRUeE2RF0NblwVvb0p6jSVeNTOFxPn26QXN2o6SMfNxKp6kU8zQaw==
 
 body-parser@1.19.0:
   version "1.19.0"
@@ -3180,9 +3200,9 @@ elegant-spinner@^1.0.1:
   integrity sha1-2wQ1IcldfjA/2PNFvtwzSc+wcp4=
 
 elliptic@^6.0.0:
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.0.tgz#2b8ed4c891b7de3200e14412a5b8248c7af505ca"
-  integrity sha512-eFOJTMyCYb7xtE/caJ6JJu+bhi67WCYNbkGSknu20pmM8Ke/bqOfdnZWxyoGN26JgfxTbXrsCkEw4KheCT/KGg==
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.3.tgz#cb59eb2efdaf73a0bd78ccd7015a62ad6e0f93d6"
+  integrity sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==
   dependencies:
     bn.js "^4.4.0"
     brorand "^1.0.1"
@@ -6533,15 +6553,10 @@ monaco-editor-webpack-plugin@^1.5.2:
   dependencies:
     "@types/webpack" "^4.4.19"
 
-monaco-editor@^0.14.3:
+monaco-editor@^0.14.2, monaco-editor@^0.14.3:
   version "0.14.3"
   resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.14.3.tgz#7cc4a4096a3821f52fea9b10489b527ef3034e22"
   integrity sha512-RhaO4xXmWn/p0WrkEOXe4PoZj6xOcvDYjoAh0e1kGUrQnP1IOpc0m86Ceuaa2CLEMDINqKijBSmqhvBQnsPLHQ==
-
-monaco-editor@^0.16.0:
-  version "0.16.2"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.16.2.tgz#950084ed82eeaef1c8c9d3c1bcab849fe11b2415"
-  integrity sha512-NtGrFzf54jADe7qsWh3lazhS7Kj0XHkJUGBq9fA/Jbwc+sgVcyfsYF6z2AQ7hPqDC+JmdOt/OwFjBnRwqXtx6w==
 
 move-concurrently@^1.0.1:
   version "1.0.1"
@@ -8111,14 +8126,14 @@ react-modal@^3.5.1:
     react-lifecycles-compat "^3.0.0"
     warning "^4.0.3"
 
-react-monaco-editor@^0.25.1:
-  version "0.25.1"
-  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.25.1.tgz#29215061da23d0e4ad7bf928d9403288d5be4e92"
-  integrity sha512-VLksQjt8fmeIZoET9fQgmR0sdCCBFaiss92MwW5JvgO3JfrnhHtrLBqrSQRjtbUmef1EmEKi4gZp5Mh0oidvVg==
+react-monaco-editor@0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.18.0.tgz#098d847733667905aee80a0cd2473e80ab7b1302"
+  integrity sha512-azMSMDF3eS9XFd9RWfujDInYvSQtdipozmEXSJRuJqsq3JmJlToOjMRSNEkTPmxnR6ZcI9DVhMImCLGNgUk5bQ==
   dependencies:
     "@types/react" "*"
-    monaco-editor "^0.16.0"
-    prop-types "^15.7.2"
+    monaco-editor "^0.14.2"
+    prop-types "^15.6.2"
 
 react-redux@^5.0.7:
   version "5.1.1"
