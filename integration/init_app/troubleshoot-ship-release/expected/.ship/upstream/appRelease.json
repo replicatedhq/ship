@@ -9,7 +9,7 @@
   "spec": "---\nassets:\n  v1:\n    - inline:\n        contents: |\n          {{repl CollectSpec }}\n        dest: ./troubleshoot/collect.yml\n        mode: 0644\n    - inline:\n        contents: |\n          {{repl AnalyzeSpec }}\n        dest: ./troubleshoot/analyze.yml\n        mode: 0644\n\nconfig: {}\n\nlifecycle:\n  v1:\n    - render: {}\n",
   "images": [],
   "githubContents": [],
-  "created": "Fri Jul 05 2019 18:12:17 GMT+0000 (UTC)",
+  "created": "2019-07-05T18:12:17.000Z",
   "registrySecret": "THIS IS NOT A SECRET",
   "entitlements": {
     "meta": {

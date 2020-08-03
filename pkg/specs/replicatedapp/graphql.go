@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -167,8 +168,24 @@ type GQLRegisterInstallResponse struct {
 }
 
 func parseServerTS(ts string) time.Time {
-	parsed, _ := time.Parse("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)", ts)
-	return parsed
+	parsed, err := time.Parse(time.RFC3339, ts)
+	if err == nil {
+		return parsed
+	}
+
+	ts = strings.TrimSuffix(ts, "+0000 (UTC)")
+	parsed, err = time.Parse("Mon Jan 02 2006 15:04:05 MST", ts)
+	if err == nil {
+		return parsed
+	}
+
+	ts = strings.TrimSuffix(ts, "+0000 (Coordinated Universal Time)")
+	parsed, err = time.Parse("Mon Jan 02 2006 15:04:05 MST", ts)
+	if err == nil {
+		return parsed
+	}
+
+	return time.Time{}
 }
 
 type license struct {

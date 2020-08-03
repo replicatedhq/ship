@@ -97,7 +97,7 @@ export const ConfigService = {
       value: "",
       negate: false,
     };
-    if (!when) {
+    if (!when || typeof when !== "string") {
       return expanded;
     }
     const parts = when.split("=");

@@ -148,8 +148,10 @@ export default class ConfigOnly extends React.Component {
       // TODO: Refactor to pass errors down instead of manipulating
       // the DOM
       const el = document.getElementById(`${err.fieldName}-errblock`);
-      el.innerHTML = err.message;
-      el.classList.add("visible");
+      if (el) {
+        el.innerHTML = err.message;
+        el.classList.add("visible");
+      }
     })
   }
 

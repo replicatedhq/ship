@@ -142,7 +142,7 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
-# github.com/elazarl/go-bindata-assetfs v1.0.0
+# github.com/elazarl/go-bindata-assetfs v1.0.1
 github.com/elazarl/go-bindata-assetfs
 # github.com/emicklei/go-restful v2.8.1+incompatible
 github.com/emicklei/go-restful
@@ -201,7 +201,7 @@ github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
 # github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef
 github.com/golang/groupcache/lru
-# github.com/golang/mock v1.3.1
+# github.com/golang/mock v1.4.3
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto

@@ -40,6 +40,7 @@ export default class ConfigFileInput extends React.Component {
             recommended={this.props.recommended}
             required={this.props.required}
             name={this.props.name}
+            error={this.props.error}
           />
           : null}
         <div className="input input-type-file clearfix">

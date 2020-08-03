@@ -4,6 +4,7 @@ import isEmpty from "lodash/isEmpty";
 
 import ConfigItemTitle from "./ConfigItemTitle";
 import ConfigRadio from "./ConfigRadio";
+import Markdown from "react-remarkable";
 
 export default class ConfigSelectOne extends React.Component {
 
@@ -42,10 +43,21 @@ export default class ConfigSelectOne extends React.Component {
             recommended={this.props.recommended}
             required={this.props.required}
             name={this.props.name}
+            error={this.props.error}
           />
           : null}
-        {this.props.help_text !== "" ? <p className="field-section-help-text u-marginTop--small u-lineHeight--normal">{this.props.help_text}</p> : null}
-        <div className="field-input-wrapper u-marginTop--15 flex">
+        {this.props.help_text !== "" ? 
+          <p className="field-section-help-text u-marginTop--small u-lineHeight--normal u-marginLeft--small">
+            <Markdown
+              options={{
+                linkTarget: "_blank",
+                linkify: true,
+              }}>
+              {this.props.help_text}
+            </Markdown>
+          </p>
+        : null}
+        <div className="field-input-wrapper u-marginTop--5 flex flexWrap--wrap">
           {options}
         </div>
       </div>
