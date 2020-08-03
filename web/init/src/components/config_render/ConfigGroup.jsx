@@ -143,7 +143,7 @@ export default class ConfigGroup extends React.Component {
 
   render() {
     const { item } = this.props;
-    const hidden = item && item.when === "false";
+    const hidden = item && (item.when === "false");
     if (hidden || !this.isAtLeastOneItemVisible()) return null;
     return (
       <div className="flex-column flex-auto">
