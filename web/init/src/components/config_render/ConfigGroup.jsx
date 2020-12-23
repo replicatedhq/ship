@@ -21,7 +21,7 @@ export default class ConfigGroup extends React.Component {
     }
   }
 
-  renderConfigItems = (items) => {
+  renderConfigItems = (items, readonly) => {
     if (!items) return null;
     return items.map((item, i) => {
       switch (item.type) {
@@ -34,6 +34,7 @@ export default class ConfigGroup extends React.Component {
             hidden={item.hidden}
             when={item.when}
             {...item}
+            readonly={readonly}
           />
         );
       case "textarea":
@@ -44,6 +45,7 @@ export default class ConfigGroup extends React.Component {
             hidden={item.hidden}
             when={item.when}
             {...item}
+            readonly={readonly}
           />
         );
       case "bool":
@@ -54,6 +56,7 @@ export default class ConfigGroup extends React.Component {
             hidden={item.hidden}
             when={item.when}
             {...item}
+            readonly={readonly}
           />
         );
       case "label":
@@ -67,6 +70,7 @@ export default class ConfigGroup extends React.Component {
               when={item.when}
               name={item.name}
               error={item.error}
+              readonly={readonly}
             />
           </div>
         );
@@ -81,6 +85,7 @@ export default class ConfigGroup extends React.Component {
               handleChange={this.handleItemChange}
               hidden={item.hidden}
               when={item.when}
+              readonly={readonly}
             />
           </div>
         );
@@ -92,6 +97,7 @@ export default class ConfigGroup extends React.Component {
             hidden={item.hidden}
             when={item.when}
             {...item}
+            readonly={readonly}
           />
         );
       case "heading":
@@ -109,6 +115,7 @@ export default class ConfigGroup extends React.Component {
             when={item.when}
             inputType="password"
             {...item}
+            readonly={readonly}
           />
         );
       default:
@@ -142,7 +149,7 @@ export default class ConfigGroup extends React.Component {
   }
 
   render() {
-    const { item } = this.props;
+    const { item, readonly } = this.props;
     const hidden = item && (item.when === "false");
     if (hidden || !this.isAtLeastOneItemVisible()) return null;
     return (
@@ -160,7 +167,7 @@ export default class ConfigGroup extends React.Component {
               </Markdown>
               : null}
             <div className="config-item">
-              {this.renderConfigItems(item.items)}
+              {this.renderConfigItems(item.items, readonly)}
             </div>
           </div>
         }

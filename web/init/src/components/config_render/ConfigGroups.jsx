@@ -10,7 +10,7 @@ export default class ConfigGroups extends React.Component {
   }
 
   render() {
-    const { fieldsList, fields } = this.props;
+    const { fieldsList, fields, readonly } = this.props;
     return (
       <div className="flex-column flex1">
         {fieldsList && fieldsList.map((fieldName, i) => (
@@ -19,6 +19,7 @@ export default class ConfigGroups extends React.Component {
             items={fields}
             item={fields[fieldName]}
             handleChange={(itemName, value, data) => this.handleGroupChange(fieldName, itemName, value, data)}
+            readonly={readonly}
           />
         ))
         }

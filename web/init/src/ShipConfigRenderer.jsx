@@ -23,7 +23,7 @@ export class ShipConfigRenderer extends React.Component {
   }
 
   render() {
-    const { groups } = this.props;
+    const { groups, readonly } = this.props;
     const orderedFields = sortBy(groups, "position");
     const _groups = keyBy(orderedFields, "name");
     const groupsList = map(groups, "name");
@@ -35,6 +35,7 @@ export class ShipConfigRenderer extends React.Component {
           fields={_groups}
           handleChange={this.props.handleChange || (() => { return; })}
           getData={this.props.getData || (() => { return; })}
+          readonly={readonly}
         />
       </div>
     )
