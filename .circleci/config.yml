@@ -10,7 +10,7 @@ jobs:
 
   build_web_init:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     working_directory: ~/ship
     steps:
       - checkout
@@ -45,7 +45,7 @@ jobs:
             - ship/web/init/package.json
   build_web_app:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     working_directory: ~/ship
     steps:
       - checkout
@@ -503,7 +503,7 @@ jobs:
 
   ui:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     working_directory: ~/ship
     steps:
       - checkout
@@ -527,7 +527,7 @@ jobs:
 
   deploy_ship_init:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     working_directory: ~/ship
     steps:
       - run: |
