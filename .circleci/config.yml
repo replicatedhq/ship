@@ -167,6 +167,11 @@ jobs:
 
             retry make cypress_base
 
+      - store_artifacts:
+          name: Uploading cypress screenshots to help with debugging
+          path: /root/ship/web/app/cypress/screenshots
+          when: on_fail
+
   test:
     docker:
       - image: circleci/golang:1.13
