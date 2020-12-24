@@ -10,7 +10,7 @@ jobs:
 
   build_web_init:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:12
     working_directory: ~/ship
     steps:
       - checkout
@@ -45,7 +45,7 @@ jobs:
             - ship/web/init/package.json
   build_web_app:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:12
     working_directory: ~/ship
     steps:
       - checkout
@@ -106,7 +106,7 @@ jobs:
             - ship/bin
   e2e_setup:
     docker:
-      - image: cypress/browsers:node8.9.3-chrome73
+      - image: cypress/browsers:node12.18.3-chrome87-ff82
     working_directory: ~/ship
     steps:
       - checkout
@@ -130,7 +130,7 @@ jobs:
           key: ship-e2e-setup-cy-3.2.0
   e2e_init:
     docker:
-      - image: cypress/browsers:node8.9.3-chrome73
+      - image: cypress/browsers:node12.18.3-chrome87-ff82
     working_directory: ~/ship
     steps:
       - checkout
@@ -503,7 +503,7 @@ jobs:
 
   ui:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:12
     working_directory: ~/ship
     steps:
       - checkout
@@ -527,7 +527,7 @@ jobs:
 
   deploy_ship_init:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:12
     working_directory: ~/ship
     steps:
       - run: |
