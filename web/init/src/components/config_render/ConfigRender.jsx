@@ -91,13 +91,14 @@ export default class ConfigRender extends React.Component {
   }
 
   render() {
-    const { fieldsList } = this.props;
+    const { fieldsList, readonly } = this.props;
     return (
       <div className="flex-column flex1">
         <ConfigGroups
           fieldsList={fieldsList}
           fields={this.state.groups}
           handleChange={this.handleGroupsChange}
+          readonly={readonly}
         />
       </div>
     );
