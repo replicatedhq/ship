@@ -38,7 +38,7 @@ const (
 	Status_PENDING_INSTALL Status_Code = 6
 	// Status_PENDING_UPGRADE indicates that an upgrade operation is underway.
 	Status_PENDING_UPGRADE Status_Code = 7
-	// Status_PENDING_ROLLBACK indicates that an rollback operation is underway.
+	// Status_PENDING_ROLLBACK indicates that a rollback operation is underway.
 	Status_PENDING_ROLLBACK Status_Code = 8
 )
 
@@ -69,7 +69,7 @@ func (x Status_Code) String() string {
 	return proto.EnumName(Status_Code_name, int32(x))
 }
 func (Status_Code) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_status_933517e5a50981ed, []int{0, 0}
+	return fileDescriptor_status_59977299d7c48665, []int{0, 0}
 }
 
 // Status defines the status of a release.
@@ -90,7 +90,7 @@ func (m *Status) Reset()         { *m = Status{} }
 func (m *Status) String() string { return proto.CompactTextString(m) }
 func (*Status) ProtoMessage()    {}
 func (*Status) Descriptor() ([]byte, []int) {
-	return fileDescriptor_status_933517e5a50981ed, []int{0}
+	return fileDescriptor_status_59977299d7c48665, []int{0}
 }
 func (m *Status) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Status.Unmarshal(m, b)
@@ -143,9 +143,9 @@ func init() {
 	proto.RegisterEnum("hapi.release.Status_Code", Status_Code_name, Status_Code_value)
 }
 
-func init() { proto.RegisterFile("hapi/release/status.proto", fileDescriptor_status_933517e5a50981ed) }
+func init() { proto.RegisterFile("hapi/release/status.proto", fileDescriptor_status_59977299d7c48665) }
 
-var fileDescriptor_status_933517e5a50981ed = []byte{
+var fileDescriptor_status_59977299d7c48665 = []byte{
 	// 333 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0xd1, 0x6e, 0xa2, 0x40,
 	0x14, 0x86, 0x17, 0x45, 0xd4, 0xa3, 0x71, 0x27, 0xa3, 0xc9, 0xa2, 0xd9, 0x4d, 0x8c, 0x57, 0xde,

@@ -38,8 +38,10 @@ func (s *ReleaseServer) UpdateRelease(c ctx.Context, req *services.UpdateRelease
 	s.Log("preparing update for %s", req.Name)
 	currentRelease, updatedRelease, err := s.prepareUpdate(req)
 	if err != nil {
+		s.Log("failed to prepare update: %s", err)
 		if req.Force {
 			// Use the --force, Luke.
+			s.Log("performing force update for %s", req.Name)
 			return s.performUpdateForce(req)
 		}
 		return nil, err
@@ -89,6 +91,14 @@ func (s *ReleaseServer) prepareUpdate(req *services.UpdateReleaseRequest) (*rele
 	lastRelease, err := s.env.Releases.Last(req.Name)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// Concurrent `helm upgrade`s will either fail here with `errPending` or
+	// when creating the release with "already exists". This should act as a
+	// pessimistic lock.
+	sc := lastRelease.Info.Status.Code
+	if sc == release.Status_PENDING_INSTALL || sc == release.Status_PENDING_UPGRADE || sc == release.Status_PENDING_ROLLBACK {
+		return nil, nil, errPending
 	}
 
 	// Increment revision count. This is passed to templates, and also stored on
