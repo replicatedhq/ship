@@ -36,7 +36,7 @@ func TestUnfork(t *testing.T) {
 }
 
 var _ = Describe("ship unfork", func() {
-	dockerClient, err := client.NewEnvClient()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ var _ = Describe("ship unfork", func() {
 					if testMetadata.IgnoredKeys == nil {
 						testMetadata.IgnoredKeys = make(map[string][]string)
 					}
-					if _, ok := testMetadata.IgnoredKeys[".ship/state.json"]; ok {
+					if _, ok := testMetadata.IgnoredKeys[".ship/state.json"]; ok { //nolint:gosimple
 						testMetadata.IgnoredKeys[".ship/state.json"] = append(testMetadata.IgnoredKeys[".ship/state.json"], "v1.shipVersion")
 					} else {
 						testMetadata.IgnoredKeys[".ship/state.json"] = []string{"v1.shipVersion"}

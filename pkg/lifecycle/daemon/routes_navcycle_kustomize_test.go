@@ -159,7 +159,7 @@ func TestV2KustomizeSaveFile(t *testing.T) {
 					}
 					diff := deep.Equal(&test.ExpectState, c)
 					if len(diff) != 0 {
-						fmt.Print(fmt.Sprintf("Failed diff compare with %s", strings.Join(diff, "\n")))
+						fmt.Printf("Failed diff compare with %s", strings.Join(diff, "\n"))
 						return false
 					}
 					return true
@@ -281,7 +281,7 @@ func TestV2KustomizeDeleteFile(t *testing.T) {
 					}
 					diff := deep.Equal(&test.ExpectState, c)
 					if len(diff) != 0 {
-						fmt.Print(fmt.Sprintf("Failed diff compare with %s", strings.Join(diff, "\n")))
+						fmt.Printf("Failed diff compare with %s", strings.Join(diff, "\n"))
 						return false
 					}
 					return true

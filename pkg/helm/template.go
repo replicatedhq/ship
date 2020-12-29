@@ -91,7 +91,7 @@ func newTemplateCmd(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "template [flags] CHART",
-		Short:         fmt.Sprintf("locally render templates"),
+		Short:         "locally render templates",
 		Long:          templateDesc,
 		SilenceErrors: true,
 		SilenceUsage:  true,

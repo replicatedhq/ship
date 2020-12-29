@@ -45,7 +45,7 @@ func TestInitReplicatedApp(t *testing.T) {
 }
 
 var _ = Describe("ship init replicated.app/...", func() {
-	dockerClient, err := client.NewEnvClient()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}

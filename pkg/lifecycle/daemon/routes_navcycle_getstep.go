@@ -195,7 +195,7 @@ func (d *NavcycleRoutes) getActions(step daemontypes.Step) []daemontypes.Action 
 				Text:        "Saving",
 				LoadingText: "Save",
 				OnClick: daemontypes.ActionRequest{
-					URI:    fmt.Sprintf("/helm-values"),
+					URI:    "/helm-values",
 					Method: "POST",
 					Body:   "",
 				},
