@@ -65,6 +65,8 @@ var (
 	errInvalidRevision = errors.New("invalid release revision")
 	//errInvalidName indicates that an invalid release name was provided
 	errInvalidName = errors.New("invalid release name, must match regex ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])+$ and the length must not be longer than 53")
+	// errPending indicates that Tiller is already applying an operation on a release
+	errPending = errors.New("another operation (install/upgrade/rollback) is in progress")
 )
 
 // ListDefaultLimit is the default limit for number of items returned in a list.
@@ -251,7 +253,7 @@ func capabilities(disc discovery.DiscoveryInterface) (*chartutil.Capabilities, e
 	if err != nil {
 		return nil, err
 	}
-	vs, err := GetVersionSet(disc)
+	vs, err := GetAllVersionSet(disc)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get apiVersions from Kubernetes: %s", err)
 	}
@@ -262,10 +264,67 @@ func capabilities(disc discovery.DiscoveryInterface) (*chartutil.Capabilities, e
 	}, nil
 }
 
+// GetAllVersionSet retrieves a set of available k8s API versions and objects
+//
+// This is a different function from GetVersionSet because the signature changed.
+// To keep compatibility through the public functions this needed to be a new
+// function.GetAllVersionSet
+// TODO(mattfarina): In Helm v3 merge with GetVersionSet
+func GetAllVersionSet(client discovery.ServerResourcesInterface) (chartutil.VersionSet, error) {
+	groups, resources, err := client.ServerGroupsAndResources()
+	// It is okay to silently swallow a GroupDiscoveryFailedError, which is actually just
+	// a warning. The 'groups' will still have all of the valid data.
+	if err != nil && !discovery.IsGroupDiscoveryFailedError(err) {
+		return chartutil.DefaultVersionSet, err
+	}
+
+	// FIXME: The Kubernetes test fixture for cli appears to always return nil
+	// for calls to Discovery().ServerGroupsAndResources(). So in this case, we
+	// return the default API list. This is also a safe value to return in any
+	// other odd-ball case.
+	if len(groups) == 0 && len(resources) == 0 {
+		return chartutil.DefaultVersionSet, nil
+	}
+
+	versionMap := make(map[string]interface{})
+	versions := []string{}
+
+	// Extract the groups
+	for _, g := range groups {
+		for _, gv := range g.Versions {
+			versionMap[gv.GroupVersion] = struct{}{}
+		}
+	}
+
+	// Extract the resources
+	var id string
+	var ok bool
+	for _, r := range resources {
+		for _, rl := range r.APIResources {
+
+			// A Kind at a GroupVersion can show up more than once. We only want
+			// it displayed once in the final output.
+			id = path.Join(r.GroupVersion, rl.Kind)
+			if _, ok = versionMap[id]; !ok {
+				versionMap[id] = struct{}{}
+			}
+		}
+	}
+
+	// Convert to a form that NewVersionSet can use
+	for k := range versionMap {
+		versions = append(versions, k)
+	}
+
+	return chartutil.NewVersionSet(versions...), nil
+}
+
 // GetVersionSet retrieves a set of available k8s API versions
 func GetVersionSet(client discovery.ServerGroupsInterface) (chartutil.VersionSet, error) {
 	groups, err := client.ServerGroups()
-	if err != nil {
+	// It is okay to silently swallow a GroupDiscoveryFailedError, which is actually just
+	// a warning. The 'groups' will still have all of the valid data.
+	if err != nil && !discovery.IsGroupDiscoveryFailedError(err) {
 		return chartutil.DefaultVersionSet, err
 	}
 
@@ -455,7 +514,8 @@ func (s *ReleaseServer) deleteHookByPolicy(h *release.Hook, policy string, name,
 	b := bytes.NewBufferString(h.Manifest)
 	if hookHasDeletePolicy(h, policy) {
 		s.Log("deleting %s hook %s for release %s due to %q policy", hook, h.Name, name, policy)
-		if errHookDelete := kubeCli.Delete(namespace, b); errHookDelete != nil {
+		waitForDelete := h.DeleteTimeout > 0
+		if errHookDelete := kubeCli.DeleteWithTimeout(namespace, b, h.DeleteTimeout, waitForDelete); errHookDelete != nil {
 			s.Log("warning: Release %s %s %S could not be deleted: %s", name, hook, h.Path, errHookDelete)
 			return errHookDelete
 		}

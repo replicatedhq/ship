@@ -562,7 +562,7 @@ func fixLines(lines []string) []string {
 
 // returns true if the second line is a child of the first
 func checkIsChild(firstLine, secondLine string) bool {
-	cutset := fmt.Sprintf(" \t")
+	cutset := " \t"
 	firstIndentation := len(firstLine) - len(strings.TrimLeft(firstLine, cutset))
 	secondIndentation := len(secondLine) - len(strings.TrimLeft(secondLine, cutset))
 

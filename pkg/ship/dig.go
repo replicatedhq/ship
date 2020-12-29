@@ -90,7 +90,7 @@ func buildInjector(v *viper.Viper) (*dig.Container, error) {
 
 		docker.NewStep,
 
-		dockercli.NewEnvClient,
+		dockercli.NewEnvClient, //nolint
 
 		dockerlayer.NewUnpacker,
 		dockerlayer.TarArchiver,

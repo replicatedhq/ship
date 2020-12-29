@@ -533,7 +533,7 @@ func TestHydrateStep(t *testing.T) {
 						Text:        "Saving",
 						LoadingText: "Save",
 						OnClick: daemontypes.ActionRequest{
-							URI:    fmt.Sprintf("/helm-values"),
+							URI:    "/helm-values",
 							Method: "POST",
 							Body:   "",
 						},

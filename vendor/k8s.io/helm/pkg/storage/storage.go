@@ -50,7 +50,7 @@ func (s *Storage) Get(name string, version int32) (*rspb.Release, error) {
 
 // Create creates a new storage entry holding the release. An
 // error is returned if the storage driver failed to store the
-// release, or a release with identical an key already exists.
+// release, or a release with identical key already exists.
 func (s *Storage) Create(rls *rspb.Release) error {
 	s.Log("creating release %q", makeKey(rls.Name, rls.Version))
 	if s.MaxHistory > 0 {
@@ -135,6 +135,9 @@ func (s *Storage) Deployed(name string) (*rspb.Release, error) {
 	if len(ls) == 0 {
 		return nil, fmt.Errorf("%q %s", name, NoReleasesErr)
 	}
+
+	// Sometimes Tiller's database gets corrupted and multiple releases are DEPLOYED. Take the latest.
+	relutil.Reverse(ls, relutil.SortByRevision)
 
 	return ls[0], err
 }

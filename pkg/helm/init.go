@@ -67,7 +67,7 @@ const (
 )
 
 var (
-	stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
+	stableRepositoryURL = "https://charts.helm.sh/stable"
 	// This is the IPv4 loopback, not localhost, because we have to force IPv4
 	// for Dockerized Helm: https://github.com/kubernetes/helm/issues/1410
 	localRepositoryURL = "http://127.0.0.1:8879/charts"

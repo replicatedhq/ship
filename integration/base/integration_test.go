@@ -41,7 +41,7 @@ func TestShipApp(t *testing.T) {
 }
 
 var _ = Describe("ship app", func() {
-	dockerClient, err := client.NewEnvClient()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
