@@ -666,6 +666,7 @@ workflows:
             - e2e_setup
 
       - test
+      - lint
       - pacts
       - windows_build_test
       - docs
