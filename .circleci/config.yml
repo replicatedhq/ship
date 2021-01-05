@@ -210,10 +210,11 @@ jobs:
         keys:
         - ship-lint-build-cache
     - run:
-        name: make test
+        name: make cilint
         command: |
           mkdir -p $GOCACHE
 
+          ls /go/src/github.com/replicatedhq/ship/pkg
           make cilint
     - save_cache:
         paths:
