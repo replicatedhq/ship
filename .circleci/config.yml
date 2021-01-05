@@ -210,10 +210,11 @@ jobs:
         keys:
         - ship-lint-build-cache
     - run:
-        name: make test
+        name: make cilint
         command: |
           mkdir -p $GOCACHE
 
+          ls /go/src/github.com/replicatedhq/ship/pkg
           make cilint
     - save_cache:
         paths:
@@ -702,7 +703,6 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
-            - lint
             - pacts
             - windows_build_test
             - integration_base
@@ -856,7 +856,6 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
-            - lint
             - pacts
             - windows_build_test
             - integration_base
