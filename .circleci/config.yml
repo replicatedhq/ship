@@ -666,7 +666,6 @@ workflows:
             - e2e_setup
 
       - test
-      - lint
       - pacts
       - windows_build_test
       - docs
@@ -703,7 +702,6 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
-            - lint
             - pacts
             - windows_build_test
             - integration_base
@@ -857,7 +855,6 @@ workflows:
             - e2e_setup
             - e2e_init
             - test
-            - lint
             - pacts
             - windows_build_test
             - integration_base
