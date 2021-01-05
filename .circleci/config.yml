@@ -666,7 +666,7 @@ workflows:
             - e2e_setup
 
       - test
-      - lint
+      # - lint
       - pacts
       - windows_build_test
       - docs
@@ -772,12 +772,12 @@ workflows:
             branches:
               ignore: /.*/
 
-      - lint:
-          filters:
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
-            branches:
-              ignore: /.*/
+      # - lint:
+      #     filters:
+      #       tags:
+      #         only: /^v[0-9]+(\.[0-9]+)*(-.*)*/
+      #       branches:
+      #         ignore: /.*/
 
       - pacts:
           filters:
