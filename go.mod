@@ -13,7 +13,7 @@ require (
 	github.com/buildkite/terminal v3.1.0+incompatible
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190328212615-ea569c5aa1be
-	github.com/docker/distribution v2.7.1+incompatible
+	github.com/docker/distribution v2.8.0+incompatible
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/docker/go-units v0.3.3
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
