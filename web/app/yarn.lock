@@ -182,8 +182,28 @@
     fsevents "^1.1.3"
 
 "@replicatedhq/ship-init@link:../init":
-  version "0.0.0"
-  uid ""
+  version "1.6.24"
+  dependencies:
+    brace "^0.11.1"
+    classnames "^2.2.6"
+    history "^4.7.2"
+    isomorphic-fetch "^2.2.1"
+    lodash "^4.17.11"
+    rc-progress "^2.2.5"
+    react-ace "^6.2.0"
+    react-document-title "^2.0.3"
+    react-modal "^3.5.1"
+    react-monaco-editor "0.18.0"
+    react-redux "^5.0.7"
+    react-remarkable "^1.1.3"
+    react-router-dom "^4.2.2"
+    react-router-hash-link "^1.2.0"
+    react-tooltip "^3.6.1"
+    redux "^3.7.2"
+    redux-segment "^1.6.2"
+    redux-thunk "2.2.0"
+    replicated-lint "0.14.9"
+    yaml-ast-parser "^0.0.41"
 
 "@snyk/composer-lockfile-parser@1.0.3":
   version "1.0.3"
@@ -7968,9 +7988,9 @@ qs@6.7.0:
   integrity sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
 
 qs@~6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
-  integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.3.tgz#3aeeffc91967ef6e35c0e488ef46fb296ab76aad"
+  integrity sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==
 
 query-string@^4.1.0:
   version "4.3.4"
