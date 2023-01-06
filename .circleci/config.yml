@@ -7,8 +7,8 @@ experimental:
         - master
 
 jobs:
-  machine: true
   remediation:
+  machine: true
     steps:
       - run:
           name: get
